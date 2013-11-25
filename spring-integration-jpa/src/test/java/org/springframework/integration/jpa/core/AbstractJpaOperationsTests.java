@@ -13,7 +13,9 @@
 package org.springframework.integration.jpa.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.text.ParseException;
@@ -255,8 +257,7 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNull(student2.getRollNumber());
 		Assert.assertNull(student3.getRollNumber());
 
-		Object savedStudents = jpaOperations.merge(students);
-		entityManager.flush();
+		Object savedStudents = jpaOperations.merge(students, 10, true);
 
 		Assert.assertTrue(savedStudents instanceof List<?>);
 
@@ -329,9 +330,10 @@ public class AbstractJpaOperationsTests {
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		Assert.assertNull(student.getRollNumber());
-		jpaOperations.persist(student);
-		entityManager.flush();
+		jpaOperations.persist(student, 1, false);
 		Assert.assertNotNull(student.getRollNumber());
+
+		assertTrue(entityManager.contains(student));
 	}
 
 	public void testPersistCollection() {
@@ -355,11 +357,14 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNull(student2.getRollNumber());
 		Assert.assertNull(student3.getRollNumber());
 
-		jpaOperations.persist(students);
-		entityManager.flush();
+		jpaOperations.persist(students, 1, true);
 		Assert.assertNotNull(student1.getRollNumber());
 		Assert.assertNotNull(student2.getRollNumber());
 		Assert.assertNotNull(student3.getRollNumber());
+
+		assertFalse(entityManager.contains(student1));
+		assertFalse(entityManager.contains(student2));
+		assertFalse(entityManager.contains(student3));
 	}
 
 	public void testPersistNullCollection() {
@@ -401,8 +406,8 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNull(student2);
 		Assert.assertNull(student3.getRollNumber());
 
-		jpaOperations.persist(students);
-		entityManager.flush();
+		jpaOperations.persist(students, 10, false);
+
 		Assert.assertNotNull(student1.getRollNumber());
 		Assert.assertNotNull(student3.getRollNumber());
 

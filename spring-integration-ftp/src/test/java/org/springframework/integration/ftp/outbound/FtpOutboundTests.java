@@ -56,6 +56,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.messaging.support.GenericMessage;
@@ -94,6 +95,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {
+			@Override
 			public String generateFileName(Message<?> message) {
 				return "handlerContent.test";
 			}
@@ -117,6 +119,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {
+			@Override
 			public String generateFileName(Message<?> message) {
 				return "handlerContent.test";
 			}
@@ -138,6 +141,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(new FileNameGenerator() {
+			@Override
 			public String generateFileName(Message<?> message) {
 				return ((File)message.getPayload()).getName() + ".test";
 			}
@@ -163,6 +167,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(new FileNameGenerator() {
+			@Override
 			public String generateFileName(Message<?> message) {
 				return ((File)message.getPayload()).getName() + ".test";
 			}
@@ -172,7 +177,7 @@ public class FtpOutboundTests {
 
 		File srcFile = new File(UUID.randomUUID() + ".txt");
 
-		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		Log logger = spy(TestUtils.getPropertyValue(handler, "remoteFileTemplate.logger", Log.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		final AtomicReference<String> logged = new AtomicReference<String>();
 		doAnswer(new Answer<Object>(){
@@ -184,7 +189,8 @@ public class FtpOutboundTests {
 				return null;
 			}
 		}).when(logger).warn(Mockito.anyString());
-		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate", RemoteFileTemplate.class);
+		new DirectFieldAccessor(template).setPropertyValue("logger", logger);
 		handler.handleMessage(new GenericMessage<File>(srcFile));
 		assertNotNull(logged.get());
 		assertEquals("File " + srcFile.toString() + " does not exist", logged.get());
@@ -242,6 +248,7 @@ public class FtpOutboundTests {
 				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
 				when(ftpClient.printWorkingDirectory()).thenReturn("remote-target-dir");
 				when(ftpClient.storeFile(Mockito.anyString(), Mockito.any(InputStream.class))).thenAnswer(new Answer<Boolean>() {
+					@Override
 					public Boolean answer(InvocationOnMock invocation) throws Throwable {
 						String fileName = (String) invocation.getArguments()[0];
 						InputStream fis = (InputStream) invocation.getArguments()[1];
@@ -250,6 +257,7 @@ public class FtpOutboundTests {
 					}
 				});
 				when(ftpClient.rename(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<Boolean>() {
+					@Override
 					public Boolean answer(InvocationOnMock invocation)
 							throws Throwable {
 						File file = new File((String) invocation.getArguments()[0]);

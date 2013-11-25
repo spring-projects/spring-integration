@@ -40,7 +40,7 @@
 
 	<chain input-channel="pollableInput1" output-channel="output">
 		<filter ref="typeSelector"/>
-		<poller fixed-delay="10000"/>
+		<poller fixed-delay="1000"/>
 		<service-activator ref="testHandler"/>
 	</chain>
 
@@ -49,7 +49,7 @@
 		<poller ref="topLevelPoller"/>
 	</chain>
 
-	<poller id="topLevelPoller" fixed-delay="5000"/>
+	<poller id="topLevelPoller" fixed-delay="1000"/>
 
 	<chain input-channel="beanInput" output-channel="output">
 		<beans:bean
@@ -67,7 +67,7 @@
 		</chain>
 	</chain>
 
-	<chain id="aggregatorChain2" input-channel="aggregatorInput" output-channel="output">
+	<chain id="aggregatorChain2" input-channel="aggregator2Input" output-channel="output">
 		<aggregator id="aggregatorWithinChain" ref="aggregatorBean" method="aggregate"/>
 		<chain id="nestedChain">
 			<filter id="filterWithinNestedChain" ref="typeSelector"/>

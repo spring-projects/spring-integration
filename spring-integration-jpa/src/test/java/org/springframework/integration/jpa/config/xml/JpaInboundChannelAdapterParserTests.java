@@ -33,6 +33,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Gunnar Hillert
  * @author Amol Nayak
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -95,6 +96,8 @@ public class JpaInboundChannelAdapterParserTests {
 
 		assertEquals("13", TestUtils.getPropertyValue(expression, "literalValue"));
 
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "deleteAfterPoll", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "flush", Boolean.class));
 	}
 
 	@Test

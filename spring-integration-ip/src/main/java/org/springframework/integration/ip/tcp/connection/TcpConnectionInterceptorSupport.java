@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.messaging.Message;
@@ -38,15 +39,25 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	private Boolean realSender;
 
+	public TcpConnectionInterceptorSupport() {
+		super();
+	}
+
+	public TcpConnectionInterceptorSupport(ApplicationEventPublisher applicationEventPublisher) {
+		super(applicationEventPublisher);
+	}
+
 	@Override
 	public void close() {
 		this.theConnection.close();
 	}
 
+	@Override
 	public boolean isOpen() {
 		return this.theConnection.isOpen();
 	}
 
+	@Override
 	public Object getPayload() throws Exception {
 		return this.theConnection.getPayload();
 	}
@@ -61,10 +72,12 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		return this.theConnection.getHostAddress();
 	}
 
+	@Override
 	public int getPort() {
 		return this.theConnection.getPort();
 	}
 
+	@Override
 	public Object getDeserializerStateKey() {
 		return this.theConnection.getDeserializerStateKey();
 	}
@@ -91,6 +104,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		return this.theConnection.isSingleUse();
 	}
 
+	@Override
 	public void run() {
 		this.theConnection.run();
 	}
@@ -130,6 +144,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		return this.theConnection.isServer();
 	}
 
+	@Override
 	public boolean onMessage(Message<?> message) {
 		if (this.tcpListener == null) {
 			if (message instanceof ErrorMessage) {
@@ -142,6 +157,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		return this.tcpListener.onMessage(message);
 	}
 
+	@Override
 	public void send(Message<?> message) throws Exception {
 		this.theConnection.send(message);
 	}
@@ -170,12 +186,14 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		return tcpListener;
 	}
 
+	@Override
 	public void addNewConnection(TcpConnection connection) {
 		if (this.tcpSender != null) {
 			this.tcpSender.addNewConnection(this);
 		}
 	}
 
+	@Override
 	public void removeDeadConnection(TcpConnection connection) {
 		if (this.tcpSender != null) {
 			this.tcpSender.removeDeadConnection(this);

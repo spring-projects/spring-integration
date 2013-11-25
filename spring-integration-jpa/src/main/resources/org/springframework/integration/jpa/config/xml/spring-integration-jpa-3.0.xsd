@@ -228,7 +228,7 @@
 						The attribute that is used to set the first result marker while executing the
 						results. A negative value will retrieve from first record in the result set.
 						It is a way for the application to use the gateway to paginate the results in
-						combination with the max-number-of-results attribute. This attribute is mutually
+						combination with the max-results attribute. This attribute is mutually
 						exclusive to first-result-expression attribute
 					</xsd:documentation>
 				</xsd:annotation>
@@ -240,7 +240,7 @@
 						be evaluated to get the first record while executing the JPA query for result
 						A negative value will retrieve from first record in the result set.
 						It is a way for the application to use the gateway to paginate the results in
-						combination with the max-number-of-results attribute. This attribute is mutually
+						combination with the max-results attribute. This attribute is mutually
 						exclusive to first-result attribute
 					</xsd:documentation>
 				</xsd:annotation>
@@ -389,7 +389,7 @@
 		<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify whether this outbound gateway must return a non-null value. This value is
+					Specifies whether this outbound gateway must return a non-null value. This value is
 					'true' by default, and a ReplyRequiredException will be thrown when
 					the underlying service returns a null value.
 				</xsd:documentation>
@@ -411,16 +411,56 @@
 				<xsd:union memberTypes="persistMode xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
+		<xsd:attribute name="flush" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.flush() should be called after performing persistence operations.
+					If 'flush-size' is configured to a value greater than '0' this attribute will be ignored.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="flush-size" type="xsd:string" default="0">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the number of entities after which to call EntityManager.flush()
+					when performing persistence operations.
+					This attribute is applicable for payload instances of "java.lang.Iterable".
+					Defaults to '0' - 'flush' won't be called.
+					This attribute has precedence over the 'flush' attribute,
+					if it is configured to a value greater than '0'.
+					If the entity to persist is not an instance of "java.lang.Iterable"
+					and 'flush-size' is greater than '0',
+					then the entity will be flushed as if the 'flush' attribute was set to 'true'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="clear-on-flush" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.clear() should be called after EntityManager.flush().
+					Applies only if 'flush-size > 0' or 'flush = true'.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="commonRetrievingJpaAttributes">
 		<xsd:attribute name="max-number-of-results">
 			<xsd:annotation>
 				<xsd:documentation>
+					[DEPRECATED] Use 'max-results' instead.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-results">
+			<xsd:annotation>
+				<xsd:documentation>
 					Specifies the maximum number of entities that shall be returned
-					by a JPA Operation. Using this attribute you basically set
+					by a JPA Operation. Using this attribute sets
 					the 'maxResults' property of the JPA Query object. This attribute is mutually
-						exclusive to  max-results-expression attribute.
+					exclusive with 'max-results-expression' (and the deprecated 'max-number-of-results') attributes.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -428,9 +468,9 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Specifies the expression for the maximum number of entities that shall be returned
-						by a JPA Operation. Using this attribute you basically set
+						by a JPA Operation. Using this attribute sets
 						the 'maxResults' property of the JPA Query object. This attribute is mutually
-						exclusive to  max-number-of-results attribute.
+						exclusive with the 'max-results' attribute.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
@@ -487,6 +527,15 @@
 			<xsd:simpleType>
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="flush-after-delete" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.flush() should be called after performing 'deletes' for retrieved entities.
+					Applies only if 'delete-after-poll = true'.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 

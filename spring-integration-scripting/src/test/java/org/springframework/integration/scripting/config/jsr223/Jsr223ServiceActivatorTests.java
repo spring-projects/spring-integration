@@ -17,19 +17,21 @@
 package org.springframework.integration.scripting.config.jsr223;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -72,14 +74,24 @@ public class Jsr223ServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
-		assertTrue(value1.startsWith("python-test-1-foo - bar"));
-		assertTrue(value2.startsWith("python-test-2-foo - bar"));
-		assertTrue(value3.startsWith("python-test-3-foo - bar"));
+		assertTrue(value1.startsWith("python-test-1-foo (foo2) - bar"));
+		assertTrue(value2.startsWith("python-test-2-foo (foo2) - bar"));
+		assertTrue(value3.startsWith("python-test-3-foo (foo2) - bar"));
 
 		// because we are using 'prototype bean the suffix date will be
 		// different
-		assertFalse(value1.substring(26).equals(value2.substring(26)));
-		assertFalse(value2.substring(26).equals(value3.substring(26)));
+		assertFalse(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))));
+		assertFalse(value1.substring(value1.indexOf(":") +1, value1.lastIndexOf(":"))
+				.equals(value1.substring(value1.lastIndexOf(":"))));
+
+		assertFalse(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value3.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))));
+
+		assertFalse(value1.substring(value1.lastIndexOf(":") + 1)
+				.equals(value2.substring(value1.lastIndexOf(":") + 1)));
+		assertFalse(value2.substring(value1.lastIndexOf(":") + 1)
+				.equals(value3.substring(value1.lastIndexOf(":") + 1)));
 
 		assertNull(replyChannel.receive(0));
 	}
@@ -118,22 +130,41 @@ public class Jsr223ServiceActivatorTests {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.inlineScriptInput.send(message);
 		}
-		assertEquals("inline-test-1", replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
+		String payload = (String) replyChannel.receive(0).getPayload();
+
+		assertThat(payload, Matchers.startsWith("inline-test-1 - FOO"));
+
+		payload = (String) replyChannel.receive(0).getPayload();
+		assertThat(payload, Matchers.startsWith("inline-test-2 - FOO"));
+
+		payload = (String) replyChannel.receive(0).getPayload();
+		assertThat(payload, Matchers.startsWith("inline-test-3 - FOO"));
+		assertTrue(payload.substring(payload.indexOf(":") + 1).matches(".+\\d{2}:\\d{2}:\\d{2}.+"));
+
 		assertNull(replyChannel.receive(0));
 
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	public void inlineScriptAndVariables() throws Exception {
-		new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-context.xml", this.getClass());
+	@Test
+	public void variablesAndScriptVariableGenerator() throws Exception {
+		try {
+			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
+			fail("BeansException expected.");
+		}
+		catch (BeansException e) {
+			assertThat(e.getMessage(), Matchers.containsString("'script-variable-generator' and 'variable' sub-elements are mutually exclusive."));
+		}
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	public void variablesAndScriptVariableGenerator() throws Exception {
-		new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml",
-				this.getClass());
+	@Test
+	public void testDuplicateVariable() throws Exception {
+		try {
+			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-duplicated-variable-context.xml", this.getClass());
+			fail("BeansException expected.");
+		}
+		catch (BeansException e) {
+			assertThat(e.getMessage(), Matchers.containsString("Duplicated variable: foo"));
+		}
 	}
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {

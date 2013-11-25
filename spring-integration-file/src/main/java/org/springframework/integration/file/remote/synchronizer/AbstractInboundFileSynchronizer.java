@@ -33,6 +33,8 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
@@ -59,6 +61,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
+	private final RemoteFileTemplate<F> remoteFileTemplate;
+
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile String remoteFileSeparator = "/";
@@ -74,11 +78,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * the path on the remote mount as a String.
 	 */
 	private volatile String remoteDirectory;
-
-	/**
-	 * the {@link SessionFactory} for acquiring remote file Sessions.
-	 */
-	private final SessionFactory<F> sessionFactory;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
@@ -102,7 +101,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 */
 	public AbstractInboundFileSynchronizer(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
-		this.sessionFactory = sessionFactory;
+		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
 	}
 
 
@@ -144,6 +143,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.evaluationContext = evaluationContext;
 	}
 
+	@Override
 	public final void afterPropertiesSet() {
 		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
 		Assert.notNull(this.evaluationContext, "evaluationContext must not be null");
@@ -157,35 +157,36 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		return temporaryFileSuffix;
 	}
 
-	public void synchronizeToLocalDirectory(File localDirectory) {
-		Session<F> session = null;
+	@Override
+	public void synchronizeToLocalDirectory(final File localDirectory) {
 		try {
-			session = this.sessionFactory.getSession();
-			Assert.notNull(session, "failed to acquire a Session");
-			F[] files = session.list(this.remoteDirectory);
-			if (!ObjectUtils.isEmpty(files)) {
-				Collection<F> filteredFiles = this.filterFiles(files);
-				for (F file : filteredFiles) {
-					if (file != null) {
-						this.copyFileToLocalDirectory(this.remoteDirectory, file, localDirectory, session);
+			int transferred = this.remoteFileTemplate.execute(new SessionCallback<F, Integer>() {
+
+				@Override
+				public Integer doInSession(Session<F> session) throws IOException {
+					F[] files = session.list(AbstractInboundFileSynchronizer.this.remoteDirectory);
+					if (!ObjectUtils.isEmpty(files)) {
+						Collection<F> filteredFiles = AbstractInboundFileSynchronizer.this.filterFiles(files);
+						for (F file : filteredFiles) {
+							if (file != null) {
+								AbstractInboundFileSynchronizer.this.copyFileToLocalDirectory(
+										AbstractInboundFileSynchronizer.this.remoteDirectory, file, localDirectory,
+										session);
+							}
+						}
+						return filteredFiles.size();
+					}
+					else {
+						return 0;
 					}
 				}
+			});
+			if (logger.isDebugEnabled()) {
+				logger.debug(transferred + " files transferred");
 			}
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
-		}
-		finally {
-			if (session != null) {
-				try {
-					session.close();
-				}
-				catch (Exception ignored) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("failed to close Session", ignored);
-					}
-				}
-			}
 		}
 	}
 

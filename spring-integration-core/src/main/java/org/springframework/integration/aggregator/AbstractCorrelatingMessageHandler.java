@@ -21,6 +21,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
@@ -127,6 +128,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	public void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				forceComplete(group);
 			}
@@ -144,6 +146,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
+	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		this.outputChannel = outputChannel;
@@ -268,17 +271,32 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		try {
 			lock.lockInterruptibly();
 			try {
+				MessageGroup groupNow = group;
 				/*
-				 * Refetch the group because it might have changed while we were waiting on
+				 * If the group argument is not already complete,
+				 * re-fetch it because it might have changed while we were waiting on
 				 * its lock. If the last modified timestamp changed, defer the completion
 				 * because the selection condition may have changed such that the group
-				 * would no longer be eligible.
+				 * would no longer be eligible. If the timestamp changed, it's a completely new
+				 * group and should not be reaped on this cycle.
+				 *
+				 * If the group argument is already complete, do not re-fetch.
+				 * Note: not all message stores provide a direct reference to its internal
+				 * group so the initial 'isComplete()` will only return true for those stores if
+				 * the group was already complete at the time of its selection as a candidate.
+				 *
+				 * If the group is marked complete, only consider it
+				 * for reaping if it's empty (and both timestamps are unaltered).
 				 */
-				MessageGroup groupNow = this.messageStore.getMessageGroup(
-						group.getGroupId());
+				if (!group.isComplete()) {
+					groupNow = this.messageStore.getMessageGroup(correlationKey);
+				}
 				long lastModifiedNow = groupNow.getLastModified();
-				if (group.getLastModified() == lastModifiedNow) {
-					if (groupNow.size() > 0) {
+				int groupSize = groupNow.size();
+				if ((!groupNow.isComplete() || groupSize == 0)
+						&& group.getLastModified() == lastModifiedNow
+						&& group.getTimestamp() == groupNow.getTimestamp()) {
+					if (groupSize > 0) {
 						if (releaseStrategy.canRelease(groupNow)) {
 							this.completeGroup(correlationKey, groupNow);
 						}
@@ -306,7 +324,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 					}
 				}
 			}
-			finally  {
+			finally {
 				if (removeGroup) {
 					this.remove(group);
 				}
@@ -347,7 +365,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						+ correlationKey + "] to: " + outputChannel);
 			}
 			completeGroup(correlationKey, group);
-		} else {
+		}
+		else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Discarding messages of partially complete group with key ["
 						+ correlationKey + "] to: " + discardChannel);

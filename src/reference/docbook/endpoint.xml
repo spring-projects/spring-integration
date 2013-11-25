@@ -667,4 +667,17 @@ any transaction configuration essentially allowing you to enhance the behavior o
      for more detail on the subject.
      </para>
   </section>
+  <section id="endpoint-inner">
+	<title>Endpoint Inner Beans</title>
+	<para>
+		Many endpoints are composite beans; this includes all consumers and all polled inbound channel adapters. Consumers (polled or event-
+		driven) delegate to a <interfacename>MessageHandler</interfacename>; polled adapters obtain messages by delegating to a
+		<interfacename>MessageSource</interfacename>. Often, it is useful to obtain a reference to the delegate bean, perhaps to
+		change configuration at runtime, or for testing. These beans can be obtained from the
+		<interfacename>ApplicationContext</interfacename> with well-known names. <interfacename>MessageHandler</interfacename>s
+		are registered with the application context with a bean id <code>someConsumer.handler</code> (where 'consumer' is the endpoint's
+		<code>id</code> attribute). <interfacename>MessageSource</interfacename>s are registered with a bean id
+		<code>somePolledAdapter.source</code>, again where 'somePolledAdapter' is the id of the adapter.
+	</para>
+  </section>
 </section>

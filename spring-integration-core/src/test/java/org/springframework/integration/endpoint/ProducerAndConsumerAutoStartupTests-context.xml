@@ -13,7 +13,7 @@
 
 	<si:channel id="producerAndConsumerAutoStartupTestChannel"/>
 
-	<si:service-activator id="consumerEndpoint" input-channel="producerAndConsumerAutoStartupTestChannel" ref="consumer"/>
+	<si:service-activator id="consumerEndpoint" input-channel="producerAndConsumerAutoStartupTestChannel" ref="consumer" phase="-100"/>
 
 	<bean id="counter" class="org.springframework.integration.endpoint.ProducerAndConsumerAutoStartupTests$Counter"/>
 

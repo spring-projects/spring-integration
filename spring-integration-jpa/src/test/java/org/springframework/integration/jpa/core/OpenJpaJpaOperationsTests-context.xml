@@ -5,6 +5,8 @@
 
 	<import resource="classpath:/commonJpa-context.xml" />
 
+	<bean id="jpaDialect" class="org.springframework.orm.jpa.vendor.OpenJpaDialect"/>
+
 	<!-- EclipseLink vendor adaptor with workaround platform class for HSQL usage -->
 	<bean id="vendorAdaptor" class="org.springframework.orm.jpa.vendor.OpenJpaVendorAdapter"
 			parent="abstractVendorAdaptor">

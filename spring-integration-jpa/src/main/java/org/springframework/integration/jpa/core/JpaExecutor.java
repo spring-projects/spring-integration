@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Amol Nayak
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -84,7 +85,14 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	private volatile ParameterSourceFactory parameterSourceFactory = null;
 	private volatile ParameterSource parameterSource;
 
+	private volatile boolean  flush = false;
+
+	private volatile int flushSize = 0;
+
+	private volatile boolean  clearOnFlush = false;
+
 	private volatile boolean  deleteAfterPoll = false;
+
 	private volatile boolean  deleteInBatch = false;
 
 	private volatile boolean  expectSingleResult = false;
@@ -194,6 +202,13 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 				this.usePayloadAsParameterSource = true;
 			}
 		}
+
+		if (this.flushSize > 0) {
+			this.flush = true;
+		}
+		else if (this.flush) {
+			this.flushSize = 1;
+		}
 	}
 
 	/**
@@ -228,14 +243,17 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		else {
 
 			if (PersistMode.PERSIST.equals(this.persistMode)) {
-				this.jpaOperations.persist(message.getPayload());
+				this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
 				result = message.getPayload();
 			}
 			else if (PersistMode.MERGE.equals(this.persistMode)) {
-				result = this.jpaOperations.merge(message.getPayload());
+				result = this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
 			}
 			else if (PersistMode.DELETE.equals(this.persistMode)) {
 				this.jpaOperations.delete(message.getPayload());
+				if (this.flush) {
+					this.jpaOperations.flush();
+				}
 				result = message.getPayload();
 			}
 			else {
@@ -310,6 +328,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 				this.jpaOperations.delete(payload);
 			}
 
+			if (this.flush) {
+				this.jpaOperations.flush();
+			}
 		}
 		return payload;
 	}
@@ -451,6 +472,45 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 
 	public void setUsePayloadAsParameterSource(Boolean usePayloadAsParameterSource) {
 		this.usePayloadAsParameterSource = usePayloadAsParameterSource;
+	}
+
+	/**
+	 * If set to {@code true} the {@link javax.persistence.EntityManager#flush()} will be called
+	 * after persistence operation.
+	 * Has the same effect, if the {@link #flushSize} is specified to {@code 1}.
+	 * For convenience in cases when the provided entity to persist is not an instance of {@link Iterable}.
+	 *
+	 * @param flush defaults to 'false'.
+	 */
+	public void setFlush(boolean flush) {
+		this.flush = flush;
+	}
+
+	/**
+	 * If the provided value is greater than {@code 0}, then {@link javax.persistence.EntityManager#flush()}
+	 * will be called after persistence operations as well as within batch operations.
+	 * This property has precedence over the {@link #flush}, if it is specified to a value greater than {@code 0}.
+	 * If the entity to persist is not an instance of {@link Iterable} and this property is greater than {@code 0},
+	 * then the entity will be flushed as if the {@link #flush} attribute was set to {@code true}.
+	 *
+	 * @param flushSize defaults to '0'.
+	 */
+	public void setFlushSize(int flushSize) {
+		Assert.state(flushSize >= 0, "'flushSize' cannot be less than '0'.");
+		this.flushSize = flushSize;
+	}
+
+	/**
+	 * If set to {@code true} the {@link javax.persistence.EntityManager#clear()} will be called,
+	 * and only if the {@link javax.persistence.EntityManager#flush()} was called after performing persistence operations.
+	 *
+	 * @see #setFlush(boolean)
+	 * @see #setFlushSize(int)
+	 *
+	 * @param clearOnFlush defaults to 'false'.
+	 */
+	public void setClearOnFlush(boolean clearOnFlush) {
+		this.clearOnFlush = clearOnFlush;
 	}
 
 	/**

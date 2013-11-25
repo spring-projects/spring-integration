@@ -125,6 +125,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.port = port;
 	}
 
+	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
@@ -413,6 +414,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	public abstract void close();
 
+	@Override
 	public void start() {
 		if (logger.isInfoEnabled()) {
 			logger.info("started " + this);
@@ -438,6 +440,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * Stops the server.
 	 */
+	@Override
 	public void stop() {
 		this.active = false;
 		this.close();
@@ -547,7 +550,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						else {
 							if (logger.isWarnEnabled()) {
 								logger.warn("Timing out TcpNioConnection " +
-											this.port + " : " +
 										    connection.getConnectionId());
 							}
 							connection.publishConnectionExceptionEvent(new SocketTimeoutException("Timing out connection"));
@@ -581,16 +583,19 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						connection = (TcpNioConnection) key.attachment();
 						connection.setLastRead(System.currentTimeMillis());
 						this.taskExecutor.execute(new Runnable() {
+							@Override
 							public void run() {
 								try {
 									connection.readPacket();
-								} catch (Exception e) {
+								}
+								catch (Exception e) {
 									if (connection.isOpen()) {
 										logger.error("Exception on read " +
 												connection.getConnectionId() + " " +
 												e.getMessage());
 										connection.close();
-									} else {
+									}
+									else {
 										logger.debug("Connection closed");
 									}
 								}
@@ -633,6 +638,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		throw new UnsupportedOperationException("Nio server factory must override this method");
 	}
 
+	@Override
 	public int getPhase() {
 		return 0;
 	}
@@ -641,10 +647,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * We are controlled by the startup options of
 	 * the bound endpoint.
 	 */
+	@Override
 	public boolean isAutoStartup() {
 		return false;
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
@@ -688,6 +696,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.removeClosedConnectionsAndReturnOpenConnectionIds();
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.active;
 	}

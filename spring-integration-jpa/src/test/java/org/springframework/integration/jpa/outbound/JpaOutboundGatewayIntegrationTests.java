@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -52,6 +54,9 @@ public class JpaOutboundGatewayIntegrationTests {
 	@Qualifier("out")
 	private SubscribableChannel responseChannel;
 
+	@Autowired
+	private EntityManager entityManager;
+
 	/**
 	 * Sends a message with the payload as a integer representing the start number in the result
 	 * set and a header with value maxResults to get the max number of results
@@ -63,12 +68,13 @@ public class JpaOutboundGatewayIntegrationTests {
 			@SuppressWarnings("rawtypes")
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				assertEquals(1, ((List)message.getPayload()).size());
+				assertEquals(2, ((List) message.getPayload()).size());
+				assertEquals(1, entityManager.createQuery("from Student").getResultList().size());
 			}
 		});
 		Message<Integer> message = MessageBuilder
 						.withPayload(1)
-						.setHeader("maxResults", "1")
+						.setHeader("maxResults", "10")
 						.build();
 		requestChannel.send(message);
 	}

@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -68,6 +69,9 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 	public void testPubSubChannelUsage() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
+
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(redisChannel, "container", RedisMessageListenerContainer.class));
+
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -79,7 +83,7 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		});
 		redisChannel.send(m);
 
-		assertTrue(latch.await(2, TimeUnit.SECONDS));
+		assertTrue(latch.await(5, TimeUnit.SECONDS));
 		context.stop();
 	}
 

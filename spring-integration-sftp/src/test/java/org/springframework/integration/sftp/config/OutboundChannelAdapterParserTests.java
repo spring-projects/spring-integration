@@ -21,11 +21,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.Set;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -66,17 +69,17 @@ public class OutboundChannelAdapterParserTests {
 		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".", remoteFileSeparator);
-		assertEquals(".bar", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
-		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "directoryExpressionProcessor.expression");
+		assertEquals(".bar", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
+		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
-		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		CachingSessionFactory<?> sessionFactory = TestUtils.getPropertyValue(handler, "sessionFactory", CachingSessionFactory.class);
+		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
+		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
+		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
+		CachingSessionFactory<?> sessionFactory = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory", CachingSessionFactory.class);
 		DefaultSftpSessionFactory clientFactory = TestUtils.getPropertyValue(sessionFactory, "sessionFactory", DefaultSftpSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
@@ -101,14 +104,15 @@ public class OutboundChannelAdapterParserTests {
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("sftpOutboundAdapterWithExpression", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "directoryExpressionProcessor.expression");
+		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
 		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
-		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "fileNameGenerator");
-		String fileNameGeneratorExpression = (String) TestUtils.getPropertyValue(generator, "expression");
-		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression);
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
+		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator");
+		Expression fileNameGeneratorExpression = TestUtils.getPropertyValue(generator, "expression", Expression.class);
+		assertNotNull(fileNameGeneratorExpression);
+		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression.getExpressionString());
+		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
+		assertNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
 
 	}
 
@@ -118,7 +122,7 @@ public class OutboundChannelAdapterParserTests {
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithNoTemporaryFileName");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
+		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"remoteFileTemplate.useTemporaryFileName"));
 	}
 
 	@Test
@@ -131,9 +135,15 @@ public class OutboundChannelAdapterParserTests {
 		assertEquals(1, adviceCalled);
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test
 	public void testFailWithRemoteDirAndExpression(){
-		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
+		try {
+			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
+			fail("Exception expected");
+		}
+		catch (BeanDefinitionStoreException e) {
+			assertThat(e.getMessage(), Matchers.containsString("Only one of 'remote-directory'"));
+		}
 
 	}
 

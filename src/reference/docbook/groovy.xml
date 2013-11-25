@@ -57,9 +57,26 @@
 
 	  Setting a custom GroovyObjectCustomizer is not mutually exclusive with <code>&lt;variable&gt;</code> sub-elements or
 	  the <code>script-variable-generator</code> attribute. It can also be provided when defining an inline script.
-	  For more information regarding <code>&lt;variable&gt;</code> and <code>script-variable-generator</code>, see the
-	  paragraph '<emphasis>Script variable bindings</emphasis>' of <xref linkend="scripting-config"/>.
-    </para>
+	  </para>
+	  <para>
+	  With <emphasis>Spring Integration 3.0</emphasis>, in addition to the <code>variable</code> sub-element,
+	  the <code>variables</code> attribute has been introduced. Also, groovy scripts have the ability to resolve a
+	  variable to a bean in the
+	  <interfacename>BeanFactory</interfacename>, if a binding variable was not provided with
+	  the name:
+	<programlisting language="xml">&lt;int-groovy:script&gt;
+	&lt;![CDATA[
+		entityManager.persist(payload)
+		payload
+	]]&gt;
+&lt;/int-groovy:script&gt;</programlisting>
+		  where variable <code>entityManager</code> is an appropriate bean in the application context.
+	  </para>
+	  <para>
+		For more information regarding <code>&lt;variable&gt;</code>, <code>variables</code>,
+		and <code>script-variable-generator</code>, see the
+		paragraph '<emphasis>Script variable bindings</emphasis>' of <xref linkend="scripting-config"/>.
+	  </para>
   </section>
 
   <section id="groovy-control-bus">

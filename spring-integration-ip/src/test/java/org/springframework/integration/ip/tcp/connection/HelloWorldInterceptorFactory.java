@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+
 
 /**
  * @author Gary Russell
@@ -22,11 +25,13 @@ package org.springframework.integration.ip.tcp.connection;
  *
  */
 public class HelloWorldInterceptorFactory implements
-		TcpConnectionInterceptorFactory {
+		TcpConnectionInterceptorFactory, ApplicationEventPublisherAware {
 
 	private String hello = "Hello";
 
 	private String world = "world!";
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	public HelloWorldInterceptorFactory() {
 	}
@@ -40,9 +45,14 @@ public class HelloWorldInterceptorFactory implements
 		this.world = world;
 	}
 
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
 
+	@Override
 	public TcpConnectionInterceptorSupport getInterceptor() {
-		return new HelloWorldInterceptor(hello, world);
+		return new HelloWorldInterceptor(this.hello, this.world, this.applicationEventPublisher);
 	}
 
 

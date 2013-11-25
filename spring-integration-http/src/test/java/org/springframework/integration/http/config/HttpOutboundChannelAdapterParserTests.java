@@ -57,6 +57,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -166,6 +167,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("uchecked")
 	public void withUrlAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlAndTemplate);
 		RestTemplate restTemplate =
@@ -185,6 +187,14 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+
+		//INT-3055
+		Object uriVariablesExpression = handlerAccessor.getPropertyValue("uriVariablesExpression");
+		assertNotNull(uriVariablesExpression);
+		assertEquals("@uriVariables", ((Expression) uriVariablesExpression).getExpressionString());
+		Object uriVariableExpressions = handlerAccessor.getPropertyValue("uriVariableExpressions");
+		assertNotNull(uriVariableExpressions);
+		assertTrue(((Map<?, ?>) uriVariableExpressions).isEmpty());
 	}
 
 	@Test

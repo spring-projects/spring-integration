@@ -33,11 +33,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.List;
+import java.util.Queue;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -46,8 +49,13 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
+import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
 /**
@@ -61,6 +69,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 	private static FTPClient ftpClient = mock(FTPClient.class);
 
+	@Before
 	@After
 	public void cleanup(){
 		File file = new File("test");
@@ -86,7 +95,16 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
-		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
+		FtpRegexPatternFileListFilter patternFilter = new FtpRegexPatternFileListFilter(".*\\.test$");
+		PropertiesPersistingMetadataStore store = new PropertiesPersistingMetadataStore();
+		store.setBaseDirectory("test");
+		FtpPersistentAcceptOnceFileListFilter persistFilter =
+				new FtpPersistentAcceptOnceFileListFilter(store, "foo");
+		List<FileListFilter<FTPFile>> filters = new ArrayList<FileListFilter<FTPFile>>();
+		filters.add(persistFilter);
+		filters.add(patternFilter);
+		CompositeFileListFilter<FTPFile> filter = new CompositeFileListFilter<FTPFile>(filters);
+		synchronizer.setFilter(filter);
 		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
@@ -120,28 +138,49 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 		assertTrue(new File("test/A.TEST.a").exists());
 		assertTrue(new File("test/B.TEST.a").exists());
+
+		TestUtils.getPropertyValue(ms, "localFileListFilter.seen", Queue.class).clear();
+
+		new File("test/A.TEST.a").delete();
+		new File("test/B.TEST.a").delete();
+		// the remote filter should prevent a re-fetch
+		nothing =  ms.receive();
+		assertNull(nothing);
+
 	}
 
 
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 
+		private final Collection<Object> ftpFiles = new ArrayList<Object>();
+
+		private void init() {
+			String[] files = new File("remote-test-dir").list();
+			for (String fileName : files) {
+				FTPFile file = new FTPFile();
+				file.setName(fileName);
+				file.setType(FTPFile.FILE_TYPE);
+				Calendar calendar = Calendar.getInstance();
+				calendar.add(Calendar.DATE, 1);
+				file.setTimestamp(calendar);
+				ftpFiles.add(file);
+			}
+
+		}
+
 		@Override
 		protected FTPClient createClientInstance() {
+			if (this.ftpFiles.size() == 0) {
+				this.init();
+			}
+
 			try {
 				when(ftpClient.getReplyCode()).thenReturn(250);
 				when(ftpClient.login("kermit", "frog")).thenReturn(true);
 				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
 
 				String[] files = new File("remote-test-dir").list();
-				Collection<Object> ftpFiles = new ArrayList<Object>();
 				for (String fileName : files) {
-					FTPFile file = new FTPFile();
-					file.setName(fileName);
-					file.setType(FTPFile.FILE_TYPE);
-					Calendar calendar = Calendar.getInstance();
-					calendar.add(Calendar.DATE, 1);
-					file.setTimestamp(calendar);
-					ftpFiles.add(file);
 					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName) , Mockito.any(OutputStream.class))).thenReturn(true);
 				}
 				when(ftpClient.listFiles("remote-test-dir")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));

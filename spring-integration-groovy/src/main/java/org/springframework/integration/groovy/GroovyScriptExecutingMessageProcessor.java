@@ -21,6 +21,7 @@ import groovy.lang.GString;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
+import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
@@ -136,12 +138,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		try {
 			GroovyObject goo = (GroovyObject) this.scriptClass.newInstance();
 
-			GroovyObjectCustomizer groovyObjectCustomizer = this.customizerDecorator;
-			if (variables != null) {
-				// Override empty Script.Binding with new one with 'variables'
-				groovyObjectCustomizer = new BindingOverwriteGroovyObjectCustomizerDecorator(new Binding(variables));
-				((VariableBindingGroovyObjectCustomizerDecorator) groovyObjectCustomizer).setCustomizer(this.customizerDecorator);
-			}
+			VariableBindingGroovyObjectCustomizerDecorator groovyObjectCustomizer =
+					new BindingOverwriteGroovyObjectCustomizerDecorator(new BeanFactoryFallbackBinding(variables));
+			groovyObjectCustomizer.setCustomizer(this.customizerDecorator);
 
 			if (goo instanceof Script) {
 				// Allow metaclass and other customization.
@@ -162,6 +161,36 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			throw new ScriptCompilationException(
 					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(), ex);
 		}
+	}
+
+	private class BeanFactoryFallbackBinding extends Binding {
+
+		private BeanFactoryFallbackBinding(Map<?, ?> variables) {
+			super(variables);
+		}
+
+		@Override
+		public Object getVariable(String name) {
+			try {
+				return super.getVariable(name);
+			}
+			catch (MissingPropertyException e) {
+			// Original {@link Binding} doesn't have 'variable' for the given 'name'.
+			// Try to resolve it as 'bean' from the given <code>beanFactory</code>.
+			}
+
+			if (GroovyScriptExecutingMessageProcessor.this.beanFactory == null) {
+				throw new MissingPropertyException(name, this.getClass());
+			}
+
+			try {
+				return GroovyScriptExecutingMessageProcessor.this.beanFactory.getBean(name);
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				throw new MissingPropertyException(name, this.getClass(), e);
+			}
+		}
+
 	}
 
 }

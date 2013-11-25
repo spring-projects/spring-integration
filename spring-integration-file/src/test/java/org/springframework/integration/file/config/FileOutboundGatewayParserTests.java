@@ -26,6 +26,7 @@ import java.io.File;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -93,9 +94,9 @@ public class FileOutboundGatewayParserTests {
 		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("requiresReply"));
 		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
 		assertNotNull(fileNameGenerator);
-		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
+		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression", Expression.class);
 		assertNotNull(expression);
-		assertEquals("'foo.txt'", expression);
+		assertEquals("'foo.txt'", expression.getExpressionString());
 
 		Long sendTimeout = TestUtils.getPropertyValue(handler, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(Long.valueOf(777), sendTimeout);

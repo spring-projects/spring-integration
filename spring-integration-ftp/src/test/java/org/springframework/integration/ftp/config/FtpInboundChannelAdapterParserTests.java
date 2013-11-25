@@ -84,7 +84,7 @@ public class FtpInboundChannelAdapterParserTests {
 		assertEquals("", remoteFileSeparator);
 		FtpSimplePatternFileListFilter filter = (FtpSimplePatternFileListFilter) TestUtils.getPropertyValue(fisync, "filter");
 		assertNotNull(filter);
-		Object sessionFactory = TestUtils.getPropertyValue(fisync, "sessionFactory");
+		Object sessionFactory = TestUtils.getPropertyValue(fisync, "remoteFileTemplate.sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
 		FileListFilter<?> acceptAllFilter = ac.getBean("acceptAllFilter", FileListFilter.class);
 		assertTrue(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
@@ -107,7 +107,7 @@ public class FtpInboundChannelAdapterParserTests {
 		ApplicationContext ac = new ClassPathXmlApplicationContext(
 				"FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapterWithCachedSessions", SourcePollingChannelAdapter.class);
-		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.sessionFactory");
+		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
 		FtpInboundFileSynchronizer fisync =
 			TestUtils.getPropertyValue(adapter, "source.synchronizer", FtpInboundFileSynchronizer.class);
@@ -142,6 +142,7 @@ public class FtpInboundChannelAdapterParserTests {
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {
 
+		@Override
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public DefaultFtpSessionFactory getObject() throws Exception {
 			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
@@ -150,10 +151,12 @@ public class FtpInboundChannelAdapterParserTests {
 			return factory;
 		}
 
+		@Override
 		public Class<?> getObjectType() {
 			return DefaultFtpSessionFactory.class;
 		}
 
+		@Override
 		public boolean isSingleton() {
 			return true;
 		}

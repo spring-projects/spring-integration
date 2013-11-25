@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0.2
  */
 abstract class HttpAdapterParsingUtils {
@@ -52,9 +53,23 @@ abstract class HttpAdapterParsingUtils {
 		}
 	}
 
-	static void configureUriVariableExpressions(BeanDefinitionBuilder builder, Element element) {
+	static void configureUriVariableExpressions(BeanDefinitionBuilder builder, ParserContext parserContext, Element element) {
+		String uriVariablesExpression = element.getAttribute("uri-variables-expression");
+
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
-		if (!CollectionUtils.isEmpty(uriVariableElements)) {
+		boolean hasUriVariableExpressions = !CollectionUtils.isEmpty(uriVariableElements);
+
+		if (StringUtils.hasText(uriVariablesExpression)) {
+			if (hasUriVariableExpressions) {
+				parserContext.getReaderContext().error("'uri-variables-expression' attribute " +
+						"and 'uri-variable' sub-elements are mutually exclusive.", element);
+			}
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+					.addConstructorArgValue(uriVariablesExpression);
+			builder.addPropertyValue("uriVariablesExpression", beanDefinitionBuilder.getBeanDefinition());
+		}
+
+		if (hasUriVariableExpressions) {
 			ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<String, Object>();
 			for (Element uriVariableElement : uriVariableElements) {
 				String name = uriVariableElement.getAttribute("name");

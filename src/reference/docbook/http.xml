@@ -521,6 +521,43 @@ By default the HTTP request will be generated using an instance of <classname>Si
       of that method will be used as the value for the URI variable named 'zipCode'.
   </para>
   <para>
+      Since <emphasis>Spring Integration 3.0</emphasis>, HTTP Outbound Endpoints support the
+      <code>uri-variables-expression</code> attribute to specify an <interfacename>Expression</interfacename>
+      which should be evaluated, resulting in a
+      <interfacename>Map</interfacename> for all URI variable placeholders within the URL template. It provides
+      a mechanism whereby different variable expressions can be used, based on the outbound message.
+      This attribute is mutually exclusive with the <code>&lt;uri-variable/&gt;</code> sub-element:
+   <programlisting language="xml"><![CDATA[<int-http:outbound-gateway
+     url="http://foo.host/{foo}/bars/{bar}"
+     request-channel="trafficChannel"
+     http-method="GET"
+     uri-variables-expression="@uriVariablesBean.populate(payload)"
+     expected-response-type="java.lang.String"/>]]></programlisting>
+where <code>uriVariablesBean</code> might be:
+   <programlisting language="java"><![CDATA[public class UriVariablesBean {
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
+	public Map<String, ?> populate(Object payload) {
+		Map<String, Object> variables = new HashMap<String, Object>();
+		if (payload instanceOf String.class)) {
+			variables.put("foo", "foo"));
+		}
+		else {
+			variables.put("foo", EXPRESSION_PARSER.parseExpression("headers.bar"));
+		}
+		return variables;
+	}
+
+}]]></programlisting>
+  </para>
+  <note>
+		The <code>uri-variables-expression</code> must evaluate to a <interfacename>Map</interfacename>.
+		The values of the Map must be instances of
+		<interfacename>String</interfacename> or <interfacename>Expression</interfacename>.
+		This Map is provided to an <classname>ExpressionEvalMap</classname> for further resolution of URI variable placeholders
+		using those expressions in the context of the outbound <interfacename>Message</interfacename>.
+  </note>
+  <para>
     <emphasis>Controlling URI Encoding</emphasis>
   </para>
   <para>

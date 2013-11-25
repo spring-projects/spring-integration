@@ -68,4 +68,40 @@
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<int:channel id="inboundMPut"/>
+
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMPut"
+							  command="mput"
+							  auto-create-directory="true"
+							  filename-pattern="*.txt"
+							  expression="payload"
+							  remote-directory="ftpTarget"
+							  reply-channel="output"/>
+
+	<int:channel id="inboundMPutRecursive"/>
+
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMPutRecursive"
+							  command="mput"
+							  command-options="-R"
+							  auto-create-directory="true"
+							  filename-pattern="*.txt"
+							  expression="payload"
+							  remote-directory="ftpTarget"
+							  reply-channel="output"/>
+
+	<int:channel id="inboundMPutRecursiveFiltered"/>
+
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMPutRecursiveFiltered"
+							  command="mput"
+							  command-options="-R"
+							  mput-regex="(.*1.txt|sub.*)"
+							  auto-create-directory="true"
+							  filename-pattern="*.txt"
+							  expression="payload"
+							  remote-directory="ftpTarget"
+							  reply-channel="output"/>
+
 </beans>

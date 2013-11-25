@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
+import org.springframework.util.StringUtils;
 
 /**
  * The Parser for the Retrieving Jpa Outbound Gateway.
@@ -47,14 +48,31 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 			jpaExecutorBuilder.addPropertyValue("firstResultExpression", firstResultExpression);
 		}
 
+		String maxNumberOfResults = gatewayElement.getAttribute("max-number-of-results");
+		boolean hasMaxNumberOfResults = StringUtils.hasText(maxNumberOfResults);
+
+		String maxResults = gatewayElement.getAttribute("max-results");
+		boolean hasMaxResults = StringUtils.hasText(maxResults);
+
+		if (hasMaxNumberOfResults) {
+			parserContext.getReaderContext().warning("'max-number-of-results' is deprecated in favor of 'max-results'", gatewayElement);
+			if (hasMaxResults) {
+				parserContext.getReaderContext().error("'max-number-of-results' and 'max-results' are mutually exclusive", gatewayElement);
+			}
+			else {
+				gatewayElement.setAttribute("max-results", maxNumberOfResults);
+			}
+		}
+
 		BeanDefinition maxResultsExpression = IntegrationNamespaceUtils
-				.createExpressionDefinitionFromValueOrExpression("max-number-of-results", "max-results-expression",
+				.createExpressionDefinitionFromValueOrExpression("max-results", "max-results-expression",
 						parserContext, gatewayElement, false);
 		if (maxResultsExpression != null) {
 			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", maxResultsExpression);
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "flush-after-delete", "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "expect-single-result");
 

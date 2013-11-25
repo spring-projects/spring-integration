@@ -13,9 +13,9 @@
 	<si:channel id="requests"/>
 
 	<outbound-channel-adapter id="minimalConfig" url="http://localhost/test1" channel="requests"/>
-	
+
 	<outbound-channel-adapter id="restTemplateConfig" url="http://localhost/test1" channel="requests" rest-template="customRestTemplate"/>
-	
+
 	<beans:bean id="customRestTemplate" class="org.springframework.web.client.RestTemplate"/>
 
 	<outbound-channel-adapter id="fullConfig"
@@ -34,8 +34,14 @@
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-channel-adapter>
 
+	<util:map id="uriVariables">
+		<beans:entry key="foo1" value="bar1"/>
+		<beans:entry key="foo2" value="bar2"/>
+	</util:map>
+
 	<outbound-channel-adapter id="withUrlAndTemplate"
 		url="http://localhost/test1" channel="requests"
+		uri-variables-expression="@uriVariables"
 		rest-template="customRestTemplate"/>
 
 	<outbound-channel-adapter id="withUrlExpression" url-expression="'http://localhost/test1'" channel="requests"/>

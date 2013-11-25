@@ -749,14 +749,14 @@ public class PayloadAndHeaderMappingTests {
 			this.lastHeaders.put("foo", header);
 			this.lastPayload = payload;
 		}
-		
+
 		public void payloadMapAndHeaderStrings(Map payload, @Header("foo") String header1, @Header("bar") String header2) {
 			this.lastHeaders = new HashMap<String, String>();
 			this.lastHeaders.put("foo", header1);
 			this.lastHeaders.put("bar", header2);
-			this.lastPayload = payload;			
+			this.lastPayload = payload;
 		}
-		
+
 		public void payloadMapAndHeaderMap(Map payload, @Headers Map headers) {
 			this.lastHeaders = headers;
 			this.lastPayload = payload;
@@ -771,7 +771,7 @@ public class PayloadAndHeaderMappingTests {
 			this.lastHeaders = headers;
 			this.lastPayload = payload;
 		}
-		
+
 		public void headerPropertiesPayloadMapAndStringHeader(@Headers Properties headers, Map payload, @Header("foo") String header) {
 			this.lastHeaders = headers;
 			this.lastHeaders.put("foo2", header);

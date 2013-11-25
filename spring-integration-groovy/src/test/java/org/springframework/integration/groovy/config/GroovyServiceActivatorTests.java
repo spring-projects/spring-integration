@@ -22,7 +22,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import groovy.lang.GroovyObject;
+import groovy.lang.MissingPropertyException;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,21 +38,19 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ReplyRequiredException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import groovy.lang.GroovyObject;
-import groovy.lang.MissingPropertyException;
 
 /**
  * @author Mark Fisher
@@ -72,6 +74,9 @@ public class GroovyServiceActivatorTests {
 
 	@Autowired
 	private MessageChannel invalidInlineScript;
+
+	@Autowired
+	private MessageChannel scriptWithoutVariablesInput;
 
 	@Autowired
 	private MyGroovyCustomizer groovyCustomizer;
@@ -134,11 +139,36 @@ public class GroovyServiceActivatorTests {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.inlineScriptInput.send(message);
 		}
-		assertEquals("inline-test-1", replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
+
+		DateFormat format = new SimpleDateFormat("dd.mm.yyyy");
+
+		String now = format.format(new Date());
+
+		assertEquals("inline-test-1 : " + now, replyChannel.receive(0).getPayload());
+		assertEquals("inline-test-2 : " + now, replyChannel.receive(0).getPayload());
+		assertEquals("inline-test-3 : " + now, replyChannel.receive(0).getPayload());
+
 		assertNull(replyChannel.receive(0));
 		assertTrue(groovyCustomizer.executed);
+	}
+
+	@Test
+	public void testScriptWithoutVariables() throws Exception{
+		PollableChannel replyChannel = new QueueChannel();
+		for (int i = 1; i <= 3; i++) {
+			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
+			this.scriptWithoutVariablesInput.send(message);
+		}
+
+		DateFormat format = new SimpleDateFormat("dd.mm.yyyy");
+
+		String now = format.format(new Date());
+
+		assertEquals("withoutVariables-test-1 : " + now, replyChannel.receive(0).getPayload());
+		assertEquals("withoutVariables-test-2 : " + now, replyChannel.receive(0).getPayload());
+		assertEquals("withoutVariables-test-3 : " + now, replyChannel.receive(0).getPayload());
+
+		assertNull(replyChannel.receive(0));
 	}
 
 	//INT-2399
@@ -156,11 +186,6 @@ public class GroovyServiceActivatorTests {
 		    throw e;
 		}
 
-	}
-
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void inlineScriptAndVariables() throws Exception{
-		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-context.xml", this.getClass());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)

@@ -117,8 +117,9 @@
 			<title>SpEL Functions Support</title>
 			<para>
 				To customize the SpEL <interfacename>EvaluationContext</interfacename> with static
-				<classname>Method</classname> functions the new <code>&lt;spel-function/&gt;</code>
-				component is introduced. For more information see <xref linkend="spel-functions" />.
+				<classname>Method</classname> functions, the new <code>&lt;spel-function/&gt;</code>
+				component is introduced. Two built-in functions are also provided (<code>#jsonPath</code>
+				and <code>#xpath</code>). For more information see <xref linkend="spel-functions" />.
 			</para>
 		</section>
 		<section id="3.0-spel-property-accessors">
@@ -164,6 +165,29 @@
 			</para>
 			<para>
 				For more information see <xref linkend="redis" />.
+			</para>
+		</section>
+		<section id="3.0-hcr">
+			<title>Header Channel Registry</title>
+			<para>
+				It is now possible to instruct the framework to store reply and error channels
+				in a registry for later resolution. This is useful for cases where
+				the <code>replyChannel</code> or <code>errorChannel</code> might be lost; for example
+				when serializing
+				a message. See <xref linkend="header-enricher"/> for more information.
+			</para>
+		</section>
+		<section id="3.0-configurable-mongo-MS">
+			<title>MongoDB support: New ConfigurableMongoDbMessageStore</title>
+			<para>
+				In addition to the existing <classname>eMongoDbMessageStore</classname>, a new
+				<classname>ConfigurableMongoDbMessageStore</classname> has been introduced.
+				This provides a more robust and flexible implementation of <interfacename>MessageStore</interfacename>
+				for MongoDB.
+				It does not have backward compatibility, with the existing store,
+				but it is recommended to use it for new applications. Existing applications can use it, but messages
+				in the old store will not be available.
+				See <xref linkend="mongodb"/> for more information.
 			</para>
 		</section>
 	</section>
@@ -288,26 +312,46 @@
 			<para>
 				<itemizedlist>
 					<listitem>
-						The gateways now support the <code>mv</code> command, enabling the renaming of remote
-						files.
+						The gateways now support the <emphasis role="bold">mv</emphasis> command, enabling
+						the renaming of remote files.
 					</listitem>
 					<listitem>
-						The gateways now support recursive <code>ls</code> and <code>mget</code> commands, enabling
+						The gateways now support recursive <emphasis role="bold">ls</emphasis> and
+						<emphasis role="bold">mget</emphasis> commands, enabling
 						the retrieval of a remote file tree.
 					</listitem>
 					<listitem>
+						The gateways now support <emphasis role="bold">put</emphasis> and
+						<emphasis role="bold">mput</emphasis> commands, enabling
+						sending file(s) to the remote server.
+					</listitem>
+					<listitem>
 						The <code>local-filename-generator-expression</code> attribute is now supported,
-						enabling the naming of local files during transfer. By default, the same
+						enabling the naming of local files during retrieval. By default, the same
 						name as the remote file is used.
 					</listitem>
 					<listitem>
 						The <code>local-directory-expression</code> attribute is now supported,
-						enabling the naming of local directories during transfer based on the remote directory.
+						enabling the naming of local directories during retrieval based on the remote directory.
 					</listitem>
 				</itemizedlist>
 			</para>
 			<para>
 			    For more information, see <xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.
+			</para>
+		</section>
+		<section id="3.0-remote-file-template">
+			<title>Remote File Template</title>
+			<para>
+				A new higher-level abstraction (<classname>RemoteFileTemplate</classname>) is provided over the
+				<interfacename>Session</interfacename> implementations used by the FTP and SFTP modules. While it is
+				used internally by endpoints, this abstraction can also be used programmatically and, like all
+				Spring <code>*Template</code> implemenations, reliably closes the underlying session while allowing
+				low level access to the session when needed.
+			</para>
+			<para>
+				For more information, see
+				<xref linkend="ftp-rft"/> and <xref linkend="sftp-rft"/>.
 			</para>
 		</section>
 		<section id="3.0-jdbc-mysql-v5_6_4">
@@ -322,7 +366,7 @@
 			</para>
 		</section>
 		<section id="3.0-jpa-persist-merge-collections">
-			<title>JPA Support Improvements</title>
+			<title>JPA Support: Improvements</title>
 			<para>
 				Payloads to <emphasis>persist</emphasis> or
 				<emphasis>merge</emphasis> can now be of type
@@ -336,6 +380,11 @@
 				<interfacename>EntityManager</interfacename>.
 				<emphasis>NULL</emphasis> values returned by the iterator are ignored.
 			</para>
+			<para>
+				The JPA adapters now have additional attributes to optionally 'flush' and 'clear'
+				entities from the associated persistence context after performing persistence operations.
+			</para>
+			<para>For more information see <xref linkend="jpa"/>.</para>
 		</section>
 		<section id="3.0-json-transformers">
 			<title>Jackson Support (JSON)</title>
@@ -386,6 +435,13 @@
 						now support additional useful variables: <emphasis>#matrixVariables</emphasis>, <emphasis>#requestAttributes</emphasis>,
 						<emphasis>#requestHeaders</emphasis> and <emphasis>#cookies</emphasis>. These variables are available in
 						both payload and header expressions.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Outbound Endpoint 'uri-variables-expression'</emphasis> - HTTP Outbound Endpoints
+						now support the <code>uri-variables-expression</code> attribute to specify
+						an <interfacename>Expression</interfacename> to evaluate a <interfacename>Map</interfacename>
+						for all URI variable placeholders within URL template. This allows selection of a different
+						map of expressions based on the outgoing message.
 					</listitem>
 				</itemizedlist>
 			</para>
@@ -573,13 +629,17 @@
 			</para>
 		</section>
 		<section id="3.0-jpa-max-results">
-			<title>JPA Adapters: max-results-expression attribute</title>
+			<title>JPA Adapters: max-results and max-results-expression Attributes</title>
 			<para>
-			    Retrieving gateways and inbound adapters now has a flexibility to specify the maximum
-			    number of results in a result set as an expression. We now have <code>max-number-of-results</code>
-			    and <code>max-results-expression</code> attributes which are used to provide the
-			    maximum number of results and the expression to compute the maximum number of results in the
-			    result set respectively. For more information see <xref linkend="jpa"/>.
+				The JPA retrieving gateway and inbound adapter now have an attribute to specify the maximum
+				number of results in a result set as an expression. In addition, the
+				<code>max-results</code> attribute has been introduced to replace
+				<code>max-number-of-results</code>, which has been deprecated.
+				<code>max-results</code> and <code>max-results-expression</code>
+				are used to provide the maximum number of results,
+				or an expression to compute the maximum number of results, respectively, in the
+				result set.
+				For more information see <xref linkend="jpa"/>.
 			</para>
 		</section>
 		<section id="3.0-redis">
@@ -602,6 +662,22 @@
 			</para>
 			<para>
 				For more information, see <xref linkend="redis"/>.
+			</para>
+		</section>
+		<section id="3.0-filelistfilter">
+			<title>Persistend File List Filters (file, (S)FTP)</title>
+			<para>
+				New <classname>FileListFilter</classname>s that use a persistent <classname>MetadataStore</classname> are
+				now available. These can be used to prevent duplicate files after a system restart. See
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information.
+			</para>
+		</section>
+		<section id="3.0-scripting-variables">
+			<title>Scripting Support: Variables Changes</title>
+			<para>
+				A new <code>variables</code> attribute has been introduced for scripting components.
+				In addition, variable bindings are now allowed for inline scripts.
+				See <xref linkend="groovy"/> and <xref linkend="scripting"/> for more information.
 			</para>
 		</section>
 	</section>

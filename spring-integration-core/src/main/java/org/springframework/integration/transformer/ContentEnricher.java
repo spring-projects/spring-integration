@@ -214,6 +214,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 				this.gateway.setReplyChannel(replyChannel);
 			}
 
+			if (this.getBeanFactory() != null) {
+				this.gateway.setBeanFactory(this.getBeanFactory());
+			}
+
 			this.gateway.afterPropertiesSet();
 		}
 
@@ -294,6 +298,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * Lifecycle implementation. If no requestChannel is defined, this method
 	 * has no effect as in that case no Gateway is initialized.
 	 */
+	@Override
 	public void start() {
 		if (this.gateway != null) {
 			this.gateway.start();
@@ -304,6 +309,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * Lifecycle implementation. If no requestChannel is defined, this method
 	 * has no effect as in that case no Gateway is initialized.
 	 */
+	@Override
 	public void stop() {
 		if (this.gateway != null) {
 			this.gateway.stop();
@@ -314,6 +320,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * Lifecycle implementation. If no requestChannel is defined, this method
 	 * will return always return true as no Gateway is initialized.
 	 */
+	@Override
 	public boolean isRunning() {
 		if (this.gateway != null) {
 			return this.gateway.isRunning();

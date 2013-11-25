@@ -37,7 +37,6 @@ import org.springframework.util.xml.DomUtils;
 public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanMetadataElement source = this.parseSource(element, parserContext);
 		if (source == null) {

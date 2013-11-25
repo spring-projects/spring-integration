@@ -53,6 +53,7 @@ import com.jayway.jsonpath.Filter;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 @ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class, loader = AnnotationConfigContextLoader.class)
@@ -69,7 +70,9 @@ public class JsonPathTests {
 	public static void setUp() throws IOException {
 		ClassPathResource jsonResource = new ClassPathResource("JsonPathTests.json", JsonPathTests.class);
 		JSON_FILE = jsonResource.getFile();
-		JSON = new Scanner(JSON_FILE).useDelimiter("\\Z").next();
+		Scanner scanner = new Scanner(JSON_FILE);
+		JSON = scanner.useDelimiter("\\Z").next();
+		scanner.close();
 		testMessage = new GenericMessage<String>(JSON);
 	}
 

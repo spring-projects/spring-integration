@@ -7,14 +7,13 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/scripting http://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd">
 
-	<service-activator input-channel="inlineScriptInput">
-		<script:script lang="ruby">
-			<![CDATA[
-				return "inline-#{payload}-" + "#{foo}" + " - " + bar + " - " + date
-			]]>
+	<service-activator input-channel="duplicateVariableInput">
+		<script:script lang="ruby" variables="foo=FOO">
 			<script:variable name="foo" value="foo"/>
-			<script:variable name="bar" value="bar"/>
+			<![CDATA[
+				payload
+			]]>
 		</script:script>
 	</service-activator>
-	
+
 </beans:beans>

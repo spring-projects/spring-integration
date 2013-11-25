@@ -75,21 +75,21 @@
          For example, if one of the headers contains an instance of some <emphasis>Spring Bean</emphasis>, upon deserialization you may end
          up with a different instance of that bean,
          which directly affects some of the implicit headers created by the framework (e.g., REPLY_CHANNEL or ERROR_CHANNEL).
-         Currently they are not serializable, but even if they were the deserialized channel would not represent the expected instance.
-         As a workaround we suggest to remove bean-ref headers via a <literal>&lt;header-filter/&gt;</literal>
-         before sending a message to an endpoint backed by a persistent <classname>MessageStore</classname>.
-         Also, we recommend using channel names instead of channel instances when setting those types of headers,
-         thus allowing it to be resolved in real time by the <classname>ChannelResolver</classname>.
+         Currently they are not serializable, but even if they were, the deserialized channel would not represent the expected instance.
       </para>
       <para>
-        Also avoid configuration of a message-flow like this:
+         Beginning with <emphasis>Spring Integration version 3.0</emphasis>, this issue can be resolved with a header enricher,
+         configured to replace these headers with a name after registering the channel with the <classname>HeaderChannelRegistry</classname>.
+      </para>
+      <para>
+        Also when configuring a message-flow like this:
         <emphasis>gateway -&gt; queue-channel (backed by a persistent Message Store) -&gt; service-activator</emphasis>
-        That gateway creates a <emphasis>Temporary Reply Channel</emphasis> in the background, and it will be lost by the time the
-        service-activator's poller reads from the queue, because it has been deserialized by another thread on the sending side.
+        That gateway creates a <emphasis>Temporary Reply Channel</emphasis>, and it will be lost by the time the
+        service-activator's poller reads from the queue. Again, you can use the header enricher to replace the headers with a
+        String representation.
       </para>
       <para>
-         Nevertheless we are constantly thinking about potential improvements to the framework, such as a way to provide some
-         robust default serialization strategy for messages in these cases.
+        For more information, refer to the <xref linkend="header-enricher"/>.
       </para>
     </important>
   </para>

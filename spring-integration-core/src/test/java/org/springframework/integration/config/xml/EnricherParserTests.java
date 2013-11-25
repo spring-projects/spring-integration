@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -79,6 +80,7 @@ public class EnricherParserTests {
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
 		assertEquals(true, accessor.getPropertyValue("shouldClonePayload"));
 		assertNull(accessor.getPropertyValue("requestPayloadExpression"));
+		assertNotNull(TestUtils.getPropertyValue(enricher, "gateway.beanFactory"));
 
 		Map<Expression, Expression> propertyExpressions = (Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
 		for (Map.Entry<Expression, Expression> e : propertyExpressions.entrySet()) {
@@ -125,12 +127,15 @@ public class EnricherParserTests {
 	@Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
-		requests.subscribe(new AbstractReplyProducingMessageHandler() {
+		class Foo extends AbstractReplyProducingMessageHandler {
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("foo");
 			}
-		});
+		};
+		Foo foo = new Foo();
+		foo.setOutputChannel(context.getBean("replies", MessageChannel.class));
+		requests.subscribe(foo);
 		Target original = new Target();
 		Message<?> request = MessageBuilder.withPayload(original)
 				.setHeader("sourceName", "test")

@@ -16,8 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
@@ -28,12 +28,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -51,6 +54,9 @@ public class ControlBusTests {
 
 	@Autowired
 	private PollableChannel output;
+
+	@Autowired
+	private DefaultHeaderChannelRegistry registry;
 
 	@Test
 	public void testDefaultEvaluationContext() {
@@ -71,6 +77,27 @@ public class ControlBusTests {
 		assertNotNull(outputChannel.receive(1000));
 	}
 
+	@Test
+	public void testControlHeaderChannelReaper() throws InterruptedException {
+		GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
+		Message<?> result = this.output.receive(0);
+		assertNotNull(result);
+		assertEquals(0, result.getPayload());
+		this.registry.setReaperDelay(10);
+		this.registry.channelToChannelName(new DirectChannel());
+		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
+		result = this.output.receive(0);
+		assertNotNull(result);
+		assertEquals(1, result.getPayload());
+		Thread.sleep(100);
+		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.runReaper()");
+		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
+		result = this.output.receive(0);
+		assertNotNull(result);
+		assertEquals(0, result.getPayload());
+		this.registry.setReaperDelay(60000);
+	}
 
 	public static class Service {
 
@@ -78,12 +105,14 @@ public class ControlBusTests {
 		public String convert(String input) {
 			return "cat";
 		}
+
 	}
 
 	public static class AdapterService {
 		public Message<String> receive() {
 			return new GenericMessage<String>(new Date().toString());
 		}
+
 	}
 
 }

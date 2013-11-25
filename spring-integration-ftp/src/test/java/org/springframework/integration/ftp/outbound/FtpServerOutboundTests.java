@@ -16,24 +16,36 @@
 
 package org.springframework.integration.ftp.outbound;
 
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.file.remote.InputStreamCallback;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.TesFtpServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -44,6 +56,8 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 3.0
  */
 @ContextConfiguration
@@ -51,7 +65,10 @@ import org.springframework.util.FileCopyUtils;
 public class FtpServerOutboundTests {
 
 	@Autowired
-	public TesFtpServer ftpServer;
+	private TesFtpServer ftpServer;
+
+	@Autowired
+	private SessionFactory<FTPFile> ftpSessionFactory;
 
 	@Autowired
 	private PollableChannel output;
@@ -71,10 +88,19 @@ public class FtpServerOutboundTests {
 	@Autowired
 	private DirectChannel inboundMGetRecursiveFiltered;
 
+	@Autowired
+	private DirectChannel inboundMPut;
+
+	@Autowired
+	private DirectChannel inboundMPutRecursive;
+
+	@Autowired
+	private DirectChannel inboundMPutRecursiveFiltered;
+
 	@Before
 	public void setup() {
-		TesFtpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
-		TesFtpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
+		this.ftpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
+		this.ftpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
 	}
 
 	@Test
@@ -176,7 +202,7 @@ public class FtpServerOutboundTests {
 
 	@Test
 	public void testInt3100RawGET() throws Exception {
-		Session<?> session = this.ftpServer.ftpSessionFactory().getSession();
+		Session<?> session = this.ftpSessionFactory.getSession();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("ftpSource/ftpSource1.txt"), baos);
 		assertTrue(session.finalizeRaw());
@@ -190,5 +216,90 @@ public class FtpServerOutboundTests {
 		session.close();
 	}
 
+	@Test
+	public void testRawGETWithTemplate() throws Exception {
+		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<FTPFile>(this.ftpSessionFactory);
+		template.setFileNameExpression(new SpelExpressionParser().parseExpression("payload"));
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource1.txt"), new InputStreamCallback() {
+
+			@Override
+			public void doWithInputStream(InputStream stream) throws IOException {
+				FileCopyUtils.copy(stream, baos1);
+			}
+		}));
+		assertEquals("source1", new String(baos1.toByteArray()));
+
+		final ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"), new InputStreamCallback() {
+
+			@Override
+			public void doWithInputStream(InputStream stream) throws IOException {
+				FileCopyUtils.copy(stream, baos2);
+			}
+		}));
+		assertEquals("source2", new String(baos2.toByteArray()));
+	}
+
+	@Test
+	public void testInt3088MPutNotRecursive() {
+		this.inboundMPut.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+		@SuppressWarnings("unchecked")
+		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+		assertNotNull(out);
+		assertEquals(2, out.getPayload().size());
+		assertThat(out.getPayload().get(0),
+				not(equalTo(out.getPayload().get(1))));
+		assertThat(
+				out.getPayload().get(0),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt")));
+		assertThat(
+				out.getPayload().get(1),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt")));
+	}
+
+	@Test
+	public void testInt3088MPutRecursive() {
+		this.inboundMPutRecursive.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+		@SuppressWarnings("unchecked")
+		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+		assertNotNull(out);
+		assertEquals(3, out.getPayload().size());
+		assertThat(out.getPayload().get(0),
+				not(equalTo(out.getPayload().get(1))));
+		assertThat(
+				out.getPayload().get(0),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
+						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(
+				out.getPayload().get(1),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
+						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(
+				out.getPayload().get(2),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
+						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+	}
+
+	@Test
+	public void testInt3088MPutRecursiveFiltered() {
+		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+		@SuppressWarnings("unchecked")
+		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+		assertNotNull(out);
+		assertEquals(2, out.getPayload().size());
+		assertThat(out.getPayload().get(0),
+				not(equalTo(out.getPayload().get(1))));
+		assertThat(
+				out.getPayload().get(0),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
+						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(
+				out.getPayload().get(1),
+				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
+						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+	}
 
 }

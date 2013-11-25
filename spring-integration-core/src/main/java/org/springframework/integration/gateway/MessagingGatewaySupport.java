@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -43,6 +42,7 @@ import org.springframework.util.Assert;
  * well as the timeout values for sending and receiving Messages.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class MessagingGatewaySupport extends AbstractEndpoint implements TrackableComponent {
 
@@ -153,6 +153,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	 * Specify whether this gateway should be tracked in the Message History
 	 * of Messages that originate from its send or sendAndReceive operations.
 	 */
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
 	}
@@ -283,7 +284,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				return;
 			}
 			AbstractEndpoint correlator = null;
-			MessageHandler handler = new BridgeHandler();
+			BridgeHandler handler = new BridgeHandler();
+			if (this.getBeanFactory() != null) {
+				handler.setBeanFactory(this.getBeanFactory());
+			}
+			handler.afterPropertiesSet();
 			if (this.replyChannel instanceof SubscribableChannel) {
 				correlator = new EventDrivenConsumer(
 						(SubscribableChannel) this.replyChannel, handler);
@@ -320,6 +325,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {
 
+		@Override
 		public Message<?> toMessage(Object object) throws Exception {
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;

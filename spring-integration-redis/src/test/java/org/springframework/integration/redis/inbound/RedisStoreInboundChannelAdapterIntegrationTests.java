@@ -38,7 +38,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
  * @author Artem Bilan
  * @since 2.2
  */
-public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvailableTests{
+public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -111,113 +111,86 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testZsetInboundConfiguration(){
+	public void testZsetInboundAdapter() throws InterruptedException {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.prepareZset(jcf);
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
+
+		//No Score test
 		SourcePollingChannelAdapter zsetAdapterNoScore =
 				context.getBean("zsetAdapterNoScore", SourcePollingChannelAdapter.class);
 		zsetAdapterNoScore.start();
 
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		zsetAdapterNoScore.stop();
-		context.close();
-	}
 
-	@Test
-	@RedisAvailable
-	@SuppressWarnings("unchecked")
-	public void testZsetInboundConfigurationWithScoreRange(){
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.prepareZset(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
+
+		//ScoreRange test
 		SourcePollingChannelAdapter zsetAdapterWithScoreRange =
 				context.getBean("zsetAdapterWithScoreRange", SourcePollingChannelAdapter.class);
 		zsetAdapterWithScoreRange.start();
 
-		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
-
-		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(11, message.getPayload().rangeByScore(18, 20).size());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(11, message.getPayload().rangeByScore(18, 20).size());
 
 		zsetAdapterWithScoreRange.stop();
-		context.close();
-	}
 
-	@Test
-	@RedisAvailable
-	@SuppressWarnings("unchecked")
-	public void testZsetInboundConfigurationWithSingleScore(){
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.prepareZset(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
+
+		//SingleScore test
 		SourcePollingChannelAdapter zsetAdapterWithSingleScore =
 				context.getBean("zsetAdapterWithSingleScore", SourcePollingChannelAdapter.class);
 		zsetAdapterWithSingleScore.start();
 
-		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
-
-		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
 		zsetAdapterWithSingleScore.stop();
-		context.close();
-	}
 
-	@Test
-	@RedisAvailable
-	@SuppressWarnings("unchecked")
-	public void testZsetInboundConfigurationWithSingleScoreAndSynchronization() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		this.prepareZset(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
+
+		//SingleScoreAndSynchronization test
 		SourcePollingChannelAdapter zsetAdapterWithSingleScoreAndSynchronization =
 				context.getBean("zsetAdapterWithSingleScoreAndSynchronization", SourcePollingChannelAdapter.class);
 
-		SourcePollingChannelAdapter zsetAdapterNoScore =
-				context.getBean("zsetAdapterNoScore", SourcePollingChannelAdapter.class);
-
-		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 		QueueChannel otherRedisChannel = context.getBean("otherRedisChannel", QueueChannel.class);
 
 		// get all 13 presidents
 		zsetAdapterNoScore.start();
-		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 		zsetAdapterNoScore.stop();
 
 		// get only presidents for 18th century
 		zsetAdapterWithSingleScoreAndSynchronization.start();
-		message = (Message<RedisZSet<Object>>) otherRedisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) otherRedisChannel.receive(2000);
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
 		// ... however other elements are still available 13-2=11
 		zsetAdapterNoScore.start();
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
 		assertNotNull(message);
 
 		int n = 0;
@@ -227,6 +200,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		assertTrue(n < 100);
 
 		zsetAdapterNoScore.stop();
+		zsetAdapterWithSingleScoreAndSynchronization.stop();
 
 		context.close();
 	}
