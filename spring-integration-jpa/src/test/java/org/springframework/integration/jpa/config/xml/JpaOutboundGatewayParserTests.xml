@@ -20,6 +20,8 @@
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		order="1"
 		max-number-of-results="55"
+		delete-after-poll="true"
+		flush-after-delete="true"
 		request-channel="in"
 		reply-channel="out"
 		reply-timeout="100"
@@ -72,6 +74,8 @@
 		request-channel="in"
 		reply-channel="out"
 		reply-timeout="100"
+		flush-size="100"
+		clear-on-flush="true"
 		requires-reply="false"/>
 
 	<int-jpa:updating-outbound-gateway id="advised"

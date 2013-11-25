@@ -5,6 +5,8 @@
 
 	<import resource="classpath:/commonJpa-context.xml" />
 
+	<bean id="jpaDialect" class="org.springframework.orm.jpa.vendor.EclipseLinkJpaDialect"/>
+
 	<bean id="vendorAdaptor" class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"
 		parent="abstractVendorAdaptor">
 		<property name="database" value="H2" />
