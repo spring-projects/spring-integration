@@ -146,8 +146,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(CHANNEL_INITIALIZER_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
-			String channelsAutoCreateExpression = "#{@" +IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME +
-												"['" + IntegrationProperties.CHANNELS_AUTOCREATE + "']}";
+			String channelsAutoCreateExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.CHANNELS_AUTOCREATE);
 			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelInitializer.class)
 					.addPropertyValue("autoCreate", channelsAutoCreateExpression);
 			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), CHANNEL_INITIALIZER_BEAN_NAME);

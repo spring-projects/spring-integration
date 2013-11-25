@@ -150,6 +150,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 		BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
+		/* TODO String taskSchedulerPoolSizeExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.TASKSCHEDULER_POOLSIZE);
+		schedulerBuilder.addPropertyValue("poolSize", taskSchedulerPoolSizeExpression);*/
 		schedulerBuilder.addPropertyValue("poolSize", 10);
 		schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
 		schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());

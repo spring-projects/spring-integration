@@ -26,7 +26,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -76,14 +75,6 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 			definition = ScopedProxyUtils.createScopedProxy(definition, registry, false);
 		}
 		super.registerBeanDefinition(definition, registry);
-	}
-
-	protected void setMaxSubscribersProperty(BeanDefinitionBuilder builder, Element element, String maxSubscribersProperty) {
-		String maxSubscribers = element.getAttribute("max-subscribers");
-		if (!StringUtils.hasText(maxSubscribers)) {
-			maxSubscribers = "#{@" + IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME + "['" + maxSubscribersProperty + "']}";
-		}
-		builder.addPropertyValue("maxSubscribers", maxSubscribers);
 	}
 
 	/**

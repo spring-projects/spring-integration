@@ -121,7 +121,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private volatile Integer txSize;
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private volatile Integer maxSubscribers;
 
 
 	public AmqpChannelFactoryBean() {
@@ -307,7 +307,9 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 				if (this.exchange != null) {
 					pubsub.setExchange(this.exchange);
 				}
-				pubsub.setMaxSubscribers(this.maxSubscribers);
+				if (this.maxSubscribers != null) {
+					pubsub.setMaxSubscribers(this.maxSubscribers);
+				}
 				this.channel = pubsub;
 			}
 			else {
@@ -316,7 +318,9 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 				if (StringUtils.hasText(this.queueName)) {
 					p2p.setQueueName(this.queueName);
 				}
-				p2p.setMaxSubscribers(this.maxSubscribers);
+				if (this.maxSubscribers != null) {
+					p2p.setMaxSubscribers(this.maxSubscribers);
+				}
 				this.channel = p2p;
 			}
 		}

@@ -48,7 +48,8 @@ public class IntegrationContextTests {
 	@Test
 	public void testIntegrationContextComponents() {
 		assertEquals("error", this.integrationProperties.get(IntegrationProperties.LATE_REPLY_LOGGING_LEVEL));
-		assertSame(this.integrationProperties, this.serviceActivator.getIntegrationProperties());
+		assertEquals("20", this.integrationProperties.get(IntegrationProperties.TASKSCHEDULER_POOLSIZE));
+		assertEquals(this.integrationProperties, this.serviceActivator.getIntegrationProperties());
 	}
 
 }

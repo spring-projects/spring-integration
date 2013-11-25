@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -33,6 +34,8 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 public class DirectChannel extends AbstractSubscribableChannel {
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
+
+	private volatile Integer maxSubscribers;
 
 	/**
 	 * Create a channel with default {@link RoundRobinLoadBalancingStrategy}
@@ -64,12 +67,22 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	 * @param maxSubscribers
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
 		this.dispatcher.setMaxSubscribers(maxSubscribers);
 	}
 
 	@Override
 	protected UnicastingDispatcher getDispatcher() {
 		return this.dispatcher;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.maxSubscribers == null) {
+			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
+			this.setMaxSubscribers(maxSubscribers);
+		}
 	}
 
 }

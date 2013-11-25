@@ -51,8 +51,6 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_PROPERTIES_BEAN_NAME = "integrationProperties";
 
-	private static final Properties EMPTY_PROPERTIES = new Properties();
-
 	/**
 	 * Return the {@link MetadataStore} bean whose name is "metadataStore".
 	 * @param beanFactory BeanFactory for lookup, must not be null.
@@ -117,17 +115,18 @@ public abstract class IntegrationContextUtils {
 	 *         bean from provided {@code #beanFactory}, which represents the merged
 	 *         properties values from all 'META-INF/spring.integration.default.properties'
 	 *         and 'META-INF/spring.integration.properties'.
-	 *         May return {@link IntegrationContextUtils#EMPTY_PROPERTIES} if there is no
+	 *         Or user-defined {@link Properties} bean.
+	 *         May return only {@link IntegrationProperties#defaults()} if there is no
 	 *         {@link IntegrationContextUtils#INTEGRATION_PROPERTIES_BEAN_NAME} bean within
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
-		Properties properties = null;
+		Properties properties = new Properties(IntegrationProperties.defaults());
 		if (beanFactory != null) {
-			properties = getBeanOfType(beanFactory, INTEGRATION_PROPERTIES_BEAN_NAME, Properties.class);
-		}
-		if (properties == null) {
-			properties = EMPTY_PROPERTIES;
+			Properties userProperties = getBeanOfType(beanFactory, INTEGRATION_PROPERTIES_BEAN_NAME, Properties.class);
+			if (userProperties != null) {
+				properties.putAll(userProperties);
+			}
 		}
 		return properties;
 	}

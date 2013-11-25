@@ -26,6 +26,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
@@ -51,7 +52,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	private volatile boolean initialized;
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private volatile Integer maxSubscribers;
 
 	public SubscribableJmsChannel(AbstractMessageListenerContainer container, JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -104,6 +105,12 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 			UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
 			unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
 			this.dispatcher = unicastingDispatcher;
+		}
+		if (this.maxSubscribers == null) {
+			this.maxSubscribers = this.getIntegrationProperty(isPubSub ?
+					IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
+					IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
+					Integer.class);
 		}
 		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 	}

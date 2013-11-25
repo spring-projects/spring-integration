@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
@@ -57,7 +57,7 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	}
 
 	@Override
-	protected MessageDispatcher createDispatcher() {
+	protected AbstractDispatcher createDispatcher() {
 		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
 		unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
 		return unicastingDispatcher;

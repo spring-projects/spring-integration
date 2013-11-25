@@ -28,7 +28,6 @@ import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -124,7 +123,6 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		else if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
 			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-			this.setMaxSubscribersProperty(builder, element, IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS);
 		}
 		else {
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
@@ -143,7 +141,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 				builder.addConstructorArgValue(null);
 			}
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
-			this.setMaxSubscribersProperty(builder, dispatcherElement, IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "max-subscribers");
 		}
 		return builder;
 	}

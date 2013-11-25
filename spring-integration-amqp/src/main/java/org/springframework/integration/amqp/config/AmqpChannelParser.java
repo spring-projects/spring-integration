@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.util.StringUtils;
 
 /**
@@ -48,15 +47,10 @@ public class AmqpChannelParser extends AbstractChannelParser {
 			connectionFactory = "rabbitConnectionFactory";
 		}
 		builder.addPropertyReference("connectionFactory", connectionFactory);
-		if ("channel".equals(element.getLocalName())) {
-			builder.addPropertyValue("pubSub", false);
-			this.setMaxSubscribersProperty(builder, element, IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS);
-		}
-		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
-			builder.addPropertyValue("pubSub", true);
-			this.setMaxSubscribersProperty(builder, element, IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS);
-		}
 
+		builder.addPropertyValue("pubSub", "publish-subscribe-channel".equals(element.getLocalName()));
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge-mode");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "advice-chain");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "amqp-admin");

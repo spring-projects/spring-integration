@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.redis.channel.SubscribableRedisChannel;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +53,8 @@ public class RedisChannelParser extends AbstractChannelParser {
 		// The following 2 attributes should be added once configurable on the RedisMessageListenerContainer
 		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		this.setMaxSubscribersProperty(builder, element, IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
+
 		return builder;
 	}
 

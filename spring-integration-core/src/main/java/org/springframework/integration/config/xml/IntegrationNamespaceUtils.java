@@ -38,8 +38,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
@@ -520,10 +518,7 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
-		String maxSubscribersExpression = "#{@" + IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME +
-				"['" + IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS + "']}";
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class)
-				.addPropertyValue("maxSubscribers", maxSubscribersExpression);
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelName);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 	}
