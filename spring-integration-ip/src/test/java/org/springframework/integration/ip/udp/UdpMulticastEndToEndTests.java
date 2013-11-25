@@ -26,16 +26,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
@@ -57,13 +58,13 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 	private CountDownLatch sentFirst = new CountDownLatch(1);
 
-	private CountDownLatch firstReceived = new CountDownLatch(1);
+	private final CountDownLatch firstReceived = new CountDownLatch(1);
 
-	private CountDownLatch doneProcessing = new CountDownLatch(1);
+	private final CountDownLatch doneProcessing = new CountDownLatch(1);
 
 	private boolean okToRun = true;
 
-	private CountDownLatch readyToReceive = new CountDownLatch(1);
+	private final CountDownLatch readyToReceive = new CountDownLatch(1);
 
 	private static long hangAroundFor = 0;
 
@@ -83,7 +84,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
-		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryMessageChannelDestinationResolver(applicationContext);
+		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryChannelResolver(applicationContext);
 		MessageChannel inputChannel = channelResolver.resolveDestination("mcInputChannel");
 		if (!readyToReceive.await(30, TimeUnit.SECONDS)) {
 			fail("Receiver failed to start in 30s");

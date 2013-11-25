@@ -38,7 +38,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author Dave Syer
@@ -57,7 +57,7 @@ public class JdbcOutboundGatewayParserTests {
 
 	private ConfigurableApplicationContext context;
 
-	private GenericMessagingTemplate messagingTemplate;
+	private MessagingTemplate messagingTemplate;
 
 	private static volatile int adviceCalled;
 
@@ -161,7 +161,7 @@ public class JdbcOutboundGatewayParserTests {
         accessor = new DirectFieldAccessor(source);
         source = accessor.getPropertyValue("messagingTemplate");
 
-        GenericMessagingTemplate messagingTemplate = (GenericMessagingTemplate) source;
+        MessagingTemplate messagingTemplate = (MessagingTemplate) source;
 
         accessor = new DirectFieldAccessor(messagingTemplate);
 
@@ -236,7 +236,7 @@ public class JdbcOutboundGatewayParserTests {
 
 	protected void setupMessagingTemplate() {
 		PollableChannel pollableChannel = this.context.getBean("output", PollableChannel.class);
-		this.messagingTemplate = new GenericMessagingTemplate();
+		this.messagingTemplate = new MessagingTemplate();
 		this.messagingTemplate.setDefaultDestination(pollableChannel);
 		this.messagingTemplate.setReceiveTimeout(500);
 	}

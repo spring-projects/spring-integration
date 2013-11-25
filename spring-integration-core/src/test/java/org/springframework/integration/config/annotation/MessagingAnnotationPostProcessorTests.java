@@ -24,6 +24,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -34,15 +35,15 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -135,7 +136,7 @@ public class MessagingAnnotationPostProcessorTests {
 		OutboundOnlyTestBean testBean = new OutboundOnlyTestBean(latch);
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		context.refresh();
-		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryMessageChannelDestinationResolver(context);
+		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryChannelResolver(context);
 		MessageChannel testChannel = channelResolver.resolveDestination("testChannel");
 		testChannel.send(new GenericMessage<String>("foo"));
 		latch.await(1000, TimeUnit.MILLISECONDS);

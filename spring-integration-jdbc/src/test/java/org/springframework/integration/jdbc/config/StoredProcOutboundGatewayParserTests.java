@@ -42,7 +42,7 @@ import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author Gunnar Hillert
@@ -82,7 +82,7 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("messagingTemplate");
 
-		GenericMessagingTemplate messagingTemplate = (GenericMessagingTemplate) source;
+		MessagingTemplate messagingTemplate = (MessagingTemplate) source;
 
 		accessor = new DirectFieldAccessor(messagingTemplate);
 

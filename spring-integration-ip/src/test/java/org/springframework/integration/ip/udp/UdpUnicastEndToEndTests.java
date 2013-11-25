@@ -28,17 +28,18 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
@@ -107,7 +108,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 
 
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
-		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryMessageChannelDestinationResolver(applicationContext);
+		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryChannelResolver(applicationContext);
 		MessageChannel inputChannel = channelResolver.resolveDestination("inputChannel");
 		if (!readyToReceive.await(30, TimeUnit.SECONDS)) {
 			fail("Receiver failed to start in 30s");

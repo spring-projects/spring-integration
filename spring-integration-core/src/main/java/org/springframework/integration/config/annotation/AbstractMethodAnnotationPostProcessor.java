@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -33,10 +34,10 @@ import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -62,7 +63,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
-		this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
+		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
 

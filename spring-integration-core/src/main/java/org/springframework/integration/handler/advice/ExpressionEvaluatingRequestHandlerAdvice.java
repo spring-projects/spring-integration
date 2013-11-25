@@ -26,7 +26,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -51,7 +51,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private volatile MessageChannel failureChannel;
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile boolean trapException = false;
 

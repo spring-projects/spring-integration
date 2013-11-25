@@ -40,7 +40,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -55,7 +55,7 @@ import org.springframework.util.StringUtils;
  */
 public class MessagePublishingInterceptor implements MethodInterceptor, BeanFactoryAware {
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile PublisherMetadataSource metadataSource;
 

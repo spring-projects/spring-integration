@@ -39,12 +39,12 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -86,7 +86,7 @@ public abstract class TestUtils {
 
 	public static TestApplicationContext createTestApplicationContext() {
 		TestApplicationContext context = new TestApplicationContext();
-		ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryMessageChannelDestinationResolver(context));
+		ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(context));
 		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10);
 		scheduler.setErrorHandler(errorHandler);
 		registerBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler, context);

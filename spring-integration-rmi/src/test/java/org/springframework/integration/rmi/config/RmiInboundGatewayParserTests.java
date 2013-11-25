@@ -27,7 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author Mark Fisher
@@ -46,7 +46,7 @@ public class RmiInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		GenericMessagingTemplate template = (GenericMessagingTemplate)
+		MessagingTemplate template = (MessagingTemplate)
 				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(1000L, templateAccessor.getPropertyValue("sendTimeout"));
@@ -62,7 +62,7 @@ public class RmiInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		GenericMessagingTemplate template = (GenericMessagingTemplate)
+		MessagingTemplate template = (MessagingTemplate)
 				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));

@@ -59,7 +59,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author Jonas Partner
@@ -219,7 +219,7 @@ public class JmsOutboundGatewayParserTests {
 				Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
 				assertNotNull(componentHistoryRecord);
 				assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
-			    GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+			    MessagingTemplate messagingTemplate = new MessagingTemplate();
 			    messagingTemplate.setDefaultDestination((MessageChannel)message.getHeaders().getReplyChannel());
 			    messagingTemplate.send(message);
 			}

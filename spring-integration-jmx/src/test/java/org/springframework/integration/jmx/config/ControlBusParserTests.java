@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -40,7 +40,7 @@ public class ControlBusParserTests {
 	@Test
 	public void testControlMessageToChannelMetrics() throws InterruptedException {
 		MessageChannel control = this.context.getBean("controlChannel", MessageChannel.class);
-		GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		Object value = messagingTemplate.convertSendAndReceive(control,
 				"@integrationMbeanExporter.getChannelSendRate('testChannel').count", null);
 		assertEquals(new Integer(0), value);

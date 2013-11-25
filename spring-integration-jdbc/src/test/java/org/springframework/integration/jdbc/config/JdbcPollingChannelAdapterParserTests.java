@@ -40,7 +40,7 @@ import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -60,7 +60,7 @@ public class JdbcPollingChannelAdapterParserTests {
 
 	private JdbcTemplate jdbcTemplate;
 
-	private GenericMessagingTemplate messagingTemplate;
+	private MessagingTemplate messagingTemplate;
 
 	private ConfigurableApplicationContext appCtx;
 
@@ -183,7 +183,7 @@ public class JdbcPollingChannelAdapterParserTests {
 
 	protected void setupMessagingTemplate() {
 		PollableChannel pollableChannel = this.appCtx.getBean("target", PollableChannel.class);
-		this.messagingTemplate = new GenericMessagingTemplate();
+		this.messagingTemplate = new MessagingTemplate();
 		this.messagingTemplate.setDefaultDestination(pollableChannel);
 		this.messagingTemplate.setReceiveTimeout(500);
 	}

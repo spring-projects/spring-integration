@@ -24,13 +24,15 @@ import javax.mail.internet.MimeMessage;
 
 import org.easymock.classextension.EasyMock;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.support.GenericMessage;
+
 
 /**
  * @author Mark Fisher
@@ -41,8 +43,8 @@ public class MailToStringTransformerParserTests {
 	public void topLevelTransformer() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailToStringTransformerParserTests.xml",  this.getClass());
-		MessageChannel input = new BeanFactoryMessageChannelDestinationResolver(context).resolveDestination("input");
-		PollableChannel output = (PollableChannel) new BeanFactoryMessageChannelDestinationResolver(context).resolveDestination("output");
+		MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
+		PollableChannel output = (PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
 		MimeMessage mimeMessage = EasyMock.createNiceMock(MimeMessage.class);
 		EasyMock.expect(mimeMessage.getContent()).andReturn("hello");
 		EasyMock.replay(mimeMessage);
@@ -57,8 +59,8 @@ public class MailToStringTransformerParserTests {
 	public void transformerWithinChain() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailToStringTransformerWithinChain.xml",  this.getClass());
-		MessageChannel input = new BeanFactoryMessageChannelDestinationResolver(context).resolveDestination("input");
-		PollableChannel output = (PollableChannel) new BeanFactoryMessageChannelDestinationResolver(context).resolveDestination("output");
+		MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
+		PollableChannel output = (PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
 		MimeMessage mimeMessage = EasyMock.createNiceMock(MimeMessage.class);
 		EasyMock.expect(mimeMessage.getContent()).andReturn("foo");
 		EasyMock.replay(mimeMessage);

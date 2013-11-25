@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
@@ -75,7 +75,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Specify the {@link DestinationResolver} strategy to use.
-	 * The default is a BeanFactoryMessageChannelDestinationResolver.
+	 * The default is a BeanFactoryChannelResolver.
 	 * This is considered an infrastructural configuration option and
 	 * as of 2.1 has been deprecated as a configuration-driven attribute.
 	 */
@@ -134,7 +134,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	public void onInit() {
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.channelResolver == null && beanFactory != null) {
-			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		}
 	}
 

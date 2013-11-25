@@ -35,7 +35,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
@@ -109,7 +109,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	@Test
 	public void bridgeWithSendTimeout() {
 		BridgeHandler handler = (BridgeHandler) new DirectFieldAccessor(bridgeWithSendTimeout).getPropertyValue("handler");
-		GenericMessagingTemplate template = (GenericMessagingTemplate) new DirectFieldAccessor(handler).getPropertyValue("messagingTemplate");
+		MessagingTemplate template = (MessagingTemplate) new DirectFieldAccessor(handler).getPropertyValue("messagingTemplate");
 		assertEquals(new Long(1234), new DirectFieldAccessor(template).getPropertyValue("sendTimeout"));
 	}
 

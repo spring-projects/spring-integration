@@ -28,7 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * Base class for all Message Routers.
@@ -48,7 +48,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile boolean applySequence;
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
 	/**
@@ -96,9 +96,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Provides {@link GenericMessagingTemplate} access for subclasses.
+	 * Provides {@link MessagingTemplate} access for subclasses.
 	 */
-	protected GenericMessagingTemplate getMessagingTemplate() {
+	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
 

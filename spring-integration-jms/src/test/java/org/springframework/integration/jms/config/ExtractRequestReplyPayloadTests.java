@@ -33,7 +33,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author ozhurakousky
@@ -63,7 +63,7 @@ public class ExtractRequestReplyPayloadTests {
 		jmsInputChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -85,7 +85,7 @@ public class ExtractRequestReplyPayloadTests {
 		jmsInputChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -107,7 +107,7 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof javax.jms.Message);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -130,7 +130,7 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof javax.jms.Message);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -152,7 +152,7 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -172,7 +172,7 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -192,7 +192,7 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
@@ -218,7 +218,7 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof javax.jms.Message);
-				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				MessagingTemplate template = new MessagingTemplate();
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}

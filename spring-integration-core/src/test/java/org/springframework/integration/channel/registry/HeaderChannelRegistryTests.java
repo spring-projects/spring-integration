@@ -36,7 +36,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
@@ -72,7 +72,7 @@ public class HeaderChannelRegistryTests {
 
 	@Test
 	public void testReplace() {
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.input);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
 		assertNotNull(reply);
@@ -99,7 +99,7 @@ public class HeaderChannelRegistryTests {
 	 */
 	@Test
 	public void testReplaceError() {
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputPolled);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("bar"));
 		assertNotNull(reply);

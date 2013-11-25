@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
@@ -35,8 +36,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -72,7 +73,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.interceptor.setChannelResolver(new BeanFactoryMessageChannelDestinationResolver(beanFactory));
+		this.interceptor.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
 		this.interceptor.setBeanFactory(beanFactory);
 	}
 

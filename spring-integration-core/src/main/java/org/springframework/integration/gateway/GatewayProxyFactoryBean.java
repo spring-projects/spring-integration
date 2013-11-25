@@ -46,10 +46,10 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -233,7 +233,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			}
 			BeanFactory beanFactory = this.getBeanFactory();
 			if (this.channelResolver == null && beanFactory != null) {
-				this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
+				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 			}
 			Class<?> proxyInterface = this.determineServiceInterface();
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(proxyInterface);

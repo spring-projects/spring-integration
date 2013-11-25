@@ -34,13 +34,13 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -127,7 +127,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		this.container.setConnectionFactory(connectionFactory);
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
-					new BeanFactoryMessageChannelDestinationResolver(this.getBeanFactory()));
+					new BeanFactoryChannelResolver(this.getBeanFactory()));
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
 		this.container.setTaskExecutor(this.taskExecutor);

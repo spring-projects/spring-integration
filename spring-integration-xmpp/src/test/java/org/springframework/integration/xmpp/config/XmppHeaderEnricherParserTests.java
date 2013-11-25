@@ -34,7 +34,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -57,7 +57,7 @@ public class XmppHeaderEnricherParserTests {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void to() {
-		GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		MessageHandler handler = mock(MessageHandler.class);
 		doAnswer(new Answer() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {

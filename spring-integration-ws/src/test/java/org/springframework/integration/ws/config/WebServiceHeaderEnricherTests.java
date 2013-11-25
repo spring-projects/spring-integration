@@ -28,7 +28,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.ws.WebServiceHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -48,7 +48,7 @@ public class WebServiceHeaderEnricherTests {
 
 	@Test
 	public void literalValue() {
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(literalValueInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		Map<String, Object> headers = result.getHeaders();
@@ -57,7 +57,7 @@ public class WebServiceHeaderEnricherTests {
 
 	@Test
 	public void expression() {
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(expressionInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		Map<String, Object> headers = result.getHeaders();

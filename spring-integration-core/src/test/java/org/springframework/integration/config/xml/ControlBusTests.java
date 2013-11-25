@@ -35,7 +35,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -79,7 +79,7 @@ public class ControlBusTests {
 
 	@Test
 	public void testControlHeaderChannelReaper() throws InterruptedException {
-		GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		Message<?> result = this.output.receive(0);
 		assertNotNull(result);

@@ -30,7 +30,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -50,7 +50,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private volatile boolean requiresReply = false;
 
-	private final GenericMessagingTemplate messagingTemplate;
+	private final MessagingTemplate messagingTemplate;
 
 	private volatile RequestHandler advisedRequestHandler;
 
@@ -61,7 +61,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 
 	public AbstractReplyProducingMessageHandler() {
-		this.messagingTemplate = new GenericMessagingTemplate();
+		this.messagingTemplate = new MessagingTemplate();
 	}
 
 
@@ -93,9 +93,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	/**
-	 * Provides access to the {@link GenericMessagingTemplate} for subclasses.
+	 * Provides access to the {@link MessagingTemplate} for subclasses.
 	 */
-	protected GenericMessagingTemplate getMessagingTemplate() {
+	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
 

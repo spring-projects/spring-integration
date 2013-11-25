@@ -40,7 +40,7 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -82,7 +82,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private MessageChannel outputChannel;
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel discardChannel = new NullChannel();
 

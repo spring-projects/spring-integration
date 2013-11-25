@@ -26,10 +26,10 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
@@ -116,7 +116,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 				this.configureChain();
 				BeanFactory beanFactory = this.getBeanFactory();
 				if (this.channelResolver == null && beanFactory != null) {
-					this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
+					this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 				}
 				this.initialized = true;
 			}

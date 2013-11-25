@@ -24,7 +24,7 @@ import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +44,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private volatile boolean shouldTrack;
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	/**
 	 * Specify the source to be polled for Messages.

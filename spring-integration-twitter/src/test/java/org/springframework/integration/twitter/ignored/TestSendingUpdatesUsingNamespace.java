@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
@@ -37,7 +37,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 @ContextConfiguration
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
 
-	private GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	@Value("#{out}") private MessageChannel channel;
 

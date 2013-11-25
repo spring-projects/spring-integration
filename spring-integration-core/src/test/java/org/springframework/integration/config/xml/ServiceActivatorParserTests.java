@@ -31,7 +31,7 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -201,7 +201,7 @@ public class ServiceActivatorParserTests {
 	}
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
 
 		return template.convertSendAndReceive(payload, null);

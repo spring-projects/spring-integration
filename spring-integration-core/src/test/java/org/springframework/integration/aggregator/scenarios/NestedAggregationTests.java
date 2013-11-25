@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -66,7 +66,7 @@ public class NestedAggregationTests {
 
 	private List<String> sendAndReceiveMessage(DirectChannel channel, int timeout, Message<?> input) {
 
-		GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(timeout);
 
 		@SuppressWarnings("unchecked")

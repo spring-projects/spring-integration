@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,10 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.aop.MessagePublishingInterceptor;
+import org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -38,15 +41,17 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 
+	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.MessagePublishingInterceptor");
-		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource");
+				MessagePublishingInterceptor.class);
+		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(MethodNameMappingPublisherMetadataSource.class);
 		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
 		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
 		if (mappings.get("headers") != null) {
@@ -54,7 +59,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 		}
 
 		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver");
+				BeanFactoryChannelResolver.class);
 
 		if (mappings.get("channels") != null){
 			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));

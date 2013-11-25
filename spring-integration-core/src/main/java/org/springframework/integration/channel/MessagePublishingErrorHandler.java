@@ -22,10 +22,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
@@ -70,7 +70,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		}
 	}
 

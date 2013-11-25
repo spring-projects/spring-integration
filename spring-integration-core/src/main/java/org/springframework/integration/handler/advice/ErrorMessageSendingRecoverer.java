@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
@@ -40,7 +40,7 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object> {
 
 	private final static Log logger = LogFactory.getLog(ErrorMessageSendingRecoverer.class);
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
 		Assert.notNull(channel, "channel cannot be null");

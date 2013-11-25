@@ -54,7 +54,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
@@ -118,8 +118,8 @@ public class HttpInboundGatewayParserTests {
 		assertThat((Boolean) getPropertyValue(gateway, "convertExceptions"), is(true));
 		assertThat((PollableChannel) getPropertyValue(gateway, "replyChannel"), is(responses));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
-		GenericMessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
-		gateway, "messagingTemplate", GenericMessagingTemplate.class);
+		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
+		gateway, "messagingTemplate", MessagingTemplate.class);
 		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
 		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 

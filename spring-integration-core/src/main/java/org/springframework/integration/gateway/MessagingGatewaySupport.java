@@ -31,7 +31,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -62,7 +62,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
-	private final GenericMessagingTemplate messagingTemplate;
+	private final MessagingTemplate messagingTemplate;
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
 
@@ -74,7 +74,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 
 	public MessagingGatewaySupport() {
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
 		template.setSendTimeout(DEFAULT_TIMEOUT);
 		template.setReceiveTimeout(this.replyTimeout);

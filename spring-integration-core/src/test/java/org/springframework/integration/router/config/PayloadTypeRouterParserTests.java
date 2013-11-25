@@ -18,13 +18,13 @@ package org.springframework.integration.router.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +34,10 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -88,7 +88,7 @@ public class PayloadTypeRouterParserTests {
 	}
 
 	@SuppressWarnings("unused")
-	private String routerConfigFakeType =
+	private final String routerConfigFakeType =
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
 		"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
@@ -102,7 +102,7 @@ public class PayloadTypeRouterParserTests {
 		"  </payload-type-router>" +
 	    "</beans:beans>";
 
-	private String routerConfigNoMaping =
+	private final String routerConfigNoMaping =
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
 		"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
@@ -119,7 +119,7 @@ public class PayloadTypeRouterParserTests {
 		public void foo(Message<?> message);
 	}
 
-	public static class MyChannelResolver extends BeanFactoryMessageChannelDestinationResolver {
+	public static class MyChannelResolver extends BeanFactoryChannelResolver {
 
 		MyChannelResolver() {
 			super(mock(BeanFactory.class));

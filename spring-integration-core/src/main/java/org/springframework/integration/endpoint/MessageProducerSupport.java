@@ -23,7 +23,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -41,7 +41,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private volatile boolean shouldTrack = false;
 
-	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
 	public void setOutputChannel(MessageChannel outputChannel) {

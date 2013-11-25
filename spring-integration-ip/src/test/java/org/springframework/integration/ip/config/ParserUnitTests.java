@@ -75,7 +75,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -477,8 +477,8 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutboundGateway);
 		assertSame(cfC2, dfa.getPropertyValue("connectionFactory"));
 		assertEquals(234L, dfa.getPropertyValue("requestTimeout"));
-		GenericMessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate",
-				GenericMessagingTemplate.class);
+		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate",
+				MessagingTemplate.class);
 		assertEquals(Long.valueOf(567), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout", Long.class));
 		assertEquals(789L, dfa.getPropertyValue("remoteTimeout"));
 		assertEquals("outGateway",tcpOutboundGateway.getComponentName());

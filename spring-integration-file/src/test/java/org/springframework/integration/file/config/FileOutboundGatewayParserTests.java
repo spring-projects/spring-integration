@@ -41,7 +41,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -123,7 +123,7 @@ public class FileOutboundGatewayParserTests {
 	@Test
 	public void gatewayWithIgnoreMode() throws Exception{
 
-		final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
 
 		final String expectedFileContent = "Initial File Content:";
@@ -159,7 +159,7 @@ public class FileOutboundGatewayParserTests {
 	@Test
 	public void gatewayWithFailMode() throws Exception{
 
-		final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeChannel);
 
 		String expectedFileContent = "Initial File Content:";
@@ -199,7 +199,7 @@ public class FileOutboundGatewayParserTests {
 	@Test
 	public void gatewayWithFailModeLowercase() throws Exception{
 
-		final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeLowercaseChannel);
 
 		String expectedFileContent = "Initial File Content:";
@@ -241,7 +241,7 @@ public class FileOutboundGatewayParserTests {
 	@Test
 	public void gatewayWithAppendMode() throws Exception{
 
-		final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithAppendModeChannel);
 
 		String expectedFileContent = "Initial File Content:String content:";
@@ -280,7 +280,7 @@ public class FileOutboundGatewayParserTests {
 
 		assertFalse(TestUtils.getPropertyValue(this.gatewayWithReplaceModeHandler, "requiresReply", Boolean.class));
 
-		final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithReplaceModeChannel);
 
 		String expectedFileContent = "String content:";

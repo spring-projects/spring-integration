@@ -29,7 +29,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -81,7 +81,7 @@ public class JmsDynamicDestinationTests {
 	public void gateway() throws Exception {
 		Message<?> message1 = MessageBuilder.withPayload("test-1").setHeader("destinationNumber", 1).build();
 		Message<?> message2 = MessageBuilder.withPayload("test-2").setHeader("destinationNumber", 2).build();
-		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		Message<?> result1 = template.sendAndReceive(gatewayChannel, message1);
 		Message<?> result2 = template.sendAndReceive(gatewayChannel, message2);
 		assertNotNull(result1);

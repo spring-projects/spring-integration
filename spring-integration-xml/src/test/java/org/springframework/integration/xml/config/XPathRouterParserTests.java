@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.After;
 import org.junit.Test;
+import org.w3c.dom.Document;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,18 +32,17 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
-import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -266,6 +267,6 @@ public class XPathRouterParserTests {
 		}
 	}
 
-	public static class MyChannelResolver extends BeanFactoryMessageChannelDestinationResolver{}
+	public static class MyChannelResolver extends BeanFactoryChannelResolver{}
 
 }

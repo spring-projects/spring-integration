@@ -47,7 +47,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -176,7 +176,7 @@ public class RouterParserTests {
 	@Test
 	public void timeoutValueConfigured() {
 		assertTrue(this.routerWithTimeout instanceof MethodInvokingRouter);
-		GenericMessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", GenericMessagingTemplate.class);
+		MessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
 		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout", Long.class);
 		assertEquals(new Long(1234), timeout);
 	}
