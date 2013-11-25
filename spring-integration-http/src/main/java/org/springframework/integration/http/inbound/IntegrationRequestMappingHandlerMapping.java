@@ -116,30 +116,37 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 
 		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
 				new org.springframework.web.bind.annotation.RequestMapping() {
+					@Override
 					public String[] value() {
 						return requestMapping.getPathPatterns();
 					}
 
+					@Override
 					public RequestMethod[] method() {
 						return requestMapping.getRequestMethods();
 					}
 
+					@Override
 					public String[] params() {
 						return requestMapping.getParams();
 					}
 
+					@Override
 					public String[] headers() {
 						return requestMapping.getHeaders();
 					}
 
+					@Override
 					public String[] consumes() {
 						return requestMapping.getConsumes();
 					}
 
+					@Override
 					public String[] produces() {
 						return requestMapping.getProduces();
 					}
 
+					@Override
 					public Class<? extends Annotation> annotationType() {
 						return org.springframework.web.bind.annotation.RequestMapping.class;
 					}

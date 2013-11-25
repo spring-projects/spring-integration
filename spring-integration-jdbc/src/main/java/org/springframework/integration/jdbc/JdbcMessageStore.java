@@ -31,6 +31,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -308,6 +309,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
@@ -365,6 +367,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(message.getHeaders().getId());
+		@SuppressWarnings("deprecation")
 		boolean groupNotExist = jdbcTemplate.queryForInt(this.getQuery(Query.GROUP_EXISTS), groupKey, region) < 1;
 
 		final Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
@@ -402,18 +405,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
 		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_GROUPS), region);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
 		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), region);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
