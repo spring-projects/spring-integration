@@ -71,25 +71,6 @@ public abstract class IntegrationNamespaceUtils {
 	public static final String PHASE = "phase";
 
 	/**
-	 * Property name on ChannelInitializer used to configure the default max subscribers for
-	 * unicast channels.
-	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_UNICAST_SUBSCRIBERS}
-	 */
-	@Deprecated
-	public static String DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxUnicastSubscribers";
-
-	/**
-	 * Property name on ChannelInitializer used to configure the default max subscribers for
-	 * broadcast channels.
-	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_BROADCAST_SUBSCRIBERS}
-	 */
-	@Deprecated
-	public static String DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxBroadcastSubscribers";
-
-
-
-
-	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
 	 *

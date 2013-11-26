@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class IntegrationContextTests {
 
 	@Autowired
-	@Qualifier(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME)
+	@Qualifier(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
 	private Properties integrationProperties;
 
 	@Autowired

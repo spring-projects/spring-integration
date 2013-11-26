@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<util:properties id="integrationProperties">
+	<util:properties id="integrationGlobalProperties">
 		<prop key="channels.maxUnicastSubscribers">456</prop>
 		<prop key="channels.maxBroadcastSubscribers">789</prop>
 	</util:properties>

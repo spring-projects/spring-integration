@@ -96,10 +96,10 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
 		if (registry instanceof ListableBeanFactory) {
 			alreadyRegistered = ((ListableBeanFactory) registry)
-					.containsBean(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME);
+					.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME);
+			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			ResourcePatternResolver resourceResolver =
@@ -115,7 +115,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 						.genericBeanDefinition(PropertiesFactoryBean.class)
 						.addPropertyValue("locations", resources);
 
-				registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME,
+				registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME,
 						integrationPropertiesBuilder.getBeanDefinition());
 			}
 			catch (IOException e) {

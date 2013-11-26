@@ -44,8 +44,6 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 	public static String AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME = "$autoCreateChannelCandidates";
 
-	public static String CHANNEL_NAMES_ATTR = "channelNames";
-
 	private Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile BeanFactory beanFactory;
@@ -59,42 +57,6 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
-	}
-
-	/**
-	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_UNICAST_SUBSCRIBERS}
-	 */
-	@Deprecated
-	public int getDefaultMaxUnicastSubscribers() {
-		return Integer.MAX_VALUE;
-	}
-
-	/**
-	 * Set the default max-subscribers for all unicasting channels that don't have the
-	 * attribute set on their dispatcher. Default {@link Integer#MAX_VALUE}.
-	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_UNICAST_SUBSCRIBERS}
-	 * @param defaultMaxUnicastSubscribers
-	 */
-	@Deprecated
-	public void setDefaultMaxUnicastSubscribers(int defaultMaxUnicastSubscribers) {
-	}
-
-	/**
-	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_BROADCAST_SUBSCRIBERS}
-	 */
-	@Deprecated
-	public int getDefaultMaxBroadcastSubscribers() {
-		return Integer.MAX_VALUE;
-	}
-
-	/**
-	 * Set the default max-subscribers for all broadcasting (pub-sub) channels that don't have the
-	 * attribute set. Default {@link Integer#MAX_VALUE}.
-	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_BROADCAST_SUBSCRIBERS}
-	 * @param defaultMaxBroadcastSubscribers
-	 */
-	@Deprecated
-	public void setDefaultMaxBroadcastSubscribers(int defaultMaxBroadcastSubscribers) {
 	}
 
 	public void afterPropertiesSet() throws Exception {
