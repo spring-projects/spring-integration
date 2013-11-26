@@ -31,7 +31,7 @@ import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessageHeaders.IdGenerator;
+import org.springframework.util.IdGenerator;
 import org.springframework.util.ReflectionUtils;
 
 /**

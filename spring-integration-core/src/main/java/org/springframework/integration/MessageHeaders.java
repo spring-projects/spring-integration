@@ -20,21 +20,20 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
 
 /**
  * The headers for a {@link Message}.<br>
@@ -269,68 +268,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
-	}
-
-	public static interface IdGenerator {
-		UUID generateId();
-	}
-
-	public static class JdkIdGenerator implements IdGenerator {
-
-		@Override
-		public UUID generateId() {
-			return UUID.randomUUID();
-		}
-
-	}
-
-    /**
-     * A variation of {@link UUID#randomUUID()} that uses {@link SecureRandom} only for
-     * the initial seed and {@link Random} thereafter, which provides better performance
-     * in exchange for less securely random id's.
-     */
-    public static class AlternativeJdkIdGenerator implements IdGenerator {
-
-            private final Random random;
-
-            public AlternativeJdkIdGenerator() {
-                    byte[] seed = new SecureRandom().generateSeed(8);
-                    this.random = new Random(new BigInteger(seed).longValue());
-            }
-
-            public UUID generateId() {
-
-                    byte[] randomBytes = new byte[16];
-                    this.random.nextBytes(randomBytes);
-
-                    long mostSigBits = 0;
-                    for (int i = 0; i < 8; i++) {
-                            mostSigBits = (mostSigBits << 8) | (randomBytes[i] & 0xff);
-                    }
-                    long leastSigBits = 0;
-                    for (int i = 8; i < 16; i++) {
-                            leastSigBits = (leastSigBits << 8) | (randomBytes[i] & 0xff);
-                    }
-
-                    return new UUID(mostSigBits, leastSigBits);
-            }
-    }
-
-	public static class SimpleIncrementingIdGenerator implements IdGenerator {
-
-		private final AtomicLong topBits = new AtomicLong();
-
-		private final AtomicLong bottomBits = new AtomicLong();
-
-		@Override
-		public UUID generateId() {
-			long bottomBits = this.bottomBits.incrementAndGet();
-			if (bottomBits == 0) {
-				this.topBits.incrementAndGet();
-			}
-			return new UUID(this.topBits.get(), bottomBits);
-		}
-
 	}
 
 }

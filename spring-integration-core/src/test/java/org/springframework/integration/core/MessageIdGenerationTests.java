@@ -31,8 +31,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessageHeaders.IdGenerator;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.IdGenerator;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
 

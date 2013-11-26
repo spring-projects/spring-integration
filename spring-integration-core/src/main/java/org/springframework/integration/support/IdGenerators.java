@@ -19,7 +19,8 @@ package org.springframework.integration.support;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.messaging.MessageHeaders.IdGenerator;
+import org.springframework.util.IdGenerator;
+
 
 // TODO Discuss and agree where these should go. In SI or in Spring 4?
 /**

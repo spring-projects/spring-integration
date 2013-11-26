@@ -25,7 +25,7 @@ allprojects {
 	group = 'org.springframework.integration'
 
 	repositories {
-		maven { url 'http://repo.springsource.org/libs-milestone' }
+		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 		mavenCentral()
 	}
@@ -59,7 +59,7 @@ subprojects { subproject ->
 		ftpServerVersion = '1.0.6'
 
 
-		springVersionDefault = '4.0.0.RC1'
+		springVersionDefault = '4.0.0.BUILD-SNAPSHOT'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.2.0.RELEASE'

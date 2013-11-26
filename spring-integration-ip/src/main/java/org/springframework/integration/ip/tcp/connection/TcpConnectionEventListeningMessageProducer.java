@@ -19,10 +19,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.context.ApplicationListener;
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -44,11 +44,10 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	 * this adapter should send to the message channel. By default, all event
 	 * types will be sent.
 	 */
-	@SuppressWarnings("unchecked")
 	public void setEventTypes(Class<? extends TcpConnectionEvent>[] eventTypes) {
 		Assert.notEmpty(eventTypes, "at least one event type is required");
 		Set<Class<? extends TcpConnectionEvent>> eventTypeSet = new HashSet<Class<? extends TcpConnectionEvent>>();
-		eventTypeSet.addAll(CollectionUtils.arrayToList(eventTypes));
+		eventTypeSet.addAll(CollectionUtils.<Class<TcpConnectionEvent>> arrayToList(eventTypes));
 		this.eventTypes = eventTypeSet;
 	}
 

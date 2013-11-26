@@ -27,9 +27,9 @@ import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.messaging.Message;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -69,9 +69,9 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
-	@SuppressWarnings("unchecked")
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(CollectionUtils.arrayToList(eventTypes));
+		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(
+				CollectionUtils.<Class<? extends ApplicationEvent>> arrayToList(eventTypes));
 		eventSet.remove(null);
 		this.eventTypes = (eventSet.size() > 0 ? eventSet : null);
 
