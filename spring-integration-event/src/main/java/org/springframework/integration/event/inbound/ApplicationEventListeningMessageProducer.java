@@ -16,6 +16,7 @@
 
 package org.springframework.integration.event.inbound;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,7 +32,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * An inbound Channel Adapter that implements {@link ApplicationListener} and
@@ -69,9 +69,9 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
-	@SuppressWarnings("unchecked")
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(CollectionUtils.arrayToList(eventTypes));
+		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(
+				Arrays.asList(eventTypes));
 		eventSet.remove(null);
 		this.eventTypes = (eventSet.size() > 0 ? eventSet : null);
 

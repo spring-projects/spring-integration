@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@
 
 package org.springframework.integration.security;
 
+import java.util.Arrays;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Jonas Partner
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class SecurityTestUtils {
 
-	@SuppressWarnings("unchecked")
 	public static SecurityContext createContext(String username, String password, String... roles) {
 		SecurityContextImpl ctxImpl = new SecurityContextImpl();
 		UsernamePasswordAuthenticationToken authToken;
@@ -38,7 +39,8 @@ public class SecurityTestUtils {
 			for (int i = 0; i < roles.length; i++) {
 				authorities[i] = new SimpleGrantedAuthority(roles[i]);
 			}
-			authToken = new UsernamePasswordAuthenticationToken(username, password, CollectionUtils.arrayToList(authorities));
+			authToken = new UsernamePasswordAuthenticationToken(username, password,
+					Arrays.asList(authorities));
 		}
 		else {
 			authToken = new UsernamePasswordAuthenticationToken(username, password);

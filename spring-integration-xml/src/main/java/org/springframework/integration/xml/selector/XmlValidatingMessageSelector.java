@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.selector;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +32,6 @@ import org.springframework.integration.xml.AggregatedXmlMessageValidationExcepti
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.validation.XmlValidator;
@@ -39,6 +39,7 @@ import org.springframework.xml.validation.XmlValidatorFactory;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class XmlValidatingMessageSelector implements MessageSelector {
@@ -62,7 +63,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 * the provided 'schema' location {@link Resource} and 'schemaType'. The valid options for schema
 	 * type are {@link XmlValidatorFactory#SCHEMA_W3C_XML} or {@link XmlValidatorFactory#SCHEMA_RELAX_NG}.
 	 * If no 'schemaType' is provided it will default to {@link XmlValidatorFactory#SCHEMA_W3C_XML};
-	 * 
+	 *
 	 * @throws IOException if the XmlValidatorFactory fails to create a validator
 	 */
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
@@ -86,7 +87,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		this.converter = converter;
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
 	public boolean accept(Message<?> message) {
 		SAXParseException[] validationExceptions = null;
 		try {
@@ -98,8 +99,9 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
 		if (!validationSuccess) {
 			if (this.throwExceptionOnRejection) {
-				throw new MessageRejectedException(message, "Message was rejected due to XML Validation errors", 
-						new AggregatedXmlMessageValidationException(CollectionUtils.arrayToList(validationExceptions)));
+				throw new MessageRejectedException(message, "Message was rejected due to XML Validation errors",
+						new AggregatedXmlMessageValidationException(
+								Arrays.<Throwable> asList(validationExceptions)));
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Message was rejected due to XML Validation errors");
