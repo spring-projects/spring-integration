@@ -32,7 +32,7 @@
 			<para>
 				The default dependency used by <emphasis>Spring Integration</emphasis>
 				<emphasis role="strong">3.0.0.RELEASE</emphasis> is
-				<emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.4.RELEASE</emphasis>.
+				<emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.x</emphasis>.
 			</para>
 			<para>
 				Generally, <emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>

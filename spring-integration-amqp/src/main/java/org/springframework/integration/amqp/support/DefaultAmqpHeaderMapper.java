@@ -171,12 +171,14 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				}
 			}
 
+			@SuppressWarnings("deprecation")
 			Object replyCorrelation = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER);
 			if (replyCorrelation instanceof String) {
 				if (StringUtils.hasText((String) replyCorrelation)) {
 					headers.put(AmqpHeaders.SPRING_REPLY_CORRELATION, replyCorrelation);
 				}
 			}
+			@SuppressWarnings("deprecation")
 			Object replyToStack = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER);
 			if (replyToStack instanceof String) {
 				if (StringUtils.hasText((String) replyToStack)) {
@@ -195,6 +197,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	/**
 	 * Extract user-defined headers from an AMQP MessageProperties instance.
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
 		Map<String, Object> headers = amqpMessageProperties.getHeaders();

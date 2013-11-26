@@ -1056,8 +1056,8 @@ public class RemoteFileOutboundGatewayTests {
 				return null;
 			}
 		}).when(session).write(any(InputStream.class), anyString());
-		File file1 = tempFolder.newFile("baz.txt");
-		File file2 = tempFolder.newFile("qux.txt");
+		tempFolder.newFile("baz.txt");
+		tempFolder.newFile("qux.txt");
 		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
 				.build();
 		@SuppressWarnings("unchecked")
