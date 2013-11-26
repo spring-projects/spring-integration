@@ -40,10 +40,11 @@ import org.springframework.web.multipart.MultipartFile;
  * An {@link HttpMessageConverter} implementation that delegates to an instance of
  * {@link XmlAwareFormHttpMessageConverter} while adding the capability to <i>read</i>
  * <code>multipart/form-data</code> content in an HTTP request.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
 	private volatile MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
@@ -66,10 +67,12 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 		this.multipartFileReader = multipartFileReader;
 	}
 
+	@Override
 	public List<MediaType> getSupportedMediaTypes() {
 		return this.wrappedConverter.getSupportedMediaTypes();
 	}
 
+	@Override
 	public boolean canRead(Class<?> clazz, MediaType mediaType) {
 		if (!(MultiValueMap.class.isAssignableFrom(clazz) || byte[].class.isAssignableFrom(clazz))) {
 			return false;
@@ -83,10 +86,12 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 		}
 	}
 
+	@Override
 	public boolean canWrite(Class<?> clazz, MediaType mediaType) {
 		return this.wrappedConverter.canWrite(clazz, mediaType);
 	}
 
+	@Override
 	public MultiValueMap<String, ?> read(Class<? extends MultiValueMap<String, ?>> clazz,
 			HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
 
@@ -118,6 +123,7 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 		return resultMap;
 	}
 
+	@Override
 	public void write(MultiValueMap<String, ?> map, MediaType contentType, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 		this.wrappedConverter.write(map, contentType, outputMessage);

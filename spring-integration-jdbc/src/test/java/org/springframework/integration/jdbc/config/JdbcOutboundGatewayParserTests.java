@@ -12,13 +12,12 @@
  */
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -26,13 +25,13 @@ import javax.sql.DataSource;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;

@@ -220,6 +220,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * Method not implemented.
 	 * @throws UnsupportedOperationException
 	 */
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -367,6 +368,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 *
 	 * @throws Exception
 	 */
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 		Assert.notNull(this.channelMessageStoreQueryProvider, "A channelMessageStoreQueryProvider must be provided.");
@@ -391,6 +393,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * @param groupId the group id to store the message under
 	 * @param message a message
 	 */
+	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 
@@ -408,6 +411,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		final byte[] messageBytes = serializer.convert(result);
 
 		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
+			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()){
 					logger.debug("Inserting message with id key=" + messageId);
@@ -427,6 +431,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * Method not implemented.
 	 * @throws UnsupportedOperationException
 	 */
+	@Override
 	public void completeGroup(Object groupId) {
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -524,6 +529,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	/**
 	 * Not fully used. Only wraps the provided group id.
 	 */
+	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		return new SimpleMessageGroup(groupId);
 	}
@@ -561,6 +567,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * Method not implemented.
 	 * @throws UnsupportedOperationException
 	 */
+	@Override
 	public Iterator<MessageGroup> iterator() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -569,6 +576,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * Returns the number of messages persisted for the specified channel id (groupId)
 	 * and the specified region ({@link #setRegion(String)}).
 	 */
+	@Override
+	@SuppressWarnings("deprecation")
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
@@ -579,6 +588,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * Polls the database for a new message that is persisted for the given
 	 * group id which represents the channel identifier.
 	 */
+	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 
 		final String key = getKey(groupId);
@@ -600,6 +610,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * @param messageToRemove The message to remove
 	 *
 	 */
+	@Override
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 
 		this.doRemoveMessageFromGroup(groupId, messageToRemove);
@@ -661,11 +672,13 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	/**
 	 * Will remove all messages from the message channel.
 	 */
+	@Override
 	public void removeMessageGroup(Object groupId) {
 
 		final String groupKey = getKey(groupId);
 
 		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()), new PreparedStatementSetter() {
+			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()){
 					logger.debug("Marking messages with group key=" + groupKey);

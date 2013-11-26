@@ -13,40 +13,21 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
-import java.sql.Types;
-import java.util.List;
 import java.util.Properties;
 
-import org.junit.After;
 import org.junit.Test;
-import org.springframework.beans.DirectFieldAccessor;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.jdbc.core.SqlInOutParameter;
-import org.springframework.jdbc.core.SqlOutParameter;
-import org.springframework.jdbc.core.SqlParameter;
 
 /**
  * @author Artem Bilan
