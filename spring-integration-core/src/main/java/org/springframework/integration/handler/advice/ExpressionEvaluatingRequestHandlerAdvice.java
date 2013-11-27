@@ -19,14 +19,13 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -35,7 +34,7 @@ import org.springframework.util.Assert;
  * Two expressions 'onSuccessExpression' and 'onFailureExpression' are evaluated when
  * appropriate. If the evaluation returns a result, a message is sent to the onSuccessChannel
  * or onFailureChannel as appropriate; the message is the input message with a header
- * {@link MessageHeaders#POSTPROCESS_RESULT} containing the evaluation result.
+ * {@link org.springframework.integration.EiMessageHeaderAccessor#POSTPROCESS_RESULT} containing the evaluation result.
  * The failure expression is NOT evaluated if the success expression throws an exception.
  * @author Gary Russell
  * @since 2.2

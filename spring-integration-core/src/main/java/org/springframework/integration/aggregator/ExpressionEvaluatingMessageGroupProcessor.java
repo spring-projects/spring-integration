@@ -54,7 +54,7 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 
 	/**
 	 * Evaluate the expression provided on the messages (a collection) in the group, and delegate to the
-	 * {@link MessagingTemplate} to send downstream.
+	 * {@link org.springframework.integration.core.MessagingTemplate} to send downstream.
 	 */
 	@Override
 	protected Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {

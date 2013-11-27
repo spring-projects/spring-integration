@@ -121,7 +121,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	/**
 	 * If at least this number of subscribers receive the message,
-	 * {@link #send(org.springframework.integration.Message)}
+	 * {@link #send(org.springframework.messaging.Message)}
 	 * will return true. Default: 0.
 	 * @param minSubscribers The minimum number of subscribers.
 	 */

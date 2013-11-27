@@ -60,7 +60,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Provide mappings from channel keys to channel names.
-	 * Channel names will be resolved by the {@link ChannelResolver}.
+	 * Channel names will be resolved by the {@link DestinationResolver}.
 	 */
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		Map<String, String> oldChannelMappings = this.channelMappings;

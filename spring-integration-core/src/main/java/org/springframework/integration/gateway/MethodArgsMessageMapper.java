@@ -19,7 +19,7 @@ import org.springframework.integration.mapping.InboundMessageMapper;
 
 /**
  * Implementations of this interface are {@link InboundMessageMapper}s
- * that map a {@link MethodArgsHolder} to a {@link org.springframework.integration.Message}.
+ * that map a {@link MethodArgsHolder} to a {@link org.springframework.messaging.Message}.
  *
  * @author Gary Russell
  * @since 3.0
