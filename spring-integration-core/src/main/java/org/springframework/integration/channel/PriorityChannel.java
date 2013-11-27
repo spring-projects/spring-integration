@@ -20,10 +20,10 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.util.UpperBound;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * A message channel that prioritizes messages based on a {@link Comparator}.
@@ -43,7 +43,7 @@ public class PriorityChannel extends QueueChannel {
 	 * is a non-positive value, the queue will be unbounded. Message priority
 	 * will be determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link MessageHeaders#getPriority()}.
+	 * {@link EiMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<Message<?>>(11, new SequenceFallbackComparator(comparator)));
@@ -52,7 +52,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with the specified queue capacity. Message priority
-	 * will be based upon the value of {@link MessageHeaders#getPriority()}.
+	 * will be based upon the value of {@link EiMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel(int capacity) {
 		this(capacity, null);
@@ -62,7 +62,7 @@ public class PriorityChannel extends QueueChannel {
 	 * Create a channel with an unbounded queue. Message priority will be
 	 * determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link MessageHeaders#getPriority()}.
+	 * {@link EiMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel(Comparator<Message<?>> comparator) {
 		this(0, comparator);
@@ -70,7 +70,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with an unbounded queue. Message priority will be
-	 * based on the value of {@link MessageHeaders#getPriority()}.
+	 * based on the value of {@link EiMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel() {
 		this(0, null);

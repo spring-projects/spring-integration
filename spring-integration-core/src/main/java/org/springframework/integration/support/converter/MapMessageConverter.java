@@ -38,8 +38,8 @@ public class MapMessageConverter implements MessageConverter {
 	private volatile boolean filterHeadersInToMessage;
 
 	/**
-	 * Headers to be converted in {@link #fromMessage(Message)}.
-	 * {@link #toMessage(Object)} will populate all headers found in
+	 * Headers to be converted in {@link #fromMessage(Message, Class)}.
+	 * {@link #toMessage(Object, MessageHeaders)} will populate all headers found in
 	 * the map, unless {@link #filterHeadersInToMessage} is true.
 	 * @param headerNames
 	 */
@@ -48,7 +48,7 @@ public class MapMessageConverter implements MessageConverter {
 	}
 
 	/**
-	 * By default all headers on Map passed to {@link #toMessage(Object)}
+	 * By default all headers on Map passed to {@link #toMessage(Object, MessageHeaders)}
 	 * will be mapped. Set this property
 	 * to 'true' if you wish to limit the inbound headers to those in
 	 * the #headerNames.

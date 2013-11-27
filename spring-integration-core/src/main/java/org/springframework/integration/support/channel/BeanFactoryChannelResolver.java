@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,14 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
 /**
- * {@link ChannelResolver} implementation based on a Spring {@link BeanFactory}.
+ * {@link DestinationResolver} implementation based on a Spring {@link BeanFactory}.
  *
  * <p>Will lookup Spring managed beans identified by bean name,
  * expecting them to be of type {@link MessageChannel}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
+ *
  * @see org.springframework.beans.factory.BeanFactory
  */
 public class BeanFactoryChannelResolver implements DestinationResolver<MessageChannel>, BeanFactoryAware {

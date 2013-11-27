@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * A {@link MessageHandler} implementation for invoking JMX operations based on
+ * A {@link org.springframework.messaging.MessageHandler} implementation for invoking JMX operations based on
  * the Message sent to its {@link #handleMessage(Message)} method. Message headers
  * will be checked first when resolving the 'objectName' and 'operationName' to be
  * invoked on an MBean. These values would be supplied with the Message headers

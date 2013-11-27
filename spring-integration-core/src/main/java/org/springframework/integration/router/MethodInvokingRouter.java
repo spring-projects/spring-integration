@@ -27,7 +27,7 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
  * method's return value may be a single MessageChannel instance, a single
  * String to be interpreted as a channel name, or a Collection (or Array) of
  * either type. If the method returns channel names, then a
- * {@link ChannelResolver} is required.
+ * {@link org.springframework.messaging.core.DestinationResolver} is required.
  *
  * @author Mark Fisher
  * @author Artem Bilan
