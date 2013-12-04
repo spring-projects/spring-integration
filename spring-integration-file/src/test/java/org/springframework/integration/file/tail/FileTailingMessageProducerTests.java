@@ -45,10 +45,10 @@ import org.springframework.integration.file.tail.FileTailingMessageProducerSuppo
  */
 public class FileTailingMessageProducerTests {
 
-	private static final String TAIL_OPTIONS_FOLLOW_NAME_MANY_LINES = "-F -n 99999999";
+	private static final String TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES = "-F -n +0";
 
 	@Rule
-	public TailRule tailRule = new TailRule(TAIL_OPTIONS_FOLLOW_NAME_MANY_LINES);
+	public TailRule tailRule = new TailRule(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -76,7 +76,7 @@ public class FileTailingMessageProducerTests {
 	@TailAvailable
 	public void testOS() throws Exception {
 		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
-		adapter.setOptions(TAIL_OPTIONS_FOLLOW_NAME_MANY_LINES);
+		adapter.setOptions(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
 		testGuts(adapter, "reader");
 	}
 

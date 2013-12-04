@@ -28,7 +28,7 @@ import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessage
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 
 /**
  * @author Gary Russell
@@ -180,9 +180,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 			}
 		}
 		else {
-			if (this.nativeOptions != null && StringUtils.hasText(this.nativeOptions) && logger.isWarnEnabled()) {
-				logger.warn("'native-options' are ignored with an Apache commons-io 'Tailer' adapter");
-			}
+			Assert.isTrue(this.nativeOptions == null,
+					 "'native-options' is not allowed with 'delay', 'end', or 'reopen'");
 			adapter = new ApacheCommonsFileTailingMessageProducer();
 			if (this.delay != null) {
 				((ApacheCommonsFileTailingMessageProducer) adapter).setPollingDelay(this.delay);

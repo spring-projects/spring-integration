@@ -168,7 +168,8 @@
         <section id="file-tailing">
           <title>'Tail'ing Files</title>
           <para>
-            Another popular use case is to get 'lines' from the end (or tail) of a file. Two implementations are provided;
+            Another popular use case is to get 'lines' from the end (or tail) of a file, capturing new lines when
+            they are added. Two implementations are provided;
             the first, <classname>OSDelegatingFileTailingMessageProducer</classname>, uses the native <code>tail</code>
             command (on operating systems that have one). This is likely the most efficient implementation on those
             platforms. For operating systems that do not have a <code>tail</code> command, the second implementation
@@ -213,12 +214,12 @@
           </para>
           <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="native"
 	channel="input"
-	native-options="-F -n 6"
+	native-options="-F -n +0"
 	task-executor="exec"
 	file-delay=10000
 	file="/tmp/foo"/>]]></programlisting>
           <para>
-            This creates a native adapter with '-F -n 6' options (follow the file name, emit up to 6 lines before the current end).
+            This creates a native adapter with '-F -n +0' options (follow the file name, emitting all existing lines).
             If the tail command fails (on some platforms, a missing file causes the <code>tail</code> to fail, even with
             <code>-F</code> specified), the command will be retried every 10 seconds.
           </para>
@@ -231,11 +232,18 @@
 	reopen="true"
 	file-delay="10000"/>]]></programlisting>
           <para>
-            This creates a commons-io <classname>Tailer</classname> adapter that examines the file for new lines every
+            This creates an Apache commons-io <classname>Tailer</classname> adapter that examines the file for new lines every
             2 seconds, and checks for existence of a missing file every 10 seconds. The file will be tailed from the
             beginning (<code>end="false"</code>) instead of the end (which is the default). The file will be
             reopened for each chunk (the default is to keep the file open).
           </para>
+          <important>
+            <para>
+              Specifying the <code>delay</code>, <code>end</code> or <code>reopen</code> attributes,
+              forces the use of the Apache commons-io adapter and the <code>native-options</code> attribute is not
+              allowed.
+            </para>
+          </important>
         </section>
   </section>
 	<section id="file-writing">
