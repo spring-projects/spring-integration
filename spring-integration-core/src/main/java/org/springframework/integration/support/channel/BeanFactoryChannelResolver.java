@@ -34,6 +34,8 @@ import org.springframework.util.Assert;
  * <p>Will lookup Spring managed beans identified by bean name,
  * expecting them to be of type {@link MessageChannel}.
  *
+ * Consults a {@link HeaderChannelRegistry}, if available, if the bean is not found.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  *

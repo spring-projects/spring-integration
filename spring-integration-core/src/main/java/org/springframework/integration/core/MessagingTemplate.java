@@ -18,6 +18,7 @@ package org.springframework.integration.core;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
@@ -27,9 +28,21 @@ import org.springframework.messaging.core.GenericMessagingTemplate;
  */
 public class MessagingTemplate extends GenericMessagingTemplate {
 
+	/**
+	 * Overridden to set the destination resolver to a {@link BeanFactoryChannelResolver}.
+	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		super.setDestinationResolver(new BeanFactoryChannelResolver(beanFactory));
+	}
+
+	/**
+	 * Invokes {@link #setDefaultDestination(MessageChannel)} - provided for
+	 * backward compatibility.
+	 * @param channel the channel to set.
+	 */
+	public void setDefaultChannel(MessageChannel channel) {
+		super.setDefaultDestination(channel);
 	}
 
 }
