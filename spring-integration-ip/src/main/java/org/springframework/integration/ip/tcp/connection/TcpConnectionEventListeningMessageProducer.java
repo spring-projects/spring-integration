@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,10 +48,11 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	public void setEventTypes(Class<? extends TcpConnectionEvent>[] eventTypes) {
 		Assert.notEmpty(eventTypes, "at least one event type is required");
 		Set<Class<? extends TcpConnectionEvent>> eventTypeSet = new HashSet<Class<? extends TcpConnectionEvent>>();
-		eventTypeSet.addAll(CollectionUtils.<Class<TcpConnectionEvent>> arrayToList(eventTypes));
+		eventTypeSet.addAll(Arrays.asList(eventTypes));
 		this.eventTypes = eventTypeSet;
 	}
 
+	@Override
 	public void onApplicationEvent(TcpConnectionEvent event) {
 		if (this.isRunning()) {
 			if (CollectionUtils.isEmpty(this.eventTypes)) {

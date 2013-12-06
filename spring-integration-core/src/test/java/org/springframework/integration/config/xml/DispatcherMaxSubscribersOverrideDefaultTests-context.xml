@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<bean id="channelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
-		<property name="autoCreate" value="true" />
-		<property name="defaultMaxUnicastSubscribers" value="456" />
-		<property name="defaultMaxBroadcastSubscribers" value="789" />
-	</bean>
+	<util:properties id="integrationGlobalProperties">
+		<prop key="channels.maxUnicastSubscribers">456</prop>
+		<prop key="channels.maxBroadcastSubscribers">789</prop>
+	</util:properties>
 
 	<import resource="DispatcherMaxSubscribersDefaultConfigurationTests-context.xml" />
 

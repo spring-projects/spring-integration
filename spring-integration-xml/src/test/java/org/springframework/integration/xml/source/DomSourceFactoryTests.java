@@ -16,7 +16,9 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.custommonkey.xmlunit.XMLAssert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
+import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 

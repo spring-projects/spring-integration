@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.MessageDispatcher;
 
 /**
  * @author Mark Fisher
@@ -65,7 +65,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	}
 
 	@Override
-	protected MessageDispatcher createDispatcher() {
+	protected AbstractDispatcher createDispatcher() {
 		return new BroadcastingDispatcher(true);
 	}
 

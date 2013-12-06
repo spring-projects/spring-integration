@@ -7,6 +7,8 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<int:service-activator input-channel="autoCreateChannel" expression="'foo'"/>
+
 	<int:channel id="defaultChannel" />
 
 	<int:channel id="defaultChannel2">

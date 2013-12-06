@@ -49,9 +49,7 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME = "integrationHeaderChannelRegistry";
 
-	public static final String INTEGRATION_PROPERTIES_BEAN_NAME = "integrationProperties";
-
-	private static final Properties EMPTY_PROPERTIES = new Properties();
+	public static final String INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME = "integrationGlobalProperties";
 
 	/**
 	 * Return the {@link MetadataStore} bean whose name is "metadataStore".
@@ -113,21 +111,23 @@ public abstract class IntegrationContextUtils {
 	}
 
 	/**
-	 * @return the global {@link IntegrationContextUtils#INTEGRATION_PROPERTIES_BEAN_NAME}
+	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}
 	 *         bean from provided {@code #beanFactory}, which represents the merged
 	 *         properties values from all 'META-INF/spring.integration.default.properties'
 	 *         and 'META-INF/spring.integration.properties'.
-	 *         May return {@link IntegrationContextUtils#EMPTY_PROPERTIES} if there is no
-	 *         {@link IntegrationContextUtils#INTEGRATION_PROPERTIES_BEAN_NAME} bean within
+	 *         Or user-defined {@link Properties} bean.
+	 *         May return only {@link IntegrationProperties#defaults()} if there is no
+	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean within
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
-		Properties properties = null;
+		Properties properties = new Properties();
+		properties.putAll(IntegrationProperties.defaults());
 		if (beanFactory != null) {
-			properties = getBeanOfType(beanFactory, INTEGRATION_PROPERTIES_BEAN_NAME, Properties.class);
-		}
-		if (properties == null) {
-			properties = EMPTY_PROPERTIES;
+			Properties userProperties = getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+			if (userProperties != null) {
+				properties.putAll(userProperties);
+			}
 		}
 		return properties;
 	}

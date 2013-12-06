@@ -21,8 +21,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,9 +30,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
@@ -265,6 +265,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private volatile String userDefinedHeaderPrefix = "X-";
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -326,6 +327,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * Depending on which type of adapter is using this mapper, the HttpHeaders might be
 	 * for an HTTP request (outbound adapter) or for an HTTP response (inbound adapter).
 	 */
+	@Override
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
 		if (logger.isDebugEnabled()){
 			logger.debug(MessageFormat.format("outboundHeaderNames={0}", CollectionUtils.arrayToList(outboundHeaderNames)));
@@ -356,6 +358,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * Depending on which type of adapter is using this mapper, the HttpHeaders might be
 	 * from an HTTP request (inbound adapter) or from an HTTP response (outbound adapter).
 	 */
+	@Override
 	public Map<String, Object> toHeaders(HttpHeaders source) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(MessageFormat.format("inboundHeaderNames={0}", CollectionUtils.arrayToList(inboundHeaderNames)));
@@ -389,6 +392,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		return target;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.beanFactory != null){
 			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
@@ -901,6 +905,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			return source.getIfNoneMatch();
 		}
 		else if (IF_MODIFIED_SINCE.equalsIgnoreCase(name)) {
+			@SuppressWarnings("deprecation")
 			long modifiedSince = source.getIfNotModifiedSince();
 			return (modifiedSince > -1) ? modifiedSince : null;
 		}

@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -44,7 +45,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	private volatile int minSubscribers;
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private volatile Integer maxSubscribers;
 
 	@Override
 	public String getComponentType(){
@@ -147,7 +148,10 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 			this.dispatcher.setIgnoreFailures(this.ignoreFailures);
 			this.dispatcher.setApplySequence(this.applySequence);
 			this.dispatcher.setMinSubscribers(this.minSubscribers);
-			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
+		}
+		if (this.maxSubscribers == null) {
+			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
+			this.setMaxSubscribers(maxSubscribers);
 		}
 	}
 

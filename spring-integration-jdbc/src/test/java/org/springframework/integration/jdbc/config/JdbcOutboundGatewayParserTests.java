@@ -25,10 +25,12 @@ import javax.sql.DataSource;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
@@ -38,7 +40,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author Dave Syer

@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Properties;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;

@@ -20,10 +20,8 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -82,15 +80,8 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		if (parserContext.isNested()) {
 			return null;
 		}
-		String channelId = element.getAttribute(ID_ATTRIBUTE);
-		if (!StringUtils.hasText(channelId)) {
-			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
-					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
-		}
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-		return channelId;
+
+		return IntegrationNamespaceUtils.createDirectChannel(element, parserContext);
 	}
 
 	/**

@@ -30,6 +30,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -59,6 +60,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	private final ConversionService defaultConversionService = new DefaultConversionService();
+
 	private volatile String beanName;
 
 	private volatile String componentName;
@@ -66,6 +69,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	private volatile BeanFactory beanFactory;
 
 	private volatile TaskScheduler taskScheduler;
+
+	private volatile Properties integrationProperties = IntegrationProperties.defaults();
 
 	private volatile ConversionService conversionService;
 
@@ -102,6 +107,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.beanFactory = beanFactory;
+		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -176,7 +182,16 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * @see IntegrationContextUtils#getIntegrationProperties
 	 */
 	protected Properties getIntegrationProperties() {
-		return IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+		return this.integrationProperties;
+	}
+
+	/**
+	 * @param  key    Integration property.
+	 * @param  tClass the class to convert a value of Integration property.
+	 * @return the value of the Integration property converted to the provide type.
+	 */
+	protected <T> T getIntegrationProperty(String key, Class<T> tClass) {
+		return this.defaultConversionService.convert(this.integrationProperties.getProperty(key), tClass);
 	}
 
 	@Override

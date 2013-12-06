@@ -107,6 +107,7 @@ public class HttpProxyScenarioTests {
 		RestTemplate template = Mockito.spy(new RestTemplate());
 
 		Mockito.doAnswer(new Answer<ResponseEntity<?>>() {
+			@SuppressWarnings("deprecation")
 			@Override
 			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
 				URI uri = (URI) invocation.getArguments()[0];

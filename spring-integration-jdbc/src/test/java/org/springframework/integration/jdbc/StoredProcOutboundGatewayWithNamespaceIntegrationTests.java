@@ -31,15 +31,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.jdbc.storedproc.CreateUser;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

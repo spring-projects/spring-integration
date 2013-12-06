@@ -386,6 +386,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 
 	// If-Modified-Since tests
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void validateIfModifiedSinceAsNumber() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
@@ -399,6 +400,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getIfNotModifiedSince());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void validateIfModifiedSinceAsString() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
@@ -411,6 +413,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getIfNotModifiedSince());
 	}
+	@SuppressWarnings("deprecation")
 	@Test
 	public void validateIfModifiedSinceAsDate() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
@@ -673,6 +676,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals(0, messageHeaders.size());
 	}
 
+	@SuppressWarnings("deprecation")
 	public void testInt2995IfModifiedSince() throws Exception{
 		Date ifModifiedSince = new Date();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy", Locale.US);

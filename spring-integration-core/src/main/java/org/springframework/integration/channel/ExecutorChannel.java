@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -41,6 +42,7 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 1.0.3
  */
 public class ExecutorChannel extends AbstractSubscribableChannel {
@@ -51,7 +53,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 
 	private volatile boolean failover = true;
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private volatile Integer maxSubscribers;
 
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
@@ -116,7 +118,10 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 		}
 		this.dispatcher = new UnicastingDispatcher(this.executor);
 		this.dispatcher.setFailover(this.failover);
-		this.dispatcher.setMaxSubscribers(maxSubscribers);
+		if (this.maxSubscribers == null) {
+			this.maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
+		}
+		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 		if (this.loadBalancingStrategy != null) {
 			this.dispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		}

@@ -32,6 +32,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -60,6 +61,8 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private final String topicName;
 
 	private final AbstractDispatcher dispatcher = new BroadcastingDispatcher(true);
+
+	private volatile Integer maxSubscribers;
 
 	private volatile boolean initialized;
 
@@ -97,6 +100,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	 * @param maxSubscribers
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
 		this.dispatcher.setMaxSubscribers(maxSubscribers);
 	}
 
@@ -121,6 +125,10 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 			return;
 		}
 		super.onInit();
+		if (this.maxSubscribers == null) {
+			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
+			this.setMaxSubscribers(maxSubscribers);
+		}
 		if (this.messageConverter == null){
 			this.messageConverter = new SimpleMessageConverter();
 		}

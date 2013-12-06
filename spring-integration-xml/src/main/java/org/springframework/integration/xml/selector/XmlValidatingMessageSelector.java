@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.selector;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +32,6 @@ import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.validation.XmlValidator;
@@ -87,6 +87,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		this.converter = converter;
 	}
 
+	@Override
 	public boolean accept(Message<?> message) {
 		SAXParseException[] validationExceptions = null;
 		try {
@@ -100,7 +101,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 			if (this.throwExceptionOnRejection) {
 				throw new MessageRejectedException(message, "Message was rejected due to XML Validation errors",
 						new AggregatedXmlMessageValidationException(
-								CollectionUtils.<Throwable> arrayToList(validationExceptions)));
+								Arrays.<Throwable> asList(validationExceptions)));
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Message was rejected due to XML Validation errors");

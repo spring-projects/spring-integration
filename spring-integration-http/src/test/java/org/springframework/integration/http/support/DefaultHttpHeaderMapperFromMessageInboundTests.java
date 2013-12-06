@@ -18,8 +18,8 @@ package org.springframework.integration.http.support;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 import java.text.ParseException;
@@ -33,10 +33,10 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
@@ -577,6 +577,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	public static class TestClassConverter implements Converter<TestClass, String>{
 
+		@Override
 		public String convert(TestClass source) {
 			return "TestClass.class";
 		}

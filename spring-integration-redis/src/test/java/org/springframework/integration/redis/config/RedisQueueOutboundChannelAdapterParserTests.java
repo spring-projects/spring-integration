@@ -30,8 +30,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.expression.Expression;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

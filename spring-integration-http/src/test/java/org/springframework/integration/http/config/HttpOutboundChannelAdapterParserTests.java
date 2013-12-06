@@ -16,9 +16,9 @@
 
 package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -167,7 +168,6 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("uchecked")
 	public void withUrlAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlAndTemplate);
 		RestTemplate restTemplate =
@@ -257,10 +257,12 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	public static class StubErrorHandler implements ResponseErrorHandler {
 
+		@Override
 		public boolean hasError(ClientHttpResponse response) throws IOException {
 			return false;
 		}
 
+		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
 		}
 	}

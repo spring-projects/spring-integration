@@ -16,12 +16,13 @@
 
 package org.springframework.integration.security;
 
+import java.util.Arrays;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Jonas Partner
@@ -39,7 +40,7 @@ public class SecurityTestUtils {
 				authorities[i] = new SimpleGrantedAuthority(roles[i]);
 			}
 			authToken = new UsernamePasswordAuthenticationToken(username, password,
-					CollectionUtils.<GrantedAuthority> arrayToList(authorities));
+					Arrays.asList(authorities));
 		}
 		else {
 			authToken = new UsernamePasswordAuthenticationToken(username, password);

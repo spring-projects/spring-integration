@@ -71,21 +71,6 @@ public abstract class IntegrationNamespaceUtils {
 	public static final String PHASE = "phase";
 
 	/**
-	 * Property name on ChannelInitializer used to configure the default max subscribers for
-	 * unicast channels.
-	 */
-	public static String DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxUnicastSubscribers";
-
-	/**
-	 * Property name on ChannelInitializer used to configure the default max subscribers for
-	 * broadcast channels.
-	 */
-	public static String DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxBroadcastSubscribers";
-
-
-
-
-	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
 	 *
@@ -507,10 +492,16 @@ public abstract class IntegrationNamespaceUtils {
 			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
 					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
 		}
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+
+		autoCreateDirectChannel(channelId, parserContext.getRegistry());
+
 		return channelId;
+	}
+
+	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelName);
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 	}
 
 }
