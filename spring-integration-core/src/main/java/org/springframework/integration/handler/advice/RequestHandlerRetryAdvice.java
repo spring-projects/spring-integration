@@ -89,7 +89,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		}
 		catch (MessagingException e) {
 			if (e.getFailedMessage() == null) {
-				e.setFailedMessage(message);
+				throw new MessagingException(message, e);
 			}
 			throw e;
 		}

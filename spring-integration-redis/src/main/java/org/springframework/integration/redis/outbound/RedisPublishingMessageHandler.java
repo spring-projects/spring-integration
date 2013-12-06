@@ -27,7 +27,7 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.converter.MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**

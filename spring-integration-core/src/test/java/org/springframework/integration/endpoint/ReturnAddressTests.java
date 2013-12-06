@@ -19,15 +19,18 @@ package org.springframework.integration.endpoint;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -98,14 +101,19 @@ public class ReturnAddressTests {
 		assertNull(channel2.receive(0));
 	}
 
-	@Test(expected = DestinationResolutionException.class)
+	@Test
 	public void returnAddressFallbackButNotAvailable() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
 		context.start();
 		GenericMessage<String> message = new GenericMessage<String>("*");
-		channel3.send(message);
+		try {
+			channel3.send(message);
+		}
+		catch (MessagingException e) {
+			assertTrue(e.getCause() instanceof DestinationResolutionException);
+		}
 	}
 
 	@Test

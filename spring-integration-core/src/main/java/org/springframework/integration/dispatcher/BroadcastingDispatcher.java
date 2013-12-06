@@ -144,7 +144,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		catch (RuntimeException e) {
 			if (!this.ignoreFailures) {
 				if (e instanceof MessagingException && ((MessagingException) e).getFailedMessage() == null) {
-					((MessagingException) e).setFailedMessage(message);
+					throw new MessagingException(message, e);
 				}
 				throw e;
 			}

@@ -122,7 +122,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 								"Dispatcher failed to deliver Message.", e);
 				if (e instanceof MessagingException &&
 						((MessagingException) e).getFailedMessage() == null) {
-					((MessagingException) e).setFailedMessage(message);
+					runtimeException = new MessagingException(message, e);
 				}
 				exceptions.add(runtimeException);
 				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
