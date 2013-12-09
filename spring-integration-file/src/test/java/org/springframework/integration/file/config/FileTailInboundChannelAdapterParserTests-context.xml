@@ -4,10 +4,14 @@
 	xmlns:int-file="http://www.springframework.org/schema/integration/file"
 	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int-file:tail-inbound-channel-adapter id="default"
 		channel="input"
@@ -24,17 +28,28 @@
 		file-delay="456"
 		file="/tmp/foo"
 		auto-startup="false"
+		delay="${empty}"
+		end="${empty}"
+		reopen="${empty}"
 		phase="123" />
 
 	<int-file:tail-inbound-channel-adapter id="apacheDefault"
 		channel="input"
+		native-options="${empty}"
 		task-executor="exec"
 		file="/tmp/bar"
-		delay="2000"
+		delay="${foo}"
 		file-delay="10000"
 		auto-startup="false"
 		phase="123" />
 	
+	<context:property-placeholder properties-ref="props"/>
+
+	<util:properties id="props">
+		<prop key="foo">2000</prop>
+		<prop key="empty"></prop>
+	</util:properties>
+
 	<int-file:tail-inbound-channel-adapter id="apacheEndReopen"
 		channel="input"
 		task-executor="exec"
