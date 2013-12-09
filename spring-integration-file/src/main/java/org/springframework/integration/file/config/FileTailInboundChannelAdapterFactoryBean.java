@@ -29,6 +29,7 @@ import org.springframework.integration.file.tail.FileTailingMessageProducerSuppo
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Gary Russell
@@ -67,7 +68,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	public void setNativeOptions(String nativeOptions) {
-		this.nativeOptions = nativeOptions;
+		if (StringUtils.hasText(nativeOptions)) {
+			this.nativeOptions = nativeOptions;
+		}
 	}
 
 	public void setFile(File file) {
@@ -82,11 +85,11 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.taskScheduler = taskScheduler;
 	}
 
-	public void setDelay(long delay) {
+	public void setDelay(Long delay) {
 		this.delay = delay;
 	}
 
-	public void setFileDelay(long fileDelay) {
+	public void setFileDelay(Long fileDelay) {
 		this.fileDelay = fileDelay;
 	}
 
@@ -107,11 +110,11 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.outputChannel = outputChannel;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
+	public void setAutoStartup(Boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
-	public void setPhase(int phase) {
+	public void setPhase(Integer phase) {
 		this.phase = phase;
 	}
 
