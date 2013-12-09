@@ -28,10 +28,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
@@ -53,20 +51,6 @@ public class DispatchingChannelParserTests {
 
 	@Autowired
 	private Map<String, MessageChannel> channels;
-
-
-	@Test(expected = FatalBeanException.class)
-	public void dispatcherAttributeAndSubElement() {
-		new ClassPathXmlApplicationContext("dispatcherAttributeAndSubElement.xml", this.getClass());
-	}
-
-	@Test
-	public void dispatcherAttribute() {
-		MessageChannel channel = channels.get("dispatcherAttribute");
-		assertEquals(DirectChannel.class, channel.getClass());
-		assertTrue((Boolean) getDispatcherProperty("failover", channel));
-		assertNull(getDispatcherProperty("loadBalancingStrategy", channel));
-	}
 
 	@Test
 	public void taskExecutorOnly() {

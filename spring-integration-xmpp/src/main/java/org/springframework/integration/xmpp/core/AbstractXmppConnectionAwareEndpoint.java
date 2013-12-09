@@ -19,7 +19,6 @@ package org.springframework.integration.xmpp.core;
 import org.jivesoftware.smack.XMPPConnection;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.util.Assert;
 
@@ -41,15 +40,6 @@ public abstract class AbstractXmppConnectionAwareEndpoint extends MessageProduce
 	public AbstractXmppConnectionAwareEndpoint(XMPPConnection xmppConnection) {
 		Assert.notNull(xmppConnection, "'xmppConnection' must no be null");
 		this.xmppConnection = xmppConnection;
-	}
-
-	/**
-	 * {@link Deprecated} This method will be eligible for removal in 2.1.
-	 * Use {@link #setOutputChannel(MessageChannel)} instead.
-	 */
-	@Deprecated
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.setOutputChannel(requestChannel);
 	}
 
 	@Override

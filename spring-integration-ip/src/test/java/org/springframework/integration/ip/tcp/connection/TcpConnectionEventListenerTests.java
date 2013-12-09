@@ -65,7 +65,8 @@ public class TcpConnectionEventListenerTests {
 		TcpConnectionEventListeningMessageProducer eventProducer = new TcpConnectionEventListeningMessageProducer();
 		QueueChannel outputChannel = new QueueChannel();
 		eventProducer.setOutputChannel(outputChannel);
-		eventProducer.setEventTypes(new Class[] {FooEvent.class, BarEvent.class});
+		Class<?>[] eventTypes = new Class<?>[]{FooEvent.class, BarEvent.class};
+		eventProducer.setEventTypes((Class<? extends TcpConnectionEvent>[]) eventTypes);
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);

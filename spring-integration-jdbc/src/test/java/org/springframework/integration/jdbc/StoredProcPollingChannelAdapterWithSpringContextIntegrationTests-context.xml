@@ -23,7 +23,7 @@
 	<bean  id="storedProcExecutor" class="org.springframework.integration.jdbc.StoredProcExecutor">
 		<constructor-arg name="dataSource" ref="dataSource" />
 		<property name="storedProcedureName" value="GET_PRIME_NUMBERS"/>
-		<property name="function" value="false"/>
+		<property name="isFunction" value="false"/>
 		<property name="procedureParameters" >
 			<util:list>
 				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">

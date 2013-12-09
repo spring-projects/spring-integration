@@ -8,34 +8,34 @@
 		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
 	<int-xml:xpath-router id="xpathRouterEmpty" input-channel="xpathRouterEmptyChannel">
-		<int-xml:xpath-expression expression="/name"/>	
-	</int-xml:xpath-router>
-	
-	<int-xml:xpath-router id="xpathRouterAsString" input-channel="xpathStringChannel" evaluate-as-string="true">
-		<int-xml:xpath-expression expression="name(./node())"/>	
-	</int-xml:xpath-router>
-	
-	<int-xml:xpath-router id="xpathRouterWithMapping" input-channel="xpathRouterWithMappingChannel">
 		<int-xml:xpath-expression expression="/name"/>
-		<int-xml:mapping value="channelA" channel="channelB"/>	
-	</int-xml:xpath-router>
-	
-	<int-xml:xpath-router id="xpathRouterWithMappingMultiChannel" input-channel="multiChannelRouterChannel">
-		<int-xml:xpath-expression expression="/root/name" />
-		<int-xml:mapping value="channelA" channel="channelA"/>	
-		<int-xml:mapping value="channelB" channel="channelA"/>	
 	</int-xml:xpath-router>
 
-	<int-xml:xpath-router id="xpathRouterWithCustomConverter" 
-		input-channel="customConverterChannel" evaluate-as-string="true" 
-		converter="testConverter" channel-resolver="cr">
+	<int-xml:xpath-router id="xpathRouterAsString" input-channel="xpathStringChannel" evaluate-as-string="true">
+		<int-xml:xpath-expression expression="name(./node())"/>
+	</int-xml:xpath-router>
+
+	<int-xml:xpath-router id="xpathRouterWithMapping" input-channel="xpathRouterWithMappingChannel">
+		<int-xml:xpath-expression expression="/name"/>
+		<int-xml:mapping value="channelA" channel="channelB"/>
+	</int-xml:xpath-router>
+
+	<int-xml:xpath-router id="xpathRouterWithMappingMultiChannel" input-channel="multiChannelRouterChannel">
+		<int-xml:xpath-expression expression="/root/name" />
+		<int-xml:mapping value="channelA" channel="channelA"/>
+		<int-xml:mapping value="channelB" channel="channelA"/>
+	</int-xml:xpath-router>
+
+	<int-xml:xpath-router id="xpathRouterWithCustomConverter"
+		input-channel="customConverterChannel" evaluate-as-string="true"
+		converter="testConverter">
 		<int-xml:xpath-expression expression="/name"/>
 	</int-xml:xpath-router>
-	
+
 	<int:channel id="channelA">
 		<int:queue/>
 	</int:channel>
-	
+
 	<int:channel id="channelB">
 		<int:queue/>
 	</int:channel>
@@ -46,5 +46,4 @@
 
 	<bean id="testConverter" class="org.springframework.integration.xml.config.XPathRouterParserTests$TestXmlPayloadConverter"/>
 
-	<bean id="cr" class="org.springframework.integration.xml.config.XPathRouterParserTests.MyChannelResolver"/>
 </beans>

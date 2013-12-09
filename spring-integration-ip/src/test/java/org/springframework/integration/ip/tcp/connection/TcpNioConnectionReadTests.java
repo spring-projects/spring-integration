@@ -94,9 +94,9 @@ public class TcpNioConnectionReadTests {
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
+				new String((byte[]) responses.get(0).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
+		         new String((byte[]) responses.get(1).getPayload()));
 		scf.close();
 	}
 
