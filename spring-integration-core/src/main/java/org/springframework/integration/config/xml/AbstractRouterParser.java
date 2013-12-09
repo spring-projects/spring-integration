@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * Base parser for routers.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractRouterParser extends AbstractConsumerEndpointParser {
@@ -43,7 +43,6 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-send-failures");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel-resolver");
 		BeanDefinition targetRouterBeanDefinition = this.parseRouter(element, parserContext);
 		builder.addPropertyValue("targetObject", targetRouterBeanDefinition);
 		return builder;

@@ -236,7 +236,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 		@SuppressWarnings("unchecked")
-		Future<Integer>[] results = new Future[2];
+		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
 			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>(){
@@ -364,7 +364,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setOutputChannel(replyChannel);
 		gateway.setRemoteTimeout(500);
 		@SuppressWarnings("unchecked")
-		Future<Integer>[] results = new Future[2];
+		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
 			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {

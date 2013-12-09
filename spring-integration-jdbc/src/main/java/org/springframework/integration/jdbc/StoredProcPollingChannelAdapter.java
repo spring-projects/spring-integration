@@ -16,23 +16,13 @@
 package org.springframework.integration.jdbc;
 
 import java.sql.CallableStatement;
-import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlOutParameter;
-import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.util.Assert;
 
 /**
@@ -51,26 +41,6 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	private volatile boolean expectSingleResult = false;
 
 	/**
-	 * Constructor taking {@link DataSource} from which the DB Connection can be
-	 * obtained and the stored procedure name to execute.
-	 *
-	 * @param dataSource used to create a {@link SimpleJdbcCall}
-	 * @param storedProcedureName Name of the Stored Procedure or Function to execute
-	 *
-	 * @deprecated Since 2.2 use the constructor that expects a {@link StoredProcExecutor} instead
-	 */
-	@Deprecated
-	public StoredProcPollingChannelAdapter(DataSource dataSource, String storedProcedureName) {
-
-		Assert.notNull(dataSource, "dataSource must not be null.");
-		Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
-
-		this.executor = new StoredProcExecutor(dataSource);
-		this.executor.setStoredProcedureName(storedProcedureName);
-
-	}
-
-	/**
 	 * Constructor taking {@link StoredProcExecutor}.
 	 *
 	 * @param storedProcExecutor Must not be null.
@@ -81,11 +51,6 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 		Assert.notNull(storedProcExecutor, "storedProcExecutor must not be null.");
 		this.executor = storedProcExecutor;
 
-	}
-
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
 	}
 
 	/**
@@ -147,154 +112,6 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	}
 
 	/**
-	 * The name of the Stored Procedure or Stored Function to be executed.
-	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
-	 * property specifies the Stored Function name.
-	 *
-	 * Alternatively you can also specify the Stored Procedure name via
-	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)}.
-	 *
-	 * @param storedProcedureName Must not be null and must not be empty
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setStoredProcedureName(String)
-	 */
-	@Deprecated
-	public void setStoredProcedureName(String storedProcedureName) {
-		this.executor.setStoredProcedureName(storedProcedureName);
-	}
-
-	/**
-	 * Provides the ability to set a custom {@link SqlParameterSourceFactory}.
-	 * Keep in mind that if {@link ProcedureParameter} are set explicitly and
-	 * you would like to provide a custom {@link SqlParameterSourceFactory},
-	 * then you must provide an instance of {@link ExpressionEvaluatingSqlParameterSourceFactory}.
-	 *
-	 * If not the SqlParameterSourceFactory will be replaced by the default
-	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
-	 *
-	 * @param sqlParameterSourceFactory
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setSqlParameterSourceFactory(SqlParameterSourceFactory)
-	 */
-	@Deprecated
-	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-		this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
-	}
-
-	/**
-	 * Explicit declarations are necessary if the database you use is not a
-	 * Spring-supported database. Currently Spring supports metadata lookup of
-	 * stored procedure calls for the following databases:
-	 *
-	 * <ul>
-	 *  <li>Apache Derby</li>
-	 *  <li>DB2</li>
-	 *  <li>MySQL</li>
-	 *  <li>Microsoft SQL Server</li>
-	 *  <li>Oracle</li>
-	 *  <li>Sybase</li>
-	 *  <li>PostgreSQL</li>
-	 * </ul>
-	 * , ,
-	 * We also support metadata lookup of stored functions for the following
-	 * databases:
-	 *
-	 * <ul>
-	 *  <li>MySQL</li>
-	 *  <li>Microsoft SQL Server</li>
-	 *  <li>Oracle</li>
-	 *  <li>PostgreSQL</li>
-	 * </ul>
-	 *
-	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setSqlParameters(List)
-	 */
-	@Deprecated
-	public void setSqlParameters(List<SqlParameter> sqlParameters) {
-		this.executor.setSqlParameters(sqlParameters);
-	}
-
-	/**
-	 * Does your stored procedure return one or more result sets? If so, you
-	 * can use the provided method for setting the respective Rowmappers.
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setReturningResultSetRowMappers(Map)
-	 */
-	@Deprecated
-	public void setReturningResultSetRowMappers(
-			Map<String, RowMapper<?>> returningResultSetRowMappers) {
-		this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
-	}
-
-	/**
-	 * If true, the JDBC parameter definitions for the stored procedure are not
-	 * automatically derived from the underlying JDBC connection. In that case
-	 * you must pass in {@link SqlParameter} explicitly..
-	 *
-	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setIgnoreColumnMetaData(boolean)
-	 */
-	@Deprecated
-	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
-		this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
-	}
-
-	/**
-	 * Indicates the procedure's return value should be included in the results
-	 * returned.
-	 *
-	 * @param returnValueRequired
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setReturnValueRequired(boolean)
-	 */
-	@Deprecated
-	public void setReturnValueRequired(boolean returnValueRequired) {
-		this.executor.setReturnValueRequired(returnValueRequired);
-	}
-
-	/**
-	 * Custom Stored Procedure parameters that may contain static values
-	 * or Strings representing an {@link Expression}.
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setProcedureParameters(List)
-	 */
-	@Deprecated
-	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
-		this.executor.setProcedureParameters(procedureParameters);
-	}
-
-	/**
-	 * Indicates whether a Stored Procedure or a Function is being executed.
-	 * The default value is false.
-	 *
-	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setIsFunction(boolean)
-	 */
-	@Deprecated
-	public void setFunction(boolean isFunction) {
-		this.executor.setIsFunction(isFunction);
-	}
-
-	/**
 	 * This parameter indicates that only one result object shall be returned from
 	 * the Stored Procedure/Function Call. If set to true, a resultMap that contains
 	 * only 1 element, will have that 1 element extracted and returned as payload.
@@ -316,30 +133,6 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
-	}
-
-	/**
-	 * If this variable is set to <code>true</code> then all results from a stored
-	 * procedure call that don't have a corresponding {@link SqlOutParameter}
-	 * declaration will be bypassed.
-	 *
-	 * E.g. Stored Procedures may return an update count value, even though your
-	 * Stored Procedure only declared a single result parameter. The exact behavior
-	 * depends on the used database.
-	 *
-	 * The value is set on the underlying {@link JdbcTemplate}.
-	 *
-	 * Only few developers will probably ever like to process update counts, thus
-	 * the value defaults to <code>true</code>.
-	 *
-	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
-	 *
-	 * @see StoredProcExecutor#setSkipUndeclaredResults(boolean)
-	 *
-	 */
-	@Deprecated
-	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
-		this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
 	}
 
 }

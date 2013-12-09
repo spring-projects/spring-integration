@@ -33,21 +33,9 @@ public class XmppHeaders {
 
 	public static final String TO = PREFIX + "to";
 
-	/**
-	 * {@link Deprecated} use {@link #TO} instead
-	 */
-	@Deprecated
-	public static final String CHAT_TO = TO;
-
 	public static final String FROM = PREFIX + "from";
 
 	public static final String THREAD = PREFIX + "thread";
-
-	/**
-	 * {@link Deprecated} use {@link #THREAD} instead
-	 */
-	@Deprecated
-	public static final String CHAT_THREAD_ID = THREAD;
 
 	public static final String SUBJECT = PREFIX + "subject";
 

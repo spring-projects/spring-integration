@@ -83,19 +83,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 		Element dispatcherElement = DomUtils.getChildElementByTagName(element, "dispatcher");
 
-		// check for the dispatcher attribute (deprecated)
-		String dispatcherAttribute = element.getAttribute("dispatcher");
-		boolean hasDispatcherAttribute = StringUtils.hasText(dispatcherAttribute);
-		if (hasDispatcherAttribute && logger.isWarnEnabled()) {
-			logger.warn("The 'dispatcher' attribute on the 'channel' element is deprecated. "
-					+ "Please use the 'dispatcher' sub-element instead.");
-		}
-
 		// verify that a dispatcher is not provided if a queue sub-element exists
-		if (queueElement != null && (dispatcherElement != null || hasDispatcherAttribute)) {
+		if (queueElement != null && dispatcherElement != null) {
 			parserContext.getReaderContext().error(
-					"The 'dispatcher' attribute or sub-element " + "and any queue sub-element are mutually exclusive.",
-					element);
+					"The 'dispatcher' sub-element and any queue sub-element are mutually exclusive.", element);
 			return null;
 		}
 
@@ -103,24 +94,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			return builder;
 		}
 
-		if (dispatcherElement != null && hasDispatcherAttribute) {
-			parserContext.getReaderContext().error(
-					"The 'dispatcher' attribute and 'dispatcher' "
-							+ "sub-element are mutually exclusive. NOTE: the attribute is DEPRECATED. "
-							+ "Please use the dispatcher sub-element instead.", element);
-			return null;
-		}
-
-		if (hasDispatcherAttribute) {
-			// this attribute is deprecated, but if set, we need to create a DirectChannel
-			// without any LoadBalancerStrategy and the failover flag set to true (default).
-			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-			if ("failover".equals(dispatcherAttribute)) {
-				// round-robin dispatcher is used by default, the "failover" value simply disables it
-				builder.addConstructorArgValue(null);
-			}
-		}
-		else if (dispatcherElement == null) {
+		if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
 			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 		}

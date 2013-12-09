@@ -485,27 +485,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="dispatcher">
-			<xsd:annotation>
-					<xsd:documentation>
-						This attribute is DEPRECATED. Please use the dispatcher sub-element
-						instead.
-					</xsd:documentation>
-				</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="failover">
-						<xsd:annotation>
-							<xsd:documentation>
-								Enables failover, but disables load-balancing.
-								See the dispatcher sub-element for more
-								information.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="gateway">
@@ -3193,20 +3172,6 @@
 					when sending Messages to the target MessageChannels. By
 					default the send will block indefinitely.
 				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="channel-resolver" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-[DEPRECATED]Provides a reference to a ChannelResolver that resolves the return value
-to the name of a MessageChannel within the application context. If none
-is provided, the return value is expected to match a channel name exactly.
-						]]></xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.support.channel.ChannelResolver" />
-					</tool:annotation>
-				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="ignore-send-failures">

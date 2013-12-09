@@ -90,7 +90,7 @@ public class ChannelParserTests {
 	public void channelWithFailoverDispatcherAttribute() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailoverAttribute");
+		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailover");
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");

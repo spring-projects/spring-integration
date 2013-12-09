@@ -6,8 +6,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="dispatcherAttribute" dispatcher="failover"/>
-
 	<channel id="taskExecutorOnly">
 		<dispatcher task-executor="taskExecutor"/>
 	</channel>

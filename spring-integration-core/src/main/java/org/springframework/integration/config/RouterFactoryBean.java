@@ -15,9 +15,6 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -26,7 +23,6 @@ import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -41,8 +37,6 @@ import org.springframework.util.StringUtils;
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private volatile Map<String, String> channelMappings;
 
 	private volatile MessageChannel defaultOutputChannel;
@@ -54,13 +48,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	private volatile Boolean applySequence;
 
 	private volatile Boolean ignoreSendFailures;
-
-	private volatile ChannelResolver channelResolver;
-
-
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
-	}
 
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -147,10 +134,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		if (this.resolutionRequired != null) {
 			router.setResolutionRequired(this.resolutionRequired);
 		}
-		if (this.channelResolver != null) {
-			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
-			router.setChannelResolver(this.channelResolver);
-		}
 	}
 
 	@Override
@@ -161,7 +144,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	private boolean noRouterAttributesProvided() {
 		return this.channelMappings == null && this.defaultOutputChannel == null
 				&& this.timeout == null && this.resolutionRequired == null && this.applySequence == null
-				&& this.ignoreSendFailures == null && this.channelResolver == null;
+				&& this.ignoreSendFailures == null;
 	}
 
 }

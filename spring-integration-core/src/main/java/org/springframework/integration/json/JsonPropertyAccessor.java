@@ -41,7 +41,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES = new Class[] { String.class, ToStringFriendlyJsonNode.class,
+	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] { String.class, ToStringFriendlyJsonNode.class,
 			ObjectNode.class, ArrayNode.class };
 
 	// Note: ObjectMapper is thread-safe
