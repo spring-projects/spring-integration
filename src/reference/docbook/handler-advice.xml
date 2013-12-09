@@ -78,7 +78,7 @@
 			<para>
 				The retry advice (<classname>o.s.i.handler.advice.RequestHandlerRetryAdvice</classname>)
 				leverages the rich retry mechanisms provided by the
-				<ulink url="https://github.com/SpringSource/spring-retry">spring-retry</ulink> project. The core component
+				<ulink url="https://github.com/SpringSource/spring-retry">Spring Retry</ulink> project. The core component
 				of <emphasis>spring-retry</emphasis> is the <classname>RetryTemplate</classname>, which allows configuration
 				of sophisticated retry scenarios, including <classname>RetryPolicy</classname> and <classname>BackoffPolicy</classname>
 				strategies, with a number of implementations,
@@ -288,6 +288,32 @@ Caused by: java.lang.RuntimeException: foo
 					exception is thrown to the caller on each failure.
 				</para>
 			</section>
+			<para>
+				<emphasis>Exception Classification for Retry</emphasis>
+
+			</para>
+			<para>
+				Spring Retry has a great deal of flexibility for determining which
+				exceptions can invoke retry. The default configuration will retry
+				for all exceptions. Given that, user exceptions may be wrapped in
+				a <classname>MessagingException</classname> in the underlying handler,
+				we need to ensure that the classification examines the exception causes.
+				The default classifier just looks at the top level exception.
+			</para>
+			<para>
+				Since <emphasis>Spring Retry 1.0.3</emphasis>, the
+				<classname>BinaryExceptionClassifier</classname> has a property
+				<code>traverseCauses</code> (default <code>false</code>). When
+				<code>true</code> it will traverse exception causes until it
+				finds a match or there is no cause.
+			</para>
+			<para>
+				To use this classifier for retry, use a <classname>SimpleRetryPolicy</classname>
+				created with the constructor that takes the max attempts, the
+				<interfacename>Map</interfacename> of <classname>Exception</classname>s
+				and the boolean (traverseCauses), and inject this policy into the
+				<classname>RetryTemplate</classname>.
+			</para>
 		</section>
 		<section id="circuit-breaker-advice">
 			<title>Circuit Breaker Advice</title>
