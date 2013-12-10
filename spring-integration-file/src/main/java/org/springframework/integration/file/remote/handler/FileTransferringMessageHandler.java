@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote.handler;
 
+import java.io.File;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.file.FileNameGenerator;
@@ -68,6 +70,13 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	protected String getTemporaryFileSuffix() {
 		return this.remoteFileTemplate.getTemporaryFileSuffix();
+	}
+
+	/**
+	 * @deprecated This property is no longer used; byte[] and String payloads are written directly
+	 */
+	@Deprecated
+	public void setTemporaryDirectory(File temporaryDirectory) {
 	}
 
 	protected boolean isUseTemporaryFileName() {
