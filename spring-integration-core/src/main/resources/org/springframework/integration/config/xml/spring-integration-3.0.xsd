@@ -303,8 +303,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines a load-balancing strategy for the channel's dispatcher.
-					The default is a round-robin load
-					balancer.
+					The default is a round-robin load balancer.
+					This attribute is mutually exclusive with 'load-balancer-ref'.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
