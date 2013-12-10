@@ -29,6 +29,7 @@ import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.store.MessageGroupQueue;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -134,12 +135,23 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			else {
 				builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 			}
-			// unless the 'load-balancer' attribute is explicitly set to 'none',
+			// unless the 'load-balancer' attribute is explicitly set to 'none' or 'load-balancer-ref' is explicitly configured,
 			// configure the default RoundRobinLoadBalancingStrategy
 			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
-			if ("none".equals(loadBalancer)) {
-				builder.addConstructorArgValue(null);
+			String loadBalancerRef = dispatcherElement.getAttribute("load-balancer-ref");
+			if (StringUtils.hasText(loadBalancer) && StringUtils.hasText(loadBalancerRef)){
+				parserContext.getReaderContext().error("'load-balancer' and 'load-balancer-ref' are mutually exclusive", element);
 			}
+			
+			if (StringUtils.hasText(loadBalancerRef)){
+				builder.addConstructorArgReference(loadBalancerRef);
+			}
+			else {
+				if ("none".equals(loadBalancer)) {
+					builder.addConstructorArgValue(null);
+				}
+			}
+			
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "max-subscribers");
 		}
