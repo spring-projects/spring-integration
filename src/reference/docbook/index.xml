@@ -115,12 +115,13 @@
    <xi:include href="./system-management.xml"/>
   </part>
   <part id="spring-integration-adapters">
-    <title>Integration Adapters</title>
+    <title>Integration Endpoints</title>
     <partintro id="spring-integration-adapters">
     	<para>This section covers the various Channel Adapters and Messaging Gateways provided
 		  by Spring Integration to support Message-based communication with external systems.
 		</para>
     </partintro>
+      <xi:include href="./endpoint-summary.xml"/>
       <xi:include href="./amqp.xml"/>
       <xi:include href="./event.xml"/>
       <xi:include href="./feed.xml"/>
@@ -128,7 +129,6 @@
       <xi:include href="./ftp.xml"/>
       <xi:include href="./gemfire.xml"/>
       <xi:include href="./http.xml"/>
-      <xi:include href="./ip.xml"/>
       <xi:include href="./jdbc.xml"/>
       <xi:include href="./jpa.xml"/>
       <xi:include href="./jms.xml"/>
@@ -140,6 +140,7 @@
       <xi:include href="./sftp.xml"/>
       <xi:include href="./stream.xml"/>
       <xi:include href="./syslog.xml"/>
+      <xi:include href="./ip.xml"/>
       <xi:include href="./twitter.xml"/>
       <xi:include href="./ws.xml"/>
 	  <xi:include href="./xml.xml"/>

@@ -84,7 +84,7 @@
   </section>
 
   <section id="channel-adapter-namespace-outbound">
-    <title>Configuring Outbound Channel Adapter</title>
+    <title>Configuring An Outbound Channel Adapter</title>
     <para>
       An "outbound-channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any POJO consumer
       method that should be invoked with the payload of Messages sent to that channel.
