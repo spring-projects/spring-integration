@@ -539,8 +539,8 @@ payload to an Integer.
       <code>message-store</code> attribute as shown in the next example.
 
       <programlisting language="xml"><![CDATA[<int:channel id="dbBackedChannel">
-    <int:queue message-store="messageStore">
-<int:channel id="myChannel">
+    <int:queue message-store="messageStore"/>
+</int:channel>
 
 <int-jdbc:message-store id="messageStore" data-source="someDataSource"/>]]></programlisting>
 
