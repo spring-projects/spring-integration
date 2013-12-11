@@ -24,9 +24,13 @@ import org.springframework.integration.channel.interceptor.ChannelInterceptorAda
 /**
  * A {@link ChannelInterceptor} which invokes a {@link Transformer}
  * when either sending-to or receiving-from a channel.
- * 
+ *
+ * @deprecated as a bad sample of mix of concerns. However it is a good sample how
+ * {@link ChannelInterceptor} may look.
+ *
  * @author Jonas Partner
  */
+@Deprecated
 public class MessageTransformingChannelInterceptor extends ChannelInterceptorAdapter {
 
 	private final Transformer transformer;
