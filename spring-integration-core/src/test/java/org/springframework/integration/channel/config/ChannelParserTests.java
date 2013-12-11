@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Executor;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
@@ -40,7 +41,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
-import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
