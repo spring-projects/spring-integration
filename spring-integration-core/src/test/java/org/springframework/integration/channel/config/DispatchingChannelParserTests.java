@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.Test;
@@ -29,17 +31,24 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -116,6 +125,18 @@ public class DispatchingChannelParserTests {
 				new DirectFieldAccessor(executor).getPropertyValue("executor"));
 	}
 
+	@Test
+    public void loadBalancerRef(){
+            MessageChannel channel = channels.get("lbRefChannel");
+            LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel, "dispatcher.loadBalancingStrategy", LoadBalancingStrategy.class);
+            assertTrue(lbStrategy instanceof SampleLoadBalancingStrategy);
+    }
+
+    @SuppressWarnings("resource")
+    @Test(expected=BeanDefinitionParsingException.class)
+    public void loadBalancerRefFailWithLoadBalancer(){
+            new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml", this.getClass());
+    }
 
 	private static Object getDispatcherProperty(String propertyName, MessageChannel channel) {
 		return new DirectFieldAccessor(
@@ -123,4 +144,10 @@ public class DispatchingChannelParserTests {
 				.getPropertyValue(propertyName);
 	}
 
+	public static class SampleLoadBalancingStrategy implements LoadBalancingStrategy {
+        @Override
+        public Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers) {
+                return handlers.iterator();
+        }
+	}
 }

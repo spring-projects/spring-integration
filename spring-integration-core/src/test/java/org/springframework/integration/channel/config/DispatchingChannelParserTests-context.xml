@@ -29,8 +29,13 @@
 	<channel id="roundRobinLoadBalancerAndTaskExecutor">
 		<dispatcher load-balancer="round-robin" task-executor="taskExecutor"/>
 	</channel>
+	
+	<channel id="lbRefChannel">
+         <dispatcher load-balancer-ref="lb"/>
+    </channel>
 
 	<beans:bean id="taskExecutor"
 		class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
 
+	<beans:bean id="lb" class="org.springframework.integration.channel.config.DispatchingChannelParserTests.SampleLoadBalancingStrategy"/>
 </beans:beans>
