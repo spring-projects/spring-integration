@@ -620,6 +620,16 @@
 				least 1.
 			</para>
 		</section>
+		<section id="3.0-direct-channel-lb-ref">
+			<title>Direct Channel Load Balancing configuration</title>
+			<para>
+				Previously, when configuring <classname>LoadBalancingStrategy</classname> on the channel's 'dispatcher' sub-element
+				the only available option was to use a pre-defined enumeration of values which did not allow one to set a custom implementation
+				of the <classname>LoadBalancingStrategy</classname>. Starting with v3.0 you can now use 'load-balancer-ref' to provide
+				a reference to a custom implementation of the <classname>LoadBalancingStrategy</classname>.
+				For more information see <xref linkend="channel-implementations-directchannel"/>.
+			</para>
+		</section>
 		<section id="3.0-jpa-first-result">
 			<title>JPA Adapters: first-result attribute</title>
 			<para>
