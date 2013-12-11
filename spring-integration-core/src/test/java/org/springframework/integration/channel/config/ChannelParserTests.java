@@ -39,6 +39,8 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
+import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -257,6 +259,15 @@ public class ChannelParserTests {
 			threwException = true;
 		}
 		assertTrue(threwException);
+	}
+
+	public static class TestInterceptor extends ChannelInterceptorAdapter {
+
+		@Override
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+			return MessageBuilder.withPayload(message.getPayload().toString().toUpperCase()).build();
+		}
+
 	}
 
 }

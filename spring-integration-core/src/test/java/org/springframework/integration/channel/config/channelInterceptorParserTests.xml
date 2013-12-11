@@ -17,11 +17,7 @@
 	<channel id="channelWithInterceptorInnerBean">
 		<queue capacity="5"/>
 		<interceptors>
-			<beans:bean class="org.springframework.integration.transformer.MessageTransformingChannelInterceptor">
-				<beans:constructor-arg>
-					<beans:bean class="org.springframework.integration.channel.config.TestTransformer"/>
-				</beans:constructor-arg>
-			</beans:bean>
+			<beans:bean class="org.springframework.integration.channel.config.ChannelParserTests$TestInterceptor"/>
 		</interceptors>
 	</channel>
 
