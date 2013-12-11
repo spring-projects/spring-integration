@@ -20,12 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -127,15 +129,21 @@ public class DispatchingChannelParserTests {
 
 	@Test
     public void loadBalancerRef(){
-            MessageChannel channel = channels.get("lbRefChannel");
-            LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel, "dispatcher.loadBalancingStrategy", LoadBalancingStrategy.class);
-            assertTrue(lbStrategy instanceof SampleLoadBalancingStrategy);
+        MessageChannel channel = channels.get("lbRefChannel");
+        LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel, "dispatcher.loadBalancingStrategy", LoadBalancingStrategy.class);
+        assertTrue(lbStrategy instanceof SampleLoadBalancingStrategy);
     }
 
-    @SuppressWarnings("resource")
-    @Test(expected=BeanDefinitionParsingException.class)
+    @Test
     public void loadBalancerRefFailWithLoadBalancer(){
-            new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml", this.getClass());
+
+        try {
+        	 new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml", this.getClass());
+        }
+        catch (BeanDefinitionParsingException e) {
+            assertThat(e.getMessage(), Matchers.containsString("'load-balancer' and 'load-balancer-ref' are mutually exclusive"));
+        }
+
     }
 
 	private static Object getDispatcherProperty(String propertyName, MessageChannel channel) {

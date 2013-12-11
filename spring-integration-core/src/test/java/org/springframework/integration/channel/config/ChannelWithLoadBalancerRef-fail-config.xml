@@ -9,5 +9,5 @@
                 <int:dispatcher load-balancer-ref="lb2" load-balancer="round-robin"/>
         </int:channel>
 
-        <bean id="lb" class="org.springframework.integration.channel.config.ChannelWithLoadBalancer.SampleLoadBalancingStrategy"/>
+        <bean id="lb" class="org.springframework.integration.channel.config.DispatchingChannelParserTests.SampleLoadBalancingStrategy"/>
 </beans>
