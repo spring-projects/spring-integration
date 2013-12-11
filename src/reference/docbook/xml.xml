@@ -340,12 +340,8 @@
 				<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/Transformer.html">Transformer</ulink></interfacename>.
 				When configuring XML transformers as beans in Spring Integration,
 				you would normally configure the <emphasis>Transformer</emphasis>
-				in conjunction with either a
-				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingChannelInterceptor.html">MessageTransformingChannelInterceptor</ulink></classname>
-				or a <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html">MessageTransformingHandler</ulink></classname>.
-				This allows the transformer to be used as either an interceptor,
-				which transforms the message as it is sent or received to the
-				<emphasis>Channel</emphasis>, or as an <emphasis>Endpoint</emphasis>.
+				in conjunction with a <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html">MessageTransformingHandler</ulink></classname>.
+				This allows the transformer to be used as an <emphasis>Endpoint</emphasis>.
 				Finally, the namespace support will be discussed, which allows for
 				the simple configuration of the transformers as elements in XML.
 			</para>
