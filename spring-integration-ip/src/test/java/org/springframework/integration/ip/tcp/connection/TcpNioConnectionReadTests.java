@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
@@ -47,7 +48,7 @@ import org.springframework.integration.test.util.SocketUtils;
  */
 public class TcpNioConnectionReadTests {
 
-	private CountDownLatch latch = new CountDownLatch(1);
+	private final CountDownLatch latch = new CountDownLatch(1);
 
 	private AbstractServerConnectionFactory getConnectionFactory(int port,
 			AbstractByteArraySerializer serializer, TcpListener listener) throws Exception {
@@ -71,7 +72,6 @@ public class TcpNioConnectionReadTests {
 	/**
 	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadLength() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
@@ -79,6 +79,7 @@ public class TcpNioConnectionReadTests {
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -88,7 +89,7 @@ public class TcpNioConnectionReadTests {
 
 		// Fire up the sender.
 
-		SocketTestUtils.testSendLength(port, latch);
+		CountDownLatch done = SocketTestUtils.testSendLength(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
@@ -98,6 +99,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String((byte[]) responses.get(1).getPayload()));
 		scf.close();
+		done.countDown();
 	}
 
 
@@ -110,6 +112,7 @@ public class TcpNioConnectionReadTests {
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				try {
@@ -123,7 +126,7 @@ public class TcpNioConnectionReadTests {
 		int howMany = 2;
 		scf.setBacklog(howMany + 5);
 		// Fire up the sender.
-		SocketTestUtils.testSendFragmented(port, howMany, false);
+		CountDownLatch done = SocketTestUtils.testSendFragmented(port, howMany, false);
 		assertTrue(semaphore.tryAcquire(howMany, 20000, TimeUnit.MILLISECONDS));
 		assertEquals("Expected", howMany, responses.size());
 		for (int i = 0; i < howMany; i++) {
@@ -131,6 +134,7 @@ public class TcpNioConnectionReadTests {
 				new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		}
 		scf.close();
+		done.countDown();
 	}
 
 	/**
@@ -144,6 +148,7 @@ public class TcpNioConnectionReadTests {
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -153,7 +158,7 @@ public class TcpNioConnectionReadTests {
 
 		// Fire up the sender.
 
-		SocketTestUtils.testSendStxEtx(port, latch);
+		CountDownLatch done = SocketTestUtils.testSendStxEtx(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
@@ -163,6 +168,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
+		done.countDown();
 	}
 
 	/**
@@ -176,6 +182,7 @@ public class TcpNioConnectionReadTests {
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -185,7 +192,7 @@ public class TcpNioConnectionReadTests {
 
 		// Fire up the sender.
 
-		SocketTestUtils.testSendCrLf(port, latch);
+		CountDownLatch done = SocketTestUtils.testSendCrLf(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
@@ -195,6 +202,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
+		done.countDown();
 	}
 
 	/**
@@ -209,16 +217,19 @@ public class TcpNioConnectionReadTests {
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
 				return false;
 			}
 		}, new TcpSender() {
+			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);
 				semaphore.release();
@@ -227,12 +238,13 @@ public class TcpNioConnectionReadTests {
 
 		// Fire up the sender.
 
-		SocketTestUtils.testSendLengthOverflow(port);
+		CountDownLatch done = SocketTestUtils.testSendLengthOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
+		done.countDown();
 	}
 
 	/**
@@ -248,16 +260,19 @@ public class TcpNioConnectionReadTests {
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
 				return false;
 			}
 		}, new TcpSender() {
+			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);
 				semaphore.release();
@@ -266,12 +281,13 @@ public class TcpNioConnectionReadTests {
 
 		// Fire up the sender.
 
-		SocketTestUtils.testSendStxEtxOverflow(port);
+		CountDownLatch done = SocketTestUtils.testSendStxEtxOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
+		done.countDown();
 	}
 
 	/**
@@ -287,16 +303,19 @@ public class TcpNioConnectionReadTests {
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
 				return false;
 			}
 		}, new TcpSender() {
+			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);
 				semaphore.release();
@@ -305,12 +324,13 @@ public class TcpNioConnectionReadTests {
 
 		// Fire up the sender.
 
-		SocketTestUtils.testSendCrLfOverflow(port);
+		CountDownLatch done = SocketTestUtils.testSendCrLfOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
+		done.countDown();
 	}
 
 	/**
@@ -328,16 +348,19 @@ public class TcpNioConnectionReadTests {
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
 				return false;
 			}
 		}, new TcpSender() {
+			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);
 				semaphore.release();
@@ -367,16 +390,19 @@ public class TcpNioConnectionReadTests {
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
 				return false;
 			}
 		}, new TcpSender() {
+			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);
 				semaphore.release();
@@ -436,15 +462,18 @@ public class TcpNioConnectionReadTests {
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				return false;
 			}
 		}, new TcpSender() {
+			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);
 				semaphore.release();

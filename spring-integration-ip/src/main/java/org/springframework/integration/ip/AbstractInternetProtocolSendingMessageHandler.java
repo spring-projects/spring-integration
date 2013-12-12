@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
@@ -30,7 +31,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-public abstract class AbstractInternetProtocolSendingMessageHandler extends AbstractMessageHandler implements CommonSocketOptions {
+public abstract class AbstractInternetProtocolSendingMessageHandler extends AbstractMessageHandler implements CommonSocketOptions,
+		Lifecycle {
 
 	private final SocketAddress destinationAddress;
 
@@ -41,6 +43,8 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	private volatile int soSendBufferSize = -1;
 
 	private volatile int soTimeout = -1;
+
+	private volatile boolean running;
 
 	public AbstractInternetProtocolSendingMessageHandler(String host, int port) {
 		Assert.notNull(host, "host must not be null");
@@ -55,6 +59,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @see DatagramSocket#setSoTimeout(int)
 	 * @param timeout
 	 */
+	@Override
 	public void setSoTimeout(int timeout) {
 		this.soTimeout = timeout;
 	}
@@ -64,6 +69,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @see DatagramSocket#setReceiveBufferSize(int)
 	 * @param size
 	 */
+	@Override
 	public void setSoReceiveBufferSize(int size) {
 	}
 
@@ -72,6 +78,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @see DatagramSocket#setSendBufferSize(int)
 	 * @param size
 	 */
+	@Override
 	public void setSoSendBufferSize(int size) {
 		this.soSendBufferSize = size;
 	}
@@ -114,5 +121,32 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	public int getSoSendBufferSize() {
 		return soSendBufferSize;
 	}
+
+
+	@Override
+	public synchronized void start() {
+		if (!this.running) {
+			this.doStart();
+			this.running = true;
+		}
+	}
+
+	protected abstract void doStart();
+
+	@Override
+	public synchronized void stop() {
+		if (this.running) {
+			this.doStop();
+			this.running = false;
+		}
+	}
+
+	protected abstract void doStop();
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
+	}
+
 
 }

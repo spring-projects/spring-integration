@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,12 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
 
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.test.util.SocketUtils;
@@ -41,7 +43,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendLength(port, null);
+		CountDownLatch done = SocketTestUtils.testSendLength(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
@@ -52,6 +54,7 @@ public class DeserializationTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				 new String(out));
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -59,7 +62,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendStxEtx(port, null);
+		CountDownLatch done = SocketTestUtils.testSendStxEtx(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
@@ -70,6 +73,7 @@ public class DeserializationTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				 new String(out));
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -77,7 +81,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendCrLf(port, null);
+		CountDownLatch done = SocketTestUtils.testSendCrLf(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
@@ -88,6 +92,7 @@ public class DeserializationTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				 new String(out));
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -110,7 +115,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendSerialized(port);
+		CountDownLatch done = SocketTestUtils.testSendSerialized(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		DefaultDeserializer deserializer = new DefaultDeserializer();
@@ -119,6 +124,7 @@ public class DeserializationTests {
 		out = deserializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING, out);
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -126,7 +132,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendLengthOverflow(port);
+		CountDownLatch done = SocketTestUtils.testSendLengthOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
@@ -140,6 +146,7 @@ public class DeserializationTests {
 			}
 		}
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -147,7 +154,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendStxEtxOverflow(port);
+		CountDownLatch done = SocketTestUtils.testSendStxEtxOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(500);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
@@ -161,6 +168,7 @@ public class DeserializationTests {
 			}
 		}
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -168,7 +176,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendStxEtxOverflow(port);
+		CountDownLatch done = SocketTestUtils.testSendStxEtxOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
@@ -183,6 +191,7 @@ public class DeserializationTests {
 			}
 		}
 		server.close();
+		done.countDown();
 	}
 
 	@Test
@@ -190,7 +199,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendCrLfOverflow(port);
+		CountDownLatch latch = SocketTestUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(500);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
@@ -204,6 +213,7 @@ public class DeserializationTests {
 			}
 		}
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -211,7 +221,7 @@ public class DeserializationTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
-		SocketTestUtils.testSendCrLfOverflow(port);
+		CountDownLatch latch = SocketTestUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
@@ -219,13 +229,15 @@ public class DeserializationTests {
 		try {
 			serializer.deserialize(socket.getInputStream());
 	    	fail("Expected message length exceeded exception");
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			if (!e.getMessage().startsWith("CRLF not found")) {
 				e.printStackTrace();
 				fail("Unexpected IO Error:" + e.getMessage());
 			}
 		}
 		server.close();
+		latch.countDown();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,14 @@ import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.test.util.SocketUtils;
 
@@ -44,7 +47,9 @@ public class SerializationTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -52,8 +57,9 @@ public class SerializationTests {
 					buffer.put(testString.getBytes());
 					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 					serializer.serialize(buffer.array(), socket.getOutputStream());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -69,6 +75,7 @@ public class SerializationTests {
 		assertEquals(testString.length(), buffer.getInt());
 		assertEquals(testString, new String(buff, 4, testString.length()));
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -77,7 +84,9 @@ public class SerializationTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -85,8 +94,9 @@ public class SerializationTests {
 					buffer.put(testString.getBytes());
 					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 					serializer.serialize(buffer.array(), socket.getOutputStream());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -102,6 +112,7 @@ public class SerializationTests {
 		assertEquals(testString, new String(buff, 1, testString.length()));
 		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -110,7 +121,9 @@ public class SerializationTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -118,8 +131,9 @@ public class SerializationTests {
 					buffer.put(testString.getBytes());
 					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 					serializer.serialize(buffer.array(), socket.getOutputStream());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -135,6 +149,7 @@ public class SerializationTests {
 		assertEquals('\r', buff[testString.length()]);
 		assertEquals('\n', buff[testString.length() + 1]);
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -143,7 +158,9 @@ public class SerializationTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -152,8 +169,9 @@ public class SerializationTests {
 					ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 					serializer.serialize(buffer.array(), socket.getOutputStream());
 					socket.close();
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -167,6 +185,7 @@ public class SerializationTests {
 		readFully(is, buff);
 		assertEquals(testString, new String(buff, 0, testString.length()));
 		assertEquals(-1, buff[testString.length()]);
+		latch.countDown();
 		server.close();
 	}
 
@@ -176,15 +195,18 @@ public class SerializationTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					DefaultSerializer serializer = new DefaultSerializer();
 					serializer.serialize(testString, socket.getOutputStream());
 					serializer.serialize(testString, socket.getOutputStream());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -198,6 +220,7 @@ public class SerializationTests {
 		assertEquals(testString, ois.readObject());
 		ois = new ObjectInputStream(is);
 		assertEquals(testString, ois.readObject());
+		latch.countDown();
 		server.close();
 	}
 
