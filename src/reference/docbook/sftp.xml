@@ -317,10 +317,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
         The <classname>AcceptOnceFileListFilter</classname> stores its state in memory. If you wish the
         state to survive a system restart, consider using the
         <classname>SftpPersistentAcceptOnceFileListFilter</classname> instead. This filter stores
-        the accepted file names in a <interfacename>MetadataStore</interfacename>. The framework supplies
-        several store implementations (such as Redis), or you can provide your own. This filter matches on
-        the filename and the remote modified time.
-	</para>  	
+        the accepted file names in an instance of the
+        <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
+        This filter matches on the filename and the remote modified time.
+    </para>
 	<note>
 	  <para>
 		Beginning with <emphasis>version 3.0</emphasis>, you can also specify a filter used to filter the files locally, once they have
@@ -333,8 +333,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
         The <classname>AcceptOnceFileListFilter</classname> stores its state in memory. If you wish the
         state to survive a system restart, consider using the
         <classname>FileSystemPersistentAcceptOnceFileListFilter</classname> as a local filter instead. This filter stores
-        the accepted file names in a <interfacename>MetadataStore</interfacename>. The framework supplies
-        several store implementations (such as Redis), or you can provide your own.
+        the accepted file names in an instance of the
+        <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
         <important>
         	This filter compares the filename and modified timestamp. If you wish to use this technique to avoid a
         	re-synchronized file from being processed, you should use the <code>preserve-timestamp</code> attribute discussed above.

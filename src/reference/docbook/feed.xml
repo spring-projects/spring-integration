@@ -62,55 +62,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
   		Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
         Each feed entry will have a <emphasis>published date</emphasis> field. Every time a new Message is generated and sent,
         Spring Integration will store the value of the latest <emphasis>published date</emphasis> in an instance of the
-        <classname>org.springframework.integration.metadata.MetadataStore</classname> strategy. The MetadataStore interface is
-        designed to store various types of generic meta-data (e.g., published date of the last feed entry that has been processed)
-        to help components such as this Feed adapter deal with duplicates.
+        <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
    	</para>
-	<para>
-		The default rule for locating this metadata store is as follows:
-		<emphasis>Spring Integration</emphasis> will look for a bean of type
-		<classname>org.springframework.integration.metadata.MetadataStore</classname> in
-		the ApplicationContext. If one is found then it will be used, otherwise
-		it will create a new instance of <classname>SimpleMetadataStore</classname>
-		which is an in-memory implementation that will only persist metadata within
-		the lifecycle of the currently running Application Context. This means
-		that upon restart you may end up with duplicate entries.
-	</para>
-	<para>
-		If you need to persist metadata between Application Context restarts, two
-		persistent <interfacename>MetadataStores</interfacename> are available:
-	</para>
-	<itemizedlist>
-		<listitem>PropertiesPersistingMetadataStore</listitem>
-		<listitem>RedisMetadataStore</listitem>
-	</itemizedlist>
-	<para>
-		The <classname>PropertiesPersistingMetadataStore</classname> is backed by
-		a properties file and a
-		<interfacename><ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html">PropertiesPersister</ulink></interfacename>.
-	</para>
-	<programlisting language="xml"><![CDATA[<bean id="metadataStore"
-    class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>]]></programlisting>
-		<para>
-			As of <emphasis>Spring Integration 3.0</emphasis> a Redis-based
-			<interfacename>MetadataStore</interfacename> is also available. For
-			more information regarding the <classname>RedisMetadataStore</classname>
-			see <xref linkend="redis-metadata-store" />.
-		</para>
-		<warning>
-			Be careful when using the same Redis instancce across multiple application
-			contexts as separate Feed adapters may accidentally use the same persisted
-			key.
-		</warning>
-		<para>
-			Alternatively, you could provide your own implementation of the
-			<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
-			and configure it as bean in the Application Context.
-		</para>
-		<note>
-			The key used to persist the latest <emphasis>published date</emphasis> is the value of the (required)
-			<code>id</code> attribute of the Feed Inbound Channel Adapter component plus the <code>feedUrl</code>
-			from the adapter's configuration.
-		</note>
+	<note>
+	   The key used to persist the latest <emphasis>published date</emphasis> is the value of the (required)
+	   <code>id</code> attribute of the Feed Inbound Channel Adapter component plus the <code>feedUrl</code>
+	   from the adapter's configuration.
+	</note>
 	</section>
 </chapter>
