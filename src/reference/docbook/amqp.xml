@@ -282,7 +282,7 @@ this list can also be simple patterns to be matched against the header names (e.
     </important>
   </section>
 
-  <section>
+  <section id="amqp-outbound-channel-adapter">
     <title>Outbound Channel Adapter</title>
 
     <para>A configuration sample for an AMQP Outbound Channel Adapter is shown
@@ -378,7 +378,7 @@ this list can also be simple patterns to be matched against the header names (e.
     </para>
   </section>
 
-  <section>
+  <section id="amqp-inbound-gateway">
       <title>Inbound Gateway</title>
       <para>A configuration sample for an AMQP Inbound Gateway is shown
             below.</para>
@@ -434,7 +434,7 @@ this list can also be simple patterns to be matched against the header names (e.
       </para>
   </section>
 
-  <section>
+  <section id="amqp-outbound-gateway">
       <title>Outbound Gateway</title>
       <para>A configuration sample for an AMQP Outbound Gateway is shown
             below.</para>
