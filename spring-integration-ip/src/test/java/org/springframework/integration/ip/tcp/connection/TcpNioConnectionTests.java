@@ -50,6 +50,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
@@ -81,6 +82,7 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 public class TcpNioConnectionTests {
 
 	private final ApplicationEventPublisher nullPublisher = new ApplicationEventPublisher() {
+		@Override
 		public void publishEvent(ApplicationEvent event) {
 		}
 	};
@@ -92,16 +94,21 @@ public class TcpNioConnectionTests {
 		factory.setSoTimeout(1000);
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch done = new CountDownLatch(1);
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			@SuppressWarnings("unused")
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					serverSocket.set(server);
 					latch.countDown();
 					Socket s = server.accept();
 					// block so we fill the buffer
-					server.accept();
-				} catch (Exception e) {
+					done.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -110,10 +117,13 @@ public class TcpNioConnectionTests {
 		try {
 			TcpConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			assertTrue("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() +
 					   ":" + e.getMessage(), e instanceof SocketTimeoutException);
 		}
+		done.countDown();
+		serverSocket.get().close();
 	}
 
 	@Test
@@ -123,17 +133,22 @@ public class TcpNioConnectionTests {
 		factory.setSoTimeout(1000);
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch done = new CountDownLatch(1);
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					serverSocket.set(server);
 					latch.countDown();
 					Socket socket = server.accept();
 					byte[] b = new byte[6];
 					readFully(socket.getInputStream(), b);
 					// block to cause timeout on read.
-					server.accept();
-				} catch (Exception e) {
+					done.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -150,9 +165,12 @@ public class TcpNioConnectionTests {
 				}
 			}
 			assertTrue(!connection.isOpen());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			fail("Unexpected exception " + e);
 		}
+		done.countDown();
+		serverSocket.get().close();
 	}
 
 	@Test
@@ -162,15 +180,19 @@ public class TcpNioConnectionTests {
 		factory.setNioHarvestInterval(100);
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					serverSocket.set(server);
 					latch.countDown();
 					Socket socket = server.accept();
 					byte[] b = new byte[6];
 					readFully(socket.getInputStream(), b);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -182,8 +204,7 @@ public class TcpNioConnectionTests {
 			assertEquals(1, connections.size());
 			connection.close();
 			assertTrue(!connection.isOpen());
-			// force a wakeup of the selector
-			factory.close();
+			TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
 			int n = 0;
 			while (connections.size() > 0) {
 				Thread.sleep(100);
@@ -192,11 +213,13 @@ public class TcpNioConnectionTests {
 				}
 			}
 			assertEquals(0, connections.size());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail("Unexpected exception " + e);
 		}
 		factory.stop();
+		serverSocket.get().close();
 	}
 
 	@Test
@@ -216,6 +239,7 @@ public class TcpNioConnectionTests {
 		final List<Field> fields = new ArrayList<Field>();
 		ReflectionUtils.doWithFields(SocketChannel.class, new FieldCallback() {
 
+			@Override
 			public void doWith(Field field) throws IllegalArgumentException,
 					IllegalAccessException {
 				field.setAccessible(true);
@@ -223,6 +247,7 @@ public class TcpNioConnectionTests {
 			}
 		}, new FieldFilter() {
 
+			@Override
 			public boolean matches(Field field) {
 				return field.getName().equals("open");
 			}});
@@ -265,11 +290,13 @@ public class TcpNioConnectionTests {
 	public void testInsufficientThreads() throws Exception {
 		final ExecutorService exec = Executors.newFixedThreadPool(2);
 		Future<Object> future = exec.submit(new Callable<Object>() {
+			@Override
 			public Object call() throws Exception {
 				SocketChannel channel = mock(SocketChannel.class);
 				Socket socket = mock(Socket.class);
 				Mockito.when(channel.socket()).thenReturn(socket);
 				doAnswer(new Answer<Integer>() {
+					@Override
 					public Integer answer(InvocationOnMock invocation) throws Throwable {
 						ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
 						buffer.position(1);
@@ -311,11 +338,13 @@ public class TcpNioConnectionTests {
 		final ExecutorService exec = Executors.newFixedThreadPool(3);
 		final CountDownLatch messageLatch = new CountDownLatch(1);
 		Future<Object> future = exec.submit(new Callable<Object>() {
+			@Override
 			public Object call() throws Exception {
 				SocketChannel channel = mock(SocketChannel.class);
 				Socket socket = mock(Socket.class);
 				Mockito.when(channel.socket()).thenReturn(socket);
 				doAnswer(new Answer<Integer>() {
+					@Override
 					public Integer answer(InvocationOnMock invocation) throws Throwable {
 						ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
 						buffer.position(1025);
@@ -327,6 +356,7 @@ public class TcpNioConnectionTests {
 				final TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
 				connection.setTaskExecutor(exec);
 				connection.registerListener(new TcpListener(){
+					@Override
 					public boolean onMessage(Message<?> message) {
 						messageLatch.countDown();
 						return false;
@@ -438,6 +468,7 @@ public class TcpNioConnectionTests {
 		final byte[] out = new byte[4];
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(new Runnable(){
+			@Override
 			public void run() {
 				try {
 					stream.read(out);
@@ -468,6 +499,7 @@ public class TcpNioConnectionTests {
 		inboundConnection.setMapper(inMapper);
 		final ByteArrayOutputStream written = new ByteArrayOutputStream();
 		doAnswer(new Answer<Integer>() {
+			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
 				ByteBuffer buff = (ByteBuffer) invocation.getArguments()[0];
 				byte[] bytes = written.toByteArray();
@@ -481,6 +513,7 @@ public class TcpNioConnectionTests {
 		when(outChannel.socket()).thenReturn(outSocket);
 		TcpNioConnection outboundConnection = new TcpNioConnection(outChannel, true, false, nullPublisher, null);
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				ByteBuffer buff = (ByteBuffer) invocation.getArguments()[0];
 				byte[] bytes = new byte[buff.limit()];
@@ -505,6 +538,7 @@ public class TcpNioConnectionTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		TcpListener listener = new TcpListener() {
 
+			@Override
 			public boolean onMessage(Message<?> message) {
 				inboundMessage.set(message);
 				latch.countDown();

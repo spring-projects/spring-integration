@@ -295,9 +295,11 @@ project('spring-integration-http') {
 		compile ("net.java.dev.rome:rome:1.0.0", optional)
 		testCompile project(":spring-integration-test")
 
-		// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
-		compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 	}
+
+	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
+	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
+
 }
 
 project('spring-integration-ip') {
@@ -308,6 +310,10 @@ project('spring-integration-ip') {
 		runtime project(":spring-integration-stream")
 		testCompile project(":spring-integration-test")
 	}
+
+	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
+	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
+
 }
 
 project('spring-integration-jdbc') {

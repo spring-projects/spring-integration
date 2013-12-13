@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,12 @@ import org.springframework.integration.support.channel.ChannelResolver;
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
  * If run as a JUnit just sends one message and terminates (see console).
- * 
- * If run from main(),  
+ *
+ * If run from main(),
  * hangs around for a couple of minutes to allow console interaction (enter a message on the
- * console and you should see it go through the outbound context, over UDP, and 
+ * console and you should see it go through the outbound context, over UDP, and
  * received in the other context (and written back to the console).
- *  
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -58,13 +58,13 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 	private CountDownLatch sentFirst = new CountDownLatch(1);
 
-	private CountDownLatch firstReceived = new CountDownLatch(1);
+	private final CountDownLatch firstReceived = new CountDownLatch(1);
 
-	private CountDownLatch doneProcessing = new CountDownLatch(1);
+	private final CountDownLatch doneProcessing = new CountDownLatch(1);
 
 	private boolean okToRun = true;
 
-	private CountDownLatch readyToReceive = new CountDownLatch(1);
+	private final CountDownLatch readyToReceive = new CountDownLatch(1);
 
 	private static long hangAroundFor = 0;
 
@@ -77,7 +77,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		t.start(); // launch the receiver
 		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				"testIp-out-multicast-context.xml",
-				UdpMulticastEndToEndTests.class);	
+				UdpMulticastEndToEndTests.class);
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -122,6 +122,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 	/**
 	 * Instantiate the receiving context
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public void run() {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
@@ -129,7 +130,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 				UdpMulticastEndToEndTests.class);
 		while (okToRun) {
 			try {
-				readyToReceive.countDown();				
+				readyToReceive.countDown();
 				sentFirst.await();
 			}
 			catch (InterruptedException e) {
@@ -146,6 +147,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 			}
 		}
 		ctx.stop();
+		ctx.close();
 	}
 
 

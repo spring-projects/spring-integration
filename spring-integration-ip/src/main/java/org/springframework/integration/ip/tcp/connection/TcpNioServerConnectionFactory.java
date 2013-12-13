@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -67,6 +68,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * connection {@link TcpConnection#run()} using the task executor.
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
+	@Override
 	public void run() {
 		if (this.getListener() == null) {
 			logger.info("No listener bound to server connection factory; will not read; exiting...");
@@ -83,7 +85,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			if (this.getLocalAddress() == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port),
 					Math.abs(this.getBacklog()));
-			} else {
+			}
+			else {
 				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
 				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port),
 						Math.abs(this.getBacklog()));
@@ -94,7 +97,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			this.selector = selector;
 			doSelect(this.serverChannel, selector);
 
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			this.close();
 			if (this.isActive()) {
 				logger.error("Error on ServerSocketChannel", e);
@@ -127,12 +131,19 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			int selectionCount = 0;
 			try {
 				selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
-			} catch (CancelledKeyException cke) {
+				this.processNioSelections(selectionCount, selector, server, this.channelMap);
+			}
+			catch (CancelledKeyException cke) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("CancelledKeyException during Selector.select()");
 				}
 			}
-			this.processNioSelections(selectionCount, selector, server, this.channelMap);
+			catch (ClosedSelectorException cse) {
+				if (this.isActive()) {
+					logger.error("Selector closed", cse);
+					break;
+				}
+			}
 		}
 	}
 
@@ -195,14 +206,20 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public void close() {
 		if (this.selector != null) {
-			this.selector.wakeup();
+			try {
+				this.selector.close();
+			}
+			catch (IOException e) {
+				logger.error("Error closing selector", e);
+			}
 		}
 		if (this.serverChannel == null) {
 			return;
 		}
 		try {
 			this.serverChannel.close();
-		} catch (IOException e) {}
+		}
+		catch (IOException e) {}
 		this.serverChannel = null;
 	}
 

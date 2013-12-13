@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,13 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
@@ -58,15 +61,18 @@ public class TcpNioConnectionWriteTests {
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -82,6 +88,7 @@ public class TcpNioConnectionWriteTests {
 		assertEquals(testString.length(), buffer.getInt());
 		assertEquals(testString, new String(buff, 4, testString.length()));
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -91,15 +98,18 @@ public class TcpNioConnectionWriteTests {
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -115,6 +125,7 @@ public class TcpNioConnectionWriteTests {
 		assertEquals(testString, new String(buff, 1, testString.length()));
 		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -124,15 +135,18 @@ public class TcpNioConnectionWriteTests {
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -148,6 +162,7 @@ public class TcpNioConnectionWriteTests {
 		assertEquals('\r', buff[testString.length()]);
 		assertEquals('\n', buff[testString.length() + 1]);
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -157,15 +172,18 @@ public class TcpNioConnectionWriteTests {
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -181,6 +199,7 @@ public class TcpNioConnectionWriteTests {
 		assertEquals(testString.length(), buffer.getInt());
 		assertEquals(testString, new String(buff, 4, testString.length()));
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -190,16 +209,18 @@ public class TcpNioConnectionWriteTests {
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
-					Thread.sleep(1000000000L);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -215,6 +236,7 @@ public class TcpNioConnectionWriteTests {
 		assertEquals(testString, new String(buff, 1, testString.length()));
 		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
 		server.close();
+		latch.countDown();
 	}
 
 	@Test
@@ -224,16 +246,18 @@ public class TcpNioConnectionWriteTests {
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
 		server.setSoTimeout(10000);
+		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
-					Thread.sleep(1000000000L);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -249,6 +273,7 @@ public class TcpNioConnectionWriteTests {
 		assertEquals('\r', buff[testString.length()]);
 		assertEquals('\n', buff[testString.length() + 1]);
 		server.close();
+		latch.countDown();
 	}
 
 	/**

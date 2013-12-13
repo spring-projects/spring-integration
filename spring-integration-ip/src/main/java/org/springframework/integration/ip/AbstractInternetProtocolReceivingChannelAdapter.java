@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package org.springframework.integration.ip;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.util.Assert;
 
 /**
  * Base class for inbound TCP/UDP Channel Adapters.
@@ -48,6 +50,8 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	private volatile Executor taskExecutor;
 
+	private volatile boolean taskExecutorSet;
+
 	private volatile int poolSize = 5;
 
 
@@ -63,6 +67,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		return port;
 	}
 
+	@Override
 	public void setSoTimeout(int soTimeout) {
 		this.soTimeout = soTimeout;
 	}
@@ -74,6 +79,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		return soTimeout;
 	}
 
+	@Override
 	public void setSoReceiveBufferSize(int soReceiveBufferSize) {
 		this.soReceiveBufferSize = soReceiveBufferSize;
 	}
@@ -117,6 +123,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	protected void checkTaskExecutor(final String threadName) {
 		if (this.active && this.taskExecutor == null) {
 			Executor executor = Executors.newFixedThreadPool(this.poolSize, new ThreadFactory() {
+				@Override
 				public Thread newThread(Runnable runner) {
 					Thread thread = new Thread(runner);
 					thread.setName(threadName);
@@ -131,6 +138,10 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	@Override
 	protected void doStop() {
 		this.active = false;
+		if (!this.taskExecutorSet && this.taskExecutor != null) {
+			((ExecutorService) this.taskExecutor).shutdown();
+			this.taskExecutor = null;
+		}
 	}
 
 	public boolean isListening() {
@@ -148,6 +159,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		return localAddress;
 	}
 
+	@Override
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
 	}
@@ -157,7 +169,9 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
+		Assert.notNull(taskExecutor, "'taskExecutor' cannot be null");
 		this.taskExecutor = taskExecutor;
+		this.taskExecutorSet = true;
 	}
 
 	/**
