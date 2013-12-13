@@ -295,10 +295,7 @@ Caused by: java.lang.RuntimeException: foo
 			<para>
 				Spring Retry has a great deal of flexibility for determining which
 				exceptions can invoke retry. The default configuration will retry
-				for all exceptions. Given that, user exceptions may be wrapped in
-				a <classname>MessagingException</classname> in the underlying handler,
-				we need to ensure that the classification examines the exception causes.
-				The default classifier just looks at the top level exception.
+				for all exceptions and classifier just looks at the top level exception.
 			</para>
 			<para>
 				Since <emphasis>Spring Retry 1.0.3</emphasis>, the
