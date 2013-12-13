@@ -16,11 +16,14 @@
 
 package org.springframework.integration.gateway;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -37,6 +40,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
@@ -77,6 +82,7 @@ public class GatewayProxyFactoryBeanTests {
 		startResponder(requestChannel);
 		GenericConversionService cs = new DefaultConversionService();
 		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
+			@Override
 			public byte[] convert(String source) {
 				return source.getBytes();
 			}
@@ -134,6 +140,7 @@ public class GatewayProxyFactoryBeanTests {
 	public void testRequestReplyWithTypeConversion() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "456");
@@ -184,6 +191,7 @@ public class GatewayProxyFactoryBeanTests {
 		for (int i = 0; i < numRequests; i++) {
 			final int count = i;
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					// add some randomness to the ordering of requests
 					try {
@@ -240,6 +248,7 @@ public class GatewayProxyFactoryBeanTests {
 	public void testMessageAsReturnValue() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
@@ -291,6 +300,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		DirectChannel channel = new DirectChannel();
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				Method method = ReflectionUtils.findMethod(
 						GatewayProxyFactoryBeanTests.class, "throwTestException");
@@ -310,12 +320,33 @@ public class GatewayProxyFactoryBeanTests {
 
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
+	}
+
+	@Test
+	public void testProgrammaticWiring() throws Exception {
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setServiceInterface(TestEchoService.class);
+		QueueChannel drc = new QueueChannel();
+		gpfb.setDefaultRequestChannel(drc);
+		gpfb.setDefaultReplyTimeout(0);
+		GatewayMethodMetadata meta = new GatewayMethodMetadata();
+		meta.setHeaderExpressions(Collections. <String, Expression> singletonMap("foo", new LiteralExpression("bar")));
+		gpfb.setGlobalMethodMetadata(meta);
+		gpfb.afterPropertiesSet();
+		((TestEchoService) gpfb.getObject()).echo("foo");
+		Message<?> message = drc.receive(0);
+		assertNotNull(message);
+		String bar = (String) message.getHeaders().get("foo");
+		assertNotNull(bar);
+		assertThat(bar, equalTo("bar"));
 	}
 
 //	@Test
