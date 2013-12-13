@@ -18,7 +18,7 @@ package org.springframework.integration.mqtt.support;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.converter.MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 
 /**
  * Extension of {@link MessageConverter} allowing the topic to be added as
