@@ -255,6 +255,8 @@ public class DatagramPacketSendingHandlerTests {
 			new MulticastSendingMessageHandler(multicastAddress, testPort, true,
                     							true, "localhost", ackPort, 500000);
 		handler.setMinAcksForSuccess(2);
+		handler.afterPropertiesSet();
+		handler.start();
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 		assertTrue(latch2.await(10000, TimeUnit.MILLISECONDS));
 		handler.stop();

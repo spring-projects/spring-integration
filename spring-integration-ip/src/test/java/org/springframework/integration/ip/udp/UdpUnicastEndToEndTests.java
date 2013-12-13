@@ -183,7 +183,6 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		}
 		ctx.stop();
 		ctx.close();
-		ctx.destroy();
 	}
 
 

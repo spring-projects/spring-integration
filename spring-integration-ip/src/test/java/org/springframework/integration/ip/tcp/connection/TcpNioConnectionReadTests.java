@@ -20,9 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -69,9 +67,6 @@ public class TcpNioConnectionReadTests {
 		return scf;
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
-	 */
 	@Test
 	public void testReadLength() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
@@ -98,7 +93,7 @@ public class TcpNioConnectionReadTests {
 				new String((byte[]) responses.get(0).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String((byte[]) responses.get(1).getPayload()));
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
@@ -117,7 +112,10 @@ public class TcpNioConnectionReadTests {
 				responses.add(message);
 				try {
 					Thread.sleep(1000);
-				} catch (InterruptedException e) { }
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 				semaphore.release();
 				return false;
 			}
@@ -133,13 +131,10 @@ public class TcpNioConnectionReadTests {
 			assertEquals("Data", "xx",
 				new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		}
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
-	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadStxEtx() throws Exception {
@@ -167,7 +162,7 @@ public class TcpNioConnectionReadTests {
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
@@ -201,25 +196,20 @@ public class TcpNioConnectionReadTests {
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
-	 */
 	@Test
 	public void testReadLengthOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				responses.add(message);
 				semaphore.release();
 				return false;
 			}
@@ -243,26 +233,21 @@ public class TcpNioConnectionReadTests {
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
-	 */
 	@Test
 	public void testReadStxEtxOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		serializer.setMaxMessageSize(1024);
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				responses.add(message);
 				semaphore.release();
 				return false;
 			}
@@ -286,26 +271,21 @@ public class TcpNioConnectionReadTests {
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
-	 */
 	@Test
 	public void testReadCrLfOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				responses.add(message);
 				semaphore.release();
 				return false;
 			}
@@ -329,7 +309,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
-		scf.close();
+		scf.stop();
 		done.countDown();
 	}
 
@@ -343,14 +323,12 @@ public class TcpNioConnectionReadTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				responses.add(message);
 				semaphore.release();
 				return false;
 			}
@@ -372,7 +350,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
-		scf.close();
+		scf.stop();
 	}
 
 	/**
@@ -385,14 +363,12 @@ public class TcpNioConnectionReadTests {
 		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				responses.add(message);
 				semaphore.release();
 				return false;
 			}
@@ -415,7 +391,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
-		scf.close();
+		scf.stop();
 	}
 
 	/**
@@ -454,8 +430,7 @@ public class TcpNioConnectionReadTests {
 	}
 
 	private void testClosureMidMessageGuts(AbstractByteArraySerializer serializer, String shortMessage)
-			throws Exception, IOException, UnknownHostException,
-			InterruptedException {
+			throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -486,7 +461,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals(1, added.size());
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
-		scf.close();
+		scf.stop();
 	}
 
 	private void whileOpen(Semaphore semaphore, final List<TcpConnection> added)

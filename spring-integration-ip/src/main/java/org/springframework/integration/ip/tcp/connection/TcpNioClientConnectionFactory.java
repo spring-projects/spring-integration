@@ -112,6 +112,7 @@ public class TcpNioClientConnectionFactory extends
 		this.tcpNioConnectionSupport = tcpNioSupport;
 	}
 
+	@Deprecated
 	@Override
 	public void close() {
 		if (this.selector != null) {
@@ -154,9 +155,6 @@ public class TcpNioClientConnectionFactory extends
 						logger.debug("CancelledKeyException during Selector.select()");
 					}
 				}
-				catch (ClosedSelectorException cse) {
-					throw cse;
-				}
 				while ((newChannel = newChannels.poll()) != null) {
 					try {
 						newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
@@ -165,9 +163,6 @@ public class TcpNioClientConnectionFactory extends
 						if (logger.isDebugEnabled()) {
 							logger.debug("Channel closed before registering with selector for reading");
 						}
-					}
-					catch (ClosedSelectorException cse) {
-						throw cse;
 					}
 				}
 				this.processNioSelections(selectionCount, selector, null, this.channelMap);

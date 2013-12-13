@@ -32,7 +32,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
@@ -53,7 +52,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
-		AbstractInternetProtocolSendingMessageHandler implements Runnable, Lifecycle {
+		AbstractInternetProtocolSendingMessageHandler implements Runnable {
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 

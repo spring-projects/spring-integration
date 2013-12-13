@@ -82,6 +82,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		super.registerListener(listener);
 		for (AbstractClientConnectionFactory factory : this.factories) {
 			factory.registerListener(new TcpListener() {
+				@Override
 				public boolean onMessage(Message<?> message) {
 					if (!(message instanceof ErrorMessage)) {
 						throw new UnsupportedOperationException("This should never be called");
@@ -112,6 +113,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		return failoverTcpConnection;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void close() {
 		for (AbstractClientConnectionFactory factory : this.factories) {
@@ -229,6 +231,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			this.open = false;
 		}
 
+		@Override
 		public boolean isOpen() {
 			return this.open;
 		}
@@ -238,6 +241,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * send to a new connection obtained from {@link #findAConnection()}.
 		 * If send fails on a connection from every factory, we give up.
 		 */
+		@Override
 		public synchronized void send(Message<?> message) throws Exception {
 			boolean success = false;
 			AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
@@ -268,10 +272,12 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			}
 		}
 
+		@Override
 		public Object getPayload() throws Exception {
 			return this.delegate.getPayload();
 		}
 
+		@Override
 		public void run() {
 			throw new UnsupportedOperationException("Not supported on FailoverTcpConnection");
 		}
@@ -286,10 +292,12 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			return this.delegate.getHostAddress();
 		}
 
+		@Override
 		public int getPort() {
 			return this.delegate.getPort();
 		}
 
+		@Override
 		public Object getDeserializerStateKey() {
 			return this.delegate.getDeserializerStateKey();
 		}
@@ -350,6 +358,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * the actual connectionId in another header for convenience and tracing
 		 * purposes.
 		 */
+		@Override
 		public boolean onMessage(Message<?> message) {
 			if (this.delegate.getConnectionId().equals(message.getHeaders().get(IpHeaders.CONNECTION_ID))) {
 				MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)

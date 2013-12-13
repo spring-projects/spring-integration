@@ -30,6 +30,5 @@ public class SyslogdTests {
 		System.out.println("Hit enter to terminate");
 		System.in.read();
 		ctx.close();
-		ctx.destroy();
 	}
 }

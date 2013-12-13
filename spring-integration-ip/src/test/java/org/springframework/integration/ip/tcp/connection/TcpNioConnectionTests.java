@@ -95,12 +95,14 @@ public class TcpNioConnectionTests {
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch done = new CountDownLatch(1);
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			@SuppressWarnings("unused")
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					serverSocket.set(server);
 					latch.countDown();
 					Socket s = server.accept();
 					// block so we fill the buffer
@@ -121,6 +123,7 @@ public class TcpNioConnectionTests {
 					   ":" + e.getMessage(), e instanceof SocketTimeoutException);
 		}
 		done.countDown();
+		serverSocket.get().close();
 	}
 
 	@Test
@@ -131,11 +134,13 @@ public class TcpNioConnectionTests {
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch done = new CountDownLatch(1);
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					serverSocket.set(server);
 					latch.countDown();
 					Socket socket = server.accept();
 					byte[] b = new byte[6];
@@ -165,6 +170,7 @@ public class TcpNioConnectionTests {
 			fail("Unexpected exception " + e);
 		}
 		done.countDown();
+		serverSocket.get().close();
 	}
 
 	@Test
@@ -174,11 +180,13 @@ public class TcpNioConnectionTests {
 		factory.setNioHarvestInterval(100);
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					serverSocket.set(server);
 					latch.countDown();
 					Socket socket = server.accept();
 					byte[] b = new byte[6];
@@ -211,6 +219,7 @@ public class TcpNioConnectionTests {
 			fail("Unexpected exception " + e);
 		}
 		factory.stop();
+		serverSocket.get().close();
 	}
 
 	@Test

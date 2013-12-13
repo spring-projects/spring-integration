@@ -148,7 +148,6 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		}
 		ctx.stop();
 		ctx.close();
-		ctx.destroy();
 	}
 
 
