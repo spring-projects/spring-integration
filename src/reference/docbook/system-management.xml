@@ -3,10 +3,11 @@
     xmlns:xi="http://www.w3.org/2001/XInclude"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>System Management</title>
-  
+
   <xi:include href="./jmx.xml"/>
   <xi:include href="./message-history.xml"/>
   <xi:include href="./message-store.xml"/>
+  <xi:include href="./meta-data-store.xml"/>
   <xi:include href="./control-bus.xml"/>
   <xi:include href="./shutdown.xml"/>
 
