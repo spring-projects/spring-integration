@@ -50,6 +50,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -98,6 +100,7 @@ public class HttpProxyScenarioTests {
 
 		request.addHeader("If-Modified-Since", ifModifiedSinceValue);
 		request.addHeader("If-Unmodified-Since", ifUnmodifiedSinceValue);
+		request.addHeader("Connection", "Keep-Alive");
 
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 		assertNotNull(handler);
@@ -116,7 +119,11 @@ public class HttpProxyScenarioTests {
 				HttpHeaders httpHeaders = httpEntity.getHeaders();
 				assertEquals(ifModifiedSince, httpHeaders.getIfNotModifiedSince());
 				assertEquals(ifUnmodifiedSinceValue, httpHeaders.getFirst("If-Unmodified-Since"));
-				return new ResponseEntity<Object>(httpEntity.getHeaders(), HttpStatus.OK);
+				assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
+
+				MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
+				responseHeaders.set("Connection", "close");
+				return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
 			}
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
 				Mockito.any(HttpEntity.class),  (Class<?>) Mockito.any(Class.class));
@@ -131,6 +138,7 @@ public class HttpProxyScenarioTests {
 
 		assertNull(response.getHeaderValue("If-Modified-Since"));
 		assertNull(response.getHeaderValue("If-Unmodified-Since"));
+		assertEquals("close", response.getHeaderValue("Connection"));
 
 		Message<?> message = this.checkHeadersChannel.receive(2000);
 		MessageHeaders headers = message.getHeaders();
