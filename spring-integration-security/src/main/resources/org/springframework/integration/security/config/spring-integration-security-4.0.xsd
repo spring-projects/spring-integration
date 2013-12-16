@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/security"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	targetNamespace="http://www.springframework.org/schema/integration/security"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+
+	<xsd:element name="secured-channels">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines security requirements for one or more Message Channels.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="access-policy" type="accessPolicyType" minOccurs="1" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute name="authentication-manager" type="xsd:string" default="authenticationManager">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.security.authentication.AuthenticationManager"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="access-decision-manager" type="xsd:string" default="accessDecisionManager">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.security.access.AccessDecisionManager"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="accessPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines the security access policy for send and/or receive invocations based on a Message Channel name pattern.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="pattern" type="xsd:string" use="required"/>
+		<xsd:attribute name="send-access" type="xsd:string"/>
+		<xsd:attribute name="receive-access" type="xsd:string"/>
+	</xsd:complexType>
+
+</xsd:schema>
