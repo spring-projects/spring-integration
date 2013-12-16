@@ -28,7 +28,6 @@ import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
-import org.springframework.web.servlet.mvc.condition.RequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -38,20 +37,20 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * from a Spring Integration HTTP configuration of
  * {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
  * <p/>
- * This class is automatically configured as bean in the application context on the parsing phase of
+ * This class is automatically configured as a bean in the application context during the parsing phase of
  * the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements, if there is none registered, yet.
  * However it can be configured as a regular bean with appropriate configuration for
  * {@link RequestMappingHandlerMapping}. It is recommended to have only one similar bean in the application context
  * using the 'id' {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
  * <p/>
- * In most cases Spring MVC offers to configure Request Mapping via {@link org.springframework.stereotype.Controller}
+ * In most cases, Spring MVC offers to configure Request Mapping via {@code org.springframework.stereotype.Controller}
  * and {@link org.springframework.web.bind.annotation.RequestMapping}.
  * That's why Spring MVC's Handler Mapping infrastructure relies on {@link org.springframework.web.method.HandlerMethod},
- * as different methods at the same {@link org.springframework.stereotype.Controller} user-class may have their own
+ * as different methods at the same {@code org.springframework.stereotype.Controller} user-class may have their own
  * {@link org.springframework.web.bind.annotation.RequestMapping}. On the other side, all Spring Integration HTTP Inbound
  * Endpoints are configured on the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
  * single {@link RequestMappingInfo} configuration without {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
- * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a some {@link org.springframework.web.servlet.HandlerMapping}
+ * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a {@link org.springframework.web.servlet.HandlerMapping}
  * compromise implementation between method-level annotations and component-level (e.g. Spring Integration XML) configurations.
  *
  * @author Artem Bilan
@@ -64,18 +63,6 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 
 	private static final Method HANDLE_REQUEST_METHOD = ReflectionUtils.findMethod(HttpRequestHandler.class,
 			"handleRequest", HttpServletRequest.class, HttpServletResponse.class);
-
-	private static final Method CREATE_REQUEST_MAPPING_INFO_METHOD;
-
-	static {
-		/**
-		 * Need for full reuse {@link RequestMappingHandlerMapping}'s logic
-		 * and makes this class Spring MVC version independent.
-		 */
-		CREATE_REQUEST_MAPPING_INFO_METHOD = ReflectionUtils.findMethod(RequestMappingHandlerMapping.class,
-				"createRequestMappingInfo", org.springframework.web.bind.annotation.RequestMapping.class, RequestCondition.class);
-		ReflectionUtils.makeAccessible(CREATE_REQUEST_MAPPING_INFO_METHOD);
-	}
 
 	@Override
 	protected final boolean isHandler(Class<?> beanType) {
@@ -152,8 +139,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 					}
 				};
 
-		Object[] createRequestMappingInfoParams = new Object[]{requestMappingAnnotation, this.getCustomTypeCondition(endpoint.getClass())};
-		return (RequestMappingInfo) ReflectionUtils.invokeMethod(CREATE_REQUEST_MAPPING_INFO_METHOD, this, createRequestMappingInfoParams);
+        return this.createRequestMappingInfo(requestMappingAnnotation, this.getCustomTypeCondition(endpoint.getClass()));
 	}
 
 }

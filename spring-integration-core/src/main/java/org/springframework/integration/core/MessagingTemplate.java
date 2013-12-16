@@ -37,7 +37,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	}
 
 	/**
-	 * Invokes {@link #setDefaultDestination(MessageChannel)} - provided for
+	 * Invokes {@code setDefaultDestination(MessageChannel)} - provided for
 	 * backward compatibility.
 	 * @param channel the channel to set.
 	 */
