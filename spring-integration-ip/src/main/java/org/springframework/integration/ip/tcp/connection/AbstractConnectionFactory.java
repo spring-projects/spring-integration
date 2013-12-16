@@ -410,8 +410,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * Closes the server.
+	 * Closes the factory.
+	 * @deprecated As of 3.0; use {@link #stop()}.
 	 */
+	@Deprecated
 	public abstract void close();
 
 	@Override

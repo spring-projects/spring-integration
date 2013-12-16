@@ -267,6 +267,4 @@ public class XPathRouterParserTests {
 		}
 	}
 
-	public static class MyChannelResolver extends BeanFactoryChannelResolver{}
-
 }

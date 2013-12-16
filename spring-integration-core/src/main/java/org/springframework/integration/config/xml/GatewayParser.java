@@ -27,6 +27,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -105,7 +108,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.gateway.GatewayMethodMetadata");
+					GatewayMethodMetadata.class);
 			this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, element,
 					"default-payload-expression", "payloadExpression");
@@ -120,7 +123,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		for (Element methodElement : elements) {
 			String methodName = methodElement.getAttribute("name");
 			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.gateway.GatewayMethodMetadata");
+					GatewayMethodMetadata.class);
 			methodMetadataBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
 			methodMetadataBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
 			methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
@@ -151,11 +154,11 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			}
 			RootBeanDefinition expressionDef = null;
 			if (hasValue) {
-				expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+				expressionDef = new RootBeanDefinition(LiteralExpression.class);
 				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
 			}
 			else if (hasExpression) {
-				expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+				expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
 			}
 			if (expressionDef != null) {

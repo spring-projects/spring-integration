@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -111,10 +112,16 @@ public class TcpNioClientConnectionFactory extends
 		this.tcpNioConnectionSupport = tcpNioSupport;
 	}
 
+	@Deprecated
 	@Override
 	public void close() {
 		if (this.selector != null) {
-			this.selector.wakeup();
+			try {
+				this.selector.close();
+			}
+			catch (IOException e) {
+				logger.error("Error closing selector", e);
+			}
 		}
 	}
 
@@ -129,6 +136,7 @@ public class TcpNioClientConnectionFactory extends
 		super.start();
 	}
 
+	@Override
 	public void run() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Read selector running for connections to " + this.getHost() + ":" + this.getPort());
@@ -141,7 +149,8 @@ public class TcpNioClientConnectionFactory extends
 				int selectionCount = 0;
 				try {
 					selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
-				} catch (CancelledKeyException cke) {
+				}
+				catch (CancelledKeyException cke) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("CancelledKeyException during Selector.select()");
 					}
@@ -149,7 +158,8 @@ public class TcpNioClientConnectionFactory extends
 				while ((newChannel = newChannels.poll()) != null) {
 					try {
 						newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
-					} catch (ClosedChannelException cce) {
+					}
+					catch (ClosedChannelException cce) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Channel closed before registering with selector for reading");
 						}
@@ -157,7 +167,13 @@ public class TcpNioClientConnectionFactory extends
 				}
 				this.processNioSelections(selectionCount, selector, null, this.channelMap);
 			}
-		} catch (Exception e) {
+		}
+		catch (ClosedSelectorException cse) {
+			if (this.isActive()) {
+				logger.error("Selector closed", cse);
+			}
+		}
+		catch (Exception e) {
 			logger.error("Exception in read selector thread", e);
 			this.setActive(false);
 		}

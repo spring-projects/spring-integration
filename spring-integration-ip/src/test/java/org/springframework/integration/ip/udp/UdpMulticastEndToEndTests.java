@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 	/**
 	 * Instantiate the receiving context
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public void run() {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
@@ -146,6 +147,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 			}
 		}
 		ctx.stop();
+		ctx.close();
 	}
 
 

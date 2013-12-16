@@ -110,11 +110,11 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.outputChannel = outputChannel;
 	}
 
-	public void setAutoStartup(Boolean autoStartup) {
+	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
-	public void setPhase(Integer phase) {
+	public void setPhase(int phase) {
 		this.phase = phase;
 	}
 

@@ -16,15 +16,18 @@
 package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertNotNull;
-import org.junit.Assert;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
 
 
 /**
@@ -45,7 +48,8 @@ import org.springframework.integration.test.util.SocketUtils;
 public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void testNoAck() throws Exception {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
@@ -57,15 +61,24 @@ public class MultiClientTests {
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
+
+		final AtomicBoolean done = new AtomicBoolean();
+
 		for (int i = 0; i < drivers; i++) {
 			Thread t = new Thread( new Runnable() {
+				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort());
+					sender.start();
 					while (true) {
 						Message<?> message = queueIn.receive();
 						sender.handleMessage(message);
+						if (done.get()) {
+							break;
+						}
 					}
+					sender.stop();
 				}});
 			t.setDaemon(true);
 			t.start();
@@ -79,12 +92,13 @@ public class MultiClientTests {
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
 		}
 		adapter.stop();
+		done.set(true);
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void testAck() throws Exception {
-		Thread.sleep(1000);
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
 			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), false);
@@ -95,19 +109,28 @@ public class MultiClientTests {
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
+
+		final AtomicBoolean done = new AtomicBoolean();
+
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
 			Thread t = new Thread( new Runnable() {
+				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							false, true, "localhost",
 							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
 							10000);
+					sender.start();
 					while (true) {
 						Message<?> message = queueIn.receive();
 						sender.handleMessage(message);
+						if (done.get()) {
+							break;
+						}
 					}
+					sender.stop();
 				}});
 			t.setDaemon(true);
 			t.start();
@@ -121,12 +144,13 @@ public class MultiClientTests {
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
 		}
 		adapter.stop();
+		done.set(true);
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void testAckWithLength() throws Exception {
-		Thread.sleep(1000);
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
 			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), true);
@@ -137,19 +161,28 @@ public class MultiClientTests {
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
+
+		final AtomicBoolean done = new AtomicBoolean();
+
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
 			Thread t = new Thread( new Runnable() {
+				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							true, true, "localhost",
 							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
 							10000);
+					sender.start();
 					while (true) {
 						Message<?> message = queueIn.receive();
 						sender.handleMessage(message);
+						if (done.get()) {
+							break;
+						}
 					}
+					sender.stop();
 				}});
 			t.setDaemon(true);
 			t.start();
@@ -163,6 +196,7 @@ public class MultiClientTests {
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
 		}
 		adapter.stop();
+		done.set(true);
 	}
 
 	private String largePayload(int n) {

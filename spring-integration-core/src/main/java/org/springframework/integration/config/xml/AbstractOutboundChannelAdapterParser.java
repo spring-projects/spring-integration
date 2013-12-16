@@ -123,17 +123,6 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	 * Override this method to control the registration process and return the bean name.
 	 * If parsing a bean definition whose name can be auto-generated, consider using
 	 * {@link #parseConsumer(Element, ParserContext)} instead.
-	 * @deprecated Use {@link #doParseAndRegisterConsumer(Element, ParserContext)}
-	 */
-	@Deprecated
-	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
-		return doParseAndRegisterConsumer(element, parserContext).getBeanName();
-	}
-
-	/**
-	 * Override this method to control the registration process and return the bean name.
-	 * If parsing a bean definition whose name can be auto-generated, consider using
-	 * {@link #parseConsumer(Element, ParserContext)} instead.
 	 */
 	protected BeanComponentDefinition doParseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		AbstractBeanDefinition definition = this.parseConsumer(element, parserContext);

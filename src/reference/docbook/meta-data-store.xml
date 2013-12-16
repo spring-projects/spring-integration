@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="metadata-store"
+		 xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>Metadata Store</title>
+	<para>
+		Many external systems, services or resources aren't transactional (Twitter, RSS, file system etc.)
+		and there is no any ability to mark the data as read. Or there is just need to implement the
+		Enterprise Integration Pattern <ulink url="http://eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink>
+		in some integration solutions. To achieve this goal and store some previous state of the Endpoint before the next
+		interaction with external system, or deal with the next Message, Spring Integration provides the <emphasis>Metadata Store</emphasis>
+		component being an implementation of the <interfacename>org.springframework.integration.metadata.MetadataStore</interfacename>
+		interface with a general <emphasis>key-value</emphasis> contract.
+	</para>
+	<para>
+		The <emphasis>Metadata Store</emphasis> is designed to store various types of generic meta-data
+		(e.g., published date of the last feed entry that has been processed) to help components such as the Feed adapter deal with duplicates.
+		If a component is not directly provided with a reference to a <interfacename>MetadataStore</interfacename>,
+		the algorithm for locating a metadata store is as follows: First, look for a bean with id
+		<code>metadataStore</code> in the ApplicationContext. If one is found then it will be used, otherwise
+		it will create a new instance of <classname>SimpleMetadataStore</classname> which is an in-memory implementation
+		that will only persist metadata within the lifecycle of the currently running Application Context. This means
+		that upon restart you may end up with duplicate entries.
+	</para>
+	<para>
+		If you need to persist metadata between Application Context restarts, two
+		persistent <interfacename>MetadataStores</interfacename> are provided by the framework:
+	</para>
+	<itemizedlist>
+		<listitem>PropertiesPersistingMetadataStore</listitem>
+		<listitem><xref linkend="redis-metadata-store"/></listitem>
+	</itemizedlist>
+	<para>
+		The <classname>PropertiesPersistingMetadataStore</classname> is backed by a properties file and a
+		<interfacename><ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html">PropertiesPersister</ulink></interfacename>.
+	</para>
+	<programlisting language="xml"><![CDATA[<bean id="metadataStore"
+    class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>]]></programlisting>
+	<para>
+		Alternatively, you can provide your own implementation of the
+		<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
+		and configure it as a bean in the Application Context.
+	</para>
+	<section id="idempotent-receiver">
+		<title>Idempotent Receiver</title>
+		<para>
+			The <emphasis>Metadata Store</emphasis> is useful for implementating the
+			EIP <ulink url="http://eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink> pattern, when
+			there is need to <emphasis>filter</emphasis> an incoming Message if it has already been processed, and just discard
+			it or perform some other logic on discarding. The following configuration is an example of how to do this:
+		</para>
+		<programlisting language="xml"><![CDATA[<int:filter input-channel="serviceChannel"
+			output-channel="idempotentServiceChannel"
+			discard-channel="discardChannel"
+			expression="@metadataStore.get(headers.businessKey) == null"/>
+
+<int:publish-subscribe-channel id="idempotentServiceChannel"/>
+
+<int:outbound-channel-adapter channel="idempotentServiceChannel"
+                              expression="@metadataStore.put(headers.businessKey, '')"/>
+
+<int:service-activator input-channel="idempotentServiceChannel" ref="service"/>]]></programlisting>
+		<para>
+			The <code>value</code> of the idempotent entry may be some expiration date, after which that entry should
+			be removed from <emphasis>Metadata Store</emphasis> by some scheduled reaper.
+		</para>
+	</section>
+
+</section>

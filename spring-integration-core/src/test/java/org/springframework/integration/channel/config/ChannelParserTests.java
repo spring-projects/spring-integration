@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Executor;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
@@ -36,6 +37,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -90,7 +92,7 @@ public class ChannelParserTests {
 	public void channelWithFailoverDispatcherAttribute() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailoverAttribute");
+		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailover");
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
@@ -257,6 +259,15 @@ public class ChannelParserTests {
 			threwException = true;
 		}
 		assertTrue(threwException);
+	}
+
+	public static class TestInterceptor extends ChannelInterceptorAdapter {
+
+		@Override
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+			return MessageBuilder.withPayload(message.getPayload().toString().toUpperCase()).build();
+		}
+
 	}
 
 }

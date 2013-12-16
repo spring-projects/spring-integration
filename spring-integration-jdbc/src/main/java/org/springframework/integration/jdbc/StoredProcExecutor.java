@@ -495,19 +495,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * The default value is false.
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
-	 *
-	 * @deprecated Please use {@link #setIsFunction(boolean)} instead.
-	 */
-	@Deprecated
-	public void setFunction(boolean isFunction) {
-		this.isFunction = isFunction;
-	}
-
-	/**
-	 * Indicates whether a Stored Procedure or a Function is being executed.
-	 * The default value is false.
-	 *
-	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
 	 */
 	public void setIsFunction(boolean isFunction) {
 		this.isFunction = isFunction;

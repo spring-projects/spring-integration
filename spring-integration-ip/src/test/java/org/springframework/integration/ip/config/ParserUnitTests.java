@@ -677,7 +677,8 @@ public class ParserUnitTests {
 
 		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
 		TcpConnectionEvent event = new TcpConnectionOpenEvent(connection, "foo");
-		this.eventAdapter.setEventTypes(new Class[] {TcpConnectionEvent.class});
+		Class<TcpConnectionEvent>[] types = (Class<TcpConnectionEvent>[]) new Class<?>[]{TcpConnectionEvent.class};
+		this.eventAdapter.setEventTypes(types);
 		this.eventAdapter.onApplicationEvent(event);
 		assertNull(this.eventChannel.receive(0));
 		this.eventAdapter.start();

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
-
-	<channel id="dispatcherAttribute" dispatcher="failover"/>
 
 	<channel id="taskExecutorOnly">
 		<dispatcher task-executor="taskExecutor"/>
@@ -32,7 +31,13 @@
 		<dispatcher load-balancer="round-robin" task-executor="taskExecutor"/>
 	</channel>
 
-	<beans:bean id="taskExecutor"
-		class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
+	<channel id="lbRefChannel">
+		<dispatcher load-balancer-ref="lb"/>
+	</channel>
 
+	<beans:bean id="taskExecutor"
+				class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
+
+	<beans:bean id="lb"
+				class="org.springframework.integration.channel.config.DispatchingChannelParserTests.SampleLoadBalancingStrategy"/>
 </beans:beans>

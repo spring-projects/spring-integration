@@ -11,8 +11,10 @@
 	</channel>
 
 	<channel id="defaultChannel" />
-	
-	<channel id="channelWithFailoverAttribute" dispatcher="failover"/>
+
+	<channel id="channelWithFailover">
+		<dispatcher failover="true" load-balancer="none"/>
+	</channel>
 
 	<channel id="channelWithCustomQueue">
 		<queue ref="customQueue"/>

@@ -19,9 +19,10 @@
 	<channel id="channel4">
 		<queue capacity="1" />
 	</channel>
-	
+
 	<channel id="routingChannel" />
-	<payload-type-router id="routerWithChannelResolver" input-channel="routingChannel" channel-resolver="cr">
+
+	<payload-type-router id="router" input-channel="routingChannel">
 		<mapping type="java.lang.String" channel="channel1" />
 		<mapping type="java.lang.Integer" channel="channel2" />
 		<mapping type="java.lang.Number[]" channel="channel3" />
@@ -32,5 +33,4 @@
 		service-interface="org.springframework.integration.router.config.PayloadTypeRouterParserTests$TestService"
 		default-request-channel="routingChannel" />
 
-	<beans:bean id="cr" class="org.springframework.integration.router.config.PayloadTypeRouterParserTests.MyChannelResolver"/>
 </beans:beans>

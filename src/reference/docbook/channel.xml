@@ -199,17 +199,27 @@
       </para>
       <para>
         The <classname>DirectChannel</classname> internally delegates to a Message Dispatcher to invoke its
-        subscribed Message Handlers, and that dispatcher can have a load-balancing strategy. The load-balancer
-        determines how invocations will be ordered in the case that there are multiple handlers subscribed to the
-        same channel. When using the namespace support described below, the default strategy is
-        "round-robin" which essentially load-balances across the handlers in rotation.
-        <note>
-          The "round-robin" strategy is currently the only implementation available out-of-the-box in Spring
-          Integration. Other strategy implementations may be added in future versions.
-        </note>
+        subscribed Message Handlers, and that dispatcher can have a load-balancing strategy exposed via
+        <emphasis>load-balancer</emphasis> or <emphasis>load-balancer-ref</emphasis> attributes (mutually exclusive). The load balancing strategy
+        is used by the Message Dispatcher to help determine how Messages are distributed amongst Message Handlers 
+        in the case that there are multiple Message Handlers subscribed to the same channel.
+        As a convinience the <emphasis>load-balancer</emphasis> attribute exposes enumeration of values pointing to pre-existing implementations 
+        of <classname>LoadBalancingStrategy</classname>.
+        The "round-robin" (load-balances across the handlers in rotation) and "none" (for the cases where one wants to explicitely disable load balancing) 
+        are the only available values. 
+        Other strategy implementations may be added in future versions. 
+        However, since version 3.0 you can  provide your own implementation of the <classname>LoadBalancingStrategy</classname> and
+        inject it using <emphasis>load-balancer-ref</emphasis> attribute which should point to a bean that implements 
+        <classname>LoadBalancingStrategy</classname>.
+        <programlisting language="xml"><![CDATA[<int:channel id="lbRefChannel">
+  <int:dispatcher load-balancer-ref="lb"/>
+</int:channel>
+  
+<bean id="lb" class="foo.bar.SampleLoadBalancingStrategy"/>]]></programlisting>
+    Note that <emphasis>load-balancer</emphasis> or <emphasis>load-balancer-ref</emphasis> attributes are mutually exclusive.
       </para>
       <para>
-        The load-balancer also works in combination with a boolean <emphasis>failover</emphasis> property.
+        The load-balancing also works in combination with a boolean <emphasis>failover</emphasis> property.
         If the "failover" value is true (the default), then the dispatcher will fall back to any subsequent
         handlers as necessary when preceding handlers throw Exceptions. The order is determined by an optional
         order value defined on the handlers themselves or, if no such value exists, the order in which the
@@ -539,8 +549,8 @@ payload to an Integer.
       <code>message-store</code> attribute as shown in the next example.
 
       <programlisting language="xml"><![CDATA[<int:channel id="dbBackedChannel">
-    <int:queue message-store="messageStore">
-<int:channel id="myChannel">
+    <int:queue message-store="messageStore"/>
+</int:channel>
 
 <int-jdbc:message-store id="messageStore" data-source="someDataSource"/>]]></programlisting>
 

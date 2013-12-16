@@ -211,6 +211,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			AGE,
 			ALLOW,
 			CACHE_CONTROL,
+			CONNECTION,
 			CONTENT_ENCODING,
 			CONTENT_LANGUAGE,
 			CONTENT_LENGTH,

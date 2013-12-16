@@ -59,7 +59,7 @@ subprojects { subproject ->
 		ftpServerVersion = '1.0.6'
 
 
-		springVersionDefault = '4.0.0.BUILD-SNAPSHOT'
+		springVersionDefault = '4.0.0.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.2.0.RELEASE'
@@ -296,9 +296,11 @@ project('spring-integration-http') {
 		compile ("net.java.dev.rome:rome:1.0.0", optional)
 		testCompile project(":spring-integration-test")
 
-		// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
-		compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 	}
+
+	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
+	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
+
 }
 
 project('spring-integration-ip') {
@@ -309,6 +311,10 @@ project('spring-integration-ip') {
 		runtime project(":spring-integration-stream")
 		testCompile project(":spring-integration-test")
 	}
+
+	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
+	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
+
 }
 
 project('spring-integration-jdbc') {

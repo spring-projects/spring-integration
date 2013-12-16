@@ -39,9 +39,8 @@
         The <classname>AcceptOnceFileListFilter</classname> stores its state in memory. If you wish the
         state to survive a system restart, consider using the
         <classname>FileSystemPersistentAcceptOnceFileListFilter</classname> instead. This filter stores
-        the accepted file names in a <interfacename>MetadataStore</interfacename>. The framework supplies
-        several store implementations (such as Redis), or you can provide your own. This filter matches on
-        the filename and modified time.
+        the accepted file names in a <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
+        This filter matches on the filename and modified time.
       </note>
       <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
     class="org.springframework.integration.file.FileReadingMessageSource"

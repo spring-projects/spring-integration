@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
@@ -54,6 +55,7 @@ public class DatagramPacketSendingHandlerTests {
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					DatagramSocket socket = new DatagramSocket(testPort);
@@ -78,7 +80,7 @@ public class DatagramPacketSendingHandlerTests {
 		byte[] dest = new byte[length];
 		System.arraycopy(src, offset, dest, 0, length);
 		assertEquals(payload, new String(dest));
-		handler.shutDown();
+		handler.stop();
 	}
 
 	@Test
@@ -97,7 +99,9 @@ public class DatagramPacketSendingHandlerTests {
 				new UnicastSendingMessageHandler("localhost", testPort, true,
 						true, "localhost", ackPort, 5000);
 		handler.afterPropertiesSet();
+		handler.start();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					DatagramSocket socket = new DatagramSocket(testPort);
@@ -132,7 +136,7 @@ public class DatagramPacketSendingHandlerTests {
 		byte[] dest = new byte[6];
 		System.arraycopy(src, offset+length-6, dest, 0, 6);
 		assertEquals(payload, new String(dest));
-		handler.shutDown();
+		handler.stop();
 	}
 
 	@Test
@@ -144,6 +148,7 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch latch1 = new CountDownLatch(2);
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		Runnable catcher = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					byte[] buffer = new byte[8];
@@ -183,7 +188,7 @@ public class DatagramPacketSendingHandlerTests {
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler(multicastAddress, testPort);
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 		assertTrue(latch2.await(3000, TimeUnit.MILLISECONDS));
-		handler.shutDown();
+		handler.stop();
 	}
 
 	@Test
@@ -200,6 +205,7 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch latch1 = new CountDownLatch(2);
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		Runnable catcher = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					byte[] buffer = new byte[1000];
@@ -249,9 +255,11 @@ public class DatagramPacketSendingHandlerTests {
 			new MulticastSendingMessageHandler(multicastAddress, testPort, true,
                     							true, "localhost", ackPort, 500000);
 		handler.setMinAcksForSuccess(2);
+		handler.afterPropertiesSet();
+		handler.start();
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 		assertTrue(latch2.await(10000, TimeUnit.MILLISECONDS));
-		handler.shutDown();
+		handler.stop();
 	}
 
 }

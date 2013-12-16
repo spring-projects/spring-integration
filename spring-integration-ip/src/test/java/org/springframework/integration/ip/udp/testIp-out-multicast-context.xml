@@ -14,9 +14,7 @@
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
 	<stream:stdin-channel-adapter id="stdin" channel="mcOutputChannel" >
-		<poller>
-			<interval-trigger interval="100" time-unit="MILLISECONDS"/>
-		</poller>
+		<poller fixed-delay="100" />
 	</stream:stdin-channel-adapter>
 
 	<channel id="mcInputChannel"/>

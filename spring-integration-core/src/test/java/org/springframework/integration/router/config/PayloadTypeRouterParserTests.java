@@ -16,9 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 
@@ -26,16 +24,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,9 +67,6 @@ public class PayloadTypeRouterParserTests {
 		assertTrue(chanel2.receive(100).getPayload() instanceof Integer);
 		assertTrue(chanel3.receive(100).getPayload().getClass().isArray());
 		assertTrue(chanel4.receive(100).getPayload().getClass().isArray());
-
-		EventDrivenConsumer edc = context.getBean("routerWithChannelResolver", EventDrivenConsumer.class);
-		assertEquals(context.getBean("cr"), TestUtils.getPropertyValue(edc, "handler.channelResolver"));
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
@@ -119,10 +110,4 @@ public class PayloadTypeRouterParserTests {
 		public void foo(Message<?> message);
 	}
 
-	public static class MyChannelResolver extends BeanFactoryChannelResolver {
-
-		MyChannelResolver() {
-			super(mock(BeanFactory.class));
-		}
-	}
 }

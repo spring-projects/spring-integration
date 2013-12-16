@@ -44,6 +44,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		this.targetConnectionFactory = target;
 		pool = new SimplePool<TcpConnectionSupport>(poolSize, new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
 
+			@Override
 			public TcpConnectionSupport createForPool() {
 				try {
 					return targetConnectionFactory.getConnection();
@@ -52,10 +53,12 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				}
 			}
 
+			@Override
 			public boolean isStale(TcpConnectionSupport connection) {
 				return !connection.isOpen();
 			}
 
+			@Override
 			public void removedFromPool(TcpConnectionSupport connection) {
 				connection.close();
 			}
@@ -167,6 +170,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return targetConnectionFactory.isRunning();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void close() {
 		targetConnectionFactory.close();
@@ -317,6 +321,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	public void registerListener(TcpListener listener) {
 		super.registerListener(listener);
 		targetConnectionFactory.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				if (!(message instanceof ErrorMessage)) {
 					throw new UnsupportedOperationException("This should never be called");

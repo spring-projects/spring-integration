@@ -178,10 +178,15 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		}
 		catch (Exception e) {
-			logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval + " milliseconds.", e);
 			this.listening = false;
-			this.sleepBeforeRecoveryAttempt();
-			this.publishException(e);
+			if (this.active) {
+				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval + " milliseconds.", e);
+				this.publishException(e);
+				this.sleepBeforeRecoveryAttempt();
+			}
+			else {
+				logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
+			}
 			return;
 		}
 

@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.StopWatch;
 
@@ -36,13 +37,16 @@ public class ConnectionFactoryShutDownTests {
 	public void testShutdownDoesntDeadlock() throws Exception {
 		final AbstractConnectionFactory factory = new AbstractConnectionFactory(0) {
 
+			@Override
 			public TcpConnection getConnection() throws Exception {
 				return null;
 			}
 
 			@Override
+			@Deprecated
 			public void close() {
 			}
+
 		};
 		factory.setActive(true);
 		Executor executor = factory.getTaskExecutor();
@@ -50,6 +54,7 @@ public class ConnectionFactoryShutDownTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		executor.execute(new Runnable() {
 
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {

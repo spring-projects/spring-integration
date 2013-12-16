@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 
+	@Override
 	public void run() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("UDP Receiver running on port:" + this.getPort());
@@ -90,7 +91,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				// continue
 			}
 			catch (SocketException e) {
-				doStop();
+				this.stop();
 			}
 			catch (Exception e) {
 				if (e instanceof MessagingException) {
@@ -133,6 +134,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	protected boolean asyncSendMessage(final DatagramPacket packet) {
 		this.getTaskExecutor().execute(new Runnable(){
+			@Override
 			public void run() {
 				Message<byte[]> message = null;
 				try {
@@ -222,6 +224,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		}
 	}
 
+	@Override
 	public void setSoSendBufferSize(int soSendBufferSize) {
 		this.soSendBufferSize = soSendBufferSize;
 	}

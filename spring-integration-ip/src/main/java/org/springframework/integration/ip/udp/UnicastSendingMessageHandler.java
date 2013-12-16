@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +52,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
-		AbstractInternetProtocolSendingMessageHandler implements Runnable{
+		AbstractInternetProtocolSendingMessageHandler implements Runnable {
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
@@ -85,6 +86,8 @@ public class UnicastSendingMessageHandler extends
 	private volatile boolean ackThreadRunning;
 
 	private volatile Executor taskExecutor;
+
+	private volatile boolean taskExecutorSet;
 
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
@@ -167,12 +170,14 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	public void onInit() {
+	@Override
+	public void doStart() {
 		if (this.acknowledge) {
 			if (this.taskExecutor == null) {
 				Executor executor = Executors
 						.newSingleThreadExecutor(new ThreadFactory() {
-							private AtomicInteger n = new AtomicInteger();
+							private final AtomicInteger n = new AtomicInteger();
+							@Override
 							public Thread newThread(Runnable runner) {
 								Thread thread = new Thread(runner);
 								thread.setName("UDP-Ack-Handler-" + n.getAndIncrement());
@@ -185,10 +190,21 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
+	@Override
+	protected void doStop() {
+		this.closeSocketIfNeeded();
+		if (!this.taskExecutorSet && this.taskExecutor != null) {
+			((ExecutorService) this.taskExecutor).shutdown();
+			this.taskExecutor = null;
+		}
+	}
+
+	@Override
 	public void handleMessageInternal(Message<?> message)
 			throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		if (this.acknowledge) {
+			Assert.state(this.isRunning(), "When 'acknowlege' is enabled, adapter must be running");
 			if (!this.ackThreadRunning) {
 				synchronized(this) {
 					if (!this.ackThreadRunning) {
@@ -294,6 +310,7 @@ public class UnicastSendingMessageHandler extends
 	/**
 	 * Process acknowledgments, if requested.
 	 */
+	@Override
 	public void run() {
 		try {
 			this.ackThreadRunning = true;
@@ -333,7 +350,15 @@ public class UnicastSendingMessageHandler extends
 		this.taskExecutor.execute(this);
 	}
 
+	/**
+	 * @deprecated Use stop() instead.
+	 */
+	@Deprecated
 	public void shutDown() {
+		this.stop();
+	}
+
+	private void closeSocketIfNeeded() {
 		if (socket != null) {
 			socket.close();
 			socket = null;
@@ -344,16 +369,20 @@ public class UnicastSendingMessageHandler extends
 	 * @see java.net.Socket#setReceiveBufferSize(int)
 	 * @see DatagramSocket#setReceiveBufferSize(int)
 	 */
+	@Override
 	public void setSoReceiveBufferSize(int size) {
 		this.soReceiveBufferSize = size;
 	}
 
+	@Override
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
+		Assert.notNull(taskExecutor, "'taskExecutor' cannot be null");
 		this.taskExecutor = taskExecutor;
+		this.taskExecutorSet = true;
 	}
 
 	/**
@@ -363,6 +392,7 @@ public class UnicastSendingMessageHandler extends
 		this.ackCounter = ackCounter;
 	}
 
+	@Override
 	public String getComponentType(){
 		return "ip:udp-outbound-channel-adapter";
 	}
