@@ -126,13 +126,13 @@ public class OperationInvokingOutboundGatewayTests {
 			assertThat(e, Matchers.instanceOf(MessagingException.class));
 			assertThat(e.getMessage(), Matchers.containsString("failed to find JMX operation"));
 		}
-		// TODO: Uncomment when Spring Framework minimum is 3.2.3
-//		argMap = new HashMap<String, Object>();
-//		argMap.put("bool", true);
-//		argMap.put("time", 0L);
-//		argMap.put("foo", 42);
-//		primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
-//		assertEquals(4, testBean.messages.size());
+		// Args are named starting with Spring 3.2.3
+		argMap = new HashMap<String, Object>();
+		argMap.put("bool", true);
+		argMap.put("time", 0L);
+		argMap.put("foo", 42);
+		primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
+		assertEquals(4, testBean.messages.size());
 	}
 
 	@Test
