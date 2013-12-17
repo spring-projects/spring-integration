@@ -20,7 +20,6 @@ package org.springframework.integration.json;
  * @author Mark Fisher
  * @since 2.0
 */
-@SuppressWarnings("unused")
 class TestAddress {
 
 	private volatile int number;
@@ -54,13 +53,21 @@ class TestAddress {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		TestAddress that = (TestAddress) o;
 
-		if (number != that.number) return false;
-		if (street != null ? !street.equals(that.street) : that.street != null) return false;
+		if (number != that.number) {
+			return false;
+		}
+		if (street != null ? !street.equals(that.street) : that.street != null) {
+			return false;
+		}
 
 		return true;
 	}

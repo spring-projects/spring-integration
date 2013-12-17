@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.json;
 
-import org.springframework.integration.support.json.JacksonJsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 
 /**
@@ -23,11 +22,12 @@ import org.springframework.integration.support.json.JsonInboundMessageMapper.Jso
  * @since 3.0
  *
  */
+@Deprecated
 public class JacksonJsonSymmetricalMessageMappingTests extends AbstractJsonSymmetricalMessageMappingTests {
 
 	@Override
 	protected JsonMessageParser<?> getParser() {
-		return new JacksonJsonMessageParser();
+		return new org.springframework.integration.support.json.JacksonJsonMessageParser();
 	}
 
 }

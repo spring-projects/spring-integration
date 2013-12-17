@@ -27,8 +27,6 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 3.0
  *
- * @see Jackson2JsonMessageParser
- * @see JacksonJsonMessageParser
  */
 abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessageMapper.JsonMessageParser<P> {
 

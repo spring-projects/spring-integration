@@ -23,15 +23,16 @@ import static org.junit.Assert.assertTrue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.jackson.JsonGenerator.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonObjectMapper;
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
@@ -125,8 +126,8 @@ public class ObjectToJsonTransformerTests {
 	@Test
 	public void objectPayloadWithCustomObjectMapper() throws Exception {
 		ObjectMapper customMapper = new ObjectMapper();
-		customMapper.configure(Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new JacksonJsonObjectMapper(customMapper));
+		customMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new Jackson2JsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
@@ -139,12 +140,6 @@ public class ObjectToJsonTransformerTests {
 		String addressResult = matcher.group(1);
 		assertTrue(addressResult.contains("number:123"));
 		assertTrue(addressResult.contains("street:\"Main Street\""));
-	}
-
-	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalArgumentException.class)
-	public void testInt2831IllegalArgument() throws Exception {
-		new ObjectToJsonTransformer(new Object());
 	}
 
 }

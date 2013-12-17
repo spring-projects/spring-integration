@@ -28,10 +28,10 @@ package org.springframework.integration.support.json;
  * @since 3.0
  *
  * @see Jackson2JsonObjectMapper
- * @see JacksonJsonObjectMapper
  */
 public final class JacksonJsonObjectMapperProvider {
 
+	@SuppressWarnings("deprecation")
 	public static JsonObjectMapper<?> newInstance() {
 		if (JacksonJsonUtils.isJackson2Present()) {
 			return new Jackson2JsonObjectMapper();

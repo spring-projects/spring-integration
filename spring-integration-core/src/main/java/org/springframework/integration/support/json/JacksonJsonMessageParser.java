@@ -32,9 +32,12 @@ import org.springframework.util.Assert;
  * and builds a {@link Message} with the specified payload type from provided {@link JsonInboundMessageMapper}.
  * Uses Jackson JSON-processor (@link http://jackson.codehaus.org).
  *
+ * @deprecated Please migrate to {@link Jackson2JsonMessageParser} for Jackson 2.x.
+ *
  * @author Artem Bilan
  * @since 3.0
  */
+@Deprecated
 public class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
 	public JacksonJsonMessageParser() {

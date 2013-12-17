@@ -15,13 +15,12 @@
  */
 package org.springframework.integration.json;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractTransformer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
@@ -62,7 +61,8 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		try {
 			Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
 			Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
-			this.jsonObjectMapper = new JacksonJsonObjectMapper((org.codehaus.jackson.map.ObjectMapper) objectMapper);
+			this.jsonObjectMapper = new org.springframework.integration.support.json.JacksonJsonObjectMapper(
+					(org.codehaus.jackson.map.ObjectMapper) objectMapper);
 		}
 		catch (ClassNotFoundException e) {
 			throw new IllegalArgumentException(e);
