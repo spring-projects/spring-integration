@@ -44,14 +44,10 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -61,6 +57,9 @@ import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -145,6 +144,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this(true);
 	}
 
+	@SuppressWarnings("deprecation")
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		this.expectReply = expectReply;
 		this.defaultMessageConverters.add(new MultipartAwareFormHttpMessageConverter());
@@ -169,7 +169,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			}
 		}
 		else if (JacksonJsonUtils.isJacksonPresent()) {
-			this.defaultMessageConverters.add(new MappingJacksonHttpMessageConverter());
+			this.defaultMessageConverters.add(new org.springframework.http.converter.json.MappingJacksonHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
 				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 			}

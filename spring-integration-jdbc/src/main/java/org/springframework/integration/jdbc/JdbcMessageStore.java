@@ -309,11 +309,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		return jdbcTemplate.queryForInt(getQuery(Query.GET_MESSAGE_COUNT), region);
+		return jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT), Integer.class, region);
 	}
 
 	@Override
@@ -367,8 +366,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(message.getHeaders().getId());
-		@SuppressWarnings("deprecation")
-		boolean groupNotExist = jdbcTemplate.queryForInt(this.getQuery(Query.GROUP_EXISTS), groupKey, region) < 1;
+		boolean groupNotExist = jdbcTemplate.queryForObject(this.getQuery(Query.GROUP_EXISTS), Integer.class, groupKey, region) < 1;
 
 		final Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
 
@@ -405,26 +403,23 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_GROUPS), region);
+		return jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_GROUPS), Integer.class, region);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), region);
+		return jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), Integer.class, region);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		String key = getKey(groupId);
-		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), key, region);
+		return jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), Integer.class, key, region);
 	}
 
 	@Override

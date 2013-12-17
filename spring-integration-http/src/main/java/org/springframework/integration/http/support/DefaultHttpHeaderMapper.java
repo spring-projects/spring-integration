@@ -906,8 +906,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			return source.getIfNoneMatch();
 		}
 		else if (IF_MODIFIED_SINCE.equalsIgnoreCase(name)) {
-			@SuppressWarnings("deprecation")
-			long modifiedSince = source.getIfNotModifiedSince();
+			long modifiedSince = source.getIfModifiedSince();
 			return (modifiedSince > -1) ? modifiedSince : null;
 		}
 		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
