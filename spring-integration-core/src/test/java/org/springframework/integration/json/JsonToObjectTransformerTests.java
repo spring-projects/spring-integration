@@ -18,13 +18,14 @@ package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
 
-import org.codehaus.jackson.JsonParser.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
-import org.springframework.integration.support.json.JacksonJsonObjectMapper;
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
@@ -49,10 +50,10 @@ public class JsonToObjectTransformerTests {
 	@Test
 	public void objectPayloadWithCustomMapper() throws Exception {
 		ObjectMapper customMapper = new ObjectMapper();
-		customMapper.configure(Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
-		customMapper.configure(Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
+		customMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
+		customMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
 		JsonToObjectTransformer transformer =
-				new JsonToObjectTransformer(TestPerson.class, new JacksonJsonObjectMapper(customMapper));
+				new JsonToObjectTransformer(TestPerson.class, new Jackson2JsonObjectMapper(customMapper));
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
 		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
 		@SuppressWarnings("unchecked")
@@ -62,12 +63,5 @@ public class JsonToObjectTransformerTests {
 		assertEquals(42, person.getAge());
 		assertEquals("123 Main Street", person.getAddress().toString());
 	}
-
-	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalArgumentException.class)
-	public void testInt2831IllegalArgument() throws Exception {
-		new JsonToObjectTransformer(String.class, new Object());
-	}
-
 
 }

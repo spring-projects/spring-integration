@@ -37,9 +37,12 @@ import org.springframework.util.Assert;
  * Delegates <code>toJson</code> and <code>fromJson</code>
  * to the {@linkplain org.codehaus.jackson.map.ObjectMapper}
  *
+ * @deprecated in favor of {@link Jackson2JsonMessageParser}
+ *
  * @author Artem Bilan
  * @since 3.0
  */
+@Deprecated
 public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonParser, JavaType> {
 
 	private final ObjectMapper objectMapper;

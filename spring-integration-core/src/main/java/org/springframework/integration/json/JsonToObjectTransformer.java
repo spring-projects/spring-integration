@@ -19,7 +19,6 @@ package org.springframework.integration.json;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -60,13 +59,15 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	 * @deprecated in favor of {@link #JsonToObjectTransformer(Class, JsonObjectMapper)}
 	 */
 	@Deprecated
+	@SuppressWarnings("deprecation")
 	public JsonToObjectTransformer(Class<?> targetClass, Object objectMapper) throws ClassNotFoundException {
 		this.targetClass = targetClass;
 		if (objectMapper != null) {
 			try {
 				Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
 				Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
-				this.jsonObjectMapper = new JacksonJsonObjectMapper((org.codehaus.jackson.map.ObjectMapper) objectMapper);
+				this.jsonObjectMapper = new org.springframework.integration.support.json.JacksonJsonObjectMapper(
+						(org.codehaus.jackson.map.ObjectMapper) objectMapper);
 			}
 			catch (ClassNotFoundException e) {
 				throw new IllegalArgumentException(e);
