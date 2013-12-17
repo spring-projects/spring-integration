@@ -13,8 +13,16 @@
 			http://www.springframework.org/schema/integration/http
 			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
+	<!-- Allow Matrix Variables -->
+	<beans:bean id="integrationRequestMappingHandlerMapping"
+				class="org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping">
+		<beans:property name="removeSemicolonContent" value="false"/>
+	</beans:bean>
+
 	<int-http:inbound-gateway path="/path1,/path2"
 					 request-channel="multiplePathsChannel"/>
+
+
 
 	<int:transformer input-channel="multiplePathsChannel"
 					expression="T(org.springframework.integration.http.inbound.Int2312RequestMappingIntegrationTests).TEST_STRING_MULTIPLE_PATHS"/>

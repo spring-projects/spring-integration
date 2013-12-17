@@ -422,9 +422,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				evaluationContext.setVariable("pathVariables", pathVariables);
 			}
 
-			//TODO change it to HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE after upgrade to Spring 4.0
 			Map<String, MultiValueMap<String, String>> matrixVariables =
-					(Map<String, MultiValueMap<String, String>>) servletRequest.getAttribute(HandlerMapping.class.getName() + ".matrixVariables");
+					(Map<String, MultiValueMap<String, String>>) servletRequest.getAttribute(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
 
 			if (!CollectionUtils.isEmpty(matrixVariables)) {
 				if (logger.isDebugEnabled()) {
