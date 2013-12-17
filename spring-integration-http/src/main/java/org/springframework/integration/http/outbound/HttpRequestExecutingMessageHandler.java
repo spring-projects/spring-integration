@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
@@ -44,7 +45,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -52,8 +52,9 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -363,13 +364,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				}
 			}
 
-			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
+			Object expectedResponseType = this.determineExpectedResponseType(requestMessage);
 
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
 			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
 			UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
 			URI realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
+			ResponseEntity<?> httpResponse;
+			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+				httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);
+			}
+			else {
+				httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
+			}
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
 				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
@@ -565,17 +572,21 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return HttpMethod.valueOf(strHttpMethod);
 	}
 
-	private Class<?> determineExpectedResponseType(Message<?> requestMessage) throws Exception{
-		Class<?> expectedResponseType = null;
-		String expectedResponseTypeName = null;
+	private Object determineExpectedResponseType(Message<?> requestMessage) throws Exception{
+		Object expectedResponseType = null;
 		if (this.expectedResponseTypeExpression != null){
-			expectedResponseTypeName = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage, String.class);
+			expectedResponseType = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage);
 		}
-		if (StringUtils.hasText(expectedResponseTypeName)){
-			expectedResponseType = ClassUtils.forName(expectedResponseTypeName, ClassUtils.getDefaultClassLoader());
+		if (expectedResponseType != null) {
+			Assert.isTrue(expectedResponseType instanceof Class<?>
+					|| expectedResponseType instanceof String
+					|| expectedResponseType instanceof ParameterizedTypeReference,
+					"'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'.");
+			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)){
+				expectedResponseType = ClassUtils.forName((String) expectedResponseType, ClassUtils.getDefaultClassLoader());
+			}
 		}
 		return expectedResponseType;
-
 	}
 
 	@SuppressWarnings("unchecked")

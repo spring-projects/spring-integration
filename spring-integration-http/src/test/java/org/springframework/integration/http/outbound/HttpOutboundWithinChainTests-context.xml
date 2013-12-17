@@ -22,7 +22,7 @@
 		<outbound-gateway url="http://localhost:51235/%2f/testApps?param={param}"
 						  rest-template="restTemplate"
 						  encode-uri="false"
-						  expected-response-type="java.lang.String">
+						  expected-response-type-expression="T (org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandlerTests).testParameterizedTypeReference()">
 			<uri-variable name="param" expression="T(org.apache.commons.httpclient.util.URIUtil).encodeWithinQuery('http Outbound Gateway Within Chain')"/>
 						  </outbound-gateway>
 	</si:chain>

@@ -52,6 +52,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -65,14 +66,14 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -85,6 +86,10 @@ import org.springframework.web.client.RestTemplate;
  * @author Gunnar Hillert
  */
 public class HttpRequestExecutingMessageHandlerTests {
+
+	public static ParameterizedTypeReference<List<String>> testParameterizedTypeReference() {
+		return new ParameterizedTypeReference<List<String>>() {};
+	}
 
 	@Test
 	public void simpleStringKeyStringValueFormData() throws Exception {
@@ -726,10 +731,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
 		Message<?> receive = output.receive();
-		assertEquals(HttpStatus.OK, ((ResponseEntity<?>)receive.getPayload()).getStatusCode());
+		assertEquals(HttpStatus.OK, ((ResponseEntity<?>) receive.getPayload()).getStatusCode());
 		Mockito.verify(restTemplate)
 				.exchange(Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http%20Outbound%20Gateway%20Within%20Chain")),
-				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.eq(String.class));
+						Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.eq(new ParameterizedTypeReference<List<String>>() {
+
+				}));
 	}
 
 	@Test
@@ -936,6 +943,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 		@Override
 		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
 											  Class<T> responseType) throws RestClientException {
+			return new ResponseEntity<T>(HttpStatus.OK);
+		}
+
+		@Override
+		public <T> ResponseEntity<T> exchange(URI url, HttpMethod method, HttpEntity<?> requestEntity,
+											  ParameterizedTypeReference<T> responseType) throws RestClientException {
 			return new ResponseEntity<T>(HttpStatus.OK);
 		}
 	}
