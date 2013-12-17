@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,22 @@ package org.springframework.integration.channel.interceptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.Lifecycle;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelInterceptor} that publishes a copy of the intercepted message
  * to a secondary target while still sending the original message to the main channel.
- * 
+ *
  * @author Mark Fisher
  */
 @ManagedResource
@@ -50,7 +52,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
 	/**
 	 * Create a new wire tap with <em>no</em> {@link MessageSelector}.
-	 * 
+	 *
 	 * @param channel the MessageChannel to which intercepted messages will be sent
 	 */
 	public WireTap(MessageChannel channel) {
@@ -59,7 +61,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
 	/**
 	 * Create a new wire tap with the provided {@link MessageSelector}.
-	 * 
+	 *
 	 * @param channel the channel to which intercepted messages will be sent
 	 * @param selector the selector that must accept a message for it to be
 	 * sent to the intercepting channel
@@ -73,7 +75,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
 	/**
 	 * Specify the timeout value for sending to the intercepting target.
-	 * 
+	 *
 	 * @param timeout the timeout in milliseconds
 	 */
 	public void setTimeout(long timeout) {
@@ -83,6 +85,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Check whether the wire tap is currently running.
 	 */
+	@Override
 	@ManagedAttribute
 	public boolean isRunning() {
 		return this.running;
@@ -91,6 +94,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Restart the wire tap if it has been stopped. It is running by default.
 	 */
+	@Override
 	@ManagedOperation
 	public void start() {
 		this.running = true;
@@ -99,6 +103,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Stop the wire tap. To restart, invoke {@link #start()}.
 	 */
+	@Override
 	@ManagedOperation
 	public void stop() {
 		this.running = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.DynamicJmsTemplate;
 import org.springframework.integration.jms.PollableJmsChannel;
@@ -39,6 +38,7 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -320,6 +320,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.maxSubscribers = maxSubscribers;
 	}
 
+	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -464,33 +465,39 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	 * SmartLifecycle implementation (delegates to the created channel if message-driven)
 	 */
 
+	@Override
 	public boolean isAutoStartup() {
 		return (this.channel instanceof SubscribableJmsChannel) ?
 				((SubscribableJmsChannel) this.channel).isAutoStartup() : false;
 	}
 
+	@Override
 	public int getPhase() {
 		return (this.channel instanceof SubscribableJmsChannel) ?
 				((SubscribableJmsChannel) this.channel).getPhase() : 0;
 	}
 
+	@Override
 	public boolean isRunning() {
 		return (this.channel instanceof SubscribableJmsChannel) ?
 				((SubscribableJmsChannel) this.channel).isRunning() : false;
 	}
 
+	@Override
 	public void start() {
 		if (this.channel instanceof SubscribableJmsChannel) {
 			((SubscribableJmsChannel) this.channel).start();
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (this.channel instanceof SubscribableJmsChannel) {
 			((SubscribableJmsChannel) this.channel).stop();
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		if (this.channel instanceof SubscribableJmsChannel) {
 			((SubscribableJmsChannel) this.channel).stop(callback);

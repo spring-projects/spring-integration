@@ -22,6 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -32,6 +33,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -39,7 +41,7 @@ import org.springframework.util.StringUtils;
  * Base class for {@link MessageChannel} implementations providing common
  * properties such as the channel name. Also provides the common functionality
  * for sending and receiving {@link Message Messages} including the invocation
- * of any {@link ChannelInterceptor ChannelInterceptors}.
+ * of any {@link org.springframework.messaging.support.ChannelInterceptor ChannelInterceptors}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -63,6 +65,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		return "channel";
 	}
 
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
 	}
@@ -145,6 +148,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * @return <code>true</code> if the message is sent successfully or
 	 * <code>false</code> if the sending thread is interrupted.
 	 */
+	@Override
 	public final boolean send(Message<?> message) {
 		return this.send(message, -1);
 	}
@@ -163,6 +167,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
 	 */
+	@Override
 	public final boolean send(Message<?> message, long timeout) {
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");

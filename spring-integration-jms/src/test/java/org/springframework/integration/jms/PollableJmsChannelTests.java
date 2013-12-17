@@ -16,9 +16,9 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -40,16 +40,17 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
+
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -182,6 +183,7 @@ public class PollableJmsChannelTests {
 		final AtomicReference<javax.jms.Message> message = new AtomicReference<javax.jms.Message>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				message.set(receiver.receive(queue));
 				latch1.countDown();
@@ -196,6 +198,7 @@ public class PollableJmsChannelTests {
 		boolean sent2 = channel.send(MessageBuilder.withPayload("foo").setPriority(6).build());
 		assertTrue(sent2);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				message.set(receiver.receive(queue));
 				latch2.countDown();
@@ -231,6 +234,7 @@ public class PollableJmsChannelTests {
 		jmsTemplate.setDefaultDestinationName("pollableJmsChannelSelectorTestQueue");
 		jmsTemplate.send(new MessageCreator() {
 
+			@Override
 			public javax.jms.Message createMessage(Session session) throws JMSException {
 				TextMessage message = session.createTextMessage("bar");
 				message.setStringProperty("baz", "qux");

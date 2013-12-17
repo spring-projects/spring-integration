@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -39,7 +40,7 @@ import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel;
 import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.Assert;
@@ -133,6 +134,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 
+	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -402,33 +404,39 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	 * SmartLifecycle implementation (delegates to the created channel if message-driven)
 	 */
 
+	@Override
 	public boolean isAutoStartup() {
 		return (this.channel instanceof SmartLifecycle) ?
 				((SmartLifecycle) this.channel).isAutoStartup() : false;
 	}
 
+	@Override
 	public int getPhase() {
 		return (this.channel instanceof SmartLifecycle) ?
 				((SmartLifecycle) this.channel).getPhase() : 0;
 	}
 
+	@Override
 	public boolean isRunning() {
 		return (this.channel instanceof Lifecycle) ?
 				((Lifecycle) this.channel).isRunning() : false;
 	}
 
+	@Override
 	public void start() {
 		if (this.channel instanceof Lifecycle) {
 			((Lifecycle) this.channel).start();
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (this.channel instanceof Lifecycle) {
 			((Lifecycle) this.channel).stop();
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		if (this.channel instanceof SmartLifecycle) {
 			((SmartLifecycle) this.channel).stop(callback);

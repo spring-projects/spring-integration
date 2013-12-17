@@ -37,17 +37,17 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher

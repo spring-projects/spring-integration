@@ -25,16 +25,17 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -48,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class GlobalChannelInterceptorTests {
 	@Autowired
 	ApplicationContext applicationContext;
-	
+
 	@Test
 	public void validateGlobalInterceptor() throws Exception{
  		Map<String, MessageChannel> channels = applicationContext.getBeansOfType(MessageChannel.class);
@@ -61,7 +62,7 @@ public class GlobalChannelInterceptorTests {
 				channel = (MessageChannel) ((Advised)channel).getTargetSource().getTarget();
 			}
 			List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors", List.class);
-			ChannelInterceptor[] interceptors = interceptorList.toArray(new ChannelInterceptor[] {}); 
+			ChannelInterceptor[] interceptors = interceptorList.toArray(new ChannelInterceptor[] {});
 			if (channelName.equals("inputA")){ // 328741
 				Assert.assertTrue(interceptors.length ==10);
 				Assert.assertEquals("interceptor-three", interceptors[0].toString());
@@ -74,7 +75,7 @@ public class GlobalChannelInterceptorTests {
 				Assert.assertEquals("interceptor-eleven", interceptors[7].toString());
 				Assert.assertEquals("interceptor-four", interceptors[8].toString());
 				Assert.assertEquals("interceptor-one", interceptors[9].toString());
-			} 
+			}
 			else if (channelName.equals("inputB")) {
 				Assert.assertTrue(interceptors.length == 6);
 				Assert.assertEquals("interceptor-three", interceptors[0].toString());
@@ -83,7 +84,7 @@ public class GlobalChannelInterceptorTests {
 				Assert.assertEquals("interceptor-eleven", interceptors[3].toString());
 				Assert.assertEquals("interceptor-four", interceptors[4].toString());
 				Assert.assertEquals("interceptor-one", interceptors[5].toString());
-			} 
+			}
 			else if (channelName.equals("foo")) {
 				Assert.assertTrue(interceptors.length == 6);
 				Assert.assertEquals("interceptor-two", interceptors[0].toString());
@@ -111,13 +112,13 @@ public class GlobalChannelInterceptorTests {
 		}
 	}
 
-	
+
 	@Autowired
 	@Qualifier("inpuC")
 	MessageChannel inpuCchannel;
 	@Test
 	public void testWildCardPatternMatch() {
-		 
+
 		List<?> interceptorList = TestUtils.getPropertyValue(inpuCchannel, "interceptors.interceptors", List.class);
 		List<String> interceptorNames = new ArrayList<String>();
 		for (Object interceptor : interceptorList) {
@@ -127,7 +128,7 @@ public class GlobalChannelInterceptorTests {
 		Assert.assertTrue(interceptorNames.contains("interceptor-eleven"));
 	}
 
-	
+
 	public static class SampleInterceptor implements ChannelInterceptor {
 
 		private String testIdentifier;
@@ -153,10 +154,11 @@ public class GlobalChannelInterceptorTests {
 
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			return null;
-		}	
+		}
 
+		@Override
 		public String toString() {
-			return "interceptor-" + testIdentifier; 
+			return "interceptor-" + testIdentifier;
 		}
 	}
 
@@ -165,21 +167,23 @@ public class GlobalChannelInterceptorTests {
 
 		private int order;
 
+		@Override
 		public int getOrder() {
 			return order;
-		}	
+		}
 
 		public void setOrder(int order) {
 			this.order = order;
 		}
 	}
-	
+
 	public static class TestInterceptor implements MethodInterceptor{
 
+		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 			return invocation.proceed();
 		}
-		
+
 	}
 
 }

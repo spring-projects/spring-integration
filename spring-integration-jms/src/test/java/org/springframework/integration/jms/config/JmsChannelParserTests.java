@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,10 @@ import javax.jms.Topic;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.test.util.TestUtils;
@@ -44,6 +42,9 @@ import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -307,6 +308,7 @@ public class JmsChannelParserTests {
 		@Autowired
 		private Topic topic;
 
+		@Override
 		public Destination resolveDestinationName(Session session, String destinationName, boolean pubSubDomain)
 				throws JMSException {
 			if (!"foo".equals(destinationName)) {

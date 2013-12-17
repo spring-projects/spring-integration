@@ -18,8 +18,8 @@ package org.springframework.integration.transformer;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 
 /**
  * A {@link ChannelInterceptor} which invokes a {@link Transformer}

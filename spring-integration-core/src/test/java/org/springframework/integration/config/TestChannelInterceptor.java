@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 
 /**
  * @author Mark Fisher

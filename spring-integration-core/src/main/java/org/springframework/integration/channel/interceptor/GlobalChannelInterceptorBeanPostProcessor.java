@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Will apply global interceptors to channels (&lt;channel-interceptor&gt;). 
- * 
+ * Will apply global interceptors to channels (&lt;channel-interceptor&gt;).
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
@@ -64,33 +64,36 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	}
 
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		for (GlobalChannelInterceptorWrapper channelInterceptor : this.channelInterceptors) {
 			if (channelInterceptor.getOrder() >= 0) {
 				this.positiveOrderInterceptors.add(channelInterceptor);
-			} 
+			}
 			else {
 				this.negativeOrderInterceptors.add(channelInterceptor);
 			}
 		}
 	}
 
+	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
+	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MessageChannel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Applying global interceptors on channel '" + beanName + "'");
 			}
 			this.addMatchingInterceptors((MessageChannel) bean, beanName);
-		} 
+		}
 		return bean;
 	}
 
 	/**
-	 * Adds any interceptor whose pattern matches against the channel's name. 
+	 * Adds any interceptor whose pattern matches against the channel's name.
 	 */
 	private void addMatchingInterceptors(MessageChannel channel, String beanName) {
 		List<ChannelInterceptor> interceptors = this.getExistingInterceptors(channel);
@@ -128,7 +131,7 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<ChannelInterceptor> getExistingInterceptors(MessageChannel channel) {	
+	private List<ChannelInterceptor> getExistingInterceptors(MessageChannel channel) {
 		try {
 			MessageChannel targetChannel = channel;
 			if (AopUtils.isAopProxy(channel)) {

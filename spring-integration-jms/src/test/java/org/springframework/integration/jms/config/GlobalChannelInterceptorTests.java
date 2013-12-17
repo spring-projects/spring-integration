@@ -27,8 +27,8 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 
 /**
  * @author Oleg Zhurakousky
