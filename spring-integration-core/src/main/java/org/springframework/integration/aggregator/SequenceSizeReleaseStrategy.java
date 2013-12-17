@@ -25,7 +25,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.messaging.Message;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -78,7 +78,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, comparator);
 
-			int nextSequenceNumber = new EiMessageHeaderAccessor(sorted.get(0)).getSequenceNumber();
+			int nextSequenceNumber = new IntegrationMessageHeaderAccessor(sorted.get(0)).getSequenceNumber();
 			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 
 			if (nextSequenceNumber - lastReleasedMessageSequence == 1){
@@ -92,7 +92,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 				canRelease = true;
 			}
 			else {
-				int sequenceSize = new EiMessageHeaderAccessor(messageGroup.getOne()).getSequenceSize();
+				int sequenceSize = new IntegrationMessageHeaderAccessor(messageGroup.getOne()).getSequenceSize();
 				// If there is no sequence then it must be incomplete....
 				if (sequenceSize == size){
 					canRelease = true;

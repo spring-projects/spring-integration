@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -41,7 +41,7 @@ public final class MessageBuilder<T> {
 
 	private final T payload;
 
-	private final EiMessageHeaderAccessor headerAccessor;
+	private final IntegrationMessageHeaderAccessor headerAccessor;
 
 	private final Message<T> originalMessage;
 
@@ -54,7 +54,7 @@ public final class MessageBuilder<T> {
 		Assert.notNull(payload, "payload must not be null");
 		this.payload = payload;
 		this.originalMessage = originalMessage;
-		this.headerAccessor = new EiMessageHeaderAccessor(originalMessage);
+		this.headerAccessor = new IntegrationMessageHeaderAccessor(originalMessage);
 		if (originalMessage != null) {
 			this.modified = (!this.payload.equals(originalMessage.getPayload()));
 		}
@@ -139,26 +139,26 @@ public final class MessageBuilder<T> {
 	}
 
 	public MessageBuilder<T> setExpirationDate(Long expirationDate) {
-		return this.setHeader(EiMessageHeaderAccessor.EXPIRATION_DATE, expirationDate);
+		return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate);
 	}
 
 	public MessageBuilder<T> setExpirationDate(Date expirationDate) {
 		if (expirationDate != null) {
-			return this.setHeader(EiMessageHeaderAccessor.EXPIRATION_DATE, expirationDate.getTime());
+			return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate.getTime());
 		}
 		else {
-			return this.setHeader(EiMessageHeaderAccessor.EXPIRATION_DATE, null);
+			return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, null);
 		}
 	}
 
 	public MessageBuilder<T> setCorrelationId(Object correlationId) {
-		return this.setHeader(EiMessageHeaderAccessor.CORRELATION_ID, correlationId);
+		return this.setHeader(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
 	}
 
 	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, int sequenceSize) {
 		Object incomingCorrelationId = this.headerAccessor.getCorrelationId();
 		@SuppressWarnings("unchecked")
-		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headerAccessor.getHeader(EiMessageHeaderAccessor.SEQUENCE_DETAILS);
+		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headerAccessor.getHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
 		if (incomingCorrelationId != null) {
 			if (incomingSequenceDetails == null) {
 				incomingSequenceDetails = new ArrayList<List<Object>>();
@@ -171,13 +171,13 @@ public final class MessageBuilder<T> {
 			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
 		}
 		if (incomingSequenceDetails != null) {
-			setHeader(EiMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
+			setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
 		}
 		return setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize);
 	}
 
 	public MessageBuilder<T> popSequenceDetails() {
-		String key = EiMessageHeaderAccessor.SEQUENCE_DETAILS;
+		String key = IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS;
 		@SuppressWarnings("unchecked")
 		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headerAccessor.getHeader(key);
 		if (incomingSequenceDetails == null) {
@@ -198,10 +198,10 @@ public final class MessageBuilder<T> {
 			setSequenceSize(sequenceSize);
 		}
 		if (!incomingSequenceDetails.isEmpty()) {
-			this.headerAccessor.setHeader(EiMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
+			this.headerAccessor.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
 		}
 		else {
-			this.headerAccessor.removeHeader(EiMessageHeaderAccessor.SEQUENCE_DETAILS);
+			this.headerAccessor.removeHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
 		}
 		return this;
 	}
@@ -223,15 +223,15 @@ public final class MessageBuilder<T> {
 	}
 
 	public MessageBuilder<T> setSequenceNumber(Integer sequenceNumber) {
-		return this.setHeader(EiMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
+		return this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
 	}
 
 	public MessageBuilder<T> setSequenceSize(Integer sequenceSize) {
-		return this.setHeader(EiMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
+		return this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
 	}
 
 	public MessageBuilder<T> setPriority(Integer priority) {
-		return this.setHeader(EiMessageHeaderAccessor.PRIORITY, priority);
+		return this.setHeader(IntegrationMessageHeaderAccessor.PRIORITY, priority);
 	}
 
 	@SuppressWarnings("unchecked")

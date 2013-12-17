@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * Two expressions 'onSuccessExpression' and 'onFailureExpression' are evaluated when
  * appropriate. If the evaluation returns a result, a message is sent to the onSuccessChannel
  * or onFailureChannel as appropriate; the message is the input message with a header
- * {@link org.springframework.integration.EiMessageHeaderAccessor#POSTPROCESS_RESULT} containing the evaluation result.
+ * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#POSTPROCESS_RESULT} containing the evaluation result.
  * The failure expression is NOT evaluated if the success expression throws an exception.
  * @author Gary Russell
  * @since 2.2

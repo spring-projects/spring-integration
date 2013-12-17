@@ -4,8 +4,10 @@
     xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Change History</title>
 
-    <xi:include href="./changes-1.0-2.0.xml"/>
-    <xi:include href="./changes-2.0-2.1.xml"/>
+    <xi:include href="./changes-3.0-4.0.xml"/>
+    <xi:include href="./changes-2.2-3.0.xml"/>
     <xi:include href="./changes-2.1-2.2.xml"/>
+    <xi:include href="./changes-2.0-2.1.xml"/>
+    <xi:include href="./changes-1.0-2.0.xml"/>
 
 </appendix>

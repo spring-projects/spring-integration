@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -146,7 +146,7 @@ public class HeaderEnricherOverwriteTests {
 		template.setDefaultDestination(channel);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), new EiMessageHeaderAccessor(result).getPriority());
+		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class HeaderEnricherOverwriteTests {
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
-		assertEquals(new Integer(77), new EiMessageHeaderAccessor(result).getPriority());
+		assertEquals(new Integer(77), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test

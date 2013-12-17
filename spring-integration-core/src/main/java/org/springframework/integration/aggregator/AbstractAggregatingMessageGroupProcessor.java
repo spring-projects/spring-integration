@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -68,7 +68,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 			MessageHeaders currentHeaders = message.getHeaders();
 			for (String key : currentHeaders.keySet()) {
 				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
-						|| EiMessageHeaderAccessor.SEQUENCE_SIZE.equals(key) || EiMessageHeaderAccessor.SEQUENCE_NUMBER.equals(key)) {
+						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(key) || IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(key)) {
 					continue;
 				}
 				Object value = currentHeaders.get(key);

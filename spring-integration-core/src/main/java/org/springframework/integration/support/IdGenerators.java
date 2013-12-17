@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.util.IdGenerator;
 
 
-// TODO Discuss and agree where these should go. In SI or in Spring 4?
 /**
+ * Alterative {@link IdGenerator} implementations.
  *
  * @author Andy Wilkinson
  * @since 4.0
@@ -31,6 +31,10 @@ import org.springframework.util.IdGenerator;
  */
 public class IdGenerators {
 
+	/**
+	 * UUID.randomUUID()
+	 *
+	 */
 	public static class JdkIdGenerator implements IdGenerator {
 
         @Override
@@ -40,6 +44,10 @@ public class IdGenerators {
 
     }
 
+	/**
+	 * Begins with 1; incremented on each use.
+	 *
+	 */
     public static class SimpleIncrementingIdGenerator implements IdGenerator {
 
         private final AtomicLong topBits = new AtomicLong();

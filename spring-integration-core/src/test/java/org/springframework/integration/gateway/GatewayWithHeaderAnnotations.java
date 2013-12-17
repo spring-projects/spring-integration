@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Header;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -49,7 +49,7 @@ public class GatewayWithHeaderAnnotations {
 
 	public static interface TestService {
 		// wrt INT-1205, priority no longer has a $ prefix, so here we are testing the $custom header as well
-		public String test(String str, @Header(EiMessageHeaderAccessor.PRIORITY) int priority, @Header("$custom") String custom);
+		public String test(String str, @Header(IntegrationMessageHeaderAccessor.PRIORITY) int priority, @Header("$custom") String custom);
 	}
 
 }

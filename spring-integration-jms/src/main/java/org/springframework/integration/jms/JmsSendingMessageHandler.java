@@ -20,7 +20,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.jms.core.JmsTemplate;
@@ -109,7 +109,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 		Object objectToSend = (this.extractPayload) ? message.getPayload() : message;
 		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(message, this.headerMapper);
 		try {
-			DynamicJmsTemplateProperties.setPriority(new EiMessageHeaderAccessor(message).getPriority());
+			DynamicJmsTemplateProperties.setPriority(new IntegrationMessageHeaderAccessor(message).getPriority());
 			this.send(destination, objectToSend, messagePostProcessor);
 		}
 		finally {

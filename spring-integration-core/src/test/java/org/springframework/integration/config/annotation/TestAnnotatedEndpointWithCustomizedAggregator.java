@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.messaging.support.GenericMessage;
@@ -51,7 +51,7 @@ public class TestAnnotatedEndpointWithCustomizedAggregator {
 		for (Message<?> message : sortableList) {
 			buffer.append(message.getPayload().toString());
 			if (null == correlationId) {
-				correlationId = new EiMessageHeaderAccessor(message).getCorrelationId();
+				correlationId = new IntegrationMessageHeaderAccessor(message).getCorrelationId();
 			}
 		}
 		Message<?> returnedMessage = new GenericMessage<String>(buffer.toString());

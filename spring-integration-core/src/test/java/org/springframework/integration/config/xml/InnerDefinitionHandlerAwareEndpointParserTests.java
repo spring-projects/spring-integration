@@ -35,7 +35,7 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.messaging.support.GenericMessage;
@@ -282,9 +282,9 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {
 		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put(EiMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
-		headers.put(EiMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
-		headers.put(EiMessageHeaderAccessor.CORRELATION_ID, correllationId);
+		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
+		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
+		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correllationId);
 		return headers;
 	}
 

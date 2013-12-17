@@ -24,7 +24,7 @@ import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
@@ -133,7 +133,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			}
 			Integer priority = amqpMessageProperties.getPriority();
 			if (priority != null && priority > 0) {
-				headers.put(EiMessageHeaderAccessor.PRIORITY, priority);
+				headers.put(IntegrationMessageHeaderAccessor.PRIORITY, priority);
 			}
 			String receivedExchange = amqpMessageProperties.getReceivedExchange();
 			if (StringUtils.hasText(receivedExchange)) {
@@ -258,7 +258,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (StringUtils.hasText(messageId)) {
 			amqpMessageProperties.setMessageId(messageId);
 		}
-		Integer priority = getHeaderIfAvailable(headers, EiMessageHeaderAccessor.PRIORITY, Integer.class);
+		Integer priority = getHeaderIfAvailable(headers, IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
 		if (priority != null) {
 			amqpMessageProperties.setPriority(priority);
 		}

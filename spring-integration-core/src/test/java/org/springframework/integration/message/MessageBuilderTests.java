@@ -29,7 +29,7 @@ import java.util.UUID;
 import org.junit.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -123,7 +123,7 @@ public class MessageBuilderTests {
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
 			.setPriority(123).build();
-		assertEquals(new Integer(123), new EiMessageHeaderAccessor(importantMessage).getPriority());
+		assertEquals(new Integer(123), new IntegrationMessageHeaderAccessor(importantMessage).getPriority());
 	}
 
 	@Test
@@ -131,9 +131,9 @@ public class MessageBuilderTests {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
 			.setPriority(42).build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.setHeaderIfAbsent(EiMessageHeaderAccessor.PRIORITY, 13)
+			.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
 			.build();
-		assertEquals(new Integer(42), new EiMessageHeaderAccessor(message2).getPriority());
+		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(message2).getPriority());
 	}
 
 	@Test
@@ -141,7 +141,7 @@ public class MessageBuilderTests {
 		Long past = System.currentTimeMillis() - (60 * 1000);
 		Message<Integer> expiredMessage = MessageBuilder.withPayload(1)
 				.setExpirationDate(past).build();
-		assertEquals(past, new EiMessageHeaderAccessor(expiredMessage).getExpirationDate());
+		assertEquals(past, new IntegrationMessageHeaderAccessor(expiredMessage).getExpirationDate());
 	}
 
 	@Test
@@ -149,7 +149,7 @@ public class MessageBuilderTests {
 		Long past = System.currentTimeMillis() - (60 * 1000);
 		Message<Integer> expiredMessage = MessageBuilder.withPayload(1)
 				.setExpirationDate(new Date(past)).build();
-		assertEquals(past, new EiMessageHeaderAccessor(expiredMessage).getExpirationDate());
+		assertEquals(past, new IntegrationMessageHeaderAccessor(expiredMessage).getExpirationDate());
 	}
 
 	@Test
@@ -175,39 +175,39 @@ public class MessageBuilderTests {
 	@Test
 	public void testPushAndPopSequenceDetails() throws Exception {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).pushSequenceDetails("foo", 1, 2).build();
-		assertFalse(message1.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertTrue(message2.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertTrue(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 	@Test
 	public void testPushAndPopSequenceDetailsWhenNoCorrelationId() throws Exception {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).build();
-		assertFalse(message1.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertFalse(message2.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 	@Test
 	public void testPopSequenceDetailsWhenNotPopped() throws Exception {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).build();
-		assertFalse(message1.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).popSequenceDetails().build();
-		assertFalse(message2.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 	@Test
 	public void testPushAndPopSequenceDetailsWhenNoSequence() throws Exception {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).setCorrelationId("foo").build();
-		assertFalse(message1.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertTrue(message2.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertTrue(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 	@Test

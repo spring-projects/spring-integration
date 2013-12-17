@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.handler.ReplyRequiredException;
@@ -114,8 +114,8 @@ public class SplitterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
 		Message<?> message = output.receive(1000);
-		assertThat(new EiMessageHeaderAccessor(message).getSequenceNumber(), is(0));
-		assertThat(new EiMessageHeaderAccessor(message).getSequenceSize(), is(0));
+		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceNumber(), is(0));
+		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize(), is(0));
 	}
 
 

@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -104,7 +104,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		setMessageStore(store);
 		this.outputProcessor = processor;
 		this.correlationStrategy = correlationStrategy == null ?
-				new HeaderAttributeCorrelationStrategy(EiMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
+				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
 		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
@@ -348,7 +348,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
 
-		return new EiMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
+		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
 
 	private MessageGroup store(Object correlationKey, Message<?> message) {
@@ -469,7 +469,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			if (this.size() == 0) {
 				return true;
 			}
-			EiMessageHeaderAccessor messageHeaderAccessor = new EiMessageHeaderAccessor(message);
+			IntegrationMessageHeaderAccessor messageHeaderAccessor = new IntegrationMessageHeaderAccessor(message);
 			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
 				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
@@ -485,7 +485,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
 			for (Message<?> member : messages) {
-				Integer memberSequenceNumber = new EiMessageHeaderAccessor(member).getSequenceNumber();
+				Integer memberSequenceNumber = new IntegrationMessageHeaderAccessor(member).getSequenceNumber();
 				if (messageSequenceNumber.equals(memberSequenceNumber)) {
 					return true;
 				}

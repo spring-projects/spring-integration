@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -39,9 +39,9 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 	public StandardHeaderEnricherParser() {
 		this.addElementToHeaderMapping("reply-channel", MessageHeaders.REPLY_CHANNEL);
 		this.addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
-		this.addElementToHeaderMapping("correlation-id", EiMessageHeaderAccessor.CORRELATION_ID);
-		this.addElementToHeaderMapping("expiration-date", EiMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
-		this.addElementToHeaderMapping("priority", EiMessageHeaderAccessor.PRIORITY, Integer.class);
+		this.addElementToHeaderMapping("correlation-id", IntegrationMessageHeaderAccessor.CORRELATION_ID);
+		this.addElementToHeaderMapping("expiration-date", IntegrationMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
+		this.addElementToHeaderMapping("priority", IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
 	}
 
 	@Override

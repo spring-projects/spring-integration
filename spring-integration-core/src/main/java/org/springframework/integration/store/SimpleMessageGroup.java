@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 /**
@@ -124,7 +124,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		if (size() == 0) {
 			return 0;
 		}
-		return new EiMessageHeaderAccessor(getOne()).getSequenceSize();
+		return new IntegrationMessageHeaderAccessor(getOne()).getSequenceSize();
 	}
 
 	public int size() {

@@ -33,7 +33,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
@@ -188,15 +188,15 @@ public class RouterParserTests {
 		Message<?> message1 = this.sequenceOut1.receive(1000);
 		Message<?> message2 = this.sequenceOut2.receive(1000);
 		Message<?> message3 = this.sequenceOut3.receive(1000);
-		assertEquals(originalMessage.getHeaders().getId(), new EiMessageHeaderAccessor(message1).getCorrelationId());
-		assertEquals(originalMessage.getHeaders().getId(), new EiMessageHeaderAccessor(message2).getCorrelationId());
-		assertEquals(originalMessage.getHeaders().getId(), new EiMessageHeaderAccessor(message3).getCorrelationId());
-		assertEquals(new Integer(1), new EiMessageHeaderAccessor(message1).getSequenceNumber());
-		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message1).getSequenceSize());
-		assertEquals(new Integer(2), new EiMessageHeaderAccessor(message2).getSequenceNumber());
-		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message2).getSequenceSize());
-		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message3).getSequenceNumber());
-		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message3).getSequenceSize());
+		assertEquals(originalMessage.getHeaders().getId(), new IntegrationMessageHeaderAccessor(message1).getCorrelationId());
+		assertEquals(originalMessage.getHeaders().getId(), new IntegrationMessageHeaderAccessor(message2).getCorrelationId());
+		assertEquals(originalMessage.getHeaders().getId(), new IntegrationMessageHeaderAccessor(message3).getCorrelationId());
+		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message1).getSequenceSize());
+		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message2).getSequenceSize());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceSize());
 	}
 
 	@Test

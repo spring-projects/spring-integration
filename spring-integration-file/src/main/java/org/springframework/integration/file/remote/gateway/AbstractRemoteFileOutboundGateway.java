@@ -788,8 +788,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
 		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		evaluationContext.setVariable("remoteDirectory", remoteDirectory);
-		// TODO Change 'desiredResultType' as 'File.class' after fix of SPR-10953.
-		File localDir = new File(this.localDirectoryExpression.getValue(evaluationContext, message, String.class));
+		File localDir = this.localDirectoryExpression.getValue(evaluationContext, message, File.class);
 		if (!localDir.exists()) {
 			Assert.isTrue(localDir.mkdirs(), "Failed to make local directory: " + localDir);
 		}

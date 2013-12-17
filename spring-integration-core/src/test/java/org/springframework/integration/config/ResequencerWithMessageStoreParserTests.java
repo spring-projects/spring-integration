@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -64,11 +64,11 @@ public class ResequencerWithMessageStoreParserTests {
 		Message<?> message3 = output.receive(500);
 
 		assertNotNull(message1);
-		assertEquals(new Integer(1), new EiMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
 		assertNotNull(message2);
-		assertEquals(new Integer(2), new EiMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
 		assertNotNull(message3);
-		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
 
     }
 
