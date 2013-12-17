@@ -36,6 +36,11 @@
 							   message-converters="stringAndSerializingConverters"
 							   expected-response-type-expression="payload"/>
 
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+							   request-channel="invalidResponseTypeChannel"
+							   expected-response-type-expression="new java.util.Date()"/>
+
+
 	<util:list id="stringAndSerializingConverters">
 		<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter" />
 		<bean class="org.springframework.http.converter.StringHttpMessageConverter" />

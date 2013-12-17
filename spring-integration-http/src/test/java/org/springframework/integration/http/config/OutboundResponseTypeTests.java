@@ -16,6 +16,7 @@
 package org.springframework.integration.http.config;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -23,21 +24,24 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
+import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -79,6 +83,9 @@ public class OutboundResponseTypeTests {
 
 	@Autowired
 	private MessageChannel resTypeExpressionSetSerializationChannel;
+
+	@Autowired
+	private MessageChannel invalidResponseTypeChannel;
 
 	private static int port = SocketUtils.findAvailableServerSocket();
 
@@ -141,6 +148,21 @@ public class OutboundResponseTypeTests {
 		Message<?> message = this.replyChannel.receive(5000);
 		assertNotNull(message);
 		assertTrue(message.getPayload() instanceof byte[]);
+	}
+
+	@Test
+	public void testInt3052InvalidResponseType() throws Exception {
+		try {
+			this.invalidResponseTypeChannel.send(new GenericMessage<byte[]>("hello".getBytes()));
+			fail("IllegalArgumentException expected.");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
+			Throwable t = e.getCause();
+			assertThat(t, Matchers.instanceOf(IllegalArgumentException.class));
+			assertThat(t.getMessage(),
+					Matchers.containsString("'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'"));
+		}
 	}
 
 	@Test
