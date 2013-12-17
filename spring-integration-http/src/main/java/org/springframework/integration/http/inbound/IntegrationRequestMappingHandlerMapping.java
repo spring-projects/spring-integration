@@ -18,13 +18,10 @@ package org.springframework.integration.http.inbound;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.HttpRequestHandler;
@@ -62,13 +59,10 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  *
  * @since 3.0
  */
-public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
-		implements ApplicationListener<ContextRefreshedEvent> {
+public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
 	private static final Method HANDLE_REQUEST_METHOD = ReflectionUtils.findMethod(HttpRequestHandler.class,
 			"handleRequest", HttpServletRequest.class, HttpServletResponse.class);
-
-	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	@Override
 	protected final boolean isHandler(Class<?> beanType) {
@@ -148,22 +142,4 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
         return this.createRequestMappingInfo(requestMappingAnnotation, this.getCustomTypeCondition(endpoint.getClass()));
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		// No-op in favor of onApplicationEvent
-	}
-
-	/**
-	 * {@link HttpRequestHandlingEndpointSupport}s may depend on auto-created
-	 * {@code requestChannel}s, so MVC Handlers detection should be postponed
-	 * as late as possible.
-	 *
-	 * @see RequestMappingHandlerMapping#afterPropertiesSet()
-	 */
-	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (!this.initialized.getAndSet(true)) {
-			super.afterPropertiesSet();
-		}
-	}
 }
