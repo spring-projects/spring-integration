@@ -17,7 +17,7 @@
 package org.springframework.integration.selector;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessageSelector;
 
 /**
@@ -30,7 +30,7 @@ import org.springframework.integration.core.MessageSelector;
 public class UnexpiredMessageSelector implements MessageSelector {
 
 	public boolean accept(Message<?> message) {
-		Long expirationDate = new EiMessageHeaderAccessor(message).getExpirationDate();
+		Long expirationDate = new IntegrationMessageHeaderAccessor(message).getExpirationDate();
 		if (expirationDate == null) {
 			return true;
 		}

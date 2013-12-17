@@ -15,7 +15,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.Comparator;
 
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 /**
@@ -32,8 +32,8 @@ public class SequenceNumberComparator implements Comparator<Message<?>> {
 	 * rank.
 	 */
 	public int compare(Message<?> o1, Message<?> o2) {
-		Integer sequenceNumber1 = new EiMessageHeaderAccessor(o1).getSequenceNumber();
-		Integer sequenceNumber2 = new EiMessageHeaderAccessor(o2).getSequenceNumber();
+		Integer sequenceNumber1 = new IntegrationMessageHeaderAccessor(o1).getSequenceNumber();
+		Integer sequenceNumber2 = new IntegrationMessageHeaderAccessor(o2).getSequenceNumber();
 		if (sequenceNumber1 == sequenceNumber2) {
 			return 0;
 		}

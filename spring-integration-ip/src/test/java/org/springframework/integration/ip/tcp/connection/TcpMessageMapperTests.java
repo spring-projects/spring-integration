@@ -32,7 +32,7 @@ import org.junit.Test;
 
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.support.MessageBuilder;
@@ -110,7 +110,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(Integer.valueOf(0), new EiMessageHeaderAccessor(message).getSequenceNumber());
+		assertEquals(Integer.valueOf(0), new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
 		message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
@@ -119,7 +119,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(Integer.valueOf(0), new EiMessageHeaderAccessor(message).getSequenceNumber());
+		assertEquals(Integer.valueOf(0), new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
 	}
 
 	@Test
@@ -172,11 +172,11 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		EiMessageHeaderAccessor headerAccessor = new EiMessageHeaderAccessor(message);
+		IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
 		assertEquals(Integer.valueOf(1), headerAccessor.getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), headerAccessor.getCorrelationId());
 		message = mapper.toMessage(connection);
-		headerAccessor = new EiMessageHeaderAccessor(message);
+		headerAccessor = new IntegrationMessageHeaderAccessor(message);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
 				.getHeaders().get(IpHeaders.HOSTNAME));

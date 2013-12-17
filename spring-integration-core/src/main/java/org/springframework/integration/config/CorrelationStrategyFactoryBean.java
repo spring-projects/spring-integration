@@ -18,7 +18,7 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  */
 public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationStrategy> {
 
-	private CorrelationStrategy delegate = new HeaderAttributeCorrelationStrategy(EiMessageHeaderAccessor.CORRELATION_ID);
+	private CorrelationStrategy delegate = new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
 	/**
 	 * Create a factory and set up the delegate which clients of the factory will see as its product.

@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -70,9 +70,9 @@ public class DefaultMessageAggregatorIntegrationTests {
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {
 		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put(EiMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
-		headers.put(EiMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
-		headers.put(EiMessageHeaderAccessor.CORRELATION_ID, correllationId);
+		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
+		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
+		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correllationId);
 		return headers;
 	}
 

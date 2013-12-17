@@ -1,9 +1,676 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="migration-2.2-3.0"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Changes between 2.2 and 3.0</title>
-    <para>
-        For an overview of the changes in Spring Integration 3.0 since version 2.2,
-        please see <xref linkend="whats-new"/>.
-    </para>
+	xmlns:xi="http://www.w3.org/2001/XInclude"
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>Changes Between 2.2 and 3.0</title>
+	<section id="3.0-new-components">
+		<title>New Components</title>
+		<section id="3.0-request-mapping">
+			<title>HTTP Request Mapping</title>
+			<para>
+				The HTTP module now provides powerful Request Mapping support for Inbound Endpoints. Class <classname>UriPathHandlerMapping</classname>
+				was replaced by <classname>IntegrationRequestMappingHandlerMapping</classname>, which is registered under the bean name
+				<code>integrationRequestMappingHandlerMapping</code> in the application context. Upon parsing of the HTTP Inbound Endpoint,
+				a new <classname>IntegrationRequestMappingHandlerMapping</classname> bean is either registered or an existing bean is being reused.
+				To achieve flexible Request Mapping configuration, Spring Integration provides the <code>&lt;request-mapping/&gt;</code>
+				sub-element for the <code>&lt;http:inbound-channel-adapter/&gt;</code> and the <code>&lt;http:inbound-gateway/&gt;</code>.
+				Both HTTP Inbound Endpoints are now fully based on the Request Mapping infrastructure that was introduced with Spring MVC 3.1.
+				For example, multiple paths are supported on a single inbound endpoint.
+				For more information see <xref linkend="http-namespace"/>.
+			</para>
+		</section>
+		<section id="3.0-spel-customization">
+			<title>Spring Expression Language (SpEL) Configuration</title>
+			<para>
+				A new <classname>IntegrationEvaluationContextFactoryBean</classname> is provided to allow
+				configuration of custom <interfacename>PropertyAccessor</interfacename>s and functions for
+				use in SpEL expressions throughout the framework. For more information see <xref linkend="spel" />.
+			</para>
+		</section>
+		<section id="3.0-spel-functions">
+			<title>SpEL Functions Support</title>
+			<para>
+				To customize the SpEL <interfacename>EvaluationContext</interfacename> with static
+				<classname>Method</classname> functions, the new <code>&lt;spel-function/&gt;</code>
+				component is introduced. Two built-in functions are also provided (<code>#jsonPath</code>
+				and <code>#xpath</code>). For more information see <xref linkend="spel-functions" />.
+			</para>
+		</section>
+		<section id="3.0-spel-property-accessors">
+			<title>SpEL PropertyAccessors Support</title>
+			<para>
+				To customize the SpEL <interfacename>EvaluationContext</interfacename> with
+				<interfacename>PropertyAccessor</interfacename> implementations
+				the new <code>&lt;spel-property-accessors/&gt;</code> component is introduced.
+				For more information see <xref linkend="spel-property-accessors" />.
+			</para>
+		</section>
+		<section id="3.0-redis-new-components">
+			<title>Redis: New Components</title>
+			<para>
+				A new Redis-based
+				<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html">MetadataStore</ulink></interfacename>
+				implementation has been added. The <classname>RedisMetadataStore</classname> can
+				be used to maintain state of a <interfacename>MetadataStore</interfacename>
+				across application restarts. This new <interfacename>MetadataStore</interfacename>
+				implementation can be used with adapters such as:
+			</para>
+			<itemizedlist>
+				<listitem>Twitter Inbound Adapters</listitem>
+				<listitem>Feed Inbound Channel Adapter</listitem>
+			</itemizedlist>
+			<para>
+				New queue-based components have been added. The <code>&lt;int-redis:queue-inbound-channel-adapter/&gt;</code>
+				and the	<code>&lt;int-redis:queue-outbound-channel-adapter/&gt;</code> components are provided
+				to perform 'right pop' and 'left push' operations on a Redis List, respectively.
+			</para>
+			<para>
+				For more information see <xref linkend="redis" />.
+			</para>
+		</section>
+		<section id="3.0-hcr">
+			<title>Header Channel Registry</title>
+			<para>
+				It is now possible to instruct the framework to store reply and error channels
+				in a registry for later resolution. This is useful for cases where
+				the <code>replyChannel</code> or <code>errorChannel</code> might be lost; for example
+				when serializing
+				a message. See <xref linkend="header-enricher"/> for more information.
+			</para>
+		</section>
+		<section id="3.0-configurable-mongo-MS">
+			<title>MongoDB support: New ConfigurableMongoDbMessageStore</title>
+			<para>
+				In addition to the existing <classname>eMongoDbMessageStore</classname>, a new
+				<classname>ConfigurableMongoDbMessageStore</classname> has been introduced.
+				This provides a more robust and flexible implementation of <interfacename>MessageStore</interfacename>
+				for MongoDB.
+				It does not have backward compatibility, with the existing store,
+				but it is recommended to use it for new applications. Existing applications can use it, but messages
+				in the old store will not be available.
+				See <xref linkend="mongodb"/> for more information.
+			</para>
+		</section>
+		<section id="3.0-syslog">
+			<title>Syslog Support</title>
+			<para>
+				Building on the 2.2 <classname>SyslogToMapTransformer</classname> Spring
+				Integration 3.0 now introduces
+				<code>UDP</code> and <code>TCP</code> inbound channel adapters especially tailored
+				for receiving SYSLOG messages. For more information, see
+				<xref linkend="syslog"/>.
+			</para>
+		</section>
+		<section id="3.0-tail">
+			<title>'Tail' Support</title>
+			<para>
+				File 'tail'ing inbound channel adapters are now provided to generate messages when
+				lines are added to the end of text files; see <xref linkend="file-tailing"/>.
+			</para>
+		</section>
+		<section id="3.0-jmx">
+			<title>JMX Support</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						A new <code>&lt;int-jmx:tree-polling-channel-adapter/&gt;</code> is provided; this
+						adapter queries the JMX MBean tree and sends a message with a payload that is the
+						graph of objects that matches the query. By default the MBeans are mapped to
+						primitives and simple Objects like Map, List and arrays - permitting simple
+						transformation, for example, to JSON.
+					</listitem>
+					<listitem>
+						The <classname>IntegrationMBeanExporter</classname> now allows the configuration of
+						a custom <classname>ObjectNamingStrategy</classname> using the <code>naming-strategy</code>
+						attribute.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see <xref linkend="jmx"/>.
+			</para>
+		</section>
+		<section id="3.0-tcp-events">
+			<title>TCP/IP Connection Events and Connection Management</title>
+			<para>
+				<classname>TcpConnection</classname>s now emit
+				<interfacename>ApplicationEvent</interfacename>s (specifically
+				<classname>TcpConnectionEvent</classname>s) when connections are
+				opened, closed, or an exception occurs. This allows applications
+				to be informed of changes to TCP connections using the normal
+				Spring <interfacename>ApplicationListener</interfacename>
+				mechanism.
+			</para>
+			<para>
+				<classname>AbstractTcpConnection</classname> has been renamed
+				<classname>TcpConnectionSupport</classname>; custom connections that
+				are subclasses of this class, can use its methods to publish events.
+				Similarly, <classname>AbstractTcpConnectionInterceptor</classname> has
+				been renamed to <classname>TcpConnectionInterceptorSupport</classname>.
+			</para>
+			<para>
+				In addition, a new <code>&lt;int-ip:tcp-connection-event-inbound-channel-adapter/&gt;</code>
+				is provided; by default, this adapter sends all <classname>TcpConnectionEvent</classname>s
+				to a <interfacename>Channel</interfacename>.
+			</para>
+			<para>
+				Further, the TCP Connection Factories, now provide a new method
+				<code>getOpenConnectionIds()</code>, which returns a list of identifiers for all
+				open connections; this allows applications, for example, to broadcast to all
+				open connections.
+			</para>
+			<para>
+				Finally, the connection factories also provide a new method
+				<code>closeConnection(String connectionId)</code> which allows applications
+				to explicitly close a connection using its ID.
+			</para>
+			<para>
+				For more information see <xref linkend="tcp-events"/>.
+			</para>
+		</section>
+		<section id="3.0-inbound-script">
+			<title>Inbound Channel Adapter Script Support</title>
+			<para>
+				The <code>&lt;int:inbound-channel-adapter/&gt;</code> now supports <code>&lt;expression/&gt;</code>
+				and <code>&lt;script/&gt;</code> sub-elements to create a
+				<interfacename>MessageSource</interfacename>; see <xref linkend="channel-adapter-expressions-and-scripts"/>.
+			</para>
+		</section>
+		<section id="3.0-content-enricher-headers">
+			<title>Content Enricher: Headers Enrichment Support</title>
+			<para>
+				The Content Enricher now provides configuration for <code>&lt;header/&gt;</code>
+				sub-elements, to enrich the outbound Message with headers based on the reply Message from the underlying
+				message flow. For more information see <xref linkend="payload-enricher"/>.
+			</para>
+		</section>
+	</section>
+
+	<section id="3.0-general">
+		<title>General Changes</title>
+		<section id="3.0-message-id">
+			<title>Message ID Generation</title>
+			<para>
+				Previously, message ids were generated using the JDK <code>UUID.randomUUID()</code> method. With this
+				release, the default mechanism has been changed to use a more efficient algorithm which
+				is significantly faster. In addition, the ability to change
+				the strategy used to generate message ids has been added.
+				For more information see <xref linkend="message-id-generation"/>.
+			</para>
+		</section>
+		<section id="3.0-gateway">
+			<title>&lt;gateway&gt; Changes</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						It is now possible to set common headers across all gateway methods, and more options
+						are provided for adding, to the message, information about which method was invoked.
+					</listitem>
+					<listitem>
+						It is now possible to entirely customize the way that gateway method calls are mapped
+						to messages.
+					</listitem>
+					<listitem>
+						The <classname>GatewayMethodMetadata</classname> is now public class and it makes possible flexibly
+						to configure the <classname>GatewayProxyFactoryBean</classname> programmatically from Java code.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information see <xref linkend="gateway"/>.
+			</para>
+		</section>
+		<section id="3.0-http-endpointss">
+			<title>HTTP Endpoint Changes</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						<emphasis role="bold">Outbound Endpoint 'encode-uri'</emphasis> - <code>&lt;http:outbound-gateway/&gt;</code>
+						and <code>&lt;http:outbound-channel-adapter/&gt;</code> now
+						provide an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
+						before sending the request.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Inbound Endpoint 'merge-with-default-converters'</emphasis> -
+						<code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code> now
+						have a <code>merge-with-default-converters</code> attribute to include the list of default
+						<interfacename>HttpMessageConverter</interfacename>s after the custom message converters.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">'If-(Un)Modified-Since' HTTP Headers</emphasis> - previously,
+						'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed
+						within from/to HTTP headers mapping in the <classname>DefaultHttpHeaderMapper</classname>.
+						Now, in addition correcting that issue, <classname>DefaultHttpHeaderMapper</classname> provides
+						date parsing from formatted strings for any HTTP headers that accept date-time values.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Inbound Endpoint Expression Variables</emphasis> -
+						In addition to the existing <emphasis>#requestParams</emphasis> and <emphasis>#pathVariables</emphasis>,
+						the <code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code>
+						now support additional useful variables: <emphasis>#matrixVariables</emphasis>, <emphasis>#requestAttributes</emphasis>,
+						<emphasis>#requestHeaders</emphasis> and <emphasis>#cookies</emphasis>. These variables are available in
+						both payload and header expressions.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Outbound Endpoint 'uri-variables-expression'</emphasis> - HTTP Outbound Endpoints
+						now support the <code>uri-variables-expression</code> attribute to specify
+						an <interfacename>Expression</interfacename> to evaluate a <interfacename>Map</interfacename>
+						for all URI variable placeholders within URL template. This allows selection of a different
+						map of expressions based on the outgoing message.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information see <xref linkend="http"/>.
+			</para>
+		</section>
+		<section id="3.0-json-transformers">
+			<title>Jackson Support (JSON)</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						A new abstraction for JSON conversion has been introduced. Implementations for Jackson 1.x
+						and Jackson 2 are currently provided, with the version being determined by presence on
+						the classpath. Previously, only Jackson 1.x was supported.
+					</listitem>
+					<listitem>
+						The <classname>ObjectToJsonTransformer</classname> and <classname>JsonToObjectTransformer</classname>
+						now emit/consume headers containing type information.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see 'JSON Transformers' in <xref linkend="transformer"/>.
+			</para>
+		</section>
+		<section id="3.0-id-for-chain-sub-components">
+			<title>Chain Elements 'id' Attribute</title>
+			<para>
+				Previously, the <emphasis>id</emphasis> attribute for elements within a <code>&lt;chain&gt;</code> was
+				ignored and, in some cases, disallowed. Now, the <emphasis>id</emphasis> attribute is allowed
+				for all elements within a <code>&lt;chain&gt;</code>. The bean names of chain elements is a combination
+				of the surrounding chain's <emphasis>id</emphasis> and the <emphasis>id</emphasis> of the element
+				itself. For example: 'fooChain$child.fooTransformer.handler'.
+				For more information see <xref linkend="chain"/>.
+			</para>
+		</section>
+		<section id="3.0-corr-endpoint-empty-groups">
+			<title>Aggregator 'empty-group-min-timeout' property</title>
+			<para>
+				The <classname>AbstractCorrelatingMessageHandler</classname> provides a new property
+				<code>empty-group-min-timeout</code>
+				to allow empty group expiry to run on a longer schedule than expiring partial groups. Empty groups will
+				not be removed from the <interfacename>MessageStore</interfacename> until they have not been modified
+				for at least this number of milliseconds. For more information see <xref linkend="aggregator-config"/>.
+			</para>
+		</section>
+		<section id="3.0-filelistfilter">
+			<title>Persistent File List Filters (file, (S)FTP)</title>
+			<para>
+				New <classname>FileListFilter</classname>s that use a persistent <classname>MetadataStore</classname> are
+				now available. These can be used to prevent duplicate files after a system restart. See
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information.
+			</para>
+		</section>
+		<section id="3.0-scripting-variables">
+			<title>Scripting Support: Variables Changes</title>
+			<para>
+				A new <code>variables</code> attribute has been introduced for scripting components.
+				In addition, variable bindings are now allowed for inline scripts.
+				See <xref linkend="groovy"/> and <xref linkend="scripting"/> for more information.
+			</para>
+		</section>
+		<section id="3.0-direct-channel-lb-ref">
+			<title>Direct Channel Load Balancing configuration</title>
+			<para>
+				Previously, when configuring <classname>LoadBalancingStrategy</classname> on the channel's 'dispatcher' sub-element,
+				the only available option was to use a pre-defined enumeration of values which did not allow one to set a custom implementation
+				of the <classname>LoadBalancingStrategy</classname>. You can now use <code>load-balancer-ref</code> to provide
+				a reference to a custom implementation of the <classname>LoadBalancingStrategy</classname>.
+				For more information see <xref linkend="channel-implementations-directchannel"/>.
+			</para>
+		</section>
+		<section id="3.0-pub-sub">
+			<title>PublishSubscribeChannel Behavior</title>
+			<para>
+				Previously, sending to a &lt;publish-subscribe-channel/&gt; that had
+				no subscribers would return a <code>false</code> result. If used in conjunction with
+				a <classname>MessagingTemplate</classname>, this would result in an exception being thrown.
+				Now, the <classname>PublishSubscribeChannel</classname> has a property
+				<code>minSubscribers</code> (default 0). If the message is sent to at least the minimum
+				number of subscribers, the send is deemed to be successful (even if zero). If an application
+				is expecting to get an exception under these conditions, set the minimum subscribers to at
+				least 1.
+			</para>
+		</section>
+		<section id="3.0-(s)ftp-changes">
+			<title>FTP, SFTP and FTPS Changes</title>
+			<para>
+				<emphasis role="bold">The FTP, SFTP and FTPS endpoints no longer cache sessions by default</emphasis>
+			</para>
+			<para>
+				The deprecated <code>cached-sessions</code> attribute has been removed from all endpoints.
+				Previously, the embedded caching mechanism controlled by this attribute's value didn't
+				provide a way to limit the size of the cache, which could
+				grow indefinitely. The <classname>CachingConnectionFactory</classname> was introduced in
+				release 2.1 and it became the preferred (and is now the only) way to cache sessions.
+			</para>
+			<para>
+				The <classname>CachingConnectionFactory</classname> now provides a new method
+				<code>resetCache()</code>. This immediately closes idle sessions and causes in-use
+				sessions to be closed as and when they are returned to the cache.
+			</para>
+			<para>
+				The <classname>DefaultSftpSessionFactory</classname> (in conjunction with a
+				<classname>CachingSessionFactory</classname>) now supports multiplexing channels over
+				a single SSH connection (SFTP Only).
+			</para>
+			<para>
+				<emphasis role="bold">FTP, SFTP and FTPS Inbound Adapters</emphasis>
+			</para>
+			<para>
+				Previously, there was no way to override the default filter used to process files retrieved
+				from a remote server. The <code>filter</code> attribute determines which files are retrieved
+				but the <classname>FileReadingMessageSource</classname> uses an
+				<classname>AcceptOnceFileListFilter</classname>. This means that if a new copy of a file
+				is retrieved, with the same name as a previously copied file, no message was sent from the
+				adapter.
+			</para>
+			<para>
+				With this release, a new attribute <code>local-filter</code> allows you to override the
+				default filter, for example with an <classname>AcceptAllFileListFilter</classname>, or some
+				other custom filter.
+			</para>
+			<para>
+				For users that wish the behavior of the <classname>AcceptOnceFileListFilter</classname>
+				to be maintained across JVM executions, a custom filter that retains state, perhaps on
+				the file system, can now be configured.
+			</para>
+			<para>
+				Inbound Channel Adapters now support the <code>preserve-timestamp</code> attribute, which
+				sets the local file modified timestamp to the timestamp from the server (default false).
+			</para>
+			<para>
+				<emphasis role="bold">FTP, SFTP and FTPS Gateways</emphasis>
+			</para>
+			<para>
+				<itemizedlist>
+					<listitem>
+						The gateways now support the <emphasis role="bold">mv</emphasis> command, enabling
+						the renaming of remote files.
+					</listitem>
+					<listitem>
+						The gateways now support recursive <emphasis role="bold">ls</emphasis> and
+						<emphasis role="bold">mget</emphasis> commands, enabling
+						the retrieval of a remote file tree.
+					</listitem>
+					<listitem>
+						The gateways now support <emphasis role="bold">put</emphasis> and
+						<emphasis role="bold">mput</emphasis> commands, enabling
+						sending file(s) to the remote server.
+					</listitem>
+					<listitem>
+						The <code>local-filename-generator-expression</code> attribute is now supported,
+						enabling the naming of local files during retrieval. By default, the same
+						name as the remote file is used.
+					</listitem>
+					<listitem>
+						The <code>local-directory-expression</code> attribute is now supported,
+						enabling the naming of local directories during retrieval based on the remote directory.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				<emphasis role="bold">Remote File Template</emphasis>
+			</para>
+			<para>
+				A new higher-level abstraction (<classname>RemoteFileTemplate</classname>) is provided over the
+				<interfacename>Session</interfacename> implementations used by the FTP and SFTP modules. While it is
+				used internally by endpoints, this abstraction can also be used programmatically and, like all
+				Spring <code>*Template</code> implementations, reliably closes the underlying session while allowing
+				low level access to the session when needed.
+			</para>
+			<para>
+				For more information, see
+				<xref linkend="ftp"/> and <xref linkend="sftp"/>.
+			</para>
+		</section>
+		<section id="3.0-outbound-gateway-requires-reply">
+			<title>'requires-reply' Attribute for Outbound Gateways</title>
+			<para>
+				All Outbound Gateways (e.g. <code>&lt;jdbc:outbound-gateway/&gt;</code> or <code>&lt;jms:outbound-gateway/&gt;</code>)
+				are designed for 'request-reply' scenarios. A response is expected from the external service and
+				will be published to the <code>reply-channel</code>, or the <code>replyChannel</code> message header.
+				However, there are some cases where the external system might not always return a
+				result, e.g. a <code>&lt;jdbc:outbound-gateway/&gt;</code>, when a SELECT ends with an empty <interfacename>ResultSet</interfacename>
+				or, say, a Web Service is One-Way. An option is therefore needed to configure whether or not a
+				<emphasis>reply</emphasis> is required.
+				For this purpose, the <emphasis>requires-reply</emphasis> attribute has been introduced for Outbound Gateway components.
+				In most cases, the default value for <emphasis>requires-reply</emphasis> is <code>true</code> and, if there is not any result,
+				a <classname>ReplyRequiredException</classname> will be thrown. Changing the value to <code>false</code>
+				means that, if an external service doesn't return anything, the message-flow will end at that point,
+				similar to an Outbound Channel Adapter.
+			</para>
+			<note>
+				The WebService outbound gateway has an additional attribute <code>ignore-empty-responses</code>; this is used to
+				treat an empty String response as if no response was received. It is true by default but can be set to false to
+				allow the application to receive an empty String in the reply message payload. When the attribute is true an empty
+				string is treated as no response for the purposes of the <emphasis>requires-reply</emphasis> attribute.
+				<emphasis>requires-reply</emphasis> is false by default for the WebService outbound gateway.
+			</note>
+			<para>
+				Note, the <code>requiresReply</code> property was previously present in the <classname>AbstractReplyProducingMessageHandler</classname>
+				but set to <code>false</code>, and there wasn't any way to configure it on Outbound Gateways using the XML namespace.
+			</para>
+			<important>
+				Previously, a gateway receiving no reply would silently end the flow (with a DEBUG log message); with this change an
+				exception will now be thrown by default by most gateways. To revert to the previous behavior,
+				set <code>requires-reply</code> to false.
+			</important>
+		</section>
+		<section id="3.0-amqp-mapping">
+			<title>AMQP Outbound Gateway Header Mapping</title>
+			<para>
+				Previously, the &lt;int-amqp:outbound-gateway/&gt; mapped headers before invoking the message
+				converter, and the converter could overwrite headers such as <code>content-type</code>. The
+				outbound adapter maps the headers after the conversion, which means headers like
+				<code>content-type</code> from the outbound <code>Message</code> (if present) are used.
+			</para>
+			<para>
+				Starting with this release, the gateway now maps the headers after the message conversion,
+				consistent with the adapter. If your application relies on the previous behavior (where the
+				converter's headers overrode the mapped headers), you either need to filter those headers
+				(before the message reaches the gateway)
+				or set them appropriately. The headers affected by the <classname>SimpleMessageConverter</classname>
+				are <code>content-type</code> and <code>content-encoding</code>. Custom message converters
+				may set other headers.
+			</para>
+		</section>
+		<section id="3.0-stored-proc-sql-return-type">
+			<title>Stored Procedure Components Improvements</title>
+			<para>
+				For more complex database-specific types, not supported by the standard
+				<code>CallableStatement.getObject</code> method, 2 new additional
+				attributes were introduced to the <code>&lt;sql-parameter-definition/&gt;</code>
+				element with OUT-direction:
+			</para>
+			<itemizedlist>
+				<listitem><emphasis>type-name</emphasis></listitem>
+				<listitem><emphasis>return-type</emphasis></listitem>
+			</itemizedlist>
+			<para>
+				<para>
+					The <code>row-mapper</code> attribute of the Stored Procedure Inbound Channel Adapter
+					<code>&lt;returning-resultset/&gt;</code> sub-element
+					now supports a reference to a <interfacename>RowMapper</interfacename> bean
+					definition. Previously, it contained just a class name (which is still supported).
+				</para>
+				<para>
+					For more information see <xref linkend="stored-procedures"/>.
+				</para>
+			</para>
+		</section>
+		<section id="3.0-ws-outbound-uri-substitution">
+			<title>Web Service Outbound URI Configuration</title>
+			<para>
+				Web Service Outbound Gateway 'uri' attribute now supports <code>&lt;uri-variable/&gt;</code> substitution for all
+				URI-schemes supported by Spring Web Services. For more information see <xref linkend="outbound-uri"/>.
+			</para>
+		</section>
+		<section id="3.0-redis">
+			<title>Redis Adapter Changes</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						The Redis Inbound Channel Adapter can now use a <code>null</code> value for <code>serializer</code>
+						property, with the raw data being the message payload.
+					</listitem>
+					<listitem>
+						The Redis Outbound Channel Adapter now has the <code>topic-expression</code> property to determine
+						the Redis topic against the Message at runtime.
+					</listitem>
+					<listitem>
+						The Redis Inbound Channel Adapter, in addition to the existing <code>topics</code> attribute,
+						now has the <code>topic-patterns</code> attribute.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see <xref linkend="redis"/>.
+			</para>
+		</section>
+		<section id="3.0-advising-filters">
+			<title>Advising Filters</title>
+			<para>
+				Previously, when a &lt;filter/&gt; had a &lt;request-handler-advice-chain/&gt;, the discard
+				action was all performed within the scope of the advice chain (including any downstream flow
+				on the <code>discard-channel</code>). The filter element now has an attribute
+				<code>discard-within-advice</code> (default <code>true</code>), to allow the discard action to
+				be performed after the advice chain completes. See <xref linkend="advising-filters"/>.
+			</para>
+		</section>
+		<section id="3.0-annotation-advice">
+			<title>Advising Endpoints using Annotations</title>
+			<para>
+				Request Handler Advice Chains can now be configured using annotations. See
+				<xref linkend="advising-with-annotations"/>.
+			</para>
+		</section>
+		<section id="3.0-o-t-s-t">
+			<title>ObjectToStringTransformer Improvements</title>
+			<para>
+				This transformer now correctly transforms <code>byte[]</code> and <code>char[]</code>
+				payloads to <classname>String</classname>. For more information see <xref linkend="transformer"/>.
+			</para>
+		</section>
+		<section id="3.0-jpa-changes">
+			<title>JPA Support Changes</title>
+			<para>
+				Payloads to <emphasis>persist</emphasis> or
+				<emphasis>merge</emphasis> can now be of type
+				<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html"
+						>java.lang.Iterable</ulink></interfacename>.
+			</para>
+			<para>
+				In that case, each object returned by the
+				<interfacename>Iterable</interfacename> is treated as
+				an entity and persisted or merged using the underlying
+				<interfacename>EntityManager</interfacename>.
+				<emphasis>NULL</emphasis> values returned by the iterator are ignored.
+			</para>
+			<para>
+				The JPA adapters now have additional attributes to optionally 'flush' and 'clear'
+				entities from the associated persistence context after performing persistence operations.
+			</para>
+			<para>
+				Retrieving gateways had no mechanism to specify the first record to be retrieved which
+				is a common use case. The retrieving gateways now support specifying this parameter
+				using a <code>first-result</code> and <code>first-result-expression</code> attributes
+				to the gateway definition. <xref linkend="jpa-retrieving-outbound-gateway"/>.
+			</para>
+			<para>
+				The JPA retrieving gateway and inbound adapter now have an attribute to specify the maximum
+				number of results in a result set as an expression. In addition, the
+				<code>max-results</code> attribute has been introduced to replace
+				<code>max-number-of-results</code>, which has been deprecated.
+				<code>max-results</code> and <code>max-results-expression</code>
+				are used to provide the maximum number of results,
+				or an expression to compute the maximum number of results, respectively, in the
+				result set.
+			</para>
+			<para>For more information see <xref linkend="jpa"/>.</para>
+		</section>
+		<section id="3.0-dalay-expression">
+			<title>Delayer: delay expression</title>
+			<para>
+				Previously, the <code>&lt;delayer&gt;</code> provided a <code>delay-header-name</code> attribute
+				to determine the <emphasis>delay</emphasis> value at runtime. In complex cases it was necessary
+				to precede the <code>&lt;delayer&gt;</code> with a <code>&lt;header-enricher&gt;</code>.
+				Spring Integration 3.0 introduced the <code>expression</code> attribute and <code>expression</code>
+				sub-element for dynamic delay determination. The <code>delay-header-name</code> attribute is now deprecated
+				because the header evaluation can be specified in the <code>expression</code>. In addition,
+				the <code>ignore-expression-failures</code> was introduced to control the behavior when an
+				expression evaluation fails.
+				For more information see <xref linkend="delayer"/>.
+			</para>
+		</section>
+		<section id="3.0-jdbc-mysql-v5_6_4">
+			<title>JDBC Message Store Improvements</title>
+			<para>
+				<emphasis>Spring Integration 3.0</emphasis> adds a new set of DDL
+				scripts for <emphasis>MySQL</emphasis> version 5.6.4 and higher.
+				Now <emphasis>MySQL</emphasis> supports <emphasis>fractional
+				seconds</emphasis> and is thus improving the FIFO ordering when
+				polling from a MySQL-based Message Store. For more information,
+				please see <xref linkend="jdbc-message-store-generic"/>.
+			</para>
+		</section>
+		<section id="3.0-event-for-imap-idle">
+			<title>IMAP Idle Connection Exceptions</title>
+			<para>
+				Previously, if an IMAP idle connection failed, it was logged but there was no mechanism to
+				inform an application. Such exceptions now generate <classname>ApplicationEvent</classname>s.
+				Applications can obtain these events using an <code>&lt;int-event:inbound-channel-adapter&gt;</code>
+				or any <interfacename>ApplicationListener</interfacename> configured to receive an
+				<classname>ImapIdleExceptionEvent</classname> or one of its super classes.
+			</para>
+		</section>
+		<section id="3.0-tcp-headers">
+			<title>Message Headers and TCP</title>
+			<para>
+				The TCP connection factories now enable the configuration of a flexible mechanism to
+				transfer selected headers (as well as the payload) over TCP. A new
+				<classname>TcpMessageMapper</classname>
+				enables the selection of the headers, and an appropriate (de)serializer needs to be
+				configured to write the resulting <interfacename>Map</interfacename> to the
+				TCP stream. A <classname>MapJsonSerializer</classname> is provided as a convenient
+				mechanism to transfer headers and payload over TCP.
+				For more information see <xref linkend="ip-headers"/>.
+			</para>
+		</section>
+		<section id="3.0-jms-mdca-te">
+			<title>JMS Message Driven Channel Adapter</title>
+			<para>
+				Previously, when configuring a <code>&lt;message-driven-channel-adapter/&gt;</code>, if you wished to
+				use a specific <interfacename>TaskExecutor</interfacename>, it was necessary to declare a container
+				bean and provide it to the adapter using the <code>container</code> attribute. The
+				<code>task-executor</code> is now provided, allowing it to be set directly on the adapter. This is
+				in addition to several other container attributes that were already available.
+			</para>
+		</section>
+		<section id="3.0-rmi-ec">
+			<title>RMI Inbound Gateway</title>
+			<para>
+				The RMI Inbound Gateway now supports an <code>error-channel</code> attribute. See
+				<xref linkend="rmi-inbound"/>.
+			</para>
+		</section>
+		<section id="3.0-xslt-transformer">
+			<title>XsltPayloadTransformer</title>
+			<para>
+				You can now specify the transformer factory class name using the
+				<code>transformer-factory-class</code> attribute. See <xref linkend="xml-xslt-payload-transformers"/>
+			</para>
+		</section>
+	</section>
 </section>

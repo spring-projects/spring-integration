@@ -25,7 +25,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.HeaderFilter;
@@ -71,7 +71,7 @@ public class HeaderFilterTests {
 		assertNull(result.getHeaders().get("z"));
 		assertEquals("testErrorChannel", result.getHeaders().getErrorChannel());
 		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
-		assertEquals(correlationId, new EiMessageHeaderAccessor(result).getCorrelationId());
+		assertEquals(correlationId, new IntegrationMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 }

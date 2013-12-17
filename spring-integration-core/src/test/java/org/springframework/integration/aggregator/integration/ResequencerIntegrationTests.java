@@ -21,7 +21,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -60,15 +60,15 @@ public class ResequencerIntegrationTests {
 		inputChannel.send(message1);
 		message1 = outputChannel.receive(0);
 		assertNotNull(message1);
-		assertEquals((Integer)1, new EiMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals((Integer)1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
 
 		inputChannel.send(message2);
 		message2 = outputChannel.receive(0);
 		message3 = outputChannel.receive(0);
 		assertNotNull(message2);
 		assertNotNull(message3);
-		assertEquals((Integer)2, new EiMessageHeaderAccessor(message2).getSequenceNumber());
-		assertEquals((Integer)3, new EiMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals((Integer)2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals((Integer)3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
 
 		inputChannel.send(message5);
 		assertNull(outputChannel.receive(0));
@@ -83,9 +83,9 @@ public class ResequencerIntegrationTests {
 		assertNotNull(message4);
 		assertNotNull(message5);
 		assertNotNull(message6);
-		assertEquals((Integer)4, new EiMessageHeaderAccessor(message4).getSequenceNumber());
-		assertEquals((Integer)5, new EiMessageHeaderAccessor(message5).getSequenceNumber());
-		assertEquals((Integer)6, new EiMessageHeaderAccessor(message6).getSequenceNumber());
+		assertEquals((Integer)4, new IntegrationMessageHeaderAccessor(message4).getSequenceNumber());
+		assertEquals((Integer)5, new IntegrationMessageHeaderAccessor(message5).getSequenceNumber());
+		assertEquals((Integer)6, new IntegrationMessageHeaderAccessor(message6).getSequenceNumber());
 
 
 		assertEquals(0, store.getMessageGroup("A").getMessages().size());

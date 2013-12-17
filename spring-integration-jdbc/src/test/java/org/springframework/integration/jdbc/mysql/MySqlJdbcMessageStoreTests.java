@@ -45,7 +45,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jdbc.JdbcMessageStore;
@@ -215,7 +215,7 @@ public class MySqlJdbcMessageStoreTests {
 		message = messageStore.addMessage(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.addMessage(message);
-		assertEquals("Y", new EiMessageHeaderAccessor(messageStore.getMessage(message.getHeaders().getId())).getCorrelationId());
+		assertEquals("Y", new IntegrationMessageHeaderAccessor(messageStore.getMessage(message.getHeaders().getId())).getCorrelationId());
 	}
 
 	@Test
@@ -466,11 +466,11 @@ public class MySqlJdbcMessageStoreTests {
 		assertNotNull(messageFromGroup1);
 		assertNotNull(messageFromGroup2);
 
-		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + new EiMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
-		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + new EiMessageHeaderAccessor(messageFromGroup2).getSequenceNumber());
+		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
+		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup2).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromGroup1.getHeaders().get(EiMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromGroup2.getHeaders().get(EiMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), (Integer) messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), (Integer) messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 
@@ -510,11 +510,11 @@ public class MySqlJdbcMessageStoreTests {
 		assertNotNull(messageFromRegion1);
 		assertNotNull(messageFromRegion2);
 
-		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new EiMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
-		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " +new EiMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
+		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
+		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " +new IntegrationMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromRegion1.getHeaders().get(EiMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(EiMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), (Integer) messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 }

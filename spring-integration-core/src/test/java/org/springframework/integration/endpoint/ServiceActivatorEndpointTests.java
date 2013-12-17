@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.handler.ReplyRequiredException;
@@ -178,7 +178,7 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
-		assertNull(new EiMessageHeaderAccessor(reply).getCorrelationId());
+		assertNull(new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -195,7 +195,7 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
-		Object correlationId = new EiMessageHeaderAccessor(reply).getCorrelationId();
+		Object correlationId = new IntegrationMessageHeaderAccessor(reply).getCorrelationId();
 		assertFalse(message.getHeaders().getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
 	}

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.springframework.messaging.Message;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -48,7 +48,7 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals(correlationId, new EiMessageHeaderAccessor(reply).getCorrelationId());
+		assertEquals(correlationId, new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -63,8 +63,8 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals(new EiMessageHeaderAccessor(message).getCorrelationId(), new EiMessageHeaderAccessor(reply).getCorrelationId());
-		assertTrue(new EiMessageHeaderAccessor(message).getCorrelationId().equals(new EiMessageHeaderAccessor(reply).getCorrelationId()));
+		assertEquals(new IntegrationMessageHeaderAccessor(message).getCorrelationId(), new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
+		assertTrue(new IntegrationMessageHeaderAccessor(message).getCorrelationId().equals(new IntegrationMessageHeaderAccessor(reply).getCorrelationId()));
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals("456-XYZ", new EiMessageHeaderAccessor(reply).getCorrelationId());
+		assertEquals("456-XYZ", new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals("456-XYZ", new EiMessageHeaderAccessor(reply).getCorrelationId());
+		assertEquals("456-XYZ", new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -107,8 +107,8 @@ public class CorrelationIdTests {
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply1).getCorrelationId());
-		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply2).getCorrelationId());
+		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply1).getCorrelationId());
+		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply2).getCorrelationId());
 	}
 
 	@Test
@@ -123,10 +123,10 @@ public class CorrelationIdTests {
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply1).getCorrelationId());
-		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply2).getCorrelationId());
-		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
-		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply1).getCorrelationId());
+		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply2).getCorrelationId());
+		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 	@SuppressWarnings("unused")

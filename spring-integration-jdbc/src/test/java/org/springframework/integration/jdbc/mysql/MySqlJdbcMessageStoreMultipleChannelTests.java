@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -150,7 +150,7 @@ public class MySqlJdbcMessageStoreMultipleChannelTests {
 
 		public void first(Message<?> message ) {
 
-			int sequenceNumber = new EiMessageHeaderAccessor(message).getSequenceNumber();
+			int sequenceNumber = new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
 
 			LOG.info("First handling sequence number: " + sequenceNumber + "; Message ID: " + message.getHeaders().getId());
 
@@ -163,7 +163,7 @@ public class MySqlJdbcMessageStoreMultipleChannelTests {
 
 		public void second(Message<?> message ) {
 
-			int sequenceNumber = new EiMessageHeaderAccessor(message).getSequenceNumber();
+			int sequenceNumber = new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
 			LOG.info("Second handling sequence number: " + sequenceNumber + "; Message ID: " + message.getHeaders().getId());
 
 			if (sequenceNumber != 2) {

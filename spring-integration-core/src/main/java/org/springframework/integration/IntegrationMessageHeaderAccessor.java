@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class EiMessageHeaderAccessor extends MessageHeaderAccessor {
+public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String CORRELATION_ID = "correlationId";
 
@@ -45,7 +45,7 @@ public class EiMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String POSTPROCESS_RESULT = "postProcessResult";
 
-	public EiMessageHeaderAccessor(Message<?> message) {
+	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
 	}
 
@@ -88,16 +88,16 @@ public class EiMessageHeaderAccessor extends MessageHeaderAccessor {
 	protected void verifyType(String headerName, Object headerValue) {
 		if (headerName != null && headerValue != null) {
 			super.verifyType(headerName, headerValue);
-			if (EiMessageHeaderAccessor.EXPIRATION_DATE.equals(headerName)) {
+			if (IntegrationMessageHeaderAccessor.EXPIRATION_DATE.equals(headerName)) {
 				Assert.isTrue(headerValue instanceof Date || headerValue instanceof Long, "The '" + headerName
 						+ "' header value must be a Date or Long.");
 			}
-			else if (EiMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
-					|| EiMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)) {
+			else if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
+					|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)) {
 				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an Integer.");
 			}
-			else if (EiMessageHeaderAccessor.PRIORITY.equals(headerName)) {
+			else if (IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)) {
 				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an Integer.");
 			}

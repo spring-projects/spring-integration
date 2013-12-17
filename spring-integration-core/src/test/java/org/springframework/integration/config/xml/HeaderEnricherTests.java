@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -105,7 +105,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals("ABC", new EiMessageHeaderAccessor(result).getCorrelationId());
+		assertEquals("ABC", new IntegrationMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test
@@ -114,7 +114,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		Object correlationId = new EiMessageHeaderAccessor(result).getCorrelationId();
+		Object correlationId = new IntegrationMessageHeaderAccessor(result).getCorrelationId();
 		assertEquals(Long.class, correlationId.getClass());
 		assertEquals(new Long(123), correlationId);
 	}
@@ -125,7 +125,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(123), new EiMessageHeaderAccessor(result).getCorrelationId());
+		assertEquals(new Integer(123), new IntegrationMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test
@@ -134,7 +134,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Long(1111), new EiMessageHeaderAccessor(result).getExpirationDate());
+		assertEquals(new Long(1111), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
 	}
 
 	@Test
@@ -143,7 +143,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Long(9999), new EiMessageHeaderAccessor(result).getExpirationDate());
+		assertEquals(new Long(9999), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
 	}
 
 	@Test
@@ -152,7 +152,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), new EiMessageHeaderAccessor(result).getPriority());
+		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test

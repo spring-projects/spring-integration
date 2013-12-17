@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.util.UpperBound;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -43,7 +43,7 @@ public class PriorityChannel extends QueueChannel {
 	 * is a non-positive value, the queue will be unbounded. Message priority
 	 * will be determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link EiMessageHeaderAccessor#getPriority()}.
+	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<Message<?>>(11, new SequenceFallbackComparator(comparator)));
@@ -52,7 +52,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with the specified queue capacity. Message priority
-	 * will be based upon the value of {@link EiMessageHeaderAccessor#getPriority()}.
+	 * will be based upon the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel(int capacity) {
 		this(capacity, null);
@@ -62,7 +62,7 @@ public class PriorityChannel extends QueueChannel {
 	 * Create a channel with an unbounded queue. Message priority will be
 	 * determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link EiMessageHeaderAccessor#getPriority()}.
+	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel(Comparator<Message<?>> comparator) {
 		this(0, comparator);
@@ -70,7 +70,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with an unbounded queue. Message priority will be
-	 * based on the value of {@link EiMessageHeaderAccessor#getPriority()}.
+	 * based on the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
 	 */
 	public PriorityChannel() {
 		this(0, null);
@@ -109,8 +109,8 @@ public class PriorityChannel extends QueueChannel {
 				compareResult = this.targetComparator.compare(message1, message2);
 			}
 			else {
-				Integer priority1 = new EiMessageHeaderAccessor(message1).getPriority();
-				Integer priority2 = new EiMessageHeaderAccessor(message2).getPriority();
+				Integer priority1 = new IntegrationMessageHeaderAccessor(message1).getPriority();
+				Integer priority2 = new IntegrationMessageHeaderAccessor(message2).getPriority();
 
 				priority1 = priority1 != null ? priority1 : 0;
 				priority2 = priority2 != null ? priority2 : 0;

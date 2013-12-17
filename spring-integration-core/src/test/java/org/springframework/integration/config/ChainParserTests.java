@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
@@ -192,7 +192,7 @@ public class ChainParserTests {
 		Message<?> reply = this.replyOutput.receive(1000);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
-		assertEquals("ABC", new EiMessageHeaderAccessor(reply).getCorrelationId());
+		assertEquals("ABC", new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
 		assertEquals("XYZ", reply.getHeaders().get("testValue"));
 		assertEquals(123, reply.getHeaders().get("testRef"));
 	}

@@ -38,7 +38,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -250,10 +250,10 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(target2);
 		dispatcher.dispatch(new GenericMessage<String>("test"));
 		assertEquals(2, messages.size());
-		assertEquals(0, (int) new EiMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
-		assertEquals(0, (int) new EiMessageHeaderAccessor(messages.get(0)).getSequenceSize());
-		assertEquals(0, (int) new EiMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
-		assertEquals(0, (int) new EiMessageHeaderAccessor(messages.get(1)).getSequenceSize());
+		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
+		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
+		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
+		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
 	}
 
 	@Test
@@ -271,15 +271,15 @@ public class BroadcastingDispatcherTests {
 		Object originalId = inputMessage.getHeaders().getId();
 		dispatcher.dispatch(inputMessage);
 		assertEquals(3, messages.size());
-		assertEquals(1, (int) new EiMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
-		assertEquals(3, (int) new EiMessageHeaderAccessor(messages.get(0)).getSequenceSize());
-		assertEquals(originalId, new EiMessageHeaderAccessor(messages.get(0)).getCorrelationId());
-		assertEquals(2, (int) new EiMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
-		assertEquals(3, (int) new EiMessageHeaderAccessor(messages.get(1)).getSequenceSize());
-		assertEquals(originalId, new EiMessageHeaderAccessor(messages.get(1)).getCorrelationId());
-		assertEquals(3, (int) new EiMessageHeaderAccessor(messages.get(2)).getSequenceNumber());
-		assertEquals(3, (int) new EiMessageHeaderAccessor(messages.get(2)).getSequenceSize());
-		assertEquals(originalId, new EiMessageHeaderAccessor(messages.get(2)).getCorrelationId());
+		assertEquals(1, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
+		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
+		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(0)).getCorrelationId());
+		assertEquals(2, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
+		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
+		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(1)).getCorrelationId());
+		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceNumber());
+		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceSize());
+		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(2)).getCorrelationId());
 	}
 
 	/**
