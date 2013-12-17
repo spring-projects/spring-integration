@@ -110,14 +110,13 @@ public class HttpProxyScenarioTests {
 		RestTemplate template = Mockito.spy(new RestTemplate());
 
 		Mockito.doAnswer(new Answer<ResponseEntity<?>>() {
-			@SuppressWarnings("deprecation")
 			@Override
 			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
 				URI uri = (URI) invocation.getArguments()[0];
 				assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
 				HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 				HttpHeaders httpHeaders = httpEntity.getHeaders();
-				assertEquals(ifModifiedSince, httpHeaders.getIfNotModifiedSince());
+				assertEquals(ifModifiedSince, httpHeaders.getIfModifiedSince());
 				assertEquals(ifUnmodifiedSinceValue, httpHeaders.getFirst("If-Unmodified-Since"));
 				assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
 

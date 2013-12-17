@@ -577,11 +577,11 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * and the specified region ({@link #setRegion(String)}).
 	 */
 	@Override
-	@SuppressWarnings("deprecation")
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return jdbcTemplate.queryForInt(getQuery(channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()), key, this.region);
+		return jdbcTemplate.queryForObject(getQuery(channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
+				Integer.class, key, this.region);
 	}
 
 	/**

@@ -30,6 +30,7 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;

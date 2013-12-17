@@ -166,16 +166,14 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 1, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTwo = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 2");
+				.queryForObject("select count(*) from item where status = 2", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 2", 0,
 				countOfStatusTwo);
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTen = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 10");
+				.queryForObject("select count(*) from item where status = 10", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 10", 2,
 				countOfStatusTen);
@@ -204,16 +202,14 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 1, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTwo = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 2");
+				.queryForObject("select count(*) from item where status = 2", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 2", 0,
 				countOfStatusTwo);
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTen = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 10");
+				.queryForObject("select count(*) from item where status = 10", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 10", 2,
 				countOfStatusTen);
@@ -245,16 +241,14 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 2, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTwo = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 2");
+				.queryForObject("select count(*) from item where status = 2", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 2", 2,
 				countOfStatusTwo);
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTen = this.jdbcTemplate
-				.queryForInt("select count(*) from copy where status = 10");
+				.queryForObject("select count(*) from copy where status = 10", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 10", 2,
 				countOfStatusTen);
@@ -285,16 +279,14 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 2, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTwo = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 2");
+				.queryForObject("select count(*) from item where status = 2", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 2", 0,
 				countOfStatusTwo);
 
-		@SuppressWarnings("deprecation")
 		int countOfStatusTen = this.jdbcTemplate
-				.queryForInt("select count(*) from item where status = 10");
+				.queryForObject("select count(*) from item where status = 10", Integer.class);
 		assertEquals(
 				"Status not updated incorect number of rows with status 10", 2,
 				countOfStatusTen);

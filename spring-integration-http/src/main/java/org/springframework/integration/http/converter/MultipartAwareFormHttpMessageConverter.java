@@ -27,7 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter;
+import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.integration.http.multipart.DefaultMultipartFileReader;
 import org.springframework.integration.http.multipart.MultipartFileReader;
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
@@ -38,18 +38,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * An {@link HttpMessageConverter} implementation that delegates to an instance of
- * {@link XmlAwareFormHttpMessageConverter} while adding the capability to <i>read</i>
+ * {@link AllEncompassingFormHttpMessageConverter} while adding the capability to <i>read</i>
  * <code>multipart/form-data</code> content in an HTTP request.
  *
  * @author Mark Fisher
  * @since 2.0
  */
-@SuppressWarnings("deprecation")
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
 	private volatile MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
 
-	private final XmlAwareFormHttpMessageConverter wrappedConverter = new XmlAwareFormHttpMessageConverter();
+	private final AllEncompassingFormHttpMessageConverter wrappedConverter = new AllEncompassingFormHttpMessageConverter();
 
 
 	/**
