@@ -32,7 +32,11 @@ import org.springframework.util.Assert;
  * <p>Will lookup Spring managed beans identified by bean name,
  * expecting them to be of type {@link MessageChannel}.
  *
+ * Consults a {@link HeaderChannelRegistry}, if available, if the bean is not found.
+ *
  * @author Mark Fisher
+ * @author Gary Russell
+ *
  * @see org.springframework.beans.factory.BeanFactory
  */
 public class BeanFactoryChannelResolver implements ChannelResolver, BeanFactoryAware {
@@ -82,7 +86,7 @@ public class BeanFactoryChannelResolver implements ChannelResolver, BeanFactoryA
 					HeaderChannelRegistry.class);
 		}
 		catch (Exception e) {
-			logger.warn("No HeaderChannelRegistry found", e);
+			logger.debug("No HeaderChannelRegistry found");
 		}
 	}
 
@@ -100,7 +104,8 @@ public class BeanFactoryChannelResolver implements ChannelResolver, BeanFactoryA
 				}
 			}
 			throw new ChannelResolutionException(
-					"failed to look up MessageChannel bean with name '" + name + "'", e);
+					"failed to look up MessageChannel with name '" + name + "' in the BeanFactory"
+					+ (this.replyChannelRegistry == null ? " (and there is no HeaderChannelRegistry present)." : "."), e);
 		}
 	}
 
