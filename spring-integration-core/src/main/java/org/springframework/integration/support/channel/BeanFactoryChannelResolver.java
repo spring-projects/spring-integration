@@ -88,7 +88,7 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 					HeaderChannelRegistry.class);
 		}
 		catch (Exception e) {
-			logger.warn("No HeaderChannelRegistry found", e);
+			logger.debug("No HeaderChannelRegistry found");
 		}
 	}
 
@@ -106,7 +106,8 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 				}
 			}
 			throw new DestinationResolutionException(
-					"failed to look up MessageChannel bean with name '" + name + "'", e);
+					"failed to look up MessageChannel with name '" + name + "' in the BeanFactory"
+					+ (this.replyChannelRegistry == null ? " (and there is no HeaderChannelRegistry present)." : "."), e);
 		}
 	}
 

@@ -22,21 +22,32 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
@@ -141,6 +152,53 @@ public class HeaderChannelRegistryTests {
 		Thread.sleep(300);
 		assertNull(registry.channelNameToChannel(id));
 		registry.stop();
+	}
+
+	@Test
+	public void testBFCRWithRegistry() {
+		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		when(beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+						HeaderChannelRegistry.class))
+			.thenReturn(mock(HeaderChannelRegistry.class));
+		doAnswer(new Answer<Object>(){
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				throw new NoSuchBeanDefinitionException("bar");
+			}
+		}).when(beanFactory).getBean("foo", MessageChannel.class);
+		resolver.setBeanFactory(beanFactory);
+		try {
+			resolver.resolveDestination("foo");
+			fail("Expected exception");
+		}
+		catch (DestinationResolutionException e){
+			assertThat(e.getMessage(),
+				Matchers.equalTo("failed to look up MessageChannel with name 'foo' in the BeanFactory."));
+		}
+	}
+
+	@Test
+	public void testBFCRNoRegistry() {
+		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		doAnswer(new Answer<Object>(){
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				throw new NoSuchBeanDefinitionException("bar");
+			}
+		}).when(beanFactory).getBean("foo", MessageChannel.class);
+		resolver.setBeanFactory(beanFactory);
+		try {
+			resolver.resolveDestination("foo");
+			fail("Expected exception");
+		}
+		catch (DestinationResolutionException e){
+			assertThat(e.getMessage(),
+				Matchers.equalTo("failed to look up MessageChannel with name 'foo' in the BeanFactory (and there is no HeaderChannelRegistry present)."));
+		}
 	}
 
 	public static class Foo extends AbstractReplyProducingMessageHandler {
