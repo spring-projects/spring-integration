@@ -19,7 +19,7 @@ package org.springframework.integration.handler;
 import java.lang.reflect.Method;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.annotation.ServiceActivator;
 
 /**

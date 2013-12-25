@@ -359,22 +359,22 @@ Caused by: java.lang.RuntimeException: foo
 </int:service-activator>
 
 05.617 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=...]
-05.638 ERROR [task-scheduler-1]org.springframework.integration.MessageHandlingException: java.lang.RuntimeException: foo
+05.638 ERROR [task-scheduler-1]org.springframework.messaging.MessageHandlingException: java.lang.RuntimeException: foo
 ...
 10.598 DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
-10.600 ERROR [task-scheduler-2]org.springframework.integration.MessageHandlingException: java.lang.RuntimeException: foo
+10.600 ERROR [task-scheduler-2]org.springframework.messaging.MessageHandlingException: java.lang.RuntimeException: foo
 ...
 15.598 DEBUG [task-scheduler-3]preSend on channel 'input', message: [Payload=...]
-15.599 ERROR [task-scheduler-3]org.springframework.integration.MessagingException: Circuit Breaker is Open for ServiceActivator
+15.599 ERROR [task-scheduler-3]org.springframework.messaging.MessagingException: Circuit Breaker is Open for ServiceActivator
 ...
 20.598 DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
-20.598 ERROR [task-scheduler-2]org.springframework.integration.MessagingException: Circuit Breaker is Open for ServiceActivator
+20.598 ERROR [task-scheduler-2]org.springframework.messaging.MessagingException: Circuit Breaker is Open for ServiceActivator
 ...
 25.598 DEBUG [task-scheduler-5]preSend on channel 'input', message: [Payload=...]
-25.601 ERROR [task-scheduler-5]org.springframework.integration.MessageHandlingException: java.lang.RuntimeException: foo
+25.601 ERROR [task-scheduler-5]org.springframework.messaging.MessageHandlingException: java.lang.RuntimeException: foo
 ...
 30.598 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=foo...]
-30.599 ERROR [task-scheduler-1]org.springframework.integration.MessagingException: Circuit Breaker is Open for ServiceActivator]]></programlisting></para>
+30.599 ERROR [task-scheduler-1]org.springframework.messaging.MessagingException: Circuit Breaker is Open for ServiceActivator]]></programlisting></para>
 			<para>
 				In the above example, the threshold is set to 2 and halfOpenAfter is set to 12 seconds; a
 				new request arrives every 5 seconds. You can see that

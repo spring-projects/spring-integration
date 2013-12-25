@@ -39,7 +39,7 @@ import org.junit.rules.ExpectedException;
 
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.messaging.Message;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;

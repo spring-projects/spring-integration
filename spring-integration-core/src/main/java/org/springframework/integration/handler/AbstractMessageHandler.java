@@ -18,7 +18,7 @@ package org.springframework.integration.handler;
 
 import org.springframework.core.Ordered;
 import org.springframework.messaging.Message;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * and error handling capabilities. Asserts that the incoming Message is not
  * null and that it does not contain a null payload. Converts checked exceptions
  * into runtime {@link MessagingException}s.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */

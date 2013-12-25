@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;

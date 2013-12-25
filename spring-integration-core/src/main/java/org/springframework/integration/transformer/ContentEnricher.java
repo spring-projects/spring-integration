@@ -28,7 +28,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.gateway.MessagingGatewaySupport;

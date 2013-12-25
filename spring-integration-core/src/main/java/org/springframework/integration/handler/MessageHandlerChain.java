@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;

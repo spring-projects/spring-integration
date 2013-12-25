@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import javax.jms.Topic;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -72,6 +72,7 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements SmartLifecycle, MessageListener {
 
@@ -644,7 +645,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			return replyMessage;
 		}
 		catch (JMSException e) {
-			throw new MessageHandlingException(requestMessage, e);
+			throw new MessageHandlingException(requestMessage, this.getComponentName() + " failed to handle request Message.", e);
 		}
 	}
 

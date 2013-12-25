@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
@@ -94,7 +94,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 			validationExceptions = this.xmlValidator.validate(this.converter.convertToSource(message.getPayload()));
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, e);
+			throw new MessageHandlingException(message, "XML validation error.", e);
 		}
 		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
 		if (!validationSuccess) {

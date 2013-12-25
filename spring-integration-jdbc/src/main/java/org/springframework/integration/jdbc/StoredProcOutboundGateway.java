@@ -19,7 +19,7 @@ package org.springframework.integration.jdbc;
 import java.sql.CallableStatement;
 import java.util.Map;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;

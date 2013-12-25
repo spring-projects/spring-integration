@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
@@ -281,7 +281,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 								throw (RuntimeException) e;
 							}
 							else {
-								throw new MessageHandlingException(new ErrorMessage(e));
+								throw new MessageHandlingException(new ErrorMessage(e),
+										AbstractPollingEndpoint.this.getComponentName() + " failed to invoke pollingTask.", e);
 							}
 						}
 					}

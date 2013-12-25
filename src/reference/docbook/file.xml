@@ -439,7 +439,7 @@
 			<para><emphasis>FAIL</emphasis></para>
 			<para>
 				If the target file exists, a
-				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/MessageHandlingException.html">MessageHandlingException</ulink>
+				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html">MessageHandlingException</ulink>
 				is thrown.
 			</para>
 			<para><emphasis>IGNORE</emphasis></para>

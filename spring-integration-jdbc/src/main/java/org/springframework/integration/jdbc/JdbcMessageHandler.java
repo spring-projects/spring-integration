@@ -19,7 +19,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
