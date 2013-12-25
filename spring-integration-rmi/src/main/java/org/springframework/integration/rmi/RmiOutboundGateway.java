@@ -20,7 +20,7 @@ import java.io.Serializable;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -65,7 +65,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 			return reply;
 		}
 		catch (MessagingException e) {
-			throw new MessageHandlingException(message, e);
+			throw new MessageHandlingException(message, null, e);
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "remote failure in RmiOutboundGateway", e);

@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.Message;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -178,7 +178,7 @@ public class GatewayInvokingMessageHandlerTests {
 		}
 
 		public String echoWithMessagingException(String value) {
-			throw new MessageHandlingException(new GenericMessage<String>(value));
+			throw new MessageHandlingException(new GenericMessage<String>(value), null);
 		}
 
 		public String echoWithErrorAsync(String value) {

@@ -17,6 +17,7 @@
 package org.springframework.integration;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 
 /**
  * Exception that indicates a message has been rejected by a selector.
@@ -27,7 +28,7 @@ import org.springframework.messaging.Message;
 public class MessageRejectedException extends MessageHandlingException {
 
 	public MessageRejectedException(Message<?> failedMessage) {
-		super(failedMessage);
+		super(failedMessage, null);
 	}
 
 	public MessageRejectedException(Message<?> failedMessage, String description) {

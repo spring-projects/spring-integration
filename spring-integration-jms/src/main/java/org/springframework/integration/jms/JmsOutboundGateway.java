@@ -45,7 +45,7 @@ import javax.jms.Topic;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -644,7 +644,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			return replyMessage;
 		}
 		catch (JMSException e) {
-			throw new MessageHandlingException(requestMessage, e);
+			throw new MessageHandlingException(requestMessage, null, e);
 		}
 	}
 

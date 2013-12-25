@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
@@ -94,7 +94,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 			validationExceptions = this.xmlValidator.validate(this.converter.convertToSource(message.getPayload()));
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, e);
+			throw new MessageHandlingException(message, null, e);
 		}
 		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
 		if (!validationSuccess) {
