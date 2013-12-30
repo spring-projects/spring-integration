@@ -33,8 +33,8 @@ def customizePom(pom, gradleProject) {
 			description = gradleProject.description
 			url = linkHomepage
 			organization {
-				name = 'SpringSource'
-				url = 'http://springsource.org'
+				name = 'SpringIO'
+				url = 'https://spring.io'
 			}
 			licenses {
 				license {
@@ -48,6 +48,11 @@ def customizePom(pom, gradleProject) {
 				url = linkScmUrl
 				connection = 'scm:git:' + linkScmConnection
 				developerConnection = 'scm:git:' + linkScmDevConnection
+			}
+
+			issueManagement {
+				system = "Jira"
+				url = linkIssue
 			}
 
 			developers {
