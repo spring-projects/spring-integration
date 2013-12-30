@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -41,8 +42,6 @@ import org.springframework.util.Assert;
  * @since 2.1.1
  */
 final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
-
-	public static String AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME = "$autoCreateChannelCandidates";
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
@@ -66,9 +65,8 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		}
 		else {
 			AutoCreateCandidatesCollector channelCandidatesCollector  =
-					beanFactory.getBean(AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME, AutoCreateCandidatesCollector.class);
-			Assert.notNull(channelCandidatesCollector, "Failed to locate '" +
-					ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+					beanFactory.getBean(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME, AutoCreateCandidatesCollector.class);
+			Assert.notNull(channelCandidatesCollector, "Failed to locate '" + IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 			// at this point channelNames are all resolved with placeholders and SpEL
 			Collection<String> channelNames = channelCandidatesCollector.getChannelNames();
 			if (channelNames != null){
@@ -98,5 +96,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		public Collection<String> getChannelNames() {
 			return channelNames;
 		}
+
 	}
+
 }

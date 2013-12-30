@@ -33,6 +33,7 @@ import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -122,9 +123,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
-			if (parserContext.getRegistry().containsBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
+			if (parserContext.getRegistry().containsBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
 				BeanDefinition channelRegistry = parserContext.getRegistry().
-						getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+						getBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 				ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
 				ValueHolder vh = caValues.getArgumentValue(0, Collection.class);
 				if (vh == null) { //although it should never happen if it does we can fix it
@@ -137,7 +138,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			}
 			else {
 				parserContext.getReaderContext().error("Failed to locate '" +
-						ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'", parserContext.getRegistry());
+						IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'", parserContext.getRegistry());
 			}
 		}
 
