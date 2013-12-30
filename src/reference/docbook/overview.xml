@@ -318,4 +318,32 @@
     </section>
   </section>
 
+  <section>
+    <title>Configuration</title>
+    <para>
+      Throughout this document you will see references to XML namespace support for declaring elements in a Spring
+      Integration flow. This support is provided by a series of namespace parsers that generate appropriate
+      bean definitions to implement a particular component. For example, many endpoints consist of a
+      <interfacename>MessageHandler</interfacename> bean and a <classname>ConsumerEndpointFactoryBean</classname>
+      into which the handler and an input channel name are injected.
+    </para>
+    <para>
+      The first time a Spring Integration namespace element is encountered, the framework automatically declares
+      a number of beans that are used to support the runtime environment (task scheduler,
+      implicit channel creator, etc).
+    </para>
+    <para id="enable-integration">
+      Starting with <emphasis>version 4.0</emphasis>, these support beans can also be defined when using
+      <code>@Configuration</code> classes, by adding a new annotation <code>@EnableIntegration</code>.
+      This is useful when declaring a simple Spring Integration flow using purely Java Configuration.
+      For example; you can declare an endpoint with a <interfacename>MessageHandler</interfacename> <code>@Bean</code>
+      as well as a <classname>ConsumerEndpointFactoryBean</classname> <code>@Bean</code>.
+    </para>
+    <para>
+      <code>@EnableIntegration</code> is also useful when you have a parent context with no Spring Integration
+      components and 2 or more child contexts that do use Spring Integration. It would enable these common
+      components to be declared once only, in the parent context.
+    </para>
+  </section>
+
 </chapter>

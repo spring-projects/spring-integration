@@ -32,6 +32,19 @@ allprojects {
 		maven { url 'http://repo.spring.io/plugins-release' }
 		mavenCentral()
 	}
+
+	ext.javadocLinks = [
+		'http://docs.oracle.com/javase/7/docs/api/',
+		'http://docs.oracle.com/javaee/6/api/',
+		'http://docs.spring.io/spring/docs/current/javadoc-api/',
+		'http://docs.spring.io/spring-amqp/docs/latest-ga/api/',
+		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
+		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
+		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
+		'http://docs.spring.io/spring-social-twitter/docs/current/api/',
+		'http://docs.spring.io/spring-ws/sites/2.0/apidocs/'
+	] as String[]
+
 }
 
 subprojects { subproject ->
@@ -614,6 +627,7 @@ task api(type: Javadoc) {
 	options.header = rootProject.description
 	options.overview = 'src/api/overview.html'
 	options.stylesheetFile = file("src/api/stylesheet.css")
+	options.links(project.ext.javadocLinks)
 	source subprojects.collect { project ->
 		project.sourceSets.main.allJava
 	}

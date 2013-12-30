@@ -23,15 +23,26 @@
 
 	<section id="4.0-general">
 		<title>General Changes</title>
-		<para>
-			Core messaging abstractions (<interfacename>Message</interfacename>,
-			<interfacename>MessageChannel</interfacename> etc) have moved to the Spring
-			Framework <code>spring-messaging</code> module. Users who reference these
-			classes directly in their code will need to make changes as described in
-			the first section of the
-			<ulink url="https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-3.0-to-4.0-Migration-Guide"
-			>Migration Guide</ulink>.
-		</para>
+		<section>
+			<title>Requires Spring Framework 4.0</title>
+			<para>
+				Core messaging abstractions (<interfacename>Message</interfacename>,
+				<interfacename>MessageChannel</interfacename> etc) have moved to the Spring
+				Framework <code>spring-messaging</code> module. Users who reference these
+				classes directly in their code will need to make changes as described in
+				the first section of the
+				<ulink url="https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-3.0-to-4.0-Migration-Guide"
+				>Migration Guide</ulink>.
+			</para>
+		</section>
+		<section>
+			<title>@EnableConfiguration</title>
+			<para>
+				The <code>@EnableIntegration</code> annotation has been added, to permit declaration of
+				standard Spring Integration beans when using <code>@Configuration</code> classes. See
+				<xref linkend="enable-integration"/> for more information.
+			</para>
+		</section>
 		<section id="4.0-xpath-header-enricher-header-type">
 			<title>Header Type for XPath Header Enricher</title>
 			<para>
