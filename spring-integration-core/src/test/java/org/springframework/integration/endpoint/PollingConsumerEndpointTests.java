@@ -16,12 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -34,6 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.messaging.Message;
 import org.springframework.integration.MessageRejectedException;
@@ -66,7 +62,7 @@ public class PollingConsumerEndpointTests {
 
 	private TestErrorHandler errorHandler = new TestErrorHandler();
 
-	private PollableChannel channelMock = createMock(PollableChannel.class);
+	private PollableChannel channelMock = Mockito.mock(PollableChannel.class);
 
 	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
@@ -84,7 +80,7 @@ public class PollingConsumerEndpointTests {
 		endpoint.setReceiveTimeout(-1);
 		endpoint.afterPropertiesSet();
 		taskScheduler.afterPropertiesSet();
-		reset(channelMock);
+		Mockito.reset(channelMock);
 	}
 
 	@After
@@ -95,58 +91,32 @@ public class PollingConsumerEndpointTests {
 
 	@Test
 	public void singleMessage() {
-		expect(channelMock.receive()).andReturn(message);
-		expectLastCall();
-		replay(channelMock);
+		Mockito.when(channelMock.receive()).thenReturn(message);
 		endpoint.setMaxMessagesPerPoll(1);
-		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		assertEquals(1, consumer.counter.get());
-		verify(channelMock);
 	}
 
 	@Test
 	public void multipleMessages() {
-		expect(channelMock.receive()).andReturn(message).times(5);
-		replay(channelMock);
+		Mockito.when(channelMock.receive()).thenReturn(message, message, message, message, message);
 		endpoint.setMaxMessagesPerPoll(5);
-		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		assertEquals(5, consumer.counter.get());
-		verify(channelMock);
-	}
-
-	@Test
-	public void multipleMessagesWithMaxMessagesAndTrigger() {
-		expect(channelMock.receive()).andReturn(message).times(5);
-		replay(channelMock);
-
-		endpoint.setMaxMessagesPerPoll(5);
-		endpoint.setTrigger(trigger);
-
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(5, consumer.counter.get());
-		verify(channelMock);
 	}
 
 	@Test
 	public void multipleMessages_underrun() {
-		expect(channelMock.receive()).andReturn(message).times(5);
-		expect(channelMock.receive()).andReturn(null);
-		replay(channelMock);
+		Mockito.when(channelMock.receive()).thenReturn(message, message, message, message, message, null);
 		endpoint.setMaxMessagesPerPoll(6);
-		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		assertEquals(5, consumer.counter.get());
-		verify(channelMock);
 	}
 
 	@Test
@@ -160,26 +130,21 @@ public class PollingConsumerEndpointTests {
 
 	@Test(expected = MessageRejectedException.class)
 	public void rejectedMessage() throws Throwable {
-		expect(channelMock.receive()).andReturn(badMessage);
-		replay(channelMock);
+		Mockito.when(channelMock.receive()).thenReturn(badMessage);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		verify(channelMock);
 		assertEquals(1, consumer.counter.get());
 		errorHandler.throwLastErrorIfAvailable();
 	}
 
 	@Test(expected = MessageRejectedException.class)
 	public void droppedMessage_onePerPoll() throws Throwable {
-		expect(channelMock.receive()).andReturn(badMessage).times(1);
-		replay(channelMock);
+		Mockito.when(channelMock.receive()).thenReturn(badMessage);
 		endpoint.setMaxMessagesPerPoll(10);
-		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		verify(channelMock);
 		assertEquals(1, consumer.counter.get());
 		errorHandler.throwLastErrorIfAvailable();
 	}
@@ -187,29 +152,23 @@ public class PollingConsumerEndpointTests {
 	@Test
 	public void blockingSourceTimedOut() {
 		// we don't need to await the timeout, returning null suffices
-		expect(channelMock.receive(1)).andReturn(null);
-		replay(channelMock);
+		Mockito.when(channelMock.receive()).thenReturn(null);
 		endpoint.setReceiveTimeout(1);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		assertEquals(0, consumer.counter.get());
-		verify(channelMock);
 	}
 
 	@Test
 	public void blockingSourceNotTimedOut() {
-		expect(channelMock.receive(1)).andReturn(message);
-		expectLastCall();
-		replay(channelMock);
+		Mockito.when(channelMock.receive(Mockito.eq(1L))).thenReturn(message);
 		endpoint.setReceiveTimeout(1);
 		endpoint.setMaxMessagesPerPoll(1);
-		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		assertEquals(1, consumer.counter.get());
-		verify(channelMock);
 	}
 
 

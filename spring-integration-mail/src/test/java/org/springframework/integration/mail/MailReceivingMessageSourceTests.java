@@ -23,23 +23,24 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.mail.internet.MimeMessage;
 
-import org.easymock.EasyMock;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MailReceivingMessageSourceTests {
 
 	@Test
 	public void testPolling() {
 		StubMailReceiver mailReceiver = new StubMailReceiver();
-		MimeMessage message1 = EasyMock.createMock(MimeMessage.class);
-		MimeMessage message2 = EasyMock.createMock(MimeMessage.class);
-		MimeMessage message3 = EasyMock.createMock(MimeMessage.class);
-		MimeMessage message4 = EasyMock.createMock(MimeMessage.class);
+		MimeMessage message1 = Mockito.mock(MimeMessage.class);
+		MimeMessage message2 = Mockito.mock(MimeMessage.class);
+		MimeMessage message3 = Mockito.mock(MimeMessage.class);
+		MimeMessage message4 = Mockito.mock(MimeMessage.class);
 
 		mailReceiver.messages.add(new javax.mail.Message[] { message1 });
 		mailReceiver.messages.add(new javax.mail.Message[] { message2, message3 });
