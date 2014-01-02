@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,56 +16,64 @@
 
 package org.springframework.integration.handler;
 
-import static org.easymock.EasyMock.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MessageHandlerChainTests {
 
-	private MessageChannel outputChannel = createMock(MessageChannel.class);
+	private final Message<String> message = MessageBuilder.withPayload("foo").build();
 
-	private Message<String> message = MessageBuilder.withPayload("foo").build();
+	@Mock
+	private MessageChannel outputChannel;
 
-	private MessageHandler handler1 = createMock(MessageHandler.class);
+	@Mock
+	private MessageHandler handler1;
 
-	private MessageHandler handler2 = createMock(MessageHandler.class);
+	@Mock
+	private MessageHandler handler2;
 
-	private MessageHandler handler3 = createMock(MessageHandler.class);
+	@Mock
+	private MessageHandler handler3;
 
-	private ProducingHandlerStub producer1 = new ProducingHandlerStub(handler1);
+	private ProducingHandlerStub producer1;
 
-	private ProducingHandlerStub producer2 = new ProducingHandlerStub(handler2);
+	private ProducingHandlerStub producer2;
 
-	private ProducingHandlerStub producer3 = new ProducingHandlerStub(handler3);
+	private ProducingHandlerStub producer3;
 
-	private Object[] allMocks = new Object[] { outputChannel, handler1, handler2, handler3 };
+	@Before
+	public void setup() {
+		Mockito.when(outputChannel.send(Mockito.any(Message.class))).thenReturn(true);
+		Mockito.when(outputChannel.send(Mockito.any(Message.class), Mockito.anyLong())).thenReturn(true);
+		producer1 = new ProducingHandlerStub(handler1);
+		producer2 = new ProducingHandlerStub(handler2);
+		producer3 = new ProducingHandlerStub(handler3);
+	}
 
 	@Test
 	public void chainWithOutputChannel() {
-		handler1.handleMessage(message);
-		expectLastCall();
-		handler2.handleMessage(message);
-		expectLastCall();
-		handler3.handleMessage(message);
-		expectLastCall();
-		expect(outputChannel.send(eq(message), eq(-1L))).andReturn(true);
-		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		handlers.add(producer1);
 		handlers.add(producer2);
@@ -75,11 +83,11 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setOutputChannel(outputChannel);
 		chain.handleMessage(message);
+		Mockito.verify(outputChannel).send(Mockito.eq(message), Mockito.eq(-1L));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void chainWithOutputChannelButLastHandlerDoesNotProduceReplies() {
-		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		handlers.add(producer1);
 		handlers.add(producer2);
@@ -93,13 +101,6 @@ public class MessageHandlerChainTests {
 
 	@Test
 	public void chainWithoutOutputChannelButLastHandlerDoesNotProduceReplies() {
-		handler1.handleMessage(message);
-		expectLastCall();
-		handler2.handleMessage(message);
-		expectLastCall();
-		handler3.handleMessage(message);
-		expectLastCall();
-		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		handlers.add(producer1);
 		handlers.add(producer2);
@@ -113,15 +114,6 @@ public class MessageHandlerChainTests {
 	@Test
 	public void chainForwardsToReplyChannel() {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannel(outputChannel).build();
-		handler1.handleMessage(message);
-		expectLastCall();
-		handler2.handleMessage(message);
-		expectLastCall();
-		handler3.handleMessage(message);
-		expectLastCall();
-		//equality is lost when recreating the message
-		expect(outputChannel.send(isA(Message.class))).andReturn(true);
-		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		handlers.add(producer1);
 		handlers.add(producer2);
@@ -130,19 +122,12 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.handleMessage(message);
+		Mockito.verify(outputChannel).send(Mockito.any(Message.class));
 	}
 
 	@Test
 	public void chainResolvesReplyChannelName() {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannelName("testChannel").build();
-		handler1.handleMessage(message);
-		expectLastCall();
-		handler2.handleMessage(message);
-		expectLastCall();
-		handler3.handleMessage(message);
-		expectLastCall();
-		expect(outputChannel.send(eq(message))).andReturn(true);
-		replay(allMocks);
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", outputChannel);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
@@ -154,6 +139,7 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(beanFactory);
 		chain.handleMessage(message);
+		Mockito.verify(outputChannel).send(Mockito.eq(message));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // INT-1175
@@ -181,11 +167,13 @@ public class MessageHandlerChainTests {
 			this.messageHandler = handler;
 		}
 
+		@Override
 		public void setOutputChannel(MessageChannel channel) {
 			this.output = channel;
 
 		}
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			messageHandler.handleMessage(message);
 			output.send(message);
