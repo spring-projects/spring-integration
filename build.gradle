@@ -46,7 +46,6 @@ subprojects { subproject ->
 		commonsNetVersion = '3.0.1'
 		commonsIoVersion = '2.4'
 		derbyVersion = '10.10.1.1'
-		easymockVersion = '3.2'
 		groovyVersion = '2.1.0'
 		hamcrestVersion = '1.3'
 		jacksonVersion = '1.9.2'
@@ -98,7 +97,6 @@ subprojects { subproject ->
 	dependencies {
 		testCompile "junit:junit:$junitVersion"
 		testCompile "log4j:log4j:$log4jVersion"
-		testCompile "org.easymock:easymock:$easymockVersion"
 		testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
 		testCompile "org.mockito:mockito-all:$mockitoVersion"
 		testCompile "org.springframework:spring-test:$springVersion"

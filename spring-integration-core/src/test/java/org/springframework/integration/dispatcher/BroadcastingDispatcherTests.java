@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,52 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class BroadcastingDispatcherTests {
 
 	private BroadcastingDispatcher dispatcher;
 
-	private TaskExecutor taskExecutorMock = createMock(TaskExecutor.class);
+	private TaskExecutor taskExecutorMock = Mockito.mock(TaskExecutor.class);
 
-	private Message<?> messageMock = createMock(Message.class);
+	private Message<?> messageMock = Mockito.mock(Message.class);
 
-	private MessageHandler targetMock1 = createMock(MessageHandler.class);
+	private MessageHandler targetMock1 = Mockito.mock(MessageHandler.class);
 
-	private MessageHandler targetMock2 = createMock(MessageHandler.class);
+	private MessageHandler targetMock2 = Mockito.mock(MessageHandler.class);
 
-	private MessageHandler targetMock3 = createMock(MessageHandler.class);
-
-	private Object[] globalMocks = new Object[] {
-			messageMock, taskExecutorMock, targetMock1, targetMock2, targetMock3 };
+	private MessageHandler targetMock3 = Mockito.mock(MessageHandler.class);
 
 
 	@Before
 	public void init() {
-		reset(globalMocks);
+		Mockito.reset(taskExecutorMock, messageMock, taskExecutorMock, targetMock1, targetMock2, targetMock3);
 		defaultTaskExecutorMock();
 	}
 
@@ -76,22 +70,16 @@ public class BroadcastingDispatcherTests {
 	public void singleTargetWithoutTaskExecutor() throws Exception {
 		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
 	public void singleTargetWithTaskExecutor() throws Exception {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
@@ -100,15 +88,10 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		targetMock2.handleMessage(messageMock);
-		expectLastCall();
-		targetMock3.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
@@ -117,79 +100,62 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		targetMock2.handleMessage(messageMock);
-		expectLastCall();
-		targetMock3.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
 	public void multipleTargetsPartialFailureFirst() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
-		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(false, true, true);
-		targetMock2.handleMessage(messageMock);
-		expectLastCall();
-		targetMock3.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
 	public void multipleTargetsPartialFailureMiddle() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
-		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(true, false, true);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		targetMock3.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
 	public void multipleTargetsPartialFailureLast() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
-		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(true, true, false);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		targetMock2.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3, Mockito.never()).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
 	public void multipleTargetsAllFail() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
-		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(false, false, false);
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3, Mockito.never()).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
@@ -198,11 +164,8 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock1);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
@@ -212,13 +175,10 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		dispatcher.removeHandler(targetMock2);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall();
-		targetMock3.handleMessage(messageMock);
-		expectLastCall();
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
@@ -227,17 +187,12 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall().times(2);
-		targetMock2.handleMessage(messageMock);
-		expectLastCall();
-		targetMock3.handleMessage(messageMock);
-		expectLastCall().times(2);
-		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
 		dispatcher.removeHandler(targetMock2);
 		dispatcher.dispatch(messageMock);
-		verify(globalMocks);
+		Mockito.verify(targetMock1, Mockito.times(2)).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
+		Mockito.verify(targetMock3, Mockito.times(2)).handleMessage(Mockito.eq(messageMock));
 	}
 
 	@Test
@@ -290,16 +245,13 @@ public class BroadcastingDispatcherTests {
 	public void testExceptionEnhancement() {
 		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
-		targetMock1.handleMessage(messageMock);
-		expectLastCall().andThrow(new MessagingException("Mock Exception"));
-		replay(globalMocks);
+		Mockito.doThrow(new MessagingException("Mock Exception")).when(targetMock1).handleMessage(Mockito.eq(messageMock));
 		try {
 			dispatcher.dispatch(messageMock);
 			fail("Expected Exception");
 		} catch (MessagingException e) {
 			assertEquals(messageMock, e.getFailedMessage());
 		}
-		verify(globalMocks);
 	}
 
 	/**
@@ -312,43 +264,42 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		targetMock1.handleMessage(messageMock);
 		Message<String> dontReplaceThisMessage = MessageBuilder.withPayload("x").build();
-		expectLastCall().andThrow(new MessagingException(dontReplaceThisMessage,
-				"Mock Exception"));
-		replay(globalMocks);
+		Mockito.doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception"))
+				.when(targetMock1).handleMessage(Mockito.eq(messageMock));
 		try {
 			dispatcher.dispatch(messageMock);
 			fail("Expected Exception");
 		} catch (MessagingException e) {
 			assertEquals(dontReplaceThisMessage, e.getFailedMessage());
 		}
-		verify(globalMocks);
 	}
 
 	private void defaultTaskExecutorMock() {
-		taskExecutorMock.execute(isA(Runnable.class));
-		expectLastCall().andAnswer(new IAnswer<Object>() {
-			public Object answer() throws Throwable {
-				((Runnable) getCurrentArguments()[0]).run();
+		Mockito.doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				((Runnable) invocation.getArguments()[0]).run();
 				return null;
 			}
-		}).anyTimes();
+		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
 	}
 
 	/*
 	 * runs the runnable based on the array of passes
 	 */
-	private void partialFailingExecutorMock(boolean... passes) {
-		taskExecutorMock.execute(isA(Runnable.class));
-		for (final boolean pass : passes) {
-			expectLastCall().andAnswer(new IAnswer<Object>() {
-				public Object answer() throws Throwable {
-					if (pass) {
-						((Runnable) getCurrentArguments()[0]).run();
-					}
-					return null;
+	private void partialFailingExecutorMock(final boolean... passes) {
+		final AtomicInteger count = new AtomicInteger();
+		Mockito.doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				if (passes[count.getAndIncrement()]) {
+					((Runnable) invocation.getArguments()[0]).run();
 				}
-			});
-		}
+				return null;
+			}
+		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
 	}
 
 
@@ -363,6 +314,6 @@ public class BroadcastingDispatcherTests {
 		public void handleMessage(Message<?> message) {
 			this.messageList.add(message);
 		}
-	};
+	}
 
 }

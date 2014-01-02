@@ -22,8 +22,8 @@ import static org.junit.Assert.assertTrue;
 
 import javax.mail.internet.MimeMessage;
 
-import org.easymock.EasyMock;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,6 +36,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MailToStringTransformerParserTests {
 
@@ -45,14 +46,13 @@ public class MailToStringTransformerParserTests {
 				"mailToStringTransformerParserTests.xml",  this.getClass());
 		MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
 		PollableChannel output = (PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
-		MimeMessage mimeMessage = EasyMock.createNiceMock(MimeMessage.class);
-		EasyMock.expect(mimeMessage.getContent()).andReturn("hello");
-		EasyMock.replay(mimeMessage);
+		MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
+		Mockito.when(mimeMessage.getContent()).thenReturn("hello");
 		input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
 		Message<?> result = output.receive(0);
 		assertNotNull(result);
 		assertEquals("hello", result.getPayload());
-		EasyMock.verify(mimeMessage);
+		Mockito.verify(mimeMessage).getContent();
 	}
 
 	@Test
@@ -61,14 +61,13 @@ public class MailToStringTransformerParserTests {
 				"mailToStringTransformerWithinChain.xml",  this.getClass());
 		MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
 		PollableChannel output = (PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
-		MimeMessage mimeMessage = EasyMock.createNiceMock(MimeMessage.class);
-		EasyMock.expect(mimeMessage.getContent()).andReturn("foo");
-		EasyMock.replay(mimeMessage);
+		MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
+		Mockito.when(mimeMessage.getContent()).thenReturn("foo");
 		input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
 		Message<?> result = output.receive(0);
 		assertNotNull(result);
 		assertEquals("FOO!!!", result.getPayload());
-		EasyMock.verify(mimeMessage);
+		Mockito.verify(mimeMessage).getContent();
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)
