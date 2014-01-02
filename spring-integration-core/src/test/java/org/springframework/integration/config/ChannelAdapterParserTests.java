@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -278,6 +278,20 @@ public class ChannelAdapterParserTests {
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void innerBeanAndExpressionFail() throws Exception {
 		new ClassPathXmlApplicationContext("InboundChannelAdapterInnerBeanWithExpression-fail-context.xml", this.getClass());
+	}
+
+	@Test
+	public void testMessageSourceUniqueIds() {
+		PollableChannel channel1 = this.applicationContext.getBean("channelAdapter1Channel", PollableChannel.class);
+		PollableChannel channel2 = this.applicationContext.getBean("channelAdapter2Channel", PollableChannel.class);
+
+		for (int i = 0; i < 10; i++) {
+			Message<?> message = channel1.receive(5000);
+			assertNotNull(message);
+			assertEquals(i + 1, message.getPayload());
+			message = channel2.receive(5000);
+			assertEquals(i + 1, message.getPayload());
+		}
 	}
 
 	public static class SampleBean {

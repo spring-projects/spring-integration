@@ -46,4 +46,23 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean"/>
 
+
+	<poller default="true" max-messages-per-poll="1" fixed-delay="100"/>
+
+	<channel id="channelAdapter1Channel">
+		<queue/>
+	</channel>
+
+	<channel id="channelAdapter2Channel">
+		<queue/>
+	</channel>
+
+	<beans:bean id="counter1" class="java.util.concurrent.atomic.AtomicInteger"/>
+
+	<beans:bean id="counter2" parent="counter1"/>
+
+	<inbound-channel-adapter channel="channelAdapter1Channel" ref="counter1" method="incrementAndGet"/>
+
+	<inbound-channel-adapter channel="channelAdapter2Channel"  ref="counter2" method="incrementAndGet"/>
+
 </beans:beans>
