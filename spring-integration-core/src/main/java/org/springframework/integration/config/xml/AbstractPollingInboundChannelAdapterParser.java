@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,13 +42,13 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		if (source == null) {
 			parserContext.getReaderContext().error("failed to parse source", element);
 		}
+		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(SourcePollingChannelAdapterFactoryBean.class);
 
-		String channelAdapterId = this.resolveId(element, (AbstractBeanDefinition) source, parserContext);
+		String channelAdapterId = this.resolveId(element, adapterBuilder.getRawBeanDefinition(), parserContext);
 		String sourceBeanName = channelAdapterId + ".source";
 		parserContext.getRegistry().registerBeanDefinition(sourceBeanName, (BeanDefinition) source);
 
-		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(SourcePollingChannelAdapterFactoryBean.class);
 		adapterBuilder.addPropertyReference("source", sourceBeanName);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "send-timeout");
