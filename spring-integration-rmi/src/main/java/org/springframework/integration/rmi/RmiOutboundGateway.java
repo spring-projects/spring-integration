@@ -52,7 +52,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 	public final Object handleRequestMessage(Message<?> message) {
 		if (!(message.getPayload() instanceof Serializable)) {
 			throw new MessageHandlingException(message,
-					this.getClass().getName() + " expects a Serializable payload type " +
+					this.getComponentName() + " expects a Serializable payload type " +
 					"but encountered [" + message.getPayload().getClass().getName() + "]");
 		}
 		Message<?> requestMessage = MessageBuilder.withPayload(message.getPayload())
@@ -65,10 +65,10 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 			return reply;
 		}
 		catch (MessagingException e) {
-			throw new MessageHandlingException(message, null, e);
+			throw new MessageHandlingException(message, this.getComponentName() + " failed to handle request Message.", e);
 		}
 		catch (RemoteAccessException e) {
-			throw new MessageHandlingException(message, "remote failure in RmiOutboundGateway", e);
+			throw new MessageHandlingException(message, "Remote failure in RmiOutboundGateway: " + this.getComponentName(), e);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.integration.util.MessagingMethodInvokerHelper;
  * annotation rather than the method name.
  *
  * @author Dave Syer
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -73,7 +74,7 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 			return delegate.process(message);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, null, e);
+			throw new MessageHandlingException(message, this.delegate + " failed to process Message.", e);
 		}
 	}
 
