@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
@@ -39,13 +40,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
@@ -54,6 +55,8 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 2.1
  */
 @ContextConfiguration
@@ -73,6 +76,8 @@ public class AmqpInboundGatewayParserTests {
 		assertSame(testConverter, templateConverter);
 		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(gateway, "autoStartup"));
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "phase"));
+		assertEquals(Long.valueOf(1234L), TestUtils.getPropertyValue(gateway, "replyTimeout", Long.class));
+		assertEquals(Long.valueOf(1234L), TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout", Long.class));
 	}
 
 	@Test
@@ -87,6 +92,7 @@ public class AmqpInboundGatewayParserTests {
 	public void verifyUsageWithHeaderMapper() throws Exception{
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
 		requestChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> siMessage)
 					throws MessagingException {
 				org.springframework.messaging.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
@@ -103,7 +109,8 @@ public class AmqpInboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer() {
-		      public Object answer(InvocationOnMock invocation) {
+		      @Override
+			public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
 		          Message amqpReplyMessage = (Message) args[2];
 		          MessageProperties properties = amqpReplyMessage.getMessageProperties();

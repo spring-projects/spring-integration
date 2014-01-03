@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,20 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
  * Parser for the AMQP 'inbound-gateway' element.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpInboundGatewayParser extends AbstractAmqpInboundAdapterParser {
 
 	AmqpInboundGatewayParser() {
-		super("org.springframework.integration.amqp.inbound.AmqpInboundGateway");
+		super(AmqpInboundGateway.class.getName());
 	}
 
 

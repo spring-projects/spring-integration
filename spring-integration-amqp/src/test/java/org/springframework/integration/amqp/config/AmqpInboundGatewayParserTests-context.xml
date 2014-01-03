@@ -11,7 +11,7 @@
 
 	<int:channel id="requests"/>
 
-	<si-amqp:inbound-gateway id="gateway" request-channel="requests" queue-names="test"
+	<si-amqp:inbound-gateway id="gateway" request-channel="requests" queue-names="test" reply-timeout="1234"
 			connection-factory="rabbitConnectionFactory" message-converter="testConverter"/>
 
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
