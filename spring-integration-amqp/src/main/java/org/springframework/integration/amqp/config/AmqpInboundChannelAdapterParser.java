@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,21 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the AMQP 'inbound-channel-adapter' element.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
+ *
  * @since 2.1
  */
 public class AmqpInboundChannelAdapterParser extends AbstractAmqpInboundAdapterParser {
 
 	AmqpInboundChannelAdapterParser() {
-		super("org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter");
+		super(AmqpInboundChannelAdapter.class.getName());
 	}
 
 	@Override
