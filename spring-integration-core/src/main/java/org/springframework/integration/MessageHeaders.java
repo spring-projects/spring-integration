@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,34 +187,42 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	 * Map implementation
 	 */
 
+	@Override
 	public boolean containsKey(Object key) {
 		return this.headers.containsKey(key);
 	}
 
+	@Override
 	public boolean containsValue(Object value) {
 		return this.headers.containsValue(value);
 	}
 
+	@Override
 	public Set<Map.Entry<String, Object>> entrySet() {
 		return Collections.unmodifiableSet(this.headers.entrySet());
 	}
 
+	@Override
 	public Object get(Object key) {
 		return this.headers.get(key);
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return this.headers.isEmpty();
 	}
 
+	@Override
 	public Set<String> keySet() {
 		return Collections.unmodifiableSet(this.headers.keySet());
 	}
 
+	@Override
 	public int size() {
 		return this.headers.size();
 	}
 
+	@Override
 	public Collection<Object> values() {
 		return Collections.unmodifiableCollection(this.headers.values());
 	}
@@ -225,24 +233,28 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	/**
 	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
 	 */
+	@Override
 	public Object put(String key, Object value) {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
 	/**
 	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
 	 */
+	@Override
 	public void putAll(Map<? extends String, ? extends Object> t) {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
 	/**
 	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
 	 */
+	@Override
 	public Object remove(Object key) {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
 	/**
 	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
 	 */
+	@Override
 	public void clear() {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
@@ -284,36 +296,40 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	}
 
-    /**
-     * A variation of {@link UUID#randomUUID()} that uses {@link SecureRandom} only for
-     * the initial seed and {@link Random} thereafter, which provides better performance
-     * in exchange for less securely random id's.
-     */
-    public static class AlternativeJdkIdGenerator implements IdGenerator {
+	/**
+	 * A variation of {@link UUID#randomUUID()} that uses {@link SecureRandom} only for
+	 * the initial seed and {@link Random} thereafter, which provides better performance
+	 * in exchange for less securely random id's.
+	 */
+	public static class AlternativeJdkIdGenerator implements IdGenerator {
 
-            private final Random random;
+		private final Random random;
 
-            public AlternativeJdkIdGenerator() {
-                    byte[] seed = new SecureRandom().generateSeed(8);
-                    this.random = new Random(new BigInteger(seed).longValue());
-            }
+		public AlternativeJdkIdGenerator() {
+			SecureRandom secureRandom = new SecureRandom();
+			byte[] seed = new byte[8];
+			secureRandom.nextBytes(seed);
+			this.random = new Random(new BigInteger(seed).longValue());
+		}
 
-            public UUID generateId() {
+		@Override
+		public UUID generateId() {
 
-                    byte[] randomBytes = new byte[16];
-                    this.random.nextBytes(randomBytes);
+			byte[] randomBytes = new byte[16];
+			this.random.nextBytes(randomBytes);
 
-                    long mostSigBits = 0;
-                    for (int i = 0; i < 8; i++) {
-                            mostSigBits = (mostSigBits << 8) | (randomBytes[i] & 0xff);
-                    }
-                    long leastSigBits = 0;
-                    for (int i = 8; i < 16; i++) {
-                            leastSigBits = (leastSigBits << 8) | (randomBytes[i] & 0xff);
-                    }
+			long mostSigBits = 0;
+			for (int i = 0; i < 8; i++) {
+				mostSigBits = (mostSigBits << 8) | (randomBytes[i] & 0xff);
+			}
+			long leastSigBits = 0;
+			for (int i = 8; i < 16; i++) {
+				leastSigBits = (leastSigBits << 8) | (randomBytes[i] & 0xff);
+			}
 
-                    return new UUID(mostSigBits, leastSigBits);
-            }
+			return new UUID(mostSigBits, leastSigBits);
+		}
+
     }
 
 	public static class SimpleIncrementingIdGenerator implements IdGenerator {
