@@ -261,6 +261,17 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Used to set the receiveTimeout on the underlying MessagingTemplate instance
+	(org.springframework.integration.core.MessagingTemplate) for receiving messages
+	from the reply channel. If not specified this property will default to "1000"
+	(1 second). Only applies if the container thread hands off to another thread
+	before the reply is sent.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

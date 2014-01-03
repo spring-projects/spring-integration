@@ -3876,7 +3876,7 @@
 						[OPTIONAL] Specifies the order in which this interceptor will be
 						added to the existing channel
 						interceptors (if any).
-						Negative value (e.g., -2) will signify BEFORE existing iinterceptors (if any). Positive
+						Negative value (e.g., -2) will signify BEFORE existing interceptors (if any). Positive
 						value (e.g., 2)
 						will signify AFTER existing interceptors (if any)
 					</xsd:documentation>
