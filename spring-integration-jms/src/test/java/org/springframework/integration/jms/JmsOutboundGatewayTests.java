@@ -140,8 +140,16 @@ public class JmsOutboundGatewayTests {
 		gateway.setBeanFactory(beanFactory);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Thread.sleep(1000);
-		assertTrue(count.get() > 4);
-		assertEquals(0, errors.size());
+		try {
+			int n = 0;
+			while (n++ < 100 && count.get() < 5) {
+				Thread.sleep(100);
+			}
+			assertTrue(count.get() > 4);
+			assertEquals(0, errors.size());
+		}
+		finally {
+			gateway.stop();
+		}
 	}
 }
