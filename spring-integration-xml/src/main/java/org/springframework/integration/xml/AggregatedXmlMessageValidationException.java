@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 @SuppressWarnings("serial")
@@ -34,12 +35,25 @@ public class AggregatedXmlMessageValidationException extends RuntimeException {
 		this.exceptions = (exceptions != null) ? exceptions : Collections.<Throwable>emptyList();
 	}
 
+	@Override
+	public String getMessage() {
+		StringBuilder message = new StringBuilder("Multiple causes:\n");
+		for (Throwable exception : this.exceptions) {
+			message.append("    " + exception.getMessage() + "\n");
+		}
+		return message.toString();
+	}
 
 	/**
-	 * Returns an Iterator for the aggregated Exceptions.
+	 * @deprecated in favor of #getExceptions
 	 */
+	@Deprecated
 	public Iterator<Throwable> exceptionIterator() {
 		return exceptions.iterator();
+	}
+
+	public List<Throwable> getExceptions() {
+		return Collections.unmodifiableList(exceptions);
 	}
 
 }
