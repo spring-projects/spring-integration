@@ -18,8 +18,10 @@ package org.springframework.integration.config.xml;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,6 +78,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 
 	private final NamespaceHandlerDelegate delegate = new NamespaceHandlerDelegate();
+
+	private static final Set<Integer> registriesProcessed = new HashSet<Integer>();
 
 
 	@Override
@@ -199,6 +203,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	}
 
 	private void registerBuiltInBeans(ParserContext parserContext) {
+		int registryId = System.identityHashCode(parserContext.getRegistry());
+
 		String jsonPathBeanName = "jsonPath";
 		boolean alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
@@ -207,7 +213,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		else {
 			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(jsonPathBeanName);
 		}
-		if (!alreadyRegistered) {
+		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
 			Class<?> jsonPathClass = null;
 			try {
 				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", parserContext.getReaderContext().getBeanClassLoader());
@@ -230,7 +236,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		else {
 			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(xpathBeanName);
 		}
-		if (!alreadyRegistered) {
+		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
 			Class<?> xpathClass = null;
 			try {
 				xpathClass = ClassUtils.forName(IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
@@ -246,6 +252,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			}
 		}
 
+		registriesProcessed.add(registryId);
 
 		this.doRegisterBuiltInBeans(parserContext);
 	}
