@@ -64,7 +64,7 @@ public abstract class IntegrationContextUtils {
 	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME = IntegrationNamespaceUtils.BASE_PACKAGE +
 			".internalPublisherAnnotationBeanPostProcessor";
 
-//	public static final String FLOW_POST_PROCESSOR_BEAN_NAME = IntegrationFlowSpecBeanFactoryPostProcessor.class.getSimpleName();
+//	public static final String FLOW_POST_PROCESSOR_BEAN_NAME = IntegrationFlowBeanFactoryPostProcessor.class.getSimpleName();
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

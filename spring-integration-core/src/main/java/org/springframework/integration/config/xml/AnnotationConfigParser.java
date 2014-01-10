@@ -29,9 +29,7 @@ import org.springframework.integration.config.IntegrationRegistrar;
 
 /**
  * Parser for the &lt;annotation-config&gt; element of the integration namespace.
- * Adds a {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor}
- * and a {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor}
- * to the application context.
+ * Just delegate the real configuration to the {@link IntegrationRegistrar}.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -43,7 +41,7 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 			@Override
 			public Map<String, Object> getAnnotationAttributes(String annotationType) {
-				return Collections.<String, Object> singletonMap("defaultPublishedChannel", element.getAttribute("default-publisher-channel"));
+				return Collections.<String, Object> singletonMap("defaultPublisherChannel", element.getAttribute("default-publisher-channel"));
 			}
 		}, parserContext.getRegistry());
 

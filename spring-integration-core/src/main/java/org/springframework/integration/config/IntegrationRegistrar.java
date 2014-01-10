@@ -18,9 +18,11 @@ package org.springframework.integration.config;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,12 +55,15 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link ImportBeanDefinitionRegistrar} implementation that configures integration infrastructure.
+ *
  * @author Artem Bilan
  * @since 4.0
  */
 public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	private static final Log logger = LogFactory.getLog(IntegrationRegistrar.class);
+
+	private static final Set<Integer> registriesProcessed = new HashSet<Integer>();
 
 	private ClassLoader classLoader;
 
@@ -75,10 +80,10 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		this.registerHeaderChannelRegistry(registry);
 		this.registerBuiltInBeans(registry);
 		this.registerDefaultConfiguringBeanFactoryPostProcessor(registry);
-//		this.registerIntegrationFlowBeanFactoryPostProcessor(registry);
 		if (importingClassMetadata != null) {
 			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
+//		this.registerIntegrationFlowBeanFactoryPostProcessor(registry);
 	}
 
 	/**
@@ -154,7 +159,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 			BeanDefinitionHolder integrationEvaluationContextHolder =
 					new BeanDefinitionHolder(integrationEvaluationContextBuilder.getBeanDefinition(),
-					IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+							IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 
 			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder,
 					registry);
@@ -168,8 +173,17 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 * Register {@code jsonPath} and {@code xpath} SpEL-function beans, if necessary.
 	 */
 	private void registerBuiltInBeans(BeanDefinitionRegistry registry) {
+		int registryId = System.identityHashCode(registry);
+
 		String jsonPathBeanName = "jsonPath";
-		if (!registry.containsBeanDefinition(jsonPathBeanName)) {
+		boolean alreadyRegistered = false;
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry).containsBean(jsonPathBeanName);
+		}
+		else {
+			alreadyRegistered = registry.isBeanNameInUse(jsonPathBeanName);
+		}
+		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
 			Class<?> jsonPathClass = null;
 			try {
 				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", this.classLoader);
@@ -184,8 +198,15 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			}
 		}
 
+		alreadyRegistered = false;
 		String xpathBeanName = "xpath";
-		if (!registry.containsBeanDefinition(xpathBeanName)) {
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry).containsBean(xpathBeanName);
+		}
+		else {
+			alreadyRegistered = registry.isBeanNameInUse(xpathBeanName);
+		}
+		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
 			Class<?> xpathClass = null;
 			try {
 				xpathClass = ClassUtils.forName(IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
@@ -200,6 +221,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 						IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", "evaluate");
 			}
 		}
+
+		registriesProcessed.add(registryId);
 	}
 
 	/**
@@ -228,12 +251,10 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	private void registerHeaderChannelRegistry(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
 		if (registry instanceof ListableBeanFactory) {
-			alreadyRegistered = ((ListableBeanFactory) registry)
-					.containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
+			alreadyRegistered = ((ListableBeanFactory) registry).containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = registry.isBeanNameInUse(
-					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
+			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			if (logger.isInfoEnabled()) {
@@ -266,9 +287,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 			Map<String, Object> attrs = meta.getAnnotationAttributes(EnableIntegration.class.getName());
 
-			String defaultPublishedChannel = (String) attrs.get("defaultPublishedChannel");
-			if (StringUtils.hasText(defaultPublishedChannel)) {
-				builder.addPropertyReference("defaultChannel", defaultPublishedChannel);
+			String defaultPublisherChannel = (String) attrs.get("defaultPublisherChannel");
+			if (StringUtils.hasText(defaultPublisherChannel)) {
+				builder.addPropertyReference("defaultChannel", defaultPublisherChannel);
 			}
 
 			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());

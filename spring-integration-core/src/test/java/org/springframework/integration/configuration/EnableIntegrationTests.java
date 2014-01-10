@@ -56,7 +56,7 @@ public class EnableIntegrationTests {
 	private PollableChannel output;
 
 	@Autowired
-	private PollableChannel defaultPublishedChannel;
+	private PollableChannel publishedChannel;
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -65,14 +65,15 @@ public class EnableIntegrationTests {
 		assertNotNull(receive);
 		assertEquals("FOO", receive.getPayload());
 
-		receive = this.defaultPublishedChannel.receive(1000);
+		receive = this.publishedChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("foo", receive.getPayload());
 	}
 
+
 	@Configuration
-	@ComponentScan("org.springframework.integration.configuration")
-	@EnableIntegration(defaultPublishedChannel = "defaultPublishedChannel")
+	@ComponentScan(basePackageClasses = EnableIntegrationTests.class)
+	@EnableIntegration
 	public static class ContextConfiguration {
 
 		@Bean
@@ -86,7 +87,7 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
-		public PollableChannel defaultPublishedChannel() {
+		public PollableChannel publishedChannel() {
 			return new QueueChannel();
 		}
 
@@ -96,7 +97,7 @@ public class EnableIntegrationTests {
 	public static class AnnotationTestService {
 
 		@ServiceActivator(inputChannel = "input", outputChannel = "output")
-		@Publisher
+		@Publisher(channel = "publishedChannel")
 		@Payload("#args[0].toLowerCase()")
 		public String handle(String payload) {
 			return payload.toUpperCase();

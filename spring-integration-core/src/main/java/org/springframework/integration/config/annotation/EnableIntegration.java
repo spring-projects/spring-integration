@@ -26,6 +26,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.integration.config.IntegrationRegistrar;
 
 /**
+ * Add this annotation to an {@code @Configuration} class to have
+ * the imported Spring Integration configuration :
+ * <p/>
+ * <pre class="code">
+ * &#064;Configuration
+ * &#064;EnableIntegration
+ * &#064;ComponentScan(basePackageClasses = { MyConfiguration.class })
+ * public class MyIntegrationConfiguration {
+ * <p/>
+ * }
+ * </pre>
+ *
  * @author Artem Bilan
  * @since 4.0
  */
@@ -34,7 +46,5 @@ import org.springframework.integration.config.IntegrationRegistrar;
 @Documented
 @Import(IntegrationRegistrar.class)
 public @interface EnableIntegration {
-
-	String defaultPublishedChannel() default "";
 
 }
