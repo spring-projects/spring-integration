@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	 * {@link Executor} when dispatching Messages.
 	 * <p>
 	 * The Executor must not be null.
+	 *
+	 * @param executor The executor.
 	 */
 	public ExecutorChannel(Executor executor) {
 		this(executor, new RoundRobinLoadBalancingStrategy());
@@ -73,6 +75,9 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	 * delegates to the provided {@link Executor} when dispatching Messages.
 	 * <p>
 	 * The Executor must not be null.
+	 *
+	 * @param executor The executor.
+	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
 	public ExecutorChannel(Executor executor, LoadBalancingStrategy loadBalancingStrategy) {
 		Assert.notNull(executor, "executor must not be null");
@@ -88,6 +93,8 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.
+	 *
+	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
 		this.failover = failover;
@@ -97,6 +104,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
+	 *
 	 * @param maxSubscribers
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {

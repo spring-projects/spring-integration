@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -33,14 +33,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -58,6 +56,9 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -81,7 +82,7 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 @ManagedResource
-public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore {
+public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
 
@@ -286,11 +287,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
 	}
 
-	/**
-	 * Check mandatory properties (data source and incrementer).
-	 *
-	 * @throws Exception
-	 */
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 	}

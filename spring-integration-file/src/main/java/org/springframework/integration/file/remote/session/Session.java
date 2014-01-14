@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,9 @@ public interface Session<T> {
 
 	/**
 	 * Retrieve a remote file as a raw {@link InputStream}.
-	 * @param source The path of the remote file
+	 * @param source The path of the remote file.
 	 * @return The raw inputStream.
+	 * @throws IOException Any IOException.
 	 */
 	InputStream readRaw(String source) throws IOException;
 
@@ -63,7 +64,7 @@ public interface Session<T> {
 	 * Invoke after closing the InputStream from {@link #readRaw(String)}.
 	 * Required by some session providers.
 	 * @return true if successful.
-	 * @throws IOException
+	 * @throws IOException Any IOException.
 	 */
 	boolean finalizeRaw() throws IOException;
 

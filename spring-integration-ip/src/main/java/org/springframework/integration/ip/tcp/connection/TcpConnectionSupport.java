@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2013 the original author or authors.
+ * Copyright 2001-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,6 +171,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * If we have been intercepted, propagate the close from the outermost interceptor;
 	 * otherwise, just call close().
+	 * 
+	 * @param isException true when this call is the result of an Exception.
 	 */
 	protected void closeConnection(boolean isException) {
 		if (!(this.listener instanceof TcpConnectionInterceptor)) {

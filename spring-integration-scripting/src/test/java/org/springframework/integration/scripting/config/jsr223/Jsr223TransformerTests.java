@@ -22,16 +22,17 @@ import static org.junit.Assert.assertNull;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -85,7 +86,7 @@ public class Jsr223TransformerTests {
 		assertNull(replyChannel.receive(0));
 	}
 
-	@Test
+	@Test @Ignore
 	public void testInt3162ScriptExecutorThreadSafety() {
 		for (int i = 0; i < 100; i++) {
 			this.int3162InputChannel.send(new GenericMessage<Object>(i));

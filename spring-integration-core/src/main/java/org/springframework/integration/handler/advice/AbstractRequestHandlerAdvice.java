@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.ProxyMethodInvocation;
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * Base class for {@link MessageHandler} advice classes. Subclasses should provide
@@ -43,6 +43,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
+	@Override
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
 
 		Method method = invocation.getMethod();
@@ -67,6 +68,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 			try {
 				return doInvoke(new ExecutionCallback() {
 
+					@Override
 					public Object execute() throws Exception {
 						try {
 							return invocation.proceed();
@@ -79,6 +81,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 						}
 					}
 
+					@Override
 					public Object cloneAndExecute() throws Exception {
 						try {
 							/*
@@ -118,7 +121,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	 * @param target   The target handler.
 	 * @param message  The message that will be sent to the handler.
 	 * @return the result after invoking the {@link MessageHandler}.
-	 * @throws Exception
+	 * @throws Exception Any Exception.
 	 */
 	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
 
@@ -160,6 +163,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 		/**
 		 * Call this for a normal invocation.proceed().
+		 *
+		 * @return The result of the execution.
+		 * @throws Exception Any Exception.
 		 */
 		Object execute() throws Exception;
 
@@ -167,6 +173,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		 * Call this when it is necessary to clone the invocation before
 		 * calling proceed() - such as when the invocation might be called
 		 * multiple times - for example in a retry advice.
+		 *
+		 * @return The result of the execution.
+		 * @throws Exception Any Exception.
 		 */
 		Object cloneAndExecute() throws Exception;
 

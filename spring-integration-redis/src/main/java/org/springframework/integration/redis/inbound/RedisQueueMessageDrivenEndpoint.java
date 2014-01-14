@@ -115,14 +115,14 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	/**
 	 * This timeout (milliseconds) is used when retrieving elements from the queue
 	 * specified by {@link #boundListOperations}.
-	 * <p/>
+	 * <p>
 	 * If the queue does contain elements, the data is retrieved immediately. However,
 	 * if the queue is empty, the Redis connection is blocked until either an element
 	 * can be retrieved from the queue or until the specified timeout passes.
-	 * <p/>
+	 * <p>
 	 * A timeout of zero can be used to block indefinitely. If not set explicitly
 	 * the timeout value will default to {@code 1000}
-	 * <p/>
+	 * <p>
 	 * See also: http://redis.io/commands/brpop
 	 *
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.

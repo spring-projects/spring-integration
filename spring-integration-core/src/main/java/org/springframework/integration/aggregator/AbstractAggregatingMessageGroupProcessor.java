@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -40,6 +41,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	@Override
 	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
 
@@ -60,6 +62,9 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	 * This default implementation simply returns all headers that have no conflicts among the group. An absent header
 	 * on one or more Messages within the group is not considered a conflict. Subclasses may override this method with
 	 * more advanced conflict-resolution strategies if necessary.
+	 *
+	 * @param group The message group.
+	 * @return The aggregated headers.
 	 */
 	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
 		Map<String, Object> aggregatedHeaders = new HashMap<String, Object>();

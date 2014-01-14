@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ package org.springframework.integration.jdbc.config;
 import java.sql.Types;
 import java.util.List;
 
-import org.w3c.dom.Element;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -60,8 +59,9 @@ public final class StoredProcParserUtils {
 	}
 
 	/**
-	 * @param storedProcComponent
-	 * @param parserContext
+	 * @param storedProcComponent The element.
+	 * @param parserContext The parser context.
+	 * @return The list of bean definitions.
 	 */
 	public static ManagedList<BeanDefinition> getSqlParameterDefinitionBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {
@@ -147,8 +147,9 @@ public final class StoredProcParserUtils {
 	}
 
 	/**
-	 * @param storedProcComponent
-	 * @param parserContext
+	 * @param storedProcComponent The element.
+	 * @param parserContext The parser context.
+	 * @return The list of bean definitions.
 	 */
 	public static ManagedList<BeanDefinition> getProcedureParameterBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {
@@ -205,8 +206,9 @@ public final class StoredProcParserUtils {
 	}
 
 	/**
-	 * @param storedProcComponent
-	 * @param parserContext
+	 * @param storedProcComponent The element.
+	 * @param parserContext The parser context.
+	 * @return The list of bean metadata objects.
 	 */
 	public static ManagedMap<String, BeanMetadataElement> getReturningResultsetBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,32 +52,32 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME = "integrationGlobalProperties";
 
 	/**
-	 * Return the {@link MetadataStore} bean whose name is "metadataStore".
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return The {@link MetadataStore} bean whose name is "metadataStore".
 	 */
 	public static MetadataStore getMetadataStore(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, METADATA_STORE_BEAN_NAME, MetadataStore.class);
 	}
 
 	/**
-	 * Return the {@link MessageChannel} bean whose name is "errorChannel".
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return The {@link MessageChannel} bean whose name is "errorChannel".
 	 */
 	public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
 	}
 
 	/**
-	 * Return the {@link TaskScheduler} bean whose name is "taskScheduler" if available.
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return The {@link TaskScheduler} bean whose name is "taskScheduler" if available.
 	 */
 	public static TaskScheduler getTaskScheduler(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
 	}
 
 	/**
-	 * Return the {@link TaskScheduler} bean whose name is "taskScheduler".
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return The {@link TaskScheduler} bean whose name is "taskScheduler".
 	 * @throws IllegalStateException if no such bean is available
 	 */
 	public static TaskScheduler getRequiredTaskScheduler(BeanFactory beanFactory) {
@@ -87,16 +87,16 @@ public abstract class IntegrationContextUtils {
 	}
 
 	/**
-	 * Return the {@link ConversionService} bean whose name is "integrationConversionService" if available.
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return The {@link ConversionService} bean whose name is "integrationConversionService" if available.
 	 */
 	public static ConversionService getConversionService(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
 	}
 
 	/**
-	 * Return the instance of {@link StandardEvaluationContext} bean whose name is "integrationEvaluationContext" .
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return the instance of {@link StandardEvaluationContext} bean whose name is "integrationEvaluationContext" .
 	 */
 	public static StandardEvaluationContext getEvaluationContext(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
@@ -111,6 +111,7 @@ public abstract class IntegrationContextUtils {
 	}
 
 	/**
+	 * @param beanFactory The bean factory.
 	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}
 	 *         bean from provided {@code #beanFactory}, which represents the merged
 	 *         properties values from all 'META-INF/spring.integration.default.properties'

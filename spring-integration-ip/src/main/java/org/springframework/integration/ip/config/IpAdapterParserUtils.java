@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,7 @@ public abstract class IpAdapterParserUtils {
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be
+	 * @param trueFalse not used
 	 * used to populate the property
 	 */
 	public static void addConstuctorValueIfAttributeDefined(BeanDefinitionBuilder builder,
@@ -143,9 +144,9 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	/**
-	 * @param element
-	 * @param builder
-	 * @param parserContext
+	 * @param element The element.
+	 * @param builder The builder.
+	 * @param parserContext The parser context.
 	 */
 	public static void addHostAndPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
@@ -160,9 +161,9 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	/**
-	 * @param element
-	 * @param builder
-	 * @param parserContext
+	 * @param element The element.
+	 * @param builder The builder.
+	 * @param parserContext The parser context.
 	 */
 	public static void addPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
@@ -172,8 +173,8 @@ public abstract class IpAdapterParserUtils {
 
 	/**
 	 * Asserts that a port attribute is supplied.
-	 * @param element
-	 * @param parserContext
+	 * @param element The element.
+	 * @param parserContext The parser context.
 	 * @return The value of the attribute.
 	 * @throws BeanCreationException if attribute is not provided.
 	 */
@@ -188,7 +189,7 @@ public abstract class IpAdapterParserUtils {
 
 	/**
 	 * Gets the multicast attribute, if present; if not returns 'false'.
-	 * @param element
+	 * @param element The element.
 	 * @return The value of the attribute or false.
 	 */
 	static String getMulticast(Element element) {
@@ -202,8 +203,8 @@ public abstract class IpAdapterParserUtils {
 	/**
 	 * Sets the common port attributes on the bean being built (timeout, receive buffer size,
 	 * send buffer size).
-	 * @param builder
-	 * @param element
+	 * @param builder The builder.
+	 * @param element The element.
 	 */
 	static void addCommonSocketOptions(BeanDefinitionBuilder builder, Element element) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SO_TIMEOUT);

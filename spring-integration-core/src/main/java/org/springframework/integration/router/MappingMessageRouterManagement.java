@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,17 @@ public interface MappingMessageRouterManagement {
 
 	/**
 	 * Add a channel mapping from the provided key to channel name.
+	 *
+	 * @param key The key.
+	 * @param channelName The channel name.
 	 */
 	@ManagedOperation
 	public abstract void setChannelMapping(String key, String channelName);
 
 	/**
 	 * Remove a channel mapping for the given key if present.
+	 *
+	 * @param key The key.
 	 */
 	@ManagedOperation
 	public abstract void removeChannelMapping(String key);

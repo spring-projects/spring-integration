@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import java.util.Map;
 
 import org.w3c.dom.Node;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
@@ -44,6 +44,8 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 	/**
 	 * Create an instance of XPathHeaderEnricher using a map with header names as keys
 	 * and XPathExpressionValueHolders to evaluate the values.
+	 *
+	 * @param expressionMap The expression map.
 	 */
 	public XPathHeaderEnricher(Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap) {
 		super(expressionMap);
@@ -79,10 +81,12 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 			this.overwrite = overwrite;
 		}
 
+		@Override
 		public Boolean isOverwrite() {
 			return this.overwrite;
 		}
 
+		@Override
 		public Object processMessage(Message<?> message) {
 			Node node = converter.convertToNode(message.getPayload());
 			Object result = this.evaluationType.evaluateXPath(this.expression, node);

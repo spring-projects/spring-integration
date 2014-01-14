@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	 * Set the list of event types (classes that extend TcpConnectionEvent) that
 	 * this adapter should send to the message channel. By default, all event
 	 * types will be sent.
+	 * 
+	 * @param eventTypes The event types.
 	 */
 	public void setEventTypes(Class<? extends TcpConnectionEvent>[] eventTypes) {
 		Assert.notEmpty(eventTypes, "at least one event type is required");

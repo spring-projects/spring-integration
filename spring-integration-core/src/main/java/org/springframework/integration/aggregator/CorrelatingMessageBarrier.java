@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,12 +20,12 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.messaging.Message;
 
 /**
  * This Endpoint serves as a barrier for messages that should not be processed yet. The decision when a message can be
@@ -70,6 +70,8 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	/**
 	 * Set the CorrelationStrategy to be used to determine the correlation key for incoming messages
+	 *
+	 * @param correlationStrategy The correlation strategy.
 	 */
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
 		this.correlationStrategy = correlationStrategy;
@@ -77,6 +79,8 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	/**
 	 * Set the ReleaseStrategy that should be used when deciding if a group in this barrier may be released.
+	 *
+	 * @param releaseStrategy The release strategy.
 	 */
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
 		this.releaseStrategy = releaseStrategy;
@@ -100,6 +104,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	}
 
 
+	@Override
 	public Message<Object> receive() {
 		for (Object key : correlationLocks.keySet()) {
 			Object lock = getLock(key);

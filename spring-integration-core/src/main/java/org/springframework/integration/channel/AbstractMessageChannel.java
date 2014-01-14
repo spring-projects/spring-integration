@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * <p>
 	 * If this property is not set explicitly, any Message payload type will be
 	 * accepted.
+	 *
+	 * @param datatypes The supported data types.
+	 *
 	 * @see #setConversionService(ConversionService)
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
@@ -88,6 +91,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	/**
 	 * Set the list of channel interceptors. This will clear any existing
 	 * interceptors.
+	 *
+	 * @param interceptors The list of interceptors.
 	 */
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		Collections.sort(interceptors, new OrderComparator());
@@ -96,6 +101,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	/**
 	 * Add a channel interceptor to the end of the list.
+	 *
+	 * @param interceptor The interceptor.
 	 */
 	public void addInterceptor(ChannelInterceptor interceptor) {
 		this.interceptors.add(interceptor);
@@ -109,6 +116,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * bean named "integrationConversionService" defined within that context.
 	 * Finally, if that bean is not available, it will fallback to the
 	 * "conversionService" bean, if available.
+	 *
+	 * @param conversionService The conversion service.
 	 */
 	@Override
 	public void setConversionService(ConversionService conversionService) {
@@ -117,6 +126,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	/**
 	 * Exposes the interceptor list for subclasses.
+	 *
+	 * @return The channel interceptor list.
 	 */
 	protected ChannelInterceptorList getInterceptors() {
 		return this.interceptors;
@@ -125,6 +136,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	/**
 	 * Returns the fully qualified channel name including the application context
 	 * id, if available.
+	 *
 	 * @return The name.
 	 */
 	public String getFullChannelName() {
@@ -222,6 +234,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * must return immediately with or without success). A negative timeout
 	 * value indicates that the method should block until either the message is
 	 * accepted or the blocking thread is interrupted.
+	 *
+	 * @param message The message.
+	 * @param timeout The timeout.
+	 * @return true if the send was successful.
 	 */
 	protected abstract boolean doSend(Message<?> message, long timeout);
 

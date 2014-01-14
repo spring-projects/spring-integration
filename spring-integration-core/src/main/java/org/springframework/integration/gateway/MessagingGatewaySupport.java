@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gateway;
 
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -31,7 +32,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -105,6 +105,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	 * Set the error channel. If no error channel is provided, this gateway will
 	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
 	 * a reference to the "nullChannel" here.
+	 *
+	 * @param errorChannel The error channel.
 	 */
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
@@ -134,6 +136,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Provide an {@link InboundMessageMapper} for creating request Messages
 	 * from any object passed in a send or sendAndReceive operation.
+	 *
+	 * @param requestMapper The request mapper.
 	 */
 	public void setRequestMapper(InboundMessageMapper<?> requestMapper) {
 		requestMapper = (requestMapper != null) ? requestMapper : new DefaultRequestMapper();
@@ -144,6 +148,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Provide an {@link OutboundMessageMapper} for mapping to objects from
 	 * any reply Messages received in receive or sendAndReceive operations.
+	 *
+	 * @param replyMapper The reply mapper.
 	 */
 	public void setReplyMapper(OutboundMessageMapper<?> replyMapper) {
 		this.messageConverter.setOutboundMessageMapper(replyMapper);

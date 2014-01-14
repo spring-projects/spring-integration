@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,16 +45,16 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -104,6 +104,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory}.and the default collection name.
+	 *
+	 * @param mongoDbFactory The mongodb factory.
 	 */
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
@@ -111,6 +113,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory} and collection name.
+	 *
+	 * @param mongoDbFactory The mongodb factory.
+	 * @param collectionName The collection name.
 	 */
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
@@ -121,34 +126,40 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		Assert.notNull(classLoader, "classLoader must not be null");
 		this.classLoader = classLoader;
 	}
 
+	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
 		this.template.insert(new MessageWrapper(message), this.collectionName);
 		return message;
 	}
 
+	@Override
 	public Message<?> getMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		MessageWrapper messageWrapper = this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
 
+	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
 		return this.template.getCollection(this.collectionName).getCount();
 	}
 
+	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		MessageWrapper messageWrapper =  this.template.findAndRemove(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
 
+	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
@@ -178,6 +189,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return messageGroup;
 	}
 
+	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
@@ -205,6 +217,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return this.getMessageGroup(groupId);
 	}
 
+	@Override
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
@@ -214,6 +227,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return this.getMessageGroup(groupId);
 	}
 
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		for (MessageWrapper messageWrapper : messageWrappers) {
@@ -221,6 +235,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
+	@Override
 	public Iterator<MessageGroup> iterator() {
 		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
 		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
@@ -233,6 +248,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return messageGroups.values().iterator();
 	}
 
+	@Override
 	public void completeGroup(Object groupId) {
 		Update update = Update.update(GROUP_COMPLETE_KEY, true);
 		Query q = whereGroupIdIs(groupId);
@@ -240,6 +256,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		this.updateGroup(groupId);
 	}
 
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Update update = Update.update(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber);
 		Query q = whereGroupIdIs(groupId);
@@ -247,6 +264,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		this.updateGroup(groupId);
 	}
 
+	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		MessageWrapper messageWrapper = this.template.findAndRemove(whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
@@ -258,6 +276,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return message;
 	}
 
+	@Override
 	public int messageGroupSize(Object groupId) {
 		long lCount = this.template.count(new Query(where(GROUP_ID_KEY).is(groupId)), this.collectionName);
 		Assert.isTrue(lCount <= Integer.MAX_VALUE, "Message count is out of Integer's range");
@@ -416,6 +435,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
+		@Override
 		public DBObject convert(UUID source) {
 			BasicDBObject dbObject = new BasicDBObject();
 			dbObject.put("_value", source.toString());
@@ -425,6 +445,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	private static class DBObjectToUUIDConverter implements Converter<DBObject, UUID> {
+		@Override
 		public UUID convert(DBObject source) {
 			return UUID.fromString((String) source.get("_value"));
 		}
@@ -433,6 +454,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory,DBObject> {
 
+		@Override
 		public DBObject convert(MessageHistory source) {
 			BasicDBObject obj = new BasicDBObject();
 			obj.put("_class", MessageHistory.class.getName());
@@ -451,6 +473,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public GenericMessage<?> convert(DBObject source) {
 			MessageReadingMongoConverter converter = (MessageReadingMongoConverter) MongoDbMessageStore.this.template

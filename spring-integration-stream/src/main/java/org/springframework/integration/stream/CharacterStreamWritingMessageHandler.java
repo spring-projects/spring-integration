@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ import java.io.Writer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.MessageHandler;
+
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +39,7 @@ import org.springframework.util.Assert;
  * but for other payload types, the result of the object's {@link #toString()}
  * method will be written. To append a new-line after each write, set the
  * {@link #setShouldAppendNewLine(boolean) shouldAppendNewLine} flag to 'true'. It is 'false' by default.
- * 
+ *
  * @author Mark Fisher
  */
 public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler {
@@ -71,6 +72,8 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * default charset encoding.
+	 *
+	 * @return A stdout handler with the default charset.
 	 */
 	public static CharacterStreamWritingMessageHandler stdout() {
 		return stdout(null);
@@ -79,6 +82,9 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * specified charset encoding.
+	 *
+	 * @param charsetName The charset name.
+	 * @return A stdout handler.
 	 */
 	public static CharacterStreamWritingMessageHandler stdout(String charsetName) {
 		return createTargetForStream(System.out, charsetName);
@@ -87,6 +93,8 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * default charset encoding.
+	 *
+	 * @return A stderr handler with the default charset.
 	 */
 	public static CharacterStreamWritingMessageHandler stderr() {
 		return stderr(null);
@@ -95,7 +103,10 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * specified charset encoding.
-	 */	
+	 *
+	 * @param charsetName The charset name.
+	 * @return A stderr handler.
+	 */
 	public static CharacterStreamWritingMessageHandler stderr(String charsetName) {
 		return createTargetForStream(System.err, charsetName);
 	}
@@ -117,6 +128,7 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 		this.shouldAppendNewLine = shouldAppendNewLine;
 	}
 
+	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {

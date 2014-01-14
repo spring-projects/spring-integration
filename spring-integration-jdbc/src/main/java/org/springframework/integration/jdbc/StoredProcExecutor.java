@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,7 +12,6 @@
  */
 
 package org.springframework.integration.jdbc;
-
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +51,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
+
 
 
 /**
@@ -157,7 +157,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
 	 * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
 	 * when {@link ProcedureParameter} are passed in.
+	 * {@inheritDoc}
 	 */
+	@Override
 	public void afterPropertiesSet() {
 
 		if (this.storedProcedureNameExpression == null) {
@@ -274,6 +276,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Execute a Stored Procedure or Function - Use with {@link Message} is
 	 * available to extract {@link ProcedureParameter} values from it.
 	 *
+	 * @param message A message.
 	 * @return Map containing the stored procedure results if any.
 	 */
 	public Map<String, Object> executeStoredProcedure(Message<?> message) {
@@ -327,8 +330,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	}
 
-	/**
-	 */
 	private static Map<String, Object> executeStoredProcedure(SimpleJdbcCallOperations simpleJdbcCallOperations,
 															 SqlParameterSource storedProcedureParameterSource) {
 
@@ -346,6 +347,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * from the JDBC Meta-data. However, if the used database does not support
 	 * meta data lookups or if you like to provide customized parameter definitions,
 	 * this flag can be set to 'true'. It defaults to 'false'.
+	 *
+	 * @param ignoreColumnMetaData true to ignore column metadata.
 	 */
 	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
 		this.ignoreColumnMetaData = ignoreColumnMetaData;
@@ -354,6 +357,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
+	 *
+	 * @param procedureParameters The parameters.
 	 */
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 
@@ -371,6 +376,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * If you database system is not fully supported by Spring and thus obtaining
 	 * parameter definitions from the JDBC Meta-data is not possible, you must define
 	 * the {@link SqlParameter} explicitly.
+	 *
+	 * @param sqlParameters The parameters.
 	 */
 	public void setSqlParameters(List<SqlParameter> sqlParameters) {
 		Assert.notEmpty(sqlParameters, "sqlParameters must not be null or empty.");
@@ -391,7 +398,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * If not the SqlParameterSourceFactory will be replaced the default
 	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
-	 * @param sqlParameterSourceFactory
+	 * @param sqlParameterSourceFactory The paramtere source factory.
 	 */
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		Assert.notNull(sqlParameterSourceFactory, "sqlParameterSourceFactory must not be null.");
@@ -504,7 +511,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Indicates the procedure's return value should be included in the results
 	 * returned.
 	 *
-	 * @param returnValueRequired
+	 * @param returnValueRequired true to include the return value.
 	 */
 	public void setReturnValueRequired(boolean returnValueRequired) {
 		this.returnValueRequired = returnValueRequired;
@@ -523,6 +530,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 *
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
+	 *
+	 * @param skipUndeclaredResults The boolean.
 	 *
 	 */
 	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
@@ -608,6 +617,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 *
 	 * @param beanFactory If set must not be null.
 	 */
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(returningResultSetRowMappers, "returningResultSetRowMappers must not be null.");
 		this.beanFactory = beanFactory;

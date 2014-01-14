@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,7 @@ public final class IntegrationProperties {
 
 	/**
 	 * Specifies the value of {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler#poolSize}
-	 * for {@code taskScheduler} bean initialized but Integration infrastructure.
-	 * @see org.springframework.integration.config.xml.DefaultConfiguringBeanFactoryPostProcessor#registerTaskScheduler
+	 * for the {@code taskScheduler} bean initialized by the AbstractTransformerIntegration infrastructure.
 	 */
 	public static final String TASKSCHEDULER_POOLSIZE = "taskScheduler.poolSize";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,9 +19,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
@@ -53,6 +53,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	/**
 	 * Executes the script and returns the result.
 	 */
+	@Override
 	public final T processMessage(Message<?> message) {
 		try {
 			ScriptSource source = this.getScriptSource(message);
@@ -86,6 +87,11 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	/**
 	 * Subclasses must implement this method. In doing so, the execution context
 	 * for the script should be populated with the provided script variables.
+	 *
+	 * @param scriptSource The script source.
+	 * @param variables The variables.
+	 * @return The result of the execution.
+	 * @throws Exception Any Exception.
 	 */
 	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception;
 

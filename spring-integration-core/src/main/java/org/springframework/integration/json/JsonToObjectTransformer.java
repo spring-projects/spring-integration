@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,11 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	/**
 	 * Backward compatibility - allows existing configurations using Jackson 1.x to inject
 	 * an ObjectMapper directly.
+	 *
+	 * @param targetClass The target class.
+	 * @param objectMapper The object mapper.
+	 * @throws ClassNotFoundException When the target class is not found.
+	 *
 	 * @deprecated in favor of {@link #JsonToObjectTransformer(Class, JsonObjectMapper)}
 	 */
 	@Deprecated

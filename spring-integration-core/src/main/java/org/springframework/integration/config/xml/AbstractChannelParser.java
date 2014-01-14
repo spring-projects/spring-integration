@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,9 +65,6 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		return beanDefinition;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.AbstractBeanDefinitionParser#registerBeanDefinition(org.springframework.beans.factory.config.BeanDefinitionHolder, org.springframework.beans.factory.support.BeanDefinitionRegistry)
-	 */
 	@Override
 	protected void registerBeanDefinition(BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
 		String scope = definition.getBeanDefinition().getScope();
@@ -83,6 +80,10 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	 * arguments or properties should be configured. This base class will
 	 * configure the interceptors including the 'datatype' interceptor if
 	 * the 'datatype' attribute is defined on the channel element.
+	 *
+	 * @param element The element.
+	 * @param parserContext The parser context.
+	 * @return The bean definition builder.
 	 */
 	protected abstract BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation allows you to specify a SpEL expression indicating that a method 
+ * This annotation allows you to specify a SpEL expression indicating that a method
  * parameter's value should be mapped from the payload of a Message. The expression
  * will be evaluated against the payload object as the root context. The annotated
  * parameter type must match or be convertible from the evaluation result.
  * <p>
- * Example: void foo(@Payload("city.name") String cityName) - will map the value of 
+ * Example: void foo(@Payload("city.name") String cityName) - will map the value of
  * the 'name' property of the 'city' property of the payload object.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */
@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
 public @interface Payload {
 
 	/**
-	 * Expression for matching against nested properties of the payload. 
+	 * @return The expression for matching against nested properties of the payload.
 	 */
 	String value() default "";
 

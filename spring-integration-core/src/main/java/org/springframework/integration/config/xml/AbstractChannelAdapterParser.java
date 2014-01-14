@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base parser for Channel Adapters.
- * <p/>
+ * <p>
  * Includes logic to determine {@link org.springframework.messaging.MessageChannel}:
  * if 'channel' attribute is defined - uses its value as 'channelName';
  * if 'id' attribute is defined - creates {@link DirectChannel} at runtime and uses id's value as 'channelName';
@@ -87,6 +87,11 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 	/**
 	 * Subclasses must implement this method to parse the adapter element.
 	 * The name of the MessageChannel bean is provided.
+	 *
+	 * @param element The element.
+	 * @param parserContext The parser context.
+	 * @param channelName The channel name.
+	 * @return The bean definition.
 	 */
 	protected abstract AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,16 @@ import javax.xml.transform.Source;
 /**
  * Factory to create a {@link Source} possibly taking into account
  * the provided message payload instance.
- * 
+ *
  * @author Jonas Partner
  */
 public interface SourceFactory {
 
 	/**
 	 * Create appropriate {@link Source} instance for {@code payload}
+	 *
+	 * @param payload The payload.
+	 * @return The source.
 	 */
 	Source createSource(Object payload);
 

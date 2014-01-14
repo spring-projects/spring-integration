@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	/**
 	 * @see Socket#setSoTimeout(int)
 	 * @see DatagramSocket#setSoTimeout(int)
-	 * @param timeout
+	 * @param timeout The timeout.
 	 */
 	@Override
 	public void setSoTimeout(int timeout) {
@@ -67,7 +67,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	/**
 	 * @see Socket#setReceiveBufferSize(int)
 	 * @see DatagramSocket#setReceiveBufferSize(int)
-	 * @param size
+	 * @param size The receive buffer size.
 	 */
 	@Override
 	public void setSoReceiveBufferSize(int size) {
@@ -76,7 +76,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	/**
 	 * @see Socket#setSendBufferSize(int)
 	 * @see DatagramSocket#setSendBufferSize(int)
-	 * @param size
+	 * @param size The send buffer size.
 	 */
 	@Override
 	public void setSoSendBufferSize(int size) {

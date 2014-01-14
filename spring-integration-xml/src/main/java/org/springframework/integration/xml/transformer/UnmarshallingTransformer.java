@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringSource;
@@ -45,7 +45,7 @@ import org.springframework.xml.transform.StringSource;
  * The Unmarshaller may return a Message, but if the return value is not
  * already a Message instance, a new Message will be created with that
  * return value as its payload.
- * 
+ *
  * @author Jonas Partner
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
@@ -64,6 +64,8 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	/**
 	 * Provide the SourceFactory to be used. Must not be null.
+	 *
+	 * @param sourceFactory The source factory.
 	 */
 	public void setSourceFactory(SourceFactory sourceFactory) {
 		Assert.notNull(sourceFactory, "sourceFactory must not be null");
@@ -72,6 +74,8 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	/**
 	 * If true always delegate to the {@link SourceFactory}.
+	 *
+	 * @param alwaysUseSourceFactory true to always use the source factory.
 	 */
 	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
 		this.alwaysUseSourceFactory = alwaysUseSourceFactory;

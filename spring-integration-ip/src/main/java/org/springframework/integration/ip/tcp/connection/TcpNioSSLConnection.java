@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,24 +67,12 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private boolean needMoreNetworkData;
 
-	/**
-	 * @deprecated Use {@link #TcpNioSSLConnection(SocketChannel, boolean, boolean, ApplicationEventPublisher, String, SSLEngine)}
-	 * TODO: Remove in 3.1/4.0
-	 */
-	@Deprecated
-	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server,
-			boolean lookupHost, SSLEngine sslEngine) throws Exception {
-		super(socketChannel, server, lookupHost, null, null);
-		this.sslEngine = sslEngine;
-	}
-
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
 			SSLEngine sslEngine) throws Exception {
 		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.sslEngine = sslEngine;
 	}
-
 
 	/**
 	 * Overrides super class method to perform decryption and/or participate
@@ -229,6 +217,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	/**
 	 * Initializes the SSLEngine and sets up the encryption/decryption buffers.
+	 *
+	 * @throws IOException Any IOException.
 	 */
 	public void init() throws IOException {
 		if (this.decoded == null) {

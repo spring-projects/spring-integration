@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -624,10 +624,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * Copy a remote file to the configured local directory.
 	 *
 	 *
-	 * @param message
-	 * @param session
-	 * @param remoteDir
-	 *@param remoteFilePath  @throws IOException
+	 * @param message The message.
+	 * @param session The session.
+	 * @param remoteDir The remote directory.
+	 * @param remoteFilePath The remote file path.
+	 * @param remoteFilename The remote file name.
+	 * @param lsFirst true to execute an 'ls' command first.
+	 * @return The file.
+	 * @throws IOException Any IOException.
 	 */
 	protected File get(Message<?> message, Session<F> session, String remoteDir, String remoteFilePath, String remoteFilename, boolean lsFirst)
 			throws IOException {
@@ -771,7 +775,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * @param remoteFilePath
+	 * @param remoteFilePath The remote file path.
+	 * @return The remote file name.
 	 */
 	protected String getRemoteFilename(String remoteFilePath) {
 		String remoteFileName;

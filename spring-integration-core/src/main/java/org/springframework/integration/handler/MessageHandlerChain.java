@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
@@ -50,7 +50,6 @@ import org.springframework.util.Assert;
  * <p>
  * This component can be used from the namespace to improve the readability of
  * the configuration by removing channels that can be created implicitly.
- * <p>
  *
  * <pre class="code">
  * {@code
@@ -95,6 +94,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		this.handlers = handlers;
 	}
 
+	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
@@ -141,9 +141,11 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 						"the last one in the chain must implement the MessageProducer interface.");
 				final MessageHandler nextHandler = handlers.get(i + 1);
 				final MessageChannel nextChannel = new MessageChannel() {
+					@Override
 					public boolean send(Message<?> message, long timeout) {
 						return this.send(message);
 					}
+					@Override
 					public boolean send(Message<?> message) {
 						nextHandler.handleMessage(message);
 						return true;
@@ -174,6 +176,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 	 * SmartLifecycle implementation (delegates to the {@link #handlers})
 	 */
 
+	@Override
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();
 		try {
@@ -184,6 +187,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		}
 	}
 
+	@Override
 	public final void start() {
 		this.lifecycleLock.lock();
 		try {
@@ -200,6 +204,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		}
 	}
 
+	@Override
 	public final void stop() {
 		this.lifecycleLock.lock();
 		try {
@@ -245,10 +250,12 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 
 	private class ReplyForwardingMessageChannel implements MessageChannel {
 
+		@Override
 		public boolean send(Message<?> message) {
 			return this.send(message, -1);
 		}
 
+		@Override
 		public boolean send(Message<?> message, long timeout) {
 			timeout = (MessageHandlerChain.this.sendTimeout != null)
 					? MessageHandlerChain.this.sendTimeout : timeout;

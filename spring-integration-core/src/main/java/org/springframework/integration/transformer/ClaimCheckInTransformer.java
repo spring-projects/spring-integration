@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * Transformer that stores a Message and returns a new Message whose payload
  * is the id of the stored Message.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -35,6 +35,8 @@ public class ClaimCheckInTransformer extends AbstractTransformer {
 
 	/**
 	 * Create a claim check-in transformer that will delegate to the provided MessageStore.
+	 *
+	 * @param messageStore The message store.
 	 */
 	public ClaimCheckInTransformer(MessageStore messageStore) {
 		Assert.notNull(messageStore, "MessageStore must not be null");

@@ -45,7 +45,6 @@ import javax.jms.Topic;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -60,6 +59,7 @@ import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -149,6 +149,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * specified as a boolean value ("true" or "false"). This will set the delivery
 	 * mode accordingly to either "PERSISTENT" (1) or "NON_PERSISTENT" (2).
 	 * <p>The default is "true", i.e. delivery mode "PERSISTENT".
+	 *
+	 * @param deliveryPersistent true for a persistent delivery.
+	 *
 	 * @see javax.jms.DeliveryMode#PERSISTENT
 	 * @see javax.jms.DeliveryMode#NON_PERSISTENT
 	 */
@@ -159,6 +162,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Set the JMS ConnectionFactory that this gateway should use.
 	 * This is a <em>required</em> property.
+	 *
+	 * @param connectionFactory The connection factory.
 	 */
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -167,6 +172,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Set the JMS Destination to which request Messages should be sent.
 	 * Either this or one of 'requestDestinationName' or 'requestDestinationExpression' is required.
+	 *
+	 * @param requestDestination The request destination.
 	 */
 	public void setRequestDestination(Destination requestDestination) {
 		if (requestDestination instanceof Topic) {
@@ -178,6 +185,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Set the name of the JMS Destination to which request Messages should be sent.
 	 * Either this or one of 'requestDestination' or 'requestDestinationExpression' is required.
+	 *
+	 * @param requestDestinationName The request destination name.
 	 */
 	public void setRequestDestinationName(String requestDestinationName) {
 		this.requestDestinationName = requestDestinationName;
@@ -187,6 +196,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * Set the SpEL Expression to be used for determining the request Destination instance
 	 * or request destination name. Either this or one of 'requestDestination' or
 	 * 'requestDestinationName' is required.
+	 *
+	 * @param requestDestinationExpression The request destination expression.
 	 */
 	public void setRequestDestinationExpression(Expression requestDestinationExpression) {
 		Assert.notNull(requestDestinationExpression, "'requestDestinationExpression' must not be null");
@@ -196,6 +207,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Set the JMS Destination from which reply Messages should be received.
 	 * If none is provided, this gateway will create a {@link TemporaryQueue} per invocation.
+	 *
+	 * @param replyDestination The reply destination.
 	 */
 	public void setReplyDestination(Destination replyDestination) {
 		if (replyDestination instanceof Topic) {
@@ -207,6 +220,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Set the name of the JMS Destination from which reply Messages should be received.
 	 * If none is provided, this gateway will create a {@link TemporaryQueue} per invocation.
+	 *
+	 * @param replyDestinationName The reply destination name.
 	 */
 	public void setReplyDestinationName(String replyDestinationName) {
 		this.replyDestinationName = replyDestinationName;
@@ -216,6 +231,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * Set the SpEL Expression to be used for determining the reply Destination instance
 	 * or reply destination name. Either this or one of 'replyDestination' or
 	 * 'replyDestinationName' is required.
+	 *
+	 * @param replyDestinationExpression The reply destination expression.
 	 */
 	public void setReplyDestinationExpression(Expression replyDestinationExpression) {
 		Assert.notNull(replyDestinationExpression, "'replyDestinationExpression' must not be null");
@@ -226,6 +243,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * Provide the {@link DestinationResolver} to use when resolving either a
 	 * 'requestDestinationName' or 'replyDestinationName' value. The default
 	 * is an instance of {@link DynamicDestinationResolver}.
+	 *
+	 * @param destinationResolver The destination resolver.
 	 */
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
@@ -236,7 +255,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * necessary when providing a destination name for a Topic rather than
 	 * a destination reference.
 	 *
-	 * @param requestPubSubDomain true if the request destination is a Topic
+	 * @param requestPubSubDomain true if the request destination is a Topic.
 	 */
 	public void setRequestPubSubDomain(boolean requestPubSubDomain) {
 		this.requestPubSubDomain = requestPubSubDomain;
@@ -247,7 +266,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * necessary when providing a destination name for a Topic rather than
 	 * a destination reference.
 	 *
-	 * @param replyPubSubDomain true if the reply destination is a Topic
+	 * @param replyPubSubDomain true if the reply destination is a Topic.
 	 */
 	public void setReplyPubSubDomain(boolean replyPubSubDomain) {
 		this.replyPubSubDomain = replyPubSubDomain;
@@ -256,27 +275,18 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Set the max timeout value for the MessageConsumer's receive call when
 	 * waiting for a reply. The default value is 5 seconds.
+	 *
+	 * @param receiveTimeout The receive timeout.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
 	}
 
 	/**
-	 * Specify the JMS DeliveryMode to use when sending request Messages.
-	 * @deprecated use {@link #setDeliveryPersistent(boolean)}
-	 * This should have been deprecated in 2.0 when the attribute was
-	 * deprecated in the schema. As of 3.0, the attribute has been
-	 * removed but this remains to allow users of the API to migrate.
-	 * TODO: Remove in 3.1/4.0
-	 */
-	@Deprecated
-	public void setDeliveryMode(int deliveryMode) {
-		this.deliveryMode = deliveryMode;
-	}
-
-	/**
 	 * Specify the JMS priority to use when sending request Messages.
 	 * The value should be within the range of 0-9.
+	 *
+	 * @param priority The priority.
 	 */
 	public void setPriority(int priority) {
 		this.priority = priority;
@@ -285,6 +295,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Specify the timeToLive for each sent Message.
 	 * The default value indicates no expiration.
+	 *
+	 * @param timeToLive The time to live.
 	 */
 	public void setTimeToLive(long timeToLive) {
 		this.timeToLive = timeToLive;
@@ -293,6 +305,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Specify whether explicit QoS settings are enabled
 	 * (deliveryMode, priority, and timeToLive).
+	 *
+	 * @param explicitQosEnabled true to enable explicit QoS.
 	 */
 	public void setExplicitQosEnabled(boolean explicitQosEnabled) {
 		this.explicitQosEnabled = explicitQosEnabled;
@@ -308,6 +322,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * If you want to store the outbound correlation UUID value in the actual
 	 * JMSCorrelationID property, then set this value to "JMSCorrelationID".
 	 * However, any other value will be treated as a JMS String Property.
+	 *
+	 * @param correlationKey The correlation key.
 	 */
 	public void setCorrelationKey(String correlationKey) {
 		this.correlationKey = correlationKey;
@@ -319,6 +335,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * the JMS reply Messages back into Spring Integration Messages.
 	 * <p>
 	 * The default is {@link SimpleMessageConverter}.
+	 *
+	 * @param messageConverter The message converter.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
@@ -328,6 +346,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Provide a {@link JmsHeaderMapper} implementation for mapping the
 	 * Spring Integration Message Headers to/from JMS Message properties.
+	 *
+	 * @param headerMapper The header mapper.
 	 */
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
@@ -344,7 +364,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * <br>
 	 * Default is 'true'
 	 *
-	 * @param extractRequestPayload
+	 * @param extractRequestPayload true to extract the request payload.
 	 */
 	public void setExtractRequestPayload(boolean extractRequestPayload) {
 		this.extractRequestPayload = extractRequestPayload;
@@ -357,7 +377,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * Otherwise, the entire JMS Message will become the payload of the
 	 * Spring Integration Message.
 	 *
-	 * @param extractReplyPayload
+	 * @param extractReplyPayload true to extract the reply payload.
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
@@ -366,6 +386,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Specify the Spring Integration reply channel. If this property is not
 	 * set the gateway will check for a 'replyChannel' header on the request.
+	 *
+	 * @param replyChannel The reply channel.
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
@@ -448,10 +470,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				session, replyDestinationName, this.replyPubSubDomain);
 	}
 
+	@Override
 	public int getPhase() {
 		return Integer.MAX_VALUE;
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
@@ -570,6 +594,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
+	@Override
 	public void start() {
 		synchronized (this.lifeCycleMonitor) {
 			if (!this.active) {
@@ -584,6 +609,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
+	@Override
 	public void stop() {
 		synchronized (this.lifeCycleMonitor) {
 			if (this.replyContainer != null) {
@@ -595,10 +621,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.active;
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		this.stop();
 		callback.run();
@@ -952,6 +980,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	/**
 	 * Create a new JMS Connection for this JMS gateway.
+	 *
+	 * @return The connection.
+	 * @throws JMSException Any JMSException.
 	 */
 	protected Connection createConnection() throws JMSException {
 		return this.connectionFactory.createConnection();
@@ -959,11 +990,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	/**
 	 * Create a new JMS Session using the provided Connection.
+	 *
+	 * @param connection The connection.
+	 * @return The session.
+	 * @throws JMSException Any JMSException.
 	 */
 	protected Session createSession(Connection connection) throws JMSException {
 		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
+	@Override
 	public void onMessage(javax.jms.Message message) {
 		String correlationId = null;
 		try {
@@ -1112,6 +1148,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private class LateReplyReaper implements Runnable {
 
+		@Override
 		public void run() {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Running late reply reaper");

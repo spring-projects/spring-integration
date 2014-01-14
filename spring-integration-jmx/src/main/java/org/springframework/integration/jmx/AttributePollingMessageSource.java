@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -45,6 +45,8 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 
 	/**
 	 * Provide the MBeanServer where the JMX MBean has been registered.
+	 *
+	 * @param server The MBean server connection.
 	 */
 	public void setServer(MBeanServerConnection server) {
 		this.server = server;
@@ -52,6 +54,8 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 
 	/**
 	 * Specify the String value of the JMX MBean's {@link ObjectName}.
+	 *
+	 * @param objectName The object name.
 	 */
 	public void setObjectName(String objectName) {
 		try {
@@ -64,6 +68,8 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 
 	/**
 	 * Specify the name of the attribute to be retrieved.
+	 *
+	 * @param attributeName The attribute name.
 	 */
 	public void setAttributeName(String attributeName) {
 		this.attributeName = attributeName;

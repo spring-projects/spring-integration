@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -28,7 +29,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * Base class for all Message Routers.
@@ -58,6 +58,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * {@link MessageDeliveryException}.
 	 *
 	 * If messages shall be ignored (dropped) instead, please provide a {@link NullChannel}.
+	 *
+	 * @param defaultOutputChannel The default output channel.
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -66,6 +68,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	/**
 	 * Set the timeout for sending a message to the resolved channel. By default, there is no timeout, meaning the send
 	 * will block indefinitely.
+	 *
+	 * @param timeout The timeout.
 	 */
 	public void setTimeout(long timeout) {
 		this.messagingTemplate.setSendTimeout(timeout);
@@ -75,6 +79,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * Specify whether send failures for one or more of the recipients should be ignored. By default this is
 	 * <code>false</code> meaning that an Exception will be thrown whenever a send fails. To override this and suppress
 	 * Exceptions, set the value to <code>true</code>.
+	 *
+	 * @param ignoreSendFailures true to ignore send failures.
 	 */
 	public void setIgnoreSendFailures(boolean ignoreSendFailures) {
 		this.ignoreSendFailures = ignoreSendFailures;
@@ -85,6 +91,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * channels. By default, this value is <code>false</code> meaning that sequence headers will <em>not</em> be
 	 * applied. If planning to use an Aggregator downstream with the default correlation and completion strategies, you
 	 * should set this flag to <code>true</code>.
+	 *
+	 * @param applySequence true to apply sequence information.
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
@@ -96,7 +104,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Provides {@link MessagingTemplate} access for subclasses.
+	 * Provides {@link MessagingTemplate} access for subclasses
+	 *
+	 * @return The messaging template.
 	 */
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
@@ -116,6 +126,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	/**
 	 * Subclasses must implement this method to return a Collection of zero or more
 	 * MessageChannels to which the given Message should be routed.
+	 *
+	 * @param message The message.
+	 * @return The collection of message channels.
 	 */
 	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
 

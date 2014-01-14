@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
+	 *
+	 * @param sessionFactory The session factory.
 	 */
 	public AbstractInboundFileSynchronizer(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -121,6 +123,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	/**
 	 * Specify the full path to the remote directory.
+	 *
+	 * @param remoteDirectory The remote directory.
 	 */
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import javax.management.ObjectName;
 public interface MBeanAttributeFilter {
 
 	/**
-	 * @param objectName
-	 * @param attributeName
-	 * @return outcome of test
+	 * @param objectName The object name.
+	 * @param attributeName The attribute name.
+	 * @return true if the attribute passes the filter.
 	 */
 	boolean accept(ObjectName objectName, String attributeName);
 

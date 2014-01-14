@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2013 the original author or authors.
+ * Copyright 2001-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ public abstract class AbstractServerConnectionFactory
 
 	/**
 	 * The port on which the factory will listen.
-	 * @param port
+	 *
+	 * @param port The port.
 	 */
 	public AbstractServerConnectionFactory(int port) {
 		super(port);
@@ -69,6 +70,7 @@ public abstract class AbstractServerConnectionFactory
 	 * Not supported because the factory manages multiple connections and this
 	 * method cannot discriminate.
 	 */
+	@Override
 	public TcpConnection getConnection() throws Exception {
 		throw new UnsupportedOperationException("Getting a connection from a server factory is not supported");
 	}
@@ -158,18 +160,20 @@ public abstract class AbstractServerConnectionFactory
 	/**
 	 * The number of sockets in the connection backlog. Default 5;
 	 * increase if you expect high connection rates.
-	 * @param backlog
+	 * @param backlog The backlog to set.
 	 */
 	public void setBacklog(int backlog) {
 		Assert.isTrue(backlog >= 0, "You cannot set backlog negative");
 		this.backlog = backlog;
 	}
 
+	@Override
 	public int beforeShutdown() {
 		this.shuttingDown = true;
 		return 0;
 	}
 
+	@Override
 	public int afterShutdown() {
 		this.stop();
 		return 0;

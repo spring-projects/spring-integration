@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,8 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	/**
 	 * Create a processor for the given {@link ScriptSource} that will use a
 	 * DefaultScriptVariableGenerator.
+	 *
+	 * @param scriptSource The script source.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
 		super();
@@ -77,6 +79,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	/**
 	 * Create a processor for the given {@link ScriptSource} that will use the provided
 	 * ScriptVariableGenerator.
+	 *
+	 * @param scriptSource The script source.
+	 * @param scriptVariableGenerator The variable generator.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator) {
 		super(scriptVariableGenerator);
@@ -99,6 +104,8 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	/**
 	 * Sets a {@link GroovyObjectCustomizer} for this processor.
+	 * 
+	 * @param customizer The customizer.
 	 */
 	public void setCustomizer(GroovyObjectCustomizer customizer) {
 		this.customizerDecorator.setCustomizer(customizer);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -73,6 +73,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		this.order = order;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -88,12 +89,13 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	/**
 	 * Sets the name of the handler component.
 	 *
-	 * @param componentName
+	 * @param componentName The component name.
 	 */
 	public void setComponentName(String componentName) {
 		this.componentName = componentName;
 	}
 
+	@Override
 	public H getObject() throws Exception {
 		if (this.handler == null) {
 			this.handler = this.createHandlerInternal();
@@ -140,6 +142,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	protected abstract H createHandler();
 
+	@Override
 	public Class<? extends MessageHandler> getObjectType() {
 		if (this.handler != null) {
 			return this.handler.getClass();
@@ -147,6 +150,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return MessageHandler.class;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}

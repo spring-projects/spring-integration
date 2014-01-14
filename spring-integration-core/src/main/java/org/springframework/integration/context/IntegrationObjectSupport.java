@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
 /**
  * A base class that provides convenient access to the bean factory as
  * well as {@link TaskScheduler} and {@link ConversionService} instances.
- * <p>
+ *
  * <p>This is intended to be used as a base class for internal framework
  * components whereas code built upon the integration framework should not
  * require tight coupling with the context but rather rely on standard
@@ -76,6 +76,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private volatile ApplicationContext applicationContext;
 
+	@Override
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
 	}
@@ -84,14 +85,14 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * Will return the name of this component identified by {@link #componentName} field.
 	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
 	 */
+	@Override
 	public final String getComponentName() {
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}
 
 	/**
 	 * Sets the name of this component.
-	 *
-	 * @param componentName
+	 * @param componentName The component name.
 	 */
 	public void setComponentName(String componentName) {
 		this.componentName = componentName;
@@ -100,21 +101,25 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	/**
 	 * Subclasses may implement this method to provide component type information.
 	 */
+	@Override
 	public String getComponentType() {
 		return null;
 	}
 
+	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.beanFactory = beanFactory;
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 	}
 
+	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.notNull(applicationContext, "'applicationContext' must not be null");
 		this.applicationContext = applicationContext;
 	}
 
+	@Override
 	public final void afterPropertiesSet() {
 		try {
 			this.onInit();
@@ -129,6 +134,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	/**
 	 * Subclasses may implement this for initialization logic.
+	 * @throws Exception Any exception.
 	 */
 	protected void onInit() throws Exception {
 	}
@@ -179,7 +185,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	/**
-	 * @see IntegrationContextUtils#getIntegrationProperties
+	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
+	 * @return The global integration properties.
 	 */
 	protected Properties getIntegrationProperties() {
 		return this.integrationProperties;
@@ -188,6 +195,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	/**
 	 * @param  key    Integration property.
 	 * @param  tClass the class to convert a value of Integration property.
+	 * @param <T> The expected type of the property.
 	 * @return the value of the Integration property converted to the provide type.
 	 */
 	protected <T> T getIntegrationProperty(String key, Class<T> tClass) {

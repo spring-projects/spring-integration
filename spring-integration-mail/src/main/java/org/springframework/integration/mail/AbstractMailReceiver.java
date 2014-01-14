@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,6 +120,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Set the {@link Session}. Otherwise, the Session will be created by invocation of
 	 * {@link Session#getInstance(Properties)} or {@link Session#getInstance(Properties, Authenticator)}.
 	 *
+	 * @param session The session.
+	 *
 	 * @see #setJavaMailProperties(Properties)
 	 * @see #setJavaMailAuthenticator(Authenticator)
 	 */
@@ -132,6 +134,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * A new {@link Session} will be created with these properties (and the JavaMailAuthenticator if provided).
 	 * Use either this method or {@link #setSession}, but not both.
 	 *
+	 * @param javaMailProperties The javamail properties.
+	 *
 	 * @see #setJavaMailAuthenticator(Authenticator)
 	 * @see #setSession(Session)
 	 */
@@ -143,6 +147,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Optional, sets the Authenticator to be used to obtain a session. This will not be used if
 	 * {@link AbstractMailReceiver#setSession} has been used to configure the {@link Session} directly.
 	 *
+	 * @param javaMailAuthenticator The javamail authenticator.
+	 *
 	 * @see #setSession(Session)
 	 */
 	public void setJavaMailAuthenticator(Authenticator javaMailAuthenticator) {
@@ -151,6 +157,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Specify the maximum number of Messages to fetch per call to {@link #receive()}.
+	 *
+	 * @param maxFetchSize The max fetch size.
 	 */
 	public void setMaxFetchSize(int maxFetchSize) {
 		this.maxFetchSize = maxFetchSize;
@@ -158,12 +166,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Specify whether mail messages should be deleted after retrieval.
+	 *
+	 * @param shouldDeleteMessages true to delete messages.
 	 */
 	public void setShouldDeleteMessages(boolean shouldDeleteMessages) {
 		this.shouldDeleteMessages = shouldDeleteMessages;
 	}
 	/**
 	 * Indicates whether the mail messages should be deleted after being received.
+	 *
+	 * @return true when messages will be deleted.
 	 */
 	protected boolean shouldDeleteMessages() {
 		return this.shouldDeleteMessages;
@@ -175,6 +187,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Subclasses must implement this method to return new mail messages.
+	 *
+	 * @return An array of messages.
 	 */
 	protected abstract Message[] searchForNewMessages() throws MessagingException;
 
@@ -227,6 +241,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.store.getFolder(this.url);
 	}
 
+	@Override
 	public Message[] receive() throws javax.mail.MessagingException {
 		synchronized (this.folderMonitor) {
 			try {
@@ -363,12 +378,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Optional method allowing you to set additional flags.
 	 * Currently only implemented in IMapMailReceiver.
 	 *
-	 * @param message
-	 * @throws MessagingException
+	 * @param message The message.
+	 * @throws MessagingException A MessagingException.
 	 */
 	protected void setAdditionalFlags(Message message) throws MessagingException {
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		synchronized (this.folderMonitor) {
 			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);

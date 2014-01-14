@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,15 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -80,6 +80,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * Provide the map of expressions to evaluate when enriching the target payload.
 	 * The keys should simply be property names, and the values should be Expressions
 	 * that will evaluate against the reply Message as the root object.
+	 *
+	 * @param propertyExpressions The property expressions.
 	 */
 	public void setPropertyExpressions(Map<String, Expression> propertyExpressions) {
 		Assert.notEmpty(propertyExpressions, "propertyExpressions must not be empty");
@@ -99,6 +101,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * the target MessageHeaders.
 	 * The keys should simply be header names, and the values should be Expressions
 	 * that will evaluate against the reply Message as the root object.
+	 *
+	 * @param headerExpressions The header expressions.
 	 */
 	public void setHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> headerExpressions) {
 		Assert.notEmpty(headerExpressions, "headerExpressions must not be empty");
@@ -112,6 +116,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * Gateway will be initialized. Setting a request channel is optional.
 	 * Not setting a request channel is useful in situations where
 	 * message payloads shall be enriched with static values only.
+	 *
+	 * @param requestChannel The request channel.
 	 */
 	public void setRequestChannel(MessageChannel requestChannel) {
 		this.requestChannel = requestChannel;
@@ -121,6 +127,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * Sets the content enricher's reply channel. If not specified, yet the request
 	 * channel is set, an anonymous reply channel will automatically created
 	 * for each request.
+	 *
+	 * @param replyChannel The reply channel.
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.replyChannel = replyChannel;
@@ -171,6 +179,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * If more sophisticated logic is required (e.g. changing the message
 	 * headers etc.) please use additional downstream transformers.
 	 *
+	 * @param requestPayloadExpression The request payload expression.
+	 *
 	 */
 	public void setRequestPayloadExpression(Expression requestPayloadExpression) {
 		this.requestPayloadExpression = requestPayloadExpression;
@@ -179,6 +189,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	/**
 	 * Specify whether to clone payload objects to create the target object.
 	 * This is only applicable for payload types that implement Cloneable.
+	 *
+	 * @param shouldClonePayload true if the payload should be cloned.
 	 */
 	public void setShouldClonePayload(boolean shouldClonePayload) {
 		this.shouldClonePayload = shouldClonePayload;

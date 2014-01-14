@@ -62,6 +62,10 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	/**
 	 * Subclasses must implement this method to parse the PollableSource instance
 	 * which the created Channel Adapter will poll.
+	 *
+	 * @param element The element.
+	 * @param parserContext The parser context.
+	 * @return The bean metadata element.
 	 */
 	protected abstract BeanMetadataElement parseSource(Element element, ParserContext parserContext);
 

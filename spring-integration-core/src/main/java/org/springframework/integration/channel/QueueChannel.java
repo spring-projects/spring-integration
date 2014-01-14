@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -43,6 +43,8 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 	/**
 	 * Create a channel with the specified queue.
+	 *
+	 * @param queue The queue.
 	 */
 	public QueueChannel(BlockingQueue<Message<?>> queue) {
 		Assert.notNull(queue, "'queue' must not be null");
@@ -51,6 +53,8 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 	/**
 	 * Create a channel with the specified queue capacity.
+	 *
+	 * @param capacity The capacity.
 	 */
 	public QueueChannel(int capacity) {
 		Assert.isTrue(capacity > 0, "The capacity must be a positive integer. " +
@@ -104,18 +108,14 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		}
 	}
 
-	/**
-	 * Remove all {@link Message Messages} from this channel.
-	 */
+	@Override
 	public List<Message<?>> clear() {
 		List<Message<?>> clearedMessages = new ArrayList<Message<?>>();
 		this.queue.drainTo(clearedMessages);
 		return clearedMessages;
 	}
 
-	/**
-	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
-	 */
+	@Override
 	public List<Message<?>> purge(MessageSelector selector) {
 		if (selector == null) {
 			return this.clear();
@@ -131,10 +131,12 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		return purgedMessages;
 	}
 
+	@Override
 	public int getQueueSize() {
 		return this.queue.size();
 	}
 
+	@Override
 	public int getRemainingCapacity() {
 		return this.queue.remainingCapacity();
 	}

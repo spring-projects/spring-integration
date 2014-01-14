@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.util.Assert;
 
 /**
@@ -77,22 +77,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
-	 * @param socketChannel the socketChannel
-	 * @param server if true this connection was created as
+	 * @param socketChannel The socketChannel.
+	 * @param server If true, this connection was created as
 	 * a result of an incoming request.
-	 * @deprecated Use {@link #TcpNioConnection(SocketChannel, boolean, boolean, ApplicationEventPublisher, String)}
-	 * TODO: Remove in 3.1/4.0
-	 */
-	@Deprecated
-	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost) throws Exception {
-		this(socketChannel, server, lookupHost, null, null);
-	}
-
-	/**
-	 * Constructs a TcpNetConnection for the SocketChannel.
-	 * @param socketChannel the socketChannel
-	 * @param server if true this connection was created as
-	 * a result of an incoming request.
+	 * @param lookupHost true to perform reverse lookups.
+	 * @param applicationEventPublisher The event publisher.
+	 * @param connectionFactoryName The name of the connection factory creating this connection.
+	 * @throws Exception Any Exception.
 	 */
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
@@ -128,10 +119,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		super.close();
 	}
 
+	@Override
 	public boolean isOpen() {
 		return this.socketChannel.isOpen();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
 		synchronized(this.socketChannel) {
@@ -149,14 +142,17 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 	}
 
+	@Override
 	public Object getPayload() throws Exception {
 		return this.getDeserializer().deserialize(this.channelInputStream);
 	}
 
+	@Override
 	public int getPort() {
 		return this.socketChannel.socket().getPort();
 	}
 
+	@Override
 	public Object getDeserializerStateKey() {
 		return this.channelInputStream;
 	}
@@ -164,6 +160,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	/**
 	 * Allocates a ByteBuffer of the requested length using normal or
 	 * direct buffers, depending on the usingDirectBuffers field.
+	 *
+	 * @param length The buffer length.
+	 * @return The buffer.
 	 */
 	protected ByteBuffer allocate(int length) {
 		ByteBuffer buffer;
@@ -183,6 +182,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * and there is no more data; thus freeing the thread to work on other
 	 * sockets.
 	 */
+	@Override
 	public void run() {
 		if (logger.isTraceEnabled()) {
 			logger.trace(this.getConnectionId() + " Nio message assembler running...");
@@ -357,6 +357,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			 * Hence the count down latch.
 			 */
 			this.taskExecutor.execute(new Runnable() {
+				@Override
 				public void run() {
 					try {
 						TcpNioConnection.this.sendToPipe(rawBuffer);
@@ -448,7 +449,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	/**
 	 * If true, connection will attempt to use direct buffers where
 	 * possible.
-	 * @param usingDirectBuffers
+	 * @param usingDirectBuffers the usingDirectBuffers to set.
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;

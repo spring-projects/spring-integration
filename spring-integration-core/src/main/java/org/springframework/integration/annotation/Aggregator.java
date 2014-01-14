@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import java.lang.annotation.Target;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 
 /**
- * Indicates that a method is capable of aggregating messages. 
+ * Indicates that a method is capable of aggregating messages.
  * <p>
  * A method annotated with @Aggregator may accept a collection
  * of Messages or Message payloads and should return a single
  * Message or a single Object to be used as a Message payload.
- * 
+ *
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
  */
@@ -40,27 +40,27 @@ import org.springframework.integration.aggregator.AbstractCorrelatingMessageHand
 public @interface Aggregator {
 
 	/**
-	 * channel name for receiving messages to be aggregated
+	 * @return The channel name for receiving messages to be aggregated
 	 */
 	String inputChannel() default "";
 
 	/**
-	 * channel name for sending aggregated result messages
+	 * @return The channel name for sending aggregated result messages
 	 */
 	String outputChannel() default "";
 
 	/**
-	 * channel name for sending discarded messages (due to a timeout)
+	 * @return The channel name for sending discarded messages (due to a timeout)
 	 */
 	String discardChannel() default "";
 
 	/**
-	 * timeout for sending results to the reply target (in milliseconds)
+	 * @return The timeout for sending results to the reply target (in milliseconds)
 	 */
 	long sendTimeout() default AbstractCorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
 
 	/**
-	 * indicates whether to send an incomplete aggregate on expiry of the message group
+	 * @return Indicates whether to send an incomplete aggregate on expiry of the message group
 	 */
 	boolean sendPartialResultsOnExpiry() default false;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractFile
 		this.pattern = Pattern.compile(pattern);
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.pattern, "'pattern' must not be null!");
 	}
@@ -62,7 +63,10 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractFile
 	}
 
 	/**
-	 * Subclasses must implement this method to extract the file's name. 
+	 * Subclasses must implement this method to extract the file's name.
+	 *
+	 * @param file The file.
+	 * @return The file name.
 	 */
 	protected abstract String getFilename(F file);
 

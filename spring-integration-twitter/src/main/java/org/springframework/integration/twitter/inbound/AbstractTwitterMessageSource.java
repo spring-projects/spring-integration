@@ -1,4 +1,4 @@
-/* Copyright 2002-2013 the original author or authors.
+/* Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
@@ -33,6 +31,8 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
@@ -128,6 +128,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	}
 
+	@Override
 	public Message<?> receive() {
 		T tweet = this.tweets.poll();
 		if (tweet == null) {
@@ -180,6 +181,9 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	/**
 	 * Subclasses must implement this to return tweets.
 	 * The 'sinceId' value will be negative if no last id is known.
+	 *
+	 * @param sinceId The id of the last reported tweet.
+	 * @return The list of tweets.
 	 */
 	protected abstract List<T> pollForTweets(long sinceId);
 
@@ -220,6 +224,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private class TweetComparator implements Comparator<T> {
 
+		@Override
 		public int compare(T tweet1, T tweet2) {
 			// hopefully temporary logic. Will suggest that SpringSocial use a common base class for DM and Tweet
 			if (tweet1 instanceof Tweet && tweet2 instanceof Tweet) {

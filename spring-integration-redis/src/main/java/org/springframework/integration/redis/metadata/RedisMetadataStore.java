@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -37,6 +37,8 @@ public class RedisMetadataStore implements MetadataStore {
 
 	/**
 	 * Specifies the {@link RedisProperties} backend for this {@link MetadataStore}.
+	 *
+	 * @param properties The properties.
 	 */
 	public RedisMetadataStore(RedisProperties properties) {
 		Assert.notNull(properties, "'properties' must not be null.");
@@ -46,6 +48,8 @@ public class RedisMetadataStore implements MetadataStore {
 	/**
 	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory}
 	 * and default hash key - {@link #KEY}.
+	 *
+	 * @param connectionFactory The connection factory.
 	 */
 	public RedisMetadataStore(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, KEY);
@@ -53,6 +57,9 @@ public class RedisMetadataStore implements MetadataStore {
 
 	/**
 	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory} and key.
+	 *
+	 * @param connectionFactory The connection factory.
+	 * @param key The key.
 	 */
 	public RedisMetadataStore(RedisConnectionFactory connectionFactory, String key) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null.");
@@ -65,6 +72,8 @@ public class RedisMetadataStore implements MetadataStore {
 	/**
 	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory}
 	 * and default hash key - {@link #KEY}.
+	 *
+	 * @param operations The Redis operations object.
 	 */
 	public RedisMetadataStore(RedisOperations<String, ?> operations) {
 		this(operations, KEY);
@@ -72,6 +81,9 @@ public class RedisMetadataStore implements MetadataStore {
 
 	/**
 	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory} and key.
+	 *
+	 * @param operations The Redis operations object.
+	 * @param key The key.
 	 */
 	public RedisMetadataStore(RedisOperations<String, ?> operations, String key) {
 		Assert.notNull(operations, "'operations' must not be null.");
@@ -86,6 +98,7 @@ public class RedisMetadataStore implements MetadataStore {
 	 * @param key Must not be null
 	 * @param value Must not be null
 	 */
+	@Override
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
@@ -97,6 +110,7 @@ public class RedisMetadataStore implements MetadataStore {
 	 *
 	 * @param key Must not be null
 	 */
+	@Override
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		return (String) this.properties.get(key);

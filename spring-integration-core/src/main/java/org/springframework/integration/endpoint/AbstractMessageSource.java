@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -43,9 +43,10 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 				? headerExpressions : Collections.<String, Expression>emptyMap();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public final Message<T> receive() {
-		Message<T> message = null; 
+		Message<T> message = null;
 		Object result = this.doReceive();
 		Map<String, Object> headers = this.evaluateHeaders();
 		if (result instanceof Message<?>) {
@@ -93,6 +94,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	/**
 	 * Subclasses must implement this method. Typically the returned value will be the payload of
 	 * type T, but the returned value may also be a Message instance whose payload is of type T.
+	 *
+	 * @return The value returned.
 	 */
 	protected abstract Object doReceive();
 

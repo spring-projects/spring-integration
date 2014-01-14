@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,25 @@ public interface MetadataStore {
 
 	/**
 	 * Writes a key value pair to this MetadataStore.
+	 *
+	 * @param key The key.
+	 * @param value The value.
 	 */
 	void put(String key, String value);
 
 	/**
 	 * Reads a value for the given key from this MetadataStore.
+	 *
+	 * @param key The key.
+	 * @return The value.
 	 */
 	@ManagedAttribute
 	String get(String key);
 
 	/**
 	 * Remove a value for the given key from this MetadataStore.
-	 * return the previous value associated with <tt>key</tt>, or
+	 * @param key The key.
+	 * @return The previous value associated with <tt>key</tt>, or
 	 *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
 	 */
 	@ManagedAttribute

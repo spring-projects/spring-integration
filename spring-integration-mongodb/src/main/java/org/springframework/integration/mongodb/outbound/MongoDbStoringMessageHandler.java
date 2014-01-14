@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 /**
  * Implementation of {@link MessageHandler} which writes Message payload into a MongoDb collection
@@ -53,7 +53,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Will construct this instance using provided {@link MongoDbFactory}
 	 *
-	 * @param mongoDbFactory
+	 * @param mongoDbFactory The mongodb factory.
 	 */
 	public MongoDbStoringMessageHandler(MongoDbFactory mongoDbFactory){
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
@@ -65,7 +65,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	 * Will construct this instance using fully created and initialized instance of
 	 * provided {@link MongoOperations}
 	 *
-	 * @param mongoTemplate
+	 * @param mongoTemplate The MongoOperations implementation.
 	 */
 	public MongoDbStoringMessageHandler(MongoOperations mongoTemplate){
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
@@ -78,7 +78,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	 * of data written to MongoDb. Only allowed if this instance was constructed with a
 	 * {@link MongoDbFactory}.
 	 *
-	 * @param mongoConverter
+	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
 		Assert.isNull(this.mongoTemplate,
@@ -90,7 +90,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	 * Sets the SpEL {@link Expression} that should resolve to a collection name
 	 * used by {@link MongoOperations} to store data
 	 *
-	 * @param collectionNameExpression
+	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
 		Assert.notNull(collectionNameExpression, "'collectionNameExpression' must not be null");

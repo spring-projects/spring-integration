@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,8 +14,8 @@ package org.springframework.integration.store;
 
 import java.util.Iterator;
 
-import org.springframework.messaging.Message;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.messaging.Message;
 
 /**
  * Interface for storage operations on groups of messages linked by a group id.
@@ -49,8 +49,10 @@ public interface MessageGroupStore {
 	int getMessageGroupCount();
 
 	/**
-	 * Returns the size of this MessageGroup
-	 * @param groupId
+	 * Returns the size of this MessageGroup.
+	 *
+	 * @param groupId The group identifier.
+	 * @return The size.
 	 */
 	@ManagedAttribute
 	int messageGroupSize(Object groupId);
@@ -59,37 +61,41 @@ public interface MessageGroupStore {
 	 * Return all Messages currently in the MessageStore that were stored using
 	 * {@link #addMessageToGroup(Object, Message)} with this group id.
 	 *
-	 * @return a group of messages, empty if none exists for this key
+	 * @param groupId The group identifier.
+	 * @return A group of messages, empty if none exists for this key.
 	 */
 	MessageGroup getMessageGroup(Object groupId);
 
 	/**
 	 * Store a message with an association to a group id. This can be used to group messages together.
 	 *
-	 * @param groupId the group id to store the message under
-	 * @param message a message
+	 * @param groupId The group id to store the message under.
+	 * @param message A message.
+	 * @return The message group.
 	 */
 	MessageGroup addMessageToGroup(Object groupId, Message<?> message);
 
 	/**
 	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is
 	 * no longer present in the group.
-	 * @param key the groupId for the group containing the message
-	 * @param messageToRemove the message to be removed
+	 *
+	 * @param key The groupId for the group containing the message.
+	 * @param messageToRemove The message to be removed.
+	 * @return The message Group.
 	 */
 	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
 
 	/**
 	 * Remove the message group with this id.
 	 *
-	 * @param groupId the id of the group to remove
+	 * @param groupId The id of the group to remove.
 	 */
 	void removeMessageGroup(Object groupId);
 
 	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.
 	 *
-	 * @param callback a callback to execute when a message group is cleaned up
+	 * @param callback A callback to execute when a message group is cleaned up.
 	 */
 	void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
 
@@ -108,12 +114,14 @@ public interface MessageGroupStore {
 
 	/**
 	 * Allows you to set the sequence number of the last released Message. Used for Resequencing use cases
-	 * @param sequenceNumber
+	 *
+	 * @param groupId The group identifier.
+	 * @param sequenceNumber The sequence number.
 	 */
 	void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber);
 
 	/**
-	 * Returns the iterator of currently accumulated {@link MessageGroup}s
+	 * @return The iterator of currently accumulated {@link MessageGroup}s.
 	 */
 	Iterator<MessageGroup> iterator();
 
@@ -121,6 +129,9 @@ public interface MessageGroupStore {
 	/**
 	 * Polls Message from this {@link MessageGroup} (in FIFO style if supported by the implementation)
 	 * while also removing the polled {@link Message}
+	 *
+	 * @param groupId The group identifier.
+	 * @return The message.
 	 */
 	Message<?> pollMessageFromGroup(Object groupId);
 
@@ -128,6 +139,8 @@ public interface MessageGroupStore {
 	 * Completes this MessageGroup. Completion of the MessageGroup generally means
 	 * that this group should not be allowing any more mutating operation to be performed on it.
 	 * For example any attempt to add/remove new Message form the group should not be allowed.
+	 *
+	 * @param groupId The group identifier.
 	 */
 	void completeGroup(Object groupId);
 

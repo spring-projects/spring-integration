@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.messaging.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.messaging.Message;
 
 /**
  * A base class for aggregators that evaluates a SpEL expression with the message list as the root object within the
  * evaluation context.
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */
@@ -40,9 +40,11 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	private final Expression expression;
 
 	private volatile Class<?> expectedType = null;
-	
+
 	/**
 	 * Set the result type expected from evaluation of the expression.
+	 *
+	 * @param expectedType The expected type.
 	 */
 	public void setExpectedType(Class<?> expectedType) {
 		this.expectedType = expectedType;
@@ -61,6 +63,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	 * Processes the Message by evaluating the expression with that Message as the root object. The expression
 	 * evaluation result Object will be returned.
 	 */
+	@Override
 	public Object process(Collection<? extends Message<?>> messages) {
 		return this.evaluateExpression(this.expression, messages, this.expectedType);
 	}

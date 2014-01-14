@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package org.springframework.integration.xml.transformer;
 
 import org.w3c.dom.Node;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
@@ -38,7 +38,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * {@link #setEvaluationType(XPathEvaluationType)} or the presence of a {@link NodeMapper},
  * which takes precedence. If no {@link NodeMapper} or evaluation type is configured explicitly,
  * the default evaluation type is {@link XPathEvaluationType#STRING_RESULT}.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -55,15 +55,19 @@ public class XPathTransformer extends AbstractTransformer {
 
 	/**
 	 * Create an {@link XPathTransformer} that will create an XPath expression from the given String
-	 * to be evaluated against converted inbound Message payloads. 
+	 * to be evaluated against converted inbound Message payloads.
+	 *
+	 * @param expression The expression.
 	 */
 	public XPathTransformer(String expression) {
-		this.xpathExpression = XPathExpressionFactory.createXPathExpression(expression);		
+		this.xpathExpression = XPathExpressionFactory.createXPathExpression(expression);
 	}
 
 	/**
 	 * Create an {@link XPathTransformer} that will evaluate the given {@link XPathExpression}
 	 * against converted inbound Message payloads.
+	 *
+	 * @param expression The expression.
 	 */
 	public XPathTransformer(XPathExpression expression) {
 		Assert.notNull(expression, "expression must not be null");
@@ -73,6 +77,8 @@ public class XPathTransformer extends AbstractTransformer {
 
 	/**
 	 * Specify the expected {@link XPathEvaluationType}. The default is {@link XPathEvaluationType#STRING_RESULT}.
+	 *
+	 * @param evaluationType The evaluation type.
 	 */
 	public void setEvaluationType(XPathEvaluationType evaluationType) {
 		Assert.notNull(evaluationType, "evaluationType must not be null.");
@@ -83,6 +89,8 @@ public class XPathTransformer extends AbstractTransformer {
 	 * Set a {@link NodeMapper} to use for generating the result object. By default the NodeMapper is null,
 	 * but if explicitly set, type determination is the responsibility of the NodeMapper, taking precedence
 	 * over any configured evaluationType.
+	 *
+	 * @param nodeMapper The node mapper.
 	 */
 	public void setNodeMapper(NodeMapper<?> nodeMapper) {
 		this.nodeMapper = nodeMapper;
@@ -90,6 +98,8 @@ public class XPathTransformer extends AbstractTransformer {
 
 	/**
 	 * Specify the {@link XmlPayloadConverter} to use when converting a Message payload prior to XPath evaluation.
+	 *
+	 * @param converter The payload converter.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
 		Assert.notNull(converter, "converter must not be null");

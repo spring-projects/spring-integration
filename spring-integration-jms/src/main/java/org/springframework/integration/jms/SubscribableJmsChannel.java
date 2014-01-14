@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,17 +64,19 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 	/**
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
-	 * @param maxSubscribers
+	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
 		this.maxSubscribers = maxSubscribers;
 	}
 
+	@Override
 	public boolean subscribe(MessageHandler handler) {
 		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.addHandler(handler);
 	}
 
+	@Override
 	public boolean unsubscribe(MessageHandler handler) {
 		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.removeHandler(handler);
@@ -139,6 +141,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 		}
 
 
+		@Override
 		public void onMessage(javax.jms.Message message) {
 			Message<?> messageToSend = null;
 			try {
@@ -177,36 +180,43 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 	 * SmartLifecycle implementation (delegates to the MessageListener container)
 	 */
 
+	@Override
 	public boolean isAutoStartup() {
 		return (this.container != null) ? this.container.isAutoStartup() : false;
 	}
 
+	@Override
 	public int getPhase() {
 		return (this.container != null) ? this.container.getPhase() : 0;
 	}
 
+	@Override
 	public boolean isRunning() {
 		return (this.container != null) ? this.container.isRunning() : false;
 	}
 
+	@Override
 	public void start() {
 		if (this.container != null) {
 			this.container.start();
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (this.container != null) {
 			this.container.stop();
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		if (this.container != null) {
 			this.container.stop(callback);
 		}
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		if (this.container != null) {
 			this.container.destroy();

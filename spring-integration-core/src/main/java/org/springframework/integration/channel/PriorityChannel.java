@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,9 @@ public class PriorityChannel extends QueueChannel {
 	 * will be determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
 	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
+	 *
+	 * @param capacity The capacity.
+	 * @param comparator The comparator.
 	 */
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<Message<?>>(11, new SequenceFallbackComparator(comparator)));
@@ -63,6 +66,8 @@ public class PriorityChannel extends QueueChannel {
 	 * determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
 	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
+	 *
+	 * @param comparator The comparator.
 	 */
 	public PriorityChannel(Comparator<Message<?>> comparator) {
 		this(0, comparator);
@@ -103,6 +108,7 @@ public class PriorityChannel extends QueueChannel {
 			this.targetComparator = targetComparator;
 		}
 
+		@Override
 		public int compare(Message<?> message1, Message<?> message2) {
 			int compareResult = 0;
 			if (this.targetComparator != null){
@@ -140,10 +146,12 @@ public class PriorityChannel extends QueueChannel {
 			return this.rootMessage;
 		}
 
+		@Override
 		public MessageHeaders getHeaders() {
 			return this.rootMessage.getHeaders();
 		}
 
+		@Override
 		public Object getPayload() {
 			return rootMessage.getPayload();
 		}

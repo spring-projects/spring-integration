@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.messaging.Message;
 
 /**
  * An implementation of {@link ReleaseStrategy} that simply compares the current size of the message list to the
@@ -58,12 +59,13 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 	 * Flag that determines if partial sequences are allowed. If true then as soon as enough messages arrive that can be
 	 * ordered they will be released, provided they all have sequence numbers greater than those already released.
 	 *
-	 * @param releasePartialSequences
+	 * @param releasePartialSequences true when partial sequences should be released.
 	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
+	@Override
 	public boolean canRelease(MessageGroup messageGroup) {
 
 		boolean canRelease = false;

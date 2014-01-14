@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -81,7 +81,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * context: generally in an outbound setting it is a Message, and in an inbound setting it is a result set row (a
 	 * Map or a domain object if a RowMapper has been provided). The {@link #setStaticParameters(Map) static parameters}
 	 * can be referred to in an expression using the variable <code>#staticParameters</code>, for example:
-	 * <p>
+	 * <p>&nbsp;
 	 * <table>
 	 * <caption>Parameter Expressions Samples</caption>
 	 * <tr>
@@ -123,6 +123,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		this.parameterExpressions = paramExpressions;
 	}
 
+	@Override
 	public SqlParameterSource createParameterSource(final Object input) {
 		return new ExpressionEvaluatingSqlParameterSource(input, this.staticParameters, this.parameterExpressions);
 	}
@@ -148,6 +149,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			this.values.putAll(staticParameters);
 		}
 
+		@Override
 		public Object getValue(String paramName) throws IllegalArgumentException {
 			if (values.containsKey(paramName)) {
 				return values.get(paramName);
@@ -179,6 +181,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			return value;
 		}
 
+		@Override
 		public boolean hasValue(String paramName) {
 			try {
 				Object value = getValue(paramName);

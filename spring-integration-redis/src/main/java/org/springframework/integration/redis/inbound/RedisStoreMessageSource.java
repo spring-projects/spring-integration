@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ import org.springframework.data.redis.support.collections.RedisCollectionFactory
 import org.springframework.data.redis.support.collections.RedisStore;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 /**
@@ -64,8 +64,8 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 * It assumes that {@link RedisTemplate} is fully initialized and ready to be used.
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
-	 * @param redisTemplate
-	 * @param keyExpression
+	 * @param redisTemplate The Redis template.
+	 * @param keyExpression The key expression.
 	 */
 	public RedisStoreMessageSource(RedisTemplate<String, ?> redisTemplate,
 		       Expression keyExpression) {
@@ -85,8 +85,8 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 *
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
-	 * @param connectionFactory
-	 * @param keyExpression
+	 * @param connectionFactory The connection factory.
+	 * @param keyExpression The key expression.
 	 */
 	public RedisStoreMessageSource(RedisConnectionFactory connectionFactory,
 									       Expression keyExpression) {
@@ -110,6 +110,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 * Returns a Message with the view into a {@link RedisStore} identified
 	 * by {@link #keyExpression}
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public Message<RedisStore> receive() {
 		String key = this.keyExpression.getValue(this.evaluationContext, String.class);

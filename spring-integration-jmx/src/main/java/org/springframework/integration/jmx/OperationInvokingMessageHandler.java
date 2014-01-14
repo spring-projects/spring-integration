@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,11 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -72,6 +72,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	/**
 	 * Provide a reference to the MBeanServer within which the MBean
 	 * target for operation invocation has been registered.
+	 *
+	 * @param server The MBean server connection.
 	 */
 	public void setServer(MBeanServerConnection server) {
 		this.server = server;
@@ -80,6 +82,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	/**
 	 * Specify a default ObjectName to use when no such header is
 	 * available on the Message being handled.
+	 *
+	 * @param objectName The object name.
 	 */
 	public void setObjectName(String objectName) {
 		try {
@@ -95,6 +99,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	/**
 	 * Specify an operation name to be invoked when no such
 	 * header is available on the Message being handled.
+	 *
+	 * @param operationName The operation name.
 	 */
 	public void setOperationName(String operationName) {
 		this.operationName = operationName;

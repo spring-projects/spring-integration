@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ import org.springframework.messaging.MessageHandler;
  * A {@link MessageHandler} implementation that maps a Message into
  * a UDP datagram packet and sends that to the specified multicast address
  * (224.0.0.0 to 239.255.255.255) and port.
- * 
+ *
  * The only difference between this and its super class is the
  * ability to specify how many acknowledgments are required to
  * determine success.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -42,7 +42,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	private int timeToLive = -1;
 
 	private String localAddress;
-	
+
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
 	 * @param address The multicast address.
@@ -138,11 +138,12 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			this.setSocket(socket);
 		}
 	}
-	
+
 
 	/**
 	 * If acknowledge = true; how many acks needed for success.
-	 * @param minAcksForSuccess
+	 *
+	 * @param minAcksForSuccess The minimum number of acks that will represent success.
 	 */
 	public void setMinAcksForSuccess(int minAcksForSuccess) {
 		this.setAckCounter(minAcksForSuccess);
@@ -150,12 +151,14 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	/**
 	 * Set the underlying {@link MulticastSocket} time to live property.
+	 *
 	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
 	 */
 	public void setTimeToLive(int timeToLive) {
 		this.timeToLive = timeToLive;
 	}
 
+	@Override
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
 	}

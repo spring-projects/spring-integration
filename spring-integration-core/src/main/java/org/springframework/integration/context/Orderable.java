@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.core.Ordered;
  * Interface that extends {@link Ordered} while also exposing the
  * {@link #setOrder(int)} as an interface-level so that it is avaiable
  * on AOP proxies, etc.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -30,6 +30,8 @@ public interface Orderable extends Ordered {
 
 	/**
 	 * Set the order for this component.
+	 *
+	 * @param order the order.
 	 */
 	void setOrder(int order);
 

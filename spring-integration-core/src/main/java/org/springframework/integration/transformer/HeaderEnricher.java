@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
+	 *
+	 * @param headersToAdd The headers to add.
 	 */
 	public HeaderEnricher(Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd) {
 		this.headersToAdd = (headersToAdd != null) ? headersToAdd
@@ -80,11 +82,14 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 	 * <code>true</code>. Set this to <code>false</code> if a
 	 * <code>null</code> value should trigger <i>removal</i> of the
 	 * corresponding header instead.
+	 *
+	 * @param shouldSkipNulls true when null values should be skipped.
 	 */
 	public void setShouldSkipNulls(boolean shouldSkipNulls) {
 		this.shouldSkipNulls = shouldSkipNulls;
 	}
 
+	@Override
 	public Message<?> transform(Message<?> message) {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
@@ -147,6 +152,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 	 * org.springframework.beans.factory.BeanNameAware#setBeanName(java.lang
 	 * .String)
 	 */
+	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
 
@@ -158,6 +164,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 	 * @see
 	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		boolean shouldOverwrite = this.defaultOverwrite;
 		for (HeaderValueMessageProcessor<?> processor : this.headersToAdd.values()) {

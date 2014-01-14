@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ public interface FileListFilter<F> {
     /**
      * Filters out files and returns the files that are left in a list, or an
      * empty list when a null is passed in.
+     *
+     * @param files The files.
+     * @return The filtered files.
      */
     List<F> filterFiles(F[] files);
 
