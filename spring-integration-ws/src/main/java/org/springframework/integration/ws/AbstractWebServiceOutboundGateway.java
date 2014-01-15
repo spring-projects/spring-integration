@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
+	 *
+	 * @param uriVariableExpressions The URI variable expressions.
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
 		synchronized (this.uriVariableExpressions) {
@@ -114,6 +116,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 * Specify whether empty String response payloads should be ignored.
 	 * The default is <code>true</code>. Set this to <code>false</code> if
 	 * you want to send empty String responses in reply Messages.
+	 *
+	 * @param ignoreEmptyResponses true if empty responses should be ignored.
 	 */
 	public void setIgnoreEmptyResponses(boolean ignoreEmptyResponses) {
 		this.ignoreEmptyResponses = ignoreEmptyResponses;
@@ -198,6 +202,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			this.requestMessage = requestMessage;
 		}
 
+		@Override
 		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
 			Object payload = this.requestMessage.getPayload();
 			if (message instanceof SoapMessage){
@@ -217,6 +222,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	protected abstract class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
 
+		@Override
 		public Object extractData(WebServiceMessage message)
 				throws IOException, TransformerException {
 

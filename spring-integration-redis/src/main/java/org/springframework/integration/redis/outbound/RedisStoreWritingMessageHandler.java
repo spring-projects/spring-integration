@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -45,12 +45,12 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 
@@ -108,7 +108,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * Constructs an instance using the provided {@link RedisTemplate}.
 	 * The RedisTemplate must be fully initialized.
 	 *
-	 * @param redisTemplate
+	 * @param redisTemplate The Redis template.
 	 */
 	public RedisStoreWritingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
@@ -124,7 +124,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * hash values, when it is false.
 	 *
 	 * @see #setExtractPayloadElements(boolean)
-	 * @param connectionFactory
+	 * @param connectionFactory The connection factory.
 	 */
 	public RedisStoreWritingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
@@ -138,7 +138,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 *
 	 * @see #setKeyExpression(Expression)
-	 * @param key
+	 * @param key The key.
 	 */
 	public void setKey(String key) {
 		Assert.hasText(key, "key must not be empty");
@@ -152,7 +152,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 *
 	 * @see #setKey(String)
-	 * @param keyExpression
+	 * @param keyExpression The key expression.
 	 */
 	public void setKeyExpression(Expression keyExpression) {
 		Assert.notNull(keyExpression, "keyExpression must not be null");
@@ -162,7 +162,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Sets the collection type for this handler as per {@link CollectionType}.
 	 *
-	 * @param collectionType
+	 * @param collectionType The collection type.
 	 */
 	public void setCollectionType(CollectionType collectionType) {
 		this.collectionType = collectionType;
@@ -176,7 +176,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * the value of this attribute is meaningless as the payload will always be
 	 * stored as a single entry.
 	 *
-	 * @param extractPayloadElements
+	 * @param extractPayloadElements true if payload elements should be extracted.
 	 */
 	public void setExtractPayloadElements(boolean extractPayloadElements) {
 		this.extractPayloadElements = extractPayloadElements;
@@ -185,7 +185,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Sets the expression used as the key for Map and Properties entries.
 	 * Default is 'headers.{@link RedisHeaders#MAP_KEY}'
-	 * @param mapKeyExpression
+	 *
+	 * @param mapKeyExpression The map key expression.
 	 */
 	public void setMapKeyExpression(Expression mapKeyExpression) {
 		Assert.notNull(mapKeyExpression, "'mapKeyExpression' must not be null");
@@ -288,6 +289,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 			if ((payload instanceof Map<?, ?> && this.verifyAllMapValuesOfTypeNumber((Map<?, ?>) payload))) {
 				final Map<Object, Number> payloadAsMap = (Map<Object, Number>) payload;
 				this.processInPipeline(new PipelineCallback() {
+					@Override
 					public void process() {
 						for (Entry<Object, Number> entry : payloadAsMap.entrySet()) {
 							Number d = entry.getValue();
@@ -301,6 +303,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 			}
 			else if (payload instanceof Collection<?>) {
 				this.processInPipeline(new PipelineCallback() {
+					@Override
 					public void process() {
 						for (Object object : ((Collection<?>)payload)) {
 							incrementOrOverwrite(ops, object, determineScore(message), zsetIncrementHeader);
@@ -348,6 +351,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 					(BoundSetOperations<String, Object>) this.redisTemplate.boundSetOps(set.getKey());
 
 			this.processInPipeline(new PipelineCallback() {
+				@Override
 				public void process() {
 					for (Object object : ((Collection<?>)payload)) {
 						ops.add(object);
@@ -365,6 +369,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Map<?, ?>) {
 			this.processInPipeline(new PipelineCallback() {
+				@Override
 				public void process() {
 					map.putAll((Map<? extends Object, ? extends Object>) payload);
 				}
@@ -380,6 +385,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Properties) {
 			this.processInPipeline(new PipelineCallback() {
+				@Override
 				public void process() {
 					properties.putAll((Properties) payload);
 				}

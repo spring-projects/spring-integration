@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.event.FileIntegrationEvent;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -69,7 +69,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	/**
 	 * A task executor; default is a {@link SimpleAsyncTaskExecutor}.
-	 * @param taskExecutor
+	 * @param taskExecutor The task executor.
 	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		Assert.notNull("'taskExecutor' cannot be null");

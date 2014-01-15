@@ -48,6 +48,7 @@ public interface RemoteFileOperations<F> {
 	/**
 	 * Retrieve a remote file as an InputStream, based on information in a message.
 	 *
+	 * @param message The message.
 	 * @param callback the callback.
 	 * @return true if the operation was successful.
 	 */
@@ -74,6 +75,7 @@ public interface RemoteFileOperations<F> {
 	 * Reliably closes the session when the method exits.
 	 *
 	 * @param callback the SessionCallback.
+	 * @param <T> The type returned by {@link SessionCallback#doInSession(org.springframework.integration.file.remote.session.Session)}.
 	 * @return The result of the callback method.
 	 */
 	<T> T execute(SessionCallback<F, T> callback);

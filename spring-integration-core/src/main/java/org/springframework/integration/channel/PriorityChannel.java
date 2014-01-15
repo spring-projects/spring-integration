@@ -56,6 +56,8 @@ public class PriorityChannel extends QueueChannel {
 	/**
 	 * Create a channel with the specified queue capacity. Message priority
 	 * will be based upon the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
+	 *
+	 * @param capacity The queue capacity.
 	 */
 	public PriorityChannel(int capacity) {
 		this(capacity, null);

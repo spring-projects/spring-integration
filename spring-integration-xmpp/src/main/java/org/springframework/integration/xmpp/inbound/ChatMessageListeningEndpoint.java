@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * This component logs in as a user and forwards any messages <em>to</em> that
- * user on to downstream components. 
+ * user on to downstream components.
  *
  * @author Josh Long
  * @author Mark Fisher
@@ -43,7 +43,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	private volatile boolean extractPayload = true;
 
 	private final PacketListener packetListener = new ChatMessagePublishingPacketListener();
-	
+
 	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
 	public ChatMessageListeningEndpoint() {
@@ -53,7 +53,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	public ChatMessageListeningEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
-	
+
 	public void setHeaderMapper(XmppHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
 	}
@@ -63,6 +63,8 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	 * Specify whether the text message body should be extracted when mapping to a
 	 * Spring Integration Message payload. Otherwise, the full XMPP Message will be
 	 * passed within the payload. This value is <em>true</em> by default.
+	 *
+	 * @param extractPayload true if the payload should be extracted.
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
@@ -89,26 +91,27 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	private class ChatMessagePublishingPacketListener implements PacketListener {
 
+		@Override
 		public void processPacket(final Packet packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
 				Map<String, ?> mappedHeaders = headerMapper.toHeadersFromRequest(xmppMessage);
-				
+
 				String messageBody = xmppMessage.getBody();
 				/*
-				 * Since there are several types of chat messages with different ChatState (e.g., composing, paused etc) 
-				 * we need to perform further validation since for now we only support messages that have 
-				 * content (e.g., Use A says 'Hello' to User B). We don't yet support messages with no 
+				 * Since there are several types of chat messages with different ChatState (e.g., composing, paused etc)
+				 * we need to perform further validation since for now we only support messages that have
+				 * content (e.g., Use A says 'Hello' to User B). We don't yet support messages with no
 				 * content (e.g., User A is typing a message for User B etc.).
 				 * See https://jira.springsource.org/browse/INT-1728
-				 * Also see: packet.getExtensions()   
+				 * Also see: packet.getExtensions()
 				 */
 				if (StringUtils.hasText(messageBody)){
 					Object payload = (extractPayload ? messageBody : xmppMessage);
-					
+
 					MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(mappedHeaders);
 					sendMessage(messageBuilder.build());
-				}	
+				}
 			}
 		}
 	}

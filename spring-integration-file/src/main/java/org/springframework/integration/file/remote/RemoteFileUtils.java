@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
+
 import org.springframework.integration.file.remote.session.Session;
 
 /**
@@ -37,7 +38,9 @@ public class RemoteFileUtils {
 	 * @param <F> The session type.
 	 * @param path The directory path.
 	 * @param session The session.
-	 * @throws IOException
+	 * @param remoteFileSeparator The remote file separator.
+	 * @param logger The logger.
+	 * @throws IOException Any IOException.
 	 */
 	public static <F> void makeDirectories(String path, Session<F> session, String remoteFileSeparator, Log logger)
 			throws IOException {

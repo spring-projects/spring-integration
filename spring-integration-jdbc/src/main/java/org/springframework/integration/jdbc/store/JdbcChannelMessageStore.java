@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -38,8 +38,6 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
@@ -65,6 +63,8 @@ import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -218,7 +218,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Method not implemented.
-	 * @throws UnsupportedOperationException
+	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
@@ -366,7 +366,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * with Oracle, the fetchSize value of 1 is needed to ensure FIFO characteristics
 	 * of polled messages. Please see the Oracle {@link ChannelMessageStoreQueryProvider} for more details.
 	 *
-	 * @throws Exception
+	 * @throws Exception Any Exception.
 	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -429,7 +429,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Method not implemented.
-	 * @throws UnsupportedOperationException
+	 *
+	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@Override
 	public void completeGroup(Object groupId) {
@@ -509,7 +510,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Method not implemented.
-	 * @throws UnsupportedOperationException
+	 * @return The message count.
+	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@ManagedAttribute
 	public long getMessageCount() {
@@ -518,7 +520,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Method not implemented.
-	 * @throws UnsupportedOperationException
+	 * @return The message count.
+	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@Override
 	@ManagedAttribute
@@ -536,7 +539,9 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Method not implemented.
-	 * @throws UnsupportedOperationException
+	 *
+	 * @return The message group count.
+	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@Override
 	@ManagedAttribute
@@ -549,8 +554,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
 	 * accesses will be resolved from the cache.
 	 *
-	 * @param sqlQuery the SQL query to be transformed
-	 * @return a transformed query with replacements
+	 * @param sqlQuery The SQL query to be transformed.
+	 * @return A transformed query with replacements.
 	 */
 	protected String getQuery(String sqlQuery) {
 		String query = queryCache.get(sqlQuery);
@@ -565,7 +570,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Method not implemented.
-	 * @throws UnsupportedOperationException
+	 *
+	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@Override
 	public Iterator<MessageGroup> iterator() {
@@ -575,6 +581,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	/**
 	 * Returns the number of messages persisted for the specified channel id (groupId)
 	 * and the specified region ({@link #setRegion(String)}).
+	 *
+	 * @return The message group size.
 	 */
 	@Override
 	@ManagedAttribute
@@ -606,8 +614,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	/**
 	 * Remove a single message from the database.
 	 *
-	 * @param groupId The channel id to remove the message from
-	 * @param messageToRemove The message to remove
+	 * @param groupId The channel id to remove the message from.
+	 * @param messageToRemove The message to remove.
 	 *
 	 */
 	@Override
@@ -643,7 +651,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * <p>Only applicable if {@link #setUsingIdCache(boolean)} is set to
 	 * <code>true</code></p>.
 	 *
-	 * @param messageId
+	 * @param messageId The message identifier.
 	 */
 	public void removeFromIdCache(String messageId) {
 		if (logger.isDebugEnabled()) {

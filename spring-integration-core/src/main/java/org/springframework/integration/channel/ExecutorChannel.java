@@ -105,7 +105,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
 	 *
-	 * @param maxSubscribers
+	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
 		this.maxSubscribers = maxSubscribers;

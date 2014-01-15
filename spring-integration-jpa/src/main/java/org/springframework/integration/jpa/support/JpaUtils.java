@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,9 @@ public final class JpaUtils {
 	/**
 	 * Resolves the alias for the entity to be retrieved from the given JPA query.
 	 *
+	 * @param query The query.
+	 * @return The alias, or null.
+	 *
 	 */
 	public static String detectAlias(String query) {
 
@@ -92,6 +95,12 @@ public final class JpaUtils {
 	/**
 	 * Creates a where-clause referencing the given entities and appends it to the given query string. Binds the given
 	 * entities to the query.
+	 *
+	 * @param queryString The query string.
+	 * @param entities The entities.
+	 * @param entityManager The entity manager.
+	 * @param <T> The entity type.
+	 * @return The query.
 	 *
 	 */
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
@@ -137,6 +146,10 @@ public final class JpaUtils {
 
 	/**
 	 * Returns the query string for the given class name.
+	 *
+	 * @param template The template.
+	 * @param entityName The entity name.
+	 * @return The query string.
 	 */
 	public static String getQueryString(String template, String entityName) {
 

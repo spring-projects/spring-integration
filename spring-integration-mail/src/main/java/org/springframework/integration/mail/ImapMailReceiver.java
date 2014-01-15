@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	/**
 	 * Check if messages should be marked as read.
+	 *
+	 * @return true if messages should be marked as read.
 	 */
 	public Boolean isShouldMarkMessagesAsRead() {
 		return shouldMarkMessagesAsRead;
@@ -83,7 +85,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 * Provides a way to set custom {@link SearchTermStrategy} to compile a {@link SearchTerm}
 	 * to be applied when retrieving mail
 	 *
-	 * @param searchTermStrategy
+	 * @param searchTermStrategy The search term strategy implementation.
 	 */
 	public void setSearchTermStrategy(SearchTermStrategy searchTermStrategy) {
 		Assert.notNull(searchTermStrategy, "'searchTermStrategy' must not be null");
@@ -92,6 +94,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	/**
 	 * Specify if messages should be marked as read.
+	 *
+	 * @param shouldMarkMessagesAsRead true if messages should be marked as read.
 	 */
 	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
@@ -100,6 +104,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	/**
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE
 	 * is supported (see RFC 2177 for more detail).
+	 *
+	 * @throws MessagingException Any MessagingException.
 	 */
 	public void waitForNewMessages() throws MessagingException {
 		this.openFolder();
@@ -185,6 +191,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	private class DefaultSearchTermStrategy implements SearchTermStrategy {
 
+		@Override
 		public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
 			SearchTerm searchTerm = null;
 			boolean recentFlagSupported = false;

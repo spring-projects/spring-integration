@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -85,8 +85,8 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * (see http://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
-	 * @param mongoDbFactory
-	 * @param queryExpression
+	 * @param mongoDbFactory The mongodb factory.
+	 * @param queryExpression The query expression.
 	 */
 	public MongoDbMessageSource(MongoDbFactory mongoDbFactory, Expression queryExpression){
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
@@ -103,8 +103,8 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
-	 * @param mongoTemplate
-	 * @param queryExpression
+	 * @param mongoTemplate The mongo template.
+	 * @param queryExpression The query expression.
 	 */
 	public MongoDbMessageSource(MongoOperations mongoTemplate, Expression queryExpression){
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
@@ -120,7 +120,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * method.
 	 * Default is {@link DBObject}.
 	 *
-	 * @param entityClass
+	 * @param entityClass The entity class.
 	 */
 	public void setEntityClass(Class<?> entityClass) {
 		Assert.notNull(entityClass, "'entityClass' must not be null");
@@ -135,7 +135,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * and the payload of the returned {@link Message} will be the returned target Object of type
 	 * identified by {{@link #entityClass} instead of a List.
 	 *
-	 * @param expectSingleResult
+	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
@@ -146,7 +146,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * used by the {@link Query}. The resulting collection name will be included
 	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 *
-	 * @param collectionNameExpression
+	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
 		Assert.notNull(collectionNameExpression, "'collectionNameExpression' must not be null");
@@ -158,7 +158,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * data read from MongoDb. Only allowed if this instance was constructed with a
 	 * {@link MongoDbFactory}.
 	 *
-	 * @param mongoConverter
+	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
 		Assert.isNull(this.mongoTemplate,
@@ -185,6 +185,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * {@link Message} with payload of type {@link List}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
+	@Override
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;

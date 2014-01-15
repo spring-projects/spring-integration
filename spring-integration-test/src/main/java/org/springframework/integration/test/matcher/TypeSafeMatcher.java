@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.springframework.integration.test.matcher;
 
-import org.hamcrest.BaseMatcher;
-
 import java.lang.reflect.Method;
+
+import org.hamcrest.BaseMatcher;
 
 /**
  * This class was copied from JUnit to avoid using it from org.junit.internal (causing a backwards compatibility issue).
@@ -31,11 +31,14 @@ import java.lang.reflect.Method;
  */
 abstract class TypeSafeMatcher<T> extends BaseMatcher<T> {
 
-    private Class<?> expectedType;
+    private final Class<?> expectedType;
 
     /**
      * Subclasses should implement this. The item will already have been checked for
      * the specific type and will never be null.
+     *
+     * @param item The item.
+     * @return true if matches.
      */
     public abstract boolean matchesSafely(T item);
 
@@ -70,7 +73,8 @@ abstract class TypeSafeMatcher<T> extends BaseMatcher<T> {
      * If you need to override this, there's no point on extending TypeSafeMatcher.
      * Instead, extend the {@link BaseMatcher}.
      */
-    @SuppressWarnings({"unchecked"})
+    @Override
+	@SuppressWarnings({"unchecked"})
     public final boolean matches(Object item) {
         return item != null
                 && expectedType.isInstance(item)

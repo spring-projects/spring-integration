@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
 /**
  * Creates the {@link ConfigAttribute}s for secured channel
  * send and receive operations based on simple String values.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -43,7 +43,10 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 	 * Create an access policy instance. The provided 'sendAccess' and 'receiveAccess'
 	 * values may be a single String or a comma-delimited list of values. All whitespace
 	 * will be trimmed. A <code>null</code> value indicates that the policy does not
-	 * apply for either send or receive access type. At most one of the values may be null. 
+	 * apply for either send or receive access type. At most one of the values may be null.
+	 *
+	 * @param sendAccess The send access value(s).
+	 * @param receiveAccess The receive access value(s).
 	 */
 	@SuppressWarnings("unchecked")
 	public DefaultChannelAccessPolicy(String sendAccess, String receiveAccess) {
@@ -74,10 +77,12 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 	}
 
 
+	@Override
 	public Collection<ConfigAttribute> getConfigAttributesForSend() {
 		return this.configAttributeDefinitionForSend;
 	}
 
+	@Override
 	public Collection<ConfigAttribute> getConfigAttributesForReceive() {
 		return this.configAttributeDefinitionForReceive;
 	}

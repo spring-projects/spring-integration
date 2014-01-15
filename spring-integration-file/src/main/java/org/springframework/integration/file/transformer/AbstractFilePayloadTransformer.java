@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@ import java.io.File;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
  * Base class for transformers that convert a File payload.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
@@ -43,11 +43,14 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 	/**
 	 * Specify whether to delete the File after transformation.
 	 * Default is <em>false</em>.
+	 *
+	 * @param deleteFiles true to delete the file.
 	 */
 	public void setDeleteFiles(boolean deleteFiles) {
 		this.deleteFiles = deleteFiles;
 	}
 
+	@Override
 	public final Message<?> transform(Message<?> message) {
 		try {
 			Assert.notNull(message, "Message must not be null");
@@ -74,6 +77,10 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 
 	/**
 	 * Subclasses must implement this method to transform the File contents.
+	 *
+	 * @param file The file.
+	 * @return The result of the transformation.
+	 * @throws Exception Any Exception.
 	 */
 	protected abstract T transformFile(File file) throws Exception;
 

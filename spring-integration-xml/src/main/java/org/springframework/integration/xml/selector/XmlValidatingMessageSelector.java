@@ -24,13 +24,13 @@ import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -64,6 +64,9 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 * type are {@link XmlValidatorFactory#SCHEMA_W3C_XML} or {@link XmlValidatorFactory#SCHEMA_RELAX_NG}.
 	 * If no 'schemaType' is provided it will default to {@link XmlValidatorFactory#SCHEMA_W3C_XML};
 	 *
+	 * @param schema The schema.
+	 * @param schemaType The schema type.
+	 *
 	 * @throws IOException if the XmlValidatorFactory fails to create a validator
 	 */
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
@@ -81,6 +84,8 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	/**
 	 * Specify the Converter to use when converting payloads prior to validation.
+	 *
+	 * @param converter The payload converter.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
 		Assert.notNull(converter, "'converter' must not be null");

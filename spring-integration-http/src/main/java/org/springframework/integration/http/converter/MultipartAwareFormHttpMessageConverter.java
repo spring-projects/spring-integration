@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,8 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 	/**
 	 * Sets the character set used for writing form data.
+	 *
+	 * @param charset The charset.
 	 */
 	public void setCharset(Charset charset) {
 		this.wrappedConverter.setCharset(charset);
@@ -60,6 +62,8 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 	/**
 	 * Specify the {@link MultipartFileReader} to use when reading {@link MultipartFile} content.
+	 *
+	 * @param multipartFileReader The multipart file reader.
 	 */
 	public void setMultipartFileReader(MultipartFileReader<?> multipartFileReader) {
 		Assert.notNull(multipartFileReader, "multipartFileReader must not be null");

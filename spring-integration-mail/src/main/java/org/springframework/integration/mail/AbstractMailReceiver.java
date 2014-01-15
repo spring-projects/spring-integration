@@ -189,6 +189,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Subclasses must implement this method to return new mail messages.
 	 *
 	 * @return An array of messages.
+	 * @throws MessagingException Any MessagingException.
 	 */
 	protected abstract Message[] searchForNewMessages() throws MessagingException;
 

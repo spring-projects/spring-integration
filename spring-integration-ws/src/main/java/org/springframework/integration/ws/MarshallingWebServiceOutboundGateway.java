@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,14 @@ import org.springframework.ws.support.MarshallingUtils;
 /**
  * An outbound Messaging Gateway for invoking Web Services that also supports
  * marshalling and unmarshalling of the request and response messages.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @see Marshaller
  * @see Unmarshaller
  */
 public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
-	
+
 	private volatile Marshaller marshaller;
 	private volatile Unmarshaller unmarshaller;
 
@@ -80,6 +80,9 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	/**
 	 * Sets the provided Marshaller and Unmarshaller on this gateway's WebServiceTemplate.
 	 * Neither may be null.
+	 *
+	 * @param marshaller The marshaller.
+	 * @param unmarshaller The unmarshaller.
 	 */
 	private void configureMarshallers(Marshaller marshaller, Unmarshaller unmarshaller) {
 		Assert.notNull(marshaller, "marshaller must not be null");
@@ -90,7 +93,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 					"both Marshaller and Unmarshaller arguments.");
 			unmarshaller = (Unmarshaller) marshaller;
 		}
-		
+
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
 		this.marshaller = marshaller;
 		this.unmarshaller = unmarshaller;
@@ -98,13 +101,13 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	@Override
 	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
-		Object reply = this.getWebServiceTemplate().sendAndReceive(uri, 
+		Object reply = this.getWebServiceTemplate().sendAndReceive(uri,
 				new MarshallingRequestMessageCallback(requestCallback, requestMessage), new MarshallingResponseMessageExtractor());
 		return reply;
 	}
-	
+
 	private class MarshallingRequestMessageCallback extends RequestMessageCallback {
-		
+
 		public MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
 			super(requestCallback, requestMessage);
 		}
@@ -114,7 +117,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 			MarshallingUtils.marshal(marshaller, payload, message);
 		}
 	}
-	
+
 	private class MarshallingResponseMessageExtractor extends ResponseMessageExtractor {
 
 		@Override

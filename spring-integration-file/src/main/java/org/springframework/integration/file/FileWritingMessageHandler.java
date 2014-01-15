@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -44,7 +42,9 @@ import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
 import org.springframework.integration.util.PassThruLockRegistry;
 import org.springframework.integration.util.WhileLockedProcessor;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -132,6 +132,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * <em>true</em>. If set to <em>false</em> and the
 	 * destination directory does not exist, an Exception will be thrown upon
 	 * initialization.
+	 *
+	 * @param autoCreateDirectory true to create the directory if needed.
 	 */
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
@@ -142,7 +144,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * appear in the file system with an additional suffix, which by default is
 	 * ".writing". This can be changed by setting this property.
 	 *
-	 * @param temporaryFileSuffix
+	 * @param temporaryFileSuffix The temporary file suffix.
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null"); // empty string is OK
@@ -181,6 +183,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Specify whether a reply Message is expected. If not, this handler will simply return null for a
 	 * successful response or throw an Exception for a non-successful response. The default is true.
+	 *
+	 * @param expectReply true if a reply is expected.
 	 */
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
@@ -193,6 +197,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Provide the {@link FileNameGenerator} strategy to use when generating
 	 * the destination file's name.
+	 *
+	 * @param fileNameGenerator The file name generator.
 	 */
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		Assert.notNull(fileNameGenerator, "FileNameGenerator must not be null");
@@ -206,6 +212,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * will only have an effect if the inbound Message has a File payload or
 	 * a {@link FileHeaders#ORIGINAL_FILE} header value containing either a
 	 * File instance or a String representing the original file path.
+	 *
+	 * @param deleteSourceFiles true to delete the source files.
 	 */
 	public void setDeleteSourceFiles(boolean deleteSourceFiles) {
 		this.deleteSourceFiles = deleteSourceFiles;
@@ -214,6 +222,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Set the charset name to use when writing a File from a String-based
 	 * Message payload.
+	 *
+	 * @param charset The charset.
 	 */
 	public void setCharset(String charset) {
 		Assert.notNull(charset, "charset must not be null");

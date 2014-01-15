@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * Keep in mind that the number of entities effected by the operation may
 	 * not necessarily correlate with the number of rows effected in the database.
 	 *
-	 * @param message
+	 * @param message The message.
 	 * @return Either the number of affected entities when using a JPQL query.
 	 * When using a merge/persist the updated/inserted itself is returned.
 	 */
@@ -379,6 +379,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 
 	/**
 	 * Execute the JPA operation. Delegates to {@link JpaExecutor#poll(Message)}.
+	 *
+	 * @return The object or null.
 	 */
 	public Object poll() {
 		return this.poll(null);
@@ -578,6 +580,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * If set to <code>false</code>, the complete result list is returned as the
 	 * payload.
 	 *
+	 * @param expectSingleResult true if a single object is expected.
+	 *
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
@@ -587,7 +591,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * Sets the expression that will be evaluated to get the first result in the query executed.
 	 * If a null expression is set, all the results in the result set will be retrieved
 	 *
-	 * @param firstResultExpression
+	 * @param firstResultExpression The first result expression.
 	 *
 	 * @see Query#setFirstResult(int)
 	 */
@@ -601,7 +605,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * Sets the expression for maximum number of results expression. It has be a non null value
 	 * Not setting one will default to the behavior of fetching all the records
 	 *
-	 * @param maxResultsExpression
+	 * @param maxResultsExpression The maximum results expression.
 	 */
 	public void setMaxResultsExpression(Expression maxResultsExpression) {
 		Assert.notNull(maxResultsExpression, "maxResultsExpression cannot be null");
@@ -624,7 +628,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * Sets the evaluation context for evaluating the expression to get the from record of the
 	 * result set retrieved by the retrieving gateway.
 	 *
-	 * @param evaluationContext
+	 * @param evaluationContext The evaluation context.
 	 */
 	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {

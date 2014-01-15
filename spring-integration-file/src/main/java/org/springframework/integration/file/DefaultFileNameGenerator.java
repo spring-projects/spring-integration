@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	/**
 	 * Specify an expression to be evaluated against the Message
 	 * in order to generate a file name.
+	 *
+	 * @param expression The expression.
 	 */
 	public void setExpression(String expression) {
 		Assert.hasText(expression, "expression must not be empty");
@@ -61,6 +63,8 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	/**
 	 * Specify a custom header name to check for the file name.
 	 * The default is defined by {@link FileHeaders#FILENAME}.
+	 *
+	 * @param headerName The header name.
 	 */
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");

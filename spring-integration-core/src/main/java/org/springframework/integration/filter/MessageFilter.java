@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.springframework.integration.filter;
 
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingPostProcessingMessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -49,6 +49,8 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	/**
 	 * Create a MessageFilter that will delegate to the given
 	 * {@link MessageSelector}.
+	 *
+	 * @param selector The message selector.
 	 */
 	public MessageFilter(MessageSelector selector) {
 		Assert.notNull(selector, "selector must not be null");
@@ -66,6 +68,8 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * (in such a case, the Message will be sent to the discard channel,
 	 * and <em>then</em> the exception will be thrown).
 	 * @see #setDiscardChannel(MessageChannel)
+	 *
+	 * @param throwExceptionOnRejection true if an exception should be thrown.
 	 */
 	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;
@@ -77,6 +81,9 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
 	 * trigger an exception. That value is evaluated regardless of the presence
 	 * of a discard channel.
+	 *
+	 * @param discardChannel The discard channel.
+	 *
 	 * @see #setThrowExceptionOnRejection(boolean)
 	 */
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -87,6 +94,8 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * Set to 'true' if you wish the discard processing to occur within any
 	 * request handler advice applied to this filter. Also applies to
 	 * throwing an exception on rejection. Default: true.
+	 *
+	 * @param discardWithinAdvice true to discard within the advice.
 	 */
 	public void setDiscardWithinAdvice(boolean discardWithinAdvice) {
 		this.setPostProcessWithinAdvice(discardWithinAdvice);

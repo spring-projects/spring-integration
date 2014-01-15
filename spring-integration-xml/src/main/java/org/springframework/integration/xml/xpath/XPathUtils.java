@@ -74,6 +74,7 @@ public final class XPathUtils {
 	 * @param resultArg an optional parameter to represent the result type of the xpath evaluation.
 	 *                  Only one argument is allowed, which can be an instance of {@link org.springframework.xml.xpath.NodeMapper} or
 	 *                  one of these String constants: "string", "boolean", "number", "node" or "node_list".
+	 * @param <T>       The required return type.
 	 * @return the result of the xpath expression evaluation.
 	 * @throws IllegalArgumentException - if the provided arguments aren't appropriate types or values;
 	 * @throws MessagingException - if the provided object can't be converted to a {@link Node};

@@ -45,6 +45,7 @@ public class AggregatedXmlMessageValidationException extends RuntimeException {
 	}
 
 	/**
+	 * @return The exception iterator.
 	 * @deprecated in favor of #getExceptions
 	 */
 	@Deprecated

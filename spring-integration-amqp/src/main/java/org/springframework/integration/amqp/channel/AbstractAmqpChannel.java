@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.integration.amqp.channel;
 
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -39,6 +39,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	/**
 	 * Subclasses may override this method to return an Exchange name.
 	 * By default, Messages will be sent to the no-name Direct Exchange.
+	 *
+	 * @return The exchange name.
 	 */
 	protected String getExchangeName() {
 		return "";
@@ -47,6 +49,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	/**
 	 * Subclasses may override this method to return a routing key.
 	 * By default, there will be no routing key (empty string).
+	 *
+	 * @return The routing key.
 	 */
 	protected String getRoutingKey() {
 		return "";

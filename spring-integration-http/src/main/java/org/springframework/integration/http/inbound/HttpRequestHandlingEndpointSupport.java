@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * @return whether to expect reply
+	 * @return Whether to expect a reply.
 	 */
 	protected boolean isExpectReply() {
 		return expectReply;
@@ -194,6 +194,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Set the path template for which this endpoint expects requests.
 	 * May include path variable {keys} to match against.
+	 *
+	 * @param path The path.
+	 *
 	 * @deprecated since 3.0 in favor of {@linkplain #requestMapping}
 	 */
 	@Deprecated
@@ -202,8 +205,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	* @deprecated since 3.0 in favor of {@linkplain #requestMapping}
-	*/
+	 * @return The path.
+	 * @deprecated since 3.0 in favor of {@linkplain #requestMapping}
+	 */
 	@Deprecated
 	String getPath() {
 		String[] pathPatterns = this.requestMapping.getPathPatterns();
@@ -222,6 +226,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * <li><code>#matrixVariables</code></li>
 	 * <li><code>#cookies</code>
 	 * </ul>
+	 *
+	 * @param payloadExpression The payload expression.
 	 */
 	public void setPayloadExpression(Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
@@ -240,6 +246,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * <li><code>#matrixVariables</code></li>
 	 * <li><code>#cookies</code>
 	 * </ul>
+	 *
+	 * @param headerExpressions The header expressions.
 	 */
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = headerExpressions;
@@ -248,6 +256,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
 	 * responses.
+	 *
+	 * @param messageConverters The message converters.
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		Assert.noNullElements(messageConverters.toArray(), "'messageConverters' must not contain null entries");
@@ -267,6 +277,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Flag which determines if the default converters should be available after
 	 * custom converters.
+	 *
+	 * @param mergeWithDefaultConverters true to merge, false to replace.
 	 */
 	public void setMergeWithDefaultConverters(boolean mergeWithDefaultConverters) {
 		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
@@ -274,6 +286,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	/**
 	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
+	 *
+	 * @param headerMapper The header mapper.
 	 */
 	public void setHeaderMapper(HeaderMapper<HttpHeaders> headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
@@ -282,6 +296,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	/**
 	 * Set the {@link RequestMapping} which allows you to specify a flexible RESTFul-mapping for this endpoint.
+	 *
+	 * @param requestMapping The request mapping.
 	 */
 	public void setRequestMapping(RequestMapping requestMapping) {
 		Assert.notNull(requestMapping, "requestMapping must not be null");
@@ -294,6 +310,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	/**
 	 * Specify the supported request methods for this gateway. By default, only GET and POST are supported.
+	 *
+	 * @param supportedMethods The supported methods.
+	 *
 	 * @deprecated since 3.0 in favor to {@linkplain #requestMapping}
 	 */
 	@Deprecated
@@ -306,6 +325,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
 	 * {@link HttpMessageConverter}s. By default this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to <code>byte[].class</code>.
+	 *
+	 * @param requestPayloadType The payload type.
 	 */
 	public void setRequestPayloadType(Class<?> requestPayloadType) {
 		this.requestPayloadType = requestPayloadType;
@@ -314,6 +335,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Specify whether only the reply Message's payload should be passed in the response. If this is set to 'false', the
 	 * entire Message will be used to generate the response. The default is 'true'.
+	 *
+	 * @param extractReplyPayload true to extract the reply payload.
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
@@ -323,6 +346,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Specify the {@link MultipartResolver} to use when checking requests. If no resolver is provided, the
 	 * "multipartResolver" bean in the context will be used as a fallback. If that is not available either, this
 	 * endpoint will not support multipart requests.
+	 *
+	 * @param multipartResolver The multipart resolver.
 	 */
 	public void setMultipartResolver(MultipartResolver multipartResolver) {
 		this.multipartResolver = multipartResolver;
@@ -370,7 +395,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 *
-	 * @return a the response Message
+	 * @param servletRequest The servlet request.
+	 * @param servletResponse The servlet response.
+	 * @return The response Message.
+	 * @throws IOException Any IOException.
 	 */
 	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
 		if (this.isShuttingDown()) {
@@ -631,11 +659,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		return this.shuttingDown;
 	}
 
+	@Override
 	public int beforeShutdown() {
 		this.shuttingDown = true;
 		return this.activeCount.get();
 	}
 
+	@Override
 	public int afterShutdown() {
 		return this.activeCount.get();
 	}
