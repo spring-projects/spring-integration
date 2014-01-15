@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -128,7 +128,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	/**
 	 * Sets the name of the handler component.
 	 *
-	 * @param componentName
+	 * @param componentName The component name.
 	 */
 	public void setComponentName(String componentName) {
 		this.componentName = componentName;

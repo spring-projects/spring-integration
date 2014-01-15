@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import java.net.SocketTimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
-import org.springframework.integration.ip.IpHeaders;
 
 /**
  * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a
@@ -53,7 +53,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	/**
 	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.
-	 * @param port
+	 * @param port The port.
 	 */
 	public UnicastReceivingChannelAdapter(int port) {
 		super(port);
@@ -199,8 +199,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	/**
 	 * Sets timeout and receive buffer size
 	 *
-	 * @param socket
-	 * @throws SocketException
+	 * @param socket The socket.
+	 * @throws SocketException Any socket exception.
 	 */
 	protected void setSocketAttributes(DatagramSocket socket)
 			throws SocketException {

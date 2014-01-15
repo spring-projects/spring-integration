@@ -28,6 +28,7 @@ import org.springframework.messaging.MessageHandlingException;
 public class MessageRejectedException extends MessageHandlingException {
 
 	/**
+	 * @param failedMessage The failed message.
 	 * @deprecated since 4.0 in favor of {@code MessageRejectedException(Message, String)}
 	 */
 	@Deprecated

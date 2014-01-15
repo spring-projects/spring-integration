@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,21 +28,27 @@ public interface CommonSocketOptions {
 	/**
 	 * @see Socket#setSoTimeout(int)
 	 * @see DatagramSocket#setSoTimeout(int)
+	 *
+	 * @param soTimeout The timeout.
 	 */
 	void setSoTimeout(int soTimeout);
 
 	/**
 	 * @see Socket#setReceiveBufferSize(int)
 	 * @see DatagramSocket#setReceiveBufferSize(int)
+	 *
+	 * @param soReceiveBufferSize The receive buffer size.
 	 */
 	void setSoReceiveBufferSize(int soReceiveBufferSize);
 
 	/**
 	 * @see Socket#setSendBufferSize(int)
 	 * @see DatagramSocket#setSendBufferSize(int)
+	 *
+	 * @param soSendBufferSize The send buffer size.
 	 */
 	void setSoSendBufferSize(int soSendBufferSize);
-	
+
 	/**
 	 * On a multi-homed system, specifies the ip address of the network interface used to communicate.
 	 * For inbound adapters and gateways, specifies the interface used to listed for incoming connections.
@@ -50,8 +56,8 @@ public interface CommonSocketOptions {
 	 * specifies the interface to which multicast packets will be sent. For UDP unicast and multicast
 	 * adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
 	 * apply to TCP outbound adapters and gateways.
-	 * 
- 	 * @param localAddress
+	 *
+ 	 * @param localAddress The local address.
 	 */
 	void setLocalAddress(String localAddress);
 

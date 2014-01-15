@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,13 @@ public interface JpaOperations {
 
 	/**
 	 *
-	 * @param entity
+	 * @param entity The entity to delete.
 	 */
 	void delete(Object entity);
 
 	/**
 	 *
-	 * @param entities
+	 * @param entities The entities to delete.
 	 */
 	void deleteInBatch(Iterable<?> entities);
 
@@ -57,16 +57,16 @@ public interface JpaOperations {
 
 	/**
 	 *
-	 * @param updateQuery
-	 * @param source
-	 * @return The number of entities updated
+	 * @param updateQuery The update query.
+	 * @param source The parameter source.
+	 * @return The number of entities updated.
 	 */
 	int executeUpdateWithNamedQuery(String updateQuery,  ParameterSource source);
 
 	/**
 	 *
-	 * @param updateQuery
-	 * @param source
+	 * @param updateQuery The update query.
+	 * @param source The parameter source.
 	 * @return The number of entities updated
 	 */
 	int executeUpdateWithNativeQuery(String updateQuery,  ParameterSource source);
@@ -75,19 +75,19 @@ public interface JpaOperations {
 	/**
 	 * Find an Entity of given type with the given primary key type.
 	 *
-	 * @param <T>
-	 * @param entityType
-	 * @param id
-	 * @return The entity if it exist, null is returned otherwise
+	 * @param <T> The type to return.
+	 * @param entityType The type.
+	 * @param id The object identifier.
+	 * @return The entity if it exists, null otherwise.
 	 */
 	<T> T find(Class<T> entityType, Object id);
 
 	/**
 	 *
-	 * @param  entityClass
-	 * @param  firstResult
-	 * @param  maxNumberOfReturnedObjects
-	 * @return List of found entities
+	 * @param  entityClass The entity class.
+	 * @param  firstResult The index of the first result to return.
+	 * @param  maxNumberOfReturnedObjects The number of objects to return.
+	 * @return The list of found entities.
 	 */
 	List<?> getResultListForClass(Class<?> entityClass,
 			int firstResult,
@@ -95,11 +95,11 @@ public interface JpaOperations {
 
 	/**
 	 *
-	 * @param  selectNamedQuery
-	 * @param  jpaQLParameterSource
-	 * @param  firstResult
-	 * @param  maxNumberOfResults
-	 * @return List of found entities
+	 * @param  selectNamedQuery The select named query.
+	 * @param  jpaQLParameterSource The paramter source.
+	 * @param  firstResult The index of the first result to return.
+	 * @param  maxNumberOfResults The number of objects to return.
+	 * @return The list of found entities.
 	 */
 	List<?> getResultListForNamedQuery(String selectNamedQuery, ParameterSource jpaQLParameterSource,
 			int firstResult,
@@ -107,12 +107,12 @@ public interface JpaOperations {
 
 	/**
 	 *
-	 * @param selectQuery
-	 * @param entityClass
-	 * @param jpaQLParameterSource
-	 * @param  firstResult
-	 * @param maxNumberOfResults
-	 * @return List of found entities
+	 * @param selectQuery The select query.
+	 * @param entityClass The entity class.
+	 * @param jpaQLParameterSource The paramter source.
+	 * @param  firstResult The index of the first result to return.
+	 * @param maxNumberOfResults The number of objects to return.
+	 * @return The list of found entities.
 	 */
 	List<?> getResultListForNativeQuery(String selectQuery,
 			Class<?> entityClass,  ParameterSource jpaQLParameterSource,
@@ -121,9 +121,9 @@ public interface JpaOperations {
 
 	/**
 	 * Executes the provided query to return a list of results
-	 * @param query
+	 * @param query The query.
 	 * @param source the Parameter source for this query to be executed, if none then set as null
-	 * @return List of found entities
+	 * @return The list of found entities.
 	 */
 	List<?> getResultListForQuery(String query, ParameterSource source);
 
@@ -131,10 +131,10 @@ public interface JpaOperations {
 	 * Executes the provided query to return a list of results.
 	 *
 	 * @param query Must not be null or empty
-	 * @param firstResult The first result
-	 * @param maxNumberOfResults Must be a non-negative value, any negative or zero will be ignored
-	 * @param source the Parameter source for this query to be executed, if none then set null
-	 * @return List of found entities
+	 * @param firstResult The first result.
+	 * @param maxNumberOfResults Must be a non-negative value, any negative or zero will be ignored.
+	 * @param source the Parameter source for this query to be executed, if none then set null.
+	 * @return The list of found entities.
 	 */
 	List<?> getResultListForQuery(String query, ParameterSource source, int firstResult, int maxNumberOfResults);
 
@@ -167,6 +167,11 @@ public interface JpaOperations {
 	 * provided object is {@link Iterable}.
 	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
 	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
+	 *
+	 * @param entity The entity.
+	 * @param flushSize The flush size.
+	 * @param clearOnFlush true to clear after flushing.
+	 * @return The merged object.
 	 */
 
 	Object merge(Object entity, int flushSize, boolean clearOnFlush);
@@ -192,6 +197,10 @@ public interface JpaOperations {
 	 * provided object is {@link Iterable}.
 	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
 	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
+	 *
+	 * @param entity The entity.
+	 * @param flushSize The flush size.
+	 * @param clearOnFlush true to clear after flushing.
 	 */
 	void persist(Object entity, int flushSize, boolean clearOnFlush);
 

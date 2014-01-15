@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,12 +148,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	/**
-	 * @param selector
-	 * @param server
-	 * @param now
-	 * @throws IOException
-	 * @throws SocketException
-	 * @throws ClosedChannelException
+	 * @param selector The selector.
+	 * @param server The server socket channel.
+	 * @param now The current time.
+	 * @throws IOException Any IOException.
 	 */
 	@Override
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {

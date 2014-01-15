@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.messaging.Message;
 import org.springframework.xml.xpath.XPathExpression;
 
 /**
  * XPath {@link MessageSelector} that tests if a provided value supports
  * payloads of type {@link Document} or {@link String}.
- * 
+ *
  * @author Jonas Partner
  */
 public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSelector {
@@ -40,7 +40,7 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 
 	/**
 	 * Create a selector which tests for the given value and supports multiple namespaces.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param namespaces Map of namespaces where the keys are namespace prefixes
 	 * @param valueToTestFor value to test for
@@ -52,7 +52,7 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 
 	/**
 	 * Creates a single namespace Xpath selector.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param prefix namespace prefix
 	 * @param namespace namespace URI
@@ -65,7 +65,7 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 
 	/**
 	 * Creates a non-namespaced testing selector.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param valueToTestFor value to test for
 	 */
@@ -76,7 +76,7 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 
 	/**
 	 * Creates a selector with the provided {@link XPathExpression}.
-	 * 
+	 *
 	 * @param expression XPath expression
 	 * @param valueToTestFor value to test for
 	 */
@@ -89,8 +89,8 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	/**
 	 * Specify whether comparison of value returned by {@link XPathExpression}
 	 * to test value should be case sensitive. Default is 'true'.
-	 * 
-	 * @param caseSensitive
+	 *
+	 * @param caseSensitive true if the test should be case sensitive.
 	 */
 	public void setCaseSensitive(boolean caseSensitive) {
 		this.caseSensitive = caseSensitive;
@@ -100,6 +100,7 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	 * Evaluate the payload and return true if the value returned by the
 	 * {@link XPathExpression} is equal to the <code>valueToTestFor</code>.
 	 */
+	@Override
 	public boolean accept(Message<?> message) {
 		Node nodeToTest = getConverter().convertToNode(message.getPayload());
 		String xPathResult = getXPathExpresion().evaluateAsString(nodeToTest);

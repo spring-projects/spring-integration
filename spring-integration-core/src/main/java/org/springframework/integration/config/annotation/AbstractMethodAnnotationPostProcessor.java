@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 
+	@Override
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
 		setAdviceChainIfPresent(beanName, annotation, handler);
@@ -142,6 +143,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
+	 *
+	 * @param bean The bean.
+	 * @param method The method.
+	 * @param annotation The annotation.
+	 * @return The MessageHandler.
 	 */
 	protected abstract MessageHandler createHandler(Object bean, Method method, T annotation);
 

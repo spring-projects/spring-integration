@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import com.gemstone.gemfire.cache.Region;
 /**
  * Gemfire implementation of the key/value style {@link MessageStore} and
  * {@link MessageGroupStore}
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author David Turanski
@@ -55,7 +55,8 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 * Provides the region to be used for the message store. This is useful when
 	 * using a configured region. This is also required if using a client region
 	 * on a remote cache server.
-	 * @param messageStoreRegion the region
+	 *
+	 * @param messageStoreRegion The region.
 	 */
 	public GemfireMessageStore(Region<Object,Object> messageStoreRegion) {
 		cache = null;
@@ -64,7 +65,8 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
     /**
      * Provides a cache reference used to create a message store region named
      * 'messageStoreRegion'
-     * @param cache
+     *
+     * @param cache The cache.
      */
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
@@ -74,18 +76,19 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	public void setIgnoreJta(boolean ignoreJta) {
 		this.ignoreJta = ignoreJta;
 	}
-	
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public void afterPropertiesSet() {
 		if (this.messageStoreRegion != null) {
 			return;
 		}
-		
+
 		try {
 			if (logger.isDebugEnabled()){
 				logger.debug("creating message store region as '" + MESSAGE_STORE_REGION_NAME + "'");
 			}
-			
+
 			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
 			attributesFactoryBean.afterPropertiesSet();

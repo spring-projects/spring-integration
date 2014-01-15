@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.messaging.Message;
  * after receiving an array or Collection. If a value is provided for the
  * 'delimiters' property, then String payloads will be tokenized based on
  * those delimiters.
- * 
+ *
  * @author Mark Fisher
  */
 public class DefaultMessageSplitter extends AbstractMessageSplitter {
@@ -39,11 +39,14 @@ public class DefaultMessageSplitter extends AbstractMessageSplitter {
 	 * Set delimiters to use for tokenizing String values. The default is
 	 * <code>null</code> indicating that no tokenization should occur. If
 	 * delimiters are provided, they will be applied to any String payload.
+	 *
+	 * @param delimiters The delimiters.
 	 */
 	public void setDelimiters(String delimiters) {
 		this.delimiters = delimiters;
 	}
 
+	@Override
 	protected final Object splitMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload instanceof String && this.delimiters != null) {

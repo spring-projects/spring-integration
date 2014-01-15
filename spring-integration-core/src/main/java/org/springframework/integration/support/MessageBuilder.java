@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -65,6 +65,8 @@ public final class MessageBuilder<T> {
 	 * provided message. The payload of the provided Message will also be used as the payload for the new message.
 	 *
 	 * @param message the Message from which the payload and all headers will be copied
+	 * @param <T> The type of the payload.
+	 * @return A MessageBuilder.
 	 */
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
@@ -76,6 +78,8 @@ public final class MessageBuilder<T> {
 	 * Create a builder for a new {@link Message} instance with the provided payload.
 	 *
 	 * @param payload the payload for the new message
+	 * @param <T> The type of the payload.
+	 * @return A MessageBuilder.
 	 */
 	public static <T> MessageBuilder<T> withPayload(T payload) {
 		MessageBuilder<T> builder = new MessageBuilder<T>(payload, null);
@@ -84,6 +88,10 @@ public final class MessageBuilder<T> {
 
 	/**
 	 * Set the value for the given header name. If the provided value is <code>null</code>, the header will be removed.
+	 *
+	 * @param headerName The header name.
+	 * @param headerValue The header value.
+	 * @return this MessageBuilder.
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
 		this.headerAccessor.setHeader(headerName,  headerValue);
@@ -92,6 +100,10 @@ public final class MessageBuilder<T> {
 
 	/**
 	 * Set the value for the given header name only if the header name is not already associated with a value.
+	 *
+	 * @param headerName The header name.
+	 * @param headerValue The header value.
+	 * @return this MessageBuilder.
 	 */
 	public MessageBuilder<T> setHeaderIfAbsent(String headerName, Object headerValue) {
 		this.headerAccessor.setHeaderIfAbsent(headerName, headerValue);
@@ -103,7 +115,8 @@ public final class MessageBuilder<T> {
 	 * may contain simple matching patterns for header names. Supported pattern styles are:
 	 * "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
 	 *
-	 * @param headerPatterns
+	 * @param headerPatterns The header patterns.
+	 * @return this MessageBuilder.
 	 */
 	public MessageBuilder<T> removeHeaders(String... headerPatterns) {
 		this.headerAccessor.removeHeaders(headerPatterns);
@@ -111,6 +124,8 @@ public final class MessageBuilder<T> {
 	}
 	/**
 	 * Remove the value for the given header name.
+	 * @param headerName The header name.
+	 * @return this MessageBuilder.
 	 */
 	public MessageBuilder<T> removeHeader(String headerName) {
 		this.headerAccessor.removeHeader(headerName);
@@ -122,6 +137,9 @@ public final class MessageBuilder<T> {
 	 * {@link #copyHeadersIfAbsent(Map)} to avoid overwriting values. Note that the 'id' and 'timestamp' header values
 	 * will never be overwritten.
 	 *
+	 * @param headersToCopy The headers to copy.
+	 * @return this MessageBuilder.
+	 *
 	 * @see MessageHeaders#ID
 	 * @see MessageHeaders#TIMESTAMP
 	 */
@@ -132,6 +150,9 @@ public final class MessageBuilder<T> {
 
 	/**
 	 * Copy the name-value pairs from the provided Map. This operation will <em>not</em> overwrite any existing values.
+	 *
+	 * @param headersToCopy The headers to copy.
+	 * @return this MessageBuilder.
 	 */
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
 		this.headerAccessor.copyHeadersIfAbsent(headersToCopy);

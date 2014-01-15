@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,6 +149,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	 * is not needed for the message-driven (Subscribable) channels
 	 * since those are able to create a RabbitAdmin instance using
 	 * the underlying listener container's ConnectionFactory.
+	 *
+	 * @param amqpAdmin The amqp admin.
 	 */
 	public void setAmqpAdmin(AmqpAdmin amqpAdmin) {
 		this.amqpAdmin = amqpAdmin;
@@ -158,6 +160,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	 * Set the FanoutExchange to use. This is only relevant for
 	 * publish-subscribe-channels, and even then if not provided,
 	 * a FanoutExchange will be implicitly created.
+	 *
+	 * @param exchange The fanout exchange.
 	 */
 	public void setExchange(FanoutExchange exchange) {
 		this.exchange = exchange;
@@ -167,6 +171,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	 * Set the Queue name to use. This is only relevant for
 	 * point-to-point channels, even then if not provided,
 	 * a Queue will be implicitly created.
+	 *
+	 * @param queueName The queue name.
 	 */
 	public void setQueueName(String queueName) {
 		this.queueName = queueName;

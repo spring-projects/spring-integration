@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,6 +141,8 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 
 	/**
 	 * Sets the SourceFactory.
+	 *
+	 * @param sourceFactory The source factory.
 	 */
 	public void setSourceFactory(SourceFactory sourceFactory) {
 		Assert.notNull(sourceFactory, "SourceFactory must not be null");
@@ -148,7 +150,9 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	}
 
 	/**
-	 * Sets the ResultFactory
+	 * Sets the ResultFactory.
+	 *
+	 * @param resultFactory The result factory.
 	 */
 	public void setResultFactory(ResultFactory resultFactory) {
 		Assert.notNull(sourceFactory, "ResultFactory must not be null");
@@ -158,6 +162,8 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 
 	/**
 	 * Specify whether to always use source factory even for directly supported payload types.
+	 *
+	 * @param alwaysUseSourceFactory true to always use the source factory.
 	 */
 	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
 		this.alwaysUseSourceFactory = alwaysUseSourceFactory;
@@ -165,6 +171,8 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 
 	/**
 	 * Specify whether to always use result factory even for directly supported payload types
+	 *
+	 * @param alwaysUseResultFactory true to always use the result factory.
 	 */
 	public void setAlwaysUseResultFactory(boolean alwaysUseResultFactory) {
 		this.alwaysUseResultFactory = alwaysUseResultFactory;

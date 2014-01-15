@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 package org.springframework.integration.ip.tcp.serializer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,6 +22,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 
 /**
  * Reads data in an InputStream to a byte[]; data must be preceded by
@@ -75,7 +75,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 * Constructs the serializer using the supplied header size.
 	 * Valid header sizes are {@link #HEADER_SIZE_INT} (default),
 	 * {@link #HEADER_SIZE_UNSIGNED_BYTE} and {@link #HEADER_SIZE_UNSIGNED_SHORT}
-	 * @param headerSize
+	 * @param headerSize The header size.
 	 */
 	public ByteArrayLengthHeaderSerializer(int headerSize) {
 		if (headerSize != HEADER_SIZE_INT &&
@@ -92,7 +92,11 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 * IOException if the length field exceeds the maxMessageSize.
 	 * Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed between messages.
+	 *
+	 * @param inputStream The input stream.
+	 * @throws IOException Any IOException.
 	 */
+	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		int messageLength = this.readHeader(inputStream);
 		if (logger.isDebugEnabled()) {
@@ -110,7 +114,11 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	/**
 	 * Writes the byte[] to the output stream, preceded by a 4 byte
 	 * length in network byte order (big endian).
+	 *
+	 * @param bytes The bytes.
+	 * @param outputStream The output stream.
 	 */
+	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		this.writeHeader(outputStream, bytes.length);
 		outputStream.write(bytes);
@@ -120,10 +128,12 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	/**
 	 * Reads data from the socket and puts the data in buffer. Blocks until
 	 * buffer is full or a socket timeout occurs.
+	 *
+	 * @param inputStream The input stream.
 	 * @param buffer the buffer into which the data should be read
 	 * @param header true if we are reading the header
 	 * @return {@code < 0} if socket closed and not in the middle of a message
-	 * @throws IOException
+	 * @throws IOException Any IOException.
 	 */
 	protected int read(InputStream inputStream, byte[] buffer, boolean header)
 			throws IOException {
@@ -151,9 +161,9 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 
 	/**
 	 * Writes the header, according to the header format.
-	 * @param outputStream
-	 * @param length
-	 * @throws IOException
+	 * @param outputStream The output stream.
+	 * @param length The length.
+	 * @throws IOException Any IOException.
 	 */
 	protected void writeHeader(OutputStream outputStream, int length) throws IOException {
 		ByteBuffer lengthPart = ByteBuffer.allocate(this.headerSize);
@@ -185,9 +195,10 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 
 	/**
 	 * Reads the header and returns the length of the data part.
-	 * @param inputStream
-	 * @return The length of the data part
-	 * @throws IOException
+	 *
+	 * @param inputStream The input stream.
+	 * @return The length of the data part.
+	 * @throws IOException Any IOException.
 	 * @throws SoftEndOfStreamException if socket closes
 	 * before any length data read.
 	 */

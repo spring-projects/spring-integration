@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import javax.jms.JMSException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -71,6 +72,8 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	 * This does not affect the JMS properties covered by the specification/API,
 	 * such as JMSCorrelationID, etc. The header names used for mapping such
 	 * properties are all defined in our {@link JmsHeaders}.
+	 *
+	 * @param inboundPrefix The inbound prefix.
 	 */
 	public void setInboundPrefix(String inboundPrefix) {
 		this.inboundPrefix = (inboundPrefix != null) ? inboundPrefix : "";
@@ -84,11 +87,14 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	 * This does not affect the JMS properties covered by the specification/API,
 	 * such as JMSCorrelationID, etc. The header names used for mapping such
 	 * properties are all defined in our {@link JmsHeaders}.
+	 *
+	 * @param outboundPrefix The outbound prefix.
 	 */
 	public void setOutboundPrefix(String outboundPrefix) {
 		this.outboundPrefix = (outboundPrefix != null) ? outboundPrefix : "";
 	}
 
+	@Override
 	public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 		try {
 			Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
@@ -151,6 +157,7 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 		}
 	}
 
+	@Override
 	public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	/**
 	 * Set the interface class that the generated proxy should implement.
 	 * If none is provided explicitly, the default is {@link RequestReplyExchanger}.
+	 *
+	 * @param serviceInterface The service interface.
 	 */
 	public void setServiceInterface(Class<?> serviceInterface) {
 		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
@@ -137,7 +139,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	 * Set the default request channel.
 	 *
 	 * @param defaultRequestChannel the channel to which request messages will
-	 * be sent if no request channel has been configured with an annotation
+	 * be sent if no request channel has been configured with an annotation.
 	 */
 	public void setDefaultRequestChannel(MessageChannel defaultRequestChannel) {
 		this.defaultRequestChannel = defaultRequestChannel;
@@ -159,6 +161,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	 * Set the error channel. If no error channel is provided, this gateway will
 	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
 	 * a reference to the "nullChannel" here.
+	 *
+	 * @param errorChannel The error channel.
 	 */
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
@@ -184,6 +188,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.defaultReplyTimeout = defaultReplyTimeout;
 	}
 
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
 		if (!CollectionUtils.isEmpty(this.gatewayMap)) {
@@ -212,6 +217,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.globalMethodMetadata = globalMethodMetadata;
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
 	}
@@ -254,10 +260,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		return this.serviceInterface;
 	}
 
+	@Override
 	public Class<?> getObjectType() {
 		return (this.serviceInterface != null ? this.serviceInterface : null);
 	}
 
+	@Override
 	public Object getObject() throws Exception {
 		if (this.serviceProxy == null) {
 			this.onInit();
@@ -266,10 +274,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		return this.serviceProxy;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}
 
+	@Override
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		if (Future.class.isAssignableFrom(invocation.getMethod().getReturnType())) {
 			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
@@ -514,6 +524,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			this.invocation = invocation;
 		}
 
+		@Override
 		public Object call() throws Exception {
 			try {
 				return doInvoke(this.invocation);

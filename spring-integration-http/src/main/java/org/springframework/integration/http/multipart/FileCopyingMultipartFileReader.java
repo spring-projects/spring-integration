@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
  * {@link MultipartFileReader} implementation that copies the MulitpartFile's
  * content to a new temporary File in the specified directory. If no directory
  * is provided, the Files will be created in the default temporary directory.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -47,7 +47,7 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 	/**
 	 * Create a {@link FileCopyingMultipartFileReader} that creates temporary
 	 * Files in the default temporary directory.
-	 */	
+	 */
 	public FileCopyingMultipartFileReader() {
 		this(null);
 	}
@@ -55,6 +55,8 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 	/**
 	 * Create a {@link FileCopyingMultipartFileReader} that creates temporary
 	 * Files in the given directory.
+	 *
+	 * @param directory The directory.
 	 */
 	public FileCopyingMultipartFileReader(File directory) {
 		this.directory = directory;
@@ -63,6 +65,8 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 
 	/**
 	 * Specify the prefix to use for temporary files.
+	 *
+	 * @param prefix The prefix.
 	 */
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
@@ -70,11 +74,14 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 
 	/**
 	 * Specify the suffix to use for temporary files.
+	 *
+	 * @param suffix The suffix.
 	 */
 	public void setSuffix(String suffix) {
 		this.suffix = suffix;
 	}
 
+	@Override
 	public MultipartFile readMultipartFile(MultipartFile multipartFile) throws IOException {
 		File upload = File.createTempFile(this.prefix, this.suffix, this.directory);
 		multipartFile.transferTo(upload);

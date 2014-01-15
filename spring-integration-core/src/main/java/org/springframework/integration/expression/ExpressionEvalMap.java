@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * <p>
  * A {@link ExpressionEvalMapBuilder} must be used to instantiate this class
  * via its {@link #from(Map)} method:
+ * </p>
  * <pre class="code">
  * {@code
  *ExpressionEvalMap evalMap = ExpressionEvalMap
@@ -53,7 +54,6 @@ import org.springframework.util.Assert;
  *	.build();
  *}
  * </pre>
- * </p>
  * <p>
  * Thread-safety depends on the original underlying Map.
  * Objects of this class are not serializable.

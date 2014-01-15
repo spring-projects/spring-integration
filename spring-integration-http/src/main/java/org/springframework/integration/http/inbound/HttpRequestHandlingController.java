@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 
 	/**
 	 * Specify the view name.
+	 *
+	 * @param viewName The view name.
 	 */
 	public void setViewName(String viewName) {
 		Assert.isTrue(StringUtils.hasText(viewName), "View name must contain text");
@@ -91,6 +93,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * Specify the key to be used when adding the reply Message or payload to the core map (will be payload only unless
 	 * the value of {@link HttpRequestHandlingController#setExtractReplyPayload(boolean)} is <code>false</code>). The
 	 * default key is "reply".
+	 *
+	 * @param replyKey The reply key.
 	 */
 	public void setReplyKey(String replyKey) {
 		this.replyKey = (replyKey != null) ? replyKey : DEFAULT_REPLY_KEY;
@@ -99,7 +103,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	/**
 	 * The key used to expose {@link Errors} in the core, in the case that message handling fails. Defaults to
 	 * "errors".
-	 * @param errorsKey the key value to set
+	 *
+	 * @param errorsKey The key value to set.
 	 */
 	public void setErrorsKey(String errorsKey) {
 		this.errorsKey = errorsKey;
@@ -111,7 +116,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * The default value is <code>spring.integration.http.handler.error</code>. Three arguments are provided: the
 	 * exception, its message and its stack trace as a String.
 	 *
-	 * @param errorCode the error code to set
+	 * @param errorCode The error code to set.
 	 */
 	public void setErrorCode(String errorCode) {
 		this.errorCode = errorCode;
@@ -120,6 +125,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	/**
 	 * Specifies a SpEL expression to evaluate in order to generate the view name.
 	 * The EvaluationContext will be populated with the reply message as the root object,
+	 *
+	 * @param viewExpression The view expression.
 	 */
 	public void setViewExpression(Expression viewExpression) {
 		this.viewExpression = viewExpression;
@@ -135,6 +142,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 */
+	@Override
 	public final ModelAndView handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws Exception {
 		ModelAndView modelAndView = new ModelAndView();

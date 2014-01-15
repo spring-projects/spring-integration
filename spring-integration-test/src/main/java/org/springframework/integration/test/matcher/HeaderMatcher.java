@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.messaging.MessageHeaders;
  * <p>
  * For example using {@link Assert#assertThat(Object, Matcher)} for a single
  * entry:
- * <p>
  *
  * <pre class="code">
  * {@code
@@ -49,7 +48,6 @@ import org.springframework.messaging.MessageHeaders;
  * </pre>
  * <p>
  * For multiple entries to match all:
- * <p>
  * <pre class="code">
  * {@code
  * Map<String, Object> expectedInHeaderMap = new HashMap<String, Object>();
@@ -61,7 +59,6 @@ import org.springframework.messaging.MessageHeaders;
  *
  * <p>
  * For a single key:
- * <p>
  *
  * <pre class="code">
  * ANY_HEADER_KEY = "foo";
@@ -96,6 +93,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void describeTo(Description description) {
 		description.appendText("a Message with Headers containing ").appendDescriptionOf(matcher);
 	}

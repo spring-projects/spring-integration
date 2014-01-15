@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -82,6 +82,9 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	 * Creates a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
 	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
 	 * {@link FeedFetcher} via the alternate constructor.
+	 *
+	 * @param feedUrl The URL.
+	 * @param metadataKey The metadata key.
 	 */
 	public FeedEntryMessageSource(URL feedUrl, String metadataKey) {
 		this(feedUrl, metadataKey, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
@@ -89,6 +92,10 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	/**
 	 * Creates a FeedEntryMessageSource that will use the provided FeedFetcher to read from the given feed URL.
+	 *
+	 * @param feedUrl The URL.
+	 * @param metadataKey The metadata key.
+	 * @param feedFetcher The feed fetcher.
 	 */
 	public FeedEntryMessageSource(URL feedUrl, String metadataKey, FeedFetcher feedFetcher) {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
@@ -110,6 +117,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		return "feed:inbound-channel-adapter";
 	}
 
+	@Override
 	public Message<SyndEntry> receive() {
 		Assert.isTrue(this.initialized, "'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
 		SyndEntry entry = doReceive();
@@ -218,6 +226,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private static class SyndEntryPublishedDateComparator implements Comparator<SyndEntry> {
 
+		@Override
 		public int compare(SyndEntry entry1, SyndEntry entry2) {
 			Date date1 = getLastModifiedDate(entry1);
 			Date date2 = getLastModifiedDate(entry2);
@@ -238,6 +247,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		/**
 		 * @see com.sun.syndication.fetcher.FetcherListener#fetcherEvent(com.sun.syndication.fetcher.FetcherEvent)
 		 */
+		@Override
 		public void fetcherEvent(final FetcherEvent event) {
 			String eventType = event.getEventType();
 			if (FetcherEvent.EVENT_TYPE_FEED_POLLED.equals(eventType)) {

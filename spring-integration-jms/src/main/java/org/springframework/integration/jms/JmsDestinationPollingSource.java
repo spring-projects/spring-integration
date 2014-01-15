@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.util.Map;
 
 import javax.jms.Destination;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * only recommended for very low message volume. Otherwise, the
  * {@link JmsMessageDrivenEndpoint} that uses Spring's MessageListener container
  * support is a better option.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -73,6 +73,8 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 
 	/**
 	 * Specify a JMS Message Selector expression to use when receiving Messages.
+	 *
+	 * @param messageSelector The message selector.
 	 */
 	public void setMessageSelector(String messageSelector) {
 		this.messageSelector = messageSelector;
@@ -83,10 +85,11 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	}
 
 	/**
-	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as 
+	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as
 	 * a Spring Integration {@link Message}. This method will also use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
 		Message<Object> convertedMessage = null;

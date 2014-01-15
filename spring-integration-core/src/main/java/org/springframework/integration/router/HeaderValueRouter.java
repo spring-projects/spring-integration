@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ public class HeaderValueRouter extends AbstractMappingMessageRouter {
 
 	/**
 	 * Create a router that uses the provided header name to lookup a channel.
+	 *
+	 * @param headerName The header name.
 	 */
 	public HeaderValueRouter(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");

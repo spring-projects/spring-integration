@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.springframework.integration.jdbc;
 import java.sql.CallableStatement;
 import java.util.Map;
 
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -100,7 +100,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * Therefore, even if you set expectSingleResult = true, you may end up with
 	 * a collection being returned.
 	 *
-	 * @param expectSingleResult
+	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;

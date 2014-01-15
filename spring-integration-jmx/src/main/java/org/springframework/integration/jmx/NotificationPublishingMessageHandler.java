@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.messaging.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
@@ -35,6 +34,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -74,6 +74,8 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 * a default implementation will be used such that String-typed payloads will be
 	 * passed as the 'message' of the Notification and all other payload types
 	 * will be passed as the 'userData' of the Notification.
+	 *
+	 * @param notificationMapper The notification mapper.
 	 */
 	public void setNotificationMapper(OutboundMessageMapper<Notification> notificationMapper) {
 		this.notificationMapper = notificationMapper;
@@ -84,6 +86,8 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 * use by default when <em>no</em> explicit Notification mapper
 	 * has been configured. If not provided, then a notification type header will
 	 * be required for each message being mapped into a Notification.
+	 *
+	 * @param defaultNotificationType The default notification type.
 	 */
 	public void setDefaultNotificationType(String defaultNotificationType) {
 		this.defaultNotificationType = defaultNotificationType;
@@ -125,6 +129,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 		private volatile NotificationPublisher notificationPublisher;
 
+		@Override
 		public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
 			this.notificationPublisher = notificationPublisher;
 		}

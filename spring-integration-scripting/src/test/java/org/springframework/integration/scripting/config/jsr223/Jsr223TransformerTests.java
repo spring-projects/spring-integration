@@ -26,12 +26,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -94,7 +94,7 @@ public class Jsr223TransformerTests {
 		Set<Object> result = new HashSet<Object>();
 
 		for (int i = 0; i < 100; i++) {
-			Message<?> message = this.int3162OutputChannel.receive(1000);
+			Message<?> message = this.int3162OutputChannel.receive(10000);
 			result.add(message.getPayload());
 		}
 

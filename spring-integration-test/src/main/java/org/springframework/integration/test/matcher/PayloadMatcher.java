@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.messaging.Message;
  * <p>
  * A Junit example using {@link Assert#assertThat(Object, Matcher)} could look
  * like this to test a payload value:
- * <p>
+ *
  * <pre class="code">
  * {@code
  * ANY_PAYLOAD = new BigDecimal("1.123");
@@ -41,7 +41,7 @@ import org.springframework.messaging.Message;
  * <p>
  * An example using {@link Assert#assertThat(Object, Matcher)} delegating to
  * another {@link Matcher}.
- * <p>
+ *
  * <pre class="code">
  * ANY_PAYLOAD = new BigDecimal("1.123");
  * assertThat(message, PayloadMatcher.hasPayload(is(BigDecimal.class)));
@@ -80,6 +80,7 @@ public class PayloadMatcher extends TypeSafeMatcher<Message> {
 	 * {@inheritDoc}
 	 */
 	//@Override
+	@Override
 	public void describeTo(Description description) {
 		description.appendText("a Message with payload: ").appendDescriptionOf(matcher);
 

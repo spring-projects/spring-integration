@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * Exception for problems that occur when using a {@link MessageStore} implementation.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  */
@@ -30,47 +30,47 @@ public class MessageStoreException extends MessagingException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * @param message
+	 * @param message The message.
 	 */
 	public MessageStoreException(Message<?> message) {
 		super(message);
 	}
 
 	/**
-	 * @param description
+	 * @param description The description.
 	 */
 	public MessageStoreException(String description) {
 		super(description);
 	}
 
 	/**
-	 * @param description
-	 * @param cause
+	 * @param description The description.
+	 * @param cause The cause.
 	 */
 	public MessageStoreException(String description, Throwable cause) {
 		super(description, cause);
 	}
 
 	/**
-	 * @param message
-	 * @param description
+	 * @param message The message.
+	 * @param description The description.
 	 */
 	public MessageStoreException(Message<?> message, String description) {
 		super(message, description);
 	}
 
 	/**
-	 * @param message
-	 * @param cause
+	 * @param message The message.
+	 * @param cause The cause.
 	 */
 	public MessageStoreException(Message<?> message, Throwable cause) {
 		super(message, cause);
 	}
 
 	/**
-	 * @param message
-	 * @param description
-	 * @param cause
+	 * @param message The message.
+	 * @param description The description.
+	 * @param cause The cause.
 	 */
 	public MessageStoreException(Message<?> message, String description, Throwable cause) {
 		super(message, description, cause);

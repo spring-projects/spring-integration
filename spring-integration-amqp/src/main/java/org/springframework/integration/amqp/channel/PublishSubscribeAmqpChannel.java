@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 * FanoutExchange will be declared implicitly, and its name will be the same
 	 * as the channel name prefixed by "si.fanout.". In either case, an effectively
 	 * anonymous Queue will be declared automatically.
+	 *
+	 * @param exchange The fanout exchange.
 	 */
 	public void setExchange(FanoutExchange exchange) {
 		this.exchange = exchange;

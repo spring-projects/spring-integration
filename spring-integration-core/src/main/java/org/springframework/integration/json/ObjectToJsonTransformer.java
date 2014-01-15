@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,9 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	/**
 	 * Backward compatibility - allows existing configurations using Jackson 1.x to inject
 	 * an ObjectMapper directly.
+	 *
+	 * @param objectMapper The object mapper.
+	 *
 	 * @deprecated in favor of {@link #ObjectToJsonTransformer(JsonObjectMapper)}
 	 */
 	@Deprecated
@@ -81,7 +84,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	/**
 	 * Sets the content-type header value
 	 *
-	 * @param contentType
+	 * @param contentType The content type.
 	 */
 	public void setContentType(String contentType) {
 		// only null assertion is needed since "" is a valid value

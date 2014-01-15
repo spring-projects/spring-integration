@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.annotation.Publisher;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.ClassUtils;
 
 /**
  * Post-processes beans that contain the method-level @{@link Publisher} annotation.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
@@ -56,15 +56,19 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
 	 * itself does not provide a channel.
+	 *
+	 * @param defaultChannel The default channel.
 	 */
 	public void setDefaultChannel(MessageChannel defaultChannel){
 		this.defaultChannel = defaultChannel;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
 	}
@@ -73,21 +77,25 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		this.order = order;
 	}
 
+	@Override
 	public int getOrder() {
 		return this.order;
 	}
 
+	@Override
 	public void afterPropertiesSet(){
 		advisor = new PublisherAnnotationAdvisor();
 		advisor.setBeanFactory(beanFactory);
 		advisor.setDefaultChannel(defaultChannel);
 	}
 
+	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {	
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		Class<?> targetClass = AopUtils.getTargetClass(bean);
 		if (targetClass == null) {
 			return bean;

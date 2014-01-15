@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	/**
 	 * If true, any exception will be caught and null returned.
 	 * Default false.
-	 * @param trapException
+	 * @param trapException true to trap Exceptions.
 	 */
 	public void setTrapException(boolean trapException) {
 		this.trapException = trapException;
@@ -92,7 +92,8 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	/**
 	 * If true, the result of evaluating the onFailureExpression will
 	 * be returned as the result of AbstractReplyProducingMessageHandler.handleRequestMessage(Message).
-	 * @param returnFailureExpressionResult
+	 *
+	 * @param returnFailureExpressionResult true to return the result of the evaluation.
 	 */
 	public void setReturnFailureExpressionResult(boolean returnFailureExpressionResult) {
 		this.returnFailureExpressionResult = returnFailureExpressionResult;
@@ -102,7 +103,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 * If true and an onSuccess expression evaluation fails with an exception, the exception will be thrown to the
 	 * caller. If false, the exception is caught. Default false. Ignored for onFailure expression evaluation - the
 	 * original exception will be propagated (unless trapException is true).
-	 * @param propagateOnSuccessEvaluationFailures
+	 * @param propagateOnSuccessEvaluationFailures The propagateOnSuccessEvaluationFailures to set.
 	 */
 	public void setPropagateEvaluationFailures(boolean propagateOnSuccessEvaluationFailures) {
 		this.propagateOnSuccessEvaluationFailures = propagateOnSuccessEvaluationFailures;

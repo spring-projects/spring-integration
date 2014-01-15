@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,8 @@ public class MapMessageConverter implements MessageConverter {
 	 * Headers to be converted in {@link #fromMessage(Message, Class)}.
 	 * {@link #toMessage(Object, MessageHeaders)} will populate all headers found in
 	 * the map, unless {@link #filterHeadersInToMessage} is true.
-	 * @param headerNames
+	 *
+	 * @param headerNames The header names.
 	 */
 	public void setHeaderNames(String... headerNames) {
 		this.headerNames = headerNames;
@@ -52,7 +53,8 @@ public class MapMessageConverter implements MessageConverter {
 	 * will be mapped. Set this property
 	 * to 'true' if you wish to limit the inbound headers to those in
 	 * the #headerNames.
-	 * @param filterHeadersInToMessage
+	 *
+	 * @param filterHeadersInToMessage true if the headers should be filtered.
 	 */
 	public void setFilterHeadersInToMessage(boolean filterHeadersInToMessage) {
 		this.filterHeadersInToMessage = filterHeadersInToMessage;
@@ -73,11 +75,6 @@ public class MapMessageConverter implements MessageConverter {
 				headers.keySet().retainAll(Arrays.asList(this.headerNames));
 			}
 			messageBuilder.copyHeaders(headers);
-			/*for (Entry<String, ?> entry : headers.entrySet()) {
-				if (this.filterHeadersInToMessage ? this.headerNames.contains(entry.getKey()) : true) {
-					messageBuilder.setHeader(entry.getKey(), entry.getValue());
-				}
-			}*/
 		}
 		Message<?> convertedMessage = messageBuilder.build();
 		return convertedMessage;

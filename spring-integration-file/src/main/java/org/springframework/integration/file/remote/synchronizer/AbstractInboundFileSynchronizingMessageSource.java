@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -31,6 +29,8 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -114,7 +114,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	 * <p>
 	 * The default is an {@link AcceptOnceFileListFilter} which filters duplicate file
 	 * names (processed during the current execution).
-	 * @param localFileListFilter
+	 *
+	 * @param localFileListFilter The local file list filter.
 	 */
 	public void setLocalFilter(FileListFilter<File> localFileListFilter) {
 		this.localFileListFilter = localFileListFilter;
@@ -154,6 +155,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	 * If the result is null, it attempts to sync up with the remote directory to populate the file source.
 	 * Then, it polls the file source again and returns the result, whether or not it is null.
 	 */
+	@Override
 	public final Message<File> receive() {
 		Assert.state(this.fileSource != null, "fileSource must not be null");
 		Assert.state(this.synchronizer != null, "synchronizer must not be null");

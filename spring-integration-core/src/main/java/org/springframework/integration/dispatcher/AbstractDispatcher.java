@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -49,7 +50,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	/**
 	 * Set the maximum subscribers allowed by this dispatcher.
-	 * @param maxSubscribers
+	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
 		this.maxSubscribers = maxSubscribers;
@@ -58,6 +59,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	/**
 	 * Returns an unmodifiable {@link Set} of this dispatcher's handlers. This
 	 * is provided for access by subclasses.
+	 *
+	 * @return The message handlers.
 	 */
 	protected Set<MessageHandler> getHandlers() {
 		return handlers.asUnmodifiableSet();
@@ -66,8 +69,10 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	/**
 	 * Add the handler to the internal Set.
 	 *
+	 * @param handler The handler to add.
 	 * @return the result of {@link Set#add(Object)}
 	 */
+	@Override
 	public boolean addHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
 		Assert.isTrue(this.handlers.size() < this.maxSubscribers, "Maximum subscribers exceeded");
@@ -79,6 +84,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 *
 	 * @return the result of {@link Set#remove(Object)}
 	 */
+	@Override
 	public boolean removeHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
 		return this.handlers.remove(handler);

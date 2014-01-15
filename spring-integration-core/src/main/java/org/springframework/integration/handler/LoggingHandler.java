@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -63,6 +63,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * Create a LoggingHandler with the given log level (case-insensitive).
 	 * <p>
 	 * The valid levels are: FATAL, ERROR, WARN, INFO, DEBUG, or TRACE
+	 * </p>
+	 * @param level The level.
 	 */
 	public LoggingHandler(String level) {
 		Assert.notNull(level, "'level' cannot be null");
@@ -93,6 +95,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	/**
 	 * Set the logging {@link Level}.
+	 *
 	 * @param level the level.
 	 */
 	public void setLevel(Level level) {
@@ -108,6 +111,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 	/**
 	 * Specify whether to log the full Message. Otherwise, only the payload will be logged. This value is
 	 * <code>false</code> by default.
+	 *
+	 * @param shouldLogFullMessage true if the complete message should be logged.
 	 */
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
 		Assert.isTrue(!(this.expressionSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");

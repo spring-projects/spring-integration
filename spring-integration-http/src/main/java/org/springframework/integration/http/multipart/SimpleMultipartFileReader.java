@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.springframework.web.util.WebUtils;
 /**
  * {@link MultipartFileReader} implementation that does not maintain metadata from
  * the original {@link MultipartFile} instance. Instead this simply reads the file
- * content directly as either a String or byte array depending on the Content-Type. 
- * 
+ * content directly as either a String or byte array depending on the Content-Type.
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -39,12 +39,15 @@ public class SimpleMultipartFileReader implements MultipartFileReader<Object> {
 	/**
 	 * Specify the default charset name to use when converting multipart file
 	 * content into Strings if the multipart itself does not provide a charset.
+	 *
+	 * @param defaultCharset The default charset.
 	 */
 	public void setDefaultMultipartCharset(String defaultCharset) {
 		this.defaultCharset = Charset.forName(
 				defaultCharset != null ? defaultCharset : WebUtils.DEFAULT_CHARACTER_ENCODING);
 	}
 
+	@Override
 	public Object readMultipartFile(MultipartFile multipartFile) throws IOException {
 		if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
 			MediaType contentType = MediaType.parseMediaType(multipartFile.getContentType());

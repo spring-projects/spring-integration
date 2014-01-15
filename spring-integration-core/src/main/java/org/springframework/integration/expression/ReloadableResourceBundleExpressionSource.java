@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
  * This class uses {@link java.util.Properties} instances as its custom data structure for expressions,
  * loading them via a {@link org.springframework.util.PropertiesPersister} strategy: The default
  * strategy is capable of loading properties files with a specific character encoding, if desired.
- * 
+ *
  * @author Juergen Hoeller
  * @author Mark Fisher
  * @since 2.0
@@ -179,6 +179,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * desirable in an application server environment, where the system Locale
 	 * is not relevant to the application at all: Set this flag to "false"
 	 * in such a scenario.
+	 *
+	 * @param fallbackToSystemLocale true to fall back.
 	 */
 	public void setFallbackToSystemLocale(boolean fallbackToSystemLocale) {
 		this.fallbackToSystemLocale = fallbackToSystemLocale;
@@ -197,6 +199,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * <li>A value of "0" will check the last-modified timestamp of the file on
 	 * every expression access. <b>Do not use this in a production environment!</b>
 	 * </ul>
+	 *
+	 * @param cacheSeconds The cache seconds.
 	 */
 	public void setCacheSeconds(int cacheSeconds) {
 		this.cacheMillis = (cacheSeconds * 1000);
@@ -205,6 +209,9 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	/**
 	 * Set the PropertiesPersister to use for parsing properties files.
 	 * <p>The default is a DefaultPropertiesPersister.
+	 *
+	 * @param propertiesPersister The properties persister.
+	 *
 	 * @see org.springframework.util.DefaultPropertiesPersister
 	 */
 	public void setPropertiesPersister(PropertiesPersister propertiesPersister) {
@@ -221,6 +228,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @see org.springframework.core.io.DefaultResourceLoader
 	 * @see org.springframework.context.ResourceLoaderAware
 	 */
+	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = (resourceLoader != null ? resourceLoader : new DefaultResourceLoader());
 	}
@@ -229,6 +237,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	/**
 	 * Resolves the given key in the retrieved bundle files to an Expression.
 	 */
+	@Override
 	public Expression getExpression(String key, Locale locale) {
 		String expressionString = this.getExpressionString(key, locale);
 		if (expressionString != null) {

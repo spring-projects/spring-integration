@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * RowMapper has been provided, the values mapped from those rows. If the
 	 * query returns no rows, this method will return <code>null</code>.
 	 */
+	@Override
 	public Message<Object> receive() {
 		Object payload = poll();
 		if (payload == null) {
@@ -130,7 +131,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * Therefore, even if you set expectSingleResult = true, you may end up with
 	 * a collection being returned.
 	 *
-	 * @param expectSingleResult
+	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;

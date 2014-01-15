@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
  * Base class for Message-splitting handlers.
- * 
+ *
  * @author Mark Fisher
  * @author Dave Syer
  */
@@ -39,6 +39,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	/**
 	 * Set the applySequence flag to the specified value. Defaults to true.
+	 *
+	 * @param applySequence true to apply sequence information.
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
@@ -105,6 +107,9 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * Array. The individual elements may be Messages, but it is not necessary. If the elements are not Messages, each
 	 * will be provided as the payload of a Message. It is also acceptable to return a single Object or Message. In that
 	 * case, a single reply Message will be produced.
+	 *
+	 * @param message The message.
+	 * @return The result of splitting the message.
 	 */
 	protected abstract Object splitMessage(Message<?> message);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.selector;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * chain of selectors. Whether the Message is {@link #accept(Message) accepted}
  * is based upon the tallied results of the individual selectors' responses in
  * accordance with this chain's {@link VotingStrategy}.
- * 
+ *
  * @author Mark Fisher
  */
 public class MessageSelectorChain implements MessageSelector {
@@ -44,6 +44,8 @@ public class MessageSelectorChain implements MessageSelector {
 	/**
 	 * Specify the voting strategy for this selector chain.
 	 * <p>The default is {@link VotingStrategy#ALL}.
+	 *
+	 * @param votingStrategy The voting strategy.
 	 */
 	public void setVotingStrategy(VotingStrategy votingStrategy) {
 		Assert.notNull(votingStrategy, "votingStrategy must not be null");
@@ -52,6 +54,8 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Add a selector to the end of the chain.
+	 *
+	 * @param selector The message selector.
 	 */
 	public void add(MessageSelector selector) {
 		this.selectors.add(selector);
@@ -59,6 +63,9 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Add a selector to the chain at the specified index.
+	 *
+	 * @param index The index.
+	 * @param selector The message selector.
 	 */
 	public void add(int index, MessageSelector selector) {
 		this.selectors.add(index, selector);
@@ -66,6 +73,8 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Initialize the selector chain. Removes any existing selectors.
+	 *
+	 * @param selectors The message selectors.
 	 */
 	public void setSelectors(List<MessageSelector> selectors) {
 		Assert.notEmpty(selectors, "selectors must not be empty");
@@ -81,6 +90,7 @@ public class MessageSelectorChain implements MessageSelector {
 	 * the individual selectors' responses in accordance with this chain's
 	 * {@link VotingStrategy}.
 	 */
+	@Override
 	public final boolean accept(Message<?> message) {
 		int count = 0;
 		int accepted = 0;

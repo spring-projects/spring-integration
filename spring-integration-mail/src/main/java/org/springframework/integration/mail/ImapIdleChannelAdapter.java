@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	 * Specify whether the IDLE task should reconnect automatically after
 	 * catching a {@link FolderClosedException} while waiting for messages. The
 	 * default value is <code>true</code>.
+	 *
+	 * @param shouldReconnectAutomatically true to reconnect.
 	 */
 	public void setShouldReconnectAutomatically(boolean shouldReconnectAutomatically) {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
@@ -129,6 +131,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		return "mail:imap-idle-channel-adapter";
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
@@ -176,6 +179,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 
 	private class ReceivingTask implements Runnable {
+		@Override
 		public void run() {
 			try {
 				idleTask.run();
@@ -194,6 +198,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private class IdleTask implements Runnable {
 
+		@Override
 		public void run() {
 			final TaskScheduler scheduler =  getTaskScheduler();
 			Assert.notNull(scheduler, "'taskScheduler' must not be null" );
@@ -239,6 +244,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private Runnable createMessageSendingTask(final Message mailMessage){
 		Runnable sendingTask = new Runnable() {
+			@Override
 			public void run() {
 				org.springframework.messaging.Message<?> message =
 						MessageBuilder.withPayload(mailMessage).build();
@@ -282,6 +288,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private class PingTask implements Runnable {
 
+		@Override
 		public void run() {
 			try {
 				Store store = mailReceiver.getStore();
@@ -299,6 +306,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		private volatile boolean delayNextExecution;
 
 
+		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {
 			if (delayNextExecution){
 				delayNextExecution = false;

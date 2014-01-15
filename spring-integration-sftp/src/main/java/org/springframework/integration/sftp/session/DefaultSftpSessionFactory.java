@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * @param isSharedSession
+	 * @param isSharedSession true if the session is to be shared.
 	 */
 	public DefaultSftpSessionFactory(boolean isSharedSession) {
 		this(new JSch(), isSharedSession);
@@ -102,8 +102,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * Intended for use in tests so the jsch can be mocked.
-	 * @param jsch
-	 * @param isSharedSession
+	 * @param jsch The jsch instance.
+	 * @param isSharedSession true if the session is to be shared.
 	 */
 	public DefaultSftpSessionFactory(JSch jsch, boolean isSharedSession) {
 		this.jsch = jsch;
@@ -112,6 +112,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The url of the host you want connect to. This is a mandatory property.
+	 *
+	 * @param host The host.
 	 *
 	 * @see JSch#getSession(String, String, int)
 	 */
@@ -124,6 +126,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * this value defaults to <code>22</code>. If specified, this properties must
 	 * be a positive number.
 	 *
+	 * @param port The port.
+	 *
 	 * @see JSch#getSession(String, String, int)
 	 */
 	public void setPort(int port) {
@@ -132,6 +136,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The remote user to use. This is a mandatory property.
+	 *
+	 * @param user The user.
 	 *
 	 * @see JSch#getSession(String, String, int)
 	 */
@@ -144,6 +150,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * not provided, then the {@link DefaultSftpSessionFactory#privateKey} is
 	 * mandatory.
 	 *
+	 * @param password The password.
+	 *
 	 * @see com.jcraft.jsch.Session#setPassword(String)
 	 */
 	public void setPassword(String password) {
@@ -153,6 +161,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Specifies the filename that will be used to create a host key repository.
 	 * The resulting file has the same format as OpenSSH's known_hosts file.
+	 *
+	 * @param knownHosts The known hosts.
 	 *
 	 * @see JSch#setKnownHosts(String)
 	 */
@@ -166,6 +176,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * is not provided, then the {@link DefaultSftpSessionFactory#setPassword(String)}
 	 * property is mandatory.
 	 *
+	 * @param privateKey The private key.
+	 *
 	 * @see JSch#addIdentity(String)
 	 * @see JSch#addIdentity(String, String)
 	 *
@@ -177,6 +189,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * The password for the private key. Optional.
 	 *
+	 * @param privateKeyPassphrase The private key passphrase.
+	 *
 	 * @see JSch#addIdentity(String, String)
 	 */
 	public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
@@ -187,6 +201,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Using {@link Properties}, you can set additional configuration settings on
 	 * the underlying JSch {@link com.jcraft.jsch.Session}.
 	 *
+	 * @param sessionConfig The session configuration properties.
+	 *
 	 * @see com.jcraft.jsch.Session#setConfig(Properties)
 	 */
 	public void setSessionConfig(Properties sessionConfig) {
@@ -196,6 +212,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Allows for specifying a JSch-based {@link Proxy}. If set, then the proxy
 	 * object is used to create the connection to the remote host.
+	 *
+	 * @param proxy The proxy.
 	 *
 	 * @see com.jcraft.jsch.Session#setProxy(Proxy)
 	 */
@@ -208,6 +226,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * to create a socket to the target host. When a {@link Proxy} is used, the
 	 * socket factory is passed to the proxy. By default plain TCP sockets are used.
 	 *
+	 * @param socketFactory The socket factory.
+	 *
 	 * @see com.jcraft.jsch.Session#setSocketFactory(SocketFactory)
 	 */
 	public void setSocketFactory(SocketFactory socketFactory){
@@ -219,6 +239,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * the default connection timeout. Defaults to <code>0</code>, which means,
 	 * that no timeout will occur.
 	 *
+	 * @param timeout The timeout.
+	 *
 	 * @see com.jcraft.jsch.Session#setTimeout(int)
 	 */
 	public void setTimeout(Integer timeout) {
@@ -228,6 +250,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Allows you to set the client version property. It's default depends on the
 	 * underlying JSch version but it will look like <code>SSH-2.0-JSCH-0.1.45</code>
+	 *
+	 * @param clientVersion The client version.
 	 *
 	 * @see com.jcraft.jsch.Session#setClientVersion(String)
 	 */
@@ -239,6 +263,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Sets the host key alias, used when comparing the host key to the known
 	 * hosts list.
 	 *
+	 * @param hostKeyAlias The host key alias.
+	 *
 	 * @see com.jcraft.jsch.Session#setHostKeyAlias(String)
 	 */
 	public void setHostKeyAlias(String hostKeyAlias){
@@ -248,6 +274,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Sets the timeout interval (milliseconds) before a server alive message is
 	 * sent, in case no message is received from the server.
+	 *
+	 * @param serverAliveInterval The server alive interval.
 	 *
 	 * @see com.jcraft.jsch.Session#setServerAliveInterval(int)
 	 */
@@ -259,6 +287,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Specifies the number of server-alive messages, which will be sent without
 	 * any reply from the server before disconnecting. If not set, this property
 	 * defaults to <code>1</code>.
+	 *
+	 * @param serverAliveCountMax The server alive count max.
 	 *
 	 * @see com.jcraft.jsch.Session#setServerAliveCountMax(int)
 	 */
@@ -273,6 +303,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * {@link com.jcraft.jsch.Session#setDaemonThread(boolean)}. There, this
 	 * property will default to <code>false</code>, if not explicitly set.
 	 *
+	 * @param enableDaemonThread true to enable a daemon thread.
+	 *
 	 * @see com.jcraft.jsch.Session#setDaemonThread(boolean)
 	 */
 	public void setEnableDaemonThread(Boolean enableDaemonThread){
@@ -280,6 +312,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 
+	@Override
 	public Session<LsEntry> getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
@@ -407,29 +440,36 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 			this.password = password;
 		}
 
+		@Override
 		public String getPassphrase() {
 			return null; // pass
 		}
 
+		@Override
 		public String getPassword() {
 			return this.password;
 		}
 
+		@Override
 		public boolean promptPassphrase(String string) {
 			return true;
 		}
 
+		@Override
 		public boolean promptPassword(String string) {
 			return true;
 		}
 
+		@Override
 		public boolean promptYesNo(String string) {
 			return true;
 		}
 
+		@Override
 		public void showMessage(String string) {
 		}
 
+		@Override
 		public String[] promptKeyboardInteractive(String destination,
 				String name, String instruction, String[] prompt, boolean[] echo) {
 			return null;

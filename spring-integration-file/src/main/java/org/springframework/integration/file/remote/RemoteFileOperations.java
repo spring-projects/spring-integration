@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ public interface RemoteFileOperations<F> {
 	 *
 	 * @param message The message.
 	 * @return The remote path, or null if no local file was found.
-	 * @throws Exception
 	 */
 	String send(Message<?> message);
 
@@ -43,13 +42,13 @@ public interface RemoteFileOperations<F> {
 	 * @param message The message.
 	 * @param subDirectory The sub directory.
 	 * @return The remote path, or null if no local file was found.
-	 * @throws Exception
 	 */
-
 	String send(Message<?> message, String subDirectory);
+
 	/**
 	 * Retrieve a remote file as an InputStream, based on information in a message.
 	 *
+	 * @param message The message.
 	 * @param callback the callback.
 	 * @return true if the operation was successful.
 	 */
@@ -76,6 +75,7 @@ public interface RemoteFileOperations<F> {
 	 * Reliably closes the session when the method exits.
 	 *
 	 * @param callback the SessionCallback.
+	 * @param <T> The type returned by {@link SessionCallback#doInSession(org.springframework.integration.file.remote.session.Session)}.
 	 * @return The result of the callback method.
 	 */
 	<T> T execute(SessionCallback<F, T> callback);

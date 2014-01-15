@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ public interface CorrelationStrategy {
 	 * Find the correlation key for the given message. If no key can be determined the strategy should not return
 	 * <code>null</code>, but throw an exception.
 	 *
+	 * @param message The message.
+	 * @return The correlation key.
 	 */
 	Object getCorrelationKey(Message<?> message);
 

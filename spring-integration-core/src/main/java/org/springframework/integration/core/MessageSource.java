@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.core;
 import org.springframework.messaging.Message;
 
 /**
- * Base interface for any source of {@link Message Messages} that can be polled. 
- * 
+ * Base interface for any source of {@link Message Messages} that can be polled.
+ *
  * @author Mark Fisher
  */
 public interface MessageSource<T> {
@@ -28,6 +28,8 @@ public interface MessageSource<T> {
 	/**
 	 * Retrieve the next available message from this source.
 	 * Returns <code>null</code> if no message is available.
+	 *
+	 * @return The messasge or null.
 	 */
 	Message<T> receive();
 

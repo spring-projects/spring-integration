@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 * connection {@link TcpConnection#run()} using the task executor.
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
+	@Override
 	public void run() {
 		ServerSocket theServerSocket = null;
 		if (this.getListener() == null) {
@@ -133,7 +134,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 * @param whichNic An InetAddress if binding to a specific network interface. Set to
 	 * null when configured to bind to all interfaces.
 	 * @return The Server Socket.
-	 * @throws IOException
+	 * @throws IOException Any IOException.
 	 */
 	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
 		ServerSocketFactory serverSocketFactory = this.tcpSocketFactorySupport.getServerSocketFactory();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathException;
@@ -73,6 +74,7 @@ public final class XPathUtils {
 	 * @param resultArg an optional parameter to represent the result type of the xpath evaluation.
 	 *                  Only one argument is allowed, which can be an instance of {@link org.springframework.xml.xpath.NodeMapper} or
 	 *                  one of these String constants: "string", "boolean", "number", "node" or "node_list".
+	 * @param <T>       The required return type.
 	 * @return the result of the xpath expression evaluation.
 	 * @throws IllegalArgumentException - if the provided arguments aren't appropriate types or values;
 	 * @throws MessagingException - if the provided object can't be converted to a {@link Node};

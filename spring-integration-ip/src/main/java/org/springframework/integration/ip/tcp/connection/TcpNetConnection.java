@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2013 the original author or authors.
+ * Copyright 2001-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,21 +40,6 @@ public class TcpNetConnection extends TcpConnectionSupport {
 	private volatile long lastRead = System.currentTimeMillis();
 
 	private volatile long lastSend;
-
-	/**
-	 * Constructs a TcpNetConnection for the socket.
-	 * @param socket the socket
-	 * @param server if true this connection was created as
-	 * a result of an incoming request.
-	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will
-	 * be identified using the ip address.
-	 * @deprecated Use {@link #TcpNetConnection(Socket, boolean, boolean, ApplicationEventPublisher, String)}
-	 * TODO: Remove in 3.1/4.0
-	 */
-	@Deprecated
-	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost) {
-		this(socket, server, lookupHost, null, null);
-	}
 
 	/**
 	 * Constructs a TcpNetConnection for the socket.

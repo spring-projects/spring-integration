@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base class for File payload transformer parsers.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractFilePayloadTransformerParser extends AbstractTransformerParser {
@@ -41,6 +41,10 @@ public abstract class AbstractFilePayloadTransformerParser extends AbstractTrans
 
 	/**
 	 * Subclasses may override this method to provide additional configuration.
+	 *
+	 * @param element The element.
+	 * @param parserContext The parser context.
+	 * @param builder The builder.
 	 */
 	protected void postProcessTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 	}

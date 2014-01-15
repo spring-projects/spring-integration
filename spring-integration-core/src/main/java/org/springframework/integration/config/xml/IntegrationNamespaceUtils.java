@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -205,6 +205,9 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Provides a user friendly description of an element based on its node name and, if available, its "id" attribute
 	 * value. This is useful for creating error messages from within bean definition parsers.
+	 *
+	 * @param element The element.
+	 * @return The description.
 	 */
 	public static String createElementDescription(Element element) {
 		String elementId = "'" + element.getNodeName() + "'";
@@ -303,7 +306,13 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Utility method to configure HeaderMapper for Inbound and Outbound channel adapters/gateway
+	 * Utility method to configure a HeaderMapper for Inbound and Outbound channel adapters/gateway.
+	 *
+	 * @param element The element.
+	 * @param rootBuilder The root builder.
+	 * @param parserContext The parser context.
+	 * @param headerMapperClass The header mapper class.
+	 * @param replyHeaderValue The reply header value.
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
 								ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue) {
@@ -340,7 +349,10 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Parse a "transactional" element and configure a {@link TransactionInterceptor}
 	 * with "transactionManager" and other "transactionDefinition" properties.
-	 * For example, this advisor will be applied on the Polling Task proxy
+	 * For example, this advisor will be applied on the Polling Task proxy.
+	 *
+	 * @param txElement The transactional element.
+	 * @return The bean definition.
 	 *
 	 * @see AbstractPollingEndpoint
 	 */
@@ -357,6 +369,9 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Parse attributes of "transactional" element and configure a {@link DefaultTransactionAttribute}
 	 * with provided "transactionDefinition" properties.
+	 *
+	 * @param txElement The transactional element.
+	 * @return The bean definition.
 	 */
 	public static BeanDefinition configureTransactionDefinition(Element txElement) {
 		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);

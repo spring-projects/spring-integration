@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -278,6 +278,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * <p>
 	 * Any non-standard headers will be prefixed with the value specified by
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
+	 *
+	 * @param outboundHeaderNames The outbound header names.
 	 */
 	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
 		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
@@ -291,6 +293,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * This will match the header name directly or, for non-standard HTTP headers, it will match
 	 * the header name prefixed with the value specified by
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
+	 *
+	 * @param inboundHeaderNames The inbound header names.
 	 */
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
@@ -318,6 +322,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	/**
 	 * Sets the prefix to use with user-defined (non-standard) headers. Default is 'X-'.
+	 *
+	 * @param userDefinedHeaderPrefix The user defined header prefix.
 	 */
 	public void setUserDefinedHeaderPrefix(String userDefinedHeaderPrefix) {
 		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
@@ -989,6 +995,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * Factory method for creating a basic outbound mapper instance.
 	 * This will map all standard HTTP request headers when sending an HTTP request,
 	 * and it will map all standard HTTP response headers when receiving an HTTP response.
+	 *
+	 * @return The default outbound mapper.
 	 */
 	public static DefaultHttpHeaderMapper outboundMapper() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
@@ -1002,6 +1010,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * Factory method for creating a basic inbound mapper instance.
 	 * This will map all standard HTTP request headers when receiving an HTTP request,
 	 * and it will map all standard HTTP response headers when sending an HTTP response.
+	 *
+	 * @return The default inbound mapper.
 	 */
 	public static DefaultHttpHeaderMapper inboundMapper() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();

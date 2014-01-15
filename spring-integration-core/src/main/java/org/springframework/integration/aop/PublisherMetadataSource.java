@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,9 @@ import java.util.Map;
 /**
  * Strategy for determining the channel name, payload expression, and header expressions
  * for the {@link MessagePublishingInterceptor}.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 interface PublisherMetadataSource {
@@ -40,12 +41,18 @@ interface PublisherMetadataSource {
 	/**
 	 * Returns the channel name to which Messages should be published
 	 * for this particular method invocation.
+	 *
+	 * @param method The Method.
+	 * @return The channel name.
 	 */
 	String getChannelName(Method method);
 
 	/**
 	 * Returns the expression string to be evaluated for creating the Message
 	 * payload.
+	 *
+	 * @param method The Method.
+	 * @return The payload expression.
 	 */
 	String getPayloadExpression(Method method);
 
@@ -53,6 +60,9 @@ interface PublisherMetadataSource {
 	 * Returns the map of expression strings to be evaluated for any headers
 	 * that should be set on the published Message. The keys in the Map are
 	 * header names, the values are the expression strings.
+	 *
+	 * @param method The Method.
+	 * @return The header expressions.
 	 */
 	Map<String, String> getHeaderExpressions(Method method);
 

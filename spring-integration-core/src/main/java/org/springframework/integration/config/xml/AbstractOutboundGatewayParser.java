@@ -61,6 +61,10 @@ public abstract class AbstractOutboundGatewayParser extends AbstractConsumerEndp
 
 	/**
 	 * Subclasses may override this method for additional configuration.
+
+	 * @param builder The builder.
+	 * @param element The element.
+	 * @param parserContext The parser context.
 	 */
 	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
@@ -64,6 +64,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	 * Set the channels for this router. Either call this method or
 	 * {@link #setRecipients(List)} but not both. If MessageSelectors should be
 	 * considered, then use {@link #setRecipients(List)}.
+	 *
+	 * @param channels The channels.
 	 */
 	public void setChannels(List<MessageChannel> channels) {
 		Assert.notEmpty(channels, "channels must not be empty");
@@ -76,6 +78,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
 	/**
 	 * Set the recipients for this router.
+	 *
+	 * @param recipients The recipients.
 	 */
 	public void setRecipients(List<Recipient> recipients) {
 		Assert.notEmpty(recipients, "recipients must not be empty");

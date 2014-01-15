@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	/**
 	 * Provide mappings from channel keys to channel names.
 	 * Channel names will be resolved by the {@link DestinationResolver}.
+	 *
+	 * @param channelMappings The channel mappings.
 	 */
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		Map<String, String> oldChannelMappings = this.channelMappings;
@@ -78,6 +80,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * The default is a BeanFactoryChannelResolver.
 	 * This is considered an infrastructural configuration option and
 	 * as of 2.1 has been deprecated as a configuration-driven attribute.
+	 *
+	 * @param channelResolver The channel resolver.
 	 */
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
@@ -86,6 +90,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Specify a prefix to be added to each channel name prior to resolution.
+	 *
+	 * @param prefix The prefix.
 	 */
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
@@ -93,6 +99,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Specify a suffix to be added to each channel name prior to resolution.
+	 *
+	 * @param suffix The suffix.
 	 */
 	public void setSuffix(String suffix) {
 		this.suffix = suffix;
@@ -101,6 +109,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	/**
 	 * Specify whether this router should ignore any failure to resolve a channel name to
 	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
+	 *
+	 * @param resolutionRequired true if resolution is required.
 	 */
 	public void setResolutionRequired(boolean resolutionRequired) {
 		this.resolutionRequired = resolutionRequired;
@@ -109,6 +119,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	/**
 	 * Returns an unmodifiable version of the channel mappings.
 	 * This is intended for use by subclasses only.
+	 *
+	 * @return The channel mappings.
 	 */
 	protected Map<String, String> getChannelMappings() {
 		return Collections.unmodifiableMap(this.channelMappings);
@@ -116,7 +128,11 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Add a channel mapping from the provided key to channel name.
+	 *
+	 * @param key The key.
+	 * @param channelName The channel name.
 	 */
+	@Override
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
 		this.channelMappings.put(key, channelName);
@@ -124,7 +140,10 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Remove a channel mapping for the given key if present.
+	 *
+	 * @param key The key.
 	 */
+	@Override
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
 		this.channelMappings.remove(key);
@@ -142,6 +161,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Subclasses must implement this method to return the channel keys.
 	 * A "key" might be present in this router's "channelMappings", or it
 	 * could be the channel's name or even the Message Channel instance itself.
+	 *
+	 * @param message The message.
+	 * @return The channel keys.
 	 */
 	protected abstract List<Object> getChannelKeys(Message<?> message);
 

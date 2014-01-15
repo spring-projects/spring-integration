@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
@@ -42,8 +41,9 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -110,6 +110,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * to store delayed Messages in the {@link MessageGroupStore}. The sending of Messages after
 	 * the delay will be handled by registered in the ApplicationContext default {@link ThreadPoolTaskScheduler}.
 	 *
+	 * @param messageGroupId The message group identifier.
+	 *
 	 * @see IntegrationObjectSupport#getTaskScheduler()
 	 */
 	public DelayHandler(String messageGroupId) {
@@ -120,6 +122,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Create a DelayHandler with the given default delay. The sending of Messages
 	 * after the delay will be handled by the provided {@link TaskScheduler}.
+	 *
+	 * @param messageGroupId The message group identifier.
+	 * @param taskScheduler A task scheduler.
 	 */
 	public DelayHandler(String messageGroupId, TaskScheduler taskScheduler) {
 		this(messageGroupId);
@@ -130,7 +135,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Set the default delay in milliseconds. If no {@code delayExpression} property
 	 * has been provided, the default delay will be applied to all Messages. If
 	 * a delay should <em>only</em> be applied to Messages with evaluation result from
-	 * @code delayExpression}, then set this value to 0.
+	 * {@code delayExpression}, then set this value to 0.
+	 *
+	 * @param defaultDelay The default delay in milliseconds.
 	 */
 	public void setDefaultDelay(long defaultDelay) {
 		this.defaultDelay = defaultDelay;
@@ -141,6 +148,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * (in milliseconds) or a Date to delay until. If this property is set, any
 	 * such header value will take precedence over this handler's default delay.
 	 * @deprecated in favor of {@link #delayExpression}
+	 *
+	 * @param delayHeaderName The name of the header.
 	 */
 	@Deprecated
 	public void setDelayHeaderName(String delayHeaderName) {
@@ -151,6 +160,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Specify the {@link Expression} that should be checked for a delay period
 	 * (in milliseconds) or a Date to delay until. If this property is set, the
 	 * result of the expression evaluation will take precedence over this handler's default delay.
+	 *
+	 * @param delayExpression The delay expression.
 	 */
 	public void setDelayExpression(Expression delayExpression) {
 		this.delayExpression = delayExpression;
@@ -164,6 +175,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * {@code Exception} will be thrown to the caller without falling back to the to the {@link #defaultDelay}.
 	 * Default is {@code true}.
 	 *
+	 * @param ignoreExpressionFailures true if expression evaluation failures should be ignored.
+	 *
 	 * @see #determineDelayForMessage
 	 */
 	public void setIgnoreExpressionFailures(boolean ignoreExpressionFailures) {
@@ -173,6 +186,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Specify the {@link MessageGroupStore} that should be used to store Messages
 	 * while awaiting the delay.
+	 *
+	 * @param messageStore The message store.
 	 */
 	public void setMessageStore(MessageGroupStore messageStore) {
 		Assert.state(messageStore != null, "MessageStore must not be null");
@@ -182,6 +197,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Specify the {@code List<Advice>} to advise {@link DelayHandler.ReleaseMessageHandler} proxy.
 	 * Usually used to add transactions to delayed messages retrieved from a transactional message store.
+	 *
+	 * @param delayedAdviceChain The advice chain.
 	 *
 	 * @see #createReleaseMessageTask
 	 */
@@ -310,6 +327,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		final Message<?> messageToSchedule = delayedMessage;
 
 		this.getTaskScheduler().schedule(new Runnable() {
+			@Override
 			public void run() {
 				releaseMessage(messageToSchedule);
 			}
@@ -334,6 +352,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 	}
 
+	@Override
 	public int getDelayedMessageCount() {
 		return this.messageStore.messageGroupSize(this.messageGroupId);
 	}
@@ -345,10 +364,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * and schedules task about 'delay' logic.
 	 * This behavior is dictated by the avoidance of invocation thread overload.
 	 */
+	@Override
 	public void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
 			this.getTaskScheduler().schedule(new Runnable() {
+				@Override
 				public void run() {
 					long delay = determineDelayForMessage(message);
 					if (delay > 0) {
@@ -374,6 +395,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 *
 	 * @see #reschedulePersistedMessages
 	 */
+	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (!this.initialized.getAndSet(true)) {
 			this.reschedulePersistedMessages();
@@ -390,6 +412,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	private class ReleaseMessageHandler implements MessageHandler {
 
+		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			DelayHandler.this.doReleaseMessage(message);
 		}

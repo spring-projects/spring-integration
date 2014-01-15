@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.messaging.PollableChannel;
 
 /**
  * Base class for all pollable channels.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel {
@@ -29,10 +29,11 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	/**
 	 * Receive the first available message from this channel. If the channel
 	 * contains no messages, this method will block.
-	 * 
+	 *
 	 * @return the first available message or <code>null</code> if the
 	 * receiving thread is interrupted.
 	 */
+	@Override
 	public final Message<?> receive() {
 		return this.receive(-1);
 	}
@@ -43,13 +44,14 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 * elapses. If the specified timeout is 0, the method will return
 	 * immediately. If less than zero, it will block indefinitely (see
 	 * {@link #receive()}).
-	 * 
+	 *
 	 * @param timeout the timeout in milliseconds
-	 * 
+	 *
 	 * @return the first available message or <code>null</code> if no message
 	 * is available within the allotted time or the receiving thread is
 	 * interrupted.
 	 */
+	@Override
 	public final Message<?> receive(long timeout) {
 		if (!this.getInterceptors().preReceive(this)) {
 			return null;
@@ -65,6 +67,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 * return immediately with or without success). A negative timeout value
 	 * indicates that the method should block until either a message is
 	 * available or the blocking thread is interrupted.
+	 *
+	 * @param timeout The timeout.
+	 * @return The message, or null.
 	 */
 	protected abstract Message<?> doReceive(long timeout);
 

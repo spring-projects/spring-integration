@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.messaging.MessageChannel;
 /**
  * Base interface for any component that is capable of sending
  * Messages to a {@link MessageChannel}.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -29,6 +29,8 @@ public interface MessageProducer {
 
 	/**
 	 * Specify the MessageChannel to which produced Messages should be sent.
+	 *
+	 * @param outputChannel The output channel.
 	 */
 	void setOutputChannel(MessageChannel outputChannel);
 

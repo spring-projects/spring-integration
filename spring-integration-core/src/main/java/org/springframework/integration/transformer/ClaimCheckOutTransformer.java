@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package org.springframework.integration.transformer;
 
 import java.util.UUID;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * Transformer that accepts a Message whose payload is a UUID and retrieves the Message associated
  * with that id from a MessageStore if available. An Exception will be thrown if no Message with
  * that ID can be retrieved from the given MessageStore.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Nick Spacek
@@ -42,12 +42,14 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 
 	/**
 	 * Create a claim check-out transformer that will delegate to the provided MessageStore.
+	 *
+	 * @param messageStore The message store.
 	 */
 	public ClaimCheckOutTransformer(MessageStore messageStore) {
 		Assert.notNull(messageStore, "MessageStore must not be null");
 		this.messageStore = messageStore;
 	}
-	
+
 	public void setRemoveMessage(boolean removeMessage) {
 		this.removeMessage = removeMessage;
 	}

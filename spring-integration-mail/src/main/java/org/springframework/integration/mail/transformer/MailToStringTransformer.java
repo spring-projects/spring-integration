@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * If the mail message's content is a String, it will be the payload of the
  * result Message. If the content is a Multipart, a String will be created from
  * an output stream of bytes using the provided charset (or UTF-8 by default).
- * 
+ *
  * @author Mark Fisher
  */
 public class MailToStringTransformer extends AbstractMailMessageTransformer<String> {
@@ -40,6 +40,8 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 	/**
 	 * Specify the name of the Charset to use when converting from bytes.
 	 * The default is UTF-8.
+	 *
+	 * @param charset The charset.
 	 */
 	public void setCharset(String charset) {
 		Assert.notNull(charset, "charset must not be null");

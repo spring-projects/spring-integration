@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,10 @@ import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -64,6 +65,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	/**
 	 * Provide a reference to the MBeanServer where the notification
 	 * publishing MBeans are registered.
+	 *
+	 * @param server the MBean server connection.
 	 */
 	public void setServer(MBeanServerConnection server) {
 		this.server = server;
@@ -73,6 +76,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 * Specify the JMX ObjectNames (or patterns)
 	 * of the notification publisher
 	 * to which this notification listener should be subscribed.
+	 *
+	 * @param objectNames The object names.
 	 */
 	public void setObjectName(ObjectName... objectNames) {
 		Assert.isTrue(!ObjectUtils.isEmpty(objectNames), "'objectNames' must contain at least one ObjectName");
@@ -82,6 +87,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	/**
 	 * Specify a {@link NotificationFilter} to be passed to the server
 	 * when registering this listener. The filter may be null.
+	 *
+	 * @param filter The filter.
 	 */
 	public void setFilter(NotificationFilter filter) {
 		this.filter = filter;
@@ -90,6 +97,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	/**
 	 * Specify a handback object to provide context to the listener
 	 * upon notification. This object may be null.
+	 *
+	 * @param handback The object.
 	 */
 	public void setHandback(Object handback) {
 		this.handback = handback;
@@ -101,6 +110,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 * not null, it sets that as a Message header value. The Message is then
 	 * sent to this producer's output channel.
 	 */
+	@Override
 	public void handleNotification(Notification notification, Object handback) {
 		if (logger.isInfoEnabled()) {
 			logger.info("received notification: " + notification + ", and handback: " + handback);

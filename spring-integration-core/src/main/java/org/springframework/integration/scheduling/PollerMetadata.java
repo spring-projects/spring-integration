@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.Trigger;
@@ -88,6 +89,8 @@ public class PollerMetadata {
 	 *
 	 * <p>The default is unbounded.
 	 *
+	 * @param maxMessagesPerPoll The maxMessagesPerPoll to set.
+	 *
 	 * @see #MAX_MESSAGES_UNBOUNDED
 	 */
 	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {
@@ -134,6 +137,7 @@ public class PollerMetadata {
 	/**
 	 * Return the default {@link PollerMetadata} bean if available.
 	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return The poller metadata.
 	 */
 	public static PollerMetadata getDefaultPollerMetadata(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");

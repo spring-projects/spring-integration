@@ -1,4 +1,4 @@
-/* Copyright 2002-2013 the original author or authors.
+/* Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * Specify whether this dispatcher should failover when a single
 	 * {@link MessageHandler} throws an Exception. The default value is
 	 * <code>true</code>.
+	 *
+	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
 		this.failover = failover;
@@ -78,6 +80,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Provide a {@link LoadBalancingStrategy} for this dispatcher.
+	 *
+	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
 	public void setLoadBalancingStrategy(LoadBalancingStrategy loadBalancingStrategy) {
 		Lock lock = rwLock.writeLock();
@@ -90,9 +94,11 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		}
 	}
 
+	@Override
 	public final boolean dispatch(final Message<?> message) {
 		if (this.executor != null) {
 			this.executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					doDispatch(message);
 				}

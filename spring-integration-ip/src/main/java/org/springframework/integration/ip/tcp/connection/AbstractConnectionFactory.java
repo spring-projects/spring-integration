@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,9 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -137,7 +137,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * Sets socket attributes on the socket.
 	 * @param socket The socket.
-	 * @throws SocketException
+	 * @throws SocketException Any SocketException.
 	 */
 	protected void setSocketAttributes(Socket socket) throws SocketException {
 		if (this.soTimeout >= 0) {
@@ -370,7 +370,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * If true, sockets created by this factory will be used once.
-	 * @param singleUse
+	 * @param singleUse The singleUse to set.
 	 */
 	public void setSingleUse(boolean singleUse) {
 		this.singleUse = singleUse;
@@ -425,6 +425,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * Creates a taskExecutor (if one was not provided).
+	 * @return The executor.
 	 */
 	protected Executor getTaskExecutor() {
 		if (!this.active) {
@@ -515,9 +516,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * Removes closed connections from the connections field, and from the connections parameter.
 	 *
 	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.
-	 * @param selector The selector
-	 * @param connections Map of connections
-	 * @throws IOException
+	 * @param selector The selector.
+	 * @param server The server socket channel.
+	 * @param connections Map of connections.
+	 * @throws IOException Any IOException.
 	 */
 	protected void processNioSelections(int selectionCount, final Selector selector, ServerSocketChannel server,
 			Map<SocketChannel, TcpNioConnection> connections) throws IOException {
@@ -632,9 +634,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * @param selector
-	 * @param now
-	 * @throws IOException
+	 * @param selector The selector.
+	 * @param server The server socket channel.
+	 * @param now The current time.
+	 * @throws IOException Any IOException.
 	 */
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
 		throw new UnsupportedOperationException("Nio server factory must override this method");

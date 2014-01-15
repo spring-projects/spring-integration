@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	/**
 	 * Create a CachingSessionFactory with an unlimited number of sessions.
+	 *
 	 * @param sessionFactory the underlying session factory.
 	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory) {
@@ -63,8 +64,9 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * calling threads will block until a session is available.
 	 * @see #setSessionWaitTimeout(long)
 	 * @see #setPoolSize(int)
-	 * @param sessionFactory the underlying session factory.
-	 * @param sessionCacheSize the maximum cache size.
+	 *
+	 * @param sessionFactory The underlying session factory.
+	 * @param sessionCacheSize The maximum cache size.
 	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
@@ -91,6 +93,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	/**
 	 * Sets the limit of how long to wait for a session to become available.
 	 *
+	 * @param sessionWaitTimeout the session wait timeout.
 	 * @throws IllegalStateException if the wait expires prior to a Session becoming available.
 	 */
 	public void setSessionWaitTimeout(long sessionWaitTimeout) {
@@ -100,6 +103,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	/**
 	 * Modify the target session pool size; the actual pool size will adjust up/down
 	 * to this size as and when sessions are requested or retrieved.
+	 *
+	 * @param poolSize The pool size.
 	 */
 	public void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);

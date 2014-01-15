@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,8 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	 *
 	 * <p>The default value is <code>true</code>. To force passing of the full
 	 * Spring Integration Message instead, set this to <code>false</code>.
+	 *
+	 * @param extractPayload true to extract the payload.
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
@@ -159,6 +161,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 			this.headerMapper = headerMapper;
 		}
 
+		@Override
 		public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage) throws JMSException {
 			this.headerMapper.fromHeaders(this.integrationMessage.getHeaders(), jmsMessage);
 			return jmsMessage;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2013 the original author or authors.
+ * Copyright 2001-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.SmartLifecycle;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.MessageTimeoutException;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -35,6 +31,10 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -156,6 +156,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
+	@Override
 	public boolean onMessage(Message<?> message) {
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
 		if (connectionId == null) {
@@ -192,10 +193,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		connectionFactory.registerSender(this);
 	}
 
+	@Override
 	public void addNewConnection(TcpConnection connection) {
 		// do nothing - no asynchronous multiplexing supported
 	}
 
+	@Override
 	public void removeDeadConnection(TcpConnection connection) {
 		// do nothing - no asynchronous multiplexing supported
 	}
@@ -203,6 +206,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	/**
 	 * Specify the Spring Integration reply channel. If this property is not
 	 * set the gateway will check for a 'replyChannel' header on the request.
+	 *
+	 * @param replyChannel The reply channel.
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
@@ -212,26 +217,32 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		return "ip:tcp-outbound-gateway";
 	}
 
+	@Override
 	public void start() {
 		this.connectionFactory.start();
 	}
 
+	@Override
 	public void stop() {
 		this.connectionFactory.stop();
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.connectionFactory.isRunning();
 	}
 
+	@Override
 	public int getPhase() {
 		return this.phase;
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		this.connectionFactory.stop(callback);
 	}

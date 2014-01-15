@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * Serializes a {@link Map} as JSON. Deserializes JSON to
  * a {@link Map}. The default {@link JacksonJsonObjectMapperProvider#newInstance()} can be
  * overridden using {@link #setJsonObjectMapper(JsonObjectMapper)}.
- * <p/>
+ * <p>
  * The JSON deserializer can't delimit multiple JSON
  * objects. Therefore another (de)serializer is used to
  * apply structure to the stream. By default, this is a
@@ -86,6 +86,7 @@ public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Ma
 		this.packetSerializer = packetSerializer;
 	}
 
+	@Override
 	public Map<?, ?> deserialize(InputStream inputStream) throws IOException {
 		byte[] bytes = this.packetDeserializer.deserialize(inputStream);
 		try {
@@ -96,6 +97,7 @@ public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Ma
 		}
 	}
 
+	@Override
 	public void serialize(Map<?, ?> object, OutputStream outputStream) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {

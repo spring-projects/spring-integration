@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,13 +39,13 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * detects and registers {@link RequestMappingInfo}s for {@link HttpRequestHandlingEndpointSupport}
  * from a Spring Integration HTTP configuration of
  * {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
- * <p/>
+ * <p>
  * This class is automatically configured as a bean in the application context during the parsing phase of
  * the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements, if there is none registered, yet.
  * However it can be configured as a regular bean with appropriate configuration for
  * {@link RequestMappingHandlerMapping}. It is recommended to have only one similar bean in the application context
  * using the 'id' {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
- * <p/>
+ * <p>
  * In most cases, Spring MVC offers to configure Request Mapping via {@code org.springframework.stereotype.Controller}
  * and {@link org.springframework.web.bind.annotation.RequestMapping}.
  * That's why Spring MVC's Handler Mapping infrastructure relies on {@link org.springframework.web.method.HandlerMethod},

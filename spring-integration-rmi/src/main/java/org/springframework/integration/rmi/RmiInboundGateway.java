@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,8 @@ public class RmiInboundGateway extends MessagingGatewaySupport implements Reques
 	/**
 	 * Specify whether the gateway should be expected to return a reply.
 	 * The default is '<code>true</code>'.
+	 *
+	 * @param expectReply true when a reply is expected.
 	 */
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
@@ -88,6 +90,7 @@ public class RmiInboundGateway extends MessagingGatewaySupport implements Reques
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
 
+	@Override
 	public String getComponentType() {
 		return "rmi:inbound-gateway";
 	}
@@ -114,6 +117,7 @@ public class RmiInboundGateway extends MessagingGatewaySupport implements Reques
 		super.onInit();
 	}
 
+	@Override
 	public Message<?> exchange(Message<?> message) {
 		if (this.expectReply) {
 			return this.sendAndReceiveMessage(message);

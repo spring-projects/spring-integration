@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 
 /**
  * Maps incoming data from a {@link TcpConnection} to a {@link Message}.
@@ -54,6 +54,7 @@ public class TcpMessageMapper implements
 
 	private volatile boolean applySequence = false;
 
+	@Override
 	public Message<?> toMessage(TcpConnection connection) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
@@ -102,6 +103,7 @@ public class TcpMessageMapper implements
 		return null;
 	}
 
+	@Override
 	public Object fromMessage(Message<?> message) throws Exception {
 		if (this.stringToBytes) {
 			return getPayloadAsBytes(message);
@@ -146,14 +148,14 @@ public class TcpMessageMapper implements
 	/**
 	 * Sets whether outbound String payloads are to be converted
 	 * to byte[]. Default is true.
-	 * @param stringToBytes
+	 * @param stringToBytes The stringToBytes to set.
 	 */
 	public void setStringToBytes(boolean stringToBytes) {
 		this.stringToBytes = stringToBytes;
 	}
 
 	/**
-	 * @param applySequence the applySequence to set
+	 * @param applySequence The applySequence to set.
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;

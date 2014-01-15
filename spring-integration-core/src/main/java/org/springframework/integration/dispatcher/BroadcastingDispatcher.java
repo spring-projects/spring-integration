@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 	 * one throws an Exception. Since the Executor is most likely using a different thread, this flag would only affect
 	 * whether an error Message is sent to the error channel or not in the case that such an Executor has been
 	 * configured.
+	 *
+	 * @param ignoreFailures true when failures are to be ignored.
 	 */
 	public void setIgnoreFailures(boolean ignoreFailures) {
 		this.ignoreFailures = ignoreFailures;
@@ -85,7 +87,9 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Specify whether to apply sequence numbers to the messages prior to sending to the handlers. By default, sequence
-	 * numbers will <em>not</em> be applied
+	 * numbers will <em>not</em> be applied.
+	 *
+	 * @param applySequence true when sequence information should be applied.
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
@@ -100,6 +104,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		this.minSubscribers = minSubscribers;
 	}
 
+	@Override
 	public boolean dispatch(Message<?> message) {
 		int dispatched = 0;
 		int sequenceNumber = 1;
@@ -113,6 +118,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 					.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 			if (this.executor != null) {
 				this.executor.execute(new Runnable() {
+					@Override
 					public void run() {
 						invokeHandler(handler, messageToSend);
 					}

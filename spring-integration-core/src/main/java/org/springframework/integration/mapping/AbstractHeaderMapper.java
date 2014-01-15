@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * <p>
 	 * This will match the header name directly or, for non-standard headers, it will match
 	 * the header name prefixed with the value, if specified, by {@link #setUserDefinedHeaderPrefix(String)}.
+	 *
+	 * @param requestHeaderNames The request header names.
 	 */
 	public void setRequestHeaderNames(String[] requestHeaderNames) {
 		Assert.notNull(requestHeaderNames, "'requestHeaderNames' must not be null");
@@ -90,6 +92,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * Any non-standard headers will be prefixed with the value specified by {@link #setUserDefinedHeaderPrefix(String)}.
+	 *
+	 * @param replyHeaderNames The reply header names.
 	 */
 	public void setReplyHeaderNames(String[] replyHeaderNames) {
 		Assert.notNull(replyHeaderNames, "'replyHeaderNames' must not be null");
@@ -103,6 +107,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * This does not affect the standard properties for the particular protocol, such as
 	 * contentType for AMQP, etc. The header names used for mapping such properties are
 	 * defined in a corresponding Headers class as constants (e.g. AmqpHeaders).
+	 *
+	 * @param userDefinedHeaderPrefix The user defined header prefix.
 	 */
 	public void setUserDefinedHeaderPrefix(String userDefinedHeaderPrefix) {
 		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
@@ -111,28 +117,44 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	/**
 	 * Maps headers from a Spring Integration MessageHeaders instance to the target instance
 	 * matching on the set of REQUEST headers (if different).
+	 *
+	 * @param headers The headers.
+	 * @param target The target.
 	 */
+	@Override
 	public void fromHeadersToRequest(MessageHeaders headers, T target) {
 		this.fromHeaders(headers, target, this.requestHeaderNames);
 	}
 	/**
 	 * Maps headers from a Spring Integration MessageHeaders instance to the target instance
 	 * matching on the set of REPLY headers (if different).
+	 *
+	 * @param headers The headers.
+	 * @param target The target.
 	 */
+	@Override
 	public void fromHeadersToReply(MessageHeaders headers, T target) {
 		this.fromHeaders(headers, target, this.replyHeaderNames);
 	}
 	/**
 	 * Maps headers/properties of the target object to Map of MessageHeaders
 	 * matching on the set of REQUEST headers
+	 *
+	 * @param source The source.
+	 * @return The headers.
 	 */
+	@Override
 	public Map<String, Object> toHeadersFromRequest(T source) {
 		return this.toHeaders(source, this.requestHeaderNames);
 	}
 	/**
 	 * Maps headers/properties of the target object to Map of MessageHeaders
 	 * matching on the set of REPLY headers
+	 *
+	 * @param source The source.
+	 * @return The headers.
 	 */
+	@Override
 	public Map<String, Object> toHeadersFromReply(T source) {
 		return this.toHeaders(source, this.replyHeaderNames);
 	}
@@ -285,21 +307,21 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	}
 
 	/**
-	 * Returns the list of standard REQUEST headers. Implementation provided by a subclass
+	 * @return  The list of standard REQUEST headers. Implementation provided by a subclass
 	 */
 	protected List<String> getStandardReplyHeaderNames(){
 		return Collections.emptyList();
 	}
 
 	/**
-	 * Returns the PREFIX used by standard headers (if any)
+	 * @return The PREFIX used by standard headers (if any)
 	 */
 	protected List<String> getStandardRequestHeaderNames(){
 		return Collections.emptyList();
 	}
 
 	/**
-	 * Returns the list of standard REPLY headers. Implementation provided by a subclass
+	 * @return The list of standard REPLY headers. Implementation provided by a subclass
 	 */
 	protected abstract String getStandardHeaderPrefix();
 

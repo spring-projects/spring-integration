@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public abstract class SessionCallbackWithoutResult<F> implements SessionCallback
 	 * care of closing the session after this method exits.
 	 *
 	 * @param session The session.
-	 * @throws IOException
+	 * @throws IOException Any IOException.
 	 */
 	protected abstract void doInSessionWithoutResult(Session<F> session) throws IOException;
 

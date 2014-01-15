@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ws;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
@@ -65,6 +65,9 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code> with the given marshaller and unmarshaller.
+	 *
+	 * @param marshaller The marshaller.
+	 * @param unmarshaller The unmarshaller.
 	 */
 	public MarshallingWebServiceInboundGateway(Marshaller marshaller, Unmarshaller unmarshaller) {
 		Assert.notNull(marshaller, "'marshaller' must no be null");
@@ -83,6 +86,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 		this.unmarshaller = unmarshaller;
 	}
 
+	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 		Assert.notNull(marshaller, "This implementation requires Marshaller");

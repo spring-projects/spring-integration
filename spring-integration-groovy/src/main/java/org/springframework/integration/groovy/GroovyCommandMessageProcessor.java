@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,21 @@
 
 package org.springframework.integration.groovy;
 
+import groovy.lang.Binding;
+import groovy.lang.GString;
+
 import java.util.Map;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
+import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-
-import groovy.lang.Binding;
-import groovy.lang.GString;
 
 /**
  * @author Dave Syer
@@ -53,6 +53,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 
 	/**
 	 * Creates a {@link GroovyCommandMessageProcessor} that will use the provided {@link ScriptVariableGenerator}.
+	 *
+	 * @param scriptVariableGenerator The variable generator.
 	 */
 	public GroovyCommandMessageProcessor(ScriptVariableGenerator scriptVariableGenerator) {
 		super(scriptVariableGenerator);
@@ -63,6 +65,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	 * and provided {@link Binding}.
 	 * Provided 'binding' will be used in the {@link BindingOverwriteGroovyObjectCustomizerDecorator} to overwrite
 	 * original Groovy Script 'binding'.
+	 *
+	 * @param binding The binding.
 	 */
 	public GroovyCommandMessageProcessor(Binding binding) {
 		this();
@@ -74,6 +78,9 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	 * Creates a {@link GroovyCommandMessageProcessor} that will use the provided {@link ScriptVariableGenerator} and Binding.
 	 * Provided 'binding' will be used in the {@link BindingOverwriteGroovyObjectCustomizerDecorator} to overwrite
 	 * original Groovy Script 'binding'.
+	 *
+	 * @param binding The binding.
+	 * @param scriptVariableGenerator The variable generator.
 	 */
 	public GroovyCommandMessageProcessor(Binding binding, ScriptVariableGenerator scriptVariableGenerator) {
 		this(scriptVariableGenerator);
@@ -83,6 +90,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 
 	/**
 	 * Sets a {@link GroovyObjectCustomizer} for this processor.
+	 *
+	 * @param customizer The customizer.
 	 */
 	public void setCustomizer(GroovyObjectCustomizer customizer) {
 		this.customizer = customizer;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -72,7 +72,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 * <li>{@link org.apache.commons.net.ftp.FTP#BINARY_FILE_TYPE} (DEFAULT)</li>
 	 * <li>{@link org.apache.commons.net.ftp.FTP#LOCAL_FILE_TYPE}</li>
 	 * </ul>
-	 * @param fileType
+	 * @param fileType The file type.
 	 */
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
@@ -87,7 +87,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		Assert.notNull(config);
 		this.config = config;
 	}
-	
+
 	public void setBufferSize(int bufferSize) {
 		this.bufferSize = bufferSize;
 	}
@@ -123,14 +123,17 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 * to occur between the client (local) and server and that the server
 	 * is in passive mode, requiring the client to connect to the
 	 * server's data port to initiate a transfer.
+	 *
+	 * @param clientMode The client mode.
 	 */
 	public void setClientMode(int clientMode) {
-		Assert.isTrue(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE || 
-				clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE, 
+		Assert.isTrue(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE ||
+				clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE,
 				"Only local modes are supported. Was: " + clientMode);
 		this.clientMode = clientMode;
 	}
 
+	@Override
 	public Session<FTPFile> getSession() {
 		try {
 			return new FtpSession(this.createClient());
@@ -140,31 +143,31 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		}
 	}
 
-	private T createClient() throws SocketException, IOException { 
+	private T createClient() throws SocketException, IOException {
 		final T client = this.createClientInstance();
 		Assert.notNull(client, "client must not be null");
 		client.configure(this.config);
 		Assert.hasText(this.username, "username is required");
-		
+
 		this.postProcessClientBeforeConnect(client);
-		
+
 		// Connect
 		client.connect(this.host, this.port);
-		
+
 		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
 			throw new MessagingException("Connecting to server [" +
 					host + ":" + port + "] failed. Please check the connection.");
-		}	
+		}
 		logger.debug("Connected to server [" + host + ":" + port + "]");
-		
+
 		// Login
 		if (!client.login(username, password)) {
-			throw new IllegalStateException("Login failed. The respponse from the server is: " + 
+			throw new IllegalStateException("Login failed. The respponse from the server is: " +
 					client.getReplyString());
 		}
-		
+
 		this.postProcessClientAfterConnect(client);
-		
+
 		this.updateClientMode(client);
 		client.setFileType(fileType);
 		client.setBufferSize(bufferSize);
@@ -191,14 +194,20 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	protected abstract T createClientInstance();
 
 	/**
-	 * Will handle additional initialization after client.connect() method was invoked, 
-	 * but before any action on the client has been taken 
+	 * Will handle additional initialization after client.connect() method was invoked,
+	 * but before any action on the client has been taken
+	 *
+	 * @param t The client.
+	 * @throws IOException Any IOException
 	 */
 	protected void postProcessClientAfterConnect(T t) throws IOException {
 		// NOOP
 	}
 	/**
-	 * Will handle additional initialization before client.connect() method was invoked. 
+	 * Will handle additional initialization before client.connect() method was invoked.
+	 *
+	 * @param client The client.
+	 * @throws IOException Any IOException.
 	 */
 	protected void postProcessClientBeforeConnect(T client) throws IOException {
 		// NOOP

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -88,7 +88,7 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	/**
 	 *
-	 * @param gatewayType
+	 * @param gatewayType The gateway type.
 	 */
 	public void setGatewayType(OutboundGatewayType gatewayType) {
 		Assert.notNull(gatewayType, "gatewayType must not be null.");

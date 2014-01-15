@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class TestingUtilities {
 	 * starting a test. Waits for up to 10 seconds by default.
 	 * @param serverConnectionFactory The server connection factory.
 	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
-	 * @throws IllegalStateException
+	 * @throws IllegalStateException If the server does not start listening in time.
 	 */
 	public static void waitListening(AbstractServerConnectionFactory serverConnectionFactory, Long delay)
 		throws IllegalStateException {
@@ -64,7 +64,7 @@ public class TestingUtilities {
 	 * Waits for up to 10 seconds by default.
 	 * @param serverConnectionFactory The server connection factory.
 	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
-	 * @throws IllegalStateException
+	 * @throws IllegalStateException If the server doesn't stop listening in time.
 	 */
 	public static void waitStopListening(AbstractServerConnectionFactory serverConnectionFactory, Long delay)
 			throws IllegalStateException {

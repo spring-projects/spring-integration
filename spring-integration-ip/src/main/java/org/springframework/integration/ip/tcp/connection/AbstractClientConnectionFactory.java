@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * true, a new connection is returned; otherwise a single connection is
 	 * reused for all requests while the connection remains open.
 	 */
+	@Override
 	public TcpConnectionSupport getConnection() throws Exception {
 		this.checkActive();
 		return this.obtainConnection();
@@ -156,7 +157,8 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	/**
 	 * Force close the connection and null the field if it's
 	 * a shared connection.
-	 * @param connection
+	 *
+	 * @param connection The connection.
 	 */
 	public void forceClose(TcpConnection connection) {
 		if (this.theConnection == connection) {

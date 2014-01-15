@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -52,8 +52,7 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 * <li>0x3ff (1023) - 1024 locks</li>
 	 * <li>0xfff (4095) - 4096 locks</li>
 	 * </ul>
-	 * <p>
-	 * @param mask
+	 * @param mask The bit mask.
 	 */
 	public DefaultLockRegistry(int mask){
 		String bits = Integer.toBinaryString(mask);
@@ -71,6 +70,7 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 * the mask and using the result as an index to the lock table.
 	 * @param lockKey the object used to derive the lock index.
 	 */
+	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.notNull(lockKey, "'lockKey' must not be null");
 		Integer lockIndex = lockKey.hashCode() & this.mask;
