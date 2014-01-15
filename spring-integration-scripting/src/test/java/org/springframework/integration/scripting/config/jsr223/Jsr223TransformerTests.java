@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -86,7 +85,7 @@ public class Jsr223TransformerTests {
 		assertNull(replyChannel.receive(0));
 	}
 
-	@Test @Ignore
+	@Test
 	public void testInt3162ScriptExecutorThreadSafety() {
 		for (int i = 0; i < 100; i++) {
 			this.int3162InputChannel.send(new GenericMessage<Object>(i));
@@ -95,7 +94,7 @@ public class Jsr223TransformerTests {
 		Set<Object> result = new HashSet<Object>();
 
 		for (int i = 0; i < 100; i++) {
-			Message<?> message = this.int3162OutputChannel.receive(1000);
+			Message<?> message = this.int3162OutputChannel.receive(10000);
 			result.add(message.getPayload());
 		}
 
