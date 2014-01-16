@@ -232,6 +232,13 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		final SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(this.dataSource);
 
+		if (this.isFunction) {
+			simpleJdbcCall.withFunctionName(storedProcedureName);
+		}
+		else {
+			simpleJdbcCall.withProcedureName(storedProcedureName);
+		}
+
 		if (this.ignoreColumnMetaData) {
 			simpleJdbcCall.withoutProcedureColumnMetaDataAccess();
 		}
@@ -248,13 +255,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		if (this.returnValueRequired) {
 			simpleJdbcCall.withReturnValue();
-		}
-
-		if (this.isFunction) {
-			simpleJdbcCall.withFunctionName(storedProcedureName);
-		}
-		else {
-			simpleJdbcCall.withProcedureName(storedProcedureName);
 		}
 
 		simpleJdbcCall.getJdbcTemplate().setSkipUndeclaredResults(this.skipUndeclaredResults);
