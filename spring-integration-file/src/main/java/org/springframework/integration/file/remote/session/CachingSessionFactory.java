@@ -152,11 +152,13 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		this.pool.removeAllIdleItems();
 	}
 
-	private class CachedSession implements Session<F> {
+	public class CachedSession implements Session<F> {
 
 		private final Session<F> targetSession;
 
-		private volatile boolean released;
+		private boolean released;
+
+		private boolean dirty;
 
 		/**
 		 * The epoch in which this session was created.
@@ -183,6 +185,9 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 					if (logger.isDebugEnabled()){
 						logger.debug("Closing session " + targetSession + " after reset.");
 					}
+					this.targetSession.close();
+				}
+				else if (this.dirty) {
 					this.targetSession.close();
 				}
 				pool.releaseItem(targetSession);
@@ -243,6 +248,10 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		@Override
 		public boolean finalizeRaw() throws IOException {
 			return this.targetSession.finalizeRaw();
+		}
+
+		public void dirty() {
+			this.dirty = true;
 		}
 
 	}
