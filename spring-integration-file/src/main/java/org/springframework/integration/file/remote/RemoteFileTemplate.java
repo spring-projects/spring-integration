@@ -36,7 +36,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.file.remote.session.CachingSessionFactory.CachedSession;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -287,7 +287,6 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		});
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public <T> T execute(SessionCallback<F, T> callback) {
 		Session<F> session = null;
@@ -297,8 +296,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			return callback.doInSession(session);
 		}
 		catch (Exception e) {
-			if (session instanceof CachedSession) {
-				((CachedSession) session).dirty();
+			if (session instanceof CachingSessionFactory<?>.CachedSession) {
+				((CachingSessionFactory<?>.CachedSession) session).dirty();
+			}
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
 			}
 			throw new MessagingException("Failed to execute on session", e);
 		}
