@@ -46,9 +46,18 @@ public interface RemoteFileOperations<F> {
 	String send(Message<?> message, String subDirectory);
 
 	/**
+	 * Retrieve a remote file as an InputStream.
+	 *
+	 * @param remotePath The remote path to the file.
+	 * @param callback the callback.
+	 * @return true if the operation was successful.
+	 */
+	boolean get(String remotePath, InputStreamCallback callback);
+
+	/**
 	 * Retrieve a remote file as an InputStream, based on information in a message.
 	 *
-	 * @param message The message.
+	 * @param message The message which will be evaluated to generate the remote path.
 	 * @param callback the callback.
 	 * @return true if the operation was successful.
 	 */

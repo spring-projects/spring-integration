@@ -269,15 +269,20 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		});
 	}
 
+	@Override
+	public boolean get(Message<?> message, InputStreamCallback callback) {
+		Assert.notNull(this.fileNameProcessor, "A 'fileNameExpression' is needed to use get");
+		String remotePath = RemoteFileTemplate.this.fileNameProcessor.processMessage(message);
+		return this.get(remotePath, callback);
+	}
 
 	@Override
-	public boolean get(final Message<?> message, final InputStreamCallback callback) {
-		Assert.notNull(this.fileNameProcessor, "'fileNameProcessor' needed to use get");
+	public boolean get(final String remotePath, final InputStreamCallback callback) {
+		Assert.notNull(remotePath, "'remotePath' cannot be null");
 		return this.execute(new SessionCallback<F, Boolean>() {
 
 			@Override
 			public Boolean doInSession(Session<F> session) throws IOException {
-				final String remotePath = RemoteFileTemplate.this.fileNameProcessor.processMessage(message);
 				InputStream inputStream = session.readRaw(remotePath);
 				callback.doWithInputStream(inputStream);
 				inputStream.close();
