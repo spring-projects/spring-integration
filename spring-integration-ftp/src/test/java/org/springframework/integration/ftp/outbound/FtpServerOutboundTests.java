@@ -130,6 +130,8 @@ public class FtpServerOutboundTests {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
+			assertNotNull(cause);
+			cause = cause.getCause();
 			assertThat(cause, Matchers.instanceOf(IllegalArgumentException.class));
 			assertThat(cause.getMessage(), Matchers.startsWith("Failed to make local directory"));
 		}
