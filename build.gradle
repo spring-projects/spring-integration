@@ -82,14 +82,6 @@ subprojects { subproject ->
 		}
 	}
 
-	sourceSets {
-		test {
-			resources {
-				srcDirs = ['src/test/resources', 'src/test/java']
-			}
-		}
-	}
-
 	// See http://www.gradle.org/docs/current/userguide/dependency_management.html#sub:configurations
 	// and http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
 	configurations {
@@ -113,8 +105,15 @@ subprojects { subproject ->
 	ext.xLintArg = '-Xlint:all,-options'
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
+	// Get resources from java source set here to avoid IDEA 13 Test Resource Root issue for java code.
+	processTestResources {
+		from(sourceSets.test.java.srcDirs) {
+			exclude '**/*.java'
+		}
+	}
+
 	test {
-		// suppress all console output during testing unless running `gradle -i`
+	   // suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
 	}

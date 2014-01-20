@@ -28,13 +28,11 @@ import org.springframework.integration.config.IntegrationRegistrar;
 /**
  * Add this annotation to an {@code @Configuration} class to have
  * the imported Spring Integration configuration :
- * <p/>
  * <pre class="code">
  * &#064;Configuration
  * &#064;EnableIntegration
  * &#064;ComponentScan(basePackageClasses = { MyConfiguration.class })
  * public class MyIntegrationConfiguration {
- * <p/>
  * }
  * </pre>
  *

@@ -91,6 +91,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 * by simply registering a ChannelInitializer {@code <bean>} with its {@code autoCreate} property
 	 * set to false to suppress channel creation.
 	 * It will also register a ChannelInitializer$AutoCreateCandidatesCollector which simply collects candidate channel names.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerImplicitChannelCreator(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.CHANNEL_INITIALIZER_BEAN_NAME)) {
@@ -115,6 +117,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	/**
 	 * Register {@code integrationGlobalProperties} bean if necessary.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerIntegrationProperties(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
@@ -150,6 +154,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	/**
 	 * Register {@link IntegrationEvaluationContextFactoryBean} bean
 	 * and {@link IntegrationEvaluationContextAwareBeanPostProcessor}, if necessary.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerIntegrationEvaluationContext(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
@@ -171,6 +177,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	/**
 	 * Register {@code jsonPath} and {@code xpath} SpEL-function beans, if necessary.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerBuiltInBeans(BeanDefinitionRegistry registry) {
 		int registryId = System.identityHashCode(registry);
@@ -227,6 +235,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	/**
 	 * Register {@code DefaultConfiguringBeanFactoryPostProcessor}, if necessary.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerDefaultConfiguringBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
@@ -247,6 +257,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	/**
 	 * Register a {@link DefaultHeaderChannelRegistry} in the given {@link BeanDefinitionRegistry}, if necessary.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerHeaderChannelRegistry(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
@@ -272,6 +284,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	/**
 	 * Register {@link MessagingAnnotationPostProcessor} and {@link PublisherAnnotationBeanPostProcessor}, if necessary.
 	 * Inject {@code defaultPublishedChannel} from provided {@link AnnotationMetadata}, if any.
+	 *
+	 * @param meta The {@link AnnotationMetadata} to get additional properties for {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
 	 */
 	private void registerMessagingAnnotationPostProcessors(AnnotationMetadata meta, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
