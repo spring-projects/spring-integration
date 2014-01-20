@@ -15,17 +15,30 @@
  */
 package org.springframework.integration.file.remote.session;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.file.remote.InputStreamCallback;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -61,6 +74,37 @@ public class CachingSessionFactoryTests {
 		assertFalse(sess2.isOpen());
 		cache.resetCache();
 		assertFalse(sess1.isOpen());
+	}
+
+	@Test
+	public void testDirtySession() throws Exception {
+		@SuppressWarnings("unchecked")
+		SessionFactory<Object> factory = mock(SessionFactory.class);
+		@SuppressWarnings("unchecked")
+		Session<Object> session = mock(Session.class);
+		when(factory.getSession()).thenReturn(session);
+		when(session.readRaw("foo")).thenReturn(new ByteArrayInputStream("".getBytes()));
+		when(session.finalizeRaw()).thenReturn(true);
+		CachingSessionFactory<Object> ccf = new CachingSessionFactory<Object>(factory);
+		RemoteFileTemplate<Object> template = new RemoteFileTemplate<Object>(ccf);
+		template.setFileNameExpression(new LiteralExpression("foo"));
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		try {
+			template.get(new GenericMessage<String>("foo"), new InputStreamCallback() {
+
+				@Override
+				public void doWithInputStream(InputStream stream) throws IOException {
+					throw new RuntimeException("bar");
+				}
+			});
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e.getCause(), instanceOf(RuntimeException.class));
+			assertThat(e.getCause().getMessage(), equalTo("bar"));
+		}
+		verify(session).close();
 	}
 
 	private class TestSessionFactory implements SessionFactory<String> {
