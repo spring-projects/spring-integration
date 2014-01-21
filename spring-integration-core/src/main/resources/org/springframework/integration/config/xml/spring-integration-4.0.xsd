@@ -969,14 +969,7 @@
 							]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="FATAL" />
-					<xsd:enumeration value="ERROR" />
-					<xsd:enumeration value="WARN" />
-					<xsd:enumeration value="INFO" />
-					<xsd:enumeration value="DEBUG" />
-					<xsd:enumeration value="TRACE" />
-				</xsd:restriction>
+				<xsd:union memberTypes="loggingLevel xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="logger-name" type="xsd:string">
@@ -4168,5 +4161,16 @@ default is 0. Values can be negative. See SmartLifeCycle.
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
+
+	<xsd:simpleType name="loggingLevel">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="FATAL" />
+			<xsd:enumeration value="ERROR" />
+			<xsd:enumeration value="WARN" />
+			<xsd:enumeration value="INFO" />
+			<xsd:enumeration value="DEBUG" />
+			<xsd:enumeration value="TRACE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

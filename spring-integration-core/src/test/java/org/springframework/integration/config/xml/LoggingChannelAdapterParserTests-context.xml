@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:context="http://www.springframework.org/schema/context"
+			 xmlns:util="http://www.springframework.org/schema/util"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:properties id="props">
+		<beans:prop key="logging.level">WARN</beans:prop>
+	</util:properties>
+
+	<context:property-placeholder properties-ref="props"/>
 
 	<logging-channel-adapter id="logger"
 							 logger-name="org.springframework.integration.test.logger"
 							 order="1"
-							 level="WARN"
+							 level="${logging.level}"
 							 log-full-message="true"/>
 
 	<logging-channel-adapter id="loggerWithExpression" expression="payload.foo"/>
