@@ -292,6 +292,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		});
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public <T> T execute(SessionCallback<F, T> callback) {
 		Session<F> session = null;
@@ -302,7 +303,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 		catch (Exception e) {
 			if (session instanceof CachingSessionFactory<?>.CachedSession) {
-				((CachingSessionFactory<?>.CachedSession) session).dirty();
+				((CachingSessionFactory.CachedSession) session).dirty();
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
