@@ -36,6 +36,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -272,7 +273,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	@Override
 	public boolean get(final Message<?> message, final InputStreamCallback callback) {
-		Assert.notNull(this.fileNameProcessor, "'fileNameProcessor' needed to use get");
+		Assert.notNull(this.fileNameProcessor, "A 'fileNameExpression' is needed to use get");
 		return this.execute(new SessionCallback<F, Boolean>() {
 
 			@Override
@@ -294,7 +295,13 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			Assert.notNull(session, "failed to acquire a Session");
 			return callback.doInSession(session);
 		}
-		catch (IOException e) {
+		catch (Exception e) {
+			if (session instanceof CachingSessionFactory<?>.CachedSession) {
+				((CachingSessionFactory<?>.CachedSession) session).dirty();
+			}
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
 			throw new MessagingException("Failed to execute on session", e);
 		}
 		finally {
