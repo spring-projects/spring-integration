@@ -33,6 +33,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -299,7 +300,13 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			Assert.notNull(session, "failed to acquire a Session");
 			return callback.doInSession(session);
 		}
-		catch (IOException e) {
+		catch (Exception e) {
+			if (session instanceof CachingSessionFactory<?>.CachedSession) {
+				((CachingSessionFactory<?>.CachedSession) session).dirty();
+			}
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
 			throw new MessagingException("Failed to execute on session", e);
 		}
 		finally {
