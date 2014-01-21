@@ -20,5 +20,14 @@
 			<ulink url="https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-3.0-to-4.0-Migration-Guide"
 			>Migration Guide</ulink>.
 		</para>
+		<section id="3.0-xpath-header-enricher-header-type">
+			<title>Header Type for XPath Header Enricher</title>
+			<para>
+				The <code>header-type</code> attribute has been introduced for <code>header</code> sub-element of
+				<code>&lt;int-xml:xpath-header-enricher&gt;</code>. This attribute allows to provide the target type for
+				the header value to which will be converted the result of XPath expression evaluation.
+				For more information see <xref linkend="xml-xpath-header-enricher"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
