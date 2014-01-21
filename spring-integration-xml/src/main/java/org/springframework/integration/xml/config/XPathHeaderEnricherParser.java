@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,22 +25,21 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.xml.transformer.XPathHeaderEnricher;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for &lt;xpath-header-enricher&gt; elements.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 
-	private static final String PACKAGE = "org.springframework.integration.xml.transformer";
-
-
 	@Override
 	protected final String getTransformerClassName() {
-		return PACKAGE + ".XPathHeaderEnricher";
+		return XPathHeaderEnricher.class.getName();
 	}
 
 	@Override
@@ -61,8 +60,8 @@ public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 				Element headerElement = (Element) node;
 				String elementName = node.getLocalName();
 				if ("header".equals(elementName)) {
-					BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-							PACKAGE + ".XPathHeaderEnricher$XPathExpressionEvaluatingHeaderValueMessageProcessor");
+					BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
+							+ ".xml.transformer.XPathHeaderEnricher$XPathExpressionEvaluatingHeaderValueMessageProcessor");
 					String expressionString = headerElement.getAttribute("xpath-expression");
 					String expressionRef = headerElement.getAttribute("xpath-expression-ref");
 					boolean isExpressionString = StringUtils.hasText(expressionString);
@@ -79,6 +78,7 @@ public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 					}
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, headerElement, "evaluation-type");
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, headerElement, "overwrite");
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, headerElement, "header-type");
 					String headerName = headerElement.getAttribute("name");
 					headers.put(headerName, builder.getBeanDefinition());
 				}

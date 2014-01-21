@@ -1051,9 +1051,10 @@
     <int:poller></int:poller>                             ]]><co id="xpath-header-enricher-xml06-co" linkends="xpath-header-enricher-xml06" /><![CDATA[
     <int-xml:header name=""                               ]]><co id="xpath-header-enricher-xml07-co" linkends="xpath-header-enricher-xml07" /><![CDATA[
                     evaluation-type="STRING_RESULT"       ]]><co id="xpath-header-enricher-xml08-co" linkends="xpath-header-enricher-xml08" /><![CDATA[
-                    overwrite="true"                      ]]><co id="xpath-header-enricher-xml09-co" linkends="xpath-header-enricher-xml09" /><![CDATA[
-                    xpath-expression=""                   ]]><co id="xpath-header-enricher-xml10-co" linkends="xpath-header-enricher-xml10" /><![CDATA[
-                    xpath-expression-ref=""/>             ]]><co id="xpath-header-enricher-xml11-co" linkends="xpath-header-enricher-xml11" /><![CDATA[
+                    header-type="int"                     ]]><co id="xpath-header-enricher-xml09-co" linkends="xpath-header-enricher-xml09" /><![CDATA[
+                    overwrite="true"                      ]]><co id="xpath-header-enricher-xml10-co" linkends="xpath-header-enricher-xml10" /><![CDATA[
+                    xpath-expression=""                   ]]><co id="xpath-header-enricher-xml11-co" linkends="xpath-header-enricher-xml11" /><![CDATA[
+                    xpath-expression-ref=""/>             ]]><co id="xpath-header-enricher-xml12-co" linkends="xpath-header-enricher-xml12" /><![CDATA[
 </int-xml:xpath-header-enricher>]]>
     </programlisting>
     <para>
@@ -1102,24 +1103,31 @@
 	        </callout>
 	        <callout arearefs="xpath-header-enricher-xml08-co" id="xpath-header-enricher-xml08">
 	            <para>
-	                The result type expected from the XPath evaluation. This will be the type of the header value.
+	                The result type expected from the XPath evaluation. This will be the type of the header value, if there is no
+					<code>header-type</code> attribute provided.
 	                The following values are allowed: BOOLEAN_RESULT, STRING_RESULT, NUMBER_RESULT, NODE_RESULT and NODE_LIST_RESULT.
 	                Defaults internally to <code>XPathEvaluationType.STRING_RESULT</code> if not set. <emphasis>Optional</emphasis>.
 	            </para>
 	        </callout>
 	        <callout arearefs="xpath-header-enricher-xml09-co" id="xpath-header-enricher-xml09">
 	            <para>
+	                The fully qualified class name for the header value type. The result of XPath evaluation will be
+					converted to this type using <interfacename>ConversionService</interfacename>. <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml10-co" id="xpath-header-enricher-xml10">
+	            <para>
 	                Boolean value to indicate whether this header value should overwrite an existing header value for
                     the same name if already present on the input Message.
 	            </para>
 	        </callout>
-            <callout arearefs="xpath-header-enricher-xml10-co" id="xpath-header-enricher-xml10">
+            <callout arearefs="xpath-header-enricher-xml11-co" id="xpath-header-enricher-xml11">
                 <para>
                     The XPath Expression as a String. Either this attribute or
                     <code>xpath-expression-ref</code> must be provided, but not both.
                 </para>
             </callout>
-            <callout arearefs="xpath-header-enricher-xml11-co" id="xpath-header-enricher-xml11">
+            <callout arearefs="xpath-header-enricher-xml12-co" id="xpath-header-enricher-xml12">
                 <para>
                     The XPath Expression reference. Either this attribute or
                     <code>xpath-expression</code> must be provided, but not both.

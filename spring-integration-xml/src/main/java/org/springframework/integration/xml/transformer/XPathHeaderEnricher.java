@@ -20,6 +20,14 @@ import java.util.Map;
 
 import org.w3c.dom.Node;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.expression.TypeConverter;
+import org.springframework.expression.spel.support.StandardTypeConverter;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
@@ -37,6 +45,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class XPathHeaderEnricher extends HeaderEnricher {
@@ -52,16 +61,20 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 	}
 
 
-	static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object> {
+	static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object>,
+			BeanFactoryAware {
+
+		private TypeConverter typeConverter = new StandardTypeConverter();
 
 		private final XPathExpression expression;
 
 		private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-		private volatile  XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
+		private volatile XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
+
+		private volatile TypeDescriptor headerTypeDescriptor;
 
 		private volatile Boolean overwrite = null;
-
 
 		public XPathExpressionEvaluatingHeaderValueMessageProcessor(String expression) {
 			Assert.hasText(expression, "expression must have text");
@@ -77,6 +90,12 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 			this.evaluationType = evaluationType;
 		}
 
+		public void setHeaderType(Class<?> headerType) {
+			if (headerType != null) {
+				this.headerTypeDescriptor = TypeDescriptor.valueOf(headerType);
+			}
+		}
+
 		public void setOverwrite(Boolean overwrite) {
 			this.overwrite = overwrite;
 		}
@@ -87,13 +106,26 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 		}
 
 		@Override
+		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+			ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+			if (conversionService != null) {
+				this.typeConverter = new StandardTypeConverter(conversionService);
+			}
+		}
+
+		@Override
 		public Object processMessage(Message<?> message) {
 			Node node = converter.convertToNode(message.getPayload());
 			Object result = this.evaluationType.evaluateXPath(this.expression, node);
 			if (result instanceof String && ((String) result).length() == 0) {
 				result = null;
 			}
-			return result;
+			if (result != null && this.headerTypeDescriptor != null) {
+				return this.typeConverter.convertValue(result, TypeDescriptor.forObject(result), this.headerTypeDescriptor);
+			}
+			else {
+				return result;
+			}
 		}
 	}
 
