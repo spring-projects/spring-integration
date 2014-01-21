@@ -54,6 +54,7 @@
       <year>2011</year>
       <year>2012</year>
       <year>2013</year>
+      <year>2014</year>
       <holder>
           GoPivotal, Inc. All Rights Reserved.
       </holder>
@@ -69,9 +70,9 @@
     <partintro id="spring-integration-intro">
         <para>
          For those who are already familiar with Spring Integration, this chapter
-         provides a brief overview of the new features of version 2.2. If you are
+         provides a brief overview of the new features of version 3.0. If you are
          interested in the changes and features, that were introduced in earlier
-         versions, please take a look at chapter:
+         versions, please see chapter:
 
          <xref linkend="history"/>
 
