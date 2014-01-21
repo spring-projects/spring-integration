@@ -441,6 +441,13 @@
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
+		<xsd:attribute name="header-type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[
+	The fully qualified class name of the header value's expected type.
+						]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<!-- XPath Router definition -->
