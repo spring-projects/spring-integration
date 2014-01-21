@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.AssertionFailedError;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -39,7 +37,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
@@ -47,9 +44,13 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
+
+import junit.framework.AssertionFailedError;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
  */
 public class RedisMessageGroupStoreTests extends RedisAvailableTests {
@@ -78,7 +79,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(1, messageGroup.size());
 		long createdTimestamp = messageGroup.getTimestamp();
 		long updatedTimestamp = messageGroup.getLastModified();
-		assertEquals(createdTimestamp, updatedTimestamp);
+		assertTrue(updatedTimestamp - createdTimestamp <= 2);
 		Thread.sleep(1000);
 		message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
