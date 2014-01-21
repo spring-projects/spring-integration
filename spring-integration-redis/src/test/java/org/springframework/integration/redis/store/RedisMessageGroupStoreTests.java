@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import junit.framework.AssertionFailedError;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -46,10 +48,9 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 
-import junit.framework.AssertionFailedError;
-
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
  */
 public class RedisMessageGroupStoreTests extends RedisAvailableTests {
@@ -78,7 +79,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(1, messageGroup.size());
 		long createdTimestamp = messageGroup.getTimestamp();
 		long updatedTimestamp = messageGroup.getLastModified();
-		assertEquals(createdTimestamp, updatedTimestamp);
+		assertTrue(updatedTimestamp - createdTimestamp <= 2);
 		Thread.sleep(1000);
 		message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
@@ -317,6 +318,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor = Executors.newCachedThreadPool();
 
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store1.addMessageToGroup(1, message);
 					if (group.getMessages().size() != 1){
@@ -326,6 +328,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 				}
 			});
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
 					if (group.getMessages().size() != 0){
