@@ -125,7 +125,7 @@ public class TcpMessageMapper implements
 				bytes = ((String) payload).getBytes(this.charset);
 			}
 			catch (UnsupportedEncodingException e) {
-				throw new MessageHandlingException(message, null, e);
+				throw new MessageHandlingException(message, e);
 			}
 		}
 		else {

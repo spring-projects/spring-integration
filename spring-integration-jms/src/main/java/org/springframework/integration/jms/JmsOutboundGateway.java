@@ -673,7 +673,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			return replyMessage;
 		}
 		catch (JMSException e) {
-			throw new MessageHandlingException(requestMessage, this.getComponentName() + " failed to handle request Message.", e);
+			throw new MessageHandlingException(requestMessage, e);
 		}
 	}
 

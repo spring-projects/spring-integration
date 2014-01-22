@@ -26,7 +26,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
@@ -34,6 +33,7 @@ import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.Trigger;
@@ -97,6 +97,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.errorHandler = errorHandler;
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
 	}
@@ -140,6 +141,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private Runnable createPoller() throws Exception {
 
 		Callable<Boolean> pollingTask = new Callable<Boolean>() {
+			@Override
 			public Boolean call() throws Exception {
 				return doPoll();
 			}
@@ -265,8 +267,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			this.pollingTask = pollingTask;
 		}
 
+		@Override
 		public void run() {
 			taskExecutor.execute(new Runnable() {
+				@Override
 				public void run() {
 					int count = 0;
 					while (initialized && (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll)) {
@@ -281,8 +285,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 								throw (RuntimeException) e;
 							}
 							else {
-								throw new MessageHandlingException(new ErrorMessage(e),
-										AbstractPollingEndpoint.this.getComponentName() + " failed to invoke pollingTask.", e);
+								throw new MessageHandlingException(new ErrorMessage(e), e);
 							}
 						}
 					}
