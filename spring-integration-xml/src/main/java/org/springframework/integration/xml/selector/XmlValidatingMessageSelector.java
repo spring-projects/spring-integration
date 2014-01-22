@@ -99,7 +99,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 			validationExceptions = this.xmlValidator.validate(this.converter.convertToSource(message.getPayload()));
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "XML validation error.", e);
+			throw new MessageHandlingException(message, e);
 		}
 		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
 		if (!validationSuccess) {

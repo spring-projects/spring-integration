@@ -17,18 +17,17 @@
 package org.springframework.integration.gateway;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,6 +70,7 @@ public class GatewayInvokingMessageHandlerTests {
 	@Test
 	public void validateGatewayInTheChainViaChannel() {
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
 				Assert.assertEquals("foo", message.getHeaders().get("foo"));
@@ -83,6 +83,7 @@ public class GatewayInvokingMessageHandlerTests {
 	@Test
 	public void validateGatewayInTheChainViaAnotherGateway() {
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
 				Assert.assertEquals("foo", message.getHeaders().get("foo"));
@@ -178,7 +179,7 @@ public class GatewayInvokingMessageHandlerTests {
 		}
 
 		public String echoWithMessagingException(String value) {
-			throw new MessageHandlingException(new GenericMessage<String>(value), null);
+			throw new MessageHandlingException(new GenericMessage<String>(value));
 		}
 
 		public String echoWithErrorAsync(String value) {

@@ -23,15 +23,15 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.RegexUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -101,6 +101,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	/**
 	 * Raw byte[] from message, possibly with a length field up front.
 	 */
+	@Override
 	public DatagramPacket fromMessage(Message<?> message) throws Exception {
 		if (this.acknowledge) {
 			return fromMessageWithAck(message);
@@ -156,7 +157,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 				bytes = ((String) payload).getBytes(this.charset);
 			}
 			catch (UnsupportedEncodingException e) {
-				throw new MessageHandlingException(message, null, e);
+				throw new MessageHandlingException(message, e);
 			}
 		}
 		else {
@@ -166,6 +167,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		return bytes;
 	}
 
+	@Override
 	public Message<byte[]> toMessage(DatagramPacket packet) throws Exception {
 		int offset = packet.getOffset();
 		int length = packet.getLength();

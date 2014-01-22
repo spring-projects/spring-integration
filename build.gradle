@@ -59,7 +59,7 @@ subprojects { subproject ->
 		h2Version = '1.3.172'
 		activeMqVersion = '5.8.0'
 
-		springVersionDefault = '4.0.0.RELEASE'
+		springVersionDefault = '4.0.1.BUILD-SNAPSHOT'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.3.0.BUILD-SNAPSHOT'

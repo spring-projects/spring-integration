@@ -21,9 +21,9 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.util.MessagingMethodInvokerHelper;
 
 /**
  * A MessageProcessor implementation that invokes a method on a target Object. The Method instance or method name may be
@@ -69,12 +69,13 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 		delegate.setBeanFactory(beanFactory);
 	}
 
+	@Override
 	public T processMessage(Message<?> message) {
 		try {
 			return delegate.process(message);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, this.delegate + " failed to process Message.", e);
+			throw new MessageHandlingException(message, e);
 		}
 	}
 

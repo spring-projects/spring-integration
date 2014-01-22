@@ -18,13 +18,13 @@ package org.springframework.integration.rmi;
 
 import java.io.Serializable;
 
+import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.gateway.RequestReplyExchanger;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.remoting.RemoteAccessException;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
@@ -65,7 +65,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 			return reply;
 		}
 		catch (MessagingException e) {
-			throw new MessageHandlingException(message, this.getComponentName() + " failed to handle request Message.", e);
+			throw new MessageHandlingException(message, e);
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "Remote failure in RmiOutboundGateway: " + this.getComponentName(), e);

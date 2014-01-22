@@ -27,13 +27,8 @@ import org.springframework.messaging.MessageHandlingException;
 @SuppressWarnings("serial")
 public class MessageRejectedException extends MessageHandlingException {
 
-	/**
-	 * @param failedMessage The failed message.
-	 * @deprecated since 4.0 in favor of {@code MessageRejectedException(Message, String)}
-	 */
-	@Deprecated
 	public MessageRejectedException(Message<?> failedMessage) {
-		super(failedMessage, null);
+		super(failedMessage);
 	}
 
 	public MessageRejectedException(Message<?> failedMessage, String description) {
