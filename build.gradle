@@ -408,6 +408,14 @@ project('spring-integration-mongodb') {
 	}
 }
 
+project('spring-integration-mqtt') {
+	description = 'Spring Integration MQTT Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile "org.eclipse.paho:mqtt-client:0.4.0"
+	}
+}
+
 project('spring-integration-redis') {
 	description = 'Spring Integration Redis Support'
 	dependencies {

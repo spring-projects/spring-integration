@@ -1,5 +1,5 @@
 /*
-   * Copyright 2002-2013 the original author or authors.
+   * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.mqtt.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -22,13 +24,12 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * The parser for the MqttAdapter Outbound Channel Adapter.
  *
  * @author Gary Russell
- * @since 1.0
+ * @since 4.0
  *
  */
 public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {

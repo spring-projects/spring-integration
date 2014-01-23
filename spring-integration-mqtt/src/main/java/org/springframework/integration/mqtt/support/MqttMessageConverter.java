@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,19 @@ import org.springframework.messaging.converter.MessageConverter;
 /**
  * Extension of {@link MessageConverter} allowing the topic to be added as
  * a header.
+ *
  * @author Gary Russell
- * @since 1.0
+ * @since 4.0
  *
  */
 public interface MqttMessageConverter extends MessageConverter {
 
-	Message<String> toMessage(String topic, MqttMessage mqttMessage);
+	/**
+	 * Convert to a Message.
+	 *
+	 * @param topic The topic.
+	 * @param mqttMessage The MQTT message.
+	 * @return The Message.
+	 */
+	Message<?> toMessage(String topic, MqttMessage mqttMessage);
 }

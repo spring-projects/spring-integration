@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,19 @@ package org.springframework.integration.mqtt.outbound;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
  * Abstract class for MQTT outbound channel adapters.
+ *
  * @author Gary Russell
- * @since 1.0
+ * @since 4.0
  *
  */
 public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements SmartLifecycle {

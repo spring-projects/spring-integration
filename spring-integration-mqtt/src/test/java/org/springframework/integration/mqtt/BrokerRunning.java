@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 
 /**
  * @author Gary Russell
- * @since 1.0
+ * @since 4.0
  *
  */
 public class BrokerRunning extends TestWatcher {

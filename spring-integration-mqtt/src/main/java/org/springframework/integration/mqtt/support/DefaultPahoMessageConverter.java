@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@ import org.springframework.util.Assert;
 
 
 /**
- * Default implementation allowing most connection options to be configured.
+ * Default implementation for mapping to/from Messages.
+ *
  * @author Gary Russell
- * @since 1.0
+ * @since 4.0
  *
  */
 public class DefaultPahoMessageConverter implements MqttMessageConverter {
@@ -38,12 +39,23 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 
 	private final Boolean defaultRetained;
 
+	private volatile boolean payloadAsBytes = false;
+
 	public DefaultPahoMessageConverter() {
 		this (0, false);
 	}
 
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetain) {
 		this(defaultQos, defaultRetain, "UTF-8");
+	}
+
+	/**
+	 * True if the converter should not convert the message payload to a String.
+	 *
+	 * @param payloadAsBytes The payloadAsBytes to set.
+	 */
+	protected final void setPayloadAsBytes(boolean payloadAsBytes) {
+		this.payloadAsBytes = payloadAsBytes;
 	}
 
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained, String charset) {
@@ -59,9 +71,9 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	}
 
 	@Override
-	public Message<String> toMessage(String topic, MqttMessage mqttMessage) {
+	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(new String(mqttMessage.getPayload(), this.charset))
+			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(mqttBytesToPayload(mqttMessage))
 					.setHeader(MqttHeaders.QOS, mqttMessage.getQos())
 					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())
 					.setHeader(MqttHeaders.RETAINED, mqttMessage.isRetained());
@@ -77,6 +89,42 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 
 	@Override
 	public MqttMessage fromMessage(Message<?> message, Class<?> targetClass) {
+		byte[] payloadBytes = messageToMqttBytes(message);
+		MqttMessage mqttMessage = new MqttMessage(payloadBytes);
+		Object header = message.getHeaders().get(MqttHeaders.RETAINED);
+		Assert.isTrue(header == null || header instanceof Boolean, MqttHeaders.RETAINED + " header must be Boolean");
+		mqttMessage.setRetained(header == null ? this.defaultRetained : (Boolean) header);
+		header = message.getHeaders().get(MqttHeaders.QOS);
+		Assert.isTrue(header == null || header instanceof Integer, MqttHeaders.QOS + " header must be Integer");
+		mqttMessage.setQos(header == null ? this.defaultQos : (Integer) header);
+		return mqttMessage;
+	}
+
+	/**
+	 * Subclasses can override this method to convert the byte[] to a payload.
+	 * The default implementation creates a String (default) or byte[].
+	 *
+	 * @param mqttMessage The inbound message.
+	 * @return The payload for the Spring integration message
+	 * @throws Exception Any.
+	 */
+	protected Object mqttBytesToPayload(MqttMessage mqttMessage) throws Exception {
+		if (this.payloadAsBytes) {
+			return mqttMessage.getPayload();
+		}
+		else {
+			return new String(mqttMessage.getPayload(), this.charset);
+		}
+	}
+
+	/**
+	 * Subclasses can override this method to convert the payload to a byte[].
+	 * The default implementation accepts a byte[] or String payload.
+	 *
+	 * @param payload The payload.
+	 * @return The byte[]
+	 */
+	protected byte[] messageToMqttBytes(Message<?> message) {
 		Object payload = message.getPayload();
 		Assert.isTrue(payload instanceof byte[] || payload instanceof String);
 		byte[] payloadBytes;
@@ -91,14 +139,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 		else {
 			payloadBytes = (byte[]) payload;
 		}
-		MqttMessage mqttMessage = new MqttMessage(payloadBytes);
-		Object header = message.getHeaders().get(MqttHeaders.RETAINED);
-		Assert.isTrue(header == null || header instanceof Boolean, MqttHeaders.RETAINED + " header must be Boolean");
-		mqttMessage.setRetained(header == null ? this.defaultRetained : (Boolean) header);
-		header = message.getHeaders().get(MqttHeaders.QOS);
-		Assert.isTrue(header == null || header instanceof Integer, MqttHeaders.QOS + " header must be Integer");
-		mqttMessage.setQos(header == null ? this.defaultQos : (Integer) header);
-		return mqttMessage;
+		return payloadBytes;
 	}
 
 }

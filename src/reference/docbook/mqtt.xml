@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="mqtt"
+		xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>MQTT Support</title>
+
+	<section id="mqtt-intro">
+		<title>Introduction</title>
+		<para>
+			Spring Integration provides inbound and outbound channel adapters supporting the
+			MQ Telemetry Transport (MQTT) protocol. The current implementation uses the
+			<ulink url="http://www.eclipse.org/paho/">Eclipse Paho MQTT Client</ulink>
+			library. 
+		</para>
+		<para>
+			Configuration of both adapters is achieved using the
+			<classname>DefaultMqttPahoClientFactory</classname>.
+			Refer to the Paho documentation for more information about configuration
+			options.
+		</para>
+	</section>
+
+	<section id="mqtt-inbound">
+		<title>Inbound (message-driven) Channel Adapter</title>
+		<para>
+			The inbound channel adapter is implemented by the
+			<classname>MqttPahoMessageDrivenChannelAdapter</classname>. For convenience, it
+			can be configured using the namespace. A minimal configuration might be:
+		</para>
+		<programlisting language="xml"><![CDATA[<bean id="clientFactory"
+		class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+	<property name="userName" value="${mqtt.username}"/>
+	<property name="password" value="${mqtt.password}"/>
+</bean>
+
+<int-mqtt:message-driven-channel-adapter id="mqttInbound"
+	client-id="${mqtt.default.client.id}.src"
+	url="${mqtt.url}"
+	topics="sometopic"
+	client-factory="clientFactory"
+	channel="output"/>]]></programlisting>
+		<para>
+			Attributes:
+		</para>
+		<programlisting><![CDATA[<int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
+	client-id="foo"]]> <co id="mqtt-i-01"/><![CDATA[
+	url="tcp://localhost:1883"]]> <co id="mqtt-i-02"/><![CDATA[
+	topics="bar"]]> <co id="mqtt-i-03"/><![CDATA[
+	converter="myConverter"]]> <co id="mqtt-i-04"/><![CDATA[
+	client-factory="clientFactory"]]> <co id="mqtt-i-05"/><![CDATA[
+	send-timeout="123"]]> <co id="mqtt-i-06"/><![CDATA[
+	channel="out" />]]></programlisting>
+		<calloutlist>
+			<callout arearefs="mqtt-i-01">
+				The client id.
+			</callout>
+			<callout arearefs="mqtt-i-02">
+				The broker URL.
+			</callout>
+			<callout arearefs="mqtt-i-03">
+				A comma delimited list of topics from which this adapter will receive messages.
+			</callout>
+			<callout arearefs="mqtt-i-04">
+				An <interfacename>MqttMessageConverter</interfacename> (optional). The default
+				<classname>DefaultPahoMessageConverter</classname> produces a message with a <code>String</code>
+				payload (by default) with the following headers:
+				<itemizedlist>
+					<listitem><code>mqtt_topic</code> - the topic from which the message was received</listitem>
+					<listitem><code>mqtt_duplicate</code> - true if the message is a duplicate</listitem>
+					<listitem><code>mqtt_qos</code> - the quality of service</listitem>
+				</itemizedlist>
+				The <classname>DefaultPahoMessageConverter</classname> can be configured to return the raw
+				<code>byte[]</code> in the payload by declaring it as a &lt;bean/&gt; and setting the
+				<code>payloadAsBytes</code> property.
+			</callout>
+			<callout arearefs="mqtt-i-05">
+				The client factory.
+			</callout>
+			<callout arearefs="mqtt-i-06">
+				The send timeout - only applies if the channel might block (such as a bounded <code>QueueChannel</code>
+				that is currently full).
+			</callout>
+		</calloutlist>
+	</section>
+
+	<section id="mqtt-outbound">
+		<title>Outbound Channel Adapter</title>
+		<para>
+			The outbound channel adapter is implemented by the <classname>MqttPahoMessageHandler</classname> which
+			is wrapped in a <code>ConsumerEndpoint</code>. For convenience, it
+			can be configured using the namespace.
+		</para>
+		<para>
+			Attributes:
+		</para>
+		<programlisting><![CDATA[<int-mqtt:outbound-channel-adapter id="withConverter"
+	client-id="foo"]]> <co id="mqtt-o-01"/><![CDATA[
+	url="tcp://localhost:1883"]]> <co id="mqtt-o-02"/><![CDATA[
+	converter="myConverter"]]> <co id="mqtt-o-03"/><![CDATA[
+	client-factory="clientFactory"]]> <co id="mqtt-o-04"/><![CDATA[
+	default-qos="1"]]> <co id="mqtt-o-05"/><![CDATA[
+	default-retained="true"]]> <co id="mqtt-o-06"/><![CDATA[
+	default-topic="bar"]]> <co id="mqtt-i-07"/><![CDATA[
+	channel="target" />]]></programlisting>
+		<calloutlist>
+			<callout arearefs="mqtt-i-01">
+				The client id.
+			</callout>
+			<callout arearefs="mqtt-i-02">
+				The broker URL.
+			</callout>
+			<callout arearefs="mqtt-i-03">
+				An <interfacename>MqttMessageConverter</interfacename> (optional). The default
+				<classname>DefaultPahoMessageConverter</classname> 
+				recognizes the following headers:
+				<itemizedlist>
+					<listitem><code>mqtt_topic</code> - the topic to which the message will be sent</listitem>
+					<listitem><code>mqtt_retained</code> - true if the message is to be retained</listitem>
+					<listitem><code>mqtt_qos</code> - the quality of service</listitem>
+				</itemizedlist>
+			</callout>
+			<callout arearefs="mqtt-i-04">
+				The client factory.
+			</callout>
+			<callout arearefs="mqtt-i-05">
+				The default quality of service (used if no <code>mqtt_qos</code> header is found). Not allowed
+				if a custom <code>converter</code> is supplied.
+			</callout>
+			<callout arearefs="mqtt-i-06">
+				The default value of the retained flag (used if no <code>mqtt_retaind</code> header is found). Not allowed
+				if a custom <code>converter</code> is supplied.
+			</callout>
+			<callout arearefs="mqtt-i-07">
+				The default topic to which the message will be sent (used if no <code>mqtt_topic</code> header is found).
+			</callout>
+		</calloutlist>
+	</section>
+
+</chapter>

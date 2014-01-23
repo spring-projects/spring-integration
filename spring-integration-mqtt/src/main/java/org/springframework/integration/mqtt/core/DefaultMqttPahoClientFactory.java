@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,10 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
  * Creates a default {@link MqttClient} and a set of options as configured.
+ *
  * @author Gary Russell
  * @author Gunnar Hillert
- * @since 1.0
+ * @since 4.0
  *
  */
 public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
@@ -81,6 +82,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	/**
 	 * Will be used to set the "Last Will and Testament" (LWT) for the connection.
+	 * @param will The will.
 	 *
 	 * @see MqttConnectOptions
 	 */

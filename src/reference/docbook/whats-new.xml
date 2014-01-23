@@ -9,6 +9,18 @@
 		in more details, please see the Issue Tracker tickets that
 		were resolved as part of the 4.0 development process.
 	</para>
+	<section id="4.0-new-components">
+		<title>New Components</title>
+		<section id="4.0-mqtt">
+			<title>MQTT Channel Adapters</title>
+			<para>
+				The MQTT channel adapters (previously available in the Spring Integration Extensions repository)
+				are now available as part of the normal Spring Integration distribution.
+				See <xref linkend="mqtt"/>
+			</para>
+		</section>
+	</section>
+
 	<section id="4.0-general">
 		<title>General Changes</title>
 		<para>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,25 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 /**
  * @author Gary Russell
- * @since 1.0
+ * @since 4.0
  *
  */
 public interface MqttPahoClientFactory {
 
+	/**
+	 * Retrieve a client instance.
+	 *
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 * @return The client instance.
+	 * @throws MqttException Any.
+	 */
 	MqttClient getClientInstance(String url, String clientId) throws MqttException;
 
+	/**
+	 * Retrieve the connection options.
+	 *
+	 * @return The options.
+	 */
 	MqttConnectOptions getConnectionOptions();
 }
