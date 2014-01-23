@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,22 +16,33 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.AfterClass;
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class AggregatorWithCustomReleaseStrategyTests {
+
+	private static ExecutorService executor = Executors.newCachedThreadPool();
+
+	@AfterClass
+	public static void tearDown() {
+		executor.shutdownNow();
+	}
 
 	@Test
 	public void testAggregatorsUnderStressWithConcurrency() throws Exception{
@@ -45,7 +56,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 	}
 
 	public void validateSequenceSizeHasNoAffectCustomCorrelator() throws Exception{
-		ApplicationContext context =
+		AbstractApplicationContext context =
 				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
 		final MessageChannel inputChannel = context.getBean("aggregationChannelCustomCorrelation", MessageChannel.class);
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
@@ -54,30 +65,33 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		for (int i = 0; i < 600; i++) {
 			final int counter = i;
-			new Thread(new Runnable() {
+			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload("foo").
 							setHeader("correlation", "foo"+counter).build());
 					latch.countDown();
 				}
-			}).start();
-			new Thread(new Runnable() {
+			});
+			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload("bar").
 							setHeader("correlation", "foo"+counter).build());
 					latch.countDown();
 				}
-			}).start();
-			new Thread(new Runnable() {
+			});
+			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload("baz").
 							setHeader("correlation", "foo"+counter).build());
 					latch.countDown();
 				}
-			}).start();
+			});
 		}
 
-		assertTrue("Sends failed to complete", latch.await(10, TimeUnit.SECONDS));
+		assertTrue("Sends failed to complete", latch.await(60, TimeUnit.SECONDS));
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
@@ -86,10 +100,11 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			message = resultChannel.receive(1000);
 		}
 		assertEquals(600, counter);
+		context.close();
 	}
 
 	public void validateSequenceSizeHasNoAffectWithSplitter() throws Exception{
-		ApplicationContext context =
+		AbstractApplicationContext context =
 				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
 		final MessageChannel inputChannel = context.getBean("in", MessageChannel.class);
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
@@ -97,27 +112,30 @@ public class AggregatorWithCustomReleaseStrategyTests {
 		final CountDownLatch latch = new CountDownLatch(1800);
 
 		for (int i = 0; i < 600; i++) {
-			new Thread(new Runnable() {
+			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8}).build());
 					latch.countDown();
 				}
-			}).start();
-			new Thread(new Runnable() {
+			});
+			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload(new Integer[]{9, 10, 11, 12, 13, 14, 15, 16}).build());
 					latch.countDown();
 				}
-			}).start();
-			new Thread(new Runnable() {
+			});
+			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload(new Integer[]{17, 18, 19, 20, 21, 22, 23, 24}).build());
 					latch.countDown();
 				}
-			}).start();
+			});
 		}
 
-		assertTrue("Sends failed to complete", latch.await(10, TimeUnit.SECONDS));
+		assertTrue("Sends failed to complete", latch.await(60, TimeUnit.SECONDS));
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
@@ -125,5 +143,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			message = resultChannel.receive(1000);
 		}
 		assertEquals(7200, counter);
+		context.close();
 	}
+
 }
