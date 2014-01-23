@@ -499,6 +499,134 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Redis Command Sending Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a RedisConnectionFactory. If none is provided, the default
+						bean name for the reference will be "redisConnectionFactory".
+						Mutually exclusive with 'redis-template' attribute.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="redis-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						RedisTemplate to be used with this gateway.
+						Mutually exclusive with 'connection-factory' attribute.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.core.RedisTemplate"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						'false' by default, otherwise a ReplyRequiredException will be thrown when
+						the underlying service returns a null value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string"/>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the order for invocation when this adapter is connected as a
+								subscriber to a SubscribableChannel.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="arguments-serializer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer.
+							Used to serialize each command argument to byte[] if necessary.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="command-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression that returns the command key. Default is the 'redis_command' message header.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="argument-expressions" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma-separate SpEL expressions that will be evaluated as command arguments.
+						Mutually exclusive with 'arguments-strategy' and 'use-payload-as-arguments' attributes.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="arguments-strategy" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to an instance of org.springframework.integration.redis.outbound.ArgumentsStrategy.
+							Mutually exclusive with 'argument-expressions' and 'use-payload-as-arguments' attributes.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.redis.outbound.ArgumentsStrategy"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="use-payload-as-arguments" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies if the Message payload will be used as a Redis command arguments.
+						Mutually exclusive with 'arguments-strategy' and 'argument-expressions' attributes.
+						Default is 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="redisAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>

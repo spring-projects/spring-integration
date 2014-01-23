@@ -660,4 +660,110 @@ the serialization of values, you may want to consider providing your own
     </para>
   </section>
 
+	<section id="redis-outbound-gateway">
+	<title>Redis Outbound Command Gateway</title>
+		<para>
+			Since <emphasis>Spring Integration 4.0</emphasis>, the Redis Command Gateway is available to
+			perform any standard Redis command using generic
+			<code>RedisConnection#execute</code>
+			method:
+			<programlisting language="xml"><![CDATA[<int-redis:outbound-gateway
+		request-channel="" ]]><co id="redis-o-g-request-channel"/><![CDATA[
+		reply-channel="" ]]><co id="redis-o-g-reply-channel"/><![CDATA[
+		requires-reply="" ]]><co id="redis-o-g-requires-reply"/><![CDATA[
+		reply-timeout="" ]]><co id="redis-o-g-reply-timeout"/><![CDATA[
+		connection-factory="" ]]><co id="redis-o-g-connectionFactory"/><![CDATA[
+		redis-template="" ]]><co id="redis-o-g-template"/><![CDATA[
+		arguments-serializer="" ]]><co id="redis-o-g-arguments-serializer"/><![CDATA[
+		command-expression="" ]]><co id="redis-o-g-command-expression"/><![CDATA[
+		argument-expressions="" ]]><co id="redis-o-g-argument-expressions"/><![CDATA[
+		arguments-strategy="" ]]><co id="redis-o-g-arguments-strategy"/><![CDATA[
+		use-payload-as-arguments="" />]]><co id="redis-o-g-use-payload-as-arguments"/>
+			</programlisting>
+			<calloutlist>
+				<callout arearefs="redis-o-g-request-channel">
+					<para>
+						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename>s.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-reply-channel">
+					<para>
+						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename>s.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-requires-reply">
+					<para>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						<code>false</code> by default, otherwise a ReplyRequiredException will be thrown when
+						the Redis returns a <code>null</code> value.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-reply-timeout">
+					<para>
+						The timeout in milliseconds to wait until the reply message will be sent or not. Typically is
+						applied for queue-based limited reply-channels.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-connectionFactory">
+					<para>
+						A reference to a <interfacename>RedisConnectionFactory</interfacename>bean.
+						Defaults to <code>redisConnectionFactory</code>. Mutually exclusive with 'redis-template' attribute.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-template">
+					<para>
+						A reference to a <classname>RedisTemplate</classname> bean.
+						Mutually exclusive with 'connection-factory' attribute.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-arguments-serializer">
+					<para>
+						Reference to an instance of<interfacename>org.springframework.data.redis.serializer.RedisSerializer</interfacename>.
+						Used to serialize each command argument to byte[] if necessary.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-command-expression">
+					<para>
+						The SpEL expression that returns the command key. Default is the <code>redis_command</code> message header.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-argument-expressions">
+					<para>
+						Comma-separate SpEL expressions that will be evaluated as command arguments.
+						Mutually exclusive with <code>arguments-strategy</code> and <code>use-payload-as-arguments</code> attributes.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-arguments-strategy">
+					<para>
+						Reference to an instance of <interfacename>org.springframework.integration.redis.outbound.ArgumentsStrategy</interfacename>.
+						Mutually exclusive with <code>argument-expressions</code> and <code>use-payload-as-arguments</code> attributes.
+					</para>
+				</callout>
+				<callout arearefs="use-payload-as-arguments">
+					<para>
+						Specifies if the <interfacename>Message</interfacename> <code>payload</code> will be used as a Redis command arguments.
+						Mutually exclusive with <code>arguments-strategy</code> and <code>argument-expressions</code> attributes.
+						Default is <code>false</code>.
+					</para>
+				</callout>
+			</calloutlist>
+		</para>
+		<para>
+		   The <code>&lt;int-redis:outbound-gateway&gt;</code> can be used as a common component to perform any desired
+		   Redis operation. For example to get incremented value from Redis Atomic Number:
+			<programlisting language="xml"><![CDATA[<int-redis:outbound-gateway request-channel="requestChannel"
+	reply-channel="replyChannel"
+	command-expression="'INCR'"
+	use-payload-as-arguments="true"/>]]></programlisting>
+			where the Message <code>payload</code> should be a name of <code>redisCounter</code>, which may be provided
+			by <classname>org.springframework.data.redis.support.atomic.RedisAtomicInteger</classname> bean definition.
+		</para>
+		<para>
+		  The <code>RedisConnection#execute</code> has a generic <classname>Object</classname> as return type and real
+		  result depends on command type, for example <code>MGET</code> returns a <code>List&lt;byte[]&gt;</code>,
+		  and also depends on the Redis client library. For more information about commands and result type see, for example, source code of
+		  <ulink url="https://github.com/spring-projects/spring-data-redis/blob/master/src/main/java/org/springframework/data/redis/connection/lettuce/LettuceConnection.java"
+				  >Spring Data Redis <classname>LettuceConnection.TypeHints</classname></ulink>.
+		</para>
+	</section>
 </chapter>

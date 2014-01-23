@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+                  http://www.springframework.org/schema/beans/spring-beans.xsd
+                  http://www.springframework.org/schema/integration
+                  http://www.springframework.org/schema/integration/spring-integration.xsd
+                  http://www.springframework.org/schema/integration/redis
+                  http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+
+	<int:channel id="replyChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="pingChannel"/>
+
+	<int:channel id="leftPushChannel"/>
+
+	<int:channel id="rightPopChannel"/>
+
+	<int:channel id="incrementAtomicIntegerChannel"/>
+
+	<int:channel id="getCommandChannel"/>
+
+	<int:channel id="mgetCommandChannel"/>
+
+	<int-redis:outbound-gateway request-channel="pingChannel" reply-channel="replyChannel"/>
+
+	<int-redis:outbound-gateway request-channel="leftPushChannel" reply-channel="replyChannel"
+								command-expression="'#{T (com.lambdaworks.redis.protocol.CommandType).LPUSH}'"
+								redis-template="redisTemplate"
+								use-payload-as-arguments="true"/>
+
+	<int-redis:outbound-gateway request-channel="rightPopChannel" reply-channel="replyChannel"
+								command-expression="'rpop'"
+								connection-factory="redisConnectionFactory"
+								argument-expressions="payload"/>
+
+	<int-redis:outbound-gateway request-channel="incrementAtomicIntegerChannel" reply-channel="replyChannel"
+								command-expression="payload"
+								argument-expressions="'si.test.RedisAtomicInteger'"/>
+
+	<int-redis:outbound-gateway request-channel="getCommandChannel" reply-channel="replyChannel"
+								command-expression="'GET'"
+								use-payload-as-arguments="true"/>
+
+	<int-redis:outbound-gateway request-channel="mgetCommandChannel" reply-channel="replyChannel"
+								command-expression="'MGET'"
+								use-payload-as-arguments="true"/>
+
+
+	<bean id="redisConnectionFactory"
+		  class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+	</bean>
+
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+		<constructor-arg ref="redisConnectionFactory"/>
+	</bean>
+
+	<bean id="atomicInteger" class="org.springframework.data.redis.support.atomic.RedisAtomicInteger">
+		<constructor-arg value="si.test.RedisAtomicInteger"/>
+		<constructor-arg ref="redisConnectionFactory"/>
+		<constructor-arg value="10"/>
+	</bean>
+
+</beans>

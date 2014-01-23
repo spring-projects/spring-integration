@@ -117,6 +117,14 @@
 				For more information, see <xref linkend="security"/>.
 			</para>
 		</section>
+		<section id="4.0-redis-outbound-gateway">
+			<title>Redis Command Gateway</title>
+			<para>
+				The Redis support now provides the <code>&lt;outbound-gateway&gt;</code> component
+				to perform generic Redis commands using <code>RedisConnection#execute</code> method.
+				For more information, see <xref linkend="redis-outbound-gateway"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">
