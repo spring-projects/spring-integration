@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.springframework.integration.util;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -58,10 +60,10 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -112,10 +114,12 @@ public class BeanFactoryTypeConverterTests {
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		Message<String> message = new GenericMessage<String>("foo");
 		message = MessageHistory.write(message, new NamedComponent(){
+			@Override
 			public String getComponentName() {
 				return "bar";
 			}
 
+			@Override
 			public String getComponentType() {
 				return "baz";
 			}
@@ -159,6 +163,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		DefaultConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Foo, Bar>() {
+			@Override
 			public Bar convert(Foo source) {
 				return new Bar();
 			}
@@ -182,7 +187,7 @@ public class BeanFactoryTypeConverterTests {
 		foos.put("foo", fooMap);
 
 		bars = (Map<String, Map<String, Set<Bar>>>) typeConverter.convertValue(foos, sourceType, targetType);
-		assertTrue(bars.get("foo").get("foo").iterator().next() instanceof Bar);
+		assertThat(bars.get("foo").get("foo").iterator().next(), instanceOf(Bar.class));
 
 		Service service = new Service();
 		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<Service>(service, "handle");
@@ -201,6 +206,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		DefaultConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Foo, Bar>() {
+			@Override
 			public Bar convert(Foo source) {
 				return new Bar();
 			}
@@ -254,6 +260,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultConversionService conversionService = new DefaultConversionService();
 		final Foo foo = new Foo();
 		conversionService.addConverter(new Converter<String, Foo>() {
+			@Override
 			public Foo convert(String source) {
 				return foo;
 			}
@@ -286,6 +293,7 @@ public class BeanFactoryTypeConverterTests {
 		final AtomicBoolean concurrentlyInGetDefaultEditor = new AtomicBoolean();
 		final AtomicInteger count = new AtomicInteger();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				count.incrementAndGet();
 				Thread.sleep(500);
@@ -300,6 +308,7 @@ public class BeanFactoryTypeConverterTests {
 		final TypeDescriptor targetType = TypeDescriptor.valueOf(String.class);
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		Runnable test = new Runnable() {
+			@Override
 			public void run() {
 				beanFactoryTypeConverter.canConvert(sourceType, targetType);
 				beanFactoryTypeConverter.convertValue(UUID.randomUUID(), sourceType, targetType);
@@ -324,12 +333,12 @@ public class BeanFactoryTypeConverterTests {
 	public static class Service {
 
 		public String handle(Map<String, Map<String, Set<Bar>>> payload) {
-			assertTrue(payload.get("foo").get("foo").iterator().next() instanceof Bar);
+			assertThat(payload.get("foo").get("foo").iterator().next(), instanceOf(Bar.class));
 			return "bar";
 		}
 
 		public String handle(Collection<Bar> payload) {
-			assertTrue(payload.iterator().next() instanceof Bar);
+			assertThat(payload.iterator().next(), instanceOf(Bar.class));
 			return "baz";
 		}
 	}
