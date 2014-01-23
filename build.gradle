@@ -25,8 +25,11 @@ allprojects {
 	group = 'org.springframework.integration'
 
 	repositories {
-		maven { url 'http://repo.springsource.org/libs-milestone' }
-		maven { url 'http://repo.springsource.org/plugins-release' }
+		if (project.hasProperty('springVersion') && getProperty('springVersion').endsWith('BUILD-SNAPSHOT')) {
+			maven { url 'http://repo.spring.io/libs-snapshot' }
+		}
+		maven { url 'http://repo.spring.io/libs-milestone' }
+		maven { url 'http://repo.spring.io/plugins-release' }
 		mavenCentral()
 	}
 }
