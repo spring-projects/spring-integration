@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
@@ -45,6 +47,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
 
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 
 
@@ -55,11 +58,16 @@ import com.rabbitmq.client.Channel;
  */
 public class DispatcherHasNoSubscribersTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
-	public void testPtP() {
+	public void testPtP() throws Exception {
 		final Channel channel = mock(Channel.class);
+		DeclareOk declareOk = mock(DeclareOk.class);
+		when(declareOk.getQueue()).thenReturn("noSubscribersChannel");
+		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), any(Map.class))).thenReturn(declareOk);
 		Connection connection = mock(Connection.class);
 		doAnswer(new Answer<Channel>() {
+			@Override
 			public Channel answer(InvocationOnMock invocation) throws Throwable {
 				return channel;
 			}}).when(connection).createChannel(anyBoolean());
@@ -89,6 +97,7 @@ public class DispatcherHasNoSubscribersTests {
 		final Channel channel = mock(Channel.class);
 		Connection connection = mock(Connection.class);
 		doAnswer(new Answer<Channel>() {
+			@Override
 			public Channel answer(InvocationOnMock invocation) throws Throwable {
 				return channel;
 			}}).when(connection).createChannel(anyBoolean());
@@ -121,6 +130,7 @@ public class DispatcherHasNoSubscribersTests {
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation)
 					throws Throwable {
 				String message = (String) invocation.getArguments()[0];
