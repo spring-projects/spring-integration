@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -61,10 +57,14 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
@@ -118,6 +118,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
 				org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
@@ -187,6 +188,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer() {
+			@Override
 			public Object answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
 				org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
@@ -261,7 +263,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		MessageChannel requestChannel = context.getBean("toRabbitOnlyWithTemplateChannel", MessageChannel.class);
 		requestChannel.send(MessageBuilder.withPayload("test").build());
 		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq("default.test.exchange"), Mockito.eq("default.routing.key"),
-				Mockito.anyBoolean(), Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
+				Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
 	}
 
 	@Test
@@ -277,7 +279,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		MessageChannel requestChannel = context.getBean("withDefaultAmqpTemplateExchangeAndRoutingKey", MessageChannel.class);
 		requestChannel.send(MessageBuilder.withPayload("test").build());
 		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq(""), Mockito.eq(""),
-				Mockito.anyBoolean(), Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
+				Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
 	}
 
 	@Test
@@ -293,7 +295,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		MessageChannel requestChannel = context.getBean("overrideTemplateAttributesToEmpty", MessageChannel.class);
 		requestChannel.send(MessageBuilder.withPayload("test").build());
 		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq(""), Mockito.eq(""),
-				Mockito.anyBoolean(), Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
+				Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
 	}
 
 	@Test
