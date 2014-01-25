@@ -121,8 +121,8 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	 * Subclasses can override this method to convert the payload to a byte[].
 	 * The default implementation accepts a byte[] or String payload.
 	 *
-	 * @param payload The payload.
-	 * @return The byte[]
+	 * @param message The outbound Message.
+	 * @return The byte[] which will become the payload of the MQTT Message.
 	 */
 	protected byte[] messageToMqttBytes(Message<?> message) {
 		Object payload = message.getPayload();
