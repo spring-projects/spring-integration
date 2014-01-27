@@ -361,12 +361,22 @@ public class Foo {
       In addition to JSON Transformers, Spring Integration provides a built-in <emphasis>#jsonPath</emphasis>
       SpEL function for use in expressions. For more information see <xref linkend="spel"/>.
     </para>
-    <para>
+    <para id="transformer-xpath-spel-function">
         <emphasis role="bold">#xpath SpEL Function</emphasis>
     </para>
 	<para>
 	 Since version <emphasis>3.0</emphasis>, Spring Integration also provides a built-in <emphasis>#xpath</emphasis>
 	 SpEL function for use in expressions. For more information see <xref linkend="xpath-spel-function"/>.
+	</para>
+	<para>
+		Beginning with <emphasis>version 4.0</emphasis>, the <classname>ObjectToJsonTransformer</classname>
+		supports the <code>resultType</code> property, to specify the <emphasis>node</emphasis> JSON representation.
+		The result node tree representation depends on the implementation of the provided <interfacename>JsonObjectMapper</interfacename>.
+		By default, the <classname>ObjectToJsonTransformer</classname> uses a <classname>Jackson2JsonObjectMapper</classname>
+		and delegates the conversion of the object to the node tree to the <classname>ObjectMapper#valueToTree</classname> method.
+		The node JSON representation provides efficiency for using the <classname>JsonPropertyAccessor</classname>, when the
+		downstream message flow uses SpEL expressions with access to the properties of the JSON data. See
+		<xref linkend="spel-property-accessors"/>.
 	</para>
   </section>
 

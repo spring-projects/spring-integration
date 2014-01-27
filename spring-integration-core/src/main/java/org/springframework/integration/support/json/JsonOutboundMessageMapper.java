@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,13 @@ public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> 
 
 	private volatile boolean shouldExtractPayload = false;
 
-	private volatile JsonObjectMapper<?> jsonObjectMapper;
+	private volatile JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	public JsonOutboundMessageMapper() {
 		this(JacksonJsonObjectMapperProvider.newInstance());
 	}
 
-	public JsonOutboundMessageMapper(JsonObjectMapper<?> jsonObjectMapper) {
+	public JsonOutboundMessageMapper(JsonObjectMapper<?, ?> jsonObjectMapper) {
 		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
 		this.jsonObjectMapper = jsonObjectMapper;
 	}

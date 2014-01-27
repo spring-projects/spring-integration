@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,14 @@ import org.springframework.util.ClassUtils;
 /**
  * Base class for Jackson {@link JsonObjectMapper} implementations.
  *
+ * @param <N> - The expected type of JSON Node.
+ * @param <P> - The expected type of JSON Parser.
+ * @param <J> - The expected type of Java Type representation.
+ *
  * @author Artem Bilan
  * @since 3.0
  */
-public abstract class AbstractJacksonJsonObjectMapper<P, J> implements JsonObjectMapper<P>, BeanClassLoaderAware {
+public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonObjectMapper<N, P>, BeanClassLoaderAware {
 
 	protected static final Collection<Class<?>> supportedJsonTypes =
 			Arrays.<Class<?>> asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);

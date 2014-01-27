@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,20 @@ import java.util.Map;
 /**
  * Strategy interface to convert an Object to/from the JSON representation.
  *
+ * @param <N> - The expected type of JSON Node.
+ * @param <P> - The expected type of JSON Parser.
+ *
  * @author Artem Bilan
  * @since 3.0
  *
  */
-public interface JsonObjectMapper<P> {
+public interface JsonObjectMapper<N, P> {
 
 	String toJson(Object value) throws Exception;
 
 	void toJson(Object value, Writer writer) throws Exception;
+
+	N toJsonNode(Object value) throws Exception;
 
 	<T> T fromJson(Object json, Class<T> valueType) throws Exception;
 

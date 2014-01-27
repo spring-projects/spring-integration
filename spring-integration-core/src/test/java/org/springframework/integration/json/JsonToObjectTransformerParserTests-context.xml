@@ -10,12 +10,6 @@
 	<json-to-object-transformer id="defaultJacksonMapperTransformer" input-channel="defaultObjectMapperInput"
 			type="org.springframework.integration.json.TestPerson"/>
 
-	<json-to-object-transformer id="customJacksonMapperTransformer" input-channel="customObjectMapperInput"
-			type="org.springframework.integration.json.TestPerson"
-			object-mapper="customObjectMapper"/>
-
-	<beans:bean id="customObjectMapper" class="org.springframework.integration.json.JsonToObjectTransformerParserTests$CustomObjectMapper"/>
-
 	<json-to-object-transformer id="customJsonMapperTransformer" input-channel="customJsonObjectMapperInput"
 			type="org.springframework.integration.json.TestPerson"
 			object-mapper="customJsonObjectMapper"/>
