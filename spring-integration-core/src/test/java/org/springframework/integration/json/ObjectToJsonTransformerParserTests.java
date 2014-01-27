@@ -25,8 +25,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.jackson.JsonGenerator.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,9 +65,6 @@ public class ObjectToJsonTransformerParserTests {
 	private volatile MessageChannel defaultObjectMapperInput;
 
 	@Autowired
-	private volatile MessageChannel customObjectMapperInput;
-
-	@Autowired
 	private volatile MessageChannel customJsonObjectMapperInput;
 
 	@Autowired
@@ -86,10 +81,6 @@ public class ObjectToJsonTransformerParserTests {
 		Message<?> transformed = transformer.transform(MessageBuilder.withPayload("foo").build());
 		assertTrue(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
 		assertEquals("application/json", transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-
-		transformer =
-				TestUtils.getPropertyValue(context.getBean("customTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
-		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
 
 		transformer =
 				TestUtils.getPropertyValue(context.getBean("emptyContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
@@ -138,35 +129,6 @@ public class ObjectToJsonTransformerParserTests {
 	}
 
 	@Test
-	public void customObjectMapper() {
-		TestAddress address = new TestAddress();
-		address.setNumber(123);
-		address.setStreet("Main Street");
-		TestPerson person = new TestPerson();
-		person.setFirstName("John");
-		person.setLastName("Doe");
-		person.setAge(42);
-		person.setAddress(address);
-		QueueChannel replyChannel = new QueueChannel();
-		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
-		this.customObjectMapperInput.send(message);
-		Message<?> reply = replyChannel.receive(0);
-		assertNotNull(reply);
-		assertNotNull(reply.getPayload());
-		assertEquals(String.class, reply.getPayload().getClass());
-		String resultString = (String) reply.getPayload();
-		assertTrue(resultString.contains("firstName:\"John\""));
-		assertTrue(resultString.contains("lastName:\"Doe\""));
-		assertTrue(resultString.contains("age:42"));
-		Pattern addressPattern = Pattern.compile("(address:\\{.*?\\})");
-		Matcher matcher = addressPattern.matcher(resultString);
-		assertTrue(matcher.find());
-		String addressResult = matcher.group(1);
-		assertTrue(addressResult.contains("number:123"));
-		assertTrue(addressResult.contains("street:\"Main Street\""));
-	}
-
-	@Test
 	public void testInt2831CustomJsonObjectMapper() {
 		TestPerson person = new TestPerson();
 		person.setFirstName("John");
@@ -201,14 +163,6 @@ public class ObjectToJsonTransformerParserTests {
 		Expression expression = new SpelExpressionParser().parseExpression("firstName.toString() == 'John' and age.toString() == '42'");
 
 		assertTrue(expression.getValue(evaluationContext, payload, Boolean.class));
-	}
-
-
-	static class CustomObjectMapper extends ObjectMapper {
-
-		public CustomObjectMapper() {
-			this.configure(Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
-		}
 	}
 
 	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object, Object> {

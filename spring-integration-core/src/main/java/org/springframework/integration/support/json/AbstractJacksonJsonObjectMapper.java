@@ -31,6 +31,10 @@ import org.springframework.util.ClassUtils;
 /**
  * Base class for Jackson {@link JsonObjectMapper} implementations.
  *
+ * @param <N> - The expected type of JSON Node.
+ * @param <P> - The expected type of JSON Parser.
+ * @param <J> - The expected type of Java Type representation.
+ *
  * @author Artem Bilan
  * @since 3.0
  */

@@ -23,6 +23,9 @@ import java.util.Map;
 /**
  * Strategy interface to convert an Object to/from the JSON representation.
  *
+ * @param <N> - The expected type of JSON Node.
+ * @param <P> - The expected type of JSON Parser.
+ *
  * @author Artem Bilan
  * @since 3.0
  *

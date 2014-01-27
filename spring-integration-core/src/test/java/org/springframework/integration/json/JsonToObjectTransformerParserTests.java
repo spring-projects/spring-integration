@@ -20,8 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
-import org.codehaus.jackson.JsonParser.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -52,9 +50,6 @@ public class JsonToObjectTransformerParserTests {
 	private volatile MessageChannel defaultObjectMapperInput;
 
 	@Autowired
-	private volatile MessageChannel customObjectMapperInput;
-
-	@Autowired
 	private volatile MessageChannel customJsonObjectMapperInput;
 
 	@Autowired
@@ -62,15 +57,8 @@ public class JsonToObjectTransformerParserTests {
 	private MessageHandler defaultJacksonMapperTransformer;
 
 	@Autowired
-	@Qualifier("customJacksonMapperTransformer.handler")
-	private MessageHandler customJacksonMapperTransformer;
-
-	@Autowired
 	@Qualifier("customJsonMapperTransformer.handler")
 	private MessageHandler customJsonMapperTransformer;
-
-	@Autowired
-	private ObjectMapper customObjectMapper;
 
 	@Autowired
 	private JsonObjectMapper<?, ?> jsonObjectMapper;
@@ -84,27 +72,6 @@ public class JsonToObjectTransformerParserTests {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload(jsonString).setReplyChannel(replyChannel).build();
 		this.defaultObjectMapperInput.send(message);
-		Message<?> reply = replyChannel.receive(0);
-		assertNotNull(reply);
-		assertNotNull(reply.getPayload());
-		assertEquals(TestPerson.class, reply.getPayload().getClass());
-		TestPerson person = (TestPerson) reply.getPayload();
-		assertEquals("John", person.getFirstName());
-		assertEquals("Doe", person.getLastName());
-		assertEquals(42, person.getAge());
-		assertEquals("123 Main Street", person.getAddress().toString());
-	}
-
-	@Test
-	public void customObjectMapper() {
-		Object jsonToObjectTransformer = TestUtils.getPropertyValue(this.customJacksonMapperTransformer, "transformer");
-		JsonObjectMapper<?, ?> jsonObjectMapper = TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class);
-		assertSame(this.customObjectMapper, TestUtils.getPropertyValue(jsonObjectMapper, "objectMapper"));
-
-		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
-		QueueChannel replyChannel = new QueueChannel();
-		Message<String> message = MessageBuilder.withPayload(jsonString).setReplyChannel(replyChannel).build();
-		this.customObjectMapperInput.send(message);
 		Message<?> reply = replyChannel.receive(0);
 		assertNotNull(reply);
 		assertNotNull(reply.getPayload());
@@ -131,15 +98,6 @@ public class JsonToObjectTransformerParserTests {
 		assertEquals(TestJsonContainer.class, reply.getPayload().getClass());
 		TestJsonContainer result = (TestJsonContainer) reply.getPayload();
 		assertEquals(jsonString, result.getJson());
-	}
-
-
-	static class CustomObjectMapper extends ObjectMapper {
-
-		public CustomObjectMapper() {
-			this.configure(Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
-			this.configure(Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
-		}
 	}
 
 	@SuppressWarnings("rawtypes")

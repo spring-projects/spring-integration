@@ -22,7 +22,6 @@ import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.StringUtils;
 
@@ -50,41 +49,29 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 
 	private final JsonObjectMapper<?, ?> jsonObjectMapper;
 
-	private volatile ResultType resultType = ResultType.STRING;
+	private final ResultType resultType;
 
 	private volatile String contentType = JSON_CONTENT_TYPE;
 
 	private volatile boolean contentTypeExplicitlySet = false;
 
-	/**
-	 * Backward compatibility - allows existing configurations using Jackson 1.x to inject
-	 * an ObjectMapper directly.
-	 *
-	 * @param objectMapper The object mapper.
-	 *
-	 * @deprecated in favor of {@link #ObjectToJsonTransformer(JsonObjectMapper)}
-	 */
-	@Deprecated
-	public ObjectToJsonTransformer(Object objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper must not be null");
-		try {
-			Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
-			Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
-			this.jsonObjectMapper = new org.springframework.integration.support.json.JacksonJsonObjectMapper(
-					(org.codehaus.jackson.map.ObjectMapper) objectMapper);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException(e);
-		}
+	public ObjectToJsonTransformer() {
+		this(JacksonJsonObjectMapperProvider.newInstance());
 	}
 
 	public ObjectToJsonTransformer(JsonObjectMapper<?, ?> jsonObjectMapper) {
-		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
-		this.jsonObjectMapper = jsonObjectMapper;
+		this(jsonObjectMapper, ResultType.STRING);
 	}
 
-	public ObjectToJsonTransformer() {
-		this.jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+	public ObjectToJsonTransformer(ResultType resultType) {
+		this(JacksonJsonObjectMapperProvider.newInstance(), resultType);
+	}
+
+	public ObjectToJsonTransformer(JsonObjectMapper<?, ?> jsonObjectMapper, ResultType resultType) {
+		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
+		Assert.notNull(resultType, "'resultType' must not be null");
+		this.jsonObjectMapper = jsonObjectMapper;
+		this.resultType = resultType;
 	}
 
 	/**
@@ -97,11 +84,6 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		Assert.notNull(contentType, "'contentType' must not be null");
 		this.contentTypeExplicitlySet = true;
 		this.contentType = contentType.trim();
-	}
-
-	public void setResultType(ResultType resultType) {
-		Assert.notNull(resultType, "'resultType' must not be null");
-		this.resultType = resultType;
 	}
 
 	@Override

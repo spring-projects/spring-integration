@@ -16,12 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.json.ObjectToJsonTransformer;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -42,11 +42,13 @@ public class ObjectToJsonTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(objectMapper)) {
 			builder.addConstructorArgReference(objectMapper);
 		}
+		String resultType = element.getAttribute("result-type");
+		if (StringUtils.hasText(resultType)) {
+			builder.addConstructorArgValue(resultType);
+		}
 		if (element.hasAttribute("content-type")){
 			builder.addPropertyValue("contentType", element.getAttribute("content-type"));
 		}
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type");
 	}
 
 }
