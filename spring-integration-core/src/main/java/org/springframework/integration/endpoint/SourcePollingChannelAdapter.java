@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		implements TrackableComponent {
@@ -95,6 +96,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		Assert.notNull(this.source, "source must not be null");
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
 		super.onInit();
+		if (this.getBeanFactory() != null) {
+			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override

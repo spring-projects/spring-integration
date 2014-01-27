@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class MessagingGatewaySupport extends AbstractEndpoint implements TrackableComponent {
 
@@ -172,6 +173,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	@Override
 	protected void onInit() throws Exception {
 		this.historyWritingPostProcessor.setTrackableComponent(this);
+		if (this.getBeanFactory() != null) {
+			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		}
 		this.initialized = true;
 	}
 
