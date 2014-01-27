@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  */
 public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Map<?, ?>> {
 
-	private volatile JsonObjectMapper<?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+	private volatile JsonObjectMapper<?, ?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
 
 	private volatile Deserializer<byte[]> packetDeserializer = new ByteArrayLfSerializer();
 
@@ -59,7 +59,7 @@ public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Ma
 	 * JSON. Use this if you wish to set additional {@link JsonObjectMapper} implementation features.
 	 * @param jsonObjectMapper the jsonObjectMapper.
 	 */
-	public void setJsonObjectMapper(JsonObjectMapper<?> jsonObjectMapper) {
+	public void setJsonObjectMapper(JsonObjectMapper<?, ?> jsonObjectMapper) {
 		Assert.notNull(jsonObjectMapper, "'jsonObjectMapper' cannot be null");
 		this.jsonObjectMapper = jsonObjectMapper;
 	}

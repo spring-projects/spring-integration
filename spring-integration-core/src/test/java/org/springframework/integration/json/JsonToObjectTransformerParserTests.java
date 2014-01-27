@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class JsonToObjectTransformerParserTests {
 	private ObjectMapper customObjectMapper;
 
 	@Autowired
-	private JsonObjectMapper<?> jsonObjectMapper;
+	private JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	@Test
 	public void defaultObjectMapper() {
@@ -98,7 +98,7 @@ public class JsonToObjectTransformerParserTests {
 	@Test
 	public void customObjectMapper() {
 		Object jsonToObjectTransformer = TestUtils.getPropertyValue(this.customJacksonMapperTransformer, "transformer");
-		JsonObjectMapper<?> jsonObjectMapper = TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class);
+		JsonObjectMapper<?, ?> jsonObjectMapper = TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class);
 		assertSame(this.customObjectMapper, TestUtils.getPropertyValue(jsonObjectMapper, "objectMapper"));
 
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";

@@ -2271,8 +2271,29 @@
 				</xsd:appinfo>-->
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="result-type" default="STRING">
+			<xsd:annotation>
+				<xsd:documentation>
+					The type for representation of result JSON. Can apply 'STRING' and 'NODE' values.
+					If 'NODE' is provided the result JSON tree depends on provided implementation of
+					'org.springframework.integration.support.json.JsonObjectMapper'.
+					Default value is 'STRING'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="jsonResultTypeEnumeration xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
 		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
+
+	<xsd:simpleType name="jsonResultTypeEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="STRING" />
+			<xsd:enumeration value="NODE" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
 
 	<xsd:element name="json-to-object-transformer">
 		<xsd:annotation>

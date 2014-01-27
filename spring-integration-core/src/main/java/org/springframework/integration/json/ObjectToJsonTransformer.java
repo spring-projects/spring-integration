@@ -42,9 +42,15 @@ import org.springframework.util.StringUtils;
  */
 public class ObjectToJsonTransformer extends AbstractTransformer {
 
+	public static enum ResultType {
+		STRING, NODE
+	}
+
 	public static final String JSON_CONTENT_TYPE = "application/json";
 
-	private final JsonObjectMapper<?> jsonObjectMapper;
+	private final JsonObjectMapper<?, ?> jsonObjectMapper;
+
+	private volatile ResultType resultType = ResultType.STRING;
 
 	private volatile String contentType = JSON_CONTENT_TYPE;
 
@@ -72,7 +78,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		}
 	}
 
-	public ObjectToJsonTransformer(JsonObjectMapper<?> jsonObjectMapper) {
+	public ObjectToJsonTransformer(JsonObjectMapper<?, ?> jsonObjectMapper) {
 		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
 		this.jsonObjectMapper = jsonObjectMapper;
 	}
@@ -93,10 +99,17 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		this.contentType = contentType.trim();
 	}
 
+	public void setResultType(ResultType resultType) {
+		Assert.notNull(resultType, "'resultType' must not be null");
+		this.resultType = resultType;
+	}
+
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
-		String payload = this.jsonObjectMapper.toJson(message.getPayload());
-		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload);
+		Object payload = ResultType.STRING.equals(this.resultType)
+				? this.jsonObjectMapper.toJson(message.getPayload())
+				: this.jsonObjectMapper.toJsonNode(message.getPayload());
+		MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
 
 		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
 		headers.putAll(message.getHeaders());

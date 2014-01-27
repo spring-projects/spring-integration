@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.regex.Matcher;
@@ -26,21 +27,27 @@ import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperAdapter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Mark Fisher
@@ -64,6 +71,9 @@ public class ObjectToJsonTransformerParserTests {
 
 	@Autowired
 	private volatile MessageChannel customJsonObjectMapperInput;
+
+	@Autowired
+	private volatile MessageChannel jsonNodeInput;
 
 	@Test
 	public void testContentType(){
@@ -173,6 +183,26 @@ public class ObjectToJsonTransformerParserTests {
 		assertEquals("{" + person.toString() + "}", resultString);
 	}
 
+	@Test
+	public void testNodeResultType() {
+		TestPerson person = new TestPerson();
+		person.setFirstName("John");
+		person.setLastName("Doe");
+		person.setAge(42);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
+		this.jsonNodeInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+		assertNotNull(reply);
+		Object payload = reply.getPayload();
+		assertThat(payload, Matchers.instanceOf(JsonNode.class));
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new JsonPropertyAccessor());
+		Expression expression = new SpelExpressionParser().parseExpression("firstName.toString() == 'John' and age.toString() == '42'");
+
+		assertTrue(expression.getValue(evaluationContext, payload, Boolean.class));
+	}
+
 
 	static class CustomObjectMapper extends ObjectMapper {
 
@@ -181,7 +211,7 @@ public class ObjectToJsonTransformerParserTests {
 		}
 	}
 
-	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object> {
+	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object, Object> {
 
 		@Override
 		public String toJson(Object value) throws Exception {

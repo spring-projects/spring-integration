@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.Map;
  * @author Artem Bilan
  * @since 3.0
  */
-public abstract class JsonObjectMapperAdapter<P> implements JsonObjectMapper<P> {
+public abstract class JsonObjectMapperAdapter<N, P> implements JsonObjectMapper<N, P> {
 
 	@Override
 	public String toJson(Object value) throws Exception {
@@ -36,6 +36,11 @@ public abstract class JsonObjectMapperAdapter<P> implements JsonObjectMapper<P> 
 
 	@Override
 	public void toJson(Object value, Writer writer) throws Exception {
+	}
+
+	@Override
+	public N toJsonNode(Object value) throws Exception {
+		return null;
 	}
 
 	@Override

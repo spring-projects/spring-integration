@@ -43,7 +43,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 
 	private final Class<?> targetClass;
 
-	private final JsonObjectMapper<?> jsonObjectMapper;
+	private final JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	public JsonToObjectTransformer() {
 		this((Class<?>) null);
@@ -82,11 +82,11 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 	}
 
-	public JsonToObjectTransformer(JsonObjectMapper<?> jsonObjectMapper) {
+	public JsonToObjectTransformer(JsonObjectMapper<?, ?> jsonObjectMapper) {
 		this(null, jsonObjectMapper);
 	}
 
-	public JsonToObjectTransformer(Class<?> targetClass, JsonObjectMapper<?> jsonObjectMapper) {
+	public JsonToObjectTransformer(Class<?> targetClass, JsonObjectMapper<?, ?> jsonObjectMapper) {
 		this.targetClass = targetClass;
 		this.jsonObjectMapper = (jsonObjectMapper != null) ? jsonObjectMapper : JacksonJsonObjectMapperProvider.newInstance();
 	}
