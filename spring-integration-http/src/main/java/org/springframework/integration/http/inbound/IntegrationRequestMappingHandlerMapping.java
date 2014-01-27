@@ -18,10 +18,13 @@ package org.springframework.integration.http.inbound;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.HttpRequestHandler;
@@ -37,21 +40,21 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * detects and registers {@link RequestMappingInfo}s for {@link HttpRequestHandlingEndpointSupport}
  * from a Spring Integration HTTP configuration of
  * {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
- * <p/>
- * This class is automatically configured as bean in the application context on the parsing phase of
+ * <p>
+ * This class is automatically configured as a bean in the application context during the parsing phase of
  * the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements, if there is none registered, yet.
  * However it can be configured as a regular bean with appropriate configuration for
  * {@link RequestMappingHandlerMapping}. It is recommended to have only one similar bean in the application context
  * using the 'id' {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
- * <p/>
- * In most cases Spring MVC offers to configure Request Mapping via {@link org.springframework.stereotype.Controller}
+ * <p>
+ * In most cases, Spring MVC offers to configure Request Mapping via {@code org.springframework.stereotype.Controller}
  * and {@link org.springframework.web.bind.annotation.RequestMapping}.
  * That's why Spring MVC's Handler Mapping infrastructure relies on {@link org.springframework.web.method.HandlerMethod},
- * as different methods at the same {@link org.springframework.stereotype.Controller} user-class may have their own
+ * as different methods at the same {@code org.springframework.stereotype.Controller} user-class may have their own
  * {@link org.springframework.web.bind.annotation.RequestMapping}. On the other side, all Spring Integration HTTP Inbound
  * Endpoints are configured on the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
  * single {@link RequestMappingInfo} configuration without {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
- * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a some {@link org.springframework.web.servlet.HandlerMapping}
+ * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a {@link org.springframework.web.servlet.HandlerMapping}
  * compromise implementation between method-level annotations and component-level (e.g. Spring Integration XML) configurations.
  *
  * @author Artem Bilan
@@ -60,7 +63,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  *
  * @since 3.0
  */
-public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
+public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
+		implements ApplicationListener<ContextRefreshedEvent> {
 
 	private static final Method HANDLE_REQUEST_METHOD = ReflectionUtils.findMethod(HttpRequestHandler.class,
 			"handleRequest", HttpServletRequest.class, HttpServletResponse.class);
@@ -76,6 +80,8 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 				"createRequestMappingInfo", org.springframework.web.bind.annotation.RequestMapping.class, RequestCondition.class);
 		ReflectionUtils.makeAccessible(CREATE_REQUEST_MAPPING_INFO_METHOD);
 	}
+
+	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	@Override
 	protected final boolean isHandler(Class<?> beanType) {
@@ -154,6 +160,25 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 
 		Object[] createRequestMappingInfoParams = new Object[]{requestMappingAnnotation, this.getCustomTypeCondition(endpoint.getClass())};
 		return (RequestMappingInfo) ReflectionUtils.invokeMethod(CREATE_REQUEST_MAPPING_INFO_METHOD, this, createRequestMappingInfoParams);
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		// No-op in favor of onApplicationEvent
+	}
+
+	/**
+	 * {@link HttpRequestHandlingEndpointSupport}s may depend on auto-created
+	 * {@code requestChannel}s, so MVC Handlers detection should be postponed
+	 * as late as possible.
+	 *
+	 * @see RequestMappingHandlerMapping#afterPropertiesSet()
+	 */
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (!this.initialized.getAndSet(true)) {
+			super.afterPropertiesSet();
+		}
 	}
 
 }
