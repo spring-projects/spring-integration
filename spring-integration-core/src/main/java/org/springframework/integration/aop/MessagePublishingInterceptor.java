@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
  * responsibility of the EL expression provided by the {@link PublisherMetadataSource}.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class MessagePublishingInterceptor implements MethodInterceptor, BeanFactoryAware {
@@ -90,6 +91,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+		this.messagingTemplate.setBeanFactory(beanFactory);
 	}
 
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {

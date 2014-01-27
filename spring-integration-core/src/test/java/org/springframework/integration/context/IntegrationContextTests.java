@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,8 @@ public class IntegrationContextTests {
 
 	@Test
 	public void testIntegrationContextComponents() {
-		//TODO INT-3005  assertEquals("error", this.integrationProperties.get(IntegrationProperties.LATE_REPLY_LOGGING_LEVEL));
-		assertEquals("20", this.integrationProperties.get(IntegrationProperties.TASKSCHEDULER_POOLSIZE));
+		assertEquals("true", this.integrationProperties.get(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
+		assertEquals("20", this.integrationProperties.get(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE));
 		assertEquals(this.integrationProperties, this.serviceActivator.getIntegrationProperties());
 		assertEquals(20, TestUtils.getPropertyValue(this.taskScheduler, "poolSize"));
 	}
