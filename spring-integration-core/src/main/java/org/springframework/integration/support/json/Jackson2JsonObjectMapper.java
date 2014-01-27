@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -40,7 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Artem Bilan
  * @since 3.0
  */
-public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonParser, JavaType> {
+public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
 	private final ObjectMapper objectMapper;
 
@@ -61,6 +62,11 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	@Override
 	public void toJson(Object value, Writer writer) throws Exception {
 		this.objectMapper.writeValue(writer, value);
+	}
+
+	@Override
+	public JsonNode toJsonNode(Object value) throws Exception {
+		return this.objectMapper.valueToTree(value);
 	}
 
 	@Override

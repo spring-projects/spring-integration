@@ -32,12 +32,21 @@
 			<ulink url="https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-3.0-to-4.0-Migration-Guide"
 			>Migration Guide</ulink>.
 		</para>
-		<section id="3.0-xpath-header-enricher-header-type">
+		<section id="4.0-xpath-header-enricher-header-type">
 			<title>Header Type for XPath Header Enricher</title>
 			<para>
 				The <code>header-type</code> attribute has been introduced for the <code>header</code> sub-element of the
 				<code>&lt;int-xml:xpath-header-enricher&gt;</code>. This attribute provides the target type for
 				the header value to which the result of the XPath expression evaluation will be converted.
+				For more information see <xref linkend="xml-xpath-header-enricher"/>.
+			</para>
+		</section>
+		<section id="4.0-object-to-json-transformer-result-type">
+			<title>Object To Json Transformer: Node Result</title>
+			<para>
+				The <code>result-type</code> attribute has been introduced for the  <code>&lt;int:object-to-json-transformer&gt;</code>.
+				This attribute provides the target type for the result of object mapping to the JSON.
+				Supports <code>STRING</code> (default) and <code>NODE</code>.
 				For more information see <xref linkend="xml-xpath-header-enricher"/>.
 			</para>
 		</section>
