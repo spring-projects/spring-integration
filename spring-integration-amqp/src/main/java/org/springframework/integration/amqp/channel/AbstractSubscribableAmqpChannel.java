@@ -23,6 +23,7 @@ import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -60,6 +61,10 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	private volatile Integer maxSubscribers;
 
+	private final AmqpAdmin admin;
+
+	private final ConnectionFactory connectionFactory;
+
 	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
 		this(channelName, container, amqpTemplate, false);
 	}
@@ -73,6 +78,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 		this.channelName = channelName;
 		this.container = container;
 		this.isPubSub = isPubSub;
+		this.connectionFactory = container.getConnectionFactory();
+		this.admin = new RabbitAdmin(this.connectionFactory);
 	}
 
 	/**
@@ -85,6 +92,14 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 		if (this.dispatcher != null) {
 			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 		}
+	}
+
+	protected AmqpAdmin getAdmin() {
+		return admin;
+	}
+
+	protected ConnectionFactory getConnectionFactory() {
+		return connectionFactory;
 	}
 
 	@Override
@@ -108,8 +123,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 					Integer.class);
 		}
 		this.setMaxSubscribers(this.maxSubscribers);
-		AmqpAdmin admin = new RabbitAdmin(this.container.getConnectionFactory());
-		Queue queue = this.initializeQueue(admin, this.channelName);
+		Queue queue = this.initializeQueue(this.admin, this.channelName);
 		this.container.setQueues(queue);
 		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
 				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()

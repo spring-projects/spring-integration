@@ -18,10 +18,15 @@ package org.springframework.integration.amqp.channel;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
@@ -31,10 +36,15 @@ import org.springframework.integration.dispatcher.BroadcastingDispatcher;
  * @author Gary Russell
  * @since 2.1
  */
-public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel {
+public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel implements ConnectionListener {
 
 	private volatile FanoutExchange exchange;
 
+	private final Queue queue = new AnonymousQueue();
+
+	private volatile Binding binding;
+
+	private volatile boolean initialized;
 
 	public PublishSubscribeAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
 		super(channelName, container, amqpTemplate, true);
@@ -60,10 +70,31 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 			this.exchange = new FanoutExchange(exchangeName);
 		}
 		admin.declareExchange(this.exchange);
-		Queue queue = admin.declareQueue();
-		Binding binding = BindingBuilder.bind(queue).to(this.exchange);
-		admin.declareBinding(binding);
-		return queue;
+		admin.declareQueue(this.queue);
+		this.binding = BindingBuilder.bind(this.queue).to(this.exchange);
+		admin.declareBinding(this.binding);
+		if (!this.initialized && this.getAmqpTemplate() instanceof RabbitTemplate) {
+			ConnectionFactory connectionFactory = this.getConnectionFactory();
+			if (connectionFactory != null) {
+				connectionFactory.addConnectionListener(this);
+			}
+		}
+		this.initialized = true;
+		return this.queue;
+	}
+
+	private void doDeclares() {
+		if (this.isRunning()) {
+			AmqpAdmin admin = this.getAdmin();
+			if (admin != null) {
+				if (this.queue != null) {
+					admin.declareQueue(this.queue);
+				}
+				if (this.binding != null) {
+					admin.declareBinding(this.binding);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -74,6 +105,30 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	@Override
 	protected String getExchangeName() {
 		return (this.exchange != null) ? this.exchange.getName() : "";
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		super.destroy();
+		if (this.getConnectionFactory() != null) {
+			this.getConnectionFactory().removeConnectionListener(this);
+			this.initialized = false;
+		}
+	}
+
+	@Override
+	public void start() {
+		this.doDeclares(); // connection may have been lost while we were stopped
+		super.start();
+	}
+
+	@Override
+	public void onCreate(Connection connection) {
+		doDeclares();
+	}
+
+	@Override
+	public void onClose(Connection connection) {
 	}
 
 }
