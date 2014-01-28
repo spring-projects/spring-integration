@@ -24,6 +24,7 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -39,9 +40,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 
 	private volatile FanoutExchange exchange;
 
-	private volatile AmqpAdmin admin;
-
-	private volatile AnonymousQueue queue;
+	private final Queue queue = new AnonymousQueue();
 
 	private volatile Binding binding;
 
@@ -71,21 +70,23 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 			this.exchange = new FanoutExchange(exchangeName);
 		}
 		admin.declareExchange(this.exchange);
-		this.queue = new AnonymousQueue();
 		admin.declareQueue(this.queue);
 		this.binding = BindingBuilder.bind(this.queue).to(this.exchange);
 		admin.declareBinding(this.binding);
-		this.admin = admin;
 		if (!this.initialized && this.getAmqpTemplate() instanceof RabbitTemplate) {
-			((RabbitTemplate) this.getAmqpTemplate()).getConnectionFactory().addConnectionListener(this);
+			ConnectionFactory connectionFactory = this.getConnectionFactory();
+			if (connectionFactory != null) {
+				connectionFactory.addConnectionListener(this);
+			}
 		}
 		this.initialized = true;
 		return this.queue;
 	}
 
-	protected void doDeclares() {
+	private void doDeclares() {
 		if (this.isRunning()) {
-			if (this.admin != null) {
+			AmqpAdmin admin = this.getAdmin();
+			if (admin != null) {
 				if (this.queue != null) {
 					admin.declareQueue(this.queue);
 				}
@@ -109,10 +110,10 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	@Override
 	public void destroy() throws Exception {
 		super.destroy();
-		/*
-		 * TODO: remove this from the CF listeners, when the connection factory supports it.
-		 * Also reset this.initialized.
-		 */
+		if (this.getConnectionFactory() != null) {
+			this.getConnectionFactory().removeConnectionListener(this);
+			this.initialized = false;
+		}
 	}
 
 	@Override

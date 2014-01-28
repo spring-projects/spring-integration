@@ -78,6 +78,15 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 	public void addConnectionListener(ConnectionListener listener) {
 	}
 
+	@Override
+	public boolean removeConnectionListener(ConnectionListener listener) {
+		return false;
+	}
+
+	@Override
+	public void clearConnectionListeners() {
+	}
+
 
 	private static class StubConnection implements Connection {
 

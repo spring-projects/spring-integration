@@ -15,9 +15,11 @@
  */
 package org.springframework.integration.amqp.channel;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Collection;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -52,13 +55,11 @@ public class ChannelTests {
 
 	@Test
 	public void pubSubLostConnectionTest() throws Exception {
-		final AtomicInteger count = new AtomicInteger();
 		final CyclicBarrier latch = new CyclicBarrier(2);
 		channel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				count.incrementAndGet();
 				try {
 					latch.await(10, TimeUnit.SECONDS);
 				}
@@ -73,8 +74,7 @@ public class ChannelTests {
 		channel.send(new GenericMessage<String>("bar"));
 		latch.await(10, TimeUnit.SECONDS);
 		context.close();
-		// TODO: uncomment when the connection factory supports unregistering listeners
-//		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
+		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
 	}
 
 }
