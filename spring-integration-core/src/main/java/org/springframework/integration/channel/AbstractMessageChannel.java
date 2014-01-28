@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, TrackableComponent {
 
@@ -109,6 +110,16 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	}
 
 	/**
+	 * Add a channel interceptor to the specified index of the list.
+	 *
+	 * @param index The index to add interceptor.
+	 * @param interceptor The interceptor.
+	 */
+	public void addInterceptor(int index, ChannelInterceptor interceptor) {
+		this.interceptors.add(index, interceptor);
+	}
+
+	/**
 	 * Specify the {@link ConversionService} to use when trying to convert to
 	 * one of this channel's supported datatypes for a Message whose payload
 	 * does not already match. If this property is not set explicitly but
@@ -122,6 +133,13 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	@Override
 	public void setConversionService(ConversionService conversionService) {
 		super.setConversionService(conversionService);
+	}
+
+	/**
+	 * Return a read-only list of the configured interceptors.
+	 */
+	public List<ChannelInterceptor> getChannelInterceptors() {
+		return this.interceptors.getInterceptors();
 	}
 
 	/**
@@ -261,6 +279,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 			return this.interceptors.add(interceptor);
 		}
 
+		public void add(int index, ChannelInterceptor interceptor) {
+			this.interceptors.add(index, interceptor);
+		}
+
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
@@ -309,6 +331,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 				}
 			}
 			return message;
+		}
+
+		public List<ChannelInterceptor> getInterceptors() {
+			return Collections.unmodifiableList(this.interceptors);
 		}
 	}
 }
