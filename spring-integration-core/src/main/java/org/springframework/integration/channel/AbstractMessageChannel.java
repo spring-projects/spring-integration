@@ -46,8 +46,10 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, TrackableComponent {
+public abstract class AbstractMessageChannel extends IntegrationObjectSupport
+		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -94,6 +96,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 *
 	 * @param interceptors The list of interceptors.
 	 */
+	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		Collections.sort(interceptors, new OrderComparator());
 		this.interceptors.set(interceptors);
@@ -104,8 +107,20 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 *
 	 * @param interceptor The interceptor.
 	 */
+	@Override
 	public void addInterceptor(ChannelInterceptor interceptor) {
 		this.interceptors.add(interceptor);
+	}
+
+	/**
+	 * Add a channel interceptor to the specified index of the list.
+	 *
+	 * @param index The index to add interceptor.
+	 * @param interceptor The interceptor.
+	 */
+	@Override
+	public void addInterceptor(int index, ChannelInterceptor interceptor) {
+		this.interceptors.add(index, interceptor);
 	}
 
 	/**
@@ -122,6 +137,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	@Override
 	public void setConversionService(ConversionService conversionService) {
 		super.setConversionService(conversionService);
+	}
+
+	/**
+	 * Return a read-only list of the configured interceptors.
+	 */
+	@Override
+	public List<ChannelInterceptor> getChannelInterceptors() {
+		return this.interceptors.getInterceptors();
 	}
 
 	/**
@@ -261,6 +284,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 			return this.interceptors.add(interceptor);
 		}
 
+		public void add(int index, ChannelInterceptor interceptor) {
+			this.interceptors.add(index, interceptor);
+		}
+
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
@@ -309,6 +336,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 				}
 			}
 			return message;
+		}
+
+		public List<ChannelInterceptor> getInterceptors() {
+			return Collections.unmodifiableList(this.interceptors);
 		}
 	}
 }

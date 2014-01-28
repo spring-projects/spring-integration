@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -42,27 +41,31 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class GlobalChannelInterceptorTests {
+
 	@Autowired
 	ApplicationContext applicationContext;
 
+	@Autowired
+	@Qualifier("inputC")
+	ChannelInterceptorAware inputCChannel;
+
+
 	@Test
 	public void validateGlobalInterceptor() throws Exception{
- 		Map<String, MessageChannel> channels = applicationContext.getBeansOfType(MessageChannel.class);
+ 		Map<String, ChannelInterceptorAware> channels = applicationContext.getBeansOfType(ChannelInterceptorAware.class);
 		for (String channelName : channels.keySet()) {
-			MessageChannel channel = channels.get(channelName);
+			ChannelInterceptorAware channel = channels.get(channelName);
 			if (channelName.equals("nullChannel")){
 				continue;
 			}
-			if (AopUtils.isAopProxy(channel)){
-				channel = (MessageChannel) ((Advised)channel).getTargetSource().getTarget();
-			}
-			List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors", List.class);
-			ChannelInterceptor[] interceptors = interceptorList.toArray(new ChannelInterceptor[] {});
+
+			ChannelInterceptor[] interceptors = channel.getChannelInterceptors().toArray(new ChannelInterceptor[channel.getChannelInterceptors().size()]);
 			if (channelName.equals("inputA")){ // 328741
 				Assert.assertTrue(interceptors.length ==10);
 				Assert.assertEquals("interceptor-three", interceptors[0].toString());
@@ -111,17 +114,12 @@ public class GlobalChannelInterceptorTests {
 			}
 		}
 	}
-
-
-	@Autowired
-	@Qualifier("inpuC")
-	MessageChannel inpuCchannel;
 	@Test
 	public void testWildCardPatternMatch() {
 
-		List<?> interceptorList = TestUtils.getPropertyValue(inpuCchannel, "interceptors.interceptors", List.class);
+		List<ChannelInterceptor> channelInterceptors = this.inputCChannel.getChannelInterceptors();
 		List<String> interceptorNames = new ArrayList<String>();
-		for (Object interceptor : interceptorList) {
+		for (ChannelInterceptor interceptor : channelInterceptors) {
 			interceptorNames.add(interceptor.toString());
 		}
 		Assert.assertTrue(interceptorNames.contains("interceptor-ten"));
