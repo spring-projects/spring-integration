@@ -17,7 +17,6 @@
 package org.springframework.integration.sftp.session;
 
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -436,38 +435,4 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 	}
 
-	/**
-	 * A wrapper for a JSch session that maintains a channel count and
-	 * physically disconnects when the last channel is closed.
-	 *
-	 */
-	public class JSchSessionWrapper {
-
-		private final com.jcraft.jsch.Session session;
-
-		private final AtomicInteger channels = new AtomicInteger();
-
-		JSchSessionWrapper(com.jcraft.jsch.Session session) {
-			this.session = session;
-		}
-
-		public void addChannel() {
-			this.channels.incrementAndGet();
-		}
-
-		public void close() {
-			if (channels.decrementAndGet() <= 0) {
-				this.session.disconnect();
-			}
-		}
-
-		public final com.jcraft.jsch.Session getSession() {
-			return session;
-		}
-
-		public boolean isConnected() {
-			return session.isConnected();
-		}
-
-	}
 }
