@@ -5,16 +5,30 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<int:channel id="errorChannel">
+		<int:queue/>
+	</int:channel>
+
 	<int:gateway id="sampleGateway"
 			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Bar"
-			default-request-channel="requestChannelBaz">
+			default-request-channel="requestChannelBaz"
+			error-channel="errorChannel">
 		<int:default-header name="name" expression="#gatewayMethod.name"/>
 		<int:default-header name="string" expression="#gatewayMethod.toString()"/>
 		<int:default-header name="object" expression="#gatewayMethod"/>
 		<int:method name="baz">
 			<int:header name="name" value="overrideGlobal"/>
 		</int:method>
+		<int:method name="lateReply" request-channel="lateReplyChannel" reply-timeout="0"/>
 	</int:gateway>
+
+	<int:chain input-channel="lateReplyChannel" >
+		<int:header-enricher>
+			<int:error-channel ref="errorChannel" overwrite="true"/>
+		</int:header-enricher>
+		<int:delayer id="delayer" default-delay="10"/>
+	</int:chain>
+
 
 	<int:channel id="requestChannelFoo"/>
 	<int:channel id="requestChannelBar"/>

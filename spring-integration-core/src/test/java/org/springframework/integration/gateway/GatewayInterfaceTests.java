@@ -19,6 +19,8 @@ package org.springframework.integration.gateway;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -40,6 +43,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
@@ -258,13 +262,30 @@ public class GatewayInterfaceTests {
 		assertTrue(called.get());
 	}
 
+	@Test
+	public void testLateReply() throws Exception {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		Bar baz = ac.getBean(Bar.class);
+		String reply = baz.lateReply("hello");
+		assertNull(reply);
+		PollableChannel errorChannel = ac.getBean("errorChannel", PollableChannel.class);
+		Message<?> receive = errorChannel.receive(5000);
+		assertNotNull(receive);
+		MessagingException messagingException = (MessagingException) receive.getPayload();
+		assertThat(messagingException.getMessage(), Matchers.startsWith("Reply message received but the receiving thread has exited due to a timeout"));
+	}
+
 
 
 	public interface Foo {
+
 		@Gateway(requestChannel="requestChannelFoo")
 		public void foo(String payload);
 
 		public void baz(String payload);
+
+		public String lateReply(String payload);
+
 	}
 
 	public static interface Bar extends Foo {
