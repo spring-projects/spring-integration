@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,7 +154,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 		BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
-		String taskSchedulerPoolSizeExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.TASKSCHEDULER_POOLSIZE);
+		String taskSchedulerPoolSizeExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE);
 		schedulerBuilder.addPropertyValue("poolSize", taskSchedulerPoolSizeExpression);
 		schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
 		schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());

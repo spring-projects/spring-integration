@@ -36,7 +36,9 @@ import org.springframework.util.Assert;
  * or onFailureChannel as appropriate; the message is the input message with a header
  * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#POSTPROCESS_RESULT} containing the evaluation result.
  * The failure expression is NOT evaluated if the success expression throws an exception.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -107,6 +109,14 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 */
 	public void setPropagateEvaluationFailures(boolean propagateOnSuccessEvaluationFailures) {
 		this.propagateOnSuccessEvaluationFailures = propagateOnSuccessEvaluationFailures;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.getBeanFactory() != null) {
+			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override

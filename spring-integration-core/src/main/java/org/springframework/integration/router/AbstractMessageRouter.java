@@ -38,6 +38,7 @@ import org.springframework.messaging.MessagingException;
  * @author Gunnar Hillert
  * @author Soby Chacko
  * @author Stefan Ferstl
+ * @author Artem Bilan
  */
 @ManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
@@ -121,6 +122,14 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 		return this.getConversionService();
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.getBeanFactory() != null) {
+			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	/**

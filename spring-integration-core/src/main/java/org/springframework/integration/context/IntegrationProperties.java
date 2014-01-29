@@ -33,33 +33,38 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  */
 public final class IntegrationProperties {
 
+	public static final String INTEGRATION_PROPERTIES_PREFIX = "spring.integraton.";
+
 	/**
 	 * Specifies whether to allow create automatically {@link org.springframework.integration.channel.DirectChannel}
 	 * beans for non-declared channels or not.
 	 */
-	public static final String CHANNELS_AUTOCREATE = "channels.autoCreate";
+	public static final String CHANNELS_AUTOCREATE = INTEGRATION_PROPERTIES_PREFIX + "channels.autoCreate";
 
 	/**
 	 * Specifies the value for {@link org.springframework.integration.dispatcher.UnicastingDispatcher#maxSubscribers}
 	 * in case of point-to-point channels (e.g. {@link org.springframework.integration.channel.ExecutorChannel}),
 	 * if the attribute {@code max-subscribers} isn't configured on the channel component.
 	 */
-	public static final String CHANNELS_MAX_UNICAST_SUBSCRIBERS = "channels.maxUnicastSubscribers";
+	public static final String CHANNELS_MAX_UNICAST_SUBSCRIBERS = INTEGRATION_PROPERTIES_PREFIX + "channels.maxUnicastSubscribers";
 
 	/**
 	 * Specifies the value for {@link org.springframework.integration.dispatcher.BroadcastingDispatcher#maxSubscribers}
 	 * in case of point-to-point channels (e.g. {@link org.springframework.integration.channel.PublishSubscribeChannel}),
 	 * if the attribute {@code max-subscribers} isn't configured on the channel component.
 	 */
-	public static final String CHANNELS_MAX_BROADCAST_SUBSCRIBERS = "channels.maxBroadcastSubscribers";
+	public static final String CHANNELS_MAX_BROADCAST_SUBSCRIBERS = INTEGRATION_PROPERTIES_PREFIX + "channels.maxBroadcastSubscribers";
 
 	/**
 	 * Specifies the value of {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler#poolSize}
-	 * for the {@code taskScheduler} bean initialized by the AbstractTransformerIntegration infrastructure.
+	 * for the {@code taskScheduler} bean initialized by the Integration infrastructure.
 	 */
-	public static final String TASKSCHEDULER_POOLSIZE = "taskScheduler.poolSize";
+	public static final String TASK_SCHEDULER_POOL_SIZE = INTEGRATION_PROPERTIES_PREFIX + "taskScheduler.poolSize";
 
-//	TODO public static final String LATE_REPLY_LOGGING_LEVEL = "messagingTemplate.lateReply.logging.level";
+	/**
+	 * Specifies the value of {@link org.springframework.messaging.core.GenericMessagingTemplate#throwExceptionOnLateReply}.
+	 */
+	public static final String THROW_EXCEPTION_ON_LATE_REPLY = INTEGRATION_PROPERTIES_PREFIX + "messagingTemplate.throwExceptionOnLateReply";
 
 	private static Properties defaults;
 
@@ -97,7 +102,7 @@ public final class IntegrationProperties {
 	 */
 	public static String getExpressionFor(String key) {
 		if (defaults.containsKey(key)) {
-			return "#{T(" + IntegrationContextUtils.class.getName() + ").getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
+			return "#{T(org.springframework.integration.context.IntegrationContextUtils).getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
 		}
 		else {
 			throw new IllegalArgumentException("The provided key [" + key + "] isn't the one of Integration properties: " + defaults.keySet());

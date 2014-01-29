@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  */
 package org.springframework.integration.core;
 
+import java.util.Properties;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -34,6 +39,9 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		super.setDestinationResolver(new BeanFactoryChannelResolver(beanFactory));
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(beanFactory);
+		Boolean throwExceptionOnLateReply = Boolean.valueOf(integrationProperties.getProperty(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
+		this.setThrowExceptionOnLateReply(throwExceptionOnLateReply);
 	}
 
 	/**
