@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -54,6 +55,7 @@ public class ChannelTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
+	@Ignore
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
 		channel.subscribe(new MessageHandler() {
