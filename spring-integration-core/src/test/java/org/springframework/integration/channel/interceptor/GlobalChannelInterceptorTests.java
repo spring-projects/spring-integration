@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -53,14 +53,14 @@ public class GlobalChannelInterceptorTests {
 
 	@Autowired
 	@Qualifier("inputC")
-	AbstractMessageChannel inputCChannel;
+	ChannelInterceptorAware inputCChannel;
 
 
 	@Test
 	public void validateGlobalInterceptor() throws Exception{
- 		Map<String, AbstractMessageChannel> channels = applicationContext.getBeansOfType(AbstractMessageChannel.class);
+ 		Map<String, ChannelInterceptorAware> channels = applicationContext.getBeansOfType(ChannelInterceptorAware.class);
 		for (String channelName : channels.keySet()) {
-			AbstractMessageChannel channel = channels.get(channelName);
+			ChannelInterceptorAware channel = channels.get(channelName);
 			if (channelName.equals("nullChannel")){
 				continue;
 			}

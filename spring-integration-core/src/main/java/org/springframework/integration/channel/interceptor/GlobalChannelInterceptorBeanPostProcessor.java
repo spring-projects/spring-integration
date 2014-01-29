@@ -29,7 +29,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
@@ -79,11 +80,11 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof AbstractMessageChannel) {
+		if (bean instanceof ChannelInterceptorAware && bean instanceof MessageChannel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Applying global interceptors on channel '" + beanName + "'");
 			}
-			this.addMatchingInterceptors((AbstractMessageChannel) bean, beanName);
+			this.addMatchingInterceptors((ChannelInterceptorAware) bean, beanName);
 		}
 		return bean;
 	}
@@ -91,7 +92,7 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	/**
 	 * Adds any interceptor whose pattern matches against the channel's name.
 	 */
-	private void addMatchingInterceptors(AbstractMessageChannel channel, String beanName) {
+	private void addMatchingInterceptors(ChannelInterceptorAware channel, String beanName) {
 		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.positiveOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();

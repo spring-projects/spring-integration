@@ -9,6 +9,8 @@
 
 	<int:channel id="anonymous" />
 
+	<int:wire-tap channel="nullChannel"/>
+
 	<int:service-activator input-channel="anonymous" ref="service" />
 
 	<bean id="service" class="org.springframework.integration.monitor.MessageChannelsMonitorIntegrationTests$Service" />

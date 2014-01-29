@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,15 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0.1
  */
 public class GlobalChannelInterceptorTests {
@@ -42,12 +45,11 @@ public class GlobalChannelInterceptorTests {
 		ActiveMqTestUtils.prepare();
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"GlobalChannelInterceptorTests-context.xml",  GlobalChannelInterceptorTests.class);
-		AbstractMessageChannel jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
-		Object interceptors = TestUtils.getPropertyValue((TestUtils.getPropertyValue(jmsChannel, "interceptors")), "interceptors");
+		ChannelInterceptorAware jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
+		List<ChannelInterceptor> interceptors = jmsChannel.getChannelInterceptors();
 		assertNotNull(interceptors);
-		assertTrue(interceptors instanceof List);
-		assertEquals(1, ((List<?>) interceptors).size());
-		assertTrue(((List<?>) interceptors).get(0) instanceof SampleInterceptor);
+		assertEquals(1, interceptors.size());
+		assertTrue(interceptors.get(0) instanceof SampleInterceptor);
 	}
 
 

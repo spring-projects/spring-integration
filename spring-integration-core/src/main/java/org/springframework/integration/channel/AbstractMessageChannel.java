@@ -48,7 +48,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, TrackableComponent {
+public abstract class AbstractMessageChannel extends IntegrationObjectSupport
+		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -95,6 +96,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 *
 	 * @param interceptors The list of interceptors.
 	 */
+	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		Collections.sort(interceptors, new OrderComparator());
 		this.interceptors.set(interceptors);
@@ -105,6 +107,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 *
 	 * @param interceptor The interceptor.
 	 */
+	@Override
 	public void addInterceptor(ChannelInterceptor interceptor) {
 		this.interceptors.add(interceptor);
 	}
@@ -115,6 +118,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * @param index The index to add interceptor.
 	 * @param interceptor The interceptor.
 	 */
+	@Override
 	public void addInterceptor(int index, ChannelInterceptor interceptor) {
 		this.interceptors.add(index, interceptor);
 	}
@@ -138,6 +142,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	/**
 	 * Return a read-only list of the configured interceptors.
 	 */
+	@Override
 	public List<ChannelInterceptor> getChannelInterceptors() {
 		return this.interceptors.getInterceptors();
 	}
