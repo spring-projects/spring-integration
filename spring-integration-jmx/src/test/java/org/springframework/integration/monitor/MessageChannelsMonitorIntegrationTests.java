@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 the original author or authors.
+ * Copyright 2009-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,8 +13,10 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -22,18 +24,23 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class MessageChannelsMonitorIntegrationTests {
@@ -185,6 +192,10 @@ public class MessageChannelsMonitorIntegrationTests {
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertEquals("No statistics for input channel", 1, sends, 0.01);
 
+			assertThat(channel, Matchers.instanceOf(ChannelInterceptorAware.class));
+			List<ChannelInterceptor> channelInterceptors = ((ChannelInterceptorAware) channel).getChannelInterceptors();
+			assertEquals(1, channelInterceptors.size());
+			assertThat(channelInterceptors.get(0), Matchers.instanceOf(WireTap.class));
 		}
 		finally {
 			context.close();
@@ -223,7 +234,7 @@ public class MessageChannelsMonitorIntegrationTests {
 	}
 
 	@Aspect
-	public static class ChannelInterceptor {
+	public static class TestChannelInterceptor {
 		@Before("execution(* *..MessageChannel+.send(*)) && args(input)")
 		public void around(Message<?> input) {
 			logger.debug("Handling: " + input);

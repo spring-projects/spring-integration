@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,12 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
@@ -43,6 +39,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcessor, InitializingBean {
@@ -83,11 +80,11 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageChannel) {
+		if (bean instanceof ChannelInterceptorAware && bean instanceof MessageChannel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Applying global interceptors on channel '" + beanName + "'");
 			}
-			this.addMatchingInterceptors((MessageChannel) bean, beanName);
+			this.addMatchingInterceptors((ChannelInterceptorAware) bean, beanName);
 		}
 		return bean;
 	}
@@ -95,67 +92,34 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	/**
 	 * Adds any interceptor whose pattern matches against the channel's name.
 	 */
-	private void addMatchingInterceptors(MessageChannel channel, String beanName) {
-		List<ChannelInterceptor> interceptors = this.getExistingInterceptors(channel);
-		if (interceptors != null) {
-			List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
-			for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.positiveOrderInterceptors) {
-				String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-				patterns = StringUtils.trimArrayElements(patterns);
-				if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
-					tempInterceptors.add(globalChannelInterceptorWrapper);
-				}
-			}
-			Collections.sort(tempInterceptors, this.comparator);
-			for (GlobalChannelInterceptorWrapper next : tempInterceptors) {
-				interceptors.add(next.getChannelInterceptor());
-			}
-			tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
-			for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.negativeOrderInterceptors) {
-				String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-				patterns = StringUtils.trimArrayElements(patterns);
-				if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
-					tempInterceptors.add(globalChannelInterceptorWrapper);
-				}
-			}
-			Collections.sort(tempInterceptors, comparator);
-			if (!tempInterceptors.isEmpty()) {
-				for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
-					interceptors.add(0, tempInterceptors.get(i).getChannelInterceptor());
-				}
+	private void addMatchingInterceptors(ChannelInterceptorAware channel, String beanName) {
+		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
+		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.positiveOrderInterceptors) {
+			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+			patterns = StringUtils.trimArrayElements(patterns);
+			if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
+				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
-		else if (logger.isDebugEnabled()) {
-			logger.debug("Global Channel interceptors will not be applied to Channel: " + beanName);
+		Collections.sort(tempInterceptors, this.comparator);
+		for (GlobalChannelInterceptorWrapper next : tempInterceptors) {
+			channel.addInterceptor(next.getChannelInterceptor());
 		}
-	}
 
-	@SuppressWarnings("unchecked")
-	private List<ChannelInterceptor> getExistingInterceptors(MessageChannel channel) {
-		try {
-			MessageChannel targetChannel = channel;
-			if (AopUtils.isAopProxy(channel)) {
-				Object target = ((Advised) channel).getTargetSource().getTarget();
-				if (target instanceof MessageChannel) {
-					targetChannel = (MessageChannel) target;
-				}
-			}
-			DirectFieldAccessor channelAccessor = new DirectFieldAccessor(targetChannel);
-			Object interceptorListWrapper = channelAccessor.getPropertyValue("interceptors");
-			if (interceptorListWrapper != null) {
-				return (List<ChannelInterceptor>) new DirectFieldAccessor(interceptorListWrapper).getPropertyValue("interceptors");
+		tempInterceptors.clear();
+		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.negativeOrderInterceptors) {
+			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+			patterns = StringUtils.trimArrayElements(patterns);
+			if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
+				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
-		catch (NotReadablePropertyException e) {
-			// Channel doesn't support interceptors - null return logged by caller
-		}
-		catch (Exception e) {
-			// interceptors not supported, will return null
-			if (logger.isDebugEnabled() && channel != null) {
-				logger.debug("interceptors not supported by channel '" + channel + "'", e);
+		Collections.sort(tempInterceptors, comparator);
+		if (!tempInterceptors.isEmpty()) {
+			for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
+				channel.addInterceptor(0, tempInterceptors.get(i).getChannelInterceptor());
 			}
 		}
-		return null;
 	}
 
 }

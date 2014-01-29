@@ -14,22 +14,22 @@
 			<ref bean="channelInterceptor"/>
 		</int:interceptors>
 	</int:channel>
-	
+
 	<int:channel id="inputB">
 		<int:queue capacity="1"/>
-	</int:channel>  
-	
-	<int:channel id="inpuC"/>
-	  
-	<int:publish-subscribe-channel id="foo"/>  
-	
+	</int:channel>
+
+	<int:channel id="inputC"/>
+
+	<int:publish-subscribe-channel id="foo"/>
+
 	<int:channel id="bar">
 		<int:interceptors>
 			<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="eight"/>
 			<ref bean="channelInterceptor"/>
 		</int:interceptors>
 	</int:channel>
-	
+
 	<int:channel id="baz"/>
 
 	<int:channel-interceptor pattern="input*, foo" order="3">
@@ -38,22 +38,22 @@
 	<int:channel-interceptor pattern="input*, foo, object" order="1">
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="four"/>
 	</int:channel-interceptor>
-	
+
 	<int:channel-interceptor pattern="inputA, foo">
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="five"/>
 	</int:channel-interceptor>
 	<int:channel-interceptor pattern="inputA">
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="six"/>
 	</int:channel-interceptor>
-	
+
 	<int:channel-interceptor>
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="ten"/>
 	</int:channel-interceptor>
-	
+
 	<int:channel-interceptor pattern="*" ref="eleven"/>
-	
+
 	<bean id="eleven" class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="eleven"/>
-	
+
 	<int:channel-interceptor pattern="input*, foo" order="-3">
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="two"/>
 	</int:channel-interceptor>
@@ -61,16 +61,16 @@
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="three"/>
 	</int:channel-interceptor>
 
-	
+
 	<bean id="channelInterceptor" class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="seven"/>
 
 
 	<int:channel id="inputWithProxy"/>
-	
+
 	<aop:config>
 		<aop:pointcut id="testPointcut" expression="bean(inputWithProxy)"/>
 		<aop:advisor advice-ref="testInterceptor" pointcut-ref="testPointcut"/>
 	</aop:config>
-	
+
 	<bean id="testInterceptor" class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests.TestInterceptor"/>
 </beans>

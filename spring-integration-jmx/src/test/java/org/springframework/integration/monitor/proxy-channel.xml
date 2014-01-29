@@ -8,15 +8,17 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<import resource="common-context.xml" />
-	
+
 	<aop:aspectj-autoproxy/>
 
 	<int:channel id="anonymous" />
+
+	<int:wire-tap channel="nullChannel"/>
 
 	<int:service-activator input-channel="anonymous" ref="service" />
 
 	<bean id="service" class="org.springframework.integration.monitor.MessageChannelsMonitorIntegrationTests$Service" />
 
-	<bean id="interceptor" class="org.springframework.integration.monitor.MessageChannelsMonitorIntegrationTests$ChannelInterceptor" />
+	<bean id="interceptor" class="org.springframework.integration.monitor.MessageChannelsMonitorIntegrationTests$TestChannelInterceptor" />
 
 </beans>
