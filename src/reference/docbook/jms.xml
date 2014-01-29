@@ -521,6 +521,12 @@
     standard JMS API Headers as well as primitive/String Message Headers. Custom  header mapper could also be
     provided via <code>header-mapper</code> attribute of inbound and outbound gateways.
     </para>
+	<important>
+		Since <emphasis>version 4.0</emphasis>, the <code>JMSPriority</code> header is mapped to the standard
+		<code>priority</code> header for inbound messages (previously, the <code>priority</code> header was only used for
+		outbound messages). To revert to the previous behavior (do not map inbound priority), use the
+		<code>mapInboundPriority</code> property of <classname>DefaultJmsHeaderMapper</classname> with argument set to <code>false</code>.
+	</important>
 
   </section>
 

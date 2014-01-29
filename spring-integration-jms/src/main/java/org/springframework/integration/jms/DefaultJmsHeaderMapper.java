@@ -29,6 +29,7 @@ import javax.jms.JMSException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -63,6 +64,16 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 
 	private volatile String outboundPrefix = "";
 
+	private volatile boolean mapInboundPriority = true;
+
+	/**
+	 * Suppress the mapping of inbound priority by using this setter with 'false'.
+	 *
+	 * @param mapInboundPriority 'false' to suppress mapping the inbound priority.
+	 */
+	public void setMapInboundPriority(boolean mapInboundPriority) {
+		this.mapInboundPriority = mapInboundPriority;
+	}
 
 	/**
 	 * Specify a prefix to be appended to the integration message header name
@@ -205,8 +216,17 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			}
 			try {
 				headers.put(JmsHeaders.TIMESTAMP, jmsMessage.getJMSTimestamp());
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				logger.info("failed to read JMSTimestamp property, skipping", e);
+			}
+			if (this.mapInboundPriority) {
+				try {
+					headers.put(IntegrationMessageHeaderAccessor.PRIORITY, jmsMessage.getJMSPriority());
+				}
+				catch (Exception e) {
+					logger.info("failed to read JMSPriority property, skipping", e);
+				}
 			}
 			Enumeration<?> jmsPropertyNames = jmsMessage.getPropertyNames();
 			if (jmsPropertyNames != null) {

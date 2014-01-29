@@ -50,5 +50,13 @@
 				For more information see <xref linkend="transformer-xpath-spel-function"/>.
 			</para>
 		</section>
+		<section id="4.0-jms-header-mapping">
+			<title>JMS Header Mapping</title>
+			<para>
+				The <classname>DefaultJmsHeaderMapper</classname> now maps an incoming <code>JMSPriority</code> header to
+				the Spring Integration <code>priority</code> header. Previously <code>priority</code> was only
+				considered for outbound messages. For more information see <xref linkend="jms-header-mapping"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
