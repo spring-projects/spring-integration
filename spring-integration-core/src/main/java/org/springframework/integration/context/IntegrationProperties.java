@@ -98,7 +98,7 @@ public final class IntegrationProperties {
 	 */
 	public static String getExpressionFor(String key) {
 		if (defaults.containsKey(key)) {
-			return "#{T(" + IntegrationContextUtils.class.getName() + ").getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
+			return "#{T(org.springframework.integration.context.IntegrationContextUtils).getIntegrationProperties(beanFactory).getProperty('" + key + "')}";
 		}
 		else {
 			throw new IllegalArgumentException("The provided key [" + key + "] isn't the one of Integration properties: " + defaults.keySet());
