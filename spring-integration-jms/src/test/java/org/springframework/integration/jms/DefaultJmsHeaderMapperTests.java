@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,11 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 
 import org.junit.Test;
+
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -227,6 +229,27 @@ public class DefaultJmsHeaderMapperTests {
 		Object attrib = headers.get(JmsHeaders.TIMESTAMP);
 		assertNotNull(attrib);
 		assertEquals(timestamp, attrib);
+	}
+
+	@Test
+	public void testJmsPriorityMappedToHeader() throws JMSException {
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		jmsMessage.setJMSPriority(5);
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
+		Object attrib = headers.get(IntegrationMessageHeaderAccessor.PRIORITY);
+		assertNotNull(attrib);
+		assertEquals(5, attrib);
+	}
+
+	@Test
+	public void testJmsPriorityNotMappedToHeader() throws JMSException {
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		jmsMessage.setJMSPriority(5);
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper(false);
+		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
+		Object attrib = headers.get(IntegrationMessageHeaderAccessor.PRIORITY);
+		assertNull(attrib);
 	}
 
 	@Test
