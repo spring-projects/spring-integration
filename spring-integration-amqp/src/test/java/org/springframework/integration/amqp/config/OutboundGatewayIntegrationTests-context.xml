@@ -16,24 +16,21 @@
 
 	<rabbit:direct-exchange name="si.test.exchange">
 		<rabbit:bindings>
-			<rabbit:binding queue="si.test.queue" key="si.test.binding"></rabbit:binding>
+			<rabbit:binding queue="si.test.queue" key="si.test.binding"/>
 		</rabbit:bindings>
 	</rabbit:direct-exchange>
 
-	<console:stdout-channel-adapter id="fromRabbit" append-newline="true"/>
-
-	<console:stdin-channel-adapter channel="toRabbit">
-		<poller fixed-delay="1000" max-messages-per-poll="1"/>
-	</console:stdin-channel-adapter>
-
 	<channel id="toRabbit"/>
+
+	<channel id="fromRabbit">
+		<queue/>
+	</channel>
 
 	<amqp:outbound-gateway request-channel="toRabbit"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
-		amqp-template="amqpTemplate"
-		order="1"/>
+		amqp-template="amqpTemplate"/>
 
 	<amqp:inbound-gateway request-channel="amqpIn"
 		connection-factory="connectionFactory"

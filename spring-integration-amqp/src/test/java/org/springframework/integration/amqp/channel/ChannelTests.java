@@ -21,13 +21,14 @@ import java.util.Collection;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.amqp.rule.BrokerRunning;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -45,6 +46,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ChannelTests {
 
+	@ClassRule
+	public static final BrokerRunning brokerIsRunning = BrokerRunning.isRunning();
+
 	@Autowired
 	private PublishSubscribeAmqpChannel channel;
 
@@ -55,7 +59,6 @@ public class ChannelTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
-	@Ignore
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
 		channel.subscribe(new MessageHandler() {
