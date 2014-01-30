@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.sftp.session.DefaultSftpSessionFactory.JSchSessionWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -67,7 +66,7 @@ class SftpSession implements Session<LsEntry> {
 		this.wrapper = null;
 	}
 
-	public SftpSession(DefaultSftpSessionFactory.JSchSessionWrapper wrapper) {
+	public SftpSession(JSchSessionWrapper wrapper) {
 		Assert.notNull(wrapper, "wrapper must not be null");
 		this.jschSession = wrapper.getSession();
 		this.wrapper = wrapper;
