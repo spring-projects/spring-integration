@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,47 @@
 
 package org.springframework.integration.amqp.config;
 
-import org.junit.Ignore;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.amqp.rule.BrokerRunning;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class OutboundGatewayIntegrationTests {
 
+	@ClassRule
+	public static final BrokerRunning brokerIsRunning = BrokerRunning.isRunningWithEmptyQueues("si.test.queue");
+
+	@Autowired
+	private MessageChannel toRabbit;
+
+	@Autowired
+	private PollableChannel fromRabbit;
+
 	@Test
-	@Ignore // comment this out to test when a RabbitMQ broker is available
-	public void run() throws Exception {
-		CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-		RabbitTemplate template = new RabbitTemplate(connectionFactory);
-		template.convertAndSend("si.test.exchange", "si.test.binding", "foo");
+	public void testOutboundInboundGateways() throws Exception {
+		String payload = "foo";
+		this.toRabbit.send(new GenericMessage<String>(payload));
+		Message<?> receive = this.fromRabbit.receive(1000);
+		assertNotNull(receive);
+		assertEquals(payload.toUpperCase(), receive.getPayload());
 	}
 
 
