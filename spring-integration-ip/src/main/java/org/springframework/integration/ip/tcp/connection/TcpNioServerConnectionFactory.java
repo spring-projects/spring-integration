@@ -37,7 +37,9 @@ import org.springframework.util.Assert;
 /**
  * Implements a server connection factory that produces {@link TcpNioConnection}s using
  * a {@link ServerSocketChannel}. Must have a {@link TcpListener} registered.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -48,6 +50,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	private volatile boolean usingDirectBuffers;
 
 	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<SocketChannel, TcpNioConnection>();
+
+	// Lock for 'selector' registration and close operations
+	private final Object registrationLock = new Object();
 
 	private volatile Selector selector;
 
@@ -92,7 +97,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 						Math.abs(this.getBacklog()));
 			}
 			final Selector selector = Selector.open();
-			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+			synchronized (this.registrationLock) {
+				this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+			}
 			this.setListening(true);
 			this.selector = selector;
 			doSelect(this.serverChannel, selector);
@@ -125,7 +132,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * @throws SocketException
 	 */
 	private void doSelect(ServerSocketChannel server, final Selector selector)
-			throws IOException, ClosedChannelException, SocketException {
+			throws IOException, SocketException {
 		while (this.isActive()) {
 			int soTimeout = this.getSoTimeout();
 			int selectionCount = 0;
@@ -204,11 +211,13 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public void close() {
 		if (this.selector != null) {
-			try {
-				this.selector.close();
-			}
-			catch (IOException e) {
-				logger.error("Error closing selector", e);
+			synchronized (this.registrationLock) {
+				try {
+					this.selector.close();
+				}
+				catch (Exception e) {
+					logger.error("Error closing selector", e);
+				}
 			}
 		}
 		if (this.serverChannel == null) {

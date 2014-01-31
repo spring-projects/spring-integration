@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 /**
  * A client connection factory that creates {@link TcpNioConnection}s.
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -47,6 +48,9 @@ public class TcpNioClientConnectionFactory extends
 	private volatile Selector selector;
 
 	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
+
+	// Lock for 'selector' registration and close operations
+	private final Object registrationLock = new Object();
 
 	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
 
@@ -116,11 +120,13 @@ public class TcpNioClientConnectionFactory extends
 	@Override
 	public void close() {
 		if (this.selector != null) {
-			try {
-				this.selector.close();
-			}
-			catch (IOException e) {
-				logger.error("Error closing selector", e);
+			synchronized (this.registrationLock) {
+				try {
+					this.selector.close();
+				}
+				catch (Exception e) {
+					logger.error("Error closing selector", e);
+				}
 			}
 		}
 	}
@@ -156,12 +162,14 @@ public class TcpNioClientConnectionFactory extends
 					}
 				}
 				while ((newChannel = newChannels.poll()) != null) {
-					try {
-						newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
-					}
-					catch (ClosedChannelException cce) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Channel closed before registering with selector for reading");
+					synchronized (this.registrationLock) {
+						try {
+							newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
+						}
+						catch (ClosedChannelException cce) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Channel closed before registering with selector for reading");
+							}
 						}
 					}
 				}
