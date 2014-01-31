@@ -49,7 +49,7 @@ public class TcpNioClientConnectionFactory extends
 
 	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
 
-	// Lock for 'selector' registration and close operations
+	// Lock for 'selector''s registration and close operations to prevent JVM 'AbstractSelectableChannel' NPE bug
 	private final Object registrationLock = new Object();
 
 	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
@@ -116,9 +116,9 @@ public class TcpNioClientConnectionFactory extends
 		this.tcpNioConnectionSupport = tcpNioSupport;
 	}
 
-	@Deprecated
 	@Override
-	public void close() {
+	public void stop() {
+		super.stop();
 		if (this.selector != null) {
 			synchronized (this.registrationLock) {
 				try {

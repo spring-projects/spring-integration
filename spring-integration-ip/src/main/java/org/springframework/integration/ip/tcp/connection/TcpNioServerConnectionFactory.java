@@ -51,7 +51,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<SocketChannel, TcpNioConnection>();
 
-	// Lock for 'selector' registration and close operations
+	// Lock for 'selector''s registration and close operations to prevent JVM 'AbstractSelectableChannel' NPE bug
 	private final Object registrationLock = new Object();
 
 	private volatile Selector selector;
@@ -106,14 +106,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 		}
 		catch (IOException e) {
-			this.close();
-			if (this.isActive()) {
-				logger.error("Error on ServerSocketChannel", e);
-			}
+			this.stop();
 		}
 		finally {
 			this.setListening(false);
-			this.setActive(false);
 		}
 	}
 
@@ -209,7 +205,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
-	public void close() {
+	public void stop() {
+		super.stop();
 		if (this.selector != null) {
 			synchronized (this.registrationLock) {
 				try {

@@ -76,10 +76,6 @@ public class TcpNetClientConnectionFactory extends
 		return this.tcpSocketFactorySupport.getSocketFactory().createSocket(host, port);
 	}
 
-	@Override
-	public void close() {
-	}
-
 	protected TcpSocketFactorySupport getTcpSocketFactorySupport() {
 		return tcpSocketFactorySupport;
 	}
