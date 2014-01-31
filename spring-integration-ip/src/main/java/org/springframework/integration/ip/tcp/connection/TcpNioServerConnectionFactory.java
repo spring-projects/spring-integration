@@ -37,7 +37,9 @@ import org.springframework.util.Assert;
 /**
  * Implements a server connection factory that produces {@link TcpNioConnection}s using
  * a {@link ServerSocketChannel}. Must have a {@link TcpListener} registered.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -99,14 +101,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 		}
 		catch (IOException e) {
-			this.close();
-			if (this.isActive()) {
-				logger.error("Error on ServerSocketChannel", e);
-			}
+			this.stop();
 		}
 		finally {
 			this.setListening(false);
-			this.setActive(false);
 		}
 	}
 
@@ -125,7 +123,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * @throws SocketException
 	 */
 	private void doSelect(ServerSocketChannel server, final Selector selector)
-			throws IOException, ClosedChannelException, SocketException {
+			throws IOException, SocketException {
 		while (this.isActive()) {
 			int soTimeout = this.getSoTimeout();
 			int selectionCount = 0;
@@ -202,12 +200,12 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
-	public void close() {
+	public void stop() {
 		if (this.selector != null) {
 			try {
 				this.selector.close();
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 				logger.error("Error closing selector", e);
 			}
 		}
@@ -219,6 +217,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		catch (IOException e) {}
 		this.serverChannel = null;
+		super.stop();
 	}
 
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {

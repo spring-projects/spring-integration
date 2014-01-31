@@ -148,14 +148,16 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
-	public void close() {
+	public void stop() {
 		if (this.serverSocket == null) {
 			return;
 		}
 		try {
 			this.serverSocket.close();
-		} catch (IOException e) {}
+		}
+		catch (IOException e) {}
 		this.serverSocket = null;
+		super.stop();
 	}
 
 	/**
