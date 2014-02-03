@@ -409,13 +409,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.nioHarvestInterval = nioHarvestInterval;
 	}
 
-	/**
-	 * Closes the factory.
-	 * @deprecated As of 3.0; use {@link #stop()}.
-	 */
-	@Deprecated
-	public abstract void close();
-
 	@Override
 	public void start() {
 		if (logger.isInfoEnabled()) {
@@ -446,7 +439,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	@Override
 	public void stop() {
 		this.active = false;
-		this.close();
 		synchronized (this.connections) {
 			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
 			while (iterator.hasNext()) {

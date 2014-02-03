@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 /**
  * A client connection factory that creates {@link TcpNioConnection}s.
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -112,14 +113,14 @@ public class TcpNioClientConnectionFactory extends
 		this.tcpNioConnectionSupport = tcpNioSupport;
 	}
 
-	@Deprecated
 	@Override
-	public void close() {
+	public void stop() {
+		super.stop();
 		if (this.selector != null) {
 			try {
 				this.selector.close();
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 				logger.error("Error closing selector", e);
 			}
 		}
