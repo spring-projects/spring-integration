@@ -49,9 +49,6 @@ public class TcpNioClientConnectionFactory extends
 
 	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
 
-	// Lock for 'selector''s registration and close operations to prevent JVM 'AbstractSelectableChannel' NPE bug
-	private final Object registrationLock = new Object();
-
 	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
 
 	private volatile TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
@@ -120,13 +117,11 @@ public class TcpNioClientConnectionFactory extends
 	public void stop() {
 		super.stop();
 		if (this.selector != null) {
-			synchronized (this.registrationLock) {
-				try {
-					this.selector.close();
-				}
-				catch (Exception e) {
-					logger.error("Error closing selector", e);
-				}
+			try {
+				this.selector.close();
+			}
+			catch (Exception e) {
+				logger.error("Error closing selector", e);
 			}
 		}
 	}
@@ -162,14 +157,12 @@ public class TcpNioClientConnectionFactory extends
 					}
 				}
 				while ((newChannel = newChannels.poll()) != null) {
-					synchronized (this.registrationLock) {
-						try {
-							newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
-						}
-						catch (ClosedChannelException cce) {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Channel closed before registering with selector for reading");
-							}
+					try {
+						newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
+					}
+					catch (ClosedChannelException cce) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Channel closed before registering with selector for reading");
 						}
 					}
 				}
