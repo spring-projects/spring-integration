@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,36 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
+import org.springframework.core.type.StandardAnnotationMetadata;
+import org.springframework.integration.config.IntegrationRegistrar;
 
 /**
  * Parser for the &lt;annotation-config&gt; element of the integration namespace.
- * Adds a {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor}
- * and a {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor}
- * to the application context.
- * 
+ * Just delegate the real configuration to the {@link IntegrationRegistrar}.
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class AnnotationConfigParser implements BeanDefinitionParser {
 
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition messagingAnnotationPostProcessorDef = new RootBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.annotation.MessagingAnnotationPostProcessor");
-		messagingAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		String messagingAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
-		parserContext.getRegistry().registerBeanDefinition(messagingAnnotationPostProcessorName, messagingAnnotationPostProcessorDef);
-		RootBeanDefinition publisherAnnotationPostProcessorDef = new RootBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.PublisherAnnotationBeanPostProcessor");
-		publisherAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		String defaultPublisherChannel = element.getAttribute("default-publisher-channel");
-		if (StringUtils.hasText(defaultPublisherChannel)) {
-			publisherAnnotationPostProcessorDef.getPropertyValues().add("defaultChannel", new RuntimeBeanReference(defaultPublisherChannel));
-		}
-		String publisherAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
-		parserContext.getRegistry().registerBeanDefinition(publisherAnnotationPostProcessorName, publisherAnnotationPostProcessorDef);
+	public BeanDefinition parse(final Element element, ParserContext parserContext) {
+		new IntegrationRegistrar().registerBeanDefinitions(new StandardAnnotationMetadata(Object.class) {
+
+			@Override
+			public Map<String, Object> getAnnotationAttributes(String annotationType) {
+				return Collections.<String, Object> singletonMap("defaultPublisherChannel", element.getAttribute("default-publisher-channel"));
+			}
+		}, parserContext.getRegistry());
+
 		return null;
 	}
-
 
 }
