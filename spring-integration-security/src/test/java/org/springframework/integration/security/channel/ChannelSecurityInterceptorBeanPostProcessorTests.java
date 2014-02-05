@@ -19,6 +19,7 @@ package org.springframework.integration.security.channel;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
 		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
-		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(interceptor);
+		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(Collections.singletonList(interceptor));
 		QueueChannel securedChannel = new QueueChannel();
 		securedChannel.setBeanName("securedChannel");
 		MessageChannel postProcessedChannel = (MessageChannel) postProcessor.postProcessAfterInitialization(securedChannel, "securedChannel");
@@ -50,7 +51,7 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
 		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
-		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(interceptor);
+		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(Collections.singletonList(interceptor));
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
 		MessageChannel postProcessedChannel = (MessageChannel) postProcessor.postProcessAfterInitialization(channel, "testChannel");

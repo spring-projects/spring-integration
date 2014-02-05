@@ -89,6 +89,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		if (importingClassMetadata != null) {
 			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
+		this.registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
 	}
 
 	/**
@@ -315,6 +316,18 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
 		}
 
+	}
+
+	/**
+	 * Register {@link IntegrationConfigurationBeanFactoryPostProcessor} to process the external Integration infrastructure.
+	 */
+	private void registerIntegrationConfigurationBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME)) {
+			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class)
+					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME, postProcessorBuilder.getBeanDefinition());
+		}
 	}
 
 }

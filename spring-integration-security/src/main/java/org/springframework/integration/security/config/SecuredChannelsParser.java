@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
+import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
+import org.springframework.integration.security.channel.DefaultChannelAccessPolicy;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -36,18 +38,16 @@ import org.springframework.util.xml.DomUtils;
  * to control send and receive access, and creates a bean post-processor to apply the
  * interceptor to {@link org.springframework.messaging.MessageChannel}s
  * whose names match the specified patterns.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 
-	private final static String BASE_PACKAGE_NAME = "org.springframework.integration.security";
-
-
 	@Override
-	protected String getBeanClassName(Element element) {
-		return BASE_PACKAGE_NAME + ".config.ChannelSecurityInterceptorBeanPostProcessor";
+	protected Class<?> getBeanClass(Element element) {
+		return ChannelSecurityInterceptor.class;
 	}
 
 	@Override
@@ -57,23 +57,15 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String securityMetadataSourceBeanName = this.parseSecurityMetadataSource(element, parserContext);
-		BeanDefinitionBuilder interceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE_NAME + ".channel.ChannelSecurityInterceptor");
-		interceptorBuilder.addConstructorArgReference(securityMetadataSourceBeanName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(interceptorBuilder, element, "authentication-manager");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(interceptorBuilder, element, "access-decision-manager");
-		String interceptorBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				interceptorBuilder.getBeanDefinition(), parserContext.getRegistry());
-		builder.addConstructorArgReference(interceptorBeanName);
+		builder.addConstructorArgValue(this.parseSecurityMetadataSource(element, parserContext));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "authentication-manager");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "access-decision-manager");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private String parseSecurityMetadataSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE_NAME + ".channel.ChannelSecurityMetadataSource");
+	private BeanDefinition parseSecurityMetadataSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ChannelSecurityMetadataSource.class);
 		List<Element> accessPolicyElements = DomUtils.getChildElementsByTagName(element, "access-policy");
-		ManagedMap patternMappings = new ManagedMap();
+		ManagedMap<Pattern, BeanDefinition> patternMappings = new ManagedMap<Pattern, BeanDefinition>();
 		for (Element accessPolicyElement : accessPolicyElements) {
 			Pattern pattern = Pattern.compile(accessPolicyElement.getAttribute("pattern"));
 			String sendAccess = accessPolicyElement.getAttribute("send-access");
@@ -82,17 +74,15 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 				parserContext.getReaderContext().error(
 						"At least one of 'send-access' or 'receive-access' must be provided.", accessPolicyElement);
 			}
-			BeanDefinitionBuilder accessPolicyBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					BASE_PACKAGE_NAME + ".channel.DefaultChannelAccessPolicy");
+			BeanDefinitionBuilder accessPolicyBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultChannelAccessPolicy.class);
 			accessPolicyBuilder.addConstructorArgValue(sendAccess);
 			accessPolicyBuilder.addConstructorArgValue(receiveAccess);
 			accessPolicyBuilder.getBeanDefinition().setRole(BeanDefinition.ROLE_SUPPORT);
 			patternMappings.put(pattern, accessPolicyBuilder.getBeanDefinition());
 		}
 		builder.addConstructorArgValue(patternMappings);
-		builder.setRole(BeanDefinition.ROLE_SUPPORT);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+
+		return builder.getBeanDefinition();
 	}
 
 }

@@ -21,6 +21,7 @@ import java.util.Properties;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.messaging.MessageChannel;
@@ -64,7 +65,7 @@ public abstract class IntegrationContextUtils {
 	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME = IntegrationNamespaceUtils.BASE_PACKAGE +
 			".internalPublisherAnnotationBeanPostProcessor";
 
-//	public static final String FLOW_POST_PROCESSOR_BEAN_NAME = IntegrationFlowBeanFactoryPostProcessor.class.getSimpleName();
+	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME = IntegrationConfigurationBeanFactoryPostProcessor.class.getSimpleName();
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
