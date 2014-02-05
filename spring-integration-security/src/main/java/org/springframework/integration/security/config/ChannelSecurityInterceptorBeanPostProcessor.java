@@ -51,21 +51,22 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		for (ChannelSecurityInterceptor securityInterceptor : securityInterceptors) {
-			ChannelSecurityMetadataSource channelSecurityMetadataSource =
-					(ChannelSecurityMetadataSource) securityInterceptor.obtainSecurityMetadataSource();
-			if (bean instanceof MessageChannel && this.shouldProxy(beanName, channelSecurityMetadataSource)) {
-				if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {
-					((Advised) bean).addAdvisor(new DefaultPointcutAdvisor(securityInterceptor));
-				}
-				else {
-					ProxyFactory proxyFactory = new ProxyFactory(bean);
-					proxyFactory.addAdvisor(new DefaultPointcutAdvisor(securityInterceptor));
-					bean = proxyFactory.getProxy();
+		if (bean instanceof MessageChannel) {
+			for (ChannelSecurityInterceptor securityInterceptor : securityInterceptors) {
+				ChannelSecurityMetadataSource channelSecurityMetadataSource =
+						(ChannelSecurityMetadataSource) securityInterceptor.obtainSecurityMetadataSource();
+				if (this.shouldProxy(beanName, channelSecurityMetadataSource)) {
+					if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {
+						((Advised) bean).addAdvisor(new DefaultPointcutAdvisor(securityInterceptor));
+					}
+					else {
+						ProxyFactory proxyFactory = new ProxyFactory(bean);
+						proxyFactory.addAdvisor(new DefaultPointcutAdvisor(securityInterceptor));
+						bean = proxyFactory.getProxy();
+					}
 				}
 			}
 		}
-
 		return bean;
 	}
 

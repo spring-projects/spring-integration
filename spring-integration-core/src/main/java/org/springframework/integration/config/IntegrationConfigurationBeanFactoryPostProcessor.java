@@ -27,6 +27,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
+ * {@link BeanFactoryPostProcessor} to apply external Integration infrastructure configurations
+ * via loading {@link IntegrationConfigurationInitializer} implementations using {@link SpringFactoriesLoader}.
+ *
  * @author Artem Bilan
  * @since 4.0
  */
@@ -34,22 +37,20 @@ public class IntegrationConfigurationBeanFactoryPostProcessor implements BeanFac
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		Set<String> factoryNames = new HashSet<String>(
+		Set<String> initializerNames = new HashSet<String>(
 				SpringFactoriesLoader.loadFactoryNames(IntegrationConfigurationInitializer.class, beanFactory.getBeanClassLoader()));
 
-
-		for (String factoryName : factoryNames) {
+		for (String initializerName : initializerNames) {
 			try {
-				Class<?> instanceClass = ClassUtils.forName(factoryName, beanFactory.getBeanClassLoader());
+				Class<?> instanceClass = ClassUtils.forName(initializerName, beanFactory.getBeanClassLoader());
 				Assert.isAssignable(IntegrationConfigurationInitializer.class, instanceClass);
 				IntegrationConfigurationInitializer instance = (IntegrationConfigurationInitializer) instanceClass.newInstance();
 				instance.initialize(beanFactory);
 			}
 			catch (Exception e) {
-				throw new IllegalArgumentException("Cannot instantiate 'IntegrationConfigurationInitializer': " + factoryName, e);
+				throw new IllegalArgumentException("Cannot instantiate 'IntegrationConfigurationInitializer': " + initializerName, e);
 			}
 		}
-
 	}
 
 }

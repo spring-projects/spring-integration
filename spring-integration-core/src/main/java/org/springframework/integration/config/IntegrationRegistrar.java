@@ -44,9 +44,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
-import org.springframework.integration.config.annotation.EnableIntegration;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
@@ -62,6 +60,8 @@ import org.springframework.util.StringUtils;
 public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
 
 	private static final Log logger = LogFactory.getLog(IntegrationRegistrar.class);
+
+	private static final String BASE_PACKAGE = "org.springframework.integration";
 
 	private static final Set<Integer> registriesProcessed = new HashSet<Integer>();
 
@@ -103,8 +103,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	private void registerImplicitChannelCreator(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.CHANNEL_INITIALIZER_BEAN_NAME)) {
 			String channelsAutoCreateExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.CHANNELS_AUTOCREATE);
-			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml.ChannelInitializer")
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".config.xml.ChannelInitializer")
 					.addPropertyValue("autoCreate", channelsAutoCreateExpression);
 			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(),
 					IntegrationContextUtils.CHANNEL_INITIALIZER_BEAN_NAME);
@@ -113,7 +112,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
 			BeanDefinitionBuilder channelRegistryBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml.ChannelInitializer$AutoCreateCandidatesCollector");
+					.genericBeanDefinition(BASE_PACKAGE + ".config.xml.ChannelInitializer$AutoCreateCandidatesCollector");
 			channelRegistryBuilder.addConstructorArgValue(new ManagedSet<String>());
 			BeanDefinitionHolder channelRegistryHolder = new BeanDefinitionHolder(channelRegistryBuilder.getBeanDefinition(),
 					IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
@@ -207,8 +206,10 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			}
 
 			if (jsonPathClass != null) {
-				IntegrationNamespaceUtils.registerSpelFunctionBean(registry, jsonPathBeanName,
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".json.JsonPathUtils", "evaluate");
+				BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
+						.addConstructorArgValue(BASE_PACKAGE + ".json.JsonPathUtils")
+						.addConstructorArgValue("evaluate");
+				registry.registerBeanDefinition(jsonPathBeanName, builder.getBeanDefinition());
 			}
 		}
 
@@ -223,16 +224,17 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
 			Class<?> xpathClass = null;
 			try {
-				xpathClass = ClassUtils.forName(IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
-						this.classLoader);
+				xpathClass = ClassUtils.forName(BASE_PACKAGE + ".xml.xpath.XPathUtils", this.classLoader);
 			}
 			catch (ClassNotFoundException e) {
 				logger.debug("SpEL function '#xpath' isn't registered: there is no spring-integration-xml.jar on the classpath.");
 			}
 
 			if (xpathClass != null) {
-				IntegrationNamespaceUtils.registerSpelFunctionBean(registry, xpathBeanName,
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", "evaluate");
+				BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
+						.addConstructorArgValue(BASE_PACKAGE + ".xml.xpath.XPathUtils")
+						.addConstructorArgValue("evaluate");
+				registry.registerBeanDefinition(xpathBeanName, builder.getBeanDefinition());
 			}
 		}
 
@@ -254,7 +256,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml.DefaultConfiguringBeanFactoryPostProcessor");
+					.genericBeanDefinition(BASE_PACKAGE + ".config.xml.DefaultConfiguringBeanFactoryPostProcessor");
 			BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
 					postProcessorBuilder.getBeanDefinition(), IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, registry);
