@@ -18,6 +18,8 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -27,12 +29,13 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for 'channel-interceptor' elements.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author David Turanski
@@ -40,7 +43,7 @@ import org.w3c.dom.Element;
  */
 public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser {
 
-	private static final String BASE_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.interceptor.";
+	private static final String BASE_PACKAGE = IntegrationConfigUtils.BASE_PACKAGE + ".channel.interceptor.";
 
 	private static final String CHANNEL_NAME_PATTERN_ATTRIBUTE = "pattern";
 
@@ -56,8 +59,7 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		this.createAndRegisterGlobalPostProcessorIfNecessary(parserContext);
-		BeanDefinitionBuilder globalChannelInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + "GlobalChannelInterceptorWrapper");
+		BeanDefinitionBuilder globalChannelInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class);
 		Object childBeanDefinition = getBeanDefinitionBuilderConstructorValue(element, parserContext);
 		globalChannelInterceptorBuilder.addConstructorArgValue(childBeanDefinition);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, "order");
@@ -91,7 +93,7 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 		if (element.hasAttribute(REF_ATTRIBUTE)) {
 			beanName = element.getAttribute(REF_ATTRIBUTE);
 		}
-		else {	
+		else {
 			List<Element> els = DomUtils.getChildElements(element);
 			if (els.isEmpty()) {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
@@ -102,7 +104,7 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 					beanName = new WireTapParser().parse(child, parserContext);
 				}
 				else {
-					BeanDefinition beanDef = parserContext.getDelegate().parseCustomElement(child);	
+					BeanDefinition beanDef = parserContext.getDelegate().parseCustomElement(child);
 					beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
 				}
 			}

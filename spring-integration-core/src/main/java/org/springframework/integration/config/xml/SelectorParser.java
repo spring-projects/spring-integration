@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for a top-level &lt;selector/&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @since 1.0.4
  */
@@ -34,7 +35,7 @@ public class SelectorParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".filter.MethodInvokingSelector";
+		return MethodInvokingSelector.class.getName();
 	}
 
 	public void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -52,7 +53,7 @@ public class SelectorParser extends AbstractSingleBeanDefinitionParser {
 		if (!StringUtils.hasText(method)) {
 			parserContext.getReaderContext().error(
 					"The 'method' attribute is required for selector '" + id + "'.", element);
-		}		
+		}
 		builder.addConstructorArgValue(new RuntimeBeanReference(ref));
 		builder.addConstructorArgValue(method);
 	}

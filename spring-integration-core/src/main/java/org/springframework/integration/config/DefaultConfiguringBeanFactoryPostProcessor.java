@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.xml;
+package org.springframework.integration.config;
 
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
@@ -111,7 +111,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 		else {
 			RootBeanDefinition nullChannelDef = new RootBeanDefinition();
-			nullChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.NullChannel");
+			nullChannelDef.setBeanClassName(IntegrationConfigUtils.BASE_PACKAGE + ".channel.NullChannel");
 			BeanDefinitionHolder nullChannelHolder = new BeanDefinitionHolder(nullChannelDef,
 					IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(nullChannelHolder, registry);
@@ -127,16 +127,16 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					"' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.");
 		}
 		RootBeanDefinition errorChannelDef = new RootBeanDefinition();
-		errorChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE
+		errorChannelDef.setBeanClassName(IntegrationConfigUtils.BASE_PACKAGE
 				+ ".channel.PublishSubscribeChannel");
 		BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(errorChannelDef,
 				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
 		BeanDefinitionBuilder loggingHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
+				IntegrationConfigUtils.BASE_PACKAGE + ".handler.LoggingHandler");
 		loggingHandlerBuilder.addConstructorArgValue("ERROR");
 		BeanDefinitionBuilder loggingEndpointBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
+				IntegrationConfigUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
 		loggingEndpointBuilder.addConstructorArgReference(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		loggingEndpointBuilder.addConstructorArgValue(loggingHandlerBuilder.getBeanDefinition());
 		BeanComponentDefinition componentDefinition = new BeanComponentDefinition(
@@ -159,7 +159,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
 		schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());
 		BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MessagePublishingErrorHandler");
+				IntegrationConfigUtils.BASE_PACKAGE + ".channel.MessagePublishingErrorHandler");
 		errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		schedulerBuilder.addPropertyValue("errorHandler", errorHandlerBuilder.getBeanDefinition());
 		BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(

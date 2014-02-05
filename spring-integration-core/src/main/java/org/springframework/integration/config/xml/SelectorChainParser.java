@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,25 +26,21 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.selector.MessageSelectorChain;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;selector-chain/&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  */
 public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String SELECTOR_CHAIN_CLASSNAME = IntegrationNamespaceUtils.BASE_PACKAGE
-			+ ".selector.MessageSelectorChain";
-
-	private static final String METHODINVOKING_SELECTOR_CLASSNAME = IntegrationNamespaceUtils.BASE_PACKAGE
-			+ ".filter.MethodInvokingSelector";
-
 	@Override
 	protected String getBeanClassName(Element element) {
-		return SELECTOR_CHAIN_CLASSNAME;
+		return MessageSelectorChain.class.getName();
 	}
 
 	public void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -82,7 +78,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	private RuntimeBeanReference buildSelectorChain(ParserContext parserContext, Node child) {
-		BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(SELECTOR_CHAIN_CLASSNAME);
+		BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessageSelectorChain.class);
 		this.parseSelectorChain(nestedBuilder, (Element) child, parserContext);
 		String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(nestedBuilder.getBeanDefinition(),
 				parserContext.getRegistry());
@@ -91,8 +87,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	private RuntimeBeanReference buildMethodInvokingSelector(ParserContext parserContext, String ref, String method) {
-		BeanDefinitionBuilder methodInvokingSelectorBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(METHODINVOKING_SELECTOR_CLASSNAME);
+		BeanDefinitionBuilder methodInvokingSelectorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSelector.class);
 		methodInvokingSelectorBuilder.addConstructorArgValue(new RuntimeBeanReference(ref));
 		methodInvokingSelectorBuilder.addConstructorArgValue(method);
 		RuntimeBeanReference selector = new RuntimeBeanReference(BeanDefinitionReaderUtils.registerWithGeneratedName(

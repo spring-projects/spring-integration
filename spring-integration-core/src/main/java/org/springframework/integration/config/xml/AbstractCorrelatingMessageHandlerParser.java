@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,13 +12,15 @@
  */
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
@@ -92,7 +94,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		}
 		else if (hasExpression) {
 			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
+					.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
 							+ adapterClass);
 			adapterBuilder.addConstructorArgValue(expression);
 			adapter = adapterBuilder.getBeanDefinition();
@@ -108,7 +110,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
+				.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
 						+ "FactoryBean");
 		builder.addConstructorArgValue(ref);
 		if (StringUtils.hasText(method)) {
