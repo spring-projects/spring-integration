@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,22 @@
 
 package org.springframework.integration.jmx.config;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Set;
 
+import javax.management.Attribute;
+import javax.management.MBeanException;
 import javax.management.MBeanServer;
 import javax.management.Notification;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import org.junit.After;
@@ -32,12 +40,13 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -130,6 +139,34 @@ public class NotificationPublishingChannelAdapterParserTests {
 						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain,*")
 				, null);
 		assertEquals(1, names.size());
+	}
+
+	@Test @DirtiesContext
+	public void changeMessageHistoryPatterns() throws Exception {
+		Set<ObjectInstance> mbeans = server.queryMBeans(null, null);
+		boolean tested = false;
+		for (ObjectInstance mbean : mbeans) {
+			if (mbean.toString().contains("MessageHistoryConfigurer")) {
+				ObjectName objectName = mbean.getObjectName();
+				try{
+					server.setAttribute(objectName, new Attribute("ComponentNamePatternsString", "foo, bar"));
+					fail("Exception expected");
+				}
+				catch (MBeanException e) {
+					assertThat(e.getTargetException(), instanceOf(IllegalStateException.class));
+					assertThat(e.getTargetException().getMessage(), containsString("cannot be changed"));
+				}
+				catch (Exception e) {
+					throw e;
+				}
+				server.invoke(objectName, "stop", new Object[]{}, new String[]{});
+				server.setAttribute(objectName, new Attribute("ComponentNamePatternsString", "foo, bar"));
+				assertEquals("bar,foo", server.getAttribute(objectName, "ComponentNamePatternsString"));
+				tested = true;
+				break;
+			}
+		}
+		assertTrue(tested);
 	}
 
 	private static class TestData {

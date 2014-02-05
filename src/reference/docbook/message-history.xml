@@ -59,6 +59,19 @@ assertEquals("sampleChain", chainHistory.get("name"));]]></programlisting>
     In the above example, Message History will only be maintained for all of the components that end with 'Gateway', start with 'sample',
     or match the name 'foo' exactly.
     </para>
+    <para>
+    Starting with <emphasis>version 4.0</emphasis>, you can also use the <code>@EnableMessageHistory</code> annotation
+    in a <code>@Configuration</code> class. In addition, the <classname>MessageHistoryConfigurer</classname> bean
+    is now exposed as a JMX MBean by the <classname>IntegrationMBeanExporter</classname>
+    (see <xref linkend="jmx-mbean-exporter"/>), allowing the patterns to be changed at runtime.
+    Note, however, that the bean must be stopped (turning off message history) in order to change the patterns.
+    This feature might be useful to temporarily turn on history to analyze a system.
+    The MBean's object name is <code>"&lt;domain&gt;:name=messageHistoryConfigurer,type=MessageHistoryConfigurer"</code>.
+    </para>
+    <important>
+    If multiple beans (declared by <code>@EnableMessageHistory</code> and/or <code>&lt;message-history/&gt;</code>) they
+    all must have identical component name patterns (when trimmed and sorted).
+    </important>
     <note>
     Remember that by definition the Message History header is immutable (you can't re-write history, although some try). Therefore, when writing
     Message History values, the components are either creating brand new Messages (when the component is an origin), or they are copying the

@@ -57,14 +57,12 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
@@ -76,6 +74,10 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -179,6 +181,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
 
+	private MessageHistoryConfigurer messageHistoryConfigurer;
+
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
@@ -225,6 +229,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.beanFactory = (ListableBeanFactory) beanFactory;
 	}
 
+	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		Assert.notNull(applicationContext, "ApplicationContext may not be null");
@@ -236,6 +241,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.shutdownExecutor = shutdownExecutor;
 	}
 
+	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 
 		if (bean instanceof Advised) {
@@ -247,6 +253,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					return bean;
 				}
 			}
+		}
+
+		if (IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER.equals(beanName)
+				&& bean instanceof MessageHistoryConfigurer) {
+			this.messageHistoryConfigurer = (MessageHistoryConfigurer) bean;
+			return bean;
 		}
 
 		if (bean instanceof MessageHandler) {
@@ -364,18 +376,22 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
+	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
+	@Override
 	public final boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	@Override
 	public final int getPhase() {
 		return this.phase;
 	}
 
+	@Override
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();
 		try {
@@ -386,6 +402,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
+	@Override
 	public final void start() {
 		this.lifecycleLock.lock();
 		try {
@@ -402,6 +419,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
+	@Override
 	public final void stop() {
 		this.lifecycleLock.lock();
 		try {
@@ -418,6 +436,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
+	@Override
 	public final void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
@@ -441,6 +460,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		registerHandlers();
 		registerSources();
 		registerEndpoints();
+		if (this.messageHistoryConfigurer != null) {
+			this.registerBeanInstance(this.messageHistoryConfigurer,
+					IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER);
+		}
 	}
 
 	@Override
@@ -499,6 +522,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * Perform orderly shutdown - called or executed from
 	 * {@link #stopActiveComponents(boolean, long)}.
 	 */
+	@Override
 	public void run() {
 		try {
 			this.orderlyShutdownCapableComponentsBefore();

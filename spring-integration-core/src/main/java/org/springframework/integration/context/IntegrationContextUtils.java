@@ -66,6 +66,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME = "IntegrationConfigurationBeanFactoryPostProcessor";
 
+	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER = "messageHistoryConfigurer";
+
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".

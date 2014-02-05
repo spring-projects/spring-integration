@@ -35,12 +35,20 @@
 				>Migration Guide</ulink>.
 			</para>
 		</section>
-		<section>
+		<section id="4.0-enable-configuration">
 			<title>@EnableConfiguration</title>
 			<para>
 				The <code>@EnableIntegration</code> annotation has been added, to permit declaration of
 				standard Spring Integration beans when using <code>@Configuration</code> classes. See
 				<xref linkend="enable-integration"/> for more information.
+			</para>
+		</section>
+		<section id="4.0-message-history">
+			<title>@EnableMessageHistory</title>
+			<para>
+				Message history can now be enabled with the <code>@EnableMessageHistory</code> annotation in a
+				<code>@Configuration</code> class; in addition the message history settings can be modified
+				by a JMX MBean. For more information, see <xref linkend="message-history"/>.
 			</para>
 		</section>
 		<section id="4.0-xpath-header-enricher-header-type">

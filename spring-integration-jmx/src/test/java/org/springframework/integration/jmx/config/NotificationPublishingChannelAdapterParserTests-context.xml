@@ -13,9 +13,11 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
-	<context:mbean-export/>
+	<context:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
 	<context:mbean-server/>
 	<jmx:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
+
+	<si:message-history/>
 
 	<si:channel id="channel"/>
 
