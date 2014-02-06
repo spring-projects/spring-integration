@@ -250,7 +250,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
 
 		if (!destinationDirectory.exists() && autoCreateDirectory) {
-			destinationDirectory.mkdirs();
+			Assert.isTrue(destinationDirectory.mkdirs(),
+				"Destination directory [" + destinationDirectory + "] could not be created.");
 		}
 
 		Assert.isTrue(destinationDirectory.exists(),
