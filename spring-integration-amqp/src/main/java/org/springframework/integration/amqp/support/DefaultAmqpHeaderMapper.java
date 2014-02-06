@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,6 +291,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			amqpMessageProperties.setUserId(userId);
 		}
 
+		Map<String, String> jsonHeaders = new HashMap<String, String>();
+
 		for (String jsonHeader : JsonHeaders.HEADERS) {
 			Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
 			if (value != null) {
@@ -298,8 +300,12 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				if (value instanceof Class<?>) {
 					value = ((Class<?>) value).getName();
 				}
-				amqpMessageProperties.setHeader(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
+				jsonHeaders.put(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
 			}
+		}
+
+		if (!amqpMessageProperties.getHeaders().containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))) {
+			amqpMessageProperties.getHeaders().putAll(jsonHeaders);
 		}
 
 		String replyCorrelation = getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_CORRELATION, String.class);
