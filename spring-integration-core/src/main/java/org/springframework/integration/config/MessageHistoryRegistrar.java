@@ -24,7 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.integration.config.annotation.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 
 /**
@@ -39,19 +38,26 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 
 	private static final String MESSAGE_HISTORY_CONFIGURER = MessageHistoryConfigurer.class.getName();
 
+	private Object componentNamePatterns;
+
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		if (registry.containsBeanDefinition(MESSAGE_HISTORY_CONFIGURER)) {
+		Map<String,Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
+		Object componentNamePatterns = annotationAttributes.get("value");
+
+		if (!registry.containsBeanDefinition(MESSAGE_HISTORY_CONFIGURER)) {
+			this.componentNamePatterns = componentNamePatterns;
+
+			AbstractBeanDefinition messageHistoryConfigurer = BeanDefinitionBuilder.genericBeanDefinition(MessageHistoryConfigurer.class)
+					.addPropertyValue("componentNamePatterns", this.componentNamePatterns)
+					.getBeanDefinition();
+
+			registry.registerBeanDefinition(MESSAGE_HISTORY_CONFIGURER, messageHistoryConfigurer);
+
+		}
+		else if (!this.componentNamePatterns.equals(componentNamePatterns)) {
 			throw new BeanDefinitionStoreException("At most one 'MessageHistoryConfigurer' can be registered within a context.");
 		}
-
-		Map<String,Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessageHistory.class.getName());
-
-		AbstractBeanDefinition messageHistoryConfigurer = BeanDefinitionBuilder.genericBeanDefinition(MessageHistoryConfigurer.class)
-				.addPropertyValue("componentNamePatterns", annotationAttributes.get("value"))
-				.getBeanDefinition();
-
-		registry.registerBeanDefinition(MESSAGE_HISTORY_CONFIGURER, messageHistoryConfigurer);
 	}
 
 }

@@ -6,6 +6,6 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:message-history/>
-	<int:message-history/>
+	<int:message-history tracked-components="foo*"/>
 
 </beans>

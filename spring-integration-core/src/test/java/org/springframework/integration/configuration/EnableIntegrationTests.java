@@ -39,6 +39,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 =======
 import org.springframework.integration.config.annotation.EnableIntegration;
+import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.history.MessageHistory;
 >>>>>>> dcc130d... INT-3286: Add `@MessageHistory`
 import org.springframework.integration.support.MessageBuilder;
@@ -91,7 +92,7 @@ public class EnableIntegrationTests {
 	@Configuration
 	@ComponentScan(basePackageClasses = EnableIntegrationTests.class)
 	@EnableIntegration
-	@org.springframework.integration.config.annotation.MessageHistory("input")
+	@EnableMessageHistory("input")
 	public static class ContextConfiguration {
 
 		@Bean

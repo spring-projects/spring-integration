@@ -39,13 +39,15 @@ import org.springframework.integration.config.MessageHistoryRegistrar;
  */
 public class MessageHistoryParser implements BeanDefinitionParser {
 
+	private final MessageHistoryRegistrar messageHistoryRegistrar = new MessageHistoryRegistrar();
+
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		new MessageHistoryRegistrar().registerBeanDefinitions(new StandardAnnotationMetadata(MessageHistoryParser.class) {
+		this.messageHistoryRegistrar.registerBeanDefinitions(new StandardAnnotationMetadata(MessageHistoryParser.class) {
 
 			@Override
 			public Map<String, Object> getAnnotationAttributes(String annotationType) {
-				return Collections.<String, Object> singletonMap("value", element.getAttribute("tracked-components"));
+				return Collections.<String, Object>singletonMap("value", element.getAttribute("tracked-components"));
 			}
 
 		}, parserContext.getRegistry());

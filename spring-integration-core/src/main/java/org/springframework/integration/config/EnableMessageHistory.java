@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,7 +23,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
-import org.springframework.integration.config.MessageHistoryRegistrar;
 
 /**
  * Enable {@link org.springframework.integration.history.MessageHistory} for Integration components.
@@ -35,7 +34,7 @@ import org.springframework.integration.config.MessageHistoryRegistrar;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Import(MessageHistoryRegistrar.class)
-public @interface MessageHistory {
+public @interface EnableMessageHistory {
 
 	  String[] value() default "*";
 
