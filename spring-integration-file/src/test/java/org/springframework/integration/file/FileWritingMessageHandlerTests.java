@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -24,6 +25,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -32,18 +34,19 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -128,6 +131,20 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
+	}
+
+	@Test @Ignore // INT-3289 ignored because it won't fail on all OS
+	public void testCreateDirFail() {
+		File dir = new File("/foo");
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		try {
+			handler.afterPropertiesSet();
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("[/foo] could not be created"));
+		}
 	}
 
 	@Test
@@ -225,6 +242,7 @@ public class FileWritingMessageHandlerTests {
 		QueueChannel output = new QueueChannel();
 		handler.setOutputChannel(output);
 		handler.setFileNameGenerator(new FileNameGenerator() {
+			@Override
 			public String generateFileName(Message<?> message) {
 				return anyFilename;
 			}
