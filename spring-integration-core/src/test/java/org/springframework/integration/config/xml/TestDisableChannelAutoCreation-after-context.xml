@@ -7,7 +7,7 @@
 
 	<int:service-activator input-channel="inputChannel" expression="'hello'"/>
 
-	<bean id="channelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
+	<bean id="channelInitializer" class="org.springframework.integration.config.ChannelInitializer">
 		<property name="autoCreate" value="false"/>
 	</bean>
 

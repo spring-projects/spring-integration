@@ -23,8 +23,6 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -64,12 +62,6 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-naming-strategy", "namingStrategy");
 
 		builder.addPropertyValue("server", mbeanServer);
-		this.registerMBeanExporterHelper(parserContext.getRegistry());
-	}
-
-	private void registerMBeanExporterHelper(BeanDefinitionRegistry registry){
-		BeanDefinitionBuilder mBeanExporterHelperBuilder = BeanDefinitionBuilder.rootBeanDefinition(MBeanExporterHelper.class);
-		BeanDefinitionReaderUtils.registerWithGeneratedName(mBeanExporterHelperBuilder.getBeanDefinition(), registry);
 	}
 
 	private Object getMBeanServer(Element element, ParserContext parserContext) {

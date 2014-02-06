@@ -27,17 +27,14 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.config.SpelFunctionFactoryBean;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
@@ -60,7 +57,6 @@ import org.springframework.util.xml.DomUtils;
  */
 public abstract class IntegrationNamespaceUtils {
 
-	public static final String BASE_PACKAGE = "org.springframework.integration";
 	public static final String REF_ATTRIBUTE = "ref";
 	public static final String METHOD_ATTRIBUTE = "method";
 	public static final String ORDER = "order";
@@ -479,14 +475,6 @@ public abstract class IntegrationNamespaceUtils {
 		return expressionDef;
 	}
 
-	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
-												String methodSignature) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
-				.addConstructorArgValue(className)
-				.addConstructorArgValue(methodSignature);
-		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
-	}
-
 	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {
 
 		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
@@ -508,15 +496,9 @@ public abstract class IntegrationNamespaceUtils {
 					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
 		}
 
-		autoCreateDirectChannel(channelId, parserContext.getRegistry());
+		IntegrationConfigUtils.autoCreateDirectChannel(channelId, parserContext.getRegistry());
 
 		return channelId;
-	}
-
-	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelName);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 	}
 
 }

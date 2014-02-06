@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 import org.springframework.util.Assert;
 
 /**
  * Parser for the &lt;claim-check-out/&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -33,7 +34,7 @@ public class ClaimCheckOutParser extends AbstractTransformerParser {
 
 	@Override
 	protected String getTransformerClassName() {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.ClaimCheckOutTransformer";
+		return ClaimCheckOutTransformer.class.getName();
 	}
 
 	@Override

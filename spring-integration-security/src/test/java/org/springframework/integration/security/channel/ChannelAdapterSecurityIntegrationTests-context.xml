@@ -26,6 +26,8 @@
 
 	<outbound-channel-adapter id="securedChannelAdapter" ref="testHandler"/>
 
+	<service-activator input-channel="securedChannelAdapter2" ref="testHandler"/>
+
 	<outbound-channel-adapter id="unsecuredChannelAdapter" ref="testHandler"/>
 
 </beans:beans>

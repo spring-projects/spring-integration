@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

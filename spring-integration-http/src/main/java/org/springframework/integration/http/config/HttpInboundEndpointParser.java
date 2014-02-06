@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -32,10 +31,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
-import org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping;
 import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
-import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -45,9 +42,6 @@ import org.springframework.util.xml.DomUtils;
  * of the 'http' namespace. The constructor's boolean value specifies whether
  * a reply is to be expected. This value should be 'false' for the
  * 'inbound-channel-adapter' and 'true' for the 'inbound-gateway'.
- * This parser also registers a global Spring-MVC infrastructure bean for
- * {@link IntegrationRequestMappingHandlerMapping};
- * see {@link #registerRequestMappingHandlerMappingIfNecessary}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -182,8 +176,6 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		builder.addPropertyValue("requestMapping", requestMappingDef);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type", "requestPayloadType");
-
-		this.registerRequestMappingHandlerMappingIfNecessary(parserContext);
 	}
 
 	private String getInputChannelAttributeName() {
@@ -210,24 +202,6 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		}
 
 		return requestMappingDefBuilder.getRawBeanDefinition();
-	}
-
-	/**
-	 * This method will auto-register an {@link IntegrationRequestMappingHandlerMapping}
-	 * which could also be overridden by the user by simply registering
-	 * a {@link IntegrationRequestMappingHandlerMapping} {@code <bean>} with 'id'
-	 * {@link HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
-	 */
-	private void registerRequestMappingHandlerMappingIfNecessary(ParserContext parserContext) {
-		if (!parserContext.getRegistry().containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
-			BeanDefinitionBuilder requestMappingBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
-			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			requestMappingBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, 0);
-			BeanComponentDefinition requestMappingComponent =
-					new BeanComponentDefinition(requestMappingBuilder.getBeanDefinition(), HttpContextUtils.HANDLER_MAPPING_BEAN_NAME);
-			parserContext.registerBeanComponent(requestMappingComponent);
-		}
 	}
 
 }

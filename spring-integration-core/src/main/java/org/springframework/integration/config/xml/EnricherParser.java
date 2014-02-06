@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.transformer.ContentEnricher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -69,7 +70,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				BeanDefinition expressionDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
 						"expression", parserContext, subElement, true);
 				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
+						IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
 				valueProcessorBuilder.addConstructorArgValue(expressionDefinition)
 						.addConstructorArgValue(subElement.getAttribute("type"));
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");

@@ -5,7 +5,7 @@
 
 	<!-- Explicit channel initializer, but no specification of the default max subscribers properties -->
 
-	<bean id="channelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
+	<bean id="channelInitializer" class="org.springframework.integration.config.ChannelInitializer">
 		<property name="autoCreate" value="true" />
 	</bean>
 

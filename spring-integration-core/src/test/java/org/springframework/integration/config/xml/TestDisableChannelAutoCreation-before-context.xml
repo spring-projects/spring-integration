@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<bean id="channelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
+	<bean id="channelInitializer" class="org.springframework.integration.config.ChannelInitializer">
 		<property name="autoCreate" value="false"/>
 	</bean>
 

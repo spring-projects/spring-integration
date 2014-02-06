@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,18 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.transformer.PayloadDeserializingTransformer;
 
 /**
  * Parser for the 'payload-deserializing-transformer' element.
- * 
+ *
  * @author Mark Fisher
  */
 public class PayloadDeserializingTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected String getTransformerClassName() {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.PayloadDeserializingTransformer";
+		return PayloadDeserializingTransformer.class.getName();
 	}
 
 	@Override
