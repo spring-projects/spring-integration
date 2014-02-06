@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.config.xml;
+package org.springframework.integration.config;
 
 import java.util.Collection;
 
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  *
  * This bean plays a role of pre-instantiator since it is instantiated and
  * initialized as the very first bean of all SI beans using
- * {@link AbstractIntegrationNamespaceHandler}.
+ * {@link org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler}.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -75,7 +75,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 						if (this.logger.isDebugEnabled()){
 							this.logger.debug("Auto-creating channel '" + channelName + "' as DirectChannel");
 						}
-						IntegrationNamespaceUtils.autoCreateDirectChannel(channelName, (BeanDefinitionRegistry) this.beanFactory);
+						IntegrationConfigUtils.autoCreateDirectChannel(channelName, (BeanDefinitionRegistry) this.beanFactory);
 					}
 				}
 			}

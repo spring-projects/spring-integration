@@ -29,6 +29,7 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.transformer.HeaderEnricher;
@@ -216,7 +217,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			Object headerValue = (headerType != null) ?
 					new TypedStringValue(value, headerType) : value;
 			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
+					IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
 			valueProcessorBuilder.addConstructorArgValue(headerValue);
 		}
 		else if (isExpression) {
@@ -225,7 +226,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 			}
 			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
+					IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
 			if (expressionElement != null) {
 				BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
 				dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
@@ -244,7 +245,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 			if (hasMethod || isScript) {
 				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.MessageProcessingHeaderValueMessageProcessor");
+						IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.MessageProcessingHeaderValueMessageProcessor");
 				valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
 				if (hasMethod) {
 					valueProcessorBuilder.addConstructorArgValue(method);
@@ -252,7 +253,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 			else {
 				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
+						IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
 				valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
 			}
 		}
@@ -263,13 +264,13 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 			if (hasMethod) {
 				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.MessageProcessingHeaderValueMessageProcessor");
+						IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.MessageProcessingHeaderValueMessageProcessor");
 				valueProcessorBuilder.addConstructorArgReference(ref);
 				valueProcessorBuilder.addConstructorArgValue(method);
 			}
 			else {
 				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
+						IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
 				valueProcessorBuilder.addConstructorArgReference(ref);
 			}
 		}

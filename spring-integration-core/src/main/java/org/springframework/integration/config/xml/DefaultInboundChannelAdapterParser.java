@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.expression.DynamicExpression;
@@ -90,7 +91,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			}
 			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
 			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
+					IntegrationConfigUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
 			sourceBuilder.addConstructorArgValue(scriptBeanDefinition);
 			this.parseHeaderExpressions(sourceBuilder, element, parserContext);
 			result = sourceBuilder.getBeanDefinition();

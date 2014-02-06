@@ -20,7 +20,7 @@ import org.springframework.integration.endpoint.AbstractMessageSource;
 
 /**
  * The {@link org.springframework.integration.core.MessageSource} strategy implementation
- * to produce a {@link org.springframework.integration.Message} from underlying
+ * to produce a {@link org.springframework.messaging.Message} from underlying
  * {@linkplain #scriptMessageProcessor} for polling endpoints.
  *
  * @author Artem Bilan

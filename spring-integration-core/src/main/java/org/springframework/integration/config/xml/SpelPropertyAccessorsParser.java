@@ -30,6 +30,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -88,7 +89,7 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 	private synchronized void initializeSpelPropertyAccessorRegistrarIfNecessary(ParserContext parserContext) {
 		if (!this.initialized) {
 			BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SpelPropertyAccessorRegistrar")
+					.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config.SpelPropertyAccessorRegistrar")
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
 					.addConstructorArgValue(this.propertyAccessors);
 			BeanDefinitionReaderUtils.registerWithGeneratedName(registrarBuilder.getBeanDefinition(),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'logging-channel-adapter' element.
- * 
+ *
  * @author Mark Fisher
  * @since 1.0.1
  */
@@ -34,8 +35,7 @@ public class LoggingChannelAdapterParser extends AbstractOutboundChannelAdapterP
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class);
 		builder.addConstructorArgValue(element.getAttribute("level"));
 		String expression = element.getAttribute("expression");
 		String logFullMessage = element.getAttribute("log-full-message");

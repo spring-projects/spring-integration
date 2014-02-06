@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -55,8 +56,7 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 						parserContext.extractSource(element));
 				return;
 			}
-			BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageProcessor");
+			BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageProcessor.class);
 			processorBuilder.addConstructorArgReference(ref);
 			processorBuilder.addConstructorArgValue(method);
 			builder.addPropertyValue("messageProcessor", processorBuilder.getBeanDefinition());
