@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 	 * is closed immediately after the terminator (i.e. no data is in the process of
 	 * being read).
 	 */
+	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
@@ -51,12 +52,11 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 		}
 		while (true) {
 			bite = inputStream.read();
-//			logger.debug("Read:" + (char) bite);
 			if (bite < 0 && n == 0) {
 				throw new SoftEndOfStreamException("Stream closed between payloads");
 			}
 			checkClosure(bite);
-			if (n > 0 && bite == terminator) {
+			if (bite == terminator) {
 				break;
 			}
 			buffer[n++] = (byte) bite;
@@ -73,6 +73,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 	/**
 	 * Writes the byte[] to the stream and appends the terminator.
 	 */
+	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
 		outputStream.write(terminator);
