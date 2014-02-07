@@ -36,7 +36,7 @@
 			</para>
 		</section>
 		<section id="4.0-enable-configuration">
-			<title>@EnableConfiguration</title>
+			<title>@EnableIntegration</title>
 			<para>
 				The <code>@EnableIntegration</code> annotation has been added, to permit declaration of
 				standard Spring Integration beans when using <code>@Configuration</code> classes. See
@@ -49,6 +49,18 @@
 				Message history can now be enabled with the <code>@EnableMessageHistory</code> annotation in a
 				<code>@Configuration</code> class; in addition the message history settings can be modified
 				by a JMX MBean. For more information, see <xref linkend="message-history"/>.
+			</para>
+		</section>
+		<section id="4.0-boot">
+			<title>Spring Boot @EnableAutoConfiguration</title>
+			<para>
+				As well as the <code>@EnableIntegration</code> annotation mentioned above, a
+				a hook has been introduced to allow the
+				Spring Integration infrastructure beans to be configured using Spring Boot's
+				<code>@EnableAutoConfiguration</code>.
+				For more information see
+				<ulink url="http://projects.spring.io/spring-boot/docs/spring-boot-autoconfigure/README.html"
+				>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>
 		<section id="4.0-xpath-header-enricher-header-type">
