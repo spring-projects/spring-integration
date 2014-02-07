@@ -16,47 +16,41 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.beans.factory.xml.ParserContext;
+import java.util.Collections;
+import java.util.Map;
+
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.xml.BeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.type.StandardAnnotationMetadata;
+import org.springframework.integration.config.MessageHistoryRegistrar;
+
 /**
+ * The {@code <message-history/>} parser.
+ * Delegates the {@link BeanDefinition} registration to the {@link MessageHistoryRegistrar}.
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
+public class MessageHistoryParser implements BeanDefinitionParser {
 
-	private static final String CONFIGURER_CLASSNAME = "org.springframework.integration.history.MessageHistoryConfigurer";
-
-
-	@Override
-	protected String getBeanClassName(Element element) {
-		return CONFIGURER_CLASSNAME;
-	}
+	private final MessageHistoryRegistrar messageHistoryRegistrar = new MessageHistoryRegistrar();
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
+	public BeanDefinition parse(final Element element, ParserContext parserContext) {
+		this.messageHistoryRegistrar.registerBeanDefinitions(new StandardAnnotationMetadata(MessageHistoryParser.class) {
 
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) {
-		if (parserContext.getRegistry().containsBeanDefinition(CONFIGURER_CLASSNAME)) {
-			throw new BeanDefinitionStoreException("At most one MessageHistoryConfigurer may be registered within a context.");
-		}
-		return CONFIGURER_CLASSNAME;
-	}
-	
-	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-		
-	}
-	
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "tracked-components", "componentNamePatterns");
-		postProcess(builder, element);
-	}
+			@Override
+			public Map<String, Object> getAnnotationAttributes(String annotationType) {
+				return Collections.<String, Object>singletonMap("value", element.getAttribute("tracked-components"));
+			}
 
+		}, parserContext.getRegistry());
+		return null;
+	}
 }

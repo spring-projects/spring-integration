@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.history;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,12 +29,16 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware {
@@ -58,6 +63,24 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
 		Assert.notEmpty(componentNamePatterns, "componentNamePatterns must not be empty");
 		this.componentNamePatterns = componentNamePatterns;
+	}
+
+	public void setComponentNamePatternsSet(Set<String> componentNamePatternsSet) {
+		Assert.notNull(componentNamePatternsSet, "'componentNamePatternsSet' must not be null");
+		boolean componentNamePatternsExplicitlySet = false;
+		for (String s : componentNamePatternsSet) {
+			String[] componentNamePatterns = StringUtils.delimitedListToStringArray(s, "," , " ");
+			Arrays.sort(componentNamePatterns);
+			if (componentNamePatternsExplicitlySet && !Arrays.equals(this.componentNamePatterns, componentNamePatterns)) {
+				throw new BeanDefinitionValidationException("When more than one message history definition " +
+						"(@EnableMessageHistory or <message-history>)" +
+						" is found in the context, they all must have the same 'componentNamePatterns'");
+			}
+			else {
+				this.componentNamePatterns = componentNamePatterns;
+				componentNamePatternsExplicitlySet = true;
+			}
+		}
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

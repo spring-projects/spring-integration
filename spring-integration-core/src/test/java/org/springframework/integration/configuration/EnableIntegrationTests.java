@@ -18,7 +18,9 @@ package org.springframework.integration.configuration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,6 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
@@ -33,6 +38,8 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableMessageHistory;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -45,7 +52,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  * @author Artem Bilan
  * @since 4.0
  */
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class, classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class EnableIntegrationTests {
 
@@ -65,15 +72,30 @@ public class EnableIntegrationTests {
 		assertNotNull(receive);
 		assertEquals("FOO", receive.getPayload());
 
+		MessageHistory messageHistory = receive.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class);
+		assertNotNull(messageHistory);
+		String messageHistoryString = messageHistory.toString();
+		assertThat(messageHistoryString, Matchers.containsString("input"));
+		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
+
 		receive = this.publishedChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("foo", receive.getPayload());
+
+		messageHistory = receive.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class);
+		assertNotNull(messageHistory);
+		messageHistoryString = messageHistory.toString();
+		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("input")));
+		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
+		assertThat(messageHistoryString, Matchers.containsString("publishedChannel"));
 	}
 
 
 	@Configuration
 	@ComponentScan(basePackageClasses = EnableIntegrationTests.class)
 	@EnableIntegration
+	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
+	@EnableMessageHistory({"input", "publishedChannel"})
 	public static class ContextConfiguration {
 
 		@Bean
@@ -84,6 +106,19 @@ public class EnableIntegrationTests {
 		@Bean
 		public PollableChannel output() {
 			return new QueueChannel();
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	@ImportResource("classpath:org/springframework/integration/configuration/EnableIntegrationTests-context.xml")
+	@EnableMessageHistory("${message.history.tracked.components}")
+	public static class ContextConfiguration2 {
+
+		@Bean
+		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+			return new PropertySourcesPlaceholderConfigurer();
 		}
 
 		@Bean
