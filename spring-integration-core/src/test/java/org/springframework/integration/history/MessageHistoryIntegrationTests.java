@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageRejectedException;
@@ -201,7 +201,7 @@ public class MessageHistoryIntegrationTests {
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test(expected=BeanCreationException.class)
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
 	}

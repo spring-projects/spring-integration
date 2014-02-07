@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 /**
- * Enable {@link org.springframework.integration.history.MessageHistory} for Integration components.
+ * Enables {@link org.springframework.integration.history.MessageHistory} for Integration components.
  *
  * @author Artem Bilan
  * @since 4.0
