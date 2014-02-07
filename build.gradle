@@ -87,6 +87,7 @@ subprojects { subproject ->
 		springSocialTwitterVersion = '1.0.5.RELEASE'
 		springWsVersion = '2.1.1.RELEASE'
 		springRetryVersion = '1.0.3.RELEASE'
+		springBootVersion = '1.0.0.RC1'
 	}
 
 	eclipse {
@@ -205,7 +206,11 @@ project('spring-integration-core') {
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile('com.jayway.jsonpath:json-path:0.9.0', optional)
+
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
+		testCompile ("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion") {
+			exclude group: 'org.springframework'
+		}
 	}
 }
 

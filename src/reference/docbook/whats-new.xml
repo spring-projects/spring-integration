@@ -36,11 +36,20 @@
 			</para>
 		</section>
 		<section>
-			<title>@EnableConfiguration</title>
+			<title>@EnableIntegration</title>
 			<para>
 				The <code>@EnableIntegration</code> annotation has been added, to permit declaration of
 				standard Spring Integration beans when using <code>@Configuration</code> classes. See
 				<xref linkend="enable-integration"/> for more information.
+			</para>
+		</section>
+		<section>
+			<title>Spring Boot @EnableAutoConfiguration</title>
+			<para>
+				Together with <code>@EnableIntegration</code> annotation has been introduced a hook to allow
+				Spring Integration infrastructure via Spring Boot <code>@EnableAutoConfiguration</code>.
+				For more information see
+				<ulink url="http://projects.spring.io/spring-boot/docs/spring-boot-autoconfigure/README.html">Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>
 		<section id="4.0-xpath-header-enricher-header-type">
