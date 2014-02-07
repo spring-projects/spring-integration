@@ -56,7 +56,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 				throw new SoftEndOfStreamException("Stream closed between payloads");
 			}
 			checkClosure(bite);
-			if (n > 0 && bite == terminator) {
+			if (n >= 0 && bite == terminator) {
 				break;
 			}
 			buffer[n++] = (byte) bite;
