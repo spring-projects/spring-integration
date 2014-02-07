@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.serializer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,12 +27,14 @@ import java.net.Socket;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
+ * @author Gavin Gray
  * @since 2.0
  */
 public class DeserializationTests {
@@ -227,5 +230,23 @@ public class DeserializationTests {
 		}
 		server.close();
 	}
+
+    @Test
+    public void canDeserializeMultipleSubsequentTerminators() throws IOException {
+        byte terminator = (byte) '\n';
+        ByteArraySingleTerminatorSerializer serializer = new ByteArraySingleTerminatorSerializer(terminator);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream("s\n\n".getBytes());
+
+        try {
+            byte[] bytes = serializer.deserialize(inputStream);
+            assertEquals(1, bytes.length);
+            assertEquals("s".getBytes()[0], bytes[0]);
+            bytes = serializer.deserialize(inputStream);
+            assertEquals(0, bytes.length);
+        }
+        finally {
+            inputStream.close();
+        }
+    }
 
 }

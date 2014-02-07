@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,12 +51,11 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 		}
 		while (true) {
 			bite = inputStream.read();
-//			logger.debug("Read:" + (char) bite);
 			if (bite < 0 && n == 0) {
 				throw new SoftEndOfStreamException("Stream closed between payloads");
 			}
 			checkClosure(bite);
-			if (n > 0 && bite == terminator) {
+			if (bite == terminator) {
 				break;
 			}
 			buffer[n++] = (byte) bite;
