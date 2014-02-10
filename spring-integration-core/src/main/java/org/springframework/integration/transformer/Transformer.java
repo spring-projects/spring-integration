@@ -20,10 +20,10 @@ import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for transforming a {@link Message}.
- * 
+ *
  * @author Mark Fisher
  */
-public interface Transformer {
+public interface Transformer extends GenericTransformer<Message<?>, Message<?>> {
 
 	Message<?> transform(Message<?> message);
 
