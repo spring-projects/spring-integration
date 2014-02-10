@@ -16,15 +16,16 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.messaging.Message;
-
 /**
- * Strategy interface for message selection.
+ * Generic (lambda) strategy interface for selector.
  *
- * @author Mark Fisher
+ * @param <S> the source type to accept.
+ *
+ * @author Artem Bilan
+ * @since 4.0
  */
-public interface MessageSelector extends GenericSelector<Message<?>> {
+public interface GenericSelector<S> {
 
-	boolean accept(Message<?> message);
+	boolean accept(S source);
 
 }
