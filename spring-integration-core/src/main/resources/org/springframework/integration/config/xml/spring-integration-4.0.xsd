@@ -498,6 +498,24 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+						Used with 'datatype' to convert the message payload, if necessary,
+						to one of the datatypes (in order).
+						Default is a 'DefaultDatatypeChannelMessageConverter'
+						which, in turn, delegates to the 'integrationConversionService'
+						(if present).
+					]]>
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="gateway">

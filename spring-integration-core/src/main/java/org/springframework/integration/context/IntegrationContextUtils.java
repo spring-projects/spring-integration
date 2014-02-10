@@ -66,7 +66,9 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME = "IntegrationConfigurationBeanFactoryPostProcessor";
 
-	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER = "messageHistoryConfigurer";
+	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME = "messageHistoryConfigurer";
+
+	public static final String INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME = "datatypeChannelMessageConverter";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

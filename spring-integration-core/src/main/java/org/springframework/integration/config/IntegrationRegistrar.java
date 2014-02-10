@@ -48,6 +48,7 @@ import org.springframework.integration.config.annotation.MessagingAnnotationPost
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
+import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -55,6 +56,7 @@ import org.springframework.util.StringUtils;
  * {@link ImportBeanDefinitionRegistrar} implementation that configures integration infrastructure.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
@@ -84,6 +86,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		this.registerHeaderChannelRegistry(registry);
 		this.registerBuiltInBeans(registry);
 		this.registerDefaultConfiguringBeanFactoryPostProcessor(registry);
+		this.registerDefaultDatatypeChannelMessageConverter(registry);
 		if (importingClassMetadata != null) {
 			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
@@ -323,6 +326,31 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME, postProcessorBuilder.getBeanDefinition());
 		}
+	}
+
+	/**
+	 * Register the default datatype channel MessageConverter.
+	 *
+	 * @param registry the registry.
+	 */
+	private void registerDefaultDatatypeChannelMessageConverter(BeanDefinitionRegistry registry) {
+		boolean alreadyRegistered = false;
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = registry
+					.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+			BeanDefinitionBuilder converterBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(DefaultDatatypeChannelMessageConverter.class);
+			registry.registerBeanDefinition(
+					IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
+					converterBuilder.getBeanDefinition());
+		}
+
 	}
 
 }

@@ -55,6 +55,10 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		if (StringUtils.hasText(datatypeAttr)) {
 			builder.addPropertyValue("datatypes", datatypeAttr);
 		}
+		String messageConverter = element.getAttribute("message-converter");
+		if (StringUtils.hasText(messageConverter)) {
+			builder.addPropertyReference("messageConverter", messageConverter);
+		}
 		builder.addPropertyValue("interceptors", interceptors);
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		String scopeAttr = element.getAttribute("scope");
