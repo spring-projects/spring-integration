@@ -33,10 +33,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -72,6 +75,9 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private MessageHistoryConfigurer configurer;
+
+	@Autowired
+	private TestGateway testGateway;
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -112,8 +118,15 @@ public class EnableIntegrationTests {
 		assertEquals("*", TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0]);
 	}
 
+	@Test
+	public void testMessagingGateway() {
+		String payload = "bar";
+		assertEquals(payload.toUpperCase(), this.testGateway.echo(payload));
+	}
+
 	@Configuration
-	@ComponentScan(basePackageClasses = EnableIntegrationTests.class)
+	@ComponentScan
+	@IntegrationComponentScan
 	@EnableIntegration
 	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
 	@EnableMessageHistory({"input", "publishedChannel"})
@@ -147,6 +160,11 @@ public class EnableIntegrationTests {
 			return new QueueChannel();
 		}
 
+		@Bean
+		public DirectChannel gatewayChannel() {
+			return new DirectChannel();
+		}
+
 	}
 
 	@MessageEndpoint
@@ -158,6 +176,17 @@ public class EnableIntegrationTests {
 		public String handle(String payload) {
 			return payload.toUpperCase();
 		}
+
+		@Transformer(inputChannel = "gatewayChannel")
+		public String transform(String payload) {
+			return this.handle(payload);
+		}
+	}
+
+	@MessagingGateway(defaultRequestChannel = "gatewayChannel")
+	public static interface TestGateway {
+
+		String echo(String payload);
 
 	}
 
