@@ -651,7 +651,7 @@
 					<xsd:documentation>
 										<![CDATA[
 				An expression that will be used to generate the payload for all methods in the service interface
-				unless explicitly overriden by a method declaration. Variables include #args, #methodName, #methodString
+				unless explicitly overridden by a method declaration. Variables include #args, #methodName, #methodString
 				and #methodObject; a bean resolver is also available, enabling expressions like "@someBean(#args)".
 										]]>
 					</xsd:documentation>

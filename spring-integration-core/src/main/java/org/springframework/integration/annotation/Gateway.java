@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import java.lang.annotation.Target;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -58,5 +59,9 @@ public @interface Gateway {
 	long requestTimeout() default Long.MIN_VALUE;
 
 	long replyTimeout() default Long.MIN_VALUE;
+
+	String payloadExpression() default "";
+
+	GatewayHeader[] headers() default {};
 
 }

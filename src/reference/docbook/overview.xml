@@ -19,7 +19,7 @@
       enterprise applications. Developers benefit from the consistency of this model and especially the fact that it is
       based upon well-established best practices such as programming to interfaces and favoring composition over
       inheritance. Spring's simplified abstractions and powerful support libraries boost developer productivity while
-      simultaneously increasing the level of testability and portability. 
+      simultaneously increasing the level of testability and portability.
     </para>
     <para>
       Spring Integration is motivated by these same goals and principles. It
@@ -343,6 +343,13 @@
       <code>@EnableIntegration</code> is also useful when you have a parent context with no Spring Integration
       components and 2 or more child contexts that do use Spring Integration. It would enable these common
       components to be declared once only, in the parent context.
+    </para>
+	<para>
+        The <code>@IntegrationComponentScan</code> annotation has also been introduced to permit classpath
+		scanning. This annotation plays a similar role as the standard Spring Framework <code>@ComponentScan</code> annotation,
+		but it is restricted just to Spring Integration specific components and annotations,
+		which aren't reachable by the standard Spring Framework component scan mechanism.
+		For example <xref linkend="messaging-gateway-annotation"/>.
     </para>
   </section>
 
