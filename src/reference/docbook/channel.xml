@@ -521,6 +521,11 @@ payload to an Integer.
             payload, or a full <classname>Message</classname> object. If the latter, the converter must
             be careful to copy all the headers from the inbound message.
         </para>
+        <para>
+            Alternatively, declare a <code>&lt;bean/&gt;</code> of type <interfacename>MessageConverter</interfacename>
+            with an id <code>"datatypeChannelMessageConverter"</code> and that converter will be used by
+            all channels with a <code>datatype</code>.
+        </para>
     </section>
 
     <section id="channel-configuration-queuechannel">

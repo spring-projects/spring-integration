@@ -167,6 +167,15 @@ public class ChannelParserTests {
 	}
 
 	@Test
+	public void testDatatypeChannelGlobalConverter() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserGlobalConverterTests.xml", this
+				.getClass());
+		MessageChannel channel = context.getBean("integerChannel", MessageChannel.class);
+		context.close();
+		assertTrue(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter);
+	}
+
+	@Test
 	public void testDatatypeChannelWithAssignableSubTypes() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
