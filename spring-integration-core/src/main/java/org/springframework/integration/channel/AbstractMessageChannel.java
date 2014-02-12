@@ -20,9 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -53,8 +50,6 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile boolean shouldTrack = false;
 
@@ -87,7 +82,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 *
 	 * @param datatypes The supported data types.
 	 *
-	 * @see #setConversionService(ConversionService)
+	 * @see #setMessageConverter(MessageConverter)
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
 		this.datatypes = (datatypes != null && datatypes.length > 0)
@@ -140,13 +135,22 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Deprecated
 	@Override
 	public void setConversionService(ConversionService conversionService) {
+		if (logger.isWarnEnabled()) {
+			logger.warn("The conversion service is no longer used; see setMessageConverter()");
+		}
 	}
 
 	/**
 	 * Specify the {@link MessageConverter} to use when trying to convert to
-	 * one of this channel's supported datatypes for a Message whose payload
+	 * one of this channel's supported datatypes (in order) for a Message whose payload
 	 * does not already match.
-	 *
+	 * <p>
+	 * <b>Note:</b> only the {@link MessageConverter#fromMessage(Message, Class)}
+	 * method is used. If the returned object is not a {@link Message}, the inbound
+	 * headers will be copied; if the returned object is a {@code Message}, it is
+	 * expected that the converter will have fully populated the headers; no
+	 * further action is performed by the channel. If {@code null} is returned,
+	 * conversion to the next datatype (if any) will be attempted.
 	 *
 	 * Defaults to a {@link DefaultDatatypeChannelMessageConverter}.
 	 *
