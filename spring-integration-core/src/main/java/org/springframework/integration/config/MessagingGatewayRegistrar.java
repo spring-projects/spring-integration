@@ -20,6 +20,7 @@ import java.beans.Introspector;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedMap;
@@ -36,8 +37,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * The {@link ImportBeanDefinitionRegistrar} to parse {@link MessagingGateway} and its service-interface
- * and registers {@link GatewayProxyFactoryBean} {@link org.springframework.beans.factory.config.BeanDefinition}.
+ * The {@link ImportBeanDefinitionRegistrar} to parse {@link MessagingGateway} and its {@code service-interface}
+ * and to register {@link BeanDefinition} {@link GatewayProxyFactoryBean}.
  *
  * @author Artem Bilan
  * @since 4.0
@@ -46,15 +47,33 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		if (importingClassMetadata == null || !importingClassMetadata.hasAnnotation(MessagingGateway.class.getName())) {
+			return;
+		}
+
 		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
+
+
+		BeanDefinition gatewayBeanDefinition = this.parse(importingClassMetadata);
+
 		String id = (String) annotationAttributes.get("value");
+		if (!StringUtils.hasText(id)) {
+			String serviceInterface = gatewayBeanDefinition.getConstructorArgumentValues().getIndexedArgumentValue(0, Class.class).getValue().toString();
+			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf(".") + 1));
+		}
+
+		registry.registerBeanDefinition(id, gatewayBeanDefinition);
+	}
+
+	public BeanDefinition parse(AnnotationMetadata importingClassMetadata) {
+		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
+
 		String defaultPayloadExpression = (String) annotationAttributes.get("defaultPayloadExpression");
+
 		AnnotationAttributes[] defaultHeaders = (AnnotationAttributes[]) annotationAttributes.get("defaultHeaders");
 		String defaultRequestChannel = (String) annotationAttributes.get("defaultRequestChannel");
 		String defaultReplyChannel = (String) annotationAttributes.get("defaultReplyChannel");
 		String errorChannel = (String) annotationAttributes.get("errorChannel");
-		Long defaultRequestTimeout = (Long) annotationAttributes.get("defaultRequestTimeout");
-		Long defaultReplyTimeout = (Long) annotationAttributes.get("defaultReplyTimeout");
 		String asyncExecutor = (String) annotationAttributes.get("asyncExecutor");
 		String mapper = (String) annotationAttributes.get("mapper");
 
@@ -93,43 +112,36 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		if (StringUtils.hasText(mapper)) {
 			gatewayProxyBuilder.addPropertyReference("mapper", mapper);
 		}
-		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeout", defaultRequestTimeout);
-		gatewayProxyBuilder.addPropertyValue("defaultReplyTimeout", defaultReplyTimeout);
+
+		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeout", annotationAttributes.get("defaultRequestTimeout"));
+		gatewayProxyBuilder.addPropertyValue("defaultReplyTimeout", annotationAttributes.get("defaultReplyTimeout"));
+		gatewayProxyBuilder.addPropertyValue("methodMetadataMap", annotationAttributes.get("methods"));
 
 		String serviceInterface = importingClassMetadata.getClassName();
-		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
-
-		if (!StringUtils.hasText(id)) {
-			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf(".") + 1));
+		if (!StringUtils.hasText(serviceInterface)) {
+			serviceInterface = "org.springframework.integration.gateway.RequestReplyExchanger";
 		}
 
-		registry.registerBeanDefinition(id, gatewayProxyBuilder.getBeanDefinition());
+		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
+
+		return gatewayProxyBuilder.getBeanDefinition();
 	}
 
-	private void setMethodInvocationHeaders(BeanDefinitionBuilder methodMetadataBuilder, AnnotationAttributes[] headerAnnotations) {
+	private void setMethodInvocationHeaders(BeanDefinitionBuilder methodMetadataBuilder, Map<String, Object>[] headerAnnotations) {
 		Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
-		for (AnnotationAttributes headerAnnotation : headerAnnotations) {
-			String headerName = (String) headerAnnotation.get("name");
-			Assert.state(StringUtils.hasText(headerName), "The 'name' attribute is is required for gateway's header.");
-
+		for (Map<String, Object> headerAnnotation : headerAnnotations) {
 			String headerValue = (String) headerAnnotation.get("value");
 			String headerExpression = (String) headerAnnotation.get("expression");
 			boolean hasValue = StringUtils.hasText(headerValue);
-			boolean hasExpression = StringUtils.hasText(headerExpression);
-			if (!(hasValue ^ hasExpression)) {
+
+			if (!(hasValue ^ StringUtils.hasText(headerExpression))) {
 				throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a gateway's header.");
 			}
-			RootBeanDefinition expressionDef = null;
-			if (hasValue) {
-				expressionDef = new RootBeanDefinition(LiteralExpression.class);
-				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
-			}
-			else {
-				expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
-			}
 
-			headerExpressions.put(headerName, expressionDef);
+			BeanDefinition expressionDef = new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(hasValue ? headerValue : headerExpression);
+
+			headerExpressions.put((String) headerAnnotation.get("name"), expressionDef);
 		}
 		methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
 	}

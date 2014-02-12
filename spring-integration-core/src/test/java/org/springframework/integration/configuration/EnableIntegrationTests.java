@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.hamcrest.Matchers;
@@ -33,6 +34,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -178,14 +181,19 @@ public class EnableIntegrationTests {
 		}
 
 		@Transformer(inputChannel = "gatewayChannel")
-		public String transform(String payload) {
-			return this.handle(payload);
+		public String transform(Message<String> message) {
+			assertTrue(message.getHeaders().containsKey("foo"));
+			assertEquals("FOO", message.getHeaders().get("foo"));
+			assertTrue(message.getHeaders().containsKey("calledMethod"));
+			assertEquals("echo", message.getHeaders().get("calledMethod"));
+			return this.handle(message.getPayload());
 		}
 	}
 
-	@MessagingGateway(defaultRequestChannel = "gatewayChannel")
+	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public static interface TestGateway {
 
+		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression="#gatewayMethod.name"))
 		String echo(String payload);
 
 	}

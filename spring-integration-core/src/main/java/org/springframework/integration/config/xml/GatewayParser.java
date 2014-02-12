@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,27 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.xml.BeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.core.type.StandardAnnotationMetadata;
+import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.config.MessagingGatewayRegistrar;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
-import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -43,129 +46,103 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
+public class GatewayParser implements BeanDefinitionParser {
 
-	private static String[] referenceAttributes = new String[] {
-		"default-request-channel", "default-reply-channel", "error-channel", "message-mapper", "async-executor", "mapper"
-	};
-
-	private static String[] innerAttributes = new String[] {
-		"request-channel", "reply-channel", "request-timeout", "reply-timeout", "error-channel"
-	};
-
+	private final MessagingGatewayRegistrar registrar = new MessagingGatewayRegistrar();
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return GatewayProxyFactoryBean.class.getName();
-	}
+	public BeanDefinition parse(final Element element, ParserContext parserContext) {
+		boolean isNested = parserContext.isNested();
 
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
+		final Map<String, Object> gatewayAttributes = new HashMap<String, Object>();
+		gatewayAttributes.put("value", element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
+		gatewayAttributes.put("defaultPayloadExpression", element.getAttribute("default-payload-expression"));
+		gatewayAttributes.put("defaultRequestChannel", element.getAttribute(isNested ? "request-channel" : "default-request-channel"));
+		gatewayAttributes.put("defaultReplyChannel", element.getAttribute(isNested ? "reply-channel" : "default-reply-channel"));
+		gatewayAttributes.put("errorChannel", element.getAttribute("error-channel"));
+		gatewayAttributes.put("asyncExecutor", element.getAttribute("async-executor"));
+		gatewayAttributes.put("mapper", element.getAttribute("mapper"));
+		gatewayAttributes.put("defaultReplyTimeout", element.getAttribute(isNested ? "reply-timeout" : "default-reply-timeout"));
+		gatewayAttributes.put("defaultRequestTimeout", element.getAttribute(isNested ? "request-timeout" : "default-request-timeout"));
 
-	@Override
-	protected boolean isEligibleAttribute(String attributeName) {
-		return !ObjectUtils.containsElement(referenceAttributes, attributeName)
-				&& !ObjectUtils.containsElement(innerAttributes, attributeName)
-				&& !("default-payload-expression".equals(attributeName))
-				&& super.isEligibleAttribute(attributeName);
-	}
 
-	@Override
-	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		if ("chain".equals(element.getParentNode().getLocalName())) {
-			this.postProcessInnerGateway(builder, element);
+		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
+		if (!CollectionUtils.isEmpty(headerElements)) {
+			List<AnnotationAttributes> headers = new ArrayList<AnnotationAttributes>(headerElements.size());
+			for (Element e : headerElements) {
+				Map<String, Object> header = new HashMap<String, Object>();
+				header.put("name", e.getAttribute("name"));
+				header.put("value", e.getAttribute("value"));
+				header.put("expression", e.getAttribute("expression"));
+				headers.add(new AnnotationAttributes(header));
+			}
+			gatewayAttributes.put("defaultHeaders", headers.toArray(new AnnotationAttributes[headers.size()]));
+		}
+
+		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
+		if (!CollectionUtils.isEmpty(methodElements)) {
+			Map<String, BeanDefinition> methodMetadataMap = new ManagedMap<String, BeanDefinition>();
+			for (Element methodElement : methodElements) {
+				String methodName = methodElement.getAttribute("name");
+				BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						GatewayMethodMetadata.class);
+				methodMetadataBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
+				methodMetadataBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
+				methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
+				methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
+
+				boolean hasMapper = StringUtils.hasText(element.getAttribute("mapper"));
+				Assert.state(!hasMapper || !StringUtils.hasText(element.getAttribute("payload-expression")),
+						"'payload-expression' is not allowed when a 'mapper' is provided");
+
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement, "payload-expression");
+
+				List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
+				if (!CollectionUtils.isEmpty(invocationHeaders)) {
+					Assert.state(!hasMapper, "header elements are not allowed when a 'mapper' is provided");
+
+					Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
+					for (Element headerElement : invocationHeaders) {
+						BeanDefinition expressionDef = IntegrationNamespaceUtils
+								.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext, headerElement, true);
+
+						headerExpressions.put(headerElement.getAttribute("name"), expressionDef);
+					}
+					methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
+				}
+				methodMetadataMap.put(methodName, methodMetadataBuilder.getBeanDefinition());
+			}
+
+			gatewayAttributes.put("methods", methodMetadataMap);
+		}
+
+		AnnotationMetadata importingClassMetadata = new StandardAnnotationMetadata(GatewayParser.class) {
+
+			@Override
+			public Map<String, Object> getAnnotationAttributes(String annotationType) {
+				return gatewayAttributes;
+			}
+
+			@Override
+			public String getClassName() {
+				return element.getAttribute("service-interface");
+			}
+
+			@Override
+			public boolean hasAnnotation(String annotationType) {
+				return MessagingGateway.class.getName().equals(annotationType);
+			}
+		};
+
+		if (isNested) {
+			return this.registrar.parse(importingClassMetadata);
 		}
 		else {
-			this.postProcessGateway(builder, element);
+			this.registrar.registerBeanDefinitions(importingClassMetadata, parserContext.getRegistry());
 		}
-	}
-
-	private void postProcessInnerGateway(BeanDefinitionBuilder builder, Element element) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel", "defaultRequestChannel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "defaultReplyChannel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "defaultRequestTimeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "async-executor");
-	}
-
-	private void postProcessGateway(BeanDefinitionBuilder builder, Element element) {
-		for (String attributeName : referenceAttributes) {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
-		}
-
-		boolean hasMapper = StringUtils.hasText(element.getAttribute("mapper"));
-		boolean hasDefaultPayloadExpression = StringUtils.hasText(element.getAttribute("default-payload-expression"));
-		Assert.state(hasMapper ? !hasDefaultPayloadExpression : true, "'default-payload-expression' is not allowed when a 'mapper' is provided");
-
-		List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(element, "default-header");
-		boolean hasDefaultHeaders = !CollectionUtils.isEmpty(invocationHeaders);
-
-		Assert.state(hasMapper ? !hasDefaultHeaders : true, "default-header elements are not allowed when a 'mapper' is provided");
-
-		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
-			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					GatewayMethodMetadata.class);
-			this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, element,
-					"default-payload-expression", "payloadExpression");
-			builder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
-		}
-
-		List<Element> elements = DomUtils.getChildElementsByTagName(element, "method");
-		ManagedMap<String, BeanDefinition> methodMetadataMap = null;
-		if (elements != null && elements.size() > 0) {
-			methodMetadataMap = new ManagedMap<String, BeanDefinition>();
-		}
-		for (Element methodElement : elements) {
-			String methodName = methodElement.getAttribute("name");
-			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					GatewayMethodMetadata.class);
-			methodMetadataBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
-			methodMetadataBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
-			methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
-			methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement, "payload-expression");
-			Assert.state(hasMapper ? !StringUtils.hasText(element.getAttribute("payload-expression")) : true,
-						"'payload-expression' is not allowed when a 'mapper' is provided");
-			invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
-			if (!CollectionUtils.isEmpty(invocationHeaders)) {
-				Assert.state(!hasMapper, "header elements are not allowed when a 'mapper' is provided");
-				this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
-			}
-			methodMetadataMap.put(methodName, methodMetadataBuilder.getBeanDefinition());
-		}
-		builder.addPropertyValue("methodMetadataMap", methodMetadataMap);
-	}
-
-	private void setMethodInvocationHeaders(BeanDefinitionBuilder gatewayDefinitionBuilder, List<Element> invocationHeaders) {
-		Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
-		for (Element headerElement : invocationHeaders) {
-			String headerName = headerElement.getAttribute("name");
-			String headerValue = headerElement.getAttribute("value");
-			String headerExpression = headerElement.getAttribute("expression");
-			boolean hasValue = StringUtils.hasText(headerValue);
-			boolean hasExpression = StringUtils.hasText(headerExpression);
-			if (!(hasValue ^ hasExpression)) {
-				throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a header sub-element");
-			}
-			RootBeanDefinition expressionDef = null;
-			if (hasValue) {
-				expressionDef = new RootBeanDefinition(LiteralExpression.class);
-				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
-			}
-			else if (hasExpression) {
-				expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
-			}
-			if (expressionDef != null) {
-				headerExpressions.put(headerName, expressionDef);
-			}
-		}
-		gatewayDefinitionBuilder.addPropertyValue("headerExpressions", headerExpressions);
+		return null;
 	}
 
 }

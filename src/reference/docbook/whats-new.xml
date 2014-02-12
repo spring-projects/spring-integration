@@ -39,8 +39,16 @@
 			<title>@EnableIntegration</title>
 			<para>
 				The <code>@EnableIntegration</code> annotation has been added, to permit declaration of
-				standard Spring Integration beans when using <code>@Configuration</code> classes. See
-				<xref linkend="enable-integration"/> for more information.
+				standard Spring Integration beans when using <code>@Configuration</code> classes.
+				See <xref linkend="enable-integration"/> for more information.
+			</para>
+		</section>
+		<section id="4.0-component-scan">
+			<title>@IntegrationComponentScan</title>
+			<para>
+				The <code>@IntegrationComponentScan</code> annotation has been added, to permit classpath
+				scanning for Spring Integration specific components.
+				See <xref linkend="enable-integration"/> for more information.
 			</para>
 		</section>
 		<section id="4.0-message-history">
@@ -49,6 +57,14 @@
 				Message history can now be enabled with the <code>@EnableMessageHistory</code> annotation in a
 				<code>@Configuration</code> class; in addition the message history settings can be modified
 				by a JMX MBean. For more information, see <xref linkend="message-history"/>.
+			</para>
+		</section>
+		<section id="4.0-messaging-gateway">
+			<title>@MessagingGateway</title>
+			<para>
+				Messaging gateway interfaces can now be configured with the <code>@MessagingGateway</code> annotation.
+				It is an analogue of <code>&lt;gateway&gt;</code> xml element.
+				For more information, see <xref linkend="messaging-gateway-annotation"/>.
 			</para>
 		</section>
 		<section id="4.0-boot">

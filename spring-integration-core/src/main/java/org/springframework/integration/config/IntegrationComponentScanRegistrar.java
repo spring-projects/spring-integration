@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.core.type.filter.TypeFilter;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -39,9 +41,15 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @since 4.0
  */
-public class IntegrationComponentsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
+public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
+
+	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
 
 	private ResourceLoader resourceLoader;
+
+	public IntegrationComponentScanRegistrar() {
+		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class), new MessagingGatewayRegistrar());
+	}
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
@@ -78,15 +86,20 @@ public class IntegrationComponentsRegistrar implements ImportBeanDefinitionRegis
 				return beanDefinition.getMetadata().isIndependent();
 			}
 		};
-		scanner.addIncludeFilter(new AnnotationTypeFilter(MessagingGateway.class));
+
+		for (TypeFilter typeFilter : componentRegistrars.keySet()) {
+			scanner.addIncludeFilter(typeFilter);
+		}
+
 		scanner.setResourceLoader(resourceLoader);
 
 		for (String basePackage : basePackages) {
 			Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
 			for (BeanDefinition candidateComponent : candidateComponents) {
-				if (candidateComponent instanceof AnnotatedBeanDefinition &&
-						((AnnotatedBeanDefinition) candidateComponent).getMetadata().hasAnnotation(MessagingGateway.class.getName())) {
-					new MessagingGatewayRegistrar().registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(), registry);
+				if (candidateComponent instanceof AnnotatedBeanDefinition) {
+					for (ImportBeanDefinitionRegistrar importBeanDefinitionRegistrar : componentRegistrars.values()) {
+						importBeanDefinitionRegistrar.registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(), registry);
+					}
 				}
 			}
 		}

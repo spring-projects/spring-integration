@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
-import org.springframework.integration.config.IntegrationComponentsRegistrar;
+import org.springframework.integration.config.IntegrationComponentScanRegistrar;
 
 /**
  * Configures component scanning directives for use with @{@link org.springframework.context.annotation.Configuration} classes.
@@ -35,7 +35,7 @@ import org.springframework.integration.config.IntegrationComponentsRegistrar;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import(IntegrationComponentsRegistrar.class)
+@Import(IntegrationComponentScanRegistrar.class)
 public @interface IntegrationComponentScan {
 
 	/**
