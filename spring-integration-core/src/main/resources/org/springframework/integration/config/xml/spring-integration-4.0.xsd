@@ -498,6 +498,29 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+						Used with 'datatype' to convert the message payload, if necessary,
+						to one of the datatypes (in order).
+						Note: only the MessageConverter.fromMessage(Message, Class) method is used.
+						If the returned object is not a Message, the inbound headers will be copied;
+						if the returned object is a Message, it is expected that the converter wil
+						have fully populated the headers; no further action is performed by the channel.
+						If null is returned, conversion to the next datatype (if any) will be attempted.
+						Default is a 'DefaultDatatypeChannelMessageConverter'
+						which, in turn, delegates to the 'integrationConversionService'
+						(if present).
+					]]>
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="gateway">

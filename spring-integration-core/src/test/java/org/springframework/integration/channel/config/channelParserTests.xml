@@ -6,6 +6,10 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<converter>
+		<beans:bean class="org.springframework.integration.channel.config.ChannelParserTests$TestConverter" />
+	</converter>
+
 	<channel id="capacityChannel">
 		<queue capacity="10" />
 	</channel>
@@ -27,15 +31,18 @@
 	<publish-subscribe-channel id="publishSubscribeChannelWithTaskExecutorRef"
 		task-executor="taskExecutor" />
 
-	<channel id="integerChannel" datatype="java.lang.Integer">
+	<channel id="integerChannel" datatype="java.lang.Integer" message-converter="uselessConverter">
 		<queue capacity="10" />
 	</channel>
+
+	<beans:bean id="uselessConverter" class="org.springframework.integration.channel.config.ChannelParserTests$UselessMessageConverter" />
 
 	<channel id="numberChannel" datatype="java.lang.Number">
 		<queue capacity="10" />
 	</channel>
 
-	<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number">
+	<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"
+			 message-converter="uselessConverter">
 		<queue capacity="10" />
 	</channel>
 

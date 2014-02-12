@@ -509,6 +509,18 @@ payload to an Integer.
                For more information regarding Payload Type Conversion, please read <xref linkend="payload-type-conversion"/>.
             </para>
         </note>
+        <para>
+            Beginning with <emphasis>version 4.0</emphasis>, the <code>integrationConversionService</code> is invoked
+            by the <classname>DefaultDatatypeChannelMessageConverter</classname>, which looks up the conversion
+            service in the application context. To use a different conversion technique, you can specify the
+            <code>message-converter</code> attribute on the channel. This must be a reference to a
+            <interfacename>MessageConverter</interfacename> implementation.
+            Only the <code>fromMessage</code> method is used, which provides the
+            converter with access to the message headers (for example if the conversion might need information
+            from the headers, such as <code>content-type</code>). The method can return just the converted
+            payload, or a full <classname>Message</classname> object. If the latter, the converter must
+            be careful to copy all the headers from the inbound message.
+        </para>
     </section>
 
     <section id="channel-configuration-queuechannel">

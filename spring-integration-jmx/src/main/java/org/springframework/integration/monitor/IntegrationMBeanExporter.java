@@ -255,7 +255,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 		}
 
-		if (IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER.equals(beanName)
+		if (IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME.equals(beanName)
 				&& bean instanceof MessageHistoryConfigurer) {
 			this.messageHistoryConfigurer = (MessageHistoryConfigurer) bean;
 			return bean;
@@ -462,7 +462,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		registerEndpoints();
 		if (this.messageHistoryConfigurer != null) {
 			this.registerBeanInstance(this.messageHistoryConfigurer,
-					IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER);
+					IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
 		}
 	}
 

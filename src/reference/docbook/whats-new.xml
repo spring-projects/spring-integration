@@ -89,5 +89,13 @@
 				considered for outbound messages. For more information see <xref linkend="jms-header-mapping"/>.
 			</para>
 		</section>
+		<section id="4.0-datatype-channel">
+			<title>Datatype Channels</title>
+			<para>
+				You can now specify a <interfacename>MessageConverter</interfacename> to be used when converting
+				(if necessary) payloads to one of the accepted <code>datatype</code>s in a Datatype channel.
+				For more information see <xref linkend="channel-datatype-channel"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

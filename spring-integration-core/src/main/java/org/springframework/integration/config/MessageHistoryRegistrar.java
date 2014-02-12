@@ -54,7 +54,7 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 			componentNamePatterns = componentNamePatternsString.substring(0, componentNamePatternsString.length() - 1);
 		}
 
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER)) {
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME)) {
 			Set<Object> componentNamePatternsSet = new ManagedSet<Object>();
 			componentNamePatternsSet.add(componentNamePatterns);
 
@@ -62,11 +62,11 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 					.addPropertyValue("componentNamePatternsSet", componentNamePatternsSet)
 					.getBeanDefinition();
 
-			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER, messageHistoryConfigurer);
+			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME, messageHistoryConfigurer);
 
 		}
 		else {
-			BeanDefinition beanDefinition = registry.getBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER);
+			BeanDefinition beanDefinition = registry.getBeanDefinition(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
 			PropertyValue propertyValue = beanDefinition
 					.getPropertyValues().getPropertyValue("componentNamePatternsSet");
 			if (propertyValue != null) {

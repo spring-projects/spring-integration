@@ -20,19 +20,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -51,8 +51,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
 	private volatile boolean shouldTrack = false;
 
 	private volatile Class<?>[] datatypes = new Class<?>[] { Object.class };
@@ -61,6 +59,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile String fullChannelName;
 
+	private volatile MessageConverter messageConverter;
 
 	@Override
 	public String getComponentType() {
@@ -83,7 +82,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 *
 	 * @param datatypes The supported data types.
 	 *
-	 * @see #setConversionService(ConversionService)
+	 * @see #setMessageConverter(MessageConverter)
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
 		this.datatypes = (datatypes != null && datatypes.length > 0)
@@ -129,14 +128,36 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * does not already match. If this property is not set explicitly but
 	 * the channel is managed within a context, it will attempt to locate a
 	 * bean named "integrationConversionService" defined within that context.
-	 * Finally, if that bean is not available, it will fallback to the
-	 * "conversionService" bean, if available.
 	 *
 	 * @param conversionService The conversion service.
+	 * @deprecated No longer used; see {@link DefaultDatatypeChannelMessageConverter}.
 	 */
+	@Deprecated
 	@Override
 	public void setConversionService(ConversionService conversionService) {
-		super.setConversionService(conversionService);
+		if (logger.isWarnEnabled()) {
+			logger.warn("The conversion service is no longer used; see setMessageConverter()");
+		}
+	}
+
+	/**
+	 * Specify the {@link MessageConverter} to use when trying to convert to
+	 * one of this channel's supported datatypes (in order) for a Message whose payload
+	 * does not already match.
+	 * <p>
+	 * <b>Note:</b> only the {@link MessageConverter#fromMessage(Message, Class)}
+	 * method is used. If the returned object is not a {@link Message}, the inbound
+	 * headers will be copied; if the returned object is a {@code Message}, it is
+	 * expected that the converter will have fully populated the headers; no
+	 * further action is performed by the channel. If {@code null} is returned,
+	 * conversion to the next datatype (if any) will be attempted.
+	 *
+	 * Defaults to a {@link DefaultDatatypeChannelMessageConverter}.
+	 *
+	 * @param messageConverter The message converter.
+	 */
+	public void setMessageConverter(MessageConverter messageConverter) {
+		this.messageConverter = messageConverter;
 	}
 
 	/**
@@ -154,6 +175,21 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	protected ChannelInterceptorList getInterceptors() {
 		return this.interceptors;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.messageConverter == null) {
+			if (this.getBeanFactory() != null) {
+				if (this.getBeanFactory().containsBean(
+						IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME)) {
+					this.messageConverter = this.getBeanFactory().getBean(
+							IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
+							MessageConverter.class);
+				}
+			}
+		}
 	}
 
 	/**
@@ -235,13 +271,17 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				return message;
 			}
 		}
-		// second pass applies conversion if possible, attempting datatypes in order
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null) {
+		if (this.messageConverter != null) {
+			// second pass applies conversion if possible, attempting datatypes in order
 			for (Class<?> datatype : this.datatypes) {
-				if (conversionService.canConvert(message.getPayload().getClass(), datatype)) {
-					Object convertedPayload = conversionService.convert(message.getPayload(), datatype);
-					return MessageBuilder.withPayload(convertedPayload).copyHeaders(message.getHeaders()).build();
+				Object converted = this.messageConverter.fromMessage(message, datatype);
+				if (converted != null) {
+					if (converted instanceof Message) {
+						return (Message<?>) converted;
+					}
+					else {
+						return MessageBuilder.withPayload(converted).copyHeaders(message.getHeaders()).build();
+					}
 				}
 			}
 		}
