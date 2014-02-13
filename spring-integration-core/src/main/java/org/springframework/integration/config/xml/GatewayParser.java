@@ -24,15 +24,13 @@ import java.util.Map;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.core.type.StandardAnnotationMetadata;
-import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.config.MessagingGatewayRegistrar;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.util.Assert;
@@ -53,6 +51,7 @@ public class GatewayParser implements BeanDefinitionParser {
 	private final MessagingGatewayRegistrar registrar = new MessagingGatewayRegistrar();
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		boolean isNested = parserContext.isNested();
 
@@ -70,15 +69,15 @@ public class GatewayParser implements BeanDefinitionParser {
 
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
 		if (!CollectionUtils.isEmpty(headerElements)) {
-			List<AnnotationAttributes> headers = new ArrayList<AnnotationAttributes>(headerElements.size());
+			List<Map<String, Object>> headers = new ArrayList<Map<String, Object>>(headerElements.size());
 			for (Element e : headerElements) {
 				Map<String, Object> header = new HashMap<String, Object>();
 				header.put("name", e.getAttribute("name"));
 				header.put("value", e.getAttribute("value"));
 				header.put("expression", e.getAttribute("expression"));
-				headers.add(new AnnotationAttributes(header));
+				headers.add(header);
 			}
-			gatewayAttributes.put("defaultHeaders", headers.toArray(new AnnotationAttributes[headers.size()]));
+			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map[headers.size()]));
 		}
 
 		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
@@ -118,31 +117,16 @@ public class GatewayParser implements BeanDefinitionParser {
 			gatewayAttributes.put("methods", methodMetadataMap);
 		}
 
-		AnnotationMetadata importingClassMetadata = new StandardAnnotationMetadata(GatewayParser.class) {
+		gatewayAttributes.put("serviceInterface", element.getAttribute("service-interface"));
 
-			@Override
-			public Map<String, Object> getAnnotationAttributes(String annotationType) {
-				return gatewayAttributes;
-			}
-
-			@Override
-			public String getClassName() {
-				return element.getAttribute("service-interface");
-			}
-
-			@Override
-			public boolean hasAnnotation(String annotationType) {
-				return MessagingGateway.class.getName().equals(annotationType);
-			}
-		};
-
+		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes);
 		if (isNested) {
-			return this.registrar.parse(importingClassMetadata);
+			return gatewayHolder.getBeanDefinition();
 		}
 		else {
-			this.registrar.registerBeanDefinitions(importingClassMetadata, parserContext.getRegistry());
+			BeanDefinitionReaderUtils.registerBeanDefinition(gatewayHolder, parserContext.getRegistry());
+			return null;
 		}
-		return null;
 	}
 
 }

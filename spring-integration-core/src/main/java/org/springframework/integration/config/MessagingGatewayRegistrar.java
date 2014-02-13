@@ -21,12 +21,13 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -47,35 +48,26 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		if (importingClassMetadata == null || !importingClassMetadata.hasAnnotation(MessagingGateway.class.getName())) {
-			return;
+		if (importingClassMetadata != null && importingClassMetadata.hasAnnotation(MessagingGateway.class.getName())) {
+			Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
+			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
+
+			BeanDefinitionReaderUtils.registerBeanDefinition(this.parse(annotationAttributes), registry);
 		}
-
-		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
-
-
-		BeanDefinition gatewayBeanDefinition = this.parse(importingClassMetadata);
-
-		String id = (String) annotationAttributes.get("name");
-		if (!StringUtils.hasText(id)) {
-			String serviceInterface = gatewayBeanDefinition.getConstructorArgumentValues().getIndexedArgumentValue(0, Class.class).getValue().toString();
-			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf(".") + 1));
-		}
-
-		registry.registerBeanDefinition(id, gatewayBeanDefinition);
 	}
 
-	public BeanDefinition parse(AnnotationMetadata importingClassMetadata) {
-		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
+	public BeanDefinitionHolder parse(Map<String, Object> gatewayAttributes) {
 
-		String defaultPayloadExpression = (String) annotationAttributes.get("defaultPayloadExpression");
+		String defaultPayloadExpression = (String) gatewayAttributes.get("defaultPayloadExpression");
 
-		AnnotationAttributes[] defaultHeaders = (AnnotationAttributes[]) annotationAttributes.get("defaultHeaders");
-		String defaultRequestChannel = (String) annotationAttributes.get("defaultRequestChannel");
-		String defaultReplyChannel = (String) annotationAttributes.get("defaultReplyChannel");
-		String errorChannel = (String) annotationAttributes.get("errorChannel");
-		String asyncExecutor = (String) annotationAttributes.get("asyncExecutor");
-		String mapper = (String) annotationAttributes.get("mapper");
+		@SuppressWarnings("unchecked")
+		Map<String, Object>[] defaultHeaders = (Map<String, Object>[]) gatewayAttributes.get("defaultHeaders");
+
+		String defaultRequestChannel = (String) gatewayAttributes.get("defaultRequestChannel");
+		String defaultReplyChannel = (String) gatewayAttributes.get("defaultReplyChannel");
+		String errorChannel = (String) gatewayAttributes.get("errorChannel");
+		String asyncExecutor = (String) gatewayAttributes.get("asyncExecutor");
+		String mapper = (String) gatewayAttributes.get("mapper");
 
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
@@ -86,13 +78,27 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 		BeanDefinitionBuilder gatewayProxyBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyFactoryBean.class);
 
-
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
 			if (hasDefaultPayloadExpression) {
 				methodMetadataBuilder.addPropertyValue("payloadExpression", defaultPayloadExpression);
 			}
-			this.setMethodInvocationHeaders(methodMetadataBuilder, defaultHeaders);
+			Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
+			for (Map<String, Object> header : defaultHeaders) {
+				String headerValue = (String) header.get("value");
+				String headerExpression = (String) header.get("expression");
+				boolean hasValue = StringUtils.hasText(headerValue);
+
+				if (!(hasValue ^ StringUtils.hasText(headerExpression))) {
+					throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a gateway's header.");
+				}
+
+				BeanDefinition expressionDef = new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
+				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(hasValue ? headerValue : headerExpression);
+
+				headerExpressions.put((String) header.get("name"), expressionDef);
+			}
+			methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
 			gatewayProxyBuilder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
 		}
 
@@ -113,37 +119,23 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 			gatewayProxyBuilder.addPropertyReference("mapper", mapper);
 		}
 
-		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeout", annotationAttributes.get("defaultRequestTimeout"));
-		gatewayProxyBuilder.addPropertyValue("defaultReplyTimeout", annotationAttributes.get("defaultReplyTimeout"));
-		gatewayProxyBuilder.addPropertyValue("methodMetadataMap", annotationAttributes.get("methods"));
+		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeout", gatewayAttributes.get("defaultRequestTimeout"));
+		gatewayProxyBuilder.addPropertyValue("defaultReplyTimeout", gatewayAttributes.get("defaultReplyTimeout"));
+		gatewayProxyBuilder.addPropertyValue("methodMetadataMap", gatewayAttributes.get("methods"));
 
-		String serviceInterface = importingClassMetadata.getClassName();
+
+		String serviceInterface = (String) gatewayAttributes.get("serviceInterface");
 		if (!StringUtils.hasText(serviceInterface)) {
 			serviceInterface = "org.springframework.integration.gateway.RequestReplyExchanger";
+		}
+		String id = (String) gatewayAttributes.get("name");
+		if (!StringUtils.hasText(id)) {
+			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf(".") + 1));
 		}
 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
 
-		return gatewayProxyBuilder.getBeanDefinition();
-	}
-
-	private void setMethodInvocationHeaders(BeanDefinitionBuilder methodMetadataBuilder, Map<String, Object>[] headerAnnotations) {
-		Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
-		for (Map<String, Object> headerAnnotation : headerAnnotations) {
-			String headerValue = (String) headerAnnotation.get("value");
-			String headerExpression = (String) headerAnnotation.get("expression");
-			boolean hasValue = StringUtils.hasText(headerValue);
-
-			if (!(hasValue ^ StringUtils.hasText(headerExpression))) {
-				throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a gateway's header.");
-			}
-
-			BeanDefinition expressionDef = new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(hasValue ? headerValue : headerExpression);
-
-			headerExpressions.put((String) headerAnnotation.get("name"), expressionDef);
-		}
-		methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
+		return new BeanDefinitionHolder(gatewayProxyBuilder.getBeanDefinition(), id);
 	}
 
 }
