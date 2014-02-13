@@ -241,8 +241,9 @@ public String send2(Map foo, Map bar);
   <int:method name="echoViaDefault"/>
 </int:gateway>]]></programlisting>
 	<programlisting language="java"><![CDATA[
-@MessagingGateway(value = "myGateway", defaultRequestChannel = "inputC",
-		defaultHeaders = @GatewayHeader(name = "calledMethod", expression="#gatewayMethod.name"))
+@MessagingGateway(name = "myGateway", defaultRequestChannel = "inputC",
+		   defaultHeaders = @GatewayHeader(name = "calledMethod",
+		                           expression="#gatewayMethod.name"))
 public interface TestGateway {
 
    @Gateway(requestChannel = "inputA", replyTimeout = 2, requestTimeout = 200)

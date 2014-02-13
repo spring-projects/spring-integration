@@ -56,7 +56,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 		BeanDefinition gatewayBeanDefinition = this.parse(importingClassMetadata);
 
-		String id = (String) annotationAttributes.get("value");
+		String id = (String) annotationAttributes.get("name");
 		if (!StringUtils.hasText(id)) {
 			String serviceInterface = gatewayBeanDefinition.getConstructorArgumentValues().getIndexedArgumentValue(0, Class.class).getValue().toString();
 			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf(".") + 1));

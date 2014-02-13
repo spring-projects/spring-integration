@@ -39,7 +39,7 @@ public @interface MessagingGateway {
 	 *
 	 * @return the suggested component name, if any
 	 */
-	String value() default "";
+	String name() default "";
 
 	/**
 	 * Identifies default channel the messages will be sent to upon invocation of methods of the gateway proxy.

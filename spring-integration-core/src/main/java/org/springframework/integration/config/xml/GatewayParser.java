@@ -57,7 +57,7 @@ public class GatewayParser implements BeanDefinitionParser {
 		boolean isNested = parserContext.isNested();
 
 		final Map<String, Object> gatewayAttributes = new HashMap<String, Object>();
-		gatewayAttributes.put("value", element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
+		gatewayAttributes.put("name", element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
 		gatewayAttributes.put("defaultPayloadExpression", element.getAttribute("default-payload-expression"));
 		gatewayAttributes.put("defaultRequestChannel", element.getAttribute(isNested ? "request-channel" : "default-request-channel"));
 		gatewayAttributes.put("defaultReplyChannel", element.getAttribute(isNested ? "reply-channel" : "default-reply-channel"));
