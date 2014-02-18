@@ -97,7 +97,6 @@ subprojects { subproject ->
 		servletApiVersion = '3.1.0'
 		smackVersion = '3.2.1'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.3.0.M2'
-		springBootVersion = '1.0.0.RC1'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.1.1.RELEASE'
 		springGemfireVersion = '1.3.1.RELEASE'
@@ -229,9 +228,6 @@ project('spring-integration-core') {
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
-		testCompile ("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion") {
-			exclude group: 'org.springframework'
-		}
 	}
 }
 

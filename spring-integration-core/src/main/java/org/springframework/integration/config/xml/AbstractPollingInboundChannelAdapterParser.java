@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -45,9 +46,19 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(SourcePollingChannelAdapterFactoryBean.class);
 
-		String channelAdapterId = this.resolveId(element, adapterBuilder.getRawBeanDefinition(), parserContext);
-		String sourceBeanName = channelAdapterId + ".source";
-		parserContext.getRegistry().registerBeanDefinition(sourceBeanName, (BeanDefinition) source);
+		String sourceBeanName = null;
+
+		if (source instanceof BeanDefinition) {
+			String channelAdapterId = this.resolveId(element, adapterBuilder.getRawBeanDefinition(), parserContext);
+			sourceBeanName = channelAdapterId + ".source";
+			parserContext.getRegistry().registerBeanDefinition(sourceBeanName, (BeanDefinition) source);
+		}
+		else if (source instanceof RuntimeBeanReference) {
+			sourceBeanName = ((RuntimeBeanReference) source).getBeanName();
+		}
+		else {
+			parserContext.getReaderContext().error("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'", source);
+		}
 
 		adapterBuilder.addPropertyReference("source", sourceBeanName);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
