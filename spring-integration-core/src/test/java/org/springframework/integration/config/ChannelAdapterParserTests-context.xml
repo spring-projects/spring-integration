@@ -65,4 +65,12 @@
 
 	<inbound-channel-adapter channel="channelAdapter2Channel"  ref="counter2" method="incrementAndGet"/>
 
+	<beans:bean id="testMessageSource" class="org.springframework.integration.config.TestSource"/>
+
+	<channel id="messageSourceRefChannel">
+		<queue/>
+	</channel>
+
+	<inbound-channel-adapter id="adapterWithMessageSourceRef" channel="messageSourceRefChannel"  ref="testMessageSource"/>
+
 </beans:beans>

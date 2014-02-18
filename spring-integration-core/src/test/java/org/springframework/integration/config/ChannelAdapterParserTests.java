@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -34,6 +35,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -292,6 +294,20 @@ public class ChannelAdapterParserTests {
 			message = channel2.receive(5000);
 			assertEquals(i + 1, message.getPayload());
 		}
+	}
+
+	@Test
+	public void testMessageSourceRef() {
+		PollableChannel channel = this.applicationContext.getBean("messageSourceRefChannel", PollableChannel.class);
+
+		Message<?> message = channel.receive(5000);
+		assertNotNull(message);
+		assertEquals("test", message.getPayload());
+
+		MessageSource<?> testMessageSource = this.applicationContext.getBean("testMessageSource", MessageSource.class);
+		SourcePollingChannelAdapter adapterWithMessageSourceRef = this.applicationContext.getBean("adapterWithMessageSourceRef", SourcePollingChannelAdapter.class);
+		MessageSource<?> source = TestUtils.getPropertyValue(adapterWithMessageSourceRef, "source", MessageSource.class);
+		assertSame(testMessageSource, source);
 	}
 
 	public static class SampleBean {
