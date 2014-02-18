@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -37,6 +38,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -294,8 +296,22 @@ public class ChannelAdapterParserTests {
 		}
 	}
 
+	@Test
+	public void testMessageSourceRef() {
+		PollableChannel channel = this.applicationContext.getBean("messageSourceRefChannel", PollableChannel.class);
+
+		Message<?> message = channel.receive(5000);
+		assertNotNull(message);
+		assertEquals("test", message.getPayload());
+
+		MessageSource<?> testMessageSource = this.applicationContext.getBean("testMessageSource", MessageSource.class);
+		SourcePollingChannelAdapter adapterWithMessageSourceRef = this.applicationContext.getBean("adapterWithMessageSourceRef", SourcePollingChannelAdapter.class);
+		MessageSource<?> source = TestUtils.getPropertyValue(adapterWithMessageSourceRef, "source", MessageSource.class);
+		assertSame(testMessageSource, source);
+	}
+
 	public static class SampleBean {
-		private String message = "hello";
+		private final String message = "hello";
 
 		String getMessage() {
 			return message;
