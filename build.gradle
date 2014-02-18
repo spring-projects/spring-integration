@@ -58,36 +58,57 @@ subprojects { subproject ->
 	targetCompatibility=1.6
 
 	ext {
-		aspectjVersion = '1.6.8'
-		commonsNetVersion = '3.0.1'
+		activeMqVersion = '5.9.0'
+		aspectjVersion = '1.7.4'
+		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
+		commonsNetVersion = '3.3'
 		derbyVersion = '10.10.1.1'
-		groovyVersion = '2.1.0'
-		hamcrestVersion = '1.3'
-		jacksonVersion = '1.9.2'
-		jackson2Version = '2.2.3'
-		javaxActivationVersion = '1.1.1'
-		junitVersion = '4.11'
-		log4jVersion = '1.2.12'
-		mockitoVersion = '1.9.5'
+		eclipseLinkVersion = '2.5.1'
 		ftpServerVersion = '1.0.6'
-		hsqldbVersion = '1.8.0.10'
-		h2Version = '1.3.172'
-		activeMqVersion = '5.8.0'
-
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.0.1.RELEASE'
-
+		groovyVersion = '2.2.1'
+		guavaVersion = '16.0.1'
+		hamcrestVersion = '1.3'
+		hibernateVersion = '4.3.1.Final'
+		hsqldbVersion = '2.3.2'
+		h2Version = '1.3.175'
+		jacksonVersion = '1.9.13'
+		jackson2Version = '2.3.1'
+		javaxActivationVersion = '1.1.1'
+		javaxMailVersion = '1.4.7'
+		jmsSpecVersion = '1.1.1'
+		jpa21ApiVersion = '1.0.0.Final'
+		jrubyVersion = '1.7.10'
+		jschVersion = '0.1.50'
+		jsonpathVersion = '0.9.1'
+		junitVersion = '4.11'
+		jythonVersion = '2.5.3'
+		lettuceVersion = '2.3.3'
+		log4jVersion = '1.2.17'
+		mockitoVersion = '1.9.5'
+		mysqlVersion = '5.1.29'
+		openJpaVersion = '2.3.0'
+		pahoMqttClientVersion = '0.4.0'
+		postgresVersion = '9.1-901-1.jdbc4'
+		powermockVersion = '1.5.4'
+		romeVersion = '1.0.0'
+		saajApiVersion = '1.3.5'
+		saajImplVersion = '1.3.23'
+		servletApiVersion = '3.1.0'
+		smackVersion = '3.2.1'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.3.0.M2'
-
+		springBootVersion = '1.0.0.RC1'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.1.1.RELEASE'
-		lettuceVersion = '2.3.3'
 		springGemfireVersion = '1.3.1.RELEASE'
 		springSecurityVersion = '3.1.3.RELEASE'
 		springSocialTwitterVersion = '1.0.5.RELEASE'
-		springWsVersion = '2.1.1.RELEASE'
 		springRetryVersion = '1.0.3.RELEASE'
-		springBootVersion = '1.0.0.RC1'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.0.2.RELEASE'
+		springWsVersion = '2.1.1.RELEASE'
+		staxApiVersion = '1.0.1'
+		xmlUnitVersion = '1.5'
+		xstreamVersion = '1.4.7'
 	}
 
 	eclipse {
@@ -205,7 +226,7 @@ project('spring-integration-core') {
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
-		compile('com.jayway.jsonpath:json-path:0.9.0', optional)
+		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile ("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion") {
@@ -227,10 +248,10 @@ project('spring-integration-feed') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context:$springVersion"
-		compile("net.java.dev.rome:rome-fetcher:1.0.0") {
+		compile("net.java.dev.rome:rome-fetcher:$romeVersion") {
 			exclude group: 'junit'
 		}
-		compile "net.java.dev.rome:rome:1.0.0"
+		compile "net.java.dev.rome:rome:$romeVersion"
 	}
 }
 
@@ -288,17 +309,13 @@ project('spring-integration-http') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
 
-		compile("javax.servlet:javax.servlet-api:3.0.1", provided)
+		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 
-		compile("commons-httpclient:commons-httpclient:3.1") { dep ->
+		compile("net.java.dev.rome:rome-fetcher:$romeVersion") { dep ->
 			optional dep
 			exclude group: 'junit', module: 'junit'
 		}
-		compile("net.java.dev.rome:rome-fetcher:1.0.0") { dep ->
-			optional dep
-			exclude group: 'junit', module: 'junit'
-		}
-		compile ("net.java.dev.rome:rome:1.0.0", optional)
+		compile ("net.java.dev.rome:rome:$romeVersion", optional)
 
 	}
 
@@ -327,19 +344,18 @@ project('spring-integration-jdbc') {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
-		compile "com.google.guava:guava:12.0"
+		compile "com.google.guava:guava:$guavaVersion"
 		testCompile "com.h2database:h2:$h2Version"
-		testCompile "hsqldb:hsqldb:$hsqldbVersion"
+		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
 		testCompile "org.apache.derby:derby:$derbyVersion"
 		testCompile "org.apache.derby:derbyclient:$derbyVersion"
 
-		testCompile "org.powermock:powermock-module-junit4:1.5"
-		testCompile "org.powermock:powermock-api-mockito:1.5"
+		testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
+		testCompile "org.powermock:powermock-api-mockito:$powermockVersion"
 
-		testCompile "postgresql:postgresql:9.1-901-1.jdbc4"
-		testCompile "mysql:mysql-connector-java:5.1.24"
-		testCompile "commons-dbcp:commons-dbcp:1.4"
-		//testCompile "com.oracle:ojdbc6:11.2.0.3"
+		testCompile "postgresql:postgresql:$postgresVersion"
+		testCompile "mysql:mysql-connector-java:$mysqlVersion"
+		testCompile "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
 
 	}
 
@@ -353,7 +369,7 @@ project('spring-integration-jms') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-jms:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
-		compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1", provided)
+		compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:$jmsSpecVersion", provided)
 		testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
 		testCompile("org.apache.activemq:activemq-kahadb-store:$activeMqVersion") {
 			exclude group: "org.springframework"
@@ -378,18 +394,18 @@ project('spring-integration-jpa') {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-orm:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
-		compile "org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final"
+		compile "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion"
 
 		testCompile "com.h2database:h2:$h2Version"
-		testCompile "hsqldb:hsqldb:$hsqldbVersion"
+		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
 		testCompile "org.apache.derby:derby:$derbyVersion"
 
-		testCompile "org.hibernate:hibernate-entitymanager:3.6.10.Final"
-		testCompile ("org.apache.openjpa:openjpa:2.2.0") {
+		testCompile "org.hibernate:hibernate-entitymanager:$hibernateVersion"
+		testCompile ("org.apache.openjpa:openjpa:$openJpaVersion") {
 			exclude group: 'org.apache.geronimo.specs'
 		}
 
-		testRuntime "org.eclipse.persistence:org.eclipse.persistence.jpa:2.3.2"
+		testRuntime "org.eclipse.persistence:org.eclipse.persistence.jpa:$eclipseLinkVersion"
 		testRuntime "org.springframework:spring-instrument:$springVersion"
 	}
 
@@ -410,7 +426,7 @@ project('spring-integration-mail') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.mail:mail:1.4.7", provided)
+		compile("javax.mail:mail:$javaxMailVersion", provided)
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 	}
 
@@ -433,7 +449,7 @@ project('spring-integration-mqtt') {
 	description = 'Spring Integration MQTT Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.eclipse.paho:mqtt-client:0.4.0"
+		compile "org.eclipse.paho:mqtt-client:$pahoMqttClientVersion"
 	}
 }
 
@@ -465,9 +481,9 @@ project('spring-integration-scripting') {
 	description = 'Spring Integration Scripting Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		testCompile("org.jruby:jruby:1.6.3")
+		testCompile("org.jruby:jruby:$jrubyVersion")
 		testCompile("org.codehaus.groovy:groovy-all:$groovyVersion")
-		testCompile("org.python:jython-standalone:2.5.2")
+		testCompile("org.python:jython-standalone:$jythonVersion")
 	}
 }
 
@@ -492,7 +508,7 @@ project('spring-integration-sftp') {
 		compile project(":spring-integration-core")
 		compile project(":spring-integration-file")
 		compile project(":spring-integration-stream")
-		compile "com.jcraft:jsch:0.1.49"
+		compile "com.jcraft:jsch:$jschVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 	}
@@ -550,24 +566,24 @@ project('spring-integration-ws') {
 		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
 			exclude group: 'org.springframework'
 		}
-		compile("javax.xml.soap:saaj-api:1.3") { dep ->
+		compile("javax.xml.soap:saaj-api:$saajApiVersion") { dep ->
 			optional dep
 			exclude group: 'javax.activation', module: 'activation'
 		}
-		compile("com.sun.xml.messaging.saaj:saaj-impl:1.3", optional)
+		compile("com.sun.xml.messaging.saaj:saaj-impl:$saajImplVersion", optional)
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
-		testCompile "stax:stax-api:1.0.1"
-		testCompile 'com.thoughtworks.xstream:xstream:1.4.4'
+		testCompile "stax:stax-api:$staxApiVersion"
+		testCompile "com.thoughtworks.xstream:xstream:$xstreamVersion"
 		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion") {
 			exclude group: 'org.springframework'
 		}
 		testCompile ("org.springframework:spring-jms:$springVersion") {
 			exclude group: 'org.springframework'
 		}
-		testCompile "org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1"
-		testCompile "org.igniterealtime.smack:smack:3.2.1"
-		testCompile "org.igniterealtime.smack:smackx:3.2.1"
-		testCompile "javax.mail:mail:1.4.5"
+		testCompile "org.apache.geronimo.specs:geronimo-jms_1.1_spec:$jmsSpecVersion"
+		testCompile "org.igniterealtime.smack:smack:$smackVersion"
+		testCompile "org.igniterealtime.smack:smackx:$smackVersion"
+		testCompile "javax.mail:mail:$javaxMailVersion"
 	}
 
 	// suppress saaj path warnings
@@ -584,7 +600,7 @@ project('spring-integration-xml') {
 			exclude group: 'org.springframework'
 		}
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
-		testCompile "xmlunit:xmlunit:1.3"
+		testCompile "xmlunit:xmlunit:$xmlUnitVersion"
 	}
 }
 
@@ -593,8 +609,8 @@ project('spring-integration-xmpp') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
-		compile "org.igniterealtime.smack:smack:3.2.1"
-		compile "org.igniterealtime.smack:smackx:3.2.1"
+		compile "org.igniterealtime.smack:smack:$smackVersion"
+		compile "org.igniterealtime.smack:smackx:$smackVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
 		testCompile project(":spring-integration-stream")
 	}

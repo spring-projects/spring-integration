@@ -12,15 +12,10 @@
  */
 package org.springframework.integration.jpa.core;
 
-import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.hibernate.HibernateException;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,36 +37,6 @@ public class HibernateJpaOperationsTests extends AbstractJpaOperationsTests {
 
 	@Autowired
 	private LocalContainerEntityManagerFactoryBean fb;
-
-	/**
-	 *  Little helper that allows you to generate the DDL via Hibernate. The
-	 *  DDL is printed to the console.
-	 */
-	@Test
-	public void generateDdl() {
-
-		final org.hibernate.ejb.Ejb3Configuration cfg = new org.hibernate.ejb.Ejb3Configuration();
-
-		Map<String, Object> properties = fb.getJpaPropertyMap();
-
-		properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-
-		final org.hibernate.ejb.Ejb3Configuration configured = cfg.configure( fb.getPersistenceUnitInfo(), fb.getJpaPropertyMap() );
-		final Configuration configuration = configured.getHibernateConfiguration();
-
-		final SchemaExport schemaExport;
-
-		try {
-			schemaExport = new SchemaExport(configuration, dataSource.getConnection());
-		} catch (HibernateException e) {
-			throw new IllegalStateException(e);
-		} catch (SQLException e) {
-			throw new IllegalStateException(e);
-		}
-
-		schemaExport.create(true, false);
-
-	}
 
 	@Test
 	@Override

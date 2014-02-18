@@ -23,13 +23,14 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
+
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Dave Syer
@@ -76,10 +77,13 @@ public class JdbcMessageHandlerIntegrationTests {
 
 	@Test
 	public void testIdHeaderDynamicInsert() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (:headers[id], 0, :payload)");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (:headers[idAsString], 0, :payload)");
 		Message<String> message = new GenericMessage<String>("foo");
-		handler.handleMessage(message);
 		String id = message.getHeaders().getId().toString();
+		message = MessageBuilder.fromMessage(message)
+				.setHeader("idAsString", message.getHeaders().getId().toString())
+				.build();
+		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", id);
 		assertEquals("Wrong id", id, map.get("ID"));
 		assertEquals("Wrong name", "foo", map.get("NAME"));

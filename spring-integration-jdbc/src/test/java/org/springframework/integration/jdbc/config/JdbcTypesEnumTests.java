@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import org.hsqldb.Types;
+import java.sql.Types;
 import org.junit.Test;
 
 public class JdbcTypesEnumTests {

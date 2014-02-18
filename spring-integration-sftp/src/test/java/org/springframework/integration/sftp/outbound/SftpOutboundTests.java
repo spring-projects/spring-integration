@@ -22,6 +22,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -221,10 +222,10 @@ public class SftpOutboundTests {
 	@Test
 	public void testSharedSession() throws Exception {
 		JSch jsch = spy(new JSch());
-		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class);
+		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
 		ctor.setAccessible(true);
-		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch));
-		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch));
+		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
+		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
 		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
@@ -232,7 +233,8 @@ public class SftpOutboundTests {
 		ChannelSftp channel2 = spy(new ChannelSftp());
 		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
-		when(jschSession1.openChannel("sftp")).thenReturn(channel1, channel2);
+		doReturn(channel1).when(jschSession1).openChannel("sftp");
+		doReturn(channel2).when(jschSession1).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
 		factory.setHost("host");
 		factory.setUser("foo");
@@ -247,10 +249,10 @@ public class SftpOutboundTests {
 	@Test
 	public void testNotSharedSession() throws Exception {
 		JSch jsch = spy(new JSch());
-		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class);
+		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
 		ctor.setAccessible(true);
-		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch));
-		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch));
+		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
+		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
 		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
@@ -258,8 +260,8 @@ public class SftpOutboundTests {
 		ChannelSftp channel2 = spy(new ChannelSftp());
 		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
-		when(jschSession1.openChannel("sftp")).thenReturn(channel1);
-		when(jschSession2.openChannel("sftp")).thenReturn(channel2);
+		doReturn(channel1).when(jschSession1).openChannel("sftp");
+		doReturn(channel2).when(jschSession2).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, false);
 		factory.setHost("host");
 		factory.setUser("foo");
@@ -274,10 +276,10 @@ public class SftpOutboundTests {
 	@Test
 	public void testSharedSessionCachedReset() throws Exception {
 		JSch jsch = spy(new JSch());
-		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class);
+		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
 		ctor.setAccessible(true);
-		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch));
-		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch));
+		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
+		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
 		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
@@ -287,8 +289,10 @@ public class SftpOutboundTests {
 		ChannelSftp channel4 = spy(new ChannelSftp());
 		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
-		when(jschSession1.openChannel("sftp")).thenReturn(channel1, channel2);
-		when(jschSession2.openChannel("sftp")).thenReturn(channel3, channel4);
+		doReturn(channel1).when(jschSession1).openChannel("sftp");
+		doReturn(channel2).when(jschSession1).openChannel("sftp");
+		doReturn(channel3).when(jschSession2).openChannel("sftp");
+		doReturn(channel4).when(jschSession2).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
 		factory.setHost("host");
 		factory.setUser("foo");
