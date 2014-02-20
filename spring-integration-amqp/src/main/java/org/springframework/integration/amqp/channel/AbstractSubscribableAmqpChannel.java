@@ -35,7 +35,7 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -129,7 +129,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()
 				: new SimpleMessageConverter();
 		MessageListener listener = new DispatchingMessageListener(converter,
-				this.dispatcher, this, this.isPubSub);
+				this.dispatcher, this, this.isPubSub,
+				this.getMessageBuilderFactory());
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -153,14 +154,18 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 		private final boolean isPubSub;
 
+		private final MessageBuilderFactory messageBuilderFactory;
+
 		private DispatchingMessageListener(MessageConverter converter,
-				MessageDispatcher dispatcher, AbstractSubscribableAmqpChannel channel, boolean isPubSub) {
+				MessageDispatcher dispatcher, AbstractSubscribableAmqpChannel channel, boolean isPubSub,
+				MessageBuilderFactory messageBuilderFactory) {
 			Assert.notNull(converter, "MessageConverter must not be null");
 			Assert.notNull(dispatcher, "MessageDispatcher must not be null");
 			this.converter = converter;
 			this.dispatcher = dispatcher;
 			this.channel = channel;
 			this.isPubSub = isPubSub;
+			this.messageBuilderFactory = messageBuilderFactory;
 		}
 
 
@@ -171,7 +176,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 				Object converted = this.converter.fromMessage(message);
 				if (converted != null) {
 					messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
-							: MessageBuilder.withPayload(converted).build();
+							: this.messageBuilderFactory.withPayload(converted).build();
 					this.dispatcher.dispatch(messageToSend);
 				}
 				else if (this.logger.isWarnEnabled()) {

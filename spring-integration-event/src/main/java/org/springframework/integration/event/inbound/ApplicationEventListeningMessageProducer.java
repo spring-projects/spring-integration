@@ -29,7 +29,6 @@ import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -114,7 +113,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 			}
 			else {
 				Object payload = this.evaluatePayloadExpression(event);
-				this.sendMessage(MessageBuilder.withPayload(payload).build());
+				this.sendMessage(this.getMessageBuilderFactory().withPayload(payload).build());
 			}
 		}
 	}

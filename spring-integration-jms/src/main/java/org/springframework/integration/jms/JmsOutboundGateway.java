@@ -48,7 +48,6 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
@@ -637,7 +636,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
+		final Message<?> requestMessage = this.getMessageBuilderFactory().fromMessage(message).build();
 		try {
 			javax.jms.Message jmsReply;
 			if (this.replyContainer == null) {
@@ -665,10 +664,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			Message<?> replyMessage = null;
 			if (result instanceof Message){
-				replyMessage = MessageBuilder.fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders).build();
+				replyMessage = this.getMessageBuilderFactory().fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders).build();
 			}
 			else {
-				replyMessage = MessageBuilder.withPayload(result).copyHeaders(jmsReplyHeaders).build();
+				replyMessage = this.getMessageBuilderFactory().withPayload(result).copyHeaders(jmsReplyHeaders).build();
 			}
 			return replyMessage;
 		}

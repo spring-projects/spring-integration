@@ -31,7 +31,6 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -40,7 +39,7 @@ import org.springframework.util.StringUtils;
  * Spring Integration Messages, and sends the results to a Message Channel.
  * If a reply Message is received, it will be converted and sent back to
  * the AMQP 'replyTo'.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */
@@ -83,7 +82,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				Object payload = amqpMessageConverter.fromMessage(message);
 				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
 				org.springframework.messaging.Message<?> request =
-						MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+						AmqpInboundGateway.this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
 				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
 					// TODO: fallback to a reply address property of this gateway

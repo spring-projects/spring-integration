@@ -19,16 +19,16 @@ package org.springframework.integration.transformer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * Base class for Message Transformers that delegate to a {@link MessageProcessor}.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractMessageProcessingTransformer implements Transformer, BeanFactoryAware {
@@ -60,6 +60,7 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		if (result instanceof Message<?>) {
 			return (Message<?>) result;
 		}
+		//TODO
 		return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
 	}
 

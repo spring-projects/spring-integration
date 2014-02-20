@@ -25,18 +25,18 @@ import javax.mail.Message.RecipientType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
  * Base class for Transformers that convert from a JavaMail Message to a
  * Spring Integration Message.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractMailMessageTransformer<T> implements Transformer {
@@ -51,7 +51,7 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer {
 					+ " requires a javax.mail.Message payload");
 		}
 		javax.mail.Message mailMessage = (javax.mail.Message) payload;
-		MessageBuilder<T> builder = null;
+		AbstractIntegrationMessageBuilder<T> builder = null;
 		try {
 			builder = this.doTransform(mailMessage);
 		}
@@ -65,7 +65,7 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer {
 		return builder.build();
 	}
 
-	protected abstract MessageBuilder<T> doTransform(javax.mail.Message mailMessage) throws Exception;
+	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(javax.mail.Message mailMessage) throws Exception;
 
 
 	private Map<String, Object> extractHeaderMapFromMailMessage(javax.mail.Message mailMessage) {

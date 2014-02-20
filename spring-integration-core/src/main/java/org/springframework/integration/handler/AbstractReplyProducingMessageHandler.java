@@ -24,7 +24,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -188,18 +188,18 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
-		MessageBuilder<?> builder = null;
+		AbstractIntegrationMessageBuilder<?> builder = null;
 		if (reply instanceof Message<?>) {
 			if (!this.shouldCopyRequestHeaders()) {
 				return (Message<?>) reply;
 			}
-			builder = MessageBuilder.fromMessage((Message<?>) reply);
+			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
 		}
-		else if (reply instanceof MessageBuilder<?>) {
-			builder = (MessageBuilder<?>) reply;
+		else if (reply instanceof AbstractIntegrationMessageBuilder) {
+			builder = (AbstractIntegrationMessageBuilder<?>) reply;
 		}
 		else {
-			builder = MessageBuilder.withPayload(reply);
+			builder = this.getMessageBuilderFactory().withPayload(reply);
 		}
 		if (this.shouldCopyRequestHeaders()) {
 			builder.copyHeadersIfAbsent(requestHeaders);
@@ -252,7 +252,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private boolean shouldSplitReply(Iterable<?> reply) {
 		for (Object next : reply) {
-			if (next instanceof Message<?> || next instanceof MessageBuilder<?>) {
+			if (next instanceof Message<?> || next instanceof AbstractIntegrationMessageBuilder<?>) {
 				return true;
 			}
 		}

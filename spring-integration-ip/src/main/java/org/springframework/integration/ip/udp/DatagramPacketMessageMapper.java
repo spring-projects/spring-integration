@@ -201,6 +201,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 					length = length - matcher.end();
 					payload = new byte[length];
 					System.arraycopy(packet.getData(), offset + matcher.end(), payload, 0, length);
+					//TODO
 					message = MessageBuilder.withPayload(payload)
 							.setHeader(IpHeaders.ACK_ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))

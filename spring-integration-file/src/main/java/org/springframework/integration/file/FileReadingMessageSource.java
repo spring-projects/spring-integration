@@ -26,14 +26,14 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
+
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -259,7 +259,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 
 		if (file != null) {
-			message = MessageBuilder.withPayload(file).build();
+			message = this.getMessageBuilderFactory().withPayload(file).build();
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}

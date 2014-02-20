@@ -16,11 +16,10 @@ import java.util.Map.Entry;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.util.Assert;
 /**
@@ -114,7 +113,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 								"as part of '" + expressionType + "' transaction synchronization");
 					}
 					try {
-						spelResultMessage = MessageBuilder.withPayload(value)
+						spelResultMessage = this.getMessageBuilderFactory().withPayload(value)
 								.copyHeaders(message.getHeaders())
 								.build();
 						this.sendMessage(messageChannel, spelResultMessage);
@@ -138,7 +137,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 					// rollback will be initiated if any of the previous sync operations fail (e.g., beforeCommit)
 					// this means that this method will be called without explicit configuration thus no channel
 					if (messageChannel != null){
-						this.sendMessage(messageChannel, MessageBuilder.fromMessage(message).build());
+						this.sendMessage(messageChannel, this.getMessageBuilderFactory().fromMessage(message).build());
 					}
 				} catch (Exception e) {
 					logger.error("Failed to send " + message, e);

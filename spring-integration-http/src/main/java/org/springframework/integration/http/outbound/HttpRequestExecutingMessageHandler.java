@@ -50,7 +50,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -421,15 +421,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				if (this.transferCookies) {
 					this.doConvertSetCookie(headers);
 				}
-				MessageBuilder<?> replyBuilder = null;
+				AbstractIntegrationMessageBuilder<?> replyBuilder = null;
 				if (httpResponse.hasBody()) {
 					Object responseBody = httpResponse.getBody();
 					replyBuilder = (responseBody instanceof Message<?>) ?
-							MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
+							this.getMessageBuilderFactory().fromMessage((Message<?>) responseBody) : this.getMessageBuilderFactory().withPayload(responseBody);
 
 				}
 				else {
-					replyBuilder = MessageBuilder.withPayload(httpResponse);
+					replyBuilder = this.getMessageBuilderFactory().withPayload(httpResponse);
 				}
 				replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
 				return replyBuilder.copyHeaders(headers).build();

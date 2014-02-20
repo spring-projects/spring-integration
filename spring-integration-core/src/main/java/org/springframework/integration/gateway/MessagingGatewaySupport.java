@@ -25,7 +25,8 @@ import org.springframework.integration.history.HistoryWritingMessagePostProcesso
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -175,6 +176,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		this.historyWritingPostProcessor.setTrackableComponent(this);
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+			if (this.requestMapper instanceof DefaultRequestMapper) {
+				((DefaultRequestMapper) this.requestMapper).setMessageBuilderFactory(this.getMessageBuilderFactory());
+			}
 		}
 		this.initialized = true;
 	}
@@ -335,12 +339,18 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {
 
+		private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+		void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+			this.messageBuilderFactory = messageBuilderFactory;
+		}
+
 		@Override
 		public Message<?> toMessage(Object object) throws Exception {
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
 			}
-			return (object != null) ? MessageBuilder.withPayload(object).build() : null;
+			return (object != null) ? this.messageBuilderFactory.withPayload(object).build() : null;
 		}
 	}
 

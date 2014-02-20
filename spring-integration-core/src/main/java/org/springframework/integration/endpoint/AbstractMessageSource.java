@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -58,7 +58,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			}
 			if (!CollectionUtils.isEmpty(headers)) {
 				// create a new Message from this one in order to apply headers
-				MessageBuilder<T> builder = MessageBuilder.fromMessage(message);
+				AbstractIntegrationMessageBuilder<T> builder = this.getMessageBuilderFactory().fromMessage(message);
 				builder.copyHeaders(headers);
 				message = builder.build();
 			}
@@ -71,7 +71,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			catch (Exception e) {
 				throw new MessagingException("MessageSource returned unexpected type.", e);
 			}
-			MessageBuilder<T> builder = MessageBuilder.withPayload(payload);
+			AbstractIntegrationMessageBuilder<T> builder = this.getMessageBuilderFactory().withPayload(payload);
 			if (!CollectionUtils.isEmpty(headers)) {
 				builder.copyHeaders(headers);
 			}

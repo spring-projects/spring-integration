@@ -193,6 +193,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 		final long createdDate = document.getCreatedTime() == 0 ? System.currentTimeMillis() : document.getCreatedTime();
 
+		//TODO
 		Message<?> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, createdDate).build();
 

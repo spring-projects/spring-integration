@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.json;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -91,7 +91,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		Object payload = ResultType.STRING.equals(this.resultType)
 				? this.jsonObjectMapper.toJson(message.getPayload())
 				: this.jsonObjectMapper.toJsonNode(message.getPayload());
-		MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
+		AbstractIntegrationMessageBuilder<Object> messageBuilder = this.getMessageBuilderFactory().withPayload(payload);
 
 		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
 		headers.putAll(message.getHeaders());

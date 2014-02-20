@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mail.event.MailIntegrationEvent;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -247,7 +246,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			@Override
 			public void run() {
 				org.springframework.messaging.Message<?> message =
-						MessageBuilder.withPayload(mailMessage).build();
+						ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build();
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
 					if (transactionSynchronizationFactory != null){

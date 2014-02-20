@@ -36,7 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -115,7 +115,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		if (logger.isInfoEnabled()) {
 			logger.info("received notification: " + notification + ", and handback: " + handback);
 		}
-		MessageBuilder<?> builder = MessageBuilder.withPayload(notification);
+		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(notification);
 		if (handback != null) {
 			builder.setHeader(JmxHeaders.NOTIFICATION_HANDBACK, handback);
 		}

@@ -334,6 +334,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 
 		final long createdDate = System.currentTimeMillis();
+		//TODO
 		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
 

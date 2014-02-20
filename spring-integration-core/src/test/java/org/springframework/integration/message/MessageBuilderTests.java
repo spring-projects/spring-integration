@@ -18,7 +18,6 @@ package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
@@ -27,10 +26,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.junit.Test;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Mark Fisher
@@ -114,9 +115,24 @@ public class MessageBuilderTests {
 	public void createIdRegenerated() {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
-		Message<String> message2 = MessageBuilder.fromMessage(message1).setHeader("another", 1).build();
-		assertEquals("bar", message2.getHeaders().get("foo"));
-		assertNotSame(message1.getHeaders().getId(), message2.getHeaders().getId());
+		for (int i = 0; i < 1000000; i++) {
+			Message<String> message2 = MessageBuilder.fromMessage(message1).setHeader("another", 1).build();
+		}
+//		assertEquals("bar", message2.getHeaders().get("foo"));
+//		assertNotSame(message1.getHeaders().getId(), message2.getHeaders().getId());
+	}
+
+	@Test
+	public void createIdRegeneratedNew() {
+		MutableMessageBuilder<String> builder = MutableMessageBuilder.withPayload("test");
+		Message<String> message1 = builder
+				.setHeader("foo", "bar").build();
+		for (int i = 0; i < 1000000; i++) {
+//			Message<String> message2 = MutableMessageBuilder.mutateMessage(message1).setHeader("another", 1).build();
+			Message<String> message2 = builder.mutate(message1).setHeader("another", 1).build();
+		}
+//		assertEquals("bar", message2.getHeaders().get("foo"));
+//		assertNotSame(message1.getHeaders().getId(), message2.getHeaders().getId());
 	}
 
 	@Test

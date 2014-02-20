@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -65,6 +65,7 @@ public class MessageHistory implements List<Properties>, Serializable {
 					new ArrayList<Properties>(previousHistory) : new ArrayList<Properties>();
 			components.add(metadata);
 			MessageHistory history = new MessageHistory(components);
+			// TODO: fix this - tricky
 			message = MessageBuilder.fromMessage(message).setHeader(HEADER_NAME, history).build();
 		}
 		return message;
@@ -129,6 +130,7 @@ public class MessageHistory implements List<Properties>, Serializable {
 		return this.components.lastIndexOf(o);
 	}
 
+	@Override
 	public String toString() {
 		List<String> names = new ArrayList<String>();
 		for (Properties p : this.components) {

@@ -32,12 +32,17 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
+ * The default message builder; creates immutable {@link GenericMessage}s.
+ * Named MessageBuilder instead of DefaultMessageBuilder for backwards
+ * compatibility.
+ *
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Gary Russell
  */
-public final class MessageBuilder<T> {
+public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
 
 	private final T payload;
 
@@ -93,6 +98,7 @@ public final class MessageBuilder<T> {
 	 * @param headerValue The header value.
 	 * @return this MessageBuilder.
 	 */
+	@Override
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
 		this.headerAccessor.setHeader(headerName,  headerValue);
 		return this;
@@ -105,6 +111,7 @@ public final class MessageBuilder<T> {
 	 * @param headerValue The header value.
 	 * @return this MessageBuilder.
 	 */
+	@Override
 	public MessageBuilder<T> setHeaderIfAbsent(String headerName, Object headerValue) {
 		this.headerAccessor.setHeaderIfAbsent(headerName, headerValue);
 		return this;
@@ -118,6 +125,7 @@ public final class MessageBuilder<T> {
 	 * @param headerPatterns The header patterns.
 	 * @return this MessageBuilder.
 	 */
+	@Override
 	public MessageBuilder<T> removeHeaders(String... headerPatterns) {
 		this.headerAccessor.removeHeaders(headerPatterns);
 		return this;
@@ -127,6 +135,7 @@ public final class MessageBuilder<T> {
 	 * @param headerName The header name.
 	 * @return this MessageBuilder.
 	 */
+	@Override
 	public MessageBuilder<T> removeHeader(String headerName) {
 		this.headerAccessor.removeHeader(headerName);
 		return this;
@@ -143,6 +152,7 @@ public final class MessageBuilder<T> {
 	 * @see MessageHeaders#ID
 	 * @see MessageHeaders#TIMESTAMP
 	 */
+	@Override
 	public MessageBuilder<T> copyHeaders(Map<String, ?> headersToCopy) {
 		this.headerAccessor.copyHeaders(headersToCopy);
 		return this;
@@ -154,28 +164,13 @@ public final class MessageBuilder<T> {
 	 * @param headersToCopy The headers to copy.
 	 * @return this MessageBuilder.
 	 */
+	@Override
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
 		this.headerAccessor.copyHeadersIfAbsent(headersToCopy);
 		return this;
 	}
 
-	public MessageBuilder<T> setExpirationDate(Long expirationDate) {
-		return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate);
-	}
-
-	public MessageBuilder<T> setExpirationDate(Date expirationDate) {
-		if (expirationDate != null) {
-			return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate.getTime());
-		}
-		else {
-			return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, null);
-		}
-	}
-
-	public MessageBuilder<T> setCorrelationId(Object correlationId) {
-		return this.setHeader(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
-	}
-
+	@Override
 	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, int sequenceSize) {
 		Object incomingCorrelationId = this.headerAccessor.getCorrelationId();
 		@SuppressWarnings("unchecked")
@@ -197,13 +192,15 @@ public final class MessageBuilder<T> {
 		return setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize);
 	}
 
+	@Override
 	public MessageBuilder<T> popSequenceDetails() {
 		String key = IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS;
 		@SuppressWarnings("unchecked")
 		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headerAccessor.getHeader(key);
 		if (incomingSequenceDetails == null) {
 			return this;
-		} else {
+		}
+		else {
 			incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
 		}
 		List<Object> sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
@@ -227,34 +224,72 @@ public final class MessageBuilder<T> {
 		return this;
 	}
 
+	/*
+	 * The following overrides (delegating to super) are provided to ease the
+	 *  pain for existing applications that use the builder API and expect
+	 *  a MessageBuilder to be returned.
+	 */
+	@Override
+	public MessageBuilder<T> setExpirationDate(Long expirationDate) {
+		super.setExpirationDate(expirationDate);
+		return this;
+	}
+
+	@Override
+	public MessageBuilder<T> setExpirationDate(Date expirationDate) {
+		super.setExpirationDate(expirationDate);
+		return this;
+	}
+
+	@Override
+	public MessageBuilder<T> setCorrelationId(Object correlationId) {
+		super.setCorrelationId(correlationId);
+		return this;
+	}
+
+	@Override
 	public MessageBuilder<T> setReplyChannel(MessageChannel replyChannel) {
-		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel);
+		super.setReplyChannel(replyChannel);
+		return this;
 	}
 
+	@Override
 	public MessageBuilder<T> setReplyChannelName(String replyChannelName) {
-		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannelName);
+		super.setReplyChannelName(replyChannelName);
+		return this;
 	}
 
+	@Override
 	public MessageBuilder<T> setErrorChannel(MessageChannel errorChannel) {
-		return this.setHeader(MessageHeaders.ERROR_CHANNEL, errorChannel);
+		super.setErrorChannel(errorChannel);
+		return this;
 	}
 
+	@Override
 	public MessageBuilder<T> setErrorChannelName(String errorChannelName) {
-		return this.setHeader(MessageHeaders.ERROR_CHANNEL, errorChannelName);
+		super.setErrorChannelName(errorChannelName);
+		return this;
 	}
 
+	@Override
 	public MessageBuilder<T> setSequenceNumber(Integer sequenceNumber) {
-		return this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
+		super.setSequenceNumber(sequenceNumber);
+		return this;
 	}
 
+	@Override
 	public MessageBuilder<T> setSequenceSize(Integer sequenceSize) {
-		return this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
+		super.setSequenceSize(sequenceSize);
+		return this;
 	}
 
+	@Override
 	public MessageBuilder<T> setPriority(Integer priority) {
-		return this.setHeader(IntegrationMessageHeaderAccessor.PRIORITY, priority);
+		super.setPriority(priority);
+		return this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Message<T> build() {
 		if (!this.modified && !this.headerAccessor.isModified() && this.originalMessage != null) {
@@ -265,4 +300,5 @@ public final class MessageBuilder<T> {
 		}
 		return new GenericMessage<T>(this.payload, this.headerAccessor.toMap());
 	}
+
 }

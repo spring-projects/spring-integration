@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -35,12 +36,15 @@ import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -68,6 +72,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public MessagePublishingInterceptor(PublisherMetadataSource metadataSource) {
 		Assert.notNull(metadataSource, "metadataSource must not be null");
@@ -92,6 +97,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
@@ -139,9 +145,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		Expression expression = this.parser.parseExpression(payloadExpressionString);
 		Object result = expression.getValue(context);
 		if (result != null) {
-			MessageBuilder<?> builder = (result instanceof Message<?>)
-					? MessageBuilder.fromMessage((Message<?>) result)
-					: MessageBuilder.withPayload(result);
+			AbstractIntegrationMessageBuilder<?> builder = (result instanceof Message<?>)
+					? this.messageBuilderFactory.fromMessage((Message<?>) result)
+					: this.messageBuilderFactory.withPayload(result);
 			Map<String, Object> headers = this.evaluateHeaders(method, context);
 			if (headers != null) {
 				builder.copyHeaders(headers);

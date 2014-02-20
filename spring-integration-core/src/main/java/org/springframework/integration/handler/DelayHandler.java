@@ -38,7 +38,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -320,7 +319,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			messageWrapper = new DelayedMessageWrapper(message, System.currentTimeMillis());
-			delayedMessage = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
+			delayedMessage = this.getMessageBuilderFactory().withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
 

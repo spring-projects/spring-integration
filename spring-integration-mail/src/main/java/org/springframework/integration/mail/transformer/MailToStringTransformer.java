@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 
 import javax.mail.Multipart;
 
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -50,8 +51,9 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 	}
 
 	@Override
-	protected MessageBuilder<String> doTransform(javax.mail.Message mailMessage) throws Exception {
+	protected AbstractIntegrationMessageBuilder<String> doTransform(javax.mail.Message mailMessage) throws Exception {
 		Object content = mailMessage.getContent();
+		//TODO
 		if (content instanceof String) {
 			return MessageBuilder.withPayload((String) content);
 		}

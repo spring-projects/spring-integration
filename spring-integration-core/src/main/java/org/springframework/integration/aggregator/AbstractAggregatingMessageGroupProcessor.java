@@ -23,7 +23,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -41,18 +43,25 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
+
 	@Override
 	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
 
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
-		MessageBuilder<?> builder;
+		AbstractIntegrationMessageBuilder<?> builder;
 		if (payload instanceof Message<?>) {
-			builder = MessageBuilder.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
+			builder = this.messageBuilderFactory.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 		}
 		else {
-			builder = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers);
+			builder = this.messageBuilderFactory.withPayload(payload).copyHeadersIfAbsent(headers);
 		}
 
 		return builder.popSequenceDetails().build();

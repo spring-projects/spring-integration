@@ -17,6 +17,7 @@ package org.springframework.integration.mqtt.support;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -73,7 +74,8 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	@Override
 	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(mqttBytesToPayload(mqttMessage))
+			//TODO
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(mqttBytesToPayload(mqttMessage))
 					.setHeader(MqttHeaders.QOS, mqttMessage.getQos())
 					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())
 					.setHeader(MqttHeaders.RETAINED, mqttMessage.isRetained());

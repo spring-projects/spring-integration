@@ -23,6 +23,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -69,6 +71,8 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME = "messageHistoryConfigurer";
 
 	public static final String INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME = "datatypeChannelMessageConverter";
+
+	public static final String INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME = "messageBuilderFactory";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
@@ -150,6 +154,26 @@ public abstract class IntegrationContextUtils {
 			}
 		}
 		return properties;
+	}
+
+	/**
+	 * @return
+	 */
+	public static MessageBuilderFactory getMessageBuilderFactory(BeanFactory beanFactory) {
+		MessageBuilderFactory messageBuilderFactory = null;
+		if (beanFactory != null) {
+			try {
+				 messageBuilderFactory = beanFactory.getBean(
+						IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, MessageBuilderFactory.class);
+			}
+			catch (Exception e) {
+				// TODO log
+			}
+		}
+		if (messageBuilderFactory == null) {
+			messageBuilderFactory = new DefaultMessageBuilderFactory();
+		}
+		return messageBuilderFactory;
 	}
 
 }

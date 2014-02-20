@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -65,7 +64,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 		if (payload == null) {
 			return null;
 		}
-		return MessageBuilder.withPayload(payload).build();
+		return this.getMessageBuilderFactory().withPayload(payload).build();
 	}
 
 	/**

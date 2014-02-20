@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -59,7 +60,8 @@ public class TcpMessageMapper implements
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
-			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
+			// TODO
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
 			this.addStandardHeaders(connection, messageBuilder);
 			this.addCustomHeaders(connection, messageBuilder);
 			message = messageBuilder.build();
@@ -72,7 +74,7 @@ public class TcpMessageMapper implements
 		return message;
 	}
 
-	protected final void addStandardHeaders(TcpConnection connection, MessageBuilder<?> messageBuilder) {
+	protected final void addStandardHeaders(TcpConnection connection, AbstractIntegrationMessageBuilder<?> messageBuilder) {
 		String connectionId = connection.getConnectionId();
 		messageBuilder
 			.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
@@ -86,7 +88,7 @@ public class TcpMessageMapper implements
 		}
 	}
 
-	protected final void addCustomHeaders(TcpConnection connection, MessageBuilder<?> messageBuilder) {
+	protected final void addCustomHeaders(TcpConnection connection, AbstractIntegrationMessageBuilder<?> messageBuilder) {
 		Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
 		if (customHeaders != null) {
 			messageBuilder.copyHeadersIfAbsent(customHeaders);

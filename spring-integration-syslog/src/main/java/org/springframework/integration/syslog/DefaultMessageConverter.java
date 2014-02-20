@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
+import org.springframework.messaging.Message;
 
 /**
  * Default {@link MessageConverter}; delegates to a {@link SyslogToMapTransformer}
@@ -52,6 +52,7 @@ public class DefaultMessageConverter implements MessageConverter {
 				out.put(SyslogHeaders.PREFIX + entry.getKey(), entry.getValue());
 			}
 		}
+		//TODO
 		return MessageBuilder.withPayload(map)
 				.copyHeaders(out)
 				.build();

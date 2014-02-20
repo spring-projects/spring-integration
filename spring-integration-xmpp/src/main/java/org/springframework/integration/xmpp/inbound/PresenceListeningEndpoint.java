@@ -25,15 +25,14 @@ import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 
-import org.springframework.messaging.Message;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * An inbound endpoint that is able to login and then emit {@link Message}s when a 
- * particular Presence event occurs within the logged-in user's {@link Roster}. 
+ * An inbound endpoint that is able to login and then emit {@link Message}s when a
+ * particular Presence event occurs within the logged-in user's {@link Roster}.
  * (e.g., logged in/out, changed status etc.)
  *
  * @author Josh Long
@@ -108,7 +107,7 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 				if (logger.isDebugEnabled()) {
 					logger.debug("presence changed: " + presence.getFrom() + " - " + presence);
 				}
-				sendMessage(MessageBuilder.withPayload(presence).build());
+				sendMessage(PresenceListeningEndpoint.this.getMessageBuilderFactory().withPayload(presence).build());
 			}
 		}
 	}

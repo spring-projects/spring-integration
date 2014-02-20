@@ -22,12 +22,12 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.data.gemfire.listener.ContinuousQueryDefinition;
 import org.springframework.data.gemfire.listener.ContinuousQueryListener;
 import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
-import org.springframework.messaging.Message;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.query.CqEvent;
@@ -114,7 +114,7 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getQueryOperation()
 						.toString(), event.getKey()));
 			}
-			Message<?> cqEventMessage = MessageBuilder.withPayload(evaluatePayloadExpression(event)).build();
+			Message<?> cqEventMessage = this.getMessageBuilderFactory().withPayload(evaluatePayloadExpression(event)).build();
 			sendMessage(cqEventMessage);
 		}
 	}

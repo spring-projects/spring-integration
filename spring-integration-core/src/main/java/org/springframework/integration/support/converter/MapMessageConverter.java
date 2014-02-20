@@ -67,6 +67,7 @@ public class MapMessageConverter implements MessageConverter {
 		Map<String, ?> map = (Map<String, ?>) object;
 		Object payload = map.get("payload");
 		Assert.notNull(payload, "'payload' entry cannot be null");
+		//TODO
 		MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload);
 		@SuppressWarnings("unchecked")
 		Map<String, ?> headers = (Map<String, ?>) map.get("headers");

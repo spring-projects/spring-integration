@@ -20,7 +20,6 @@ import java.sql.CallableStatement;
 import java.util.Map;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -78,7 +77,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
 		}
 
-		return MessageBuilder.withPayload(payload).copyHeaders(requestMessage.getHeaders()).build();
+		return this.getMessageBuilderFactory().withPayload(payload).copyHeaders(requestMessage.getHeaders()).build();
 
 	}
 

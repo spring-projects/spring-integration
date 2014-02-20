@@ -16,13 +16,14 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.messaging.Message;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * Transformer that removes Message headers.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -30,7 +31,7 @@ import org.springframework.util.Assert;
 public class HeaderFilter implements Transformer {
 
 	private final String[] headersToRemove;
-	
+
 	private volatile boolean patternMatch = true;
 
 
@@ -44,7 +45,8 @@ public class HeaderFilter implements Transformer {
 	}
 
 	public Message<?> transform(Message<?> message) {
-		MessageBuilder<?> builder = MessageBuilder.fromMessage(message);	
+		//TODO
+		AbstractIntegrationMessageBuilder<?> builder = MessageBuilder.fromMessage(message);
 		if (this.patternMatch){
 			builder.removeHeaders(headersToRemove);
 		}

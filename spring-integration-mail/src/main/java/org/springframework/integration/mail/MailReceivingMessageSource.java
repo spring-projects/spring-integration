@@ -22,10 +22,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
+
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -66,6 +67,7 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 				if (logger.isDebugEnabled()) {
 					logger.debug("received mail message [" + mailMessage + "]");
 				}
+				//TODO
 				return MessageBuilder.withPayload(mailMessage).build();
 			}
 		}

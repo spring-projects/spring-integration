@@ -25,10 +25,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -243,6 +243,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> normalizeMessage(Message<?> message){
+		//TODO
 		Message<?> normalizedMessage = MessageBuilder.fromMessage(message).removeHeader("CREATED_DATE").build();
 		Map innerMap = (Map) new DirectFieldAccessor(normalizedMessage.getHeaders()).getPropertyValue("headers");
 		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());
@@ -255,6 +256,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> enrichMessage(Message<?> message){
+		//TODO
 		Message<?> enrichedMessage = MessageBuilder.fromMessage(message).setHeader(CREATED_DATE, System.currentTimeMillis()).build();
 		Map innerMap = (Map) new DirectFieldAccessor(enrichedMessage.getHeaders()).getPropertyValue("headers");
 		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());

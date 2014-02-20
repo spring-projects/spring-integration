@@ -316,6 +316,7 @@ public class ChannelPublishingJmsMessageListener
 		}
 
 		Map<String, Object> headers = headerMapper.toHeaders(jmsMessage);
+		//TODO
 		Message<?> requestMessage = (result instanceof Message<?>) ?
 				MessageBuilder.fromMessage((Message<?>) result).copyHeaders(headers).build() :
 				MessageBuilder.withPayload(result).copyHeaders(headers).build();

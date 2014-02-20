@@ -44,7 +44,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -407,7 +406,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				return AbstractRemoteFileOutboundGateway.this.ls(session, fullDir);
 			}
 		});
-		return MessageBuilder.withPayload(payload)
+		return this.getMessageBuilderFactory().withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 			.build();
 	}
@@ -425,7 +424,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 			}
 		});
-		return MessageBuilder.withPayload(payload)
+		return this.getMessageBuilderFactory().withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 			.build();
@@ -442,7 +441,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				return AbstractRemoteFileOutboundGateway.this.mGet(requestMessage, session, remoteDir, remoteFilename);
 			}
 		});
-		return MessageBuilder.withPayload(payload)
+		return this.getMessageBuilderFactory().withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 			.build();
@@ -453,7 +452,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFilename = this.getRemoteFilename(remoteFilePath);
 		String remoteDir = this.getRemoteDirectory(remoteFilePath, remoteFilename);
 		boolean payload = this.remoteFileTemplate.remove(remoteFilePath);
-		return MessageBuilder.withPayload(payload)
+		return this.getMessageBuilderFactory().withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 			.build();
@@ -467,7 +466,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
 
 		this.remoteFileTemplate.rename(remoteFilePath, remoteFileNewPath);
-		return MessageBuilder.withPayload(Boolean.TRUE)
+		return this.getMessageBuilderFactory().withPayload(Boolean.TRUE)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 			.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
@@ -512,7 +511,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		List<String> replies = new ArrayList<String>();
 		for (File filteredFile : filteredFiles) {
 			if (!filteredFile.isDirectory()) {
-				String path = this.doPut(MessageBuilder.withPayload(filteredFile)
+				String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
 						.copyHeaders(requestMessage.getHeaders())
 						.build(), subDirectory);
 				if (path == null) {

@@ -55,7 +55,7 @@ import org.springframework.integration.http.converter.MultipartAwareFormHttpMess
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -485,13 +485,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				}
 			}
 
-			MessageBuilder<?> messageBuilder = null;
+			AbstractIntegrationMessageBuilder<?> messageBuilder = null;
 
 			if (payload instanceof Message<?>) {
-				messageBuilder = MessageBuilder.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
+				messageBuilder = this.getMessageBuilderFactory().fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 			}
 			else {
-				messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(headers);
+				messageBuilder = this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers);
 			}
 
 			Message<?> message = messageBuilder
@@ -519,7 +519,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		if (logger.isDebugEnabled()) {
 			logger.debug("Endpoint is shutting down; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
 		}
-		return MessageBuilder.withPayload("Endpoint is shutting down")
+		return this.getMessageBuilderFactory().withPayload("Endpoint is shutting down")
 				.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)
 				.build();
 	}

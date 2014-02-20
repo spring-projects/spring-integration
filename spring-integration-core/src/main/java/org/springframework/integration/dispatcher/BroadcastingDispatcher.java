@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.MessageDispatchingException;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -114,7 +113,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		}
 		int sequenceSize = handlers.size();
 		for (final MessageHandler handler : handlers) {
-			final Message<?> messageToSend = (!this.applySequence) ? message : MessageBuilder.fromMessage(message)
+			final Message<?> messageToSend = (!this.applySequence) ? message : this.getMessageBuilderFactory().fromMessage(message)
 					.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 			if (this.executor != null) {
 				this.executor.execute(new Runnable() {

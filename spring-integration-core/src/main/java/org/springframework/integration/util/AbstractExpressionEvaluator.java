@@ -26,9 +26,13 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -51,6 +55,8 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	private volatile BeanFactory beanFactory;
 
+	private volatile MessageBuilderFactory messageBuilderFactory;
+
 	/**
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
 	 */
@@ -70,9 +76,24 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		}
 	}
 
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (this.messageBuilderFactory == null) {
+			this.messageBuilderFactory = new DefaultMessageBuilderFactory();
+		}
+		return this.messageBuilderFactory;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		getEvaluationContext();
+		if (this.messageBuilderFactory == null) {
+			this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+		}
 	}
 
 	protected StandardEvaluationContext getEvaluationContext() {

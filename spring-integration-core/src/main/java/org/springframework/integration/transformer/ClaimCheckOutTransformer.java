@@ -19,7 +19,7 @@ package org.springframework.integration.transformer;
 import java.util.UUID;
 
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -71,7 +71,7 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		}
 		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
 				+ " within MessageStore [" + this.messageStore + "]");
-		MessageBuilder<?> responseBuilder = MessageBuilder.fromMessage(retrievedMessage);
+		AbstractIntegrationMessageBuilder<?> responseBuilder = this.getMessageBuilderFactory().fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
 		return responseBuilder.build();

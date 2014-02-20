@@ -400,6 +400,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		final String groupKey = getKey(groupId);
 
 		final long createdDate = System.currentTimeMillis();
+		//TODO
 		final Message<?> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
 

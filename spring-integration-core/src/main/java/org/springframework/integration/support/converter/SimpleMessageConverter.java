@@ -92,6 +92,7 @@ public class SimpleMessageConverter implements MessageConverter {
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
 			}
+			//TODO
 			return MessageBuilder.withPayload(object).build();
 		}
 	}
