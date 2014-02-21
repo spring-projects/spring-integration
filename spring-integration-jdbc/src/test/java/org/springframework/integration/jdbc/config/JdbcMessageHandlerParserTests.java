@@ -13,8 +13,8 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Map;
@@ -23,16 +23,16 @@ import javax.sql.DataSource;
 
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Dave Syer
@@ -111,12 +111,12 @@ public class JdbcMessageHandlerParserTests {
 
 	@Test
 	public void testOutboundAdapterWithPoller() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundAdapterWithPollerTest-context.xml", this.getClass());
-		MessageChannel target = ac.getBean("target", MessageChannel.class);
+		setUp("JdbcOutboundAdapterWithPollerTest-context.xml", this.getClass());
+		MessageChannel target = context.getBean("target", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		target.send(message);
 		Thread.sleep(2000);
-		Map<String, Object> map = (ac.getBean("jdbcTemplate", JdbcTemplate.class)).queryForMap("SELECT * from FOOW");
+		Map<String, Object> map = (context.getBean("jdbcTemplate", JdbcTemplate.class)).queryForMap("SELECT * from FOOW");
 		assertEquals("Wrong id", "FOO", map.get("ID"));
 		assertEquals("Wrong id", "foo", map.get("name"));
 	}

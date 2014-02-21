@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -28,11 +28,13 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,6 +55,7 @@ import org.springframework.util.StopWatch;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext // close at the end after class
 public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Autowired
@@ -94,6 +97,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		// appear empty....
 		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
 
+			@Override
 			public Void doInTransaction(TransactionStatus status) {
 
 				synchronized (storeLock) {
@@ -114,6 +118,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 		boolean result = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Boolean>() {
 
+			@Override
 			public Boolean doInTransaction(TransactionStatus status) {
 
 				synchronized (storeLock) {
@@ -177,6 +182,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		boolean result = new TransactionTemplate(transactionManager, transactionDefinition)
 				.execute(new TransactionCallback<Boolean>() {
 
+					@Override
 					public Boolean doInTransaction(TransactionStatus status) {
 
 						synchronized (storeLock) {

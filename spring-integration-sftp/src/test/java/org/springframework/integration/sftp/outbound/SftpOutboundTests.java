@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -48,20 +49,20 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -229,12 +230,21 @@ public class SftpOutboundTests {
 		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
 		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
-		ChannelSftp channel1 = spy(new ChannelSftp());
-		ChannelSftp channel2 = spy(new ChannelSftp());
+		final ChannelSftp channel1 = spy(new ChannelSftp());
+		doReturn("channel1").when(channel1).toString();
+		final ChannelSftp channel2 = spy(new ChannelSftp());
+		doReturn("channel2").when(channel2).toString();
 		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
-		doReturn(channel1).when(jschSession1).openChannel("sftp");
-		doReturn(channel2).when(jschSession1).openChannel("sftp");
+		// Can't use when(session.open()) with a spy
+		final AtomicInteger n = new AtomicInteger();
+		doAnswer(new Answer<ChannelSftp>() {
+
+			@Override
+			public ChannelSftp answer(InvocationOnMock invocation) throws Throwable {
+				return n.getAndIncrement() == 0 ? channel1 : channel2;
+			}
+		}).when(jschSession1).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
 		factory.setHost("host");
 		factory.setUser("foo");
@@ -244,6 +254,8 @@ public class SftpOutboundTests {
 		Session<LsEntry> s1 = factory.getSession();
 		Session<LsEntry> s2 = factory.getSession();
 		assertSame(TestUtils.getPropertyValue(s1, "jschSession"), TestUtils.getPropertyValue(s2, "jschSession"));
+		assertSame(channel1, TestUtils.getPropertyValue(s1, "channel"));
+		assertSame(channel2, TestUtils.getPropertyValue(s2, "channel"));
 	}
 
 	@Test
@@ -271,6 +283,8 @@ public class SftpOutboundTests {
 		Session<LsEntry> s1 = factory.getSession();
 		Session<LsEntry> s2 = factory.getSession();
 		assertNotSame(TestUtils.getPropertyValue(s1, "jschSession"), TestUtils.getPropertyValue(s2, "jschSession"));
+		assertSame(channel1, TestUtils.getPropertyValue(s1, "channel"));
+		assertSame(channel2, TestUtils.getPropertyValue(s2, "channel"));
 	}
 
 	@Test
@@ -283,16 +297,32 @@ public class SftpOutboundTests {
 		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
 		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
-		ChannelSftp channel1 = spy(new ChannelSftp());
-		ChannelSftp channel2 = spy(new ChannelSftp());
-		ChannelSftp channel3 = spy(new ChannelSftp());
-		ChannelSftp channel4 = spy(new ChannelSftp());
+		final ChannelSftp channel1 = spy(new ChannelSftp());
+		doReturn("channel1").when(channel1).toString();
+		final ChannelSftp channel2 = spy(new ChannelSftp());
+		doReturn("channel2").when(channel2).toString();
+		final ChannelSftp channel3 = spy(new ChannelSftp());
+		doReturn("channel3").when(channel3).toString();
+		final ChannelSftp channel4 = spy(new ChannelSftp());
+		doReturn("channel4").when(channel4).toString();
 		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
-		doReturn(channel1).when(jschSession1).openChannel("sftp");
-		doReturn(channel2).when(jschSession1).openChannel("sftp");
-		doReturn(channel3).when(jschSession2).openChannel("sftp");
-		doReturn(channel4).when(jschSession2).openChannel("sftp");
+		// Can't use when(session.open()) with a spy
+		final AtomicInteger n = new AtomicInteger();
+		doAnswer(new Answer<ChannelSftp>() {
+
+			@Override
+			public ChannelSftp answer(InvocationOnMock invocation) throws Throwable {
+				return n.getAndIncrement() == 0 ? channel1 : channel2;
+			}
+		}).when(jschSession1).openChannel("sftp");
+		doAnswer(new Answer<ChannelSftp>() {
+
+			@Override
+			public ChannelSftp answer(InvocationOnMock invocation) throws Throwable {
+				return n.getAndIncrement() < 3 ? channel3 : channel4;
+			}
+		}).when(jschSession2).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
 		factory.setHost("host");
 		factory.setUser("foo");
@@ -305,21 +335,26 @@ public class SftpOutboundTests {
 		Session<LsEntry> s1 = cachedFactory.getSession();
 		Session<LsEntry> s2 = cachedFactory.getSession();
 		assertSame(jschSession1, TestUtils.getPropertyValue(s2, "targetSession.jschSession"));
+		assertSame(channel1, TestUtils.getPropertyValue(s1, "targetSession.channel"));
+		assertSame(channel2, TestUtils.getPropertyValue(s2, "targetSession.channel"));
 		assertSame(TestUtils.getPropertyValue(s1, "targetSession.jschSession"), TestUtils.getPropertyValue(s2, "targetSession.jschSession"));
 		s1.close();
 		Session<LsEntry> s3 = cachedFactory.getSession();
 		assertSame(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s3, "targetSession"));
+		assertSame(channel1, TestUtils.getPropertyValue(s3, "targetSession.channel"));
 		s3.close();
 		cachedFactory.resetCache();
 		verify(jschSession1, never()).disconnect();
 		s3 = cachedFactory.getSession();
 		assertSame(jschSession2, TestUtils.getPropertyValue(s3, "targetSession.jschSession"));
 		assertNotSame(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s3, "targetSession"));
+		assertSame(channel3, TestUtils.getPropertyValue(s3, "targetSession.channel"));
 		s2.close();
 		verify(jschSession1).disconnect();
 		s2 = cachedFactory.getSession();
 		assertSame(jschSession2, TestUtils.getPropertyValue(s2, "targetSession.jschSession"));
 		assertNotSame(TestUtils.getPropertyValue(s3, "targetSession"), TestUtils.getPropertyValue(s2, "targetSession"));
+		assertSame(channel4, TestUtils.getPropertyValue(s2, "targetSession.channel"));
 		s2.close();
 		s3.close();
 		verify(jschSession2, never()).disconnect();
