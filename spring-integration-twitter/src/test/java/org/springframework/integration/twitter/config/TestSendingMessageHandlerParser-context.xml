@@ -14,35 +14,37 @@
 					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
                         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd
-						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd 
+						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
 						http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-	<beans:bean id="twitter" class="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
-			
+	<beans:bean id="twitter" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
+		<beans:constructor-arg name="clientToken" value="myDummyClientToken"/>
+	</beans:bean>
+
 	<channel id="inbound_mentions"/>
-	
+
    <channel id="inputChannel"/>
 
 	<twitter:dm-outbound-channel-adapter id="dmAdapter" order="23"
-										 twitter-template="twitter" 
-								         channel="inputChannel"/> 
-	
+										 twitter-template="twitter"
+								         channel="inputChannel"/>
+
 	<twitter:outbound-channel-adapter twitter-template="twitter" channel="inputChannel" />
-   
+
 	<twitter:dm-outbound-channel-adapter id="dmAdvised" order="23"
-										 twitter-template="twitter" 
+										 twitter-template="twitter"
 								         channel="inputChannel">
 		<twitter:request-handler-advice-chain>
 			<beans:bean class="org.springframework.integration.twitter.config.TestSendingMessageHandlerParserTests$FooAdvice" />
 		</twitter:request-handler-advice-chain>
 	</twitter:dm-outbound-channel-adapter>
-	
+
 	<twitter:outbound-channel-adapter id="advised" twitter-template="twitter" channel="inputChannel">
 		<twitter:request-handler-advice-chain>
 			<beans:bean class="org.springframework.integration.twitter.config.TestSendingMessageHandlerParserTests$FooAdvice" />
 		</twitter:request-handler-advice-chain>
 	</twitter:outbound-channel-adapter>
-   
+
 </beans:beans>
 
 
