@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.UserOperations;
-import org.springframework.social.twitter.api.impl.SearchParameters;
+import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
