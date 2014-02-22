@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 package org.springframework.integration.channel;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,23 +28,21 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class DirectChannelTests {
 
@@ -60,6 +62,56 @@ public class DirectChannelTests {
 	}
 
 	@Test
+	public void testSendPerfOneHandler() {
+		/*
+		 *  INT-3308 - used to run 12 million/sec
+		 *  1. optimize for single handler 20 million/sec
+		 *  2. Don't iterate over empty datatypes 23 million/sec
+		 *  3. Don't iterate over empty interceptors 31 million/sec
+		 */
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		GenericMessage<String> message = new GenericMessage<String>("test");
+		assertTrue(channel.send(message));
+		for (int i = 0; i < 10000000; i++) {
+			channel.send(message);
+		}
+	}
+
+	@Test
+	public void testSendPerfTwoHandlers() {
+		/*
+		 *  INT-3308 - used to run 6.4 million/sec
+		 *  1. Skip empty iterators as above 7.2 million/sec
+		 *  2. optimize for single handler 6.7 million/sec (small overhead added)
+		 *  3. remove LB rwlock from UnicastingDispatcher 7.2 million/sec
+		 */
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		GenericMessage<String> message = new GenericMessage<String>("test");
+		assertTrue(channel.send(message));
+		for (int i = 0; i < 10000000; i++) {
+			channel.send(message);
+		}
+	}
+
+	@Test
 	public void testSendInSeparateThread() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		final DirectChannel channel = new DirectChannel();
@@ -67,6 +119,7 @@ public class DirectChannelTests {
 		channel.subscribe(target);
 		final GenericMessage<String> message = new GenericMessage<String>("test");
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				channel.send(message);
 			}
@@ -140,6 +193,7 @@ public class DirectChannelTests {
 			this.latch = latch;
 		}
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.threadName = Thread.currentThread().getName();
 			if (this.latch != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.messaging.Message;
@@ -34,7 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
 /**
- * Convenience class for testing Spring Integration request-response message scenarios. Users 
+ * Convenience class for testing Spring Integration request-response message scenarios. Users
  * create subclasses to execute on or more {@link RequestResponseScenario} tests. each scenario defines:
  * <ul>
  * <li>An inputChannelName</li>
@@ -43,23 +44,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * <li>A handler to validate the response received on the outputChannel</li>
  * </ul>
  * @author David Turanski
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractRequestResponseScenarioTests {
 
     private List<RequestResponseScenario> scenarios = null;
-    
+
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     @Before
     public void setUp(){
         scenarios = defineRequestResponseScenarios();
-    }     
-    
+    }
+
     /**
-     * Execute each scenario. Instantiate the message channels, send the request message on the 
-     * input channel and invoke the validator on the response received on the output channel.  
+     * Execute each scenario. Instantiate the message channels, send the request message on the
+     * input channel and invoke the validator on the response received on the output channel.
      * This can handle subscribable or pollable output channels.
      */
     @Test
@@ -73,18 +75,22 @@ public abstract class AbstractRequestResponseScenarioTests {
             if (outputChannel instanceof SubscribableChannel){
                 ((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
             }
-            
+
             assertTrue(name + ": message not sent on " + scenario.getInputChannelName()
                     , inputChannel.send(scenario.getMessage()));
-            
+
             if (outputChannel instanceof PollableChannel){
                 Message<?> response = ((PollableChannel) outputChannel).receive(10000);
                 assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(),response);
                 scenario.getResponseValidator().handleMessage(response);
             }
-            
-            assertNotNull("message was not handled on " + outputChannel + " for scenario '" + scenario.getName() + "'.",
+
+            assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
 					scenario.getResponseValidator().getLastMessage());
+
+            if (outputChannel instanceof SubscribableChannel){
+                ((SubscribableChannel) outputChannel).unsubscribe(scenario.getResponseValidator());
+            }
         }
     }
     /**
@@ -92,6 +98,6 @@ public abstract class AbstractRequestResponseScenarioTests {
      * @return - A List of {@link RequestResponseScenario}
      */
     protected abstract List<RequestResponseScenario> defineRequestResponseScenarios();
-    
-    
+
+
 }

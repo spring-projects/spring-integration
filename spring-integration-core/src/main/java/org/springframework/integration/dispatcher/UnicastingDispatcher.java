@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.messaging.Message;
@@ -52,7 +49,7 @@ import org.springframework.messaging.MessagingException;
 public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private volatile boolean failover = true;
-	private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
 	private final Executor executor;
@@ -84,14 +81,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
 	public void setLoadBalancingStrategy(LoadBalancingStrategy loadBalancingStrategy) {
-		Lock lock = rwLock.writeLock();
-		lock.lock();
-		try {
-			this.loadBalancingStrategy = loadBalancingStrategy;
-		}
-		finally {
-			lock.unlock();
-		}
+		// TODO: I was going to add an assertion here, but who cares if they change it?
+		this.loadBalancingStrategy = loadBalancingStrategy;
 	}
 
 	@Override
@@ -143,14 +134,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * it simply returns the Iterator for the existing handler List.
 	 */
 	private Iterator<MessageHandler> getHandlerIterator(Message<?> message) {
-		Lock lock = rwLock.readLock();
-		lock.lock();
-		try {
-			if (this.loadBalancingStrategy != null) {
-				return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
-			}
-		} finally {
-			lock.unlock();
+		if (this.loadBalancingStrategy != null) {
+			return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
 		}
 		return this.getHandlers().iterator();
 	}

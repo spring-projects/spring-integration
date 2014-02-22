@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.MessageDispatchingException;
@@ -25,6 +27,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
@@ -41,16 +44,36 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 
 	private final AtomicInteger handlerCounter = new AtomicInteger();
 
-	public boolean subscribe(MessageHandler handler) {
+	private final Set<MessageHandler> handlers = new HashSet<MessageHandler>();
+
+	private volatile MessageHandler theOneHandler;
+
+	@Override
+	public synchronized boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
 		boolean added = dispatcher.addHandler(handler);
+		this.handlers.add(handler);
+		if (this.handlers.size() == 1) {
+			theOneHandler = handler;
+		}
+		else {
+			theOneHandler = null;
+		}
 		this.adjustCounterIfNecessary(dispatcher, added ? 1 : 0);
 		return added;
 	}
 
-	public boolean unsubscribe(MessageHandler handle) {
+	@Override
+	public synchronized boolean unsubscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
-		boolean removed = dispatcher.removeHandler(handle);
+		boolean removed = dispatcher.removeHandler(handler);
+		this.handlers.remove(handler);
+		if (this.handlers.size() == 1) {
+			theOneHandler = this.handlers.iterator().next();
+		}
+		else {
+			theOneHandler = null;
+		}
 		this.adjustCounterIfNecessary(dispatcher, removed ? -1 : 0);
 		return removed;
 	}
@@ -74,6 +97,26 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		try {
+			if (this.canShortCircuitDispatcher() && this.handlers.size() == 1) {
+				MessageHandler handler = this.theOneHandler;
+				if (handler != null) {
+					try {
+						handler.handleMessage(message);
+						return true;
+					}
+					catch (Exception e) {
+						RuntimeException runtimeException = (e instanceof RuntimeException)
+								? (RuntimeException) e
+								: new MessageDeliveryException(message,
+										"Handler failed to handle Message.", e);
+						if (e instanceof MessagingException &&
+								((MessagingException) e).getFailedMessage() == null) {
+							runtimeException = new MessagingException(message, e);
+						}
+						throw runtimeException;
+					}
+				}
+			}
 			return this.getRequiredDispatcher().dispatch(message);
 		}
 		catch (MessageDispatchingException e) {
@@ -89,5 +132,9 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	}
 
 	protected abstract MessageDispatcher getDispatcher();
+
+	protected boolean canShortCircuitDispatcher() {
+		return false;
+	}
 
 }
