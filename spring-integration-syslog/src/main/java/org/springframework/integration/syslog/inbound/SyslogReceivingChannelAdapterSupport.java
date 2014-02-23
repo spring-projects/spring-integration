@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package org.springframework.integration.syslog.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.syslog.DefaultMessageConverter;
 import org.springframework.integration.syslog.MessageConverter;
 
@@ -70,7 +72,14 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 
 	protected void convertAndSend(Message<?> message) {
 		try {
-			this.sendMessage(this.converter.fromSyslog(message));
+			if (message instanceof ErrorMessage) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Error on syslog socket:" + ((ErrorMessage) message).getPayload().getMessage());
+				}
+			}
+			else {
+				this.sendMessage(this.converter.fromSyslog(message));
+			}
 		}
 		catch (Exception e) {
 			throw new MessagingException(message, e);
