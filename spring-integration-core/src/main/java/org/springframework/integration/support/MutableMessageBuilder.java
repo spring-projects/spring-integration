@@ -47,12 +47,11 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	 */
 	public MutableMessageBuilder(Message<T> message, boolean mutate) {
 		Assert.notNull(message, "message must not be null");
-		if (mutate) {
-			Assert.isInstanceOf(MutableMessage.class, message);
+		if (mutate && message instanceof MutableMessage) {
 			this.mutableMessage = (MutableMessage<T>) message;
 		}
 		else {
-			this.mutableMessage = new MutableMessage<T>(message.getPayload());
+			this.mutableMessage = new MutableMessage<T>(message.getPayload(), message.getHeaders());
 		}
 		this.headers = this.mutableMessage.getRawHeaders();
 	}

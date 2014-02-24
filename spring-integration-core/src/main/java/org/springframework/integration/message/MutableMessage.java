@@ -33,9 +33,23 @@ public class MutableMessage<T> implements Message<T> {
 
 	private final MessageHeaders headers;
 
+	private final Map<String, Object> rawHeaders;
+
 	public MutableMessage(T payload) {
+		this(payload, null);
+	}
+
+	@SuppressWarnings("unchecked")
+	public MutableMessage(T payload, MessageHeaders headers) {
 		this.payload = payload;
-		this.headers = new MessageHeaders(null);
+		this.headers = new MessageHeaders(headers);
+		// Needs SPR-11468 to avoid DFA and header manipulation
+		rawHeaders = (Map<String, Object>) new DirectFieldAccessor(this.headers)
+				.getPropertyValue("headers");
+		if (headers != null) {
+			this.rawHeaders.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			this.rawHeaders.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+		}
 	}
 
 	@Override
@@ -53,10 +67,7 @@ public class MutableMessage<T> implements Message<T> {
 	}
 
 	public Map<String, Object> getRawHeaders() {
-		@SuppressWarnings("unchecked")
-		Map<String, Object> headers = (Map<String, Object>) new DirectFieldAccessor(this.headers)
-				.getPropertyValue("headers");
-		return headers;
+		return this.rawHeaders;
 	}
 
 	@Override
