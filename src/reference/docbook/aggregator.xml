@@ -256,7 +256,22 @@ anything other than <classname>Message</classname>). Typically this would satisf
 for some reason, you need to access the full <classname>MessageGroup</classname>
 then you should simply provide an implementation of the <classname>ReleaseStrategy</classname> interface.
 </para>
-
+<caution>
+	<para>
+	When handling potentially large groups, it is important to understand how these methods are invoked because the release
+	strategy may be invoked multiple times before the group is released. The most efficient is an implementation of
+	<interfacename>ReleaseStrategy</interfacename> because the aggregator can invoke it directly. The second most
+	efficient is a POJO method with a <code>Collection&lt;Message&lt;?&gt;&gt;</code> parameter type. The least efficient
+	is a POJO method with a <code>Collection&lt;Foo&gt;</code> type - the framework has to copy the payloads from the messages
+	in the group into a new collection (and possibly attempt conversion on the payloads to <code>Foo</code>) every time the
+	release strategy is called. <code>Collection&lt;?&gt;</code> avoids the conversion but still requires creating the
+	new <interfacename>Collection</interfacename>.
+	</para>
+	<para>
+	<emphasis role="bold">For these reasons, for large groups, it is recommended that you implement
+	<interfacename>ReleaseStrategy</interfacename>.</emphasis>
+</para>
+</caution>
       <para>When the group is released for aggregation, all its not-yet-released
       messages are processed and removed from the group.
       If the group is also complete (i.e. if all messages from a
