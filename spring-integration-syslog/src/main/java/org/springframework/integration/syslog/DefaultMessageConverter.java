@@ -22,7 +22,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 
@@ -35,12 +39,27 @@ import org.springframework.messaging.Message;
  * @since 3.0
  *
  */
-public class DefaultMessageConverter implements MessageConverter {
+public class DefaultMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private final SyslogToMapTransformer transformer = new SyslogToMapTransformer();
 
 	public static final Set<String> SYSLOG_PAYLOAD_ENTRIES = new HashSet<String>(
 			Arrays.asList(new String[] {SyslogToMapTransformer.MESSAGE, SyslogToMapTransformer.UNDECODED}));
+
+	private volatile BeanFactory beanFactory;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
 
 	@Override
 	public Message<?> fromSyslog(Message<?> message) throws Exception {
@@ -52,8 +71,7 @@ public class DefaultMessageConverter implements MessageConverter {
 				out.put(SyslogHeaders.PREFIX + entry.getKey(), entry.getValue());
 			}
 		}
-		//TODO
-		return MessageBuilder.withPayload(map)
+		return this.messageBuilderFactory.withPayload(map)
 				.copyHeaders(out)
 				.build();
 	}

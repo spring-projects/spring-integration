@@ -174,6 +174,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	@Override
 	protected void onInit() throws Exception {
 		this.historyWritingPostProcessor.setTrackableComponent(this);
+		this.historyWritingPostProcessor.setMessageBuilderFactory(this.getMessageBuilderFactory());
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
 			if (this.requestMapper instanceof DefaultRequestMapper) {

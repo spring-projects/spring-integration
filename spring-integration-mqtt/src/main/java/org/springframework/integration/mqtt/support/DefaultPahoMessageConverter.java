@@ -17,8 +17,12 @@ package org.springframework.integration.mqtt.support;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -32,7 +36,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class DefaultPahoMessageConverter implements MqttMessageConverter {
+public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFactoryAware {
 
 	private final String charset;
 
@@ -42,12 +46,27 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 
 	private volatile boolean payloadAsBytes = false;
 
+	private volatile BeanFactory beanFactory;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+
 	public DefaultPahoMessageConverter() {
 		this (0, false);
 	}
 
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetain) {
 		this(defaultQos, defaultRetain, "UTF-8");
+	}
+
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
 	}
 
 	/**
@@ -74,8 +93,8 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	@Override
 	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			//TODO
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(mqttBytesToPayload(mqttMessage))
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = this.messageBuilderFactory
+					.withPayload(mqttBytesToPayload(mqttMessage))
 					.setHeader(MqttHeaders.QOS, mqttMessage.getQos())
 					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())
 					.setHeader(MqttHeaders.RETAINED, mqttMessage.isRetained());

@@ -25,7 +25,8 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 
@@ -55,13 +56,45 @@ public class TcpMessageMapper implements
 
 	private volatile boolean applySequence = false;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	/**
+	 * @param charset the charset to set
+	 */
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
+	/**
+	 * Sets whether outbound String payloads are to be converted
+	 * to byte[]. Default is true.
+	 * @param stringToBytes The stringToBytes to set.
+	 */
+	public void setStringToBytes(boolean stringToBytes) {
+		this.stringToBytes = stringToBytes;
+	}
+
+	/**
+	 * @param applySequence The applySequence to set.
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
+	}
+
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
+
 	@Override
 	public Message<?> toMessage(TcpConnection connection) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
-			// TODO
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = this.messageBuilderFactory.withPayload(payload);
 			this.addStandardHeaders(connection, messageBuilder);
 			this.addCustomHeaders(connection, messageBuilder);
 			message = messageBuilder.build();
@@ -136,31 +169,6 @@ public class TcpMessageMapper implements
 					"either a byte array or String payload, but received: " + payload.getClass());
 		}
 		return bytes;
-	}
-
-
-	/**
-	 * @param charset the charset to set
-	 */
-	public void setCharset(String charset) {
-		this.charset = charset;
-	}
-
-
-	/**
-	 * Sets whether outbound String payloads are to be converted
-	 * to byte[]. Default is true.
-	 * @param stringToBytes The stringToBytes to set.
-	 */
-	public void setStringToBytes(boolean stringToBytes) {
-		this.stringToBytes = stringToBytes;
-	}
-
-	/**
-	 * @param applySequence The applySequence to set.
-	 */
-	public void setApplySequence(boolean applySequence) {
-		this.applySequence = applySequence;
 	}
 
 }

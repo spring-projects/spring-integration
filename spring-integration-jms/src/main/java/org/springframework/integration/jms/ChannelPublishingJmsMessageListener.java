@@ -32,9 +32,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -87,6 +89,8 @@ public class ChannelPublishingJmsMessageListener
 	private final GatewayDelegate gatewayDelegate = new GatewayDelegate();
 
 	private volatile BeanFactory beanFactory;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	/**
 	 * Specify whether a JMS reply Message is expected.
@@ -316,10 +320,9 @@ public class ChannelPublishingJmsMessageListener
 		}
 
 		Map<String, Object> headers = headerMapper.toHeaders(jmsMessage);
-		//TODO
 		Message<?> requestMessage = (result instanceof Message<?>) ?
-				MessageBuilder.fromMessage((Message<?>) result).copyHeaders(headers).build() :
-				MessageBuilder.withPayload(result).copyHeaders(headers).build();
+				this.messageBuilderFactory.fromMessage((Message<?>) result).copyHeaders(headers).build() :
+				this.messageBuilderFactory.withPayload(result).copyHeaders(headers).build();
 		if (!this.expectReply) {
 			this.gatewayDelegate.send(requestMessage);
 		}
@@ -358,6 +361,7 @@ public class ChannelPublishingJmsMessageListener
 			this.gatewayDelegate.setBeanFactory(this.beanFactory);
 		}
 		this.gatewayDelegate.afterPropertiesSet();
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected void start(){

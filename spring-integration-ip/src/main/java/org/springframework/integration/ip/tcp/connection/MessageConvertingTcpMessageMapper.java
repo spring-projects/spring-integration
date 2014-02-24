@@ -16,7 +16,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -40,8 +39,7 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 		Object data = connection.getPayload();
 		if (data != null) {
 			Message<?> message = this.messageConverter.toMessage(data, null);
-			//TODO
-			AbstractIntegrationMessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message);
+			AbstractIntegrationMessageBuilder<?> messageBuilder = this.getMessageBuilderFactory().fromMessage(message);
 			this.addStandardHeaders(connection, messageBuilder);
 			this.addCustomHeaders(connection, messageBuilder);
 			return messageBuilder.build();

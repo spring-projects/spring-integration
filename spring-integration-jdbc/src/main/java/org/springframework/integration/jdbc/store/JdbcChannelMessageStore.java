@@ -50,7 +50,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -400,8 +399,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		final String groupKey = getKey(groupId);
 
 		final long createdDate = System.currentTimeMillis();
-		//TODO
-		final Message<?> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+		final Message<?> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
 
 		final Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");

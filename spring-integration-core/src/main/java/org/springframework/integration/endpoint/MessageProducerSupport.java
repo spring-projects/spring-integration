@@ -17,13 +17,13 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -45,6 +45,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
+	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
@@ -57,6 +58,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
 	}
@@ -90,7 +92,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			throw new MessagingException("cannot send a null message");
 		}
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this);
+			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		try {
 			this.messagingTemplate.send(this.outputChannel, message);

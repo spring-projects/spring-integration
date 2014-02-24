@@ -57,7 +57,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	 */
 	public UnicastReceivingChannelAdapter(int port) {
 		super(port);
-		mapper.setLengthCheck(false);
+		this.mapper.setLengthCheck(false);
 	}
 
 	/**
@@ -69,9 +69,14 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	 */
 	public UnicastReceivingChannelAdapter(int port, boolean lengthCheck) {
 		super(port);
-		mapper.setLengthCheck(lengthCheck);
+		this.mapper.setLengthCheck(lengthCheck);
 	}
 
+	@Override
+	protected void onInit() {
+		super.onInit();
+		this.mapper.setMessageBuilderFactory(this.getMessageBuilderFactory());
+	}
 
 	@Override
 	public void run() {

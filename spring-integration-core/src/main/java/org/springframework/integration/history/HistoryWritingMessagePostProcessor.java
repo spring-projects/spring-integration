@@ -16,6 +16,8 @@
 
 package org.springframework.integration.history;
 
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
@@ -30,6 +32,7 @@ public class HistoryWritingMessagePostProcessor implements MessagePostProcessor 
 
 	private volatile boolean shouldTrack;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public HistoryWritingMessagePostProcessor() {
 	}
@@ -39,6 +42,10 @@ public class HistoryWritingMessagePostProcessor implements MessagePostProcessor 
 		this.trackableComponent = trackableComponent;
 	}
 
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
 
 	public void setTrackableComponent(TrackableComponent trackableComponent) {
 		this.trackableComponent = trackableComponent;
@@ -48,9 +55,10 @@ public class HistoryWritingMessagePostProcessor implements MessagePostProcessor 
 		this.shouldTrack = shouldTrack;
 	}
 
+	@Override
 	public Message<?> postProcessMessage(Message<?> message) {
 		if (this.shouldTrack && this.trackableComponent != null) {
-			return MessageHistory.write(message, this.trackableComponent);
+			return MessageHistory.write(message, this.trackableComponent, this.messageBuilderFactory);
 		}
 		return message;
 	}

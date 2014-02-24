@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -47,6 +46,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	// MessageStore methods
 
+	@Override
 	public Message<?> getMessage(UUID id) {
 		Message<?> message = this.getRawMessage(id);
 		if (message != null){
@@ -55,6 +55,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return null;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
@@ -63,6 +64,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return (Message<T>) this.getRawMessage(messageId);
 	}
 
+	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		Object message = this.doRemove(MESSAGE_KEY_PREFIX + id);
@@ -75,6 +77,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return null;
 	}
 
+	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
 		Collection<?> messageIds = this.doListKeys(MESSAGE_KEY_PREFIX + "*");
@@ -87,6 +90,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	/**
 	 * Will create a new instance of SimpleMessageGroup if necessary.
 	 */
+	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		return this.buildMessageGroup(groupId, false);
 	}
@@ -95,6 +99,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	/**
 	 * Add a Message to the group with the provided group ID.
 	 */
+	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
@@ -124,6 +129,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	/**
 	 * Remove a Message from the group with the provided group ID.
 	 */
+	@Override
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
@@ -149,6 +155,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 
+	@Override
 	public void completeGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
@@ -160,6 +167,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	/**
 	 * Remove the MessageGroup with the provided group ID.
 	 */
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Object mgm = this.doRemove(MESSAGE_GROUP_KEY_PREFIX + groupId);
@@ -174,6 +182,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		}
 	}
 
+	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
@@ -182,6 +191,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 
+	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
@@ -200,6 +210,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return null;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Iterator<MessageGroup> iterator() {
 		final Iterator<?> idIterator = this.normalizeKeys(
@@ -223,6 +234,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return normalizedKeys;
 	}
 
+	@Override
 	public int messageGroupSize(Object groupId) {
 		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
@@ -243,8 +255,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> normalizeMessage(Message<?> message){
-		//TODO
-		Message<?> normalizedMessage = MessageBuilder.fromMessage(message).removeHeader("CREATED_DATE").build();
+		Message<?> normalizedMessage = this.getMessageBuilderFactory().fromMessage(message)
+				.removeHeader("CREATED_DATE")
+				.build();
 		Map innerMap = (Map) new DirectFieldAccessor(normalizedMessage.getHeaders()).getPropertyValue("headers");
 		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());
 		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().getTimestamp());
@@ -256,8 +269,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> enrichMessage(Message<?> message){
-		//TODO
-		Message<?> enrichedMessage = MessageBuilder.fromMessage(message).setHeader(CREATED_DATE, System.currentTimeMillis()).build();
+		Message<?> enrichedMessage = this.getMessageBuilderFactory().fromMessage(message)
+				.setHeader(CREATED_DATE, System.currentTimeMillis())
+				.build();
 		Map innerMap = (Map) new DirectFieldAccessor(enrichedMessage.getHeaders()).getPropertyValue("headers");
 		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());
 		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().getTimestamp());
@@ -325,15 +339,18 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			this.idIterator = idIterator;
 		}
 
+		@Override
 		public boolean hasNext() {
 			return idIterator.hasNext();
 		}
 
+		@Override
 		public MessageGroup next() {
 			Object messageGroupId = idIterator.next();
 			return getMessageGroup(messageGroupId);
 		}
 
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}

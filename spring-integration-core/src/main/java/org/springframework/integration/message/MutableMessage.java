@@ -20,6 +20,7 @@ import java.util.Map;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Gary Russell
@@ -56,6 +57,38 @@ public class MutableMessage<T> implements Message<T> {
 		Map<String, Object> headers = (Map<String, Object>) new DirectFieldAccessor(this.headers)
 				.getPropertyValue("headers");
 		return headers;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (this.payload instanceof byte[]) {
+			sb.append("[Payload byte[").append(((byte[]) this.payload).length).append("]]");
+		}
+		else {
+			sb.append("[Payload ").append(this.payload.getClass().getSimpleName());
+			sb.append(" content=").append(this.payload).append("]");
+		}
+		sb.append("[Headers=").append(this.headers).append("]");
+		return sb.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		return this.headers.hashCode() * 23 + ObjectUtils.nullSafeHashCode(this.payload);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj != null && obj instanceof MutableMessage<?>) {
+			MutableMessage<?> other = (MutableMessage<?>) obj;
+			return (this.headers.getId().equals(other.headers.getId()) &&
+					this.headers.equals(other.headers) && this.payload.equals(other.payload));
+		}
+		return false;
 	}
 
 }
