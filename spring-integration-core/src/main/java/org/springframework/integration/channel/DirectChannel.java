@@ -90,9 +90,4 @@ public class DirectChannel extends AbstractSubscribableChannel {
 		}
 	}
 
-	@Override
-	protected boolean canShortCircuitDispatcher() {
-		return true;
-	}
-
 }

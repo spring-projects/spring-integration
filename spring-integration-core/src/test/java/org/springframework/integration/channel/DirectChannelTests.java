@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -68,6 +69,7 @@ public class DirectChannelTests {
 		 *  1. optimize for single handler 20 million/sec
 		 *  2. Don't iterate over empty datatypes 23 million/sec
 		 *  3. Don't iterate over empty interceptors 31 million/sec
+		 *  4. Move single handler optimization to dispatcher 34 million/sec
 		 */
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new MessageHandler() {
@@ -78,7 +80,7 @@ public class DirectChannelTests {
 		});
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
-		for (int i = 0; i < 10000000; i++) {
+		for (int i = 0; i < 100000000; i++) {
 			channel.send(message);
 		}
 	}
@@ -90,25 +92,32 @@ public class DirectChannelTests {
 		 *  1. Skip empty iterators as above 7.2 million/sec
 		 *  2. optimize for single handler 6.7 million/sec (small overhead added)
 		 *  3. remove LB rwlock from UnicastingDispatcher 7.2 million/sec
+		 *  4. Move single handler optimization to dispatcher 7.3 million/sec
 		 */
 		DirectChannel channel = new DirectChannel();
+		final AtomicInteger count1 = new AtomicInteger();
+		final AtomicInteger count2 = new AtomicInteger();
 		channel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
+				count1.incrementAndGet();
 			}
 		});
 		channel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
+				count2.getAndIncrement();
 			}
 		});
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
-		for (int i = 0; i < 10000000; i++) {
+		for (int i = 0; i < 100000000; i++) {
 			channel.send(message);
 		}
+		assertEquals(50000001, count1.get());
+		assertEquals(50000000, count2.get());
 	}
 
 	@Test
