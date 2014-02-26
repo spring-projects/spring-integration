@@ -70,12 +70,16 @@ public class DirectChannelTests {
 		 *  2. Don't iterate over empty datatypes 23 million/sec
 		 *  3. Don't iterate over empty interceptors 31 million/sec
 		 *  4. Move single handler optimization to dispatcher 34 million/sec
+		 *
+		 *  29 million per second with increment counter in the handler
 		 */
 		DirectChannel channel = new DirectChannel();
+		final AtomicInteger count = new AtomicInteger();
 		channel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
+				count.incrementAndGet();
 			}
 		});
 		GenericMessage<String> message = new GenericMessage<String>("test");
@@ -118,6 +122,52 @@ public class DirectChannelTests {
 		}
 		assertEquals(50000001, count1.get());
 		assertEquals(50000000, count2.get());
+	}
+
+	@Test
+	public void testSendPerfSingleFinalHandler() {
+		/*
+		 *  INT-3308 - 40 million/sec (no code in handler)
+		 *
+		 *  33 million per second with increment counter in the handler
+		 */
+		final AtomicInteger count = new AtomicInteger();
+		SingleFinalSubscriberChannel channel = new SingleFinalSubscriberChannel(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				count.incrementAndGet();
+			}
+		});
+		GenericMessage<String> message = new GenericMessage<String>("test");
+		assertTrue(channel.send(message));
+		for (int i = 0; i < 100000000; i++) {
+			channel.send(message, 0);
+		}
+	}
+
+	@Test
+	public void testSendPerfBasicSingleFinalHandler() {
+		/*
+		 *  INT-3308 - 96 million/sec
+		 *  NOTE: in order to get a measurable time, I had to add some code to the handler -
+		 *  presumably the JIT compiler short circuited the call becaues it's a final field
+		 *  and he knows the method does nothing.
+		 *  Added the same code to the other tests for comparison.
+		 */
+		final AtomicInteger count = new AtomicInteger();
+		BasicSingleFinalSubscriberChannel channel = new BasicSingleFinalSubscriberChannel(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				count.incrementAndGet();
+			}
+		});
+		GenericMessage<String> message = new GenericMessage<String>("test");
+		assertTrue(channel.send(message));
+		for (int i = 0; i < 1000000000; i++) {
+			channel.send(message, 0);
+		}
 	}
 
 	@Test

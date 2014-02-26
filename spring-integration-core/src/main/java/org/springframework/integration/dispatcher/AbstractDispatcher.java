@@ -103,6 +103,9 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		if (this.handlers.size() == 1) {
 			this.theOneHandler = this.handlers.iterator().next();
 		}
+		else {
+			this.theOneHandler = null;
+		}
 		return removed;
 	}
 
