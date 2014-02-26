@@ -181,16 +181,13 @@
 							</xsd:annotation>
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="final" default="false">
+					<xsd:attribute name="final" default="false" type="xsd:boolean">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	When true, only one subscriber is allowed and the subscriber must be available at context initialization time.
 	Subscribers cannot be stopped. Not allowed with <queue/> sub element. Default: false.				
 							]]></xsd:documentation>
 						</xsd:annotation>
-						<xsd:simpleType>
-							<xsd:union memberTypes="xsd:boolean xsd:string"/>
-						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

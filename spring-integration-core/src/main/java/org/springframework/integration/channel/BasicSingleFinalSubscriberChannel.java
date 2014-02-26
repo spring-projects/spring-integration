@@ -40,6 +40,11 @@ public final class BasicSingleFinalSubscriberChannel implements SubscribableChan
 
 	private final MessageHandler handler;
 
+	public BasicSingleFinalSubscriberChannel() {
+		throw new IllegalArgumentException("Cannot instantiate a " + this.getClass().getSimpleName()
+				+ " without a MessageHandler.");
+	}
+
 	public BasicSingleFinalSubscriberChannel(MessageHandler handler) {
 		this.handler = handler;
 	}
@@ -71,7 +76,7 @@ public final class BasicSingleFinalSubscriberChannel implements SubscribableChan
 	@Override
 	public boolean subscribe(MessageHandler handler) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Cannot unsubscribe from " + this.getClass().getSimpleName());
+			logger.debug("Cannot unsubscribe from " + this.getClass().getSimpleName() + ".");
 		}
 		return false;
 	}
@@ -79,7 +84,7 @@ public final class BasicSingleFinalSubscriberChannel implements SubscribableChan
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
 		if (handler != this.handler && logger.isDebugEnabled()) {
-			logger.debug("Cannot subscribe to " + this.getClass().getSimpleName());
+			logger.debug("Cannot subscribe to " + this.getClass().getSimpleName() + ".");
 		}
 		return false;
 	}

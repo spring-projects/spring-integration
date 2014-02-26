@@ -125,28 +125,6 @@ public class DirectChannelTests {
 	}
 
 	@Test
-	public void testSendPerfSingleFinalHandler() {
-		/*
-		 *  INT-3308 - 40 million/sec (no code in handler)
-		 *
-		 *  33 million per second with increment counter in the handler
-		 */
-		final AtomicInteger count = new AtomicInteger();
-		SingleFinalSubscriberChannel channel = new SingleFinalSubscriberChannel(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				count.incrementAndGet();
-			}
-		});
-		GenericMessage<String> message = new GenericMessage<String>("test");
-		assertTrue(channel.send(message));
-		for (int i = 0; i < 100000000; i++) {
-			channel.send(message, 0);
-		}
-	}
-
-	@Test
 	public void testSendPerfBasicSingleFinalHandler() {
 		/*
 		 *  INT-3308 - 96 million/sec
