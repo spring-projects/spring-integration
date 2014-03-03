@@ -24,30 +24,9 @@ import org.springframework.messaging.Message;
  */
 public class MutableMessageBuilderFacfory implements MessageBuilderFactory {
 
-	private final boolean alwaysMutate;
-
-
-	public MutableMessageBuilderFacfory() {
-		alwaysMutate = false;
-	}
-
-	public MutableMessageBuilderFacfory(boolean alwaysMutate) {
-		this.alwaysMutate = alwaysMutate;
-	}
-
 	@Override
 	public <T> MutableMessageBuilder<T> fromMessage(Message<T> message) {
-		if (this.alwaysMutate) {
-			return MutableMessageBuilder.mutateMessage(message);
-		}
-		else {
-			return MutableMessageBuilder.fromMessage(message);
-		}
-	}
-
-	@Override
-	public <T> MutableMessageBuilder<T> mutateMessage(Message<T> message) {
-		return MutableMessageBuilder.mutateMessage(message);
+		return MutableMessageBuilder.fromMessage(message);
 	}
 
 	@Override

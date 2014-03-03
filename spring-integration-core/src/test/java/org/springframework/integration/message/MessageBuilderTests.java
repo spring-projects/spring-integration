@@ -18,7 +18,6 @@ package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -31,7 +30,6 @@ import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
@@ -42,7 +40,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -152,12 +149,7 @@ public class MessageBuilderTests {
 		Message<String> message2 = MutableMessageBuilder.fromMessage(message1).setHeader("another", 1).build();
 		assertEquals("bar", message2.getHeaders().get("foo"));
 		assertSame(message1.getHeaders().getId(), message2.getHeaders().getId());
-		assertNotSame(message1, message2);
-		assertFalse(message2 == message1);
-		Message<String> message3 = MutableMessageBuilder.mutateMessage(message1).setHeader("another", 1).build();
-		assertEquals("bar", message3.getHeaders().get("foo"));
-		assertSame(message1.getHeaders().getId(), message3.getHeaders().getId());
-		assertTrue(message3 == message1);
+		assertTrue(message2 == message1);
 	}
 
 	@Test
@@ -175,35 +167,11 @@ public class MessageBuilderTests {
 	public void mutableFromImmutableMutate() {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
-		Message<String> message2 = new MutableMessageBuilderFacfory().mutateMessage(message1).setHeader("another", 1).build();
+		Message<String> message2 = new MutableMessageBuilderFacfory().fromMessage(message1).setHeader("another", 1).build();
 		assertEquals("bar", message2.getHeaders().get("foo"));
 		assertSame(message1.getHeaders().getId(), message2.getHeaders().getId());
 		assertNotSame(message1, message2);
 		assertFalse(message2 == message1);
-	}
-
-	@Test
-	public void configuredMBF() {
-		Message<String> message = new GenericMessage<String>("foo");
-		in.send(message);
-		Message<?> out1 = this.out.receive(0);
-		assertNotNull(out1);
-		assertSame(message.getHeaders().getId(), out1.getHeaders().getId());
-		Message<?> out2 = this.out.receive(0);
-		assertNotNull(out2);
-		assertSame(message.getHeaders().getId(), out2.getHeaders().getId());
-		assertNotSame(out1, out2);
-		assertTrue(out1 instanceof MutableMessage);
-		assertTrue(out2 instanceof MutableMessage);
-
-		new DirectFieldAccessor(this.messageBuilderFactory).setPropertyValue("alwaysMutate", true);
-		in.send(message);
-		out1 = this.out.receive(0);
-		assertNotNull(out1);
-		assertSame(message.getHeaders().getId(), out1.getHeaders().getId());
-		out2 = this.out.receive(0);
-		assertNotNull(out2);
-		assertSame(out1, out2);
 	}
 
 	@Test

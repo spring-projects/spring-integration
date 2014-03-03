@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.message.MutableMessage;
 import org.springframework.messaging.Message;
@@ -40,14 +39,14 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 
 	private MutableMessage<T> mutableMessage;
 
-	private Map<String, Object> headers;
+	private final Map<String, Object> headers;
 
 	/**
 	 * Private constructor to be invoked from the static factory methods only.
 	 */
-	public MutableMessageBuilder(Message<T> message, boolean mutate) {
+	private MutableMessageBuilder(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
-		if (mutate && message instanceof MutableMessage) {
+		if (message instanceof MutableMessage) {
 			this.mutableMessage = (MutableMessage<T>) message;
 		}
 		else {
@@ -66,21 +65,7 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	 */
 	public static <T> MutableMessageBuilder<T> fromMessage(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
-		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(message, false);
-		return builder;
-	}
-
-	/**
-	 * Create a builder for a new {@link Message} instance pre-populated with all of the headers copied from the
-	 * provided message. The payload of the provided Message will also be used as the payload for the new message.
-	 *
-	 * @param message the Message from which the payload and all headers will be copied
-	 * @param <T> The type of the payload.
-	 * @return A MessageBuilder.
-	 */
-	public static <T> MutableMessageBuilder<T> mutateMessage(Message<T> message) {
-		Assert.notNull(message, "message must not be null");
-		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(message, true);
+		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(message);
 		return builder;
 	}
 
@@ -92,18 +77,8 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	 * @return A MessageBuilder.
 	 */
 	public static <T> MutableMessageBuilder<T> withPayload(T payload) {
-		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(new MutableMessage<T>(payload), true);
+		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(new MutableMessage<T>(payload));
 		return builder;
-	}
-
-	public MutableMessageBuilder<T> mutate(Message<T> message) {
-		Assert.isInstanceOf(MutableMessage.class, message);
-		this.mutableMessage = (MutableMessage<T>) message;
-		@SuppressWarnings("unchecked")
-		Map<String, Object> headers = (Map<String, Object>) new DirectFieldAccessor(this.mutableMessage.getHeaders())
-				.getPropertyValue("headers");
-		this.headers = headers;
-		return this;
 	}
 
 	@Override

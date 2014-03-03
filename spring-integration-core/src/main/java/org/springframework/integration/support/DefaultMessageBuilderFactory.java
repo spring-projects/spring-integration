@@ -31,11 +31,6 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	}
 
 	@Override
-	public <T> MessageBuilder<T> mutateMessage(Message<T> message) {
-		throw new UnsupportedOperationException("The MessageBuilder does not support message mutation");
-	}
-
-	@Override
 	public <T> MessageBuilder<T> withPayload(T payload) {
 		return MessageBuilder.withPayload(payload);
 	}
