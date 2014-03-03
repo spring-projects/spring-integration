@@ -34,6 +34,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.convert.ConversionService;
@@ -41,7 +42,10 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -54,6 +58,7 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -68,8 +73,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
+
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private volatile Class<?> serviceInterface;
 
@@ -174,7 +182,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	 *
 	 * @param defaultRequestTimeout the timeout value in milliseconds
 	 */
-	public void setDefaultRequestTimeout(long defaultRequestTimeout) {
+	public void setDefaultRequestTimeout(Long defaultRequestTimeout) {
 		this.defaultRequestTimeout = defaultRequestTimeout;
 	}
 
@@ -184,7 +192,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	 *
 	 * @param defaultReplyTimeout the timeout value in milliseconds
 	 */
-	public void setDefaultReplyTimeout(long defaultReplyTimeout) {
+	public void setDefaultReplyTimeout(Long defaultReplyTimeout) {
 		this.defaultReplyTimeout = defaultReplyTimeout;
 	}
 
@@ -368,7 +376,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		Long replyTimeout = this.defaultReplyTimeout;
 		String payloadExpression = this.globalMethodMetadata != null ? this.globalMethodMetadata.getPayloadExpression()
 				: null;
-		Map<String, Expression> headerExpressions = null;
+		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 		if (gatewayAnnotation != null) {
 			String requestChannelName = gatewayAnnotation.requestChannel();
 			if (StringUtils.hasText(requestChannelName)) {
@@ -391,12 +399,34 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			if (replyTimeout == null || gatewayAnnotation.replyTimeout() != Long.MIN_VALUE) {
 				replyTimeout = gatewayAnnotation.replyTimeout();
 			}
+			if (payloadExpression == null || StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
+				payloadExpression = gatewayAnnotation.payloadExpression();
+			}
+
+			if (!ObjectUtils.isEmpty(gatewayAnnotation.headers())) {
+				for (GatewayHeader gatewayHeader : gatewayAnnotation.headers()) {
+					String value = gatewayHeader.value();
+					String expression = gatewayHeader.expression();
+					String name = gatewayHeader.name();
+					boolean hasValue = StringUtils.hasText(value);
+
+					if (!(hasValue ^ StringUtils.hasText(expression))) {
+						throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a gateway's header.");
+					}
+					headerExpressions.put(name, hasValue ? new LiteralExpression(value): PARSER.parseExpression(expression));
+				}
+			}
+
 		}
 		else if (methodMetadataMap != null && methodMetadataMap.size() > 0) {
 			GatewayMethodMetadata methodMetadata = methodMetadataMap.get(method.getName());
 			if (methodMetadata != null) {
-				payloadExpression = methodMetadata.getPayloadExpression();
-				headerExpressions = methodMetadata.getHeaderExpressions();
+				if (StringUtils.hasText(methodMetadata.getPayloadExpression())) {
+					payloadExpression = methodMetadata.getPayloadExpression();
+				}
+				if (!CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
+					headerExpressions.putAll(methodMetadata.getHeaderExpressions());
+				}
 				String requestChannelName = methodMetadata.getRequestChannelName();
 				if (StringUtils.hasText(requestChannelName)) {
 					requestChannel = this.resolveChannelName(requestChannelName);

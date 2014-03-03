@@ -224,6 +224,46 @@ public String send2(Map foo, Map bar);
       </para>
     </section>
 
+	<section id="messaging-gateway-annotation">
+		<title>@MessagingGateway annotation</title>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis> gateway service interfaces can be marked with
+			<code>@MessagingGateway</code> annotation to replace the <code>&lt;gateway&gt;</code> xml element configuration.
+			Just to compare:
+		</para>
+		<programlisting language="xml"><![CDATA[<int:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
+      default-request-channel="inputC">
+  <int:default-header name="calledMethod" expression="#gatewayMethod.name"/>
+  <int:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
+  <int:method name="echoUpperCase" request-channel="inputB">
+  		<int:header name="foo" value="bar"/>
+  </int:method>
+  <int:method name="echoViaDefault"/>
+</int:gateway>]]></programlisting>
+	<programlisting language="java"><![CDATA[
+@MessagingGateway(name = "myGateway", defaultRequestChannel = "inputC",
+		   defaultHeaders = @GatewayHeader(name = "calledMethod",
+		                           expression="#gatewayMethod.name"))
+public interface TestGateway {
+
+   @Gateway(requestChannel = "inputA", replyTimeout = 2, requestTimeout = 200)
+   String echo(String payload);
+
+   @Gateway(requestChannel = "inputB, headers = @GatewayHeader(name = "foo", value="bar"))
+   String echoUpperCase(String payload);
+
+   String echoViaDefault(String payload);
+
+}]]></programlisting>
+		<para>
+			As far as it is an interface and Spring Integration produces the <code>proxy</code> for it
+			by its messaging infrastructure, there is no standard process to parse that annotation and
+			register <interfacename>BeanDefinition</interfacename> in the application context. So, be sure to use
+			the <code>@IntegrationComponentScan</code> annotation together with the <code>@Configuration</code> -
+			<xref linkend="enable-integration"/>.
+		</para>
+	</section>
+
     <section id="gateway-calling-no-argument-methods">
       <title>Invoking No-Argument Methods</title>
       <para>
