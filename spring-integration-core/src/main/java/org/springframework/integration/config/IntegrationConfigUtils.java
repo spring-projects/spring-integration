@@ -32,6 +32,8 @@ public final class IntegrationConfigUtils {
 
 	public static final String BASE_PACKAGE = "org.springframework.integration";
 
+	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
+
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
 												String methodSignature) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
