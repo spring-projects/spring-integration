@@ -326,6 +326,15 @@ public class FooService {
         still available. For more detail see <xref linkend="bridge"/>.
       </note>
     </para>
+	  <para>
+		  The processing of these annotations creates the same beans (<classname>EventDrivenConsumer</classname>s and
+		  <interfacename>MessageHandler</interfacename>s) as with similar xml components. The bean names are generated
+		  with this pattern:
+		  <code>[componentName].[methodName].[annotationClassShortName]</code> for the <classname>EventDrivenConsumer</classname>
+		  endpoint and the same name with an additional <code>.handler</code> suffix for
+		  the <interfacename>MessageHandler</interfacename> bean. The
+		  <interfacename>MessageHandler</interfacename>s are also eligible to be tracked by <xref linkend="message-history"/>.
+	  </para>
     <para>
         Also see <xref linkend="advising-with-annotations"/>.
     </para>

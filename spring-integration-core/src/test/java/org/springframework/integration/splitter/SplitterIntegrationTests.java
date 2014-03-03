@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -65,6 +66,7 @@ public class SplitterIntegrationTests {
 	MessageChannel inDelimiters;
 
 	@Autowired
+	@Qualifier("splitter.handler")
 	MethodInvokingSplitter splitter;
 
 	private String sentence = "The quick brown fox jumped over the lazy dog";

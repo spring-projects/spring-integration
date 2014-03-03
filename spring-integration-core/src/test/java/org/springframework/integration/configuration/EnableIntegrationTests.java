@@ -93,6 +93,7 @@ public class EnableIntegrationTests {
 		assertNotNull(messageHistory);
 		String messageHistoryString = messageHistory.toString();
 		assertThat(messageHistoryString, Matchers.containsString("input"));
+		assertThat(messageHistoryString, Matchers.containsString("AnnotationTestService.handle.serviceActivator.handler"));
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
 
 		receive = this.publishedChannel.receive(1000);
@@ -132,7 +133,7 @@ public class EnableIntegrationTests {
 	@IntegrationComponentScan
 	@EnableIntegration
 	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
-	@EnableMessageHistory({"input", "publishedChannel"})
+	@EnableMessageHistory({"input", "publishedChannel", "*AnnotationTestService*"})
 	public static class ContextConfiguration {
 
 		@Bean

@@ -61,7 +61,6 @@ public abstract class IntegrationNamespaceUtils {
 	public static final String METHOD_ATTRIBUTE = "method";
 	public static final String ORDER = "order";
 	public static final String EXPRESSION_ATTRIBUTE = "expression";
-	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 	public static final String REQUEST_HANDLER_ADVICE_CHAIN = "request-handler-advice-chain";
 	public static final String AUTO_STARTUP = "auto-startup";
 	public static final String PHASE = "phase";
@@ -382,7 +381,7 @@ public abstract class IntegrationNamespaceUtils {
 		String[] handlerAlias = null;
 		String id = element.getAttribute(ID_ATTRIBUTE);
 		if (StringUtils.hasText(id)) {
-			handlerAlias = new String[] {id + HANDLER_ALIAS_SUFFIX};
+			handlerAlias = new String[] {id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX};
 		}
 		return handlerAlias;
 	}

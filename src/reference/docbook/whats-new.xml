@@ -40,7 +40,9 @@
 			<para>
 				Message history can now be enabled with the <code>@EnableMessageHistory</code> annotation in a
 				<code>@Configuration</code> class; in addition the message history settings can be modified
-				by a JMX MBean. For more information, see <xref linkend="message-history"/>.
+				by a JMX MBean. In addition auto-created <interfacename>MessageHandler</interfacename>s for
+				annotated endpoints (e.g. <classname>@ServiceActivator</classname>, <classname>@Splitter</classname> etc.)
+				now are also trackable by <code>MessageHistory</code>. For more information, see <xref linkend="message-history"/>.
 			</para>
 		</section>
 		<section id="4.0-messaging-gateway">

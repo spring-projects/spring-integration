@@ -140,7 +140,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				return null;
 			}
 			else {
-				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationNamespaceUtils.HANDLER_ALIAS_SUFFIX);
+				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);
 			}
 		}
 

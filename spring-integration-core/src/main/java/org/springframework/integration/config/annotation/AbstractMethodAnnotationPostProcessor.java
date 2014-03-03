@@ -25,11 +25,11 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -40,6 +40,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -70,7 +71,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
-		setAdviceChainIfPresent(beanName, annotation, handler);
+		this.setAdviceChainIfPresent(beanName, annotation, handler);
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
@@ -78,7 +79,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			handler = (MessageHandler) ((ConfigurableListableBeanFactory) beanFactory).initializeBean(handler, "_initHandlerFor_" + beanName);
+			String handlerBeanName = this.generateHandlerBeanName(beanName, method, annotation.annotationType());
+			ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
+			listableBeanFactory.registerSingleton(handlerBeanName, handler);
+			handler = (MessageHandler) listableBeanFactory.initializeBean(handler, handlerBeanName);
 		}
 		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation);
 		if (endpoint != null) {
@@ -131,14 +135,21 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel = this.channelResolver.resolveDestination(inputChannelName);
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
-			Assert.isTrue(inputChannel instanceof SubscribableChannel,
+			Assert.isInstanceOf(SubscribableChannel.class, inputChannel,
 					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
 			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
-			if (handler instanceof BeanFactoryAware) {
-				((BeanFactoryAware) handler).setBeanFactory(this.beanFactory);
-			}
 		}
 		return endpoint;
+	}
+
+	private String generateHandlerBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
+		String baseName = originalBeanName + "." + method.getName() + "." + ClassUtils.getShortNameAsProperty(annotationType);
+		String name = baseName;
+		int count = 1;
+		while (this.beanFactory.containsBean(name)) {
+			name = baseName + "#" + (++count);
+		}
+		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 	}
 
 	/**
