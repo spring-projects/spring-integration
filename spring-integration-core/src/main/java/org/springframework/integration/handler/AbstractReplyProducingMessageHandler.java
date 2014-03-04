@@ -226,7 +226,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * @param replyMessage the reply Message to send
 	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
 	 */
-	private final void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
+	private void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
