@@ -270,6 +270,10 @@
                       add the <code>nullChannel</code> as the default output
                       channel attribute value.
                   </para>
+                  <note>
+                      A Message will only be sent to the <code>default-output-channel</code> if
+                      <code>resolution-required</code> is false and the channel is not resolved.
+                  </note>
                   </listitem>
               </varlistentry>
               <varlistentry><term><emphasis role="bold">resolution-required</emphasis></term>
@@ -285,6 +289,11 @@
                           <emphasis>optional</emphasis> attribute will, if not
                           explicitly set, default to <emphasis>true</emphasis>.
                       </para>
+                      <note>
+                          A Message will only be sent to the <code>default-output-channel</code>, if
+                          specified, when <code>resolution-required</code> is false and the channel
+                          is not resolved.
+                      </note>
                   </listitem>
               </varlistentry>
               <varlistentry><term><emphasis role="bold">ignore-send-failures</emphasis></term>
