@@ -24,11 +24,13 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * FactoryBean for creating a SourcePollingChannelAdapter instance.
@@ -38,11 +40,13 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
-		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
+		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle, MessageProducer {
 
 	private volatile MessageSource<?> source;
 
 	private volatile MessageChannel outputChannel;
+
+	private volatile String outputChannelName;
 
 	private volatile PollerMetadata pollerMetadata;
 
@@ -72,8 +76,13 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 		this.sendTimeout = sendTimeout;
 	}
 
+	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
 	}
 
 	public void setPollerMetadata(PollerMetadata pollerMetadata) {
@@ -130,6 +139,10 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			Assert.notNull(this.outputChannel, "outputChannel is required");
 			SourcePollingChannelAdapter spca = new SourcePollingChannelAdapter();
 			spca.setSource(this.source);
+			if (StringUtils.hasText(this.outputChannelName)) {
+				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+				this.outputChannel = this.beanFactory.getBean(this.outputChannelName, MessageChannel.class);
+			}
 			spca.setOutputChannel(this.outputChannel);
 			if (this.pollerMetadata == null) {
 				this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);

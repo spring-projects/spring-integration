@@ -25,8 +25,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.transformer.ContentEnricher;
+import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -69,8 +69,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				String name = subElement.getAttribute("name");
 				BeanDefinition expressionDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
 						"expression", parserContext, subElement, true);
-				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationConfigUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
+				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
 				valueProcessorBuilder.addConstructorArgValue(expressionDefinition)
 						.addConstructorArgValue(subElement.getAttribute("type"));
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");

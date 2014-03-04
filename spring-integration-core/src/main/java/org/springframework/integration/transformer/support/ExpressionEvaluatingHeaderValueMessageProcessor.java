@@ -30,7 +30,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 3.0
  */
-class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T>
+public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T>
 		implements BeanFactoryAware {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(

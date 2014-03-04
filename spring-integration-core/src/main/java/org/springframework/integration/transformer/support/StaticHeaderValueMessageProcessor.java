@@ -23,7 +23,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 3.0
  */
-class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> {
+public class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> {
 
 	private final T value;
 

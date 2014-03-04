@@ -25,7 +25,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 3.0
  */
-class MessageProcessingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object> {
+public class MessageProcessingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object> {
 
 	private final MessageProcessor<?> targetProcessor;
 
