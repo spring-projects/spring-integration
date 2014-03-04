@@ -65,6 +65,10 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
+	protected BeanFactory getBeanFactory() {
+		return beanFactory;
+	}
+
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		return messageBuilderFactory;
 	}

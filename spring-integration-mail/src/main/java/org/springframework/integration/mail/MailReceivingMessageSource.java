@@ -68,6 +68,10 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
+	protected BeanFactory getBeanFactory() {
+		return beanFactory;
+	}
+
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		return messageBuilderFactory;
 	}

@@ -18,11 +18,20 @@ package org.springframework.integration.message;
 import java.util.Map;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * An implementation of {@link Message} with a generic payload. Unlike
+ * {@link GenericMessage}, this message (or its headers) can be modified
+ * after creation. Great care must be taken, when mutating messages, that
+ * some other element/thread is not concurrently using the message. Also note
+ * that any in-memory stores (such as {@link SimpleMessageStore}) may have
+ * a reference to the message and changes will be reflected there too.
+ *
  * @author Gary Russell
  * @since 4.0
  *

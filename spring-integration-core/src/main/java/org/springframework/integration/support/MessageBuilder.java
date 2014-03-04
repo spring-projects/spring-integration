@@ -16,9 +16,6 @@
 
 package org.springframework.integration.support;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -170,58 +167,25 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		return this;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, int sequenceSize) {
-		Object incomingCorrelationId = this.headerAccessor.getCorrelationId();
-		@SuppressWarnings("unchecked")
-		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headerAccessor.getHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
-		if (incomingCorrelationId != null) {
-			if (incomingSequenceDetails == null) {
-				incomingSequenceDetails = new ArrayList<List<Object>>();
-			}
-			else {
-				incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
-			}
-			incomingSequenceDetails.add(Arrays.asList(incomingCorrelationId,
-					this.headerAccessor.getSequenceNumber(), this.headerAccessor.getSequenceSize()));
-			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
-		}
-		if (incomingSequenceDetails != null) {
-			setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
-		}
-		return setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize);
+	protected List<List<Object>> getSequenceDetails() {
+		return (List<List<Object>>) this.headerAccessor.getHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
 	}
 
 	@Override
-	public MessageBuilder<T> popSequenceDetails() {
-		String key = IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS;
-		@SuppressWarnings("unchecked")
-		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headerAccessor.getHeader(key);
-		if (incomingSequenceDetails == null) {
-			return this;
-		}
-		else {
-			incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
-		}
-		List<Object> sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
-		Assert.state(sequenceDetails.size() == 3, "Wrong sequence details (not created by MessageBuilder?): "
-				+ sequenceDetails);
-		setCorrelationId(sequenceDetails.get(0));
-		Integer sequenceNumber = (Integer) sequenceDetails.get(1);
-		Integer sequenceSize = (Integer) sequenceDetails.get(2);
-		if (sequenceNumber != null) {
-			setSequenceNumber(sequenceNumber);
-		}
-		if (sequenceSize != null) {
-			setSequenceSize(sequenceSize);
-		}
-		if (!incomingSequenceDetails.isEmpty()) {
-			this.headerAccessor.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
-		}
-		else {
-			this.headerAccessor.removeHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
-		}
-		return this;
+	protected Object getCorrelationId() {
+		return this.headerAccessor.getCorrelationId();
+	}
+
+	@Override
+	protected Object getSequenceNumber() {
+		return this.headerAccessor.getSequenceNumber();
+	}
+
+	@Override
+	protected Object getSequenceSize() {
+		return this.headerAccessor.getSequenceSize();
 	}
 
 	/*
@@ -229,6 +193,18 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 *  pain for existing applications that use the builder API and expect
 	 *  a MessageBuilder to be returned.
 	 */
+	@Override
+	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, int sequenceSize) {
+		super.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
+		return this;
+	}
+
+	@Override
+	public MessageBuilder<T> popSequenceDetails() {
+		super.popSequenceDetails();
+		return this;
+	}
+
 	@Override
 	public MessageBuilder<T> setExpirationDate(Long expirationDate) {
 		super.setExpirationDate(expirationDate);

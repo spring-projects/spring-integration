@@ -43,8 +43,8 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		this.messageProcessor = messageProcessor;
 	}
 
-	protected MessageProcessor<?> getMessageProcessor() {
-		return messageProcessor;
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
 	}
 
 	@Override

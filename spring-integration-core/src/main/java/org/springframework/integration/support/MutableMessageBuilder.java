@@ -16,8 +16,6 @@
 package org.springframework.integration.support;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,7 +81,13 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 
 	@Override
 	public AbstractIntegrationMessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		this.headers.put(headerName, headerValue);
+		Assert.notNull(headerName);
+		if (headerValue == null) {
+			this.removeHeader(headerName);
+		}
+		else {
+			this.headers.put(headerName, headerValue);
+		}
 		return this;
 	}
 
@@ -129,7 +133,7 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	@Override
 	public AbstractIntegrationMessageBuilder<T> removeHeader(String headerName) {
 		if (StringUtils.hasLength(headerName)) {
-			setHeader(headerName, null);
+			this.headers.remove(headerName);
 		}
 		return this;
 	}
@@ -152,60 +156,25 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 		return this;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public AbstractIntegrationMessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber,
-			int sequenceSize) {
-		Object incomingCorrelationId = this.headers.get(IntegrationMessageHeaderAccessor.CORRELATION_ID);
-		@SuppressWarnings("unchecked")
-		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
-		if (incomingCorrelationId != null) {
-			if (incomingSequenceDetails == null) {
-				incomingSequenceDetails = new ArrayList<List<Object>>();
-			}
-			else {
-				incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
-			}
-			incomingSequenceDetails.add(Arrays.asList(incomingCorrelationId,
-					this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER),
-					this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)));
-			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
-		}
-		if (incomingSequenceDetails != null) {
-			setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
-		}
-		return setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize);
+	protected List<List<Object>> getSequenceDetails() {
+		return (List<List<Object>>) this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
 	}
 
 	@Override
-	public AbstractIntegrationMessageBuilder<T> popSequenceDetails() {
-		String key = IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS;
-		@SuppressWarnings("unchecked")
-		List<List<Object>> incomingSequenceDetails = (List<List<Object>>) this.headers.get(key);
-		if (incomingSequenceDetails == null) {
-			return this;
-		}
-		else {
-			incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
-		}
-		List<Object> sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
-		Assert.state(sequenceDetails.size() == 3, "Wrong sequence details (not created by MessageBuilder?): "
-				+ sequenceDetails);
-		setCorrelationId(sequenceDetails.get(0));
-		Integer sequenceNumber = (Integer) sequenceDetails.get(1);
-		Integer sequenceSize = (Integer) sequenceDetails.get(2);
-		if (sequenceNumber != null) {
-			setSequenceNumber(sequenceNumber);
-		}
-		if (sequenceSize != null) {
-			setSequenceSize(sequenceSize);
-		}
-		if (!incomingSequenceDetails.isEmpty()) {
-			this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
-		}
-		else {
-			this.removeHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
-		}
-		return this;
+	protected Object getCorrelationId() {
+		return this.headers.get(IntegrationMessageHeaderAccessor.CORRELATION_ID);
+	}
+
+	@Override
+	protected Object getSequenceNumber() {
+		return this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER);
+	}
+
+	@Override
+	protected Object getSequenceSize() {
+		return this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE);
 	}
 
 	@Override

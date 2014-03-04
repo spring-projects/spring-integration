@@ -15,13 +15,18 @@
  */
 package org.springframework.integration.support;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.Assert;
 
 /**
  * @author Gary Russell
@@ -103,10 +108,63 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 		return this.setHeader(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
 	}
 
-	public abstract AbstractIntegrationMessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber,
-			int sequenceSize);
+	public AbstractIntegrationMessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber,
+			int sequenceSize) {
+		Object incomingCorrelationId = this.getCorrelationId();
+		List<List<Object>> incomingSequenceDetails = this.getSequenceDetails();
+		if (incomingCorrelationId != null) {
+			if (incomingSequenceDetails == null) {
+				incomingSequenceDetails = new ArrayList<List<Object>>();
+			}
+			else {
+				incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
+			}
+			incomingSequenceDetails.add(Arrays.asList(incomingCorrelationId,
+					this.getSequenceNumber(), this.getSequenceSize()));
+			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
+		}
+		if (incomingSequenceDetails != null) {
+			this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
+		}
+		return setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize);
+	}
 
-	public abstract AbstractIntegrationMessageBuilder<T> popSequenceDetails();
+	public AbstractIntegrationMessageBuilder<T> popSequenceDetails() {
+		List<List<Object>> incomingSequenceDetails = this.getSequenceDetails();
+		if (incomingSequenceDetails == null) {
+			return this;
+		}
+		else {
+			incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
+		}
+		List<Object> sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
+		Assert.state(sequenceDetails.size() == 3, "Wrong sequence details (not created by MessageBuilder?): "
+				+ sequenceDetails);
+		setCorrelationId(sequenceDetails.get(0));
+		Integer sequenceNumber = (Integer) sequenceDetails.get(1);
+		Integer sequenceSize = (Integer) sequenceDetails.get(2);
+		if (sequenceNumber != null) {
+			setSequenceNumber(sequenceNumber);
+		}
+		if (sequenceSize != null) {
+			setSequenceSize(sequenceSize);
+		}
+		if (!incomingSequenceDetails.isEmpty()) {
+			this.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, incomingSequenceDetails);
+		}
+		else {
+			this.removeHeader(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
+		}
+		return this;
+	}
+
+	protected abstract List<List<Object>> getSequenceDetails();
+
+	protected abstract Object getCorrelationId();
+
+	protected abstract Object getSequenceNumber();
+
+	protected abstract Object getSequenceSize();
 
 	public AbstractIntegrationMessageBuilder<T> setReplyChannel(MessageChannel replyChannel) {
 		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel);
