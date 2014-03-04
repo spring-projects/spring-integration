@@ -48,6 +48,7 @@ subprojects { subproject ->
 		aspectjVersion = '1.6.8'
 		cglibVersion = '2.2'
 		commonsNetVersion = '3.0.1'
+		apacheSshdVersion = '0.10.0'
 		commonsIoVersion = '2.4'
 		derbyVersion = '10.9.1.0'
 		easymockVersion = '2.3'
@@ -502,6 +503,7 @@ project('spring-integration-sftp') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
+		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 	}
 }
 
