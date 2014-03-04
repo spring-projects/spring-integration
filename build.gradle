@@ -325,7 +325,7 @@ project('spring-integration-ip') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context:$springVersion"
-		runtime project(":spring-integration-stream")
+		testCompile project(":spring-integration-stream")
 	}
 
 	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
