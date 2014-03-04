@@ -28,7 +28,7 @@ allprojects {
 		if (version.endsWith('BUILD-SNAPSHOT')) {
 			maven { url 'http://repo.spring.io/libs-snapshot' }
 		}
-		maven { url 'http://repo.springsource.org/libs-milestone' }
+		maven { url 'http://repo.spring.io/libs-milestone' }
 		maven { url 'http://repo.spring.io/plugins-release' }
 		mavenCentral()
 	}
@@ -60,6 +60,7 @@ subprojects { subproject ->
 	ext {
 		activeMqVersion = '5.9.0'
 		aspectjVersion = '1.7.4'
+		apacheSshdVersion = '0.10.0'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
@@ -507,6 +508,7 @@ project('spring-integration-sftp') {
 		compile "com.jcraft:jsch:$jschVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
+		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 	}
 }
 
