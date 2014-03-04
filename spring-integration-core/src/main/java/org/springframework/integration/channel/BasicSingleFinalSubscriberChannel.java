@@ -18,6 +18,8 @@ package org.springframework.integration.channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -34,11 +36,13 @@ import org.springframework.messaging.SubscribableChannel;
  * @since 4.0
  *
  */
-public final class BasicSingleFinalSubscriberChannel implements SubscribableChannel {
+public final class BasicSingleFinalSubscriberChannel implements SubscribableChannel, BeanNameAware, NamedComponent {
 
 	private final Log logger = LogFactory.getLog(BasicSingleFinalSubscriberChannel.class);
 
 	private final MessageHandler handler;
+
+	private volatile String beanName;
 
 	public BasicSingleFinalSubscriberChannel() {
 		throw new IllegalArgumentException("Cannot instantiate a " + this.getClass().getSimpleName()
@@ -47,6 +51,11 @@ public final class BasicSingleFinalSubscriberChannel implements SubscribableChan
 
 	public BasicSingleFinalSubscriberChannel(MessageHandler handler) {
 		this.handler = handler;
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
 	}
 
 	@Override
@@ -64,7 +73,7 @@ public final class BasicSingleFinalSubscriberChannel implements SubscribableChan
 			RuntimeException runtimeException = (e instanceof RuntimeException)
 					? (RuntimeException) e
 					: new MessageDeliveryException(message,
-							"Dispatcher failed to deliver Message.", e);
+							this.getComponentName() + " failed to deliver Message.", e);
 			if (e instanceof MessagingException &&
 					((MessagingException) e).getFailedMessage() == null) {
 				runtimeException = new MessagingException(message, e);
@@ -75,18 +84,33 @@ public final class BasicSingleFinalSubscriberChannel implements SubscribableChan
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Cannot unsubscribe from " + this.getClass().getSimpleName() + ".");
+		if (handler != this.handler && logger.isDebugEnabled()) {
+			logger.debug(this.getComponentName() + ": cannot be subscribed to.");
 		}
 		return false;
 	}
 
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
-		if (handler != this.handler && logger.isDebugEnabled()) {
-			logger.debug("Cannot subscribe to " + this.getClass().getSimpleName() + ".");
+		if (logger.isDebugEnabled()) {
+			logger.debug(this.getComponentName() + ": cannot be unsubscribed from.");
 		}
 		return false;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "Final Channel";
+	}
+
+	@Override
+	public String getComponentName() {
+		if (this.beanName != null) {
+			return "Final '" + this.beanName + "' channel";
+		}
+		else {
+			return "Unnamed final channel";
+		}
 	}
 
 }

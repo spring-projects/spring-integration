@@ -44,9 +44,11 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = this.buildBeanDefinition(element, parserContext);
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
+		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
+		String datatypeAttr = element.getAttribute("datatype");
+		String messageConverter = element.getAttribute("message-converter");
 		if (!BasicSingleFinalSubscriberChannel.class.getName().equals(builder.getBeanDefinition().getBeanClassName())) {
 			ManagedList interceptors = null;
-			Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
 			if (interceptorsElement != null) {
 				ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();
 				interceptors = interceptorParser.parseInterceptors(interceptorsElement, parserContext);
@@ -54,11 +56,9 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 			if (interceptors == null) {
 				interceptors = new ManagedList();
 			}
-			String datatypeAttr = element.getAttribute("datatype");
 			if (StringUtils.hasText(datatypeAttr)) {
 				builder.addPropertyValue("datatypes", datatypeAttr);
 			}
-			String messageConverter = element.getAttribute("message-converter");
 			if (StringUtils.hasText(messageConverter)) {
 				builder.addPropertyReference("messageConverter", messageConverter);
 			}
@@ -66,6 +66,17 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 			String scopeAttr = element.getAttribute("scope");
 			if (StringUtils.hasText(scopeAttr)) {
 				builder.setScope(scopeAttr);
+			}
+		}
+		else {
+			if (interceptorsElement != null) {
+				parserContext.getReaderContext().error("Cannot have interceptors when 'final=\"true\"'", element);
+			}
+			if (StringUtils.hasText(datatypeAttr)) {
+				parserContext.getReaderContext().error("Cannot have 'datatype' when 'final=\"true\"'", element);
+			}
+			if (StringUtils.hasText(datatypeAttr)) {
+				parserContext.getReaderContext().error("Cannot have 'message-converter' when 'final=\"true\"'", element);
 			}
 		}
 		beanDefinition.setSource(parserContext.extractSource(element));
