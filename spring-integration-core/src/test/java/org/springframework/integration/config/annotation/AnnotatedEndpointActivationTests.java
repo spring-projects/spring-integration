@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,22 +23,24 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -69,6 +71,13 @@ public class AnnotatedEndpointActivationTests {
 		return result;
 	}
 
+	@ServiceActivator(inputChannel = "inputImplicit", outputChannel = "output")
+	public String processImplicit(String message) {
+		count++;
+		String result = message + ": " + count;
+		return result;
+	}
+
 	@Before
 	public void resetCount() {
 		count = 0;
@@ -82,6 +91,16 @@ public class AnnotatedEndpointActivationTests {
 	@Test
 	public void sendAndReceive() {
 		this.input.send(new GenericMessage<String>("foo"));
+		Message<?> message = this.output.receive(100);
+		assertNotNull(message);
+		assertEquals("foo: 1", message.getPayload());
+		assertEquals(1, count);
+	}
+
+	@Test
+	public void sendAndReceiveImplicitInputChannel() {
+		MessageChannel input = this.applicationContext.getBean("inputImplicit", MessageChannel.class);
+		input.send(new GenericMessage<String>("foo"));
 		Message<?> message = this.output.receive(100);
 		assertNotNull(message);
 		assertEquals("foo: 1", message.getPayload());

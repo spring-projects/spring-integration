@@ -29,6 +29,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -38,6 +39,7 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -47,6 +49,7 @@ import org.springframework.util.StringUtils;
  * Base class for Method-level annotation post-processors.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @author Gary Russell
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation> implements MethodAnnotationPostProcessor<T> {
@@ -133,7 +136,18 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		AbstractEndpoint endpoint = null;
 		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannelName)) {
-			MessageChannel inputChannel = this.channelResolver.resolveDestination(inputChannelName);
+			MessageChannel inputChannel;
+			try {
+				inputChannel = this.channelResolver.resolveDestination(inputChannelName);
+			}
+			catch (DestinationResolutionException e) {
+				inputChannel = new DirectChannel();
+				if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
+					ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) this.beanFactory;
+					listableBeanFactory.registerSingleton(inputChannelName, inputChannel);
+					inputChannel = (MessageChannel) listableBeanFactory.initializeBean(inputChannel, inputChannelName);
+				}
+			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 			Assert.isInstanceOf(SubscribableChannel.class, inputChannel,
 					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
