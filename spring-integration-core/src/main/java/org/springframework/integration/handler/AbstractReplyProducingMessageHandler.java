@@ -21,6 +21,7 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -34,6 +35,7 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -47,6 +49,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		implements MessageProducer, BeanClassLoaderAware {
 
 	private MessageChannel outputChannel;
+
+	private String outputChannelName;
 
 	private volatile boolean requiresReply = false;
 
@@ -68,6 +72,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
 	}
 
 	/**
@@ -128,6 +136,16 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected final void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
+			if (StringUtils.hasText(this.outputChannelName)) {
+				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+				try {
+					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.outputChannelName + "' in the BeanFactory.");
+				}
+			}
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
@@ -215,7 +233,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * @param replyMessage the reply Message to send
 	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
 	 */
-	private final void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
+	private void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}

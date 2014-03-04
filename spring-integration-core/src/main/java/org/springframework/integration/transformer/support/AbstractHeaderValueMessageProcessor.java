@@ -21,7 +21,7 @@ package org.springframework.integration.transformer.support;
  * @author Artem Bilan
  * @since 3.0
  */
-abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
+public abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
 
 	// null indicates no explicit setting
 	private volatile Boolean overwrite = null;

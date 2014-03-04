@@ -37,6 +37,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Content Enricher is a Message Transformer that can augment a message's payload
@@ -68,7 +69,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private volatile MessageChannel requestChannel;
 
+	private volatile String requestChannelName;
+
 	private volatile MessageChannel replyChannel;
+
+	private volatile String replyChannelName;
 
 	private volatile Gateway gateway = null;
 
@@ -123,6 +128,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.requestChannel = requestChannel;
 	}
 
+	public void setRequestChannelName(String requestChannelName) {
+		this.requestChannelName = requestChannelName;
+	}
+
 	/**
 	 * Sets the content enricher's reply channel. If not specified, yet the request
 	 * channel is set, an anonymous reply channel will automatically created
@@ -132,6 +141,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.replyChannel = replyChannel;
+	}
+
+	public void setReplyChannelName(String replyChannelName) {
+		this.replyChannelName = replyChannelName;
 	}
 
 	/**
@@ -207,6 +220,16 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
      */
 	@Override
 	protected void doInit() {
+		if (StringUtils.hasText(this.requestChannelName)) {
+			Assert.isNull(this.requestChannel, "'requestChannelName' and 'requestChannel' are mutually exclusive.");
+			this.requestChannel = this.getBeanFactory().getBean(this.requestChannelName, MessageChannel.class);
+		}
+
+		if (StringUtils.hasText(this.replyChannelName)) {
+			Assert.isNull(this.replyChannel, "'replyChannelName' and 'replyChannel' are mutually exclusive.");
+			this.replyChannel = this.getBeanFactory().getBean(this.replyChannelName, MessageChannel.class);
+		}
+
 		if (this.replyChannel != null) {
 			Assert.notNull(this.requestChannel, "If the replyChannel is set, then the requestChannel must not be null");
 		}
