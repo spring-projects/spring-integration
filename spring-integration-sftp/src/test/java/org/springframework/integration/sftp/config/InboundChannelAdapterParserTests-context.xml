@@ -22,11 +22,7 @@
 	<channel id="requestChannel">
 		<queue/>
 	</channel>
-	
-	<beans:bean id="pattern" class="java.util.regex.Pattern" factory-method="compile">
-		<beans:constructor-arg value="."/>
-	</beans:bean>
-	
+
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
@@ -53,7 +49,7 @@
 			<transactional synchronization-factory="syncFactory"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
-	
+
 	<transaction-synchronization-factory id="syncFactory">
 		<after-commit expression="'foo'" channel="successChannel"/>
 		<after-rollback expression="'bar'" channel="failureChannel"/>
@@ -115,7 +111,7 @@
 	</sftp:inbound-channel-adapter>
 
 	<bridge input-channel="autoChannel" output-channel="nullChannel" />
-	
+
 	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans:beans>
