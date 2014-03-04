@@ -27,3 +27,4 @@ spring-integration-samples/loanshark/application.log*
 target
 vf.gf.dmn-*
 /atlassian-ide-plugin.xml
+hostkey.ser
