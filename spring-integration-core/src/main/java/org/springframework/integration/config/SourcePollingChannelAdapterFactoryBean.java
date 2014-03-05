@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -28,6 +29,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -137,7 +139,13 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 			if (StringUtils.hasText(this.outputChannelName)) {
 				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				this.outputChannel = this.beanFactory.getBean(this.outputChannelName, MessageChannel.class);
+				try {
+					this.outputChannel = this.beanFactory.getBean(this.outputChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.outputChannelName + "' in the BeanFactory.");
+				}
 			}
 
 			Assert.notNull(this.outputChannel, "outputChannel is required");

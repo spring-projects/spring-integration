@@ -21,6 +21,7 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -137,7 +138,13 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
 			if (StringUtils.hasText(this.outputChannelName)) {
 				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+				try {
+					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.outputChannelName + "' in the BeanFactory.");
+				}
 			}
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
