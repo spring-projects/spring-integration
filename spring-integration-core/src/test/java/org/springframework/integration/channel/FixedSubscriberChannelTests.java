@@ -89,7 +89,24 @@ public class FixedSubscriberChannelTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("Only one subscriber is allowed for a 'final' channel."));
+			assertThat(e.getMessage(), Matchers.containsString("Only one subscriber is allowed for a FixedSubscriberChannel."));
+		}
+		if (context != null) {
+			context.close();
+		}
+	}
+
+	@Test
+	public void testTwoSubsAfter() {
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "TwoSubsAfter-fail-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+			assertThat(e.getMessage(), Matchers.containsString("Only one subscriber is allowed for a FixedSubscriberChannel."));
 		}
 		if (context != null) {
 			context.close();

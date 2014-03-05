@@ -86,7 +86,7 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 	@Override
 	public boolean subscribe(MessageHandler handler) {
 		if (handler != this.handler && logger.isDebugEnabled()) {
-			logger.debug(this.getComponentName() + ": cannot be subscribed to.");
+			logger.debug(this.getComponentName() + ": cannot be subscribed to (it has a fixed single subscriber).");
 		}
 		return false;
 	}
@@ -94,23 +94,23 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(this.getComponentName() + ": cannot be unsubscribed from.");
+			logger.debug(this.getComponentName() + ": cannot be unsubscribed from (it has a fixed single subscriber).");
 		}
 		return false;
 	}
 
 	@Override
 	public String getComponentType() {
-		return "Final Channel";
+		return "Fixed Subscriber Channel";
 	}
 
 	@Override
 	public String getComponentName() {
 		if (this.beanName != null) {
-			return "Final '" + this.beanName + "' channel";
+			return this.beanName;
 		}
 		else {
-			return "Unnamed final channel";
+			return "Unnamed fixed subscriber channel";
 		}
 	}
 

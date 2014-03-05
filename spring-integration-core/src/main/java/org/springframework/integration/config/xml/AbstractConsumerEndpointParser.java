@@ -25,7 +25,6 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -33,7 +32,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.CollectionUtils;
@@ -143,20 +141,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 						IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'", parserContext.getRegistry());
 			}
 		}
-		else {
-			BeanDefinition inputChannelDefinition = parserContext.getRegistry().getBeanDefinition(inputChannelName);
-			if (FixedSubscriberChannel.class.getName().equals(inputChannelDefinition.getBeanClassName())) {
-				ConstructorArgumentValues constructorArgumentValues = inputChannelDefinition
-						.getConstructorArgumentValues();
-				if (constructorArgumentValues.isEmpty()) {
-					constructorArgumentValues.addGenericArgumentValue(new RuntimeBeanReference(handlerBeanName));
-				}
-				else {
-					parserContext.getReaderContext().error("Only one subscriber is allowed for a 'final' channel.",
-							element);
-				}
-			}
-		}
+		IntegrationNamespaceUtils.checkAndConfigureFixedSubscriberChannel(element, parserContext, inputChannelName,
+				handlerBeanName);
 
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");

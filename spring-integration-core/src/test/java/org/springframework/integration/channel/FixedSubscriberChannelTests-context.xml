@@ -7,10 +7,22 @@
 
 	<int:channel id="in" fixed-subscriber="true" />
 
-	<int:transformer input-channel="in" output-channel="out" expression="payload.toUpperCase()" />
+	<int:transformer input-channel="in" output-channel="out" expression="payload.toUpperCase()" auto-startup="false" />
 
 	<int:channel id="out">
 		<int:queue/>
 	</int:channel>
+
+	<int:channel id="ocaFixedChannel" fixed-subscriber="true" />
+
+	<int:outbound-channel-adapter channel="ocaFixedChannel" expression="'foo'" />
+
+	<int:transformer input-channel="afterHandler" output-channel="out" expression="payload.toUpperCase()" auto-startup="false" />
+
+	<int:channel id="afterHandler" fixed-subscriber="true" />
+
+	<int:outbound-channel-adapter channel="ocaFixedChannelAfter" expression="'foo'" />
+
+	<int:channel id="ocaFixedChannelAfter" fixed-subscriber="true" />
 
 </beans>
