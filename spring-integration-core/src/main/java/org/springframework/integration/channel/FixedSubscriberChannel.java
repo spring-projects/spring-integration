@@ -27,29 +27,30 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 
 /**
- * Specialized channel for a single final subscriber. Does not support interceptors or
- * data types.
+ * Specialized {@link SubscribableChannel} for a single final subscriber set up during bean instantiation (unlike
+ * other {@link SubscribableChannel}s where the {@link MessageHandler} is subscribed when the endpoint
+ * is started). This channel does not support interceptors or data types.
  * <p>
- * <b>Note: Stopping the subscriber ({@link #unsubscribe(MessageHandler)}) has no effect.
+ * <b>Note: Stopping ({@link #unsubscribe(MessageHandler)}) the subscribed ({@link MessageHandler}) has no effect.
  *
  * @author Gary Russell
  * @since 4.0
  *
  */
-public final class BasicSingleFinalSubscriberChannel implements SubscribableChannel, BeanNameAware, NamedComponent {
+public final class FixedSubscriberChannel implements SubscribableChannel, BeanNameAware, NamedComponent {
 
-	private final Log logger = LogFactory.getLog(BasicSingleFinalSubscriberChannel.class);
+	private final Log logger = LogFactory.getLog(FixedSubscriberChannel.class);
 
 	private final MessageHandler handler;
 
 	private volatile String beanName;
 
-	public BasicSingleFinalSubscriberChannel() {
+	public FixedSubscriberChannel() {
 		throw new IllegalArgumentException("Cannot instantiate a " + this.getClass().getSimpleName()
 				+ " without a MessageHandler.");
 	}
 
-	public BasicSingleFinalSubscriberChannel(MessageHandler handler) {
+	public FixedSubscriberChannel(MessageHandler handler) {
 		this.handler = handler;
 	}
 

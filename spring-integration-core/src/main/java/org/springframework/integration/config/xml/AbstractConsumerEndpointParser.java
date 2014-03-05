@@ -33,7 +33,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.BasicSingleFinalSubscriberChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.CollectionUtils;
@@ -145,7 +145,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		else {
 			BeanDefinition inputChannelDefinition = parserContext.getRegistry().getBeanDefinition(inputChannelName);
-			if (BasicSingleFinalSubscriberChannel.class.getName().equals(inputChannelDefinition.getBeanClassName())) {
+			if (FixedSubscriberChannel.class.getName().equals(inputChannelDefinition.getBeanClassName())) {
 				ConstructorArgumentValues constructorArgumentValues = inputChannelDefinition
 						.getConstructorArgumentValues();
 				if (constructorArgumentValues.isEmpty()) {

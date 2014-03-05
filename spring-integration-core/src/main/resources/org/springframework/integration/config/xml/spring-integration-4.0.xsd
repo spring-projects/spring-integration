@@ -181,11 +181,13 @@
 							</xsd:annotation>
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="final" default="false" type="xsd:boolean">
+					<xsd:attribute name="fixed-subscriber" default="false" type="xsd:boolean">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-	When true, only one subscriber is allowed and the subscriber must be available at context initialization time.
-	Subscribers cannot be stopped. Not allowed with <queue/> sub element. Default: false.				
+	When true, only one subscriber is allowed; the subscriber must be available at context initialization time,
+	and will be subscribed during bean initialization rather than when being started.
+	The subscriber cannot be stopped. When true, no sub elements are allowed; 'datatype' is not allowed;
+	'message-converter' is not allowed;. Default: false.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

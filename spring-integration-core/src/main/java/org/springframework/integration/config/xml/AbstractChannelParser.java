@@ -26,7 +26,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.BasicSingleFinalSubscriberChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -47,7 +47,7 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
 		String datatypeAttr = element.getAttribute("datatype");
 		String messageConverter = element.getAttribute("message-converter");
-		if (!BasicSingleFinalSubscriberChannel.class.getName().equals(builder.getBeanDefinition().getBeanClassName())) {
+		if (!FixedSubscriberChannel.class.getName().equals(builder.getBeanDefinition().getBeanClassName())) {
 			ManagedList interceptors = null;
 			if (interceptorsElement != null) {
 				ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();

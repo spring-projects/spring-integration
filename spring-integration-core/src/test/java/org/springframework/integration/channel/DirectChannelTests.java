@@ -84,7 +84,7 @@ public class DirectChannelTests {
 		});
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
-		for (int i = 0; i < 100000000; i++) {
+		for (int i = 0; i < 10000000; i++) {
 			channel.send(message);
 		}
 	}
@@ -117,15 +117,15 @@ public class DirectChannelTests {
 		});
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
-		for (int i = 0; i < 100000000; i++) {
+		for (int i = 0; i < 10000000; i++) {
 			channel.send(message);
 		}
-		assertEquals(50000001, count1.get());
-		assertEquals(50000000, count2.get());
+		assertEquals(5000001, count1.get());
+		assertEquals(5000000, count2.get());
 	}
 
 	@Test
-	public void testSendPerfBasicSingleFinalHandler() {
+	public void testSendPerfFixedSubscriberChannel() {
 		/*
 		 *  INT-3308 - 96 million/sec
 		 *  NOTE: in order to get a measurable time, I had to add some code to the handler -
@@ -134,7 +134,7 @@ public class DirectChannelTests {
 		 *  Added the same code to the other tests for comparison.
 		 */
 		final AtomicInteger count = new AtomicInteger();
-		BasicSingleFinalSubscriberChannel channel = new BasicSingleFinalSubscriberChannel(new MessageHandler() {
+		FixedSubscriberChannel channel = new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
@@ -143,7 +143,7 @@ public class DirectChannelTests {
 		});
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
-		for (int i = 0; i < 1000000000; i++) {
+		for (int i = 0; i < 100000000; i++) {
 			channel.send(message, 0);
 		}
 	}

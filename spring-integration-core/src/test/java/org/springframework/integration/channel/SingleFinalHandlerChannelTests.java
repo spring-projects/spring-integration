@@ -57,7 +57,7 @@ public class SingleFinalHandlerChannelTests {
 		this.in.send(new GenericMessage<String>("foo"));
 		Message<?> out = this.out.receive(0);
 		assertEquals("FOO", out.getPayload());
-		assertThat(this.in, instanceOf(BasicSingleFinalSubscriberChannel.class));
+		assertThat(this.in, instanceOf(FixedSubscriberChannel.class));
 	}
 
 	@Test
