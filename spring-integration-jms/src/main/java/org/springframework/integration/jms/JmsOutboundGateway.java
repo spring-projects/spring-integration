@@ -142,6 +142,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private final Object lifeCycleMonitor = new Object();
 
+	private volatile boolean requiresReply;
+
 	/**
 	 * Set whether message delivery should be persistent or non-persistent,
 	 * specified as a boolean value ("true" or "false"). This will set the delivery
@@ -389,6 +391,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.useReplyContainer = useReplyContainer;
 	}
 
+	@Override
+	public void setRequiresReply(boolean requiresReply) {
+		super.setRequiresReply(requiresReply);
+		this.requiresReply = requiresReply;
+	}
+
 	private Destination determineRequestDestination(Message<?> message, Session session) throws JMSException {
 		if (this.requestDestination != null) {
 			return this.requestDestination;
@@ -617,8 +625,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				jmsReply = this.sendAndReceiveWithContainer(requestMessage);
 			}
 			if (jmsReply == null) {
-				throw new MessageTimeoutException(message,
-						"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
+				if (this.requiresReply) {
+					throw new MessageTimeoutException(message,
+							"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
+				}
+				else {
+					return null;
+				}
 			}
 			Object result = jmsReply;
 			if (this.extractReplyPayload) {

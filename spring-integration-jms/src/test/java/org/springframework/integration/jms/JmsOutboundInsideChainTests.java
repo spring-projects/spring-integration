@@ -16,33 +16,58 @@
 
 package org.springframework.integration.jms;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.*;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * //INT-2275
  *
  * @author Artem Bilan
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class JmsOutboundInsideChainTests {
+
+	@Autowired
+	private MessageChannel outboundChainChannel;
+
+	@Autowired
+	private PollableChannel receiveChannel;
+
+	@Autowired
+	private MessageChannel outboundGatewayChainChannel;
+
+	@Autowired
+	private PollableChannel repliesChannel;
 
 	@Test
 	public void testJmsOutboundChannelInsideChain(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("JmsOutboundInsideChainTests-context.xml", getClass());
-		PollableChannel receiveChannel = context.getBean("receiveChannel", PollableChannel.class);
-		MessageChannel outboundChainChannel = context.getBean("outboundChainChannel", MessageChannel.class);
 		String testString = "test";
 		Message<String> shippedMessage = MessageBuilder.withPayload(testString).build();
-		outboundChainChannel.send(shippedMessage);
-		Message<?> receivedMessage = receiveChannel.receive();
+		this.outboundChainChannel.send(shippedMessage);
+		Message<?> receivedMessage = this.receiveChannel.receive(2000);
 		assertEquals(testString, receivedMessage.getPayload());
-		context.close();
+	}
+
+	@Test
+	public void testJmsOutboundGatewayRequiresReply(){
+		this.outboundGatewayChainChannel.send(MessageBuilder.withPayload("test").build());
+		assertNotNull(this.repliesChannel.receive(2000));
+
+		this.outboundGatewayChainChannel.send(MessageBuilder.withPayload("test").build());
+		assertNull(this.repliesChannel.receive(2000));
 	}
 
 }

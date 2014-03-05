@@ -18,10 +18,31 @@
 		<jms:outbound-channel-adapter destination="testQueue"/>
 	</int:chain>
 
+	<int:channel id="repliesChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:chain input-channel="outboundGatewayChainChannel" output-channel="repliesChannel">
+		<jms:outbound-gateway request-destination="testQueue2" receive-timeout="1000" requires-reply="false"/>
+	</int:chain>
+
+
 	<jms:message-driven-channel-adapter destination="testQueue" channel="receiveChannel"/>
+
+	<jms:inbound-gateway request-channel="inboundJmsChannel" request-destination="testQueue2"/>
+
+	<bean id="jmsRequiresReplyFlag" class="java.util.concurrent.atomic.AtomicInteger"/>
+
+	<int:chain input-channel="inboundJmsChannel">
+		<int:service-activator expression="@jmsRequiresReplyFlag.getAndIncrement() % 2 == 0 ? payload : null"/>
+	</int:chain>
 
 	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="test.queue"/>
+	</bean>
+
+	<bean id="testQueue2" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="test.queue2"/>
 	</bean>
 
 	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
