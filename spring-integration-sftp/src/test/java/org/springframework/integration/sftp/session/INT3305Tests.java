@@ -21,10 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import java.util.List;
-
 import org.apache.sshd.SshServer;
-import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
@@ -72,9 +69,13 @@ public class INT3305Tests {
 				assertThat(e.getCause(), instanceOf(IllegalStateException.class));
 				assertThat(e.getCause().getMessage(), equalTo("failed to connect"));
 			}
-			List<AbstractSession> sessions = server.getActiveSessions();
 
-			assertEquals(0, sessions.size());
+			int n = 0;
+			while (n++ < 100 && server.getActiveSessions().size() > 0) {
+				Thread.sleep(100);
+			}
+
+			assertEquals(0, server.getActiveSessions().size());
 		}
 		finally {
 			server.stop(true);
