@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class SingleFinalHandlerChannelTests {
+public class FixedSubscriberChannelTests {
 
 	@Autowired
 	private MessageChannel in;
@@ -90,6 +90,91 @@ public class SingleFinalHandlerChannelTests {
 		catch (Exception e) {
 			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
 			assertThat(e.getMessage(), Matchers.containsString("Only one subscriber is allowed for a 'final' channel."));
+		}
+		if (context != null) {
+			context.close();
+		}
+	}
+
+	@Test
+	public void testInterceptors() {
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Interceptors-fail-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
+			assertThat(e.getMessage(), Matchers.containsString("Cannot have interceptors when 'fixed-subscriber=\"true\"'"));
+		}
+		if (context != null) {
+			context.close();
+		}
+	}
+
+	@Test
+	public void testDatatype() {
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Datatype-fail-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
+			assertThat(e.getMessage(), Matchers.containsString("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'"));
+		}
+		if (context != null) {
+			context.close();
+		}
+	}
+
+	@Test
+	public void testConverter() {
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Converter-fail-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
+			assertThat(e.getMessage(), Matchers.containsString("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'"));
+		}
+		if (context != null) {
+			context.close();
+		}
+	}
+
+	@Test
+	public void testQueue() {
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Queue-fail-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
+			assertThat(e.getMessage(), Matchers.containsString("The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present."));
+		}
+		if (context != null) {
+			context.close();
+		}
+	}
+
+	@Test
+	public void testDispatcher() {
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Dispatcher-fail-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
+			assertThat(e.getMessage(), Matchers.containsString("The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present."));
 		}
 		if (context != null) {
 			context.close();

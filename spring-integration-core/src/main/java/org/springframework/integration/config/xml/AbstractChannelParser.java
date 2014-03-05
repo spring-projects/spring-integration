@@ -70,13 +70,13 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		}
 		else {
 			if (interceptorsElement != null) {
-				parserContext.getReaderContext().error("Cannot have interceptors when 'final=\"true\"'", element);
+				parserContext.getReaderContext().error("Cannot have interceptors when 'fixed-subscriber=\"true\"'", element);
 			}
 			if (StringUtils.hasText(datatypeAttr)) {
-				parserContext.getReaderContext().error("Cannot have 'datatype' when 'final=\"true\"'", element);
+				parserContext.getReaderContext().error("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'", element);
 			}
-			if (StringUtils.hasText(datatypeAttr)) {
-				parserContext.getReaderContext().error("Cannot have 'message-converter' when 'final=\"true\"'", element);
+			if (StringUtils.hasText(messageConverter)) {
+				parserContext.getReaderContext().error("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'", element);
 			}
 		}
 		beanDefinition.setSource(parserContext.extractSource(element));

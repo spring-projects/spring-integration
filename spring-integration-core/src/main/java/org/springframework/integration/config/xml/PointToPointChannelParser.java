@@ -21,9 +21,9 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
@@ -92,7 +92,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		if (queueElement != null) {
 			if (isFixedSubscriber) {
 				parserContext.getReaderContext().error(
-						"The 'final' attribute is not allowed when a <queue/> child element is present.",
+						"The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.",
 						element);
 			}
 			return builder;
@@ -106,7 +106,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		else {
 			if (isFixedSubscriber) {
 				parserContext.getReaderContext().error(
-						"The 'final' attribute is not allowed when a <dispatcher/> child element is present.",
+						"The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present.",
 						element);
 			}
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
