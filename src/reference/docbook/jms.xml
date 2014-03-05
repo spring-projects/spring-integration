@@ -315,7 +315,8 @@
     request-destination-expression=""]]><co id="jog200" /><![CDATA[
     request-destination-name=""]]><co id="jog210" /><![CDATA[
     request-pub-sub-domain=""]]><co id="jog220" /><![CDATA[
-    time-to-live="">]]><co id="jog230" /><![CDATA[
+    time-to-live=""]]><co id="jog230" /><![CDATA[
+    requires-reply="">]]><co id="jog231" /><![CDATA[
     <int-jms:reply-listener />]]><co id="jog240" /><![CDATA[
 </int-jms:outbound-gateway>]]></programlisting>
      <calloutlist>
@@ -495,6 +496,16 @@
         <para>
          Specify the message time to live.
          This setting will only take effect if <code>explicit-qos-enabled</code> is <code>true</code>.
+        </para>
+       </callout>
+       <callout arearefs="jog231">
+        <para>
+			Specify whether this outbound gateway must return a non-null value. This value is
+			<code>true</code> by default, and a <classname>MessageTimeoutException</classname> will be thrown when
+			the underlying service returns a null value. Note, it is important to keep in mind, if the underlying
+			JMS flow always doesn't return reply, it would be better to use <code>&lt;int-jms:outbound-channel-adapter/&gt;</code>
+			instead of <code>&lt;int-jms:outbound-gateway/&gt;</code> with <code>requires-reply="false"</code>,
+			because the last one blocks the thread to wait reply during <code>receive-timeout</code> period.
         </para>
        </callout>
        <callout arearefs="jog240">
