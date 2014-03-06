@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Josh Long
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public abstract class IntegrationContextUtils {
 
@@ -69,6 +70,8 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME = "messageHistoryConfigurer";
 
 	public static final String INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME = "datatypeChannelMessageConverter";
+
+	public static final String INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME = "fixedSubscriberChannelBeanFactoryPostProcessor";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

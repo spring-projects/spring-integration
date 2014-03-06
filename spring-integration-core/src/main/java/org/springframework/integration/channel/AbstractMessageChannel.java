@@ -53,7 +53,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile boolean shouldTrack = false;
 
-	private volatile Class<?>[] datatypes = new Class<?>[] { Object.class };
+	private volatile Class<?>[] datatypes = new Class<?>[0];
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
@@ -86,7 +86,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
 		this.datatypes = (datatypes != null && datatypes.length > 0)
-				? datatypes : new Class<?>[] { Object.class };
+				? datatypes : new Class<?>[0];
 	}
 
 	/**
@@ -245,12 +245,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this);
 		}
-		message = this.convertPayloadIfNecessary(message);
-		message = this.interceptors.preSend(message, this);
-		if (message == null) {
-			return false;
-		}
 		try {
+			if (this.datatypes.length > 0) {
+				message = this.convertPayloadIfNecessary(message);
+			}
+			message = this.interceptors.preSend(message, this);
+			if (message == null) {
+				return false;
+			}
 			boolean sent = this.doSend(message, timeout);
 			this.interceptors.postSend(message, this, sent);
 			return sent;
@@ -332,10 +334,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
 			}
-			for (ChannelInterceptor interceptor : interceptors) {
-				message = interceptor.preSend(message, channel);
-				if (message == null) {
-					return null;
+			if (this.interceptors.size() > 0) {
+				for (ChannelInterceptor interceptor : this.interceptors) {
+					message = interceptor.preSend(message, channel);
+					if (message == null) {
+						return null;
+					}
 				}
 			}
 			return message;
@@ -345,8 +349,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (logger.isDebugEnabled()) {
 				logger.debug("postSend (sent=" + sent + ") on channel '" + channel + "', message: " + message);
 			}
-			for (ChannelInterceptor interceptor : interceptors) {
-				interceptor.postSend(message, channel, sent);
+			if (this.interceptors.size() > 0) {
+				for (ChannelInterceptor interceptor : interceptors) {
+					interceptor.postSend(message, channel, sent);
+				}
 			}
 		}
 
@@ -354,9 +360,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + channel + "'");
 			}
-			for (ChannelInterceptor interceptor : interceptors) {
-				if (!interceptor.preReceive(channel)) {
-					return false;
+			if (this.interceptors.size() > 0) {
+				for (ChannelInterceptor interceptor : interceptors) {
+					if (!interceptor.preReceive(channel)) {
+						return false;
+					}
 				}
 			}
 			return true;
@@ -369,10 +377,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			else if (logger.isTraceEnabled()) {
 				logger.trace("postReceive on channel '" + channel + "', message is null");
 			}
-			for (ChannelInterceptor interceptor : interceptors) {
-				message = interceptor.postReceive(message, channel);
-				if (message == null) {
-					return null;
+			if (this.interceptors.size() > 0) {
+				for (ChannelInterceptor interceptor : interceptors) {
+					message = interceptor.postReceive(message, channel);
+					if (message == null) {
+						return null;
+					}
 				}
 			}
 			return message;

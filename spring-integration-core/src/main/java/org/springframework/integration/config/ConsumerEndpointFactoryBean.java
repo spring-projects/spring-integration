@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -33,16 +34,17 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.messaging.MessageChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -106,6 +108,7 @@ public class ConsumerEndpointFactoryBean
 		this.pollerMetadata = pollerMetadata;
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
 	}
@@ -118,10 +121,12 @@ public class ConsumerEndpointFactoryBean
 		this.phase = phase;
 	}
 
+	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory, "a ConfigurableBeanFactory is required");
 		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
@@ -132,6 +137,7 @@ public class ConsumerEndpointFactoryBean
 		this.adviceChain = adviceChain;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		try {
 			if (!this.beanName.startsWith("org.springframework")) {
@@ -181,10 +187,12 @@ public class ConsumerEndpointFactoryBean
 		this.initializeEndpoint();
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}
 
+	@Override
 	public AbstractEndpoint getObject() throws Exception {
 		if (!this.initialized) {
 			this.initializeEndpoint();
@@ -192,6 +200,7 @@ public class ConsumerEndpointFactoryBean
 		return this.endpoint;
 	}
 
+	@Override
 	public Class<?> getObjectType() {
 		if (this.endpoint == null) {
 			return AbstractEndpoint.class;
@@ -218,6 +227,9 @@ public class ConsumerEndpointFactoryBean
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
+				if (logger.isWarnEnabled() && !this.autoStartup && channel instanceof FixedSubscriberChannel) {
+					logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
+				}
 			}
 			else if (channel instanceof PollableChannel) {
 				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) channel, this.handler);
@@ -256,30 +268,36 @@ public class ConsumerEndpointFactoryBean
 	 * SmartLifecycle implementation (delegates to the created endpoint)
 	 */
 
+	@Override
 	public boolean isAutoStartup() {
 		return (this.endpoint != null) ? this.endpoint.isAutoStartup() : true;
 	}
 
+	@Override
 	public int getPhase() {
 		return (this.endpoint != null) ? this.endpoint.getPhase() : 0;
 	}
 
+	@Override
 	public boolean isRunning() {
 		return (this.endpoint != null) ? this.endpoint.isRunning() : false;
 	}
 
+	@Override
 	public void start() {
 		if (this.endpoint != null) {
 			this.endpoint.start();
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (this.endpoint != null) {
 			this.endpoint.stop();
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		if (this.endpoint != null) {
 			this.endpoint.stop(callback);

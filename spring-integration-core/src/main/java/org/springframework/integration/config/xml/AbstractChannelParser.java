@@ -26,6 +26,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -42,28 +43,41 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = this.buildBeanDefinition(element, parserContext);
-		ManagedList interceptors = null;
-		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
-		if (interceptorsElement != null) {
-			ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();
-			interceptors = interceptorParser.parseInterceptors(interceptorsElement, parserContext);
-		}
-		if (interceptors == null) {
-			interceptors = new ManagedList();
-		}
-		String datatypeAttr = element.getAttribute("datatype");
-		if (StringUtils.hasText(datatypeAttr)) {
-			builder.addPropertyValue("datatypes", datatypeAttr);
-		}
-		String messageConverter = element.getAttribute("message-converter");
-		if (StringUtils.hasText(messageConverter)) {
-			builder.addPropertyReference("messageConverter", messageConverter);
-		}
-		builder.addPropertyValue("interceptors", interceptors);
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
-		String scopeAttr = element.getAttribute("scope");
-		if (StringUtils.hasText(scopeAttr)) {
-			builder.setScope(scopeAttr);
+		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
+		String datatypeAttr = element.getAttribute("datatype");
+		String messageConverter = element.getAttribute("message-converter");
+		if (!FixedSubscriberChannel.class.getName().equals(builder.getBeanDefinition().getBeanClassName())) {
+			ManagedList interceptors = null;
+			if (interceptorsElement != null) {
+				ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();
+				interceptors = interceptorParser.parseInterceptors(interceptorsElement, parserContext);
+			}
+			if (interceptors == null) {
+				interceptors = new ManagedList();
+			}
+			if (StringUtils.hasText(datatypeAttr)) {
+				builder.addPropertyValue("datatypes", datatypeAttr);
+			}
+			if (StringUtils.hasText(messageConverter)) {
+				builder.addPropertyReference("messageConverter", messageConverter);
+			}
+			builder.addPropertyValue("interceptors", interceptors);
+			String scopeAttr = element.getAttribute("scope");
+			if (StringUtils.hasText(scopeAttr)) {
+				builder.setScope(scopeAttr);
+			}
+		}
+		else {
+			if (interceptorsElement != null) {
+				parserContext.getReaderContext().error("Cannot have interceptors when 'fixed-subscriber=\"true\"'", element);
+			}
+			if (StringUtils.hasText(datatypeAttr)) {
+				parserContext.getReaderContext().error("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'", element);
+			}
+			if (StringUtils.hasText(messageConverter)) {
+				parserContext.getReaderContext().error("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'", element);
+			}
 		}
 		beanDefinition.setSource(parserContext.extractSource(element));
 		return beanDefinition;

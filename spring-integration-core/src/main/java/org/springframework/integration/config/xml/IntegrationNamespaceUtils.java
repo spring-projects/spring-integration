@@ -16,6 +16,7 @@ package org.springframework.integration.config.xml;
 import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser.ID_ATTRIBUTE;
 
 import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -23,18 +24,25 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.FixedSubscriberChannelBeanFactoryPostProcessor;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
@@ -498,6 +506,46 @@ public abstract class IntegrationNamespaceUtils {
 		IntegrationConfigUtils.autoCreateDirectChannel(channelId, parserContext.getRegistry());
 
 		return channelId;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void checkAndConfigureFixedSubscriberChannel(Element element, ParserContext parserContext,
+			String channelName, String handlerBeanName) {
+		BeanDefinitionRegistry registry = parserContext.getRegistry();
+		if (registry.containsBeanDefinition(channelName)) {
+			BeanDefinition inputChannelDefinition = registry.getBeanDefinition(channelName);
+			if (FixedSubscriberChannel.class.getName().equals(inputChannelDefinition.getBeanClassName())) {
+				ConstructorArgumentValues constructorArgumentValues = inputChannelDefinition
+						.getConstructorArgumentValues();
+				if (constructorArgumentValues.isEmpty()) {
+					constructorArgumentValues.addGenericArgumentValue(new RuntimeBeanReference(handlerBeanName));
+				}
+				else {
+					parserContext.getReaderContext().error("Only one subscriber is allowed for a FixedSubscriberChannel.",
+							element);
+				}
+			}
+		}
+		else {
+			BeanDefinition bfppd;
+			if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME)) {
+				bfppd = new RootBeanDefinition(FixedSubscriberChannelBeanFactoryPostProcessor.class);
+				registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME, bfppd);
+			}
+			else {
+				bfppd = registry.getBeanDefinition(IntegrationContextUtils.INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME);
+			}
+			ManagedMap<String, String> candidates;
+			ValueHolder argumentValue = bfppd.getConstructorArgumentValues().getArgumentValue(0, Map.class);
+			if (argumentValue == null) {
+				candidates = new ManagedMap<String, String>();
+				bfppd.getConstructorArgumentValues().addIndexedArgumentValue(0, candidates);
+			}
+			else {
+				candidates = (ManagedMap<String, String>) argumentValue.getValue();
+			}
+			candidates.put(handlerBeanName, channelName);
+		}
 	}
 
 }

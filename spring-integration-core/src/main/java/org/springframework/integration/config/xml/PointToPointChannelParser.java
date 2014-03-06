@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
@@ -45,6 +46,8 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = null;
 		Element queueElement = null;
+		String fixedSubscriberChannel = element.getAttribute("fixed-subscriber");
+		boolean isFixedSubscriber = "true".equals(fixedSubscriberChannel.trim().toLowerCase());
 
 		// configure a queue-based channel if any queue sub-element is defined
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
@@ -87,14 +90,25 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 
 		if (queueElement != null) {
+			if (isFixedSubscriber) {
+				parserContext.getReaderContext().error(
+						"The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.",
+						element);
+			}
 			return builder;
 		}
 
 		if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
-			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(isFixedSubscriber ? FixedSubscriberChannel.class
+					: DirectChannel.class);
 		}
 		else {
+			if (isFixedSubscriber) {
+				parserContext.getReaderContext().error(
+						"The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present.",
+						element);
+			}
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
 			String taskExecutor = dispatcherElement.getAttribute("task-executor");
 			if (StringUtils.hasText(taskExecutor)) {
@@ -119,7 +133,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 					builder.addConstructorArgValue(null);
 				}
 			}
-			
+
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "max-subscribers");
 		}

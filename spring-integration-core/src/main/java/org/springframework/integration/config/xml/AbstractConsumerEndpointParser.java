@@ -141,6 +141,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 						IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'", parserContext.getRegistry());
 			}
 		}
+		IntegrationNamespaceUtils.checkAndConfigureFixedSubscriberChannel(element, parserContext, inputChannelName,
+				handlerBeanName);
 
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");

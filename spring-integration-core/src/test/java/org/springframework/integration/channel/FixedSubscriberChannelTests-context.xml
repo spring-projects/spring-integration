@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="in" fixed-subscriber="true" />
+
+	<int:transformer input-channel="in" output-channel="out" expression="payload.toUpperCase()" auto-startup="false" />
+
+	<int:channel id="out">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="ocaFixedChannel" fixed-subscriber="true" />
+
+	<int:outbound-channel-adapter channel="ocaFixedChannel" expression="'foo'" />
+
+	<int:transformer input-channel="afterHandler" output-channel="out" expression="payload.toUpperCase()" auto-startup="false" />
+
+	<int:channel id="afterHandler" fixed-subscriber="true" />
+
+	<int:outbound-channel-adapter channel="ocaFixedChannelAfter" expression="'foo'" />
+
+	<int:channel id="ocaFixedChannelAfter" fixed-subscriber="true" />
+
+</beans>

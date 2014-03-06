@@ -19,15 +19,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
 /**
  * Implementation of {@link MessageDispatcher} that will attempt to send a
@@ -52,7 +48,7 @@ import org.springframework.messaging.MessagingException;
 public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private volatile boolean failover = true;
-	private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
 	private final Executor executor;
@@ -84,14 +80,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
 	public void setLoadBalancingStrategy(LoadBalancingStrategy loadBalancingStrategy) {
-		Lock lock = rwLock.writeLock();
-		lock.lock();
-		try {
-			this.loadBalancingStrategy = loadBalancingStrategy;
-		}
-		finally {
-			lock.unlock();
-		}
+		this.loadBalancingStrategy = loadBalancingStrategy;
 	}
 
 	@Override
@@ -109,6 +98,9 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	}
 
 	private boolean doDispatch(Message<?> message) {
+		if (this.tryOptimizedDispatch(message)) {
+			return true;
+		}
 		boolean success = false;
 		Iterator<MessageHandler> handlerIterator = this.getHandlerIterator(message);
 		if (!handlerIterator.hasNext()) {
@@ -122,14 +114,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 				success = true; // we have a winner.
 			}
 			catch (Exception e) {
-				RuntimeException runtimeException = (e instanceof RuntimeException)
-						? (RuntimeException) e
-						: new MessageDeliveryException(message,
-								"Dispatcher failed to deliver Message.", e);
-				if (e instanceof MessagingException &&
-						((MessagingException) e).getFailedMessage() == null) {
-					runtimeException = new MessagingException(message, e);
-				}
+				RuntimeException runtimeException = this.wrapExceptionIfNecessary(message, e);
 				exceptions.add(runtimeException);
 				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
 			}
@@ -143,14 +128,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * it simply returns the Iterator for the existing handler List.
 	 */
 	private Iterator<MessageHandler> getHandlerIterator(Message<?> message) {
-		Lock lock = rwLock.readLock();
-		lock.lock();
-		try {
-			if (this.loadBalancingStrategy != null) {
-				return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
-			}
-		} finally {
-			lock.unlock();
+		if (this.loadBalancingStrategy != null) {
+			return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
 		}
 		return this.getHandlers().iterator();
 	}
