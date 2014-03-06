@@ -15,7 +15,8 @@
 	<jms:outbound-channel-adapter id="adapter"
 			channel="input"
 			connection-factory="testConnectionFactory"
-			destination="testDestination"/>
+			destination="testDestination"
+			session-transacted="true" />
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
@@ -27,21 +29,22 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class JmsInboundChannelAdapterParserTests {
 
 	long timeoutOnReceive = 3000;
-	
+
 	@Test
-	public void adapterWithJmsTemplate() {  
+	public void adapterWithJmsTemplate() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithJmsTemplate.xml", this.getClass());
 		PollableChannel output = (PollableChannel) context.getBean("output");
@@ -54,16 +57,18 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
+		context.close();
 	}
-	
+
 	@Test
-	public void adapterWithoutJmsTemplateAndAcknowlegeMode() {  
+	public void adapterWithoutJmsTemplateAndAcknowlegeMode() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithJmsTemplate.xml", this.getClass());
-		JmsTemplate jmsTemplate = 
+		JmsTemplate jmsTemplate =
 			TestUtils.getPropertyValue(context.getBean("inboundAdapterWithoutJmsTemplate"), "source.jmsTemplate", JmsTemplate.class);
-		assertEquals(0, jmsTemplate.getSessionAcknowledgeMode());
+		assertTrue(jmsTemplate.isSessionTransacted());
 		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -74,7 +79,10 @@ public class JmsInboundChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
+		assertFalse(TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class)
+				.isSessionTransacted());
 		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -86,11 +94,12 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
+		context.close();
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)
 	public void adapterWithConnectionFactoryOnly() {
-		new ClassPathXmlApplicationContext("jmsInboundWithConnectionFactoryOnly.xml", this.getClass());
+		new ClassPathXmlApplicationContext("jmsInboundWithConnectionFactoryOnly.xml", this.getClass()).close();
 	}
 
 	@Test(expected = BeanCreationException.class)
@@ -114,11 +123,12 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
+		context.close();
 	}
 
 	@Test(expected=BeanCreationException.class)
 	public void adapterWithDestinationNameOnly() {
-		new ClassPathXmlApplicationContext("jmsInboundWithDestinationNameOnly.xml", this.getClass());
+		new ClassPathXmlApplicationContext("jmsInboundWithDestinationNameOnly.xml", this.getClass()).close();
 	}
 
 	@Test
@@ -130,6 +140,7 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -143,6 +154,7 @@ public class JmsInboundChannelAdapterParserTests {
 		assertEquals("foo", message.getHeaders().get("testProperty"));
 		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
 		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -154,15 +166,17 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
 		context.stop();
+		context.close();
 	}
 
 	@Test
 	public void pollingAdapterWithReceiveTimeout() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithReceiveTimeout.xml", this.getClass());
-		JmsTemplate jmsTemplate = 
+		JmsTemplate jmsTemplate =
 				TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class);
 		assertEquals(99, jmsTemplate.getReceiveTimeout());
+		context.close();
 	}
 
 	@Test
@@ -174,6 +188,7 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test", message.getPayload());
 		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -185,6 +200,7 @@ public class JmsInboundChannelAdapterParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test", message.getPayload());
 		context.stop();
+		context.close();
 	}
 
 }

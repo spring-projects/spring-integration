@@ -14,7 +14,8 @@
 
 	<jms:inbound-channel-adapter id="inboundAdapter" jms-template="jmsTemplate" channel="output"/>
 	
-	<jms:inbound-channel-adapter id="inboundAdapterWithoutJmsTemplate" channel="outputA" acknowledge="transacted" 
+	<jms:inbound-channel-adapter id="inboundAdapterWithoutJmsTemplate" channel="outputA"
+									session-transacted="true"
 									destination-name="foo.bar"/>
 
 	<integration:channel id="outputA"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,18 +33,19 @@ import org.springframework.util.StringUtils;
  */
 public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
+	@Override
 	protected boolean shouldGenerateId() {
 		return false;
 	}
 
+	@Override
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;
 	}
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.jms.JmsDestinationPollingSource");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsDestinationPollingSource.class);
 		String componentName =  this.resolveId(element, builder.getBeanDefinition(), parserContext);
 		if (StringUtils.hasText(componentName)) {
 			builder.addPropertyValue("componentName", componentName);

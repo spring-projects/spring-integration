@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,26 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import javax.jms.DeliveryMode;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jms.JmsHeaderMapper;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -52,6 +54,8 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class));
+		context.close();
 	}
 
 	@Test
@@ -62,6 +66,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+		context.close();
 	}
 
 	@Test
@@ -72,6 +77,8 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+		assertFalse(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class));
+		context.close();
 	}
 
 	@Test
@@ -82,6 +89,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+		context.close();
 	}
 
 	@Test
@@ -93,6 +101,7 @@ public class JmsOutboundChannelAdapterParserTests {
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		Object order = accessor.getPropertyValue("order");
 		assertEquals(123, order);
+		context.close();
 	}
 
 	@Test
@@ -105,6 +114,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");
 		assertNotNull(headerMapper);
 		assertEquals(TestJmsHeaderMapper.class, headerMapper.getClass());
+		context.close();
 	}
 
 	@Test
@@ -116,6 +126,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		JmsTemplate jmsTemplate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
 		assertNotNull(jmsTemplate);
 		assertEquals(context.getBean("template"), jmsTemplate);
+		context.close();
 	}
 
 	@Test
@@ -130,6 +141,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		assertTrue(jmsTemplate.isExplicitQosEnabled());
 		assertEquals(7, jmsTemplate.getPriority());
 		assertEquals(12345, jmsTemplate.getTimeToLive());
+		context.close();
 	}
 
 	@Test
@@ -143,6 +155,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		MessageConverter messageConverter = jmsTemlate.getMessageConverter();
 		assertNotNull(messageConverter);
 		assertEquals(TestMessageConverter.class, messageConverter.getClass());
+		context.close();
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)
@@ -168,6 +181,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		assertEquals(12345L, accessor.getPropertyValue("timeToLive"));
 		assertEquals(7, accessor.getPropertyValue("priority"));
 		assertEquals(DeliveryMode.NON_PERSISTENT, accessor.getPropertyValue("deliveryMode"));
+		context.close();
 	}
 
 	@Test
@@ -179,6 +193,7 @@ public class JmsOutboundChannelAdapterParserTests {
 				new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"))
 						.getPropertyValue("jmsTemplate"));
 		assertEquals(false, accessor.getPropertyValue("explicitQosEnabled"));
+		context.close();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
