@@ -31,7 +31,7 @@ import org.springframework.messaging.SubscribableChannel;
  * other {@link SubscribableChannel}s where the {@link MessageHandler} is subscribed when the endpoint
  * is started). This channel does not support interceptors or data types.
  * <p>
- * <b>Note: Stopping ({@link #unsubscribe(MessageHandler)}) the subscribed ({@link MessageHandler}) has no effect.
+ * <b>Note: Stopping ({@link #unsubscribe(MessageHandler)}) the subscribed ({@link MessageHandler}) has no effect.</b>
  *
  * @author Gary Russell
  * @since 4.0

@@ -42,6 +42,9 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * Create a header value processor for the given Expression and the
 	 * expected type of the expression evaluation result. The expectedType
 	 * may be null if unknown.
+	 *
+	 * @param expression the {@link Expression} to evaluate.
+	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
 	public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, Class<T> expectedType) {
 		this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
@@ -51,6 +54,9 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * Create a header value processor for the given expression string and
 	 * the expected type of the expression evaluation result. The
 	 * expectedType may be null if unknown.
+	 *
+	 * @param expressionString the {@link java.lang.String} expression presentation to evaluate.
+	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
 	public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<T> expectedType) {
 		Expression expression = expressionParser.parseExpression(expressionString);
