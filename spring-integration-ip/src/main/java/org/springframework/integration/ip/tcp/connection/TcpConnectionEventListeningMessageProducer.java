@@ -22,7 +22,6 @@ import java.util.Set;
 import org.springframework.context.ApplicationListener;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -44,7 +43,7 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	 * Set the list of event types (classes that extend TcpConnectionEvent) that
 	 * this adapter should send to the message channel. By default, all event
 	 * types will be sent.
-	 * 
+	 *
 	 * @param eventTypes The event types.
 	 */
 	public void setEventTypes(Class<? extends TcpConnectionEvent>[] eventTypes) {
@@ -72,7 +71,7 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	}
 
 	protected Message<TcpConnectionEvent> messageFromEvent(TcpConnectionEvent event) {
-		return MessageBuilder.withPayload(event).build();
+		return this.getMessageBuilderFactory().withPayload(event).build();
 	}
 
 }

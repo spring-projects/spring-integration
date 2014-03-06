@@ -18,6 +18,8 @@ package org.springframework.integration.ip.config;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
@@ -53,7 +56,7 @@ import org.springframework.util.Assert;
  * @since 2.0.5
  */
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> implements SmartLifecycle, BeanNameAware,
-	ApplicationEventPublisherAware {
+		BeanFactoryAware, ApplicationEventPublisherAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
 
@@ -85,6 +88,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
 
+	private volatile boolean mapperSet;
+
 	private volatile boolean singleUse;
 
 	private volatile int backlog = 5;
@@ -113,6 +118,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
+	private volatile BeanFactory beanFactory;
+
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass()
@@ -121,6 +133,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	@Override
 	protected AbstractConnectionFactory createInstance() throws Exception {
+		if (!this.mapperSet) {
+			mapper.setMessageBuilderFactory(IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory));
+		}
 		if (this.usingNio) {
 			if ("server".equals(this.type)) {
 				TcpNioServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(this.port);
@@ -137,7 +152,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			}
-		} else {
+		}
+		else {
 			if ("server".equals(this.type)) {
 				TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(this.port);
 				this.setCommonAttributes(connectionFactory);
@@ -356,6 +372,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	public void setMapper(TcpMessageMapper mapper) {
 		Assert.notNull(mapper, "TcpMessageMapper may not be null");
 		this.mapper = mapper;
+		this.mapperSet = true;
 	}
 
 	/**

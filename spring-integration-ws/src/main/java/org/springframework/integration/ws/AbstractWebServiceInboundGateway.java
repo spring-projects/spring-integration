@@ -18,10 +18,10 @@ package org.springframework.integration.ws;
 import java.util.Map;
 
 import org.springframework.expression.ExpressionException;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.ws.WebServiceMessage;
@@ -34,18 +34,19 @@ import org.springframework.ws.soap.SoapMessage;
  * @since 2.1
  */
 abstract public class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
-	
+
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
-	
+
+	@Override
 	public String getComponentType() {
 		return "ws:inbound-gateway";
 	}
-	
+
 	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
 	}
-	
+
 	public void invoke(MessageContext messageContext) throws Exception {
 		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
 
@@ -60,8 +61,8 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 			throw e;
 		}
 	}
-	
-	protected void fromSoapHeaders(MessageContext messageContext, MessageBuilder<?> builder){
+
+	protected void fromSoapHeaders(MessageContext messageContext, AbstractIntegrationMessageBuilder<?> builder){
 		WebServiceMessage request = messageContext.getRequest();
 		String[] propertyNames = messageContext.getPropertyNames();
 		if (propertyNames != null) {
@@ -77,13 +78,13 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 			}
 		}
 	}
-	
+
 	protected void toSoapHeaders(WebServiceMessage response, Message<?> replyMessage){
 		if (response instanceof SoapMessage) {
 			this.headerMapper.fromHeadersToReply(
 					replyMessage.getHeaders(), (SoapMessage) response);
 		}
 	}
-	
+
 	abstract protected void doInvoke(MessageContext messageContext) throws Exception;
 }

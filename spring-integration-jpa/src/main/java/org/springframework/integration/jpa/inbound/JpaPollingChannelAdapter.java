@@ -15,11 +15,10 @@
  */
 package org.springframework.integration.jpa.inbound;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.jpa.core.JpaExecutor;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -87,7 +86,7 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 			return null;
 		}
 
-		return MessageBuilder.withPayload(payload).build();
+		return this.getMessageBuilderFactory().withPayload(payload).build();
 	}
 
 	@Override

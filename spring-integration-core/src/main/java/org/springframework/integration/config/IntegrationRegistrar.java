@@ -48,6 +48,7 @@ import org.springframework.integration.config.annotation.MessagingAnnotationPost
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -91,6 +92,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
 		this.registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
+		this.registerMessageBuilderFactory(registry);
 	}
 
 	/**
@@ -349,6 +351,26 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			registry.registerBeanDefinition(
 					IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
 					converterBuilder.getBeanDefinition());
+		}
+
+	}
+
+	private void registerMessageBuilderFactory(BeanDefinitionRegistry registry) {
+		boolean alreadyRegistered = false;
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = registry
+					.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+			BeanDefinitionBuilder mbfBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(DefaultMessageBuilderFactory.class);
+			registry.registerBeanDefinition(
+					IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+					mbfBuilder.getBeanDefinition());
 		}
 
 	}

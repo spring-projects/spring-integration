@@ -19,7 +19,6 @@ package org.springframework.integration.jpa.outbound;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -82,7 +81,7 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 			return null;
 		}
 
-		return MessageBuilder.withPayload(result).copyHeaders(requestMessage.getHeaders()).build();
+		return this.getMessageBuilderFactory().withPayload(result).copyHeaders(requestMessage.getHeaders()).build();
 
 	}
 

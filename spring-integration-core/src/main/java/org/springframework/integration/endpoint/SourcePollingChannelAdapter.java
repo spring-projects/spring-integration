@@ -104,7 +104,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void handleMessage(Message<?> message) {
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this);
+			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		try {
 			this.messagingTemplate.send(this.outputChannel, message);

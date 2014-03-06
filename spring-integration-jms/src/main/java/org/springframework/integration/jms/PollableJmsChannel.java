@@ -16,10 +16,9 @@
 
 package org.springframework.integration.jms;
 
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jms.core.JmsTemplate;
 
 /**
  * @author Mark Fisher
@@ -59,7 +58,7 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			replyMessage = (Message<?>) object;
 		}
 		else {
-			replyMessage = MessageBuilder.withPayload(object).build();
+			replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
 		}
 		return this.getInterceptors().postReceive(replyMessage, this) ;
 	}

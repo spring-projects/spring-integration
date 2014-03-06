@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -53,6 +55,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private volatile MessageHandler theOneHandler;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 	/**
 	 * Set the maximum subscribers allowed by this dispatcher.
 	 * @param maxSubscribers The maximum number of subscribers allowed.
@@ -69,6 +72,15 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 */
 	protected Set<MessageHandler> getHandlers() {
 		return handlers.asUnmodifiableSet();
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
+
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
+		this.messageBuilderFactory = messageBuilderFactory;
 	}
 
 	/**

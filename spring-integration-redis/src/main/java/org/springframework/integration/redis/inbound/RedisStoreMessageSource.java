@@ -30,7 +30,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -128,7 +127,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 			return null;
 		}
 		else {
-			return MessageBuilder.withPayload(store).build();
+			return this.getMessageBuilderFactory().withPayload(store).build();
 		}
 	}
 

@@ -23,10 +23,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -354,8 +354,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		@Override
 		public boolean onMessage(Message<?> message) {
 			if (this.delegate.getConnectionId().equals(message.getHeaders().get(IpHeaders.CONNECTION_ID))) {
-				MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)
-						.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+				AbstractIntegrationMessageBuilder<?> messageBuilder = FailoverClientConnectionFactory.this
+						.getMessageBuilderFactory().fromMessage(message)
+							.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
 				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
 					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 							message.getHeaders().get(IpHeaders.CONNECTION_ID));

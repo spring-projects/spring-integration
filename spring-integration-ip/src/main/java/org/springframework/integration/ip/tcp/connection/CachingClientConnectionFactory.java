@@ -19,12 +19,12 @@ import java.util.concurrent.Executor;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.util.SimplePool;
 
 /**
  * @author Gary Russell
@@ -146,8 +146,9 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		 */
 		@Override
 		public boolean onMessage(Message<?> message) {
-			MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)
-					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+			AbstractIntegrationMessageBuilder<?> messageBuilder = CachingClientConnectionFactory.this
+					.getMessageBuilderFactory().fromMessage(message)
+						.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
 			if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
 				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 						message.getHeaders().get(IpHeaders.CONNECTION_ID));

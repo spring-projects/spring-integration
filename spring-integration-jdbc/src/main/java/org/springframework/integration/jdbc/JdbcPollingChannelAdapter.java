@@ -24,10 +24,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -36,6 +34,7 @@ import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.messaging.Message;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
@@ -147,7 +146,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		if (payload == null) {
 			return null;
 		}
-		return MessageBuilder.withPayload(payload).build();
+		return this.getMessageBuilderFactory().withPayload(payload).build();
 	}
 
 	/**

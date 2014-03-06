@@ -22,7 +22,7 @@ import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
 import org.springframework.integration.xmpp.support.XmppHeaderMapper;
@@ -109,7 +109,10 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 				if (StringUtils.hasText(messageBody)){
 					Object payload = (extractPayload ? messageBody : xmppMessage);
 
-					MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(mappedHeaders);
+					AbstractIntegrationMessageBuilder<?> messageBuilder =
+							ChatMessageListeningEndpoint.this.getMessageBuilderFactory()
+								.withPayload(payload)
+								.copyHeaders(mappedHeaders);
 					sendMessage(messageBuilder.build());
 				}
 			}

@@ -30,7 +30,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -124,7 +123,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		if (entry == null) {
 			return null;
 		}
-		return MessageBuilder.withPayload(entry).build();
+		return this.getMessageBuilderFactory().withPayload(entry).build();
 	}
 
 	@Override

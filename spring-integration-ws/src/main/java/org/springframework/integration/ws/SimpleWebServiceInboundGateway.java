@@ -21,14 +21,15 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 
+import org.w3c.dom.Document;
+
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
-import org.w3c.dom.Document;
 
 /**
  * @author Mark Fisher
@@ -45,18 +46,19 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 		this.extractPayload = extractPayload;
 	}
 
+	@Override
 	protected void doInvoke(MessageContext messageContext) throws Exception {
-		
+
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
-		
-		MessageBuilder<?> builder = MessageBuilder.withPayload(
+
+		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(
 				(this.extractPayload) ? request.getPayloadSource() : request);
-		
+
 		this.fromSoapHeaders(messageContext, builder);
 
 		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
-		
+
 		if (replyMessage != null) {
 			Object replyPayload = replyMessage.getPayload();
 			Source responseSource = null;
@@ -77,9 +79,9 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 			}
 			WebServiceMessage response = messageContext.getResponse();
 			this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
-			
+
 			this.toSoapHeaders(response, replyMessage);
-			
+
 		}
 	}
 

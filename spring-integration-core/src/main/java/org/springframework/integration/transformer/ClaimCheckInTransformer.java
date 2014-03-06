@@ -17,7 +17,7 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -50,7 +50,7 @@ public class ClaimCheckInTransformer extends AbstractTransformer {
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "payload must not be null");
 		Message<?> storedMessage = this.messageStore.addMessage(message);
-		MessageBuilder<?> responseBuilder = MessageBuilder.withPayload(storedMessage.getHeaders().getId());
+		AbstractIntegrationMessageBuilder<?> responseBuilder = this.getMessageBuilderFactory().withPayload(storedMessage.getHeaders().getId());
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
 		return responseBuilder.build();

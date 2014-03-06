@@ -18,7 +18,7 @@ package org.springframework.integration.json;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.mapping.support.JsonHeaders;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -74,7 +74,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 		else {
 			Object result = this.jsonObjectMapper.fromJson(message.getPayload(), message.getHeaders());
-			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(result)
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = this.getMessageBuilderFactory().withPayload(result)
 					.copyHeaders(message.getHeaders())
 					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]));
 			return messageBuilder.build();

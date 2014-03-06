@@ -25,9 +25,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
 
-import org.springframework.messaging.Message;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,6 +47,8 @@ public class MessageHistory implements List<Properties>, Serializable {
 
 	public static final String TIMESTAMP_PROPERTY = "timestamp";
 
+	private static final MessageBuilderFactory mesageBuilderFactory = new DefaultMessageBuilderFactory();
+
 
 	private final List<Properties> components;
 
@@ -56,6 +59,11 @@ public class MessageHistory implements List<Properties>, Serializable {
 	}
 
 	public static <T> Message<T> write(Message<T> message, NamedComponent component) {
+		return write(message, component, mesageBuilderFactory);
+	}
+
+	public static <T> Message<T> write(Message<T> message, NamedComponent component,
+			MessageBuilderFactory messageBuilderFactory) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(component, "Component must not be null");
 		Properties metadata = extractMetadata(component);
@@ -65,7 +73,7 @@ public class MessageHistory implements List<Properties>, Serializable {
 					new ArrayList<Properties>(previousHistory) : new ArrayList<Properties>();
 			components.add(metadata);
 			MessageHistory history = new MessageHistory(components);
-			message = MessageBuilder.fromMessage(message).setHeader(HEADER_NAME, history).build();
+			message = messageBuilderFactory.fromMessage(message).setHeader(HEADER_NAME, history).build();
 		}
 		return message;
 	}
@@ -77,58 +85,72 @@ public class MessageHistory implements List<Properties>, Serializable {
 	}
 
 
+	@Override
 	public int size() {
 		return this.components.size();
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return this.components.isEmpty();
 	}
 
+	@Override
 	public boolean contains(Object o) {
 		return this.components.contains(o);
 	}
 
+	@Override
 	public boolean containsAll(Collection<?> c) {
 		return this.components.containsAll(c);
 	}
 
+	@Override
 	public Properties get(int index) {
 		return this.components.get(index);
 	}
 
+	@Override
 	public Iterator<Properties> iterator() {
 		return Collections.unmodifiableList(this.components).iterator();
 	}
 
+	@Override
 	public ListIterator<Properties> listIterator() {
 		return Collections.unmodifiableList(this.components).listIterator();
 	}
 
+	@Override
 	public ListIterator<Properties> listIterator(int index) {
 		return Collections.unmodifiableList(this.components).listIterator(index);
 	}
 
+	@Override
 	public List<Properties> subList(int fromIndex, int toIndex) {
 		return Collections.unmodifiableList(this.components).subList(fromIndex, toIndex);
 	}
 
+	@Override
 	public Object[] toArray() {
 		return this.components.toArray();
 	}
 
+	@Override
 	public <T> T[] toArray(T[] a) {
 		return this.components.toArray(a);
 	}
 
+	@Override
 	public int indexOf(Object o) {
 		return this.components.indexOf(o);
 	}
 
+	@Override
 	public int lastIndexOf(Object o) {
 		return this.components.lastIndexOf(o);
 	}
 
+	@Override
 	public String toString() {
 		List<String> names = new ArrayList<String>();
 		for (Properties p : this.components) {
@@ -145,42 +167,52 @@ public class MessageHistory implements List<Properties>, Serializable {
 	 * Unsupported Operations
 	 */
 
+	@Override
 	public boolean add(Properties e) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public void add(int index, Properties element) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public boolean addAll(Collection<? extends Properties> c) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public boolean addAll(int index, Collection<? extends Properties> c) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public Properties set(int index, Properties element) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public Properties remove(int index) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public boolean remove(Object o) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public boolean removeAll(Collection<?> c) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public boolean retainAll(Collection<?> c) {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}
 
+	@Override
 	public void clear() {
 		throw new UnsupportedOperationException("MessageHistory is immutable.");
 	}

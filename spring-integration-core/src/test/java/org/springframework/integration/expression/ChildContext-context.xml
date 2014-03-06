@@ -11,6 +11,8 @@
 
 	<int:transformer input-channel="input" output-channel="output" expression="@foo + @barString"/>
 
+	<int:transformer input-channel="fromParentToChild" output-channel="output" expression="payload.toUpperCase()" />
+
 	<int:channel id="output">
 		<int:queue/>
 	</int:channel>
@@ -28,4 +30,7 @@
 	</int:spel-property-accessors>
 
 	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+
+	<bean id="messageBuilderFactory" class="org.springframework.integration.support.MutableMessageBuilderFacfory" />
+
 </beans>

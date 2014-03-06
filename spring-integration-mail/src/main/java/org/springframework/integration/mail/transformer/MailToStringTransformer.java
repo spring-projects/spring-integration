@@ -21,7 +21,7 @@ import java.nio.charset.Charset;
 
 import javax.mail.Multipart;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * an output stream of bytes using the provided charset (or UTF-8 by default).
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MailToStringTransformer extends AbstractMailMessageTransformer<String> {
 
@@ -50,15 +51,15 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 	}
 
 	@Override
-	protected MessageBuilder<String> doTransform(javax.mail.Message mailMessage) throws Exception {
+	protected AbstractIntegrationMessageBuilder<String> doTransform(javax.mail.Message mailMessage) throws Exception {
 		Object content = mailMessage.getContent();
 		if (content instanceof String) {
-			return MessageBuilder.withPayload((String) content);
+			return this.getMessageBuilderFactory().withPayload((String) content);
 		}
 		if (content instanceof Multipart) {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			((Multipart) content).writeTo(outputStream);
-			return MessageBuilder.withPayload(
+			return this.getMessageBuilderFactory().withPayload(
 					new String(outputStream.toByteArray(), this.charset));
 		}
 		throw new IllegalArgumentException("failed to transform contentType ["

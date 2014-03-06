@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,25 +25,47 @@ import javax.mail.Message.RecipientType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
  * Base class for Transformers that convert from a JavaMail Message to a
  * Spring Integration Message.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public abstract class AbstractMailMessageTransformer<T> implements Transformer {
+public abstract class AbstractMailMessageTransformer<T> implements Transformer,
+		BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
+	private volatile BeanFactory beanFactory;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
+
+	@Override
 	public Message<?> transform(Message<?> message) {
 		Object payload = message.getPayload();
 		if (!(payload instanceof javax.mail.Message)) {
@@ -51,7 +73,7 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer {
 					+ " requires a javax.mail.Message payload");
 		}
 		javax.mail.Message mailMessage = (javax.mail.Message) payload;
-		MessageBuilder<T> builder = null;
+		AbstractIntegrationMessageBuilder<T> builder = null;
 		try {
 			builder = this.doTransform(mailMessage);
 		}
@@ -65,7 +87,7 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer {
 		return builder.build();
 	}
 
-	protected abstract MessageBuilder<T> doTransform(javax.mail.Message mailMessage) throws Exception;
+	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(javax.mail.Message mailMessage) throws Exception;
 
 
 	private Map<String, Object> extractHeaderMapFromMailMessage(javax.mail.Message mailMessage) {

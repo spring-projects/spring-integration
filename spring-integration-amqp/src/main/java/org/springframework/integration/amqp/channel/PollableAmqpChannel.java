@@ -21,7 +21,6 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
@@ -106,7 +105,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			replyMessage = (Message<?>) object;
 		}
 		else {
-			replyMessage = MessageBuilder.withPayload(object).build();
+			replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
 		}
 		return this.getInterceptors().postReceive(replyMessage, this) ;
 	}

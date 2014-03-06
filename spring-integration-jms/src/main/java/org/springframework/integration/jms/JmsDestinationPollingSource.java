@@ -22,7 +22,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
@@ -102,8 +102,9 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 			Map<String, Object> mappedHeaders = this.headerMapper.toHeaders(jmsMessage);
 			MessageConverter converter = this.jmsTemplate.getMessageConverter();
 			Object convertedObject = converter.fromMessage(jmsMessage);
-			MessageBuilder<Object> builder = (convertedObject instanceof Message)
-					? MessageBuilder.fromMessage((Message<Object>) convertedObject) : MessageBuilder.withPayload(convertedObject);
+			AbstractIntegrationMessageBuilder<Object> builder = (convertedObject instanceof Message) ?
+					this.getMessageBuilderFactory().fromMessage((Message<Object>) convertedObject) :
+					this.getMessageBuilderFactory().withPayload(convertedObject);
 			convertedMessage = builder.copyHeadersIfAbsent(mappedHeaders).build();
 		}
 		catch (Exception e) {

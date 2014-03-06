@@ -37,7 +37,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
 import org.springframework.integration.util.PassThruLockRegistry;
@@ -318,7 +317,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (resultFile != null) {
 			if (originalFileFromHeader == null && payload instanceof File) {
-				return MessageBuilder.withPayload(resultFile)
+				return this.getMessageBuilderFactory().withPayload(resultFile)
 						.setHeader(FileHeaders.ORIGINAL_FILE, payload);
 			}
 		}

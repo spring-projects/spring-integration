@@ -30,7 +30,7 @@ import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.messaging.Message;
@@ -92,7 +92,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 		this.configureDispatcher(isPubSub);
 		MessageListener listener = new DispatchingMessageListener(
 				this.getJmsTemplate(), this.dispatcher,
-				this, isPubSub);
+				this, isPubSub,this.getMessageBuilderFactory());
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -131,13 +131,17 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 		private final boolean isPubSub;
 
+		private final MessageBuilderFactory messageBuilderFactory;
+
 
 		private DispatchingMessageListener(JmsTemplate jmsTemplate,
-				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub) {
+				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub,
+				MessageBuilderFactory messageBuilderFactory) {
 			this.jmsTemplate = jmsTemplate;
 			this.dispatcher = dispatcher;
 			this.channel = channel;
 			this.isPubSub = isPubSub;
+			this.messageBuilderFactory = messageBuilderFactory;
 		}
 
 
@@ -148,7 +152,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 				Object converted = this.jmsTemplate.getMessageConverter().fromMessage(message);
 				if (converted != null) {
 					messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
-							: MessageBuilder.withPayload(converted).build();
+							: this.messageBuilderFactory.withPayload(converted).build();
 					this.dispatcher.dispatch(messageToSend);
 				}
 				else if (this.logger.isWarnEnabled()) {

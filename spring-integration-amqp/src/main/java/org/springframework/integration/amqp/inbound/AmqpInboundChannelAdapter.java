@@ -27,7 +27,6 @@ import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -73,7 +72,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			public void onMessage(Message message) {
 				Object payload = messageConverter.fromMessage(message);
 				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
-				sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headers).build());
+				sendMessage(AmqpInboundChannelAdapter.this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build());
 			}
 		});
 		this.messageListenerContainer.afterPropertiesSet();

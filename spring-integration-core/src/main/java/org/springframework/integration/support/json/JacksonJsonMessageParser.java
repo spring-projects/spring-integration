@@ -23,7 +23,6 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -70,7 +69,7 @@ public class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<J
 			}
 		}
 		Assert.notNull(headers, error);
-		return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		return this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
 	}
 
 	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception {

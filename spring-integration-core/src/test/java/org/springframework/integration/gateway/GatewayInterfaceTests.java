@@ -40,11 +40,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * @author Oleg Zhurakousky

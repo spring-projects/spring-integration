@@ -18,11 +18,16 @@ package org.springframework.integration.context;
 
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -36,6 +41,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 public abstract class IntegrationContextUtils {
+
+	private static final Log logger = LogFactory.getLog(IntegrationContextUtils.class);
 
 	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
@@ -72,7 +79,7 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME = "datatypeChannelMessageConverter";
 
 	public static final String INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME = "fixedSubscriberChannelBeanFactoryPostProcessor";
-
+	public static final String INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME = "messageBuilderFactory";
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".
@@ -153,6 +160,40 @@ public abstract class IntegrationContextUtils {
 			}
 		}
 		return properties;
+	}
+
+	/**
+	 * Returns the context-wide `messageBuilderFactory` bean from the beanFactory,
+	 * or a {@link DefaultMessageBuilderFactory} if not found or the beanFactory is null.
+	 * @param beanFactory The bean factory.
+	 * @return The message builder factory.
+	 */
+	public static MessageBuilderFactory getMessageBuilderFactory(BeanFactory beanFactory) {
+		MessageBuilderFactory messageBuilderFactory = null;
+		if (beanFactory != null) {
+			try {
+				 messageBuilderFactory = beanFactory.getBean(
+						IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, MessageBuilderFactory.class);
+			}
+			catch (Exception e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("No MessageBuilderFactory with name '"
+								+ IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME
+								+ "' found: " + e.getMessage()
+								+ ", using default.");
+				}
+			}
+		}
+		else {
+			if (logger.isWarnEnabled()) {
+				logger.warn("No 'beanFactory' supplied; cannot find MessageBuilderFactory"
+							+ ", using default.");
+			}
+		}
+		if (messageBuilderFactory == null) {
+			messageBuilderFactory = new DefaultMessageBuilderFactory();
+		}
+		return messageBuilderFactory;
 	}
 
 }

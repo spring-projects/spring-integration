@@ -30,7 +30,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -290,7 +289,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 		else {
 			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.sourceEvaluationContext, requestMessage);
-			actualRequestMessage = MessageBuilder.withPayload(requestMessagePayload)
+			actualRequestMessage = this.getMessageBuilderFactory().withPayload(requestMessagePayload)
 					.copyHeaders(requestMessage.getHeaders()).build();
 		}
 		final Message<?> replyMessage;
@@ -325,7 +324,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 					targetHeaders.put(header, value);
 				}
 			}
-			return MessageBuilder.withPayload(targetPayload).copyHeaders(targetHeaders).build();
+			return this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders).build();
 		}
 	}
 
