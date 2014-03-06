@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.integration.support.converter;
 
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -26,6 +27,7 @@ import org.springframework.messaging.converter.MessageConverter;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -35,6 +37,7 @@ public class SimpleMessageConverter implements MessageConverter {
 
 	private volatile OutboundMessageMapper outboundMessageMapper;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public SimpleMessageConverter() {
 		this(null, null);
@@ -64,6 +67,11 @@ public class SimpleMessageConverter implements MessageConverter {
 		this.outboundMessageMapper = (outboundMessageMapper != null) ? outboundMessageMapper : new DefaultOutboundMessageMapper();
 	}
 
+	public final void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
+
+	@Override
 	public Message<?> toMessage(Object object, MessageHeaders headers) {
 		try {
 			return this.inboundMessageMapper.toMessage(object);
@@ -73,6 +81,7 @@ public class SimpleMessageConverter implements MessageConverter {
 		}
 	}
 
+	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		try {
 			return this.outboundMessageMapper.fromMessage(message);
@@ -83,8 +92,9 @@ public class SimpleMessageConverter implements MessageConverter {
 	}
 
 
-	private static class DefaultInboundMessageMapper implements InboundMessageMapper<Object> {
+	private class DefaultInboundMessageMapper implements InboundMessageMapper<Object> {
 
+		@Override
 		public Message<?> toMessage(Object object) throws Exception {
 			if (object == null) {
 				return null;
@@ -92,13 +102,14 @@ public class SimpleMessageConverter implements MessageConverter {
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
 			}
-			return MessageBuilder.withPayload(object).build();
+			return messageBuilderFactory.withPayload(object).build();
 		}
 	}
 
 
-	private static class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
+	private class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
 
+		@Override
 		public Object fromMessage(Message<?> message) throws Exception {
 			return (message != null) ? message.getPayload() : null;
 		}

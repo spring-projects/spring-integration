@@ -26,7 +26,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -243,7 +242,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this);
+			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		message = this.convertPayloadIfNecessary(message);
 		message = this.interceptors.preSend(message, this);
@@ -280,7 +279,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 						return (Message<?>) converted;
 					}
 					else {
-						return MessageBuilder.withPayload(converted).copyHeaders(message.getHeaders()).build();
+						return this.getMessageBuilderFactory().withPayload(converted).copyHeaders(message.getHeaders()).build();
 					}
 				}
 			}

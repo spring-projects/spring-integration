@@ -20,7 +20,6 @@ import java.io.Serializable;
 
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -55,12 +54,12 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 					this.getComponentName() + " expects a Serializable payload type " +
 					"but encountered [" + message.getPayload().getClass().getName() + "]");
 		}
-		Message<?> requestMessage = MessageBuilder.withPayload(message.getPayload())
+		Message<?> requestMessage = this.getMessageBuilderFactory().withPayload(message.getPayload())
 				.copyHeaders(message.getHeaders()).build();
 		try {
 			Message<?> reply = this.proxy.exchange(requestMessage);
 			if (reply != null) {
-				reply = MessageBuilder.fromMessage(reply).copyHeadersIfAbsent(message.getHeaders()).build();
+				reply = this.getMessageBuilderFactory().fromMessage(reply).copyHeadersIfAbsent(message.getHeaders()).build();
 			}
 			return reply;
 		}

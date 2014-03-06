@@ -22,10 +22,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +43,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  */
-public class MailReceivingMessageSource implements MessageSource<javax.mail.Message> {
+public class MailReceivingMessageSource implements MessageSource<javax.mail.Message>,
+		BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -46,12 +52,31 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 
 	private final Queue<javax.mail.Message> mailQueue = new ConcurrentLinkedQueue<javax.mail.Message>();
 
+	private volatile BeanFactory beanFactory;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
 
 	public MailReceivingMessageSource(MailReceiver mailReceiver) {
 		Assert.notNull(mailReceiver, "mailReceiver must not be null");
 		this.mailReceiver = mailReceiver;
 	}
 
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	protected BeanFactory getBeanFactory() {
+		return beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
+
+	@Override
 	public Message<javax.mail.Message> receive() {
 		try {
 			javax.mail.Message mailMessage = this.mailQueue.poll();
@@ -66,7 +91,7 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 				if (logger.isDebugEnabled()) {
 					logger.debug("received mail message [" + mailMessage + "]");
 				}
-				return MessageBuilder.withPayload(mailMessage).build();
+				return this.messageBuilderFactory.withPayload(mailMessage).build();
 			}
 		}
 		catch (Exception e) {

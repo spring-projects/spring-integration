@@ -28,7 +28,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
@@ -139,7 +138,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		if (tweet != null) {
 			this.lastProcessedId = this.getIdForTweet(tweet);
 			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));
-			return MessageBuilder.withPayload(tweet).build();
+			return this.getMessageBuilderFactory().withPayload(tweet).build();
 		}
 		return null;
 	}

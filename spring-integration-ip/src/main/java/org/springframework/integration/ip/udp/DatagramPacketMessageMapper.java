@@ -28,7 +28,8 @@ import org.springframework.integration.ip.util.RegexUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -68,12 +69,17 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	private boolean lookupHost = true;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
 	private static Pattern udpHeadersPattern =
 		Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
 				"=" + "([^;]*);" +
 				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
 				"=" + "([^;]*);");
 
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
 
 	public void setCharset(String charset) {
 		this.charset = charset;
@@ -201,7 +207,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 					length = length - matcher.end();
 					payload = new byte[length];
 					System.arraycopy(packet.getData(), offset + matcher.end(), payload, 0, length);
-					message = MessageBuilder.withPayload(payload)
+					message = this.messageBuilderFactory.withPayload(payload)
 							.setHeader(IpHeaders.ACK_ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
 							.setHeader(IpHeaders.HOSTNAME, hostName)
@@ -218,7 +224,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			payload = new byte[length];
 			System.arraycopy(packet.getData(), offset, payload, 0, length);
 			if (payload.length > 0) {
-				message = MessageBuilder.withPayload(payload)
+				message = this.messageBuilderFactory.withPayload(payload)
 						.setHeader(IpHeaders.HOSTNAME, hostName)
 						.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
 						.setHeader(IpHeaders.PORT, port)

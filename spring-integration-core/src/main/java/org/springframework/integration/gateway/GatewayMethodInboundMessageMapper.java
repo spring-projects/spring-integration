@@ -35,15 +35,17 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.MessageMappingException;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -96,16 +98,19 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private volatile BeanFactory beanFactory;
 
+	private final MessageBuilderFactory messageBuilderFactory;
+
 	public GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
 
 	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
-		this(method, headerExpressions, null, null);
+		this(method, headerExpressions, null, null, null);
 	}
 
 	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
-			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper) {
+			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper,
+			MessageBuilderFactory messageBuilderFactory) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.headerExpressions = headerExpressions;
@@ -117,6 +122,12 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		}
 		else {
 			this.argsMapper = mapper;
+		}
+		if (messageBuilderFactory == null) {
+			this.messageBuilderFactory = new DefaultMessageBuilderFactory();
+		}
+		else {
+			this.messageBuilderFactory = messageBuilderFactory;
 		}
 	}
 
@@ -327,9 +338,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				}
 			}
 			Assert.isTrue(messageOrPayload != null, "unable to determine a Message or payload parameter on method [" + method + "]");
-			MessageBuilder<?> builder = (messageOrPayload instanceof Message)
-					? MessageBuilder.fromMessage((Message<?>) messageOrPayload)
-					: MessageBuilder.withPayload(messageOrPayload);
+			AbstractIntegrationMessageBuilder<?> builder = (messageOrPayload instanceof Message)
+					? GatewayMethodInboundMessageMapper.this.messageBuilderFactory.fromMessage((Message<?>) messageOrPayload)
+					: GatewayMethodInboundMessageMapper.this.messageBuilderFactory.withPayload(messageOrPayload);
 			builder.copyHeadersIfAbsent(headers);
 			// Explicit headers in XML override any @Header annotations...
 			if (!CollectionUtils.isEmpty(GatewayMethodInboundMessageMapper.this.headerExpressions)) {

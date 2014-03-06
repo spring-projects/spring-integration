@@ -28,14 +28,14 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -240,9 +240,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			return null;
 		}
 		Object replyObject = converter.fromMessage(amqpReplyMessage);
-		MessageBuilder<?> builder = (replyObject instanceof Message)
-				? MessageBuilder.fromMessage((Message<?>) replyObject)
-				: MessageBuilder.withPayload(replyObject);
+		AbstractIntegrationMessageBuilder<?> builder = (replyObject instanceof Message)
+				? this.getMessageBuilderFactory().fromMessage((Message<?>) replyObject)
+				: this.getMessageBuilderFactory().withPayload(replyObject);
 		Map<String, ?> headers = this.headerMapper.toHeadersFromReply(amqpReplyMessage.getMessageProperties());
 		builder.copyHeadersIfAbsent(headers);
 		return builder.build();
@@ -253,7 +253,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		if (correlationData instanceof CorrelationDataWrapper) {
 			userCorrelationData = ((CorrelationDataWrapper) correlationData).getUserData();
 		}
-		Message<Object> confirmMessage = MessageBuilder.withPayload(userCorrelationData)
+		Message<Object> confirmMessage = this.getMessageBuilderFactory().withPayload(userCorrelationData)
 				.setHeader(AmqpHeaders.PUBLISH_CONFIRM, ack)
 				.build();
 		if (ack && this.confirmAckChannel != null) {
@@ -291,9 +291,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		// safe to cast; we asserted we have a RabbitTemplate in doInit()
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		Object returnedObject = converter.fromMessage(message);
-		MessageBuilder<?> builder = (returnedObject instanceof Message)
-				? MessageBuilder.fromMessage((Message<?>) returnedObject)
-				: MessageBuilder.withPayload(returnedObject);
+		AbstractIntegrationMessageBuilder<?> builder = (returnedObject instanceof Message)
+				? this.getMessageBuilderFactory().fromMessage((Message<?>) returnedObject)
+				: this.getMessageBuilderFactory().withPayload(returnedObject);
 		Map<String, ?> headers = this.headerMapper.toHeadersFromReply(message.getMessageProperties());
 		builder.copyHeadersIfAbsent(headers)
 			.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)

@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.CollectionUtils;
@@ -57,7 +57,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		}
 		MessageHeaders headers = message.getHeaders();
 		Object correlationId = headers.getId();
-		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
+		List<AbstractIntegrationMessageBuilder<?>> messageBuilders = new ArrayList<AbstractIntegrationMessageBuilder<?>>();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
 			int sequenceNumber = 0;
@@ -81,14 +81,14 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@SuppressWarnings( { "unchecked", "rawtypes" })
-	private MessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId, int sequenceNumber,
+	private AbstractIntegrationMessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId, int sequenceNumber,
 			int sequenceSize) {
-		MessageBuilder builder;
+		AbstractIntegrationMessageBuilder builder;
 		if (item instanceof Message) {
-			builder = MessageBuilder.fromMessage((Message) item);
+			builder = this.getMessageBuilderFactory().fromMessage((Message) item);
 		}
 		else {
-			builder = MessageBuilder.withPayload(item);
+			builder = this.getMessageBuilderFactory().withPayload(item);
 			builder.copyHeaders(headers);
 		}
 		if (this.applySequence) {

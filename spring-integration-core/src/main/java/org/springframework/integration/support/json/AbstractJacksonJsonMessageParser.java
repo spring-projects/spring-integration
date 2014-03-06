@@ -18,8 +18,10 @@ package org.springframework.integration.support.json;
 
 import java.lang.reflect.Type;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Base {@link JsonInboundMessageMapper.JsonMessageParser} implementation for Jackson processors.
@@ -34,8 +36,19 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 	private volatile JsonInboundMessageMapper messageMapper;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
 	protected AbstractJacksonJsonMessageParser(JsonObjectMapper<?, P> objectMapper) {
 		this.objectMapper = objectMapper;
+	}
+
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
 	}
 
 	@Override
@@ -47,7 +60,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 		if (messageMapper.isMapToPayload()) {
 			Object payload = this.readPayload(parser, jsonMessage);
-			return MessageBuilder.withPayload(payload).build();
+			return this.messageBuilderFactory.withPayload(payload).build();
 		}
 		else {
 			return this.parseWithHeaders(parser, jsonMessage);

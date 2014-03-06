@@ -24,7 +24,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.event.FileIntegrationEvent;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -100,7 +99,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	protected void send(String line) {
-		Message<?> message = MessageBuilder.withPayload(line)
+		Message<?> message = this.getMessageBuilderFactory().withPayload(line)
 				.setHeader(FileHeaders.FILENAME, this.file.getAbsolutePath())
 				.build();
 		super.sendMessage(message);

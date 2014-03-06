@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.expression;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -41,10 +42,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.json.JsonPathUtils;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -63,6 +65,7 @@ public class ParentContextTests {
 	 * and parent contexts work. Verifies that PropertyAccessors are inherited in the child context
 	 * and the parent's ones are last in the propertyAccessors list of EvaluationContext.
 	 * Verifies that SpEL functions are inherited from parent context and overridden with the same 'id'.
+	 * Verifies that child and parent contexts can have different message builders.
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
@@ -135,9 +138,10 @@ public class ParentContextTests {
 		Message<?> out = child.getBean("output", QueueChannel.class).receive(0);
 		assertNotNull(out);
 		assertEquals("foobar", out.getPayload());
-		child.getBean("parentIn", MessageChannel.class).send(new GenericMessage<String>("bar"));
+		child.getBean("parentIn", MessageChannel.class).send(new MutableMessage<String>("bar"));
 		out = child.getBean("parentOut", QueueChannel.class).receive(0);
 		assertNotNull(out);
+		assertThat(out, instanceOf(GenericMessage.class));
 		assertEquals("foo", out.getPayload());
 
 		IntegrationEvaluationContextFactoryBean evaluationContextFactoryBean =
@@ -150,6 +154,15 @@ public class ParentContextTests {
 		catch (Exception e) {
 			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
 		}
+
+		parent.getBean("fromParentToChild", MessageChannel.class).send(new GenericMessage<String>("foo"));
+		out = child.getBean("output", QueueChannel.class).receive(0);
+		assertNotNull(out);
+		assertThat(out, instanceOf(MutableMessage.class));
+		assertEquals("FOO", out.getPayload());
+
+		child.close();
+		parent.close();
 	}
 
 	public static class Foo implements IntegrationEvaluationContextAware {

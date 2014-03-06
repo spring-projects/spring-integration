@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
@@ -98,7 +98,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
 		Object requestObject = MarshallingUtils.unmarshal(unmarshaller, request);
-		MessageBuilder<?> builder = MessageBuilder.withPayload(requestObject);
+		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(requestObject);
 
 		this.fromSoapHeaders(messageContext, builder);
 

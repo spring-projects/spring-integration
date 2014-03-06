@@ -20,7 +20,6 @@ package org.springframework.integration.support.json;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -69,7 +68,7 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 			}
 		}
 		Assert.notNull(headers, error);
-		return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		return this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
 	}
 
 	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception {

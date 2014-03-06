@@ -31,6 +31,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -75,6 +77,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	private volatile ConversionService conversionService;
 
 	private volatile ApplicationContext applicationContext;
+
+	private volatile MessageBuilderFactory messageBuilderFactory;
 
 	@Override
 	public final void setBeanName(String beanName) {
@@ -122,6 +126,9 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public final void afterPropertiesSet() {
 		try {
+			if (this.messageBuilderFactory == null) {
+				this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+			}
 			this.onInit();
 		}
 		catch (Exception e) {
@@ -190,6 +197,18 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 */
 	protected Properties getIntegrationProperties() {
 		return this.integrationProperties;
+	}
+
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (this.messageBuilderFactory == null) {
+			this.messageBuilderFactory = new DefaultMessageBuilderFactory();
+		}
+		return this.messageBuilderFactory;
+	}
+
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		this.messageBuilderFactory = messageBuilderFactory;
 	}
 
 	/**

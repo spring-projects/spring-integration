@@ -24,8 +24,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -40,7 +40,7 @@ import org.springframework.messaging.MessagingException;
  * @author David Turanski
  * @author Artem Bilan
  */
-public class HeaderEnricher implements Transformer, BeanNameAware, InitializingBean {
+public class HeaderEnricher extends IntegrationObjectSupport implements Transformer, BeanNameAware, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(HeaderEnricher.class);
 
@@ -51,8 +51,6 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 	private volatile boolean defaultOverwrite = false;
 
 	private volatile boolean shouldSkipNulls = true;
-
-	private Object beanName;
 
 	public HeaderEnricher() {
 		this(null);
@@ -89,6 +87,12 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 		this.shouldSkipNulls = shouldSkipNulls;
 	}
 
+
+	@Override
+	public String getComponentType() {
+		return "transformer"; // backwards compatibility
+	}
+
 	@Override
 	public Message<?> transform(Message<?> message) {
 		try {
@@ -115,7 +119,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 					}
 				}
 			}
-			return MessageBuilder.withPayload(message.getPayload()).copyHeaders(headerMap).build();
+			return this.getMessageBuilderFactory().withPayload(message.getPayload()).copyHeaders(headerMap).build();
 		}
 		catch (Exception e) {
 			throw new MessagingException(message, "failed to transform message headers", e);
@@ -145,27 +149,8 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.springframework.beans.factory.BeanNameAware#setBeanName(java.lang
-	 * .String)
-	 */
 	@Override
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
-	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void onInit() throws Exception {
 		boolean shouldOverwrite = this.defaultOverwrite;
 		for (HeaderValueMessageProcessor<?> processor : this.headersToAdd.values()) {
 			Boolean processerOverwrite = processor.isOverwrite();
@@ -174,7 +159,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 			}
 		}
 		if (!shouldOverwrite && !this.shouldSkipNulls) {
-			logger.warn(this.beanName
+			logger.warn(this.getComponentName()
 					+ " is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
 		}
 	}

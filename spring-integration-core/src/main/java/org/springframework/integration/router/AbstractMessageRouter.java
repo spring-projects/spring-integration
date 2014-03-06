@@ -23,7 +23,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -149,7 +148,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			int sequenceSize = results.size();
 			int sequenceNumber = 1;
 			for (MessageChannel channel : results) {
-				final Message<?> messageToSend = (!this.applySequence) ? message : MessageBuilder.fromMessage(message)
+				final Message<?> messageToSend = (!this.applySequence) ? message : this.getMessageBuilderFactory().fromMessage(message)
 						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 				if (channel != null) {
 					try {

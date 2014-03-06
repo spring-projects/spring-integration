@@ -19,7 +19,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -31,11 +36,26 @@ import org.springframework.util.Assert;
  * @since 3.0
  *
  */
-public class MapMessageConverter implements MessageConverter {
+public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private volatile String[] headerNames;
 
 	private volatile boolean filterHeadersInToMessage;
+
+	private volatile BeanFactory beanFactory;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
 
 	/**
 	 * Headers to be converted in {@link #fromMessage(Message, Class)}.
@@ -67,7 +87,7 @@ public class MapMessageConverter implements MessageConverter {
 		Map<String, ?> map = (Map<String, ?>) object;
 		Object payload = map.get("payload");
 		Assert.notNull(payload, "'payload' entry cannot be null");
-		MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload);
+		AbstractIntegrationMessageBuilder<?> messageBuilder = this.messageBuilderFactory.withPayload(payload);
 		@SuppressWarnings("unchecked")
 		Map<String, ?> headers = (Map<String, ?>) map.get("headers");
 		if (headers != null) {

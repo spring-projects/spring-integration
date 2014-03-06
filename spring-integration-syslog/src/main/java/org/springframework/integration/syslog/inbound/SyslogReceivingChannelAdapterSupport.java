@@ -42,6 +42,8 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 
 	private volatile MessageConverter converter = new DefaultMessageConverter();
 
+	private volatile boolean converterSet;
+
 	/**
 	 * @return The port on which this adapter listens.
 	 */
@@ -68,6 +70,15 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 	 */
 	public void setConverter(MessageConverter converter) {
 		this.converter = converter;
+		this.converterSet = true;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (!converterSet) {
+			((DefaultMessageConverter) this.converter).setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	protected void convertAndSend(Message<?> message) {

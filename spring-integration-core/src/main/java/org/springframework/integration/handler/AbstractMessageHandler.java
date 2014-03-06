@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 package org.springframework.integration.handler;
 
 import org.springframework.core.Ordered;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, TrackableComponent, Orderable {
 
@@ -43,10 +44,12 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 
+	@Override
 	public void setOrder(int order) {
 		this.order = order;
 	}
 
+	@Override
 	public int getOrder() {
 		return this.order;
 	}
@@ -56,10 +59,12 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		return "message-handler";
 	}
 
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
 	}
 
+	@Override
 	public final void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(message.getPayload(), "Message payload must not be null");
@@ -68,7 +73,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		}
 		try {
 			if (message != null && this.shouldTrack) {
-				message = MessageHistory.write(message, this);
+				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
 			this.handleMessageInternal(message);
 		}

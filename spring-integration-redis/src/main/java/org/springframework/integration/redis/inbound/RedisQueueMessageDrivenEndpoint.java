@@ -30,7 +30,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -204,7 +203,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				if (this.serializer != null) {
 					payload = this.serializer.deserialize(value);
 				}
-				message = MessageBuilder.withPayload(payload).build();
+				message = this.getMessageBuilderFactory().withPayload(payload).build();
 			}
 		}
 

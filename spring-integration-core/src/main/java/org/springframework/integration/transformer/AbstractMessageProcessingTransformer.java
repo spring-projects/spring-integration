@@ -19,29 +19,35 @@ package org.springframework.integration.transformer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * Base class for Message Transformers that delegate to a {@link MessageProcessor}.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractMessageProcessingTransformer implements Transformer, BeanFactoryAware {
 
 	private final MessageProcessor<?> messageProcessor;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	protected AbstractMessageProcessingTransformer(MessageProcessor<?> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
 
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
+	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
@@ -50,8 +56,10 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
+	@Override
 	public final Message<?> transform(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		if (result == null) {
@@ -60,7 +68,7 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		if (result instanceof Message<?>) {
 			return (Message<?>) result;
 		}
-		return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
+		return this.messageBuilderFactory.withPayload(result).copyHeaders(message.getHeaders()).build();
 	}
 
 }

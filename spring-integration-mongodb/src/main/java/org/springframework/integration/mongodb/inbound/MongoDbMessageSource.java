@@ -30,7 +30,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -207,7 +206,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 			}
 		}
 		if (result != null){
-			message = MessageBuilder.withPayload(result)
+			message = this.getMessageBuilderFactory().withPayload(result)
 					.setHeader(MongoHeaders.COLLECTION_NAME, collectionName)
 					.build();
 		}

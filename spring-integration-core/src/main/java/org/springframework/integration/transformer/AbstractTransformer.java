@@ -17,7 +17,6 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 
 /**
@@ -36,7 +35,7 @@ public abstract class AbstractTransformer extends IntegrationObjectSupport imple
 				return null;
 			}
 			return (result instanceof Message) ? (Message<?>) result
-					: MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
+					: this.getMessageBuilderFactory().withPayload(result).copyHeaders(message.getHeaders()).build();
 		}
 		catch (MessageTransformationException e) {
 			throw e;

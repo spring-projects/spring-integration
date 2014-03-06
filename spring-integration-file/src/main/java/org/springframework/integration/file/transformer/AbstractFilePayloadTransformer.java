@@ -22,7 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.FileHeaders;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -39,6 +40,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 
 	private volatile boolean deleteFiles;
 
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	/**
 	 * Specify whether to delete the File after transformation.
@@ -50,6 +52,11 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 		this.deleteFiles = deleteFiles;
 	}
 
+	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
+		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
+		this.messageBuilderFactory = messageBuilderFactory;
+	}
+
 	@Override
 	public final Message<?> transform(Message<?> message) {
 		try {
@@ -59,7 +66,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 			Assert.isInstanceOf(File.class, payload, "Message payload must be of type [java.io.File]");
 			File file = (File) payload;
 	        T result = this.transformFile(file);
-	        Message<?> transformedMessage = MessageBuilder.withPayload(result)
+	        Message<?> transformedMessage = this.messageBuilderFactory.withPayload(result)
 	        		.copyHeaders(message.getHeaders())
 	        		.setHeaderIfAbsent(FileHeaders.ORIGINAL_FILE, file)
 	        		.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())

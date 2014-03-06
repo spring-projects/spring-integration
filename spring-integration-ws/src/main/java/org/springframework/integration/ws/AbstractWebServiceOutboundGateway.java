@@ -27,7 +27,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -231,7 +230,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			if (resultObject != null && message instanceof SoapMessage){
 				Map<String, Object> mappedMessageHeaders =
 						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
-				return MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
+				return AbstractWebServiceOutboundGateway.this.getMessageBuilderFactory().withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
 			}
 			else {
 				return resultObject;

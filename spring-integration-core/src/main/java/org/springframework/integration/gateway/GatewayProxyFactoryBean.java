@@ -447,7 +447,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		}
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
-				this.argsMapper);
+				this.argsMapper, this.getMessageBuilderFactory());
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}

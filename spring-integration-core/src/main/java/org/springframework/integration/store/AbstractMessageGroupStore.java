@@ -19,16 +19,23 @@ import java.util.LinkedHashSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  * @since 2.0
  *
  */
-public abstract class AbstractMessageGroupStore implements MessageGroupStore, Iterable<MessageGroup> {
+public abstract class AbstractMessageGroupStore implements MessageGroupStore, Iterable<MessageGroup>,
+		BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -36,8 +43,22 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	private volatile boolean timeoutOnIdle;
 
+	private volatile BeanFactory beanFactory;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
 	public AbstractMessageGroupStore() {
 		super();
+	}
+
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return messageBuilderFactory;
 	}
 
 	/**
