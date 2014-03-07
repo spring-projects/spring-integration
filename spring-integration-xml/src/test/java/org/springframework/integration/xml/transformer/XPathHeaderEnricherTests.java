@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,20 @@ import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xml.transformer.XPathHeaderEnricher;
 import org.springframework.integration.xml.transformer.XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Jonas Partner
  * @author David Turanski
+ * @author Gary Russell
  * @since 2.0
  */
 public class XPathHeaderEnricherTests {
@@ -51,6 +52,21 @@ public class XPathHeaderEnricherTests {
 		MessageHeaders headers = result.getHeaders();
 		assertEquals("Wrong value for element one expression", "1", headers.get("one"));
 		assertEquals("Wrong value for element two expression", "2", headers.get("two"));
+	}
+
+	@Test
+	public void convertedEvaluation() {
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
+				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		XPathExpressionEvaluatingHeaderValueMessageProcessor processor = new XPathExpressionEvaluatingHeaderValueMessageProcessor(
+				"/root/elementOne");
+		processor.setHeaderType(TimeZone.class);
+		expressionMap.put("one", processor);
+		String docAsString = "<root><elementOne>America/New_York</elementOne></root>";
+		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
+		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
+		MessageHeaders headers = result.getHeaders();
+		assertEquals("Wrong value for element one expression", TimeZone.getTimeZone("America/New_York"), headers.get("one"));
 	}
 
 	@Test

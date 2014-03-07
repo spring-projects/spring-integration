@@ -16,14 +16,6 @@
 
 package org.springframework.integration.groovy;
 
-import groovy.lang.Binding;
-import groovy.lang.GString;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
-import groovy.lang.MetaClass;
-import groovy.lang.MissingPropertyException;
-import groovy.lang.Script;
-
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,6 +32,14 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import groovy.lang.Binding;
+import groovy.lang.GString;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import groovy.lang.MissingPropertyException;
+import groovy.lang.Script;
 
 /**
  * The {@link org.springframework.integration.handler.MessageProcessor} implementation
@@ -97,14 +97,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		super.setBeanFactory(beanFactory);
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+		if (beanFactory != null && beanFactory instanceof ConfigurableListableBeanFactory) {
 			((ConfigurableListableBeanFactory) beanFactory).ignoreDependencyType(MetaClass.class);
 		}
 	}
 
 	/**
 	 * Sets a {@link GroovyObjectCustomizer} for this processor.
-	 * 
+	 *
 	 * @param customizer The customizer.
 	 */
 	public void setCustomizer(GroovyObjectCustomizer customizer) {

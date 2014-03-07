@@ -22,6 +22,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -153,10 +154,16 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 	public void onInit() throws Exception {
 		boolean shouldOverwrite = this.defaultOverwrite;
 		for (HeaderValueMessageProcessor<?> processor : this.headersToAdd.values()) {
+			if (processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
+				((BeanFactoryAware) processor).setBeanFactory(this.getBeanFactory());
+			}
 			Boolean processerOverwrite = processor.isOverwrite();
 			if (processerOverwrite != null) {
 				shouldOverwrite |= processerOverwrite;
 			}
+		}
+		if (this.messageProcessor != null && this.messageProcessor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
 		}
 		if (!shouldOverwrite && !this.shouldSkipNulls) {
 			logger.warn(this.getComponentName()
