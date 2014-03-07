@@ -19,7 +19,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.net.ConnectException;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.PasswordAuthenticator;
@@ -28,6 +31,8 @@ import org.apache.sshd.server.session.ServerSession;
 import org.junit.Test;
 
 import org.springframework.integration.test.util.SocketUtils;
+
+import com.jcraft.jsch.JSchException;
 
 /**
  * @author Gary Russell
@@ -60,17 +65,32 @@ public class INT3305Tests {
 			f.setPort(port);
 			f.setUser("user");
 			f.setPassword("pass");
-			try {
-				f.getSession();
-				fail("Expected Exception");
-			}
-			catch (Exception e) {
-				assertThat(e, instanceOf(IllegalStateException.class));
-				assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-				assertThat(e.getCause().getMessage(), equalTo("failed to connect"));
+			int n = 0;
+			while (true) {
+				try {
+					f.getSession();
+					fail("Expected Exception");
+				}
+				catch (Exception e) {
+					if (e instanceof IllegalStateException && "failed to create SFTP Session".equals(e.getMessage())) {
+						if (e.getCause() instanceof IllegalStateException) {
+							if (e.getCause().getCause() instanceof JSchException) {
+								if (e.getCause().getCause().getCause() instanceof ConnectException) {
+									assertTrue("Server failed to start in 10 seconds", n++ < 100);
+									Thread.sleep(100);
+									continue;
+								}
+							}
+						}
+					}
+					assertThat(e, instanceOf(IllegalStateException.class));
+					assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+					assertThat(e.getCause().getMessage(), equalTo("failed to connect"));
+					break;
+				}
 			}
 
-			int n = 0;
+			n = 0;
 			while (n++ < 100 && server.getActiveSessions().size() > 0) {
 				Thread.sleep(100);
 			}

@@ -163,7 +163,9 @@ class SftpSession implements Session<LsEntry> {
 	public void close() {
 		this.closed = true;
 		if (this.wrapper != null) {
-			this.channel.disconnect();
+			if (this.channel != null) {
+				this.channel.disconnect();
+			}
 			this.wrapper.close();
 		}
 		else {
