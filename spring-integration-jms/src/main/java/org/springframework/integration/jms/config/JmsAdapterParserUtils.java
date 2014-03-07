@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -23,7 +25,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.DynamicJmsTemplate;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Utility methods and constants for JMS adapter parsers.
@@ -64,7 +65,7 @@ abstract class JmsAdapterParserUtils {
 	private static final String[] JMS_TEMPLATE_ATTRIBUTES = {
 		"connection-factory", "message-converter", "destination-resolver", "pub-sub-domain",
 		"time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled", "acknowledge",
-		"receive-timeout"
+		"receive-timeout", "session-transacted"
 	};
 
 
@@ -138,8 +139,14 @@ abstract class JmsAdapterParserUtils {
 		}
 		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
 		if (acknowledgeMode != null) {
+			if (acknowledgeMode == SESSION_TRANSACTED) {
+				parserContext.getReaderContext().error(
+						"'transacted' is not a valid 'acknowledge-mode' here, use 'session-transacted'" +
+						" to enable transactions", element);
+			}
 			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
 
 		return builder.getBeanDefinition();
 	}

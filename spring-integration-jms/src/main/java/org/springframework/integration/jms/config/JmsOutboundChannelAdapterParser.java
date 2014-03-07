@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,20 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jms.JmsSendingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;outbound-channel-adapter/&gt; element of the jms namespace.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.jms.JmsSendingMessageHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsSendingMessageHandler.class);
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
@@ -53,7 +54,7 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		else {
 			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
 		}
-		
+
 		if (hasDestinationRef || hasDestinationName || hasDestinationExpression) {
 			if (!(hasDestinationRef ^ hasDestinationName ^ hasDestinationExpression)) {
 				parserContext.getReaderContext().error("The 'destination', 'destination-name', and " +

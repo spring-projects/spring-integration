@@ -10,7 +10,8 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
-	<jms:inbound-channel-adapter channel="output"
+	<jms:inbound-channel-adapter id="adapter"
+								 channel="output"
 								 connection-factory="testConnectionFactory"
 	                			 destination="testDestination"/>
 

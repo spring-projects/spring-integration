@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  */
 package org.springframework.integration.jms;
 
+import javax.jms.ConnectionFactory;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.vm.VMTransport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
 import org.springframework.jms.connection.CachingConnectionFactory;
 
 /**
@@ -31,8 +34,10 @@ import org.springframework.jms.connection.CachingConnectionFactory;
  */
 public abstract class ActiveMQMultiContextTests {
 
-	private static final CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
-			new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+	protected static final ConnectionFactory amqFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
+
+	protected static final CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
+			amqFactory);
 
 	@BeforeClass
 	public static void startUp() throws Exception {
@@ -43,4 +48,5 @@ public abstract class ActiveMQMultiContextTests {
 	public static void shutDown() {
 		connectionFactory.resetConnection();
 	}
+
 }
