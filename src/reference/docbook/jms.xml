@@ -75,6 +75,28 @@
     <int:poller fixed-rate="30000"/>
 </int-jms:inbound-channel-adapter>]]></programlisting>
     </para>
+	<section id="jms-ib-transactions">
+		<title>Transactions</title>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis>, the inbound channel adapter supports the
+			<code>session-transacted</code> attribute. In earlier versions, you had to inject a
+			<classname>JmsTemplate</classname> with <code>sessionTransacted</code> set to <code>true</code>.
+			(The adapter did allow the <code>acknowledge</code> attribute to be set to
+			<code>transacted</code> but this was incorrect and did not work).
+		</para>
+		<para>
+			Note, however, that setting <code>session-transacted</code> to <code>true</code> has
+			little value because the transaction is committed immediately after the <code>receive()</code>
+			and before the message is sent to the <code>channel</code>,
+		</para>
+		<para>
+			If you want the entire flow to be transactional (for example if there is a downstream
+			outbound channel adapter), you must use a <code>transactional</code> poller, with a
+			<classname>JmsTransactionManager</classname>. Or, consider using a
+			<code>jms-message-driven-channel-adapter</code> with <code>acknowledge</code>
+			set to <code>transacted</code>.
+		</para>
+	</section>
   </section>
 
   <section id="jms-message-driven-channel-adapter">
@@ -151,6 +173,18 @@
         those cases, it's the JMS properties mapping <emphasis>to</emphasis> Spring Integration MessageHeaders).
       </note>
     </para>
+    <section id="jms-ob-transactions">
+		<title>Transactions</title>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis>, the outbound channel adapter supports the
+		<code>session-transacted</code> attribute. In earlier versions, you had to inject a
+		<classname>JmsTemplate</classname> with <code>sessionTransacted</code> set to <code>true</code>.
+			The attribute now sets the property on the built-in default <classname>JmsTemplate</classname>.
+			If a transaction exists (perhaps from an upstream <code>message-driven-channel-adapter</code>)
+			the send will be performed within the same transaction. Otherwise a new transaction will
+			be started.
+		</para>
+	</section>
   </section>
 
   <section id="jms-inbound-gateway">
