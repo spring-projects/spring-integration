@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
@@ -58,6 +59,9 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	protected void doInit() {
 		if (processor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.processor).setConversionService(this.getConversionService());
+		}
+		if (this.processor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.processor).setBeanFactory(this.getBeanFactory());
 		}
 	}
 
