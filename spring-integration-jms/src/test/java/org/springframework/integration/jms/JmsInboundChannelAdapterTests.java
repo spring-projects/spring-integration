@@ -51,7 +51,7 @@ public class JmsInboundChannelAdapterTests extends ActiveMQMultiContextTests {
 	public void testTransactionalReceive() {
 		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.convertAndSend("foo", "bar");
-		assertNotNull(out.receive(2000));
+		assertNotNull(out.receive(20000));
 		/*
 		 *  INT-3288 - previously acknowledge="transacted"
 		 *  Caused by: javax.jms.JMSException: acknowledgeMode SESSION_TRANSACTED cannot be used for an non-transacted Session

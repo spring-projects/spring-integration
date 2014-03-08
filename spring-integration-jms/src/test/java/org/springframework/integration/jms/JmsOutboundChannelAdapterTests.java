@@ -57,11 +57,12 @@ public class JmsOutboundChannelAdapterTests extends ActiveMQMultiContextTests {
 	public void testTransactionalSend() {
 		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.convertAndSend("foo", "Hello, world!");
-		template.setReceiveTimeout(1000);
+		template.setReceiveTimeout(20000);
 		assertNotNull(template.receive("bar"));
 
 		this.aborter.abort = true;
 		template.convertAndSend("foo", "Hello, world!");
+		template.setReceiveTimeout(1000);
 		assertNull(template.receive("bar"));
 		endpoint.stop();
 	}
