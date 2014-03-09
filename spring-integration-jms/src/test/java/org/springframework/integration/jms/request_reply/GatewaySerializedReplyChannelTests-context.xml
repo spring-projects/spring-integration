@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
-		<property name="brokerURL" value="vm://localhost"/>
+		<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
 	</bean>
 
 	<int:channel id="input" />
