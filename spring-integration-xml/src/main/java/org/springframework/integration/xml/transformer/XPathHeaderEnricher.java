@@ -25,11 +25,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.expression.TypeConverter;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
+import org.springframework.integration.util.BeanFactoryTypeConverter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
@@ -61,14 +60,14 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 	}
 
 
-	static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object>,
+	public static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object>,
 			BeanFactoryAware {
 
-		private TypeConverter typeConverter = new StandardTypeConverter();
+		private static final XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+
+		private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 
 		private final XPathExpression expression;
-
-		private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
 		private volatile XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
@@ -109,7 +108,7 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 			ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
 			if (conversionService != null) {
-				this.typeConverter = new StandardTypeConverter(conversionService);
+				this.typeConverter.setConversionService(conversionService);
 			}
 		}
 

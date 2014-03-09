@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -263,6 +264,12 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		// bean resolution is NOT allowed for the target of the enrichment
 		targetContext.setBeanResolver(null);
 		this.targetEvaluationContext = targetContext;
+
+		for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : headerExpressions.values()) {
+			 if (headerValueMessageProcessor instanceof BeanFactoryAware) {
+				 ((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(this.getBeanFactory());
+			 }
+		}
 
 	}
 
