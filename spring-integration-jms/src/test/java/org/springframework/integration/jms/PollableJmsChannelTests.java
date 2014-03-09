@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,11 +67,13 @@ public class PollableJmsChannelTests {
 	public void queueReference() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
+		ccf.setCacheConsumers(false);
+		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestination(this.queue);
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
@@ -91,10 +93,12 @@ public class PollableJmsChannelTests {
 	public void queueName() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
+		ccf.setCacheConsumers(false);
+		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestinationName("someDynamicQueue");
 		factoryBean.setPubSubDomain(false);
 		factoryBean.afterPropertiesSet();
@@ -115,10 +119,12 @@ public class PollableJmsChannelTests {
 	public void queueNameWithFalsePreReceiveInterceptors() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
+		ccf.setCacheConsumers(false);
+		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestinationName("someDynamicQueue");
 		factoryBean.setPubSubDomain(false);
 		List<ChannelInterceptor> interceptorList = new ArrayList<ChannelInterceptor>();
@@ -139,10 +145,12 @@ public class PollableJmsChannelTests {
 	public void queueNameWithTruePreReceiveInterceptors() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
+		ccf.setCacheConsumers(false);
+		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestinationName("someDynamicQueue");
 		factoryBean.setPubSubDomain(false);
 		List<ChannelInterceptor> interceptorList = new ArrayList<ChannelInterceptor>();
@@ -163,9 +171,10 @@ public class PollableJmsChannelTests {
 	public void qos() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
 		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
+		ccf.setCacheConsumers(false);
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		factoryBean.setConnectionFactory(ccf);
@@ -214,11 +223,13 @@ public class PollableJmsChannelTests {
 	public void selector() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.queue = new ActiveMQQueue("pollableJmsChannelSelectorTestQueue");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
-		factoryBean.setConnectionFactory(this.connectionFactory);
+		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
+		ccf.setCacheConsumers(false);
+		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestination(this.queue);
 
 		factoryBean.setMessageSelector("baz='qux'");
@@ -253,18 +264,22 @@ public class PollableJmsChannelTests {
 			this.preReceiveFlag = preReceiveFlag;
 		}
 
+		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			return message;
 		}
 
+		@Override
 		public void postSend(Message<?> message, MessageChannel channel,
 				boolean sent) {
 		}
 
+		@Override
 		public boolean preReceive(MessageChannel channel) {
 			return this.preReceiveFlag;
 		}
 
+		@Override
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 			return message;
 		}
