@@ -8,7 +8,8 @@
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<int-jms:inbound-channel-adapter channel="out" session-transacted="true"
-			connection-factory="connectionFactory" destination-name="foo">
+			connection-factory="connectionFactory" destination-name="foo"
+			receive-timeout="500">
 		<int:poller fixed-delay="500"/>
 	</int-jms:inbound-channel-adapter>
 
