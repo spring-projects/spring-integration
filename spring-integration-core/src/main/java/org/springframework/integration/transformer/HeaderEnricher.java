@@ -162,6 +162,9 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 				shouldOverwrite |= processerOverwrite;
 			}
 		}
+		if (this.messageProcessor != null && this.messageProcessor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
+		}
 		if (!shouldOverwrite && !this.shouldSkipNulls) {
 			logger.warn(this.getComponentName()
 					+ " is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
