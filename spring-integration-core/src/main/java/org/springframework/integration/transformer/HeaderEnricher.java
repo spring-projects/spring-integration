@@ -154,7 +154,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 	public void onInit() throws Exception {
 		boolean shouldOverwrite = this.defaultOverwrite;
 		for (HeaderValueMessageProcessor<?> processor : this.headersToAdd.values()) {
-			if (processor instanceof BeanFactoryAware) {
+			if (processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 				((BeanFactoryAware) processor).setBeanFactory(this.getBeanFactory());
 			}
 			Boolean processerOverwrite = processor.isOverwrite();
@@ -162,7 +162,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 				shouldOverwrite |= processerOverwrite;
 			}
 		}
-		if (this.messageProcessor != null && this.messageProcessor instanceof BeanFactoryAware) {
+		if (this.messageProcessor != null && this.messageProcessor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
 		}
 		if (!shouldOverwrite && !this.shouldSkipNulls) {

@@ -48,7 +48,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}
-		if (this.messageProcessor instanceof BeanFactoryAware) {
+		if (this.messageProcessor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
 		}
 	}

@@ -111,7 +111,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
 		}
-		if (this.selector instanceof BeanFactoryAware) {
+		if (this.selector instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());
 		}
 	}

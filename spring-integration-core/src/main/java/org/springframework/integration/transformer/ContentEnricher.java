@@ -265,10 +265,12 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		targetContext.setBeanResolver(null);
 		this.targetEvaluationContext = targetContext;
 
-		for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : headerExpressions.values()) {
-			 if (headerValueMessageProcessor instanceof BeanFactoryAware) {
-				 ((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(this.getBeanFactory());
-			 }
+		if (this.getBeanFactory() != null) {
+			for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : headerExpressions.values()) {
+				 if (headerValueMessageProcessor instanceof BeanFactoryAware) {
+					 ((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(this.getBeanFactory());
+				 }
+			}
 		}
 
 	}

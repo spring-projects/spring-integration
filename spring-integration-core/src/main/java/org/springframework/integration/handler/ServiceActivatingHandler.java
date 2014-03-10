@@ -60,7 +60,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 		if (processor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.processor).setConversionService(this.getConversionService());
 		}
-		if (this.processor instanceof BeanFactoryAware) {
+		if (this.processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.processor).setBeanFactory(this.getBeanFactory());
 		}
 	}
