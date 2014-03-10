@@ -201,7 +201,8 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 	<property name="backOffPolicy">
 		<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
 			<property name="initialInterval" value="1000" />
-			<property name="multiplier" value="5" />
+			<property name="multiplier" value="5.0" />
+			<property name="maxInterval" value="60000" />
 		</bean>
 	</property>
 </bean>
@@ -220,6 +221,26 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 58.084 DEBUG [task-scheduler-1]Checking for rethrow: count=4
 58.084 DEBUG [task-scheduler-1]Retry failed last attempt: count=4
 58.086 DEBUG [task-scheduler-1]Sending ErrorMessage :failedMessage:[Payload=...]]]></programlisting></para>
+				<para>
+					Starting with <emphasis>version 4.0</emphasis>, the above configuration can be greatly
+					simplified with the namespace support for the retry template:
+				</para>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean ref="retrier" />
+    </request-handler-advice-chain>
+</int:service-activator>
+
+<int:handler-retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
+	<int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
+</int:handler-retry-advice>]]></programlisting></para>
+				<para>
+					A <code>&lt;handler-retry-advice/&gt;</code> with no child element uses
+					no back off; it can have a <code>fixed-back-off</code> or
+					<code>exponential-back-off</code> child element. If there is no
+					<code>recovery-channel</code>, the exception is thrown when retries are
+					exhausted.
+				</para>
 				<para><emphasis>Simple Stateful Retry with Recovery</emphasis></para>
 				<para>
 					To make retry stateful, we need to provide the Advice with a RetryStateGenerator

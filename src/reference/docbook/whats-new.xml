@@ -133,5 +133,13 @@
 				For more information see <xref linkend="channel-datatype-channel"/>.
 			</para>
 		</section>
+		<section id="4.0-retry-config">
+			<title>Simpler Retry Advice Configuration</title>
+			<para>
+				Simplified namespace support has been added to configure a
+				<classname>RequestHandlerRetryAdvice</classname>/
+				For more information see <xref linkend="retry-config"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
