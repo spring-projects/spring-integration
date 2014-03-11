@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.integration.store.MessageGroup;
  *
  * @author Alex Peters
  * @author Dave Syer
+ * @author Gary Russell
  */
 public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor implements BeanFactoryAware {
 
@@ -40,7 +41,9 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 		processor = new ExpressionEvaluatingMessageListProcessor(expression);
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
 		processor.setBeanFactory(beanFactory);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
@@ -30,8 +30,9 @@ import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -44,14 +45,18 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
+	private final BeanFactory beanFactory;
+
 	public AggregatorAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		super(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation) {
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method);
+		processor.setBeanFactory(this.beanFactory);
 		MethodInvokingReleaseStrategy releaseStrategy = getReleaseStrategy(bean);
 		MethodInvokingCorrelationStrategy correlationStrategy = getCorrelationStrategy(bean);
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
@@ -73,29 +78,31 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 	}
 
 	private MethodInvokingReleaseStrategy getReleaseStrategy(final Object bean) {
-    	final AtomicReference<MethodInvokingReleaseStrategy> reference = new AtomicReference<MethodInvokingReleaseStrategy>();
+		final AtomicReference<MethodInvokingReleaseStrategy> reference = new AtomicReference<MethodInvokingReleaseStrategy>();
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+			@Override
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, ReleaseStrategy.class);
 				if (annotation != null) {
-	                  reference.set(new MethodInvokingReleaseStrategy(bean, method));
+					reference.set(new MethodInvokingReleaseStrategy(bean, method));
 				}
 			}
 		});
-        return reference.get();
+		return reference.get();
 	}
 
-    private MethodInvokingCorrelationStrategy getCorrelationStrategy(final Object bean) {
-    	final AtomicReference<MethodInvokingCorrelationStrategy> reference = new AtomicReference<MethodInvokingCorrelationStrategy>();
-        ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
-            public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-                Annotation annotation = AnnotationUtils.getAnnotation(method, CorrelationStrategy.class);
-                if (annotation != null) {
-                    reference.set(new MethodInvokingCorrelationStrategy(bean, method));
-                }
-            }
-        });
-        return reference.get();
-    }
+	private MethodInvokingCorrelationStrategy getCorrelationStrategy(final Object bean) {
+		final AtomicReference<MethodInvokingCorrelationStrategy> reference = new AtomicReference<MethodInvokingCorrelationStrategy>();
+		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+			@Override
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation annotation = AnnotationUtils.getAnnotation(method, CorrelationStrategy.class);
+				if (annotation != null) {
+					reference.set(new MethodInvokingCorrelationStrategy(bean, method));
+				}
+			}
+		});
+		return reference.get();
+	}
 
 }

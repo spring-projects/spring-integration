@@ -21,6 +21,10 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
@@ -46,7 +50,8 @@ import org.springframework.messaging.MessageHandlingException;
  */
 public class TcpMessageMapper implements
 		InboundMessageMapper<TcpConnection>,
-		OutboundMessageMapper<Object> {
+		OutboundMessageMapper<Object>,
+		BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -81,8 +86,9 @@ public class TcpMessageMapper implements
 		this.applySequence = applySequence;
 	}
 
-	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		this.messageBuilderFactory = messageBuilderFactory;
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {

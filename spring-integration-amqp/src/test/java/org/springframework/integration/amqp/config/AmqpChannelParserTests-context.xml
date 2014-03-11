@@ -19,4 +19,6 @@
 
 	<amqp:channel id="channelWithSubscriberLimit" max-subscribers="1" />
 
+	<amqp:publish-subscribe-channel id="pubSub" />
+
 </beans>

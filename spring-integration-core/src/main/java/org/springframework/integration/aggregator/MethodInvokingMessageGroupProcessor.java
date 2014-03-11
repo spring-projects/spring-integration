@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,17 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.messaging.Message;
 
 /**
  * MessageGroupProcessor that serves as an adapter for the invocation of a POJO method.
- * 
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
@@ -41,7 +42,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	/**
 	 * Creates a wrapper around the object passed in. This constructor will look for a method that can process
 	 * a list of messages.
-	 * 
+	 *
 	 * @param target the object to wrap
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target) {
@@ -51,7 +52,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	/**
 	 * Creates a wrapper around the object passed in. This constructor will look for a named method specifically and
 	 * fail when it cannot find a method with the given name.
-	 * 
+	 *
 	 * @param target the object to wrap
 	 * @param methodName the name of the method to invoke
 	 */
@@ -61,19 +62,21 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 
 	/**
 	 * Creates a wrapper around the object passed in.
-	 * 
+	 *
 	 * @param target the object to wrap
 	 * @param method the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, Method method) {
 		this.processor = new MethodInvokingMessageListProcessor<Object>(target, method);
 	}
-	
+
 	public void setConversionService(ConversionService conversionService) {
 		processor.setConversionService(conversionService);
 	}
-	
+
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
 		processor.setBeanFactory(beanFactory);
 	}
 

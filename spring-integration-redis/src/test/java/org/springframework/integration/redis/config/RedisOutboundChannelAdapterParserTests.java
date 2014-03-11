@@ -18,6 +18,7 @@ package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
@@ -73,6 +75,8 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
+		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "messageConverter.messageBuilderFactory"));
 	}
 
 	@Test

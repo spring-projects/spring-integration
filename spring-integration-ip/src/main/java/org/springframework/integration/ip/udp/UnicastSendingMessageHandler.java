@@ -32,11 +32,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -298,6 +298,65 @@ public class UnicastSendingMessageHandler extends
 		return this.socket;
 	}
 
+	/**
+	 * @see java.net.Socket#setReceiveBufferSize(int)
+	 * @see DatagramSocket#setReceiveBufferSize(int)
+	 */
+	@Override
+	public void setSoReceiveBufferSize(int size) {
+		this.soReceiveBufferSize = size;
+	}
+
+	@Override
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
+	}
+
+	public void setTaskExecutor(Executor taskExecutor) {
+		Assert.notNull(taskExecutor, "'taskExecutor' cannot be null");
+		this.taskExecutor = taskExecutor;
+		this.taskExecutorSet = true;
+	}
+
+	/**
+	 * @param ackCounter the ackCounter to set
+	 */
+	public void setAckCounter(int ackCounter) {
+		this.ackCounter = ackCounter;
+	}
+
+	@Override
+	public String getComponentType(){
+		return "ip:udp-outbound-channel-adapter";
+	}
+
+	/**
+	 * @return the acknowledge
+	 */
+	public boolean isAcknowledge() {
+		return acknowledge;
+	}
+
+	/**
+	 * @return the ackPort
+	 */
+	public int getAckPort() {
+		return ackPort;
+	}
+
+	/**
+	 * @return the soReceiveBufferSize
+	 */
+	public int getSoReceiveBufferSize() {
+		return soReceiveBufferSize;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.mapper.setBeanFactory(this.getBeanFactory());
+	}
+
 	protected void setSocketAttributes(DatagramSocket socket) throws SocketException {
 		if (this.getSoTimeout() >= 0) {
 			socket.setSoTimeout(this.getSoTimeout());
@@ -365,56 +424,4 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	/**
-	 * @see java.net.Socket#setReceiveBufferSize(int)
-	 * @see DatagramSocket#setReceiveBufferSize(int)
-	 */
-	@Override
-	public void setSoReceiveBufferSize(int size) {
-		this.soReceiveBufferSize = size;
-	}
-
-	@Override
-	public void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
-	}
-
-	public void setTaskExecutor(Executor taskExecutor) {
-		Assert.notNull(taskExecutor, "'taskExecutor' cannot be null");
-		this.taskExecutor = taskExecutor;
-		this.taskExecutorSet = true;
-	}
-
-	/**
-	 * @param ackCounter the ackCounter to set
-	 */
-	public void setAckCounter(int ackCounter) {
-		this.ackCounter = ackCounter;
-	}
-
-	@Override
-	public String getComponentType(){
-		return "ip:udp-outbound-channel-adapter";
-	}
-
-	/**
-	 * @return the acknowledge
-	 */
-	public boolean isAcknowledge() {
-		return acknowledge;
-	}
-
-	/**
-	 * @return the ackPort
-	 */
-	public int getAckPort() {
-		return ackPort;
-	}
-
-	/**
-	 * @return the soReceiveBufferSize
-	 */
-	public int getSoReceiveBufferSize() {
-		return soReceiveBufferSize;
-	}
 }

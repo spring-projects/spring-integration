@@ -102,7 +102,9 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	private void configureDispatcher(boolean isPubSub) {
 		if (isPubSub) {
-			this.dispatcher = new BroadcastingDispatcher(true);
+			BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
+			broadcastingDispatcher.setBeanFactory(this.getBeanFactory());
+			this.dispatcher = broadcastingDispatcher;
 		}
 		else {
 			UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();

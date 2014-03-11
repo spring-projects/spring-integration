@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -28,14 +29,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -59,9 +61,11 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		assertEquals(Integer.MAX_VALUE, TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(redisChannel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
 		redisChannel = context.getBean("redisChannelWithSubLimit", SubscribableChannel.class);
-		assertEquals(1, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(redisChannel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
-		context.stop();
+		assertEquals(1, TestUtils.getPropertyValue(redisChannel, "dispatcher.maxSubscribers", Integer.class).intValue());
+		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		assertSame(mbf, TestUtils.getPropertyValue(redisChannel, "dispatcher.messageBuilderFactory"));
+		assertSame(mbf, TestUtils.getPropertyValue(redisChannel, "messageBuilderFactory"));
+		context.close();
 	}
 
 	@Test
@@ -76,6 +80,7 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		redisChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertEquals(m.getPayload(), message.getPayload());
 				latch.countDown();
@@ -84,7 +89,7 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		redisChannel.send(m);
 
 		assertTrue(latch.await(5, TimeUnit.SECONDS));
-		context.stop();
+		context.close();
 	}
 
 }

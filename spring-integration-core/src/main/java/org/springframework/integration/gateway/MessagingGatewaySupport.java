@@ -180,6 +180,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 			if (this.requestMapper instanceof DefaultRequestMapper) {
 				((DefaultRequestMapper) this.requestMapper).setMessageBuilderFactory(this.getMessageBuilderFactory());
 			}
+			this.messageConverter.setBeanFactory(this.getBeanFactory());
 		}
 		this.initialized = true;
 	}

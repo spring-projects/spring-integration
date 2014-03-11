@@ -19,7 +19,13 @@ package org.springframework.integration.dispatcher;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageDispatchingException;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -39,7 +45,7 @@ import org.springframework.messaging.MessagingException;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  */
-public class BroadcastingDispatcher extends AbstractDispatcher {
+public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFactoryAware {
 
 	private final boolean requireSubscribers;
 
@@ -50,6 +56,9 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 	private final Executor executor;
 
 	private volatile int minSubscribers;
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
 
 	public BroadcastingDispatcher() {
 		this(null, false);
@@ -104,6 +113,11 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 	}
 
 	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+	}
+
+	@Override
 	public boolean dispatch(Message<?> message) {
 		int dispatched = 0;
 		int sequenceNumber = 1;
@@ -113,7 +127,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		}
 		int sequenceSize = handlers.size();
 		for (final MessageHandler handler : handlers) {
-			final Message<?> messageToSend = (!this.applySequence) ? message : this.getMessageBuilderFactory().fromMessage(message)
+			final Message<?> messageToSend = (!this.applySequence) ? message : this.messageBuilderFactory.fromMessage(message)
 					.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 			if (this.executor != null) {
 				this.executor.execute(new Runnable() {

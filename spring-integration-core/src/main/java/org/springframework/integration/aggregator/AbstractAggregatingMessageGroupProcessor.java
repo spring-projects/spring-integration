@@ -21,7 +21,11 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -39,15 +43,16 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @since 2.0
  */
-public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor {
+public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor,
+		BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
-		this.messageBuilderFactory = messageBuilderFactory;
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	@Override

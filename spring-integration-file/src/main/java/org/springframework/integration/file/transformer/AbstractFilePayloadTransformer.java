@@ -21,6 +21,10 @@ import java.io.File;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -34,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  */
-public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
+public abstract class AbstractFilePayloadTransformer<T> implements Transformer, BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -52,9 +56,9 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 		this.deleteFiles = deleteFiles;
 	}
 
-	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
-		this.messageBuilderFactory = messageBuilderFactory;
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	@Override

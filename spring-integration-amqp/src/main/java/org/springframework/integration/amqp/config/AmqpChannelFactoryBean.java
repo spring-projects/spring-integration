@@ -318,6 +318,9 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 				if (this.maxSubscribers != null) {
 					pubsub.setMaxSubscribers(this.maxSubscribers);
 				}
+				if (this.getBeanFactory() != null) {
+					pubsub.setBeanFactory(this.getBeanFactory());
+				}
 				this.channel = pubsub;
 			}
 			else {
