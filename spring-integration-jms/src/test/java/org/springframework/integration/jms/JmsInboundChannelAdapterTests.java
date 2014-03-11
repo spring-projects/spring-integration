@@ -16,7 +16,6 @@
 package org.springframework.integration.jms;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 import javax.jms.ConnectionFactory;
 
@@ -50,13 +49,12 @@ public class JmsInboundChannelAdapterTests extends ActiveMQMultiContextTests {
 	@Test
 	public void testTransactionalReceive() {
 		JmsTemplate template = new JmsTemplate(connectionFactory);
-		template.convertAndSend("foo", "bar");
+		template.convertAndSend("incatQ", "bar");
 		assertNotNull(out.receive(20000));
 		/*
 		 *  INT-3288 - previously acknowledge="transacted"
 		 *  Caused by: javax.jms.JMSException: acknowledgeMode SESSION_TRANSACTED cannot be used for an non-transacted Session
 		 */
-		assertNull(out.receive(1000));
 	}
 
 	@Configuration

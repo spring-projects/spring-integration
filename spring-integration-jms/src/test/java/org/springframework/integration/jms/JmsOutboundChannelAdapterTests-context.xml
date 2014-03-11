@@ -10,13 +10,13 @@
 	<int-jms:message-driven-channel-adapter channel="toOut"
 		connection-factory="connectionFactory"
 		acknowledge="transacted"
-		destination-name="foo"/>
+		destination-name="outcatQ1"/>
 
 	<int:publish-subscribe-channel id="toOut" />
 
 	<int-jms:outbound-channel-adapter channel="toOut" order="1"
 		connection-factory="connectionFactory"
-		destination-name="bar"
+		destination-name="outcatQ2"
 		session-transacted="true" />
 
 	<int:service-activator input-channel="toOut" order="2" ref="aborter"/>
