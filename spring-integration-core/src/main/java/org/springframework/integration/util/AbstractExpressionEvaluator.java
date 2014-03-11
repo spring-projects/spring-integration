@@ -32,7 +32,6 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -60,6 +59,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	/**
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
 	 */
+	@Override
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.beanFactory = beanFactory;
@@ -67,6 +67,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			if (this.evaluationContext != null && this.evaluationContext.getBeanResolver() == null) {
 				this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 			}
+			this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 		}
 	}
 
@@ -74,11 +75,6 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		if (conversionService != null) {
 			this.typeConverter.setConversionService(conversionService);
 		}
-	}
-
-	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
-		this.messageBuilderFactory = messageBuilderFactory;
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -92,7 +88,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	public void afterPropertiesSet() throws Exception {
 		getEvaluationContext();
 		if (this.messageBuilderFactory == null) {
-			this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+			this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
 		}
 	}
 

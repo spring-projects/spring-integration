@@ -99,7 +99,9 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 
 	@Override
 	protected AbstractDispatcher createDispatcher() {
-		return new BroadcastingDispatcher(true);
+		BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
+		broadcastingDispatcher.setBeanFactory(this.getBeanFactory());
+		return broadcastingDispatcher;
 	}
 
 	@Override

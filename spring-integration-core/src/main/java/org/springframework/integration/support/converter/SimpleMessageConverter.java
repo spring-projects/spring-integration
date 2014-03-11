@@ -16,6 +16,10 @@
 
 package org.springframework.integration.support.converter;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -31,7 +35,7 @@ import org.springframework.messaging.converter.MessageConverter;
  * @since 2.0
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleMessageConverter implements MessageConverter {
+public class SimpleMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private volatile InboundMessageMapper inboundMessageMapper;
 
@@ -67,8 +71,9 @@ public class SimpleMessageConverter implements MessageConverter {
 		this.outboundMessageMapper = (outboundMessageMapper != null) ? outboundMessageMapper : new DefaultOutboundMessageMapper();
 	}
 
-	public final void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		this.messageBuilderFactory = messageBuilderFactory;
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	@Override

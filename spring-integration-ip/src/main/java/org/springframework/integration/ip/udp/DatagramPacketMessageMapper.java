@@ -23,6 +23,10 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.RegexUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
@@ -57,7 +61,8 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @since 2.0
  */
-public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>, OutboundMessageMapper<DatagramPacket> {
+public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>, OutboundMessageMapper<DatagramPacket>,
+		BeanFactoryAware {
 
 	private volatile String charset = "UTF-8";
 
@@ -76,10 +81,6 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 				"=" + "([^;]*);" +
 				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
 				"=" + "([^;]*);");
-
-	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		this.messageBuilderFactory = messageBuilderFactory;
-	}
 
 	public void setCharset(String charset) {
 		this.charset = charset;
@@ -102,6 +103,11 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	 */
 	public void setLookupHost(boolean lookupHost) {
 		this.lookupHost = lookupHost;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	/**

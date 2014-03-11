@@ -27,7 +27,6 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
@@ -134,7 +133,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	@Override
 	protected AbstractConnectionFactory createInstance() throws Exception {
 		if (!this.mapperSet) {
-			mapper.setMessageBuilderFactory(IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory));
+			mapper.setBeanFactory(this.beanFactory);
 		}
 		if (this.usingNio) {
 			if ("server".equals(this.type)) {

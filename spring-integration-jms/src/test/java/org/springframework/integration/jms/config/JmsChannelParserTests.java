@@ -17,6 +17,7 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -116,6 +118,9 @@ public class JmsChannelParserTests {
 	@Autowired
 	private AbstractApplicationContext context;
 
+	@Autowired
+	private MessageBuilderFactory messageBuilderFactory;
+
 
 	@After
 	public void closeContext() {
@@ -172,7 +177,11 @@ public class JmsChannelParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals(topic, jmsTemplate.getDefaultDestination());
 		assertEquals(topic, container.getDestination());
+		assertSame(this.messageBuilderFactory, TestUtils.getPropertyValue(channel, "dispatcher.messageBuilderFactory"));
+		assertSame(this.messageBuilderFactory,
+				TestUtils.getPropertyValue(channel, "container.messageListener.messageBuilderFactory"));
 	}
+
 
 	@Test
 	public void topicNameChannel() {

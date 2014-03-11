@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.redis.inbound;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
@@ -95,6 +96,9 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		}
 		Assert.state(hasTopics || hasPatterns, "at least one topic or topic pattern is required for subscription.");
 
+		if (this.messageConverter instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
+		}
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
 		adapter.setSerializer(this.serializer);

@@ -164,6 +164,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
 			this.setMaxSubscribers(maxSubscribers);
 		}
+		this.dispatcher.setBeanFactory(this.getBeanFactory());
 	}
 
 	@Override

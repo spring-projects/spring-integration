@@ -18,6 +18,7 @@ package org.springframework.integration.redis.channel;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -33,7 +34,6 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationProperties;
-import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
@@ -60,7 +60,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private final RedisTemplate redisTemplate;
 	private final String topicName;
 
-	private final AbstractDispatcher dispatcher = new BroadcastingDispatcher(true);
+	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
 
 	private volatile Integer maxSubscribers;
 
@@ -84,6 +84,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		this.taskExecutor = taskExecutor;
 	}
 
+	@Override
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
@@ -135,6 +136,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		if (this.messageConverter == null){
 			this.messageConverter = new SimpleMessageConverter();
 		}
+		if (this.messageConverter instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
+		}
 		this.container.setConnectionFactory(connectionFactory);
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
@@ -147,6 +151,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		adapter.afterPropertiesSet();
 		this.container.addMessageListener(adapter, new ChannelTopic(topicName));
 		this.container.afterPropertiesSet();
+		this.dispatcher.setBeanFactory(this.getBeanFactory());
 		this.initialized = true;
 	}
 

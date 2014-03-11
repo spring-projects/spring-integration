@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.outbound;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -94,6 +95,9 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 	@Override
 	protected void onInit() throws Exception {
 		Assert.notNull(topicExpression, "'topicExpression' must not be null.");
+		if (this.messageConverter instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.Matchers;
@@ -35,12 +37,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -55,7 +59,7 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -76,11 +80,16 @@ public class GatewayInterfaceTests {
 		Bar bar = ac.getBean(Bar.class);
 		bar.foo("hello");
 		assertTrue(called.get());
+		Map<?,?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
+		Object mbf = ac.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		assertSame(mbf, TestUtils.getPropertyValue(gateways.values().iterator().next(),
+				"messageConverter.messageBuilderFactory"));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethodOverridePE() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests2-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests2-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -101,22 +110,24 @@ public class GatewayInterfaceTests {
 		Bar bar = ac.getBean(Bar.class);
 		bar.foo("hello");
 		assertTrue(called.get());
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceAnnotatedMethod() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBar", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
 		bar.bar("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceSuperclassUnAnnotatedMethod() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final Method bazMethod = Foo.class.getMethod("baz", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -137,11 +148,12 @@ public class GatewayInterfaceTests {
 		Bar bar = ac.getBean(Bar.class);
 		bar.baz("hello");
 		assertTrue(called.get());
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceUnAnnotatedMethodGlobalHeaderDoesntOverride() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final Method quxMethod = Bar.class.getMethod("qux", String.class, String.class);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -162,55 +174,60 @@ public class GatewayInterfaceTests {
 		Bar bar = ac.getBean(Bar.class);
 		bar.qux("hello", "arg1");
 		assertTrue(called.get());
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceCastAsSuperclassAnnotatedMethod() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Foo foo = ac.getBean(Foo.class);
 		foo.foo("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceCastAsSuperclassUnAnnotatedMethod() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Foo foo = ac.getBean(Foo.class);
 		foo.baz("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceHashcode() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
 		assertEquals(bar.hashCode(), ac.getBean(Bar.class).hashCode());
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceToString() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
 		bar.toString();
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceEquals() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -225,17 +242,19 @@ public class GatewayInterfaceTests {
 		fb.afterPropertiesSet();
 		assertFalse(bar.equals(fb.getObject()));
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testWithServiceGetClass() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
 		bar.getClass();
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -245,7 +264,7 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithCustomMapper() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final AtomicBoolean called = new AtomicBoolean();
 		MessageHandler handler = new MessageHandler() {
@@ -260,11 +279,12 @@ public class GatewayInterfaceTests {
 		Baz baz = ac.getBean(Baz.class);
 		baz.baz("hello");
 		assertTrue(called.get());
+		ac.close();
 	}
 
 	@Test
 	public void testLateReply() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		Bar baz = ac.getBean(Bar.class);
 		String reply = baz.lateReply("hello");
 		assertNull(reply);
@@ -273,6 +293,7 @@ public class GatewayInterfaceTests {
 		assertNotNull(receive);
 		MessagingException messagingException = (MessagingException) receive.getPayload();
 		assertThat(messagingException.getMessage(), Matchers.startsWith("Reply message received but the receiving thread has exited due to a timeout"));
+		ac.close();
 	}
 
 

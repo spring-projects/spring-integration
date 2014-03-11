@@ -18,10 +18,13 @@ package org.springframework.integration.support.json;
 
 import java.lang.reflect.Type;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * Base {@link JsonInboundMessageMapper.JsonMessageParser} implementation for Jackson processors.
@@ -30,7 +33,8 @@ import org.springframework.util.Assert;
  * @since 3.0
  *
  */
-abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessageMapper.JsonMessageParser<P> {
+abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessageMapper.JsonMessageParser<P>,
+		BeanFactoryAware {
 
 	private final JsonObjectMapper<?, P> objectMapper;
 
@@ -42,9 +46,9 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		this.objectMapper = objectMapper;
 	}
 
-	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
-		Assert.notNull(messageBuilderFactory, "'messageBuilderFactory' cannot be null");
-		this.messageBuilderFactory = messageBuilderFactory;
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {

@@ -75,7 +75,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.mapper.setMessageBuilderFactory(this.getMessageBuilderFactory());
+		this.mapper.setBeanFactory(this.getBeanFactory());
 	}
 
 	@Override

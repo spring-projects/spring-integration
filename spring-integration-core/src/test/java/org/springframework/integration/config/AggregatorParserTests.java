@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -46,6 +45,7 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStr
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -53,6 +53,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -63,6 +64,7 @@ import org.springframework.messaging.SubscribableChannel;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class AggregatorParserTests {
 
@@ -88,6 +90,10 @@ public class AggregatorParserTests {
 				.size());
 		Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
 		assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage.getPayload());
+		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		Object handler = context.getBean("aggregatorWithReference.handler");
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
 	}
 
 	@Test
@@ -96,6 +102,7 @@ public class AggregatorParserTests {
 		SubscribableChannel outputChannel = (SubscribableChannel) context.getBean("aggregatorWithExpressionsOutput");
 		final AtomicReference<Message<?>> aggregatedMessage = new AtomicReference<Message<?>>();
 		outputChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
 					MessageDeliveryException {
 				aggregatedMessage.set(message);
@@ -110,6 +117,10 @@ public class AggregatorParserTests {
 		}
 		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload()
 				.toString());
+		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		Object handler = context.getBean("aggregatorWithExpressions.handler");
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
 	}
 
 	@Test
@@ -158,6 +169,10 @@ public class AggregatorParserTests {
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive(10);
 		Assert.assertEquals(6l, response.getPayload());
+		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		Object handler = context.getBean("aggregatorWithReferenceAndMethod.handler");
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
+		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
 	}
 
 	@Test(expected = BeanCreationException.class)
@@ -230,6 +245,8 @@ public class AggregatorParserTests {
 		EventDrivenConsumer aggregatorConsumer = (EventDrivenConsumer) context.getBean("aggregatorWithExpressionsAndPojoAggregator");
 		AggregatingMessageHandler aggregatingMessageHandler = (AggregatingMessageHandler) TestUtils.getPropertyValue(aggregatorConsumer, "handler");
 		MethodInvokingMessageGroupProcessor messageGroupProcessor = (MethodInvokingMessageGroupProcessor) TestUtils.getPropertyValue(aggregatingMessageHandler, "outputProcessor");
+		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		assertSame(mbf, TestUtils.getPropertyValue(messageGroupProcessor, "messageBuilderFactory"));
 		Object messageGroupProcessorTargetObject = TestUtils.getPropertyValue(messageGroupProcessor, "processor.delegate.targetObject");
 		assertSame(context.getBean("aggregatorBean"), messageGroupProcessorTargetObject);
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "releaseStrategy");

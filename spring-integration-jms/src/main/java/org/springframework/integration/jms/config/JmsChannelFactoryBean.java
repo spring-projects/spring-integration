@@ -337,6 +337,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.container = this.createContainer();
 			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
 			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
+			if (this.getBeanFactory() != null) {
+				subscribableJmsChannel.setBeanFactory(this.getBeanFactory());
+			}
 			this.channel = subscribableJmsChannel;
 		}
 		else {

@@ -93,6 +93,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
 
+	private volatile boolean mapperSet;
+
 	private volatile boolean singleUse;
 
 	private volatile boolean active;
@@ -359,6 +361,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	public void setMapper(TcpMessageMapper mapper) {
 		this.mapper = mapper;
+		this.mapperSet = true;
 	}
 
 	/**
@@ -407,6 +410,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public void setNioHarvestInterval(int nioHarvestInterval) {
 		Assert.isTrue(nioHarvestInterval > 0, "NIO Harvest interval must be > 0");
 		this.nioHarvestInterval = nioHarvestInterval;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (!this.mapperSet) {
+			this.mapper.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override
