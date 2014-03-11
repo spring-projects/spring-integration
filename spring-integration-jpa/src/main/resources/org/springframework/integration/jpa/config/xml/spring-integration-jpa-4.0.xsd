@@ -96,7 +96,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 				<xsd:attributeGroup ref="coreJpaComponentAttributes"/>
 				<xsd:attributeGroup ref="commonUpdatingJpaAttributes"/>
@@ -188,7 +188,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreJpaComponentAttributes" />
 			<xsd:attributeGroup ref="commonUpdatingJpaAttributes"/>
@@ -220,7 +220,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="first-result" type="xsd:integer">
 				<xsd:annotation>
