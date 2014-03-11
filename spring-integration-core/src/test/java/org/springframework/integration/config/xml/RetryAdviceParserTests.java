@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
@@ -63,8 +64,11 @@ public class RetryAdviceParserTests {
 	@Autowired
 	private RequestHandlerRetryAdvice a7;
 
-	@Autowired
-	private MessageHandler handler;
+	@Autowired @Qualifier("sa1.handler")
+	private MessageHandler handler1;
+
+	@Autowired @Qualifier("sa2.handler")
+	private MessageHandler handler2;
 
 	@Autowired
 	private MessageChannel foo;
@@ -89,12 +93,14 @@ public class RetryAdviceParserTests {
 		assertEquals(Double.valueOf(3.0), TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.multiplier", Double.class));
 		assertEquals(Long.valueOf(10000), TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.maxInterval", Long.class));
 
-		assertSame(a1, TestUtils.getPropertyValue(handler, "adviceChain", List.class).get(0));
-
 		assertNull(TestUtils.getPropertyValue(a1, "recoveryCallback"));
 		assertNotNull(TestUtils.getPropertyValue(a7, "recoveryCallback"));
 		assertSame(foo, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.defaultDestination"));
 		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout"));
+
+		assertSame(a1, TestUtils.getPropertyValue(handler1, "adviceChain", List.class).get(0));
+		assertEquals(Integer.valueOf(9), TestUtils.getPropertyValue(TestUtils.getPropertyValue(handler2, "adviceChain", List.class).get(0),
+				"retryTemplate.retryPolicy.maxAttempts", Integer.class));
 	}
 
 }

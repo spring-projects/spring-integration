@@ -78,7 +78,9 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("transaction-synchronization-factory", new TransactionSynchronizationFactoryParser());
 		registerBeanDefinitionParser("spel-function", new SpelFunctionParser());
 		registerBeanDefinitionParser("spel-property-accessors", new SpelPropertyAccessorsParser());
-		registerBeanDefinitionParser("handler-retry-advice", new RetryAdviceParser());
+		RetryAdviceParser retryParser = new RetryAdviceParser();
+		registerBeanDefinitionParser("handler-retry-advice", retryParser);
+		registerBeanDefinitionParser("retry-advice", retryParser);
 	}
 
 }

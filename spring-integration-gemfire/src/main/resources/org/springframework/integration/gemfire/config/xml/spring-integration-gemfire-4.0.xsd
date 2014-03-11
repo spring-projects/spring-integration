@@ -141,7 +141,7 @@
 					</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 

@@ -79,29 +79,29 @@
 				The retry advice (<classname>o.s.i.handler.advice.RequestHandlerRetryAdvice</classname>)
 				leverages the rich retry mechanisms provided by the
 				<ulink url="https://github.com/SpringSource/spring-retry">Spring Retry</ulink> project. The core component
-				of <emphasis>spring-retry</emphasis> is the <classname>RetryTemplate</classname>, which allows configuration
+				of <code>spring-retry</code> is the <classname>RetryTemplate</classname>, which allows configuration
 				of sophisticated retry scenarios, including <classname>RetryPolicy</classname> and <classname>BackoffPolicy</classname>
 				strategies, with a number of implementations,
 				as well as a <classname>RecoveryCallback</classname> strategy to determine the action to take when retries
 				are exhausted.
 			</para>
-			<para><emphasis>Stateless Retry</emphasis></para>
+			<para><emphasis role="bold">Stateless Retry</emphasis></para>
 			<para>
 				Stateless retry is the case where the retry activity is handled entirely within the advice, where the thread
 				pauses (if so configured) and retries the action.
 			</para>
-			<para><emphasis>Stateful Retry</emphasis></para>
+			<para><emphasis role="bold">Stateful Retry</emphasis></para>
 			<para>
 				Stateful retry is the case where the retry state is managed within the advice, but where an exception is thrown
 				and the caller resubmits the request. An example for stateful retry is when we want the message originator
 				(e.g. JMS) to be responsible for resubmitting, rather than performing it on the current thread. Stateful retry
 				needs some mechanism to detect a retried submission.
 			</para>
-			<para><emphasis>Further Information</emphasis></para>
+			<para><emphasis role="bold">Further Information</emphasis></para>
 			<para>
-				For more information on <emphasis>spring-retry</emphasis>, refer to the project's javadocs, as well as the
+				For more information on <code>spring-retry</code>, refer to the project's javadocs, as well as the
 				reference documentation for <ulink url="http://static.springsource.org/spring-batch/reference/html/retry.html">
-				Spring Batch</ulink>, where <emphasis>spring-retry</emphasis> originated.
+				Spring Batch</ulink>, where <code>spring-retry</code> originated.
 			</para>
 			<caution>
 				The default back off behavior is no back off - retries are attempted immediately.
@@ -120,14 +120,15 @@
     }
 }]]></programlisting>
 				</para>
-				<para><emphasis>Simple Stateless Retry</emphasis></para>
+				<para><emphasis role="bold">Simple Stateless Retry</emphasis></para>
 				<para>
-					This example uses the default <emphasis>RetryTemplate</emphasis> which has a
-					<emphasis>SimpleRetryPolicy</emphasis> which tries 3 times. There is no <emphasis>BackoffPolicy</emphasis>
+					This example uses the default <classname>RetryTemplate</classname> which has a
+					<classname>SimpleRetryPolicy</classname> which tries 3 times. There is no
+					<classname>BackOffPolicy</classname>
 					so the 3 attempts are made back-to-back-to-back with no delay between attempts. There is no
-					<emphasis>RecoveryCallback</emphasis> so, the result is to throw the
+					<classname>RecoveryCallback</classname> so, the result is to throw the
 					exception to the caller after the final failed retry occurs. In a <emphasis>Spring Integration</emphasis>
-					environment, this final exception might be handled using an <emphasis>error-channel</emphasis> on
+					environment, this final exception might be handled using an <code>error-channel</code> on
 					the inbound endpoint.
 				</para>
 				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
@@ -144,11 +145,11 @@ DEBUG [task-scheduler-2]Checking for rethrow: count=2
 DEBUG [task-scheduler-2]Retry: count=2
 DEBUG [task-scheduler-2]Checking for rethrow: count=3
 DEBUG [task-scheduler-2]Retry failed last attempt: count=3]]></programlisting></para>
-				<para><emphasis>Simple Stateless Retry with Recovery</emphasis></para>
+				<para><emphasis role="bold">Simple Stateless Retry with Recovery</emphasis></para>
 				<para>
 					This example adds a <classname>RecoveryCallback</classname> to the
 					above example; it uses a <classname>ErrorMessageSendingRecoverer</classname>
-					to send an <emphasis>ErrorMessage</emphasis> to a channel.
+					to send an <classname>ErrorMessage</classname> to a channel.
 				</para>
 				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
     <int:request-handler-advice-chain>
@@ -171,9 +172,9 @@ DEBUG [task-scheduler-2]Retry: count=2
 DEBUG [task-scheduler-2]Checking for rethrow: count=3
 DEBUG [task-scheduler-2]Retry failed last attempt: count=3
 DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></programlisting></para>
-				<para><emphasis>Stateless Retry with Customized Policies, and Recovery</emphasis></para>
+				<para><emphasis role="bold">Stateless Retry with Customized Policies, and Recovery</emphasis></para>
 				<para>
-					For more sophistication, we can provide the advice with a customized <emphasis>RetryTemplate</emphasis>.
+					For more sophistication, we can provide the advice with a customized <classname>RetryTemplate</classname>.
 					This example continues to use the <classname>SimpleRetryPolicy</classname> but it
 					increases the attempts to 4. It also adds an <classname>ExponentialBackoffPolicy</classname>
 					where the first retry waits 1 second, the second waits 5 seconds and the third waits 25 (for 4
@@ -221,9 +222,10 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 58.084 DEBUG [task-scheduler-1]Checking for rethrow: count=4
 58.084 DEBUG [task-scheduler-1]Retry failed last attempt: count=4
 58.086 DEBUG [task-scheduler-1]Sending ErrorMessage :failedMessage:[Payload=...]]]></programlisting></para>
+				<para><emphasis role="bold">Namespace Support for Stateless Retry</emphasis></para>
 				<para>
 					Starting with <emphasis>version 4.0</emphasis>, the above configuration can be greatly
-					simplified with the namespace support for the retry template:
+					simplified with the namespace support for the retry advice:
 				</para>
 				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
     <int:request-handler-advice-chain>
@@ -235,17 +237,33 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 	<int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
 </int:handler-retry-advice>]]></programlisting></para>
 				<para>
+					In this example, the advice is defined as a top level bean so it can be used
+					in multiple <code>request-handler-advice-chain</code>s. You can also
+					define the advice directly within the chain:
+				</para>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+		<int:retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
+			<int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
+		</int:retry-advice>
+    </request-handler-advice-chain>
+</int:service-activator>]]></programlisting></para>
+				<para>
 					A <code>&lt;handler-retry-advice/&gt;</code> with no child element uses
 					no back off; it can have a <code>fixed-back-off</code> or
 					<code>exponential-back-off</code> child element. If there is no
 					<code>recovery-channel</code>, the exception is thrown when retries are
-					exhausted.
+					exhausted. The namespace can only be used with stateless retry.
 				</para>
-				<para><emphasis>Simple Stateful Retry with Recovery</emphasis></para>
+				<para>
+					For more complex environments (custom policies etc), use normal
+					<code>&lt;bean/&gt;</code> definitions.
+				</para>
+				<para><emphasis role="bold">Simple Stateful Retry with Recovery</emphasis></para>
 				<para>
 					To make retry stateful, we need to provide the Advice with a RetryStateGenerator
 					implementation. This class is used to identify a message as being a resubmission
-					so that the <emphasis>RetryTemplate</emphasis> can determine the current state of retry
+					so that the <classname>RetryTemplate</classname> can determine the current state of retry
 					for this message. The framework	provides a <classname>SpelExpressionRetryStateGenerator</classname>
 					which determines the message identifier using a SpEL expression.
 					This is shown below; this example again uses the default policies (3 attempts with no back off); of
@@ -310,7 +328,7 @@ Caused by: java.lang.RuntimeException: foo
 				</para>
 			</section>
 			<para>
-				<emphasis>Exception Classification for Retry</emphasis>
+				<emphasis role="bold">Exception Classification for Retry</emphasis>
 
 			</para>
 			<para>

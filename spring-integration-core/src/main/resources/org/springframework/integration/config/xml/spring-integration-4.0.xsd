@@ -1321,7 +1321,7 @@
 					</xsd:complexContent>
 				</xsd:complexType>
 			</xsd:element>
-			<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
 			<xsd:annotation>
@@ -2599,7 +2599,7 @@
 					<xsd:element name="request-handler-advice-chain" minOccurs="0" maxOccurs="1">
 						<xsd:complexType>
 							<xsd:complexContent>
-								<xsd:extension base="adviceChainType">
+								<xsd:extension base="handlerAdviceChainType">
 									<xsd:attribute name="discard-within-advice" type="xsd:string" default="true">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
@@ -3742,13 +3742,35 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:complexType name="handlerAdviceChainType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="bean" type="xsd:string" use="required">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="java.lang.Object" />
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:element name="retry-advice" type="retryAdviceType" />
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
 				<xsd:choice minOccurs="0" maxOccurs="3">
 					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
-					<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="expression" type="xsd:string">
@@ -4054,13 +4076,14 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="handler-retry-advice" type="retryAdviceType">
-		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-				A convenient way of defining a MessageHandlerRetryAdvice. Uses a SimpleRetryPolicy
-				and an optional Exponential or Fixed BackOffPolicy. Default is no back off.
-			]]></xsd:documentation>
-		</xsd:annotation>
+	<xsd:element name="handler-retry-advice">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="retryAdviceType">
+					<xsd:attribute name="id" type="xsd:string" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="control-bus-type">
@@ -4079,11 +4102,16 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	</xsd:complexType>
 
 	<xsd:complexType name="retryAdviceType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				A convenient way of defining a MessageHandlerRetryAdvice. Uses a SimpleRetryPolicy
+				and an optional Exponential or Fixed BackOffPolicy. Default is no back off.
+			]]></xsd:documentation>
+		</xsd:annotation>
 		<xsd:choice minOccurs="0" maxOccurs="1">
 			<xsd:element name="fixed-back-off" type="fixedBackOffType"/>
 			<xsd:element name="exponential-back-off" type="exponentialBackOffType"/>
 		</xsd:choice>
-		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="max-attempts" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

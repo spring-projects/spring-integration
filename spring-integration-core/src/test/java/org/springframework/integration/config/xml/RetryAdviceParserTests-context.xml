@@ -35,4 +35,10 @@
 		</int:request-handler-advice-chain>
 	</int:service-activator>
 
+	<int:service-activator id="sa2" input-channel="foo" expression="'foo'">
+		<int:request-handler-advice-chain>
+			<int:retry-advice max-attempts="9" />
+		</int:request-handler-advice-chain>
+	</int:service-activator>
+
 </beans>
