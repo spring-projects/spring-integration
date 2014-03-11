@@ -738,7 +738,7 @@
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="3">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="reply-listener" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
@@ -1080,7 +1080,7 @@
 				<xsd:extension base="jmsAdapterType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>

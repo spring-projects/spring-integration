@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:handler-retry-advice id="a1" />
+
+	<int:handler-retry-advice id="a2" max-attempts="4" />
+
+	<int:handler-retry-advice id="a3" max-attempts="5">
+		<int:fixed-back-off />
+	</int:handler-retry-advice>
+
+	<int:handler-retry-advice id="a4" max-attempts="6">
+		<int:fixed-back-off interval="1234" />
+	</int:handler-retry-advice>
+
+	<int:handler-retry-advice id="a5" max-attempts="7">
+		<int:exponential-back-off />
+	</int:handler-retry-advice>
+
+	<int:handler-retry-advice id="a6" max-attempts="8">
+		<int:exponential-back-off initial="1000" multiplier="3.0" maximum="10000" />
+	</int:handler-retry-advice>
+
+	<int:handler-retry-advice id="a7" recovery-channel="foo" send-timeout="4567" />
+
+	<int:channel id="foo" />
+
+	<int:service-activator id="sa1" input-channel="foo" expression="'foo'">
+		<int:request-handler-advice-chain>
+			<ref bean="a1"/>
+		</int:request-handler-advice-chain>
+	</int:service-activator>
+
+	<int:service-activator id="sa2" input-channel="foo" expression="'foo'">
+		<int:request-handler-advice-chain>
+			<int:retry-advice max-attempts="9" />
+		</int:request-handler-advice-chain>
+	</int:service-activator>
+
+</beans>

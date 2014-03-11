@@ -226,7 +226,7 @@
 				<xsd:extension base="queryType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 					<xsd:attribute name="sql-parameter-source-factory" type="xsd:string">
@@ -313,7 +313,7 @@
 							</xsd:annotation>
 						</xsd:element>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="id" type="xsd:string" use="optional"/>
 					<xsd:attribute name="update" type="xsd:string">
@@ -610,7 +610,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
 			<xsd:attribute name="use-payload-as-parameter-source">
@@ -746,7 +746,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>

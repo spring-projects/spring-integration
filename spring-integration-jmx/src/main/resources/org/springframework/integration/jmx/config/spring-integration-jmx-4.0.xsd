@@ -71,7 +71,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="operationInvokingType">
 					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="request-channel" type="xsd:string" />
 					<xsd:attribute name="reply-channel" type="xsd:string" use="optional" />
@@ -99,7 +99,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="operationInvokingType">
 					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="channel" type="xsd:string" use="optional" />
 				</xsd:extension>
@@ -137,7 +137,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="adapterType">
 					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="default-notification-type" type="xsd:string" use="optional" />
 				</xsd:extension>
