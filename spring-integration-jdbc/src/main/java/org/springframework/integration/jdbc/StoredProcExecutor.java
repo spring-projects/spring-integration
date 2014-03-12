@@ -325,17 +325,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		SqlParameterSource storedProcedureParameterSource =
 			sqlParameterSourceFactory.createParameterSource(input);
 
-		return StoredProcExecutor.executeStoredProcedure(localSimpleJdbcCall,
-														 storedProcedureParameterSource);
-
-	}
-
-	private static Map<String, Object> executeStoredProcedure(SimpleJdbcCallOperations simpleJdbcCallOperations,
-															 SqlParameterSource storedProcedureParameterSource) {
-
-		Map<String, Object> resultMap = simpleJdbcCallOperations.execute(storedProcedureParameterSource);
-
-		return resultMap;
+		return localSimpleJdbcCall.execute(storedProcedureParameterSource);
 
 	}
 
