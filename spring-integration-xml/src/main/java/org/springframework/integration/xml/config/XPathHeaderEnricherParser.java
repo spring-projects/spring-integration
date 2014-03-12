@@ -26,6 +26,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.xml.transformer.XPathHeaderEnricher;
+import org.springframework.integration.xml.transformer.support.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.util.StringUtils;
 
 /**
@@ -61,7 +62,7 @@ public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 				String elementName = node.getLocalName();
 				if ("header".equals(elementName)) {
 					BeanDefinitionBuilder builder =
-							BeanDefinitionBuilder.genericBeanDefinition(XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor.class);
+							BeanDefinitionBuilder.genericBeanDefinition(XPathExpressionEvaluatingHeaderValueMessageProcessor.class);
 					String expressionString = headerElement.getAttribute("xpath-expression");
 					String expressionRef = headerElement.getAttribute("xpath-expression-ref");
 					boolean isExpressionString = StringUtils.hasText(expressionString);

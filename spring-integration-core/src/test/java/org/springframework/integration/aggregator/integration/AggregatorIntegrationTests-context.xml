@@ -11,7 +11,7 @@
 		<queue capacity="5" />
 	</channel>
 
-	<aggregator ref="summer" method="sum" input-channel="input" output-channel="output">
+	<aggregator ref="summer" method="sum" input-channel="input" output-channel="output" expression="">
 		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" />
 	</aggregator>
 
@@ -20,19 +20,19 @@
 	<channel id="output">
 		<queue capacity="5" />
 	</channel>
-	
+
 	<channel id="discard">
 		<queue capacity="5" />
 	</channel>
 
 	<beans:bean id="summer"
 		class="org.springframework.integration.aggregator.integration.AggregatorIntegrationTests$SummingAggregator" />
-		
-	<aggregator id="expiringAggregator" input-channel="expiringAggregatorInput" output-channel="output" 
+
+	<aggregator id="expiringAggregator" input-channel="expiringAggregatorInput" output-channel="output"
 				expire-groups-upon-completion="true" discard-channel="discard"/>
-				
-	<aggregator id="nonExpiringAggregator" input-channel="nonExpiringAggregatorInput" output-channel="output" 
+
+	<aggregator id="nonExpiringAggregator" input-channel="nonExpiringAggregatorInput" output-channel="output"
 				expire-groups-upon-completion="false" discard-channel="discard"/>
-		
+
 
 </beans:beans>

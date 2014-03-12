@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.store.MessageGroup;
@@ -35,7 +36,8 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  * @since 2.0
  */
-public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
+public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor
+		implements BeanFactoryAware {
 
 	private final MethodInvokingMessageListProcessor<Object> processor;
 

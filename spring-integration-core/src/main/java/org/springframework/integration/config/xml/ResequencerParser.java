@@ -16,11 +16,9 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
-import org.springframework.integration.store.SimpleMessageStore;
 
 /**
  * Parser for the &lt;resequencer&gt; element.
@@ -32,9 +30,6 @@ import org.springframework.integration.store.SimpleMessageStore;
  */
 public class ResequencerParser extends AbstractCorrelatingMessageHandlerParser {
 
-
-	private static final String COMPARATOR_REF_ATTRIBUTE = "comparator";
-
 	private static final String RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE = "release-partial-sequences";
 
 	@Override
@@ -43,17 +38,7 @@ public class ResequencerParser extends AbstractCorrelatingMessageHandlerParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResequencingMessageHandler.class);
 		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResequencingMessageGroupProcessor.class);
 
-		// Comparator
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(processorBuilder, element, COMPARATOR_REF_ATTRIBUTE);
-
-		String processorRef = BeanDefinitionReaderUtils.registerWithGeneratedName(processorBuilder.getBeanDefinition(),
-				parserContext.getRegistry());
-
-		// Message group processor
-		builder.addConstructorArgReference(processorRef);
-
-		// Message store
-		builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageStore.class).getBeanDefinition());
+		builder.addConstructorArgValue(processorBuilder.getBeanDefinition());
 
 		this.doParse(builder, element, processorBuilder.getBeanDefinition(), parserContext);
 
