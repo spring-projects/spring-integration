@@ -54,6 +54,7 @@ public class ResequencerTests {
 	@Before
 	public void configureResequencer() {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
+		this.resequencer.afterPropertiesSet();
 	}
 
 	@Test
@@ -81,6 +82,7 @@ public class ResequencerTests {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
+		this.resequencer.afterPropertiesSet();
 
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
@@ -104,6 +106,8 @@ public class ResequencerTests {
 				return "A";
 			}
 		});
+		this.resequencer.afterPropertiesSet();
+
 		//Message<?> message0 = MessageBuilder.withPayload("0").setSequenceNumber(0).build();
 		Message<?> message1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setReplyChannel(replyChannel).build();
 		Message<?> message2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setReplyChannel(replyChannel).build();

@@ -22,7 +22,9 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
@@ -40,8 +42,10 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -63,6 +67,7 @@ import org.springframework.util.CollectionUtils;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
@@ -81,9 +86,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private MessageChannel outputChannel;
 
+	private String outputChannelName;
+
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile MessageChannel discardChannel = new NullChannel();
+	private volatile MessageChannel discardChannel;
+
+	private volatile String discardChannelName;
 
 	private boolean sendPartialResultOnExpiry = false;
 
@@ -94,6 +103,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private boolean lockRegistrySet = false;
 
 	private volatile long minimumTimeoutForEmptyGroups;
+
+	private volatile boolean releasePartialSequences;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -151,13 +162,60 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.outputChannel = outputChannel;
 	}
 
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
+			if (StringUtils.hasText(this.discardChannelName)) {
+				Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
+				try {
+					this.discardChannel = beanFactory.getBean(this.discardChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.discardChannelName + "' in the BeanFactory.");
+				}
+			}
+
+			if (StringUtils.hasText(this.outputChannelName)) {
+				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+				try {
+					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.outputChannelName + "' in the BeanFactory.");
+				}
+			}
+
+			if (this.outputProcessor instanceof BeanFactoryAware) {
+				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
+			}
+			if (this.correlationStrategy instanceof BeanFactoryAware) {
+				((BeanFactoryAware) this.correlationStrategy).setBeanFactory(beanFactory);
+			}
+			if (this.releaseStrategy instanceof BeanFactoryAware) {
+				((BeanFactoryAware) this.releaseStrategy).setBeanFactory(beanFactory);
+			}
 		}
+
+		if (this.discardChannel == null) {
+			this.discardChannel = new NullChannel();
+		}
+
+		if (this.releasePartialSequences) {
+			Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
+					"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName()
+							+ "] cannot release partial sequences. Use the default SequenceSizeReleaseStrategy instead.");
+			((SequenceSizeReleaseStrategy)this.releaseStrategy).setReleasePartialSequences(releasePartialSequences);
+		}
+
 		/*
 		 * Disallow any further changes to the lock registry
 		 * (checked in the setter).
@@ -167,6 +225,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
+	}
+
+	public void setDiscardChannelName(String discardChannelName) {
+		this.discardChannelName = discardChannelName;
 	}
 
 	public void setSendTimeout(long sendTimeout) {
@@ -192,11 +254,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
 	}
 
-	public void setReleasePartialSequences(boolean releasePartialSequences){
-		Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
-				"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName()
-						+ "] cannot release partial sequences. Use the default SequenceSizeReleaseStrategy instead.");
-		((SequenceSizeReleaseStrategy)this.releaseStrategy).setReleasePartialSequences(releasePartialSequences);
+	public void setReleasePartialSequences(boolean releasePartialSequences) {
+		this.releasePartialSequences = releasePartialSequences;
 	}
 
 	@Override
