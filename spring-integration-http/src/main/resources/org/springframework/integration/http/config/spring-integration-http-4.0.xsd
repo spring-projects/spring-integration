@@ -317,7 +317,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:choice minOccurs="0" maxOccurs="2">
+			<xsd:choice minOccurs="0" maxOccurs="3">
 				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -327,6 +327,7 @@
 					</xsd:annotation>
 				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
@@ -352,7 +353,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:choice minOccurs="0" maxOccurs="2">
+					<xsd:choice minOccurs="0" maxOccurs="3">
 						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded">
 							<xsd:annotation>
 								<xsd:documentation>
@@ -361,6 +362,7 @@
 							</xsd:annotation>
 						</xsd:element>
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:choice>
 					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
