@@ -92,7 +92,6 @@ subprojects { subproject ->
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
-		powermockVersion = '1.5.4'
 		romeVersion = '1.0.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
@@ -341,9 +340,6 @@ project('spring-integration-jdbc') {
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
 		testCompile "org.apache.derby:derby:$derbyVersion"
 		testCompile "org.apache.derby:derbyclient:$derbyVersion"
-
-		testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
-		testCompile "org.powermock:powermock-api-mockito:$powermockVersion"
 
 		testCompile "postgresql:postgresql:$postgresVersion"
 		testCompile "mysql:mysql-connector-java:$mysqlVersion"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,9 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
@@ -46,9 +41,10 @@ import org.springframework.jdbc.core.SqlParameter;
 
 import com.google.common.cache.CacheStats;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({StoredProcExecutor.class})
-@PowerMockIgnore ({"org.apache.log4j.*"})
+/**
+ * @author Gunnar Hillert
+ * @author Artem Bilan
+ */
 public class StoredProcExecutorTests {
 
 	private static final Logger LOGGER = Logger.getLogger(StoredProcExecutorTests.class);
@@ -315,11 +311,6 @@ public class StoredProcExecutorTests {
 
 		final DataSource datasource = mock(DataSource.class);
 
-		PowerMockito.mockStatic(StoredProcExecutor.class);
-
-		PowerMockito.spy(StoredProcExecutor.class);
-		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
-
 		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
 		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
@@ -333,19 +324,29 @@ public class StoredProcExecutorTests {
 
 		//This should work
 
-		storedProcExecutor.executeStoredProcedure(
-			MessageBuilder.withPayload("test")
-				.setHeader("stored_procedure_name", "123")
-				.build());
+		try {
+			storedProcExecutor.executeStoredProcedure(
+					MessageBuilder.withPayload("test")
+							.setHeader("stored_procedure_name", "123")
+							.build());
+		}
+		catch (DataAccessResourceFailureException e) {
+			//Ignore it. It is out of scope of this test.
+		}
 
 		//This should cause an exception
 
 		try {
 			storedProcExecutor.executeStoredProcedure(
 					MessageBuilder.withPayload("test")
-						.setHeader("some_other_header", "123")
-						.build());
-		} catch (IllegalArgumentException e) {
+							.setHeader("some_other_header", "123")
+							.build()
+			);
+		}
+		catch (DataAccessResourceFailureException e) {
+				//Ignore it. It is out of scope of this test.
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("Unable to resolve Stored Procedure/Function name for the provided Expression 'headers['stored_procedure_name']'.", e.getMessage());
 			return;
 		}
@@ -359,11 +360,6 @@ public class StoredProcExecutorTests {
 
 		final DataSource datasource = mock(DataSource.class);
 
-		PowerMockito.mockStatic(StoredProcExecutor.class);
-
-		PowerMockito.spy(StoredProcExecutor.class);
-		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
-
 		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
 		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
@@ -376,10 +372,15 @@ public class StoredProcExecutorTests {
 		storedProcExecutor.afterPropertiesSet();
 
 		for (int i = 1; i <= 3; i++) {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-						.setHeader("stored_procedure_name", "123")
-						.build());
+			try {
+				storedProcExecutor.executeStoredProcedure(
+						MessageBuilder.withPayload("test")
+							.setHeader("stored_procedure_name", "123")
+							.build());
+			}
+			catch (DataAccessResourceFailureException e) {
+				//Ignore it. It is out of scope of this test.
+			}
 		}
 
 		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
@@ -397,12 +398,8 @@ public class StoredProcExecutorTests {
 
 		final DataSource datasource = mock(DataSource.class);
 
-		PowerMockito.mockStatic(StoredProcExecutor.class);
-
-		PowerMockito.spy(StoredProcExecutor.class);
-		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
-
 		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+
 		storedProcExecutor.setJdbcCallOperationsCacheSize(0);
 
 		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
@@ -415,10 +412,15 @@ public class StoredProcExecutorTests {
 		storedProcExecutor.afterPropertiesSet();
 
 		for (int i = 1; i <= 10; i++) {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-						.setHeader("stored_procedure_name", "123")
-						.build());
+			try {
+				storedProcExecutor.executeStoredProcedure(
+						MessageBuilder.withPayload("test")
+								.setHeader("stored_procedure_name", "123")
+								.build());
+			}
+			catch (DataAccessResourceFailureException e) {
+				//Ignore it. It is out of scope of this test.
+			}
 		}
 
 		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
