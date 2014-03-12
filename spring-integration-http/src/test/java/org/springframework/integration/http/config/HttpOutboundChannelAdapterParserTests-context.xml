@@ -32,6 +32,7 @@
 			order="77"
 			auto-startup="false">
 		<uri-variable name="foo" expression="headers.bar"/>
+
 	</outbound-channel-adapter>
 
 	<util:map id="uriVariables">
@@ -55,6 +56,41 @@
 	<outbound-channel-adapter id="withUrlExpressionAndTemplate"
 		url-expression="'http://localhost/test1'" channel="requests"
 		rest-template="customRestTemplate"/>
+
+	<si:channel id="queueChannel">
+		<si:queue capacity="10"/>
+	</si:channel>
+	<outbound-channel-adapter id="withPoller1" url="http://localhost/test1" channel="queueChannel">
+		<si:poller fixed-delay="5000"/>
+	</outbound-channel-adapter>
+
+	<outbound-channel-adapter id="withPoller2" url="http://localhost/test1" channel="queueChannel">
+		<request-handler-advice-chain/>
+		<uri-variable name="foo" expression="headers.bar"/>
+		<uri-variable name="bar" expression="headers.bar"/>
+		<si:poller fixed-delay="5000"/>
+	</outbound-channel-adapter>
+
+	<outbound-channel-adapter id="withPoller3" url="http://localhost/test1" channel="queueChannel">
+		<uri-variable name="foo" expression="headers.bar"/>
+		<uri-variable name="bar" expression="headers.bar"/>
+		<request-handler-advice-chain/>
+		<si:poller fixed-delay="5000"/>
+	</outbound-channel-adapter>
+
+	<outbound-channel-adapter id="withPoller4" url="http://localhost/test1" channel="queueChannel">
+		<si:poller fixed-delay="5000"/>
+		<uri-variable name="foo" expression="headers.bar"/>
+		<uri-variable name="bar" expression="headers.bar"/>
+		<request-handler-advice-chain/>
+	</outbound-channel-adapter>
+
+	<outbound-channel-adapter id="withPoller5" url="http://localhost/test1" channel="queueChannel">
+		<si:poller fixed-delay="5000"/>
+		<request-handler-advice-chain/>
+		<uri-variable name="foo" expression="headers.bar"/>
+		<uri-variable name="bar" expression="headers.bar"/>
+	</outbound-channel-adapter>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 

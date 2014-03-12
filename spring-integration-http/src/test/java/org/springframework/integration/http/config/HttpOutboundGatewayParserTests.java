@@ -16,15 +16,10 @@
 
 package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
@@ -40,6 +35,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -52,10 +48,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Biju Kunjummen
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -72,6 +71,9 @@ public class HttpOutboundGatewayParserTests {
 
 	@Autowired @Qualifier("withAdvice")
 	private AbstractEndpoint withAdvice;
+
+	@Autowired @Qualifier("withPoller1")
+	private AbstractEndpoint withPoller1;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -198,6 +200,11 @@ public class HttpOutboundGatewayParserTests {
 			assertTrue(e instanceof BeanDefinitionParsingException);
 			assertTrue(e.getMessage().contains("'request-channel' attribute isn't allowed for a nested"));
 		}
+	}
+
+	@Test
+	public void withPoller() {
+		assertThat(this.withPoller1, Matchers.instanceOf(PollingConsumer.class));
 	}
 
 
