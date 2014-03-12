@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,6 +43,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -59,6 +62,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Biju Kunjummen
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -87,6 +91,9 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Autowired @Qualifier("withUrlExpressionAndTemplate")
 	private AbstractEndpoint withUrlExpressionAndTemplate;
+
+	@Autowired @Qualifier("withPoller1")
+	private AbstractEndpoint withPoller1;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -248,6 +255,11 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+	}
+
+	@Test
+	public void withPoller() {
+		assertThat(this.withPoller1, Matchers.instanceOf(PollingConsumer.class));
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
