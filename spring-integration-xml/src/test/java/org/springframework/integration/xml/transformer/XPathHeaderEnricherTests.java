@@ -27,7 +27,7 @@ import java.util.TimeZone;
 import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xml.transformer.XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor;
+import org.springframework.integration.xml.transformer.support.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;

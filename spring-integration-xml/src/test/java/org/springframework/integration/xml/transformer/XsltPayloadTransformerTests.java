@@ -27,8 +27,10 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.w3c.dom.Document;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -58,6 +60,7 @@ public class XsltPayloadTransformerTests {
 	@Before
 	public void setUp() throws Exception {
 		transformer = new XsltPayloadTransformer(getXslResource());
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 	}
 
@@ -111,6 +114,7 @@ public class XsltPayloadTransformerTests {
 		Integer returnValue = new Integer(13);
 		transformer = new XsltPayloadTransformer(getXslResource(),
 				new StubResultTransformer(returnValue));
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object transformed = transformer
 				.doTransform(buildMessage(new StringSource(docAsString)));
@@ -123,6 +127,7 @@ public class XsltPayloadTransformerTests {
 		Integer returnValue = new Integer(13);
 		transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
 				"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object transformed = transformer
 				.doTransform(buildMessage(new StringSource(docAsString)));
@@ -133,6 +138,7 @@ public class XsltPayloadTransformerTests {
 	@Test(expected = TransformerFactoryConfigurationError.class)
 	public void testXsltPayloadWithBadTransformerFactoryClassname() throws Exception {
 		transformer = new XsltPayloadTransformer(getXslResource(), "foo.bar.Baz");
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		transformer.doTransform(buildMessage(new StringSource(docAsString)));
 	}
@@ -152,6 +158,7 @@ public class XsltPayloadTransformerTests {
 		Resource resource = new ClassPathResource("transform-with-import.xsl",
 				this.getClass());
 		transformer = new XsltPayloadTransformer(resource);
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		assertEquals(transformer.doTransform(buildMessage(docAsString)),
 				outputAsString);
@@ -165,6 +172,7 @@ public class XsltPayloadTransformerTests {
 		transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
 		assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
@@ -178,6 +186,7 @@ public class XsltPayloadTransformerTests {
 		transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
 		assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
@@ -188,6 +197,7 @@ public class XsltPayloadTransformerTests {
 		transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
+		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
 		assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
@@ -199,12 +209,21 @@ public class XsltPayloadTransformerTests {
 	}
 
 	private Resource getXslResource() throws Exception {
-		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
+		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
+				"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
+				"   <xsl:template match=\"order\">" +
+				"     <bob>test</bob>" +
+				"   </xsl:template>" +
+				"</xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
 	}
 
 	private Resource getXslResourceThatOutputsText() throws Exception {
-		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:output method=\"text\" encoding=\"UTF-8\" /><xsl:template match=\"order\">hello world</xsl:template></xsl:stylesheet>";
+		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
+				"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
+				"   <xsl:output method=\"text\" encoding=\"UTF-8\" />" +
+				"   <xsl:template match=\"order\">hello world</xsl:template>" +
+				"</xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
 	}
 

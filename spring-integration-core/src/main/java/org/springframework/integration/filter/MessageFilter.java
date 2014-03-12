@@ -16,13 +16,16 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingPostProcessingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Message Handler that delegates to a {@link MessageSelector}. If and only if
@@ -36,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler {
 
@@ -45,6 +49,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	private volatile MessageChannel discardChannel;
 
+	private volatile String discardChannelName;
 
 	/**
 	 * Create a MessageFilter that will delegate to the given
@@ -90,6 +95,10 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 		this.discardChannel = discardChannel;
 	}
 
+	public void setDiscardChannelName(String discardChannelName) {
+		this.discardChannelName = discardChannelName;
+	}
+
 	/**
 	 * Set to 'true' if you wish the discard processing to occur within any
 	 * request handler advice applied to this filter. Also applies to
@@ -108,6 +117,16 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	@Override
 	protected void doInit() {
+		if (StringUtils.hasText(this.discardChannelName)) {
+			Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
+			try {
+				this.discardChannel = this.getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
+			}
+			catch (BeansException e) {
+				throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+						+ this.discardChannelName + "' in the BeanFactory.");
+			}
+		}
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
 		}

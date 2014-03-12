@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,17 @@ package org.springframework.integration.aggregator;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.store.MessageGroup;
 
 /**
- * A {@link ReleaseStrategy} that invokes a method on a plain old Java object. 
- * 
+ * A {@link ReleaseStrategy} that invokes a method on a plain old Java object.
+ *
  * @author Marius Bogoevici
  * @author Dave Syer
  */
-public class MethodInvokingReleaseStrategy implements ReleaseStrategy {
+public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFactoryAware {
 
 	private final MethodInvokingMessageListProcessor<Boolean> adapter;
 
@@ -46,10 +47,12 @@ public class MethodInvokingReleaseStrategy implements ReleaseStrategy {
 		this.adapter.setConversionService(conversionService);
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.adapter.setBeanFactory(beanFactory);
 	}
 
+	@Override
 	public boolean canRelease(MessageGroup messages) {
 		return this.adapter.process(messages.getMessages(), null);
 	}

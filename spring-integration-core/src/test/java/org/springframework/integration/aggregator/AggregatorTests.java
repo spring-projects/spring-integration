@@ -47,6 +47,7 @@ public class AggregatorTests {
 	@Before
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
+		this.aggregator.afterPropertiesSet();
 	}
 
 

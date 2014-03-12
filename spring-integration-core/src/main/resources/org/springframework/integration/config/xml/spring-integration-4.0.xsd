@@ -3520,20 +3520,6 @@
 	<xsd:complexType name="resequencer-type">
 		<xsd:complexContent>
 			<xsd:extension base="correlating-message-handler-type">
-				<xsd:attribute name="comparator" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>
-							Comparator for messages used to sort the sequence when released. Defaults to comparing
-							the
-							sequence number header.
-						</xsd:documentation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="java.util.Comparator" />
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
 				<xsd:attribute name="release-partial-sequences" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
