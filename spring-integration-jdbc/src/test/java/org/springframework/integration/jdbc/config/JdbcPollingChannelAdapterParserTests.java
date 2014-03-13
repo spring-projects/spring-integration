@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,6 +130,20 @@ public class JdbcPollingChannelAdapterParserTests {
 	}
 
 	@Test
+	public void testSelectParameterSourceFactoryInboundChannelAdapter() {
+		setUp("pollingWithSelectParameterSourceJdbcInboundChannelAdapterTest.xml", getClass());
+		this.jdbcTemplate.update("insert into item values(1,'',42)");
+		Message<?> message = messagingTemplate.receive();
+		assertNotNull(message);
+		assertEquals(42, ((Map<?,?>) ((List<?> )message.getPayload()).get(0)).get("STATUS"));
+		this.jdbcTemplate.update("insert into item values(2,'',84)");
+		this.appCtx.getBean(Status.class).which = 84;
+		message = messagingTemplate.receive();
+		assertNotNull(message);
+		assertEquals(84, ((Map<?,?>) ((List<?> )message.getPayload()).get(0)).get("STATUS"));
+	}
+
+	@Test
 	public void testParameterSourceInboundChannelAdapter() {
 		setUp("pollingWithParametersForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
@@ -141,6 +155,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void testMaxRowsInboundChannelAdapter() {
 		setUp("pollingWithMaxRowsJdbcInboundChannelAdapterTest.xml", getClass());
 		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+			@Override
 			public Void doInTransaction(TransactionStatus status) {
 				jdbcTemplate.update("insert into item values(1,'',2)");
 				jdbcTemplate.update("insert into item values(2,'',2)");
@@ -200,12 +215,24 @@ public class JdbcPollingChannelAdapterParserTests {
 
 	public static class TestSqlParameterSource extends AbstractSqlParameterSource {
 
+		@Override
 		public Object getValue(String paramName) throws IllegalArgumentException {
 			return 2;
 		}
 
+		@Override
 		public boolean hasValue(String paramName) {
 			return true;
+		}
+
+	}
+
+	public static class Status {
+
+		private int which = 42;
+
+		public int which() {
+			return this.which;
 		}
 
 	}

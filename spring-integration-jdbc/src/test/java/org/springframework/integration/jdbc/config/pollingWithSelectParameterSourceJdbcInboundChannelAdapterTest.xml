@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/jdbc
+			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+	
+	<inbound-channel-adapter query="select * from item where status=:status" channel="target" 
+			data-source="dataSource" select-sql-parameter-source="parameterSource"
+			update="delete from item" />
+		
+	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />
+	
+	<beans:bean id="parameterSource" factory-bean="parameterSourceFactory" factory-method="createParameterSourceNoCache">
+		<beans:constructor-arg value="" />
+	</beans:bean>
+	
+	<beans:bean id="parameterSourceFactory" class="org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
+		<beans:property name="parameterExpressions">
+			<beans:map>
+				<beans:entry key="status" value="@statusBean.which()" />
+			</beans:map>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="statusBean" class="org.springframework.integration.jdbc.config.JdbcPollingChannelAdapterParserTests$Status" />
+
+</beans:beans>
