@@ -202,6 +202,10 @@
 									that query has
 									placeholders (e.g. "SELECT * from FOO where KEY=:key") they
 									will be bound from this source by name.
+									Note: if you use the framework's 'ExpressionEvaluatingSqlParameterSourceFactory'
+									to create a SpEL-based parameter source, be sure to use the 'createParameterSourceNoCache'
+									method so that the expression will be re-evaluated on each poll. See the reference
+									documentation for more information.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.jdbc.core.namedparam.SqlParameterSource" />

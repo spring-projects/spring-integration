@@ -82,7 +82,8 @@
     provides a <classname>ExpressionEvaluatingSqlParameterSourceFactory</classname> which
     will create a SpEL-based parameter source, with the results of the query as the
     <code>#root</code> object. (If <code>update-per-row</code> is true, the root object
-    is the row).
+    is the row). If the same parameter name appears multiple times in the update query, it
+    is evaluated only one time, and its result is cached.
     </para>
 
 	<para>
@@ -119,7 +120,9 @@
 	</para>
 	<important>
 		Use the <code>createParameterSourceNoCache</code> factory method; otherwise the parameter source will
-		cache the result of the evaluation.
+		cache the result of the evaluation. Also note that, because caching is disabled, if the same
+		parameter name appears in the select query multiple times, it will be re-evaluated for each
+		occurrence.
 	</important>
     <section>
       <title>Polling and Transactions</title>

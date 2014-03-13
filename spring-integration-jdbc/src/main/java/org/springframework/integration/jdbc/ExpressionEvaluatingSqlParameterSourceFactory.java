@@ -129,8 +129,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	}
 
 	/**
-	 * Create an expression evaluating parameter source the does not cache it's results. Useful for cases
-	 * where the source is used multiple times, for example in an i-c-a for the select parameter source.
+	 * Create an expression evaluating {@link SqlParameterSource} that does not cache it's results. Useful for cases
+	 * where the source is used multiple times, for example in a {@code <int-jdbc:inbound-channel-adapter} for the
+	 * {@code select-sql-parameter-source}.
 	 * @param input The root object for the evaluation.
 	 * @return The parameter source.
 	 */
