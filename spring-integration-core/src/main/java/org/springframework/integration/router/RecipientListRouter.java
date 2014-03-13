@@ -92,7 +92,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	}
 
 	@Override
-	public final void onInit() {
+	public void onInit() {
 		Assert.notEmpty(this.recipients, "recipient list must not be empty");
 	}
 

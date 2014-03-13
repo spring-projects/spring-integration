@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -45,6 +44,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -80,7 +80,9 @@ public abstract class TestUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T getPropertyValue(Object root, String propertyPath, Class<T> type) {
 		Object value = getPropertyValue(root, propertyPath);
-		Assert.isAssignable(type, value.getClass());
+		if (value != null) {
+			Assert.isAssignable(type, value.getClass());
+		}
 		return (T) value;
 	}
 
@@ -158,6 +160,7 @@ public abstract class TestUtils {
 	@SuppressWarnings("rawtypes")
 	public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
 		return new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
 				assertThat(message, is(messageMatcher));
 			}

@@ -18,6 +18,7 @@ package org.springframework.integration.router;
 
 import java.util.Collection;
 
+import org.springframework.beans.BeansException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.NullChannel;
@@ -28,6 +29,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for all Message Routers.
@@ -43,6 +47,8 @@ import org.springframework.messaging.MessagingException;
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile MessageChannel defaultOutputChannel;
+
+	private volatile String defaultOutputChannelName;
 
 	private volatile boolean ignoreSendFailures;
 
@@ -63,6 +69,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
+	}
+
+	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
+		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
 	/**
@@ -128,6 +138,16 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		super.onInit();
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+			if (StringUtils.hasText(this.defaultOutputChannelName)) {
+				Assert.isNull(this.defaultOutputChannel, "'defaultOutputChannelName' and 'defaultOutputChannel' are mutually exclusive.");
+				try {
+					this.defaultOutputChannel = this.getBeanFactory().getBean(this.defaultOutputChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.defaultOutputChannelName + "' in the BeanFactory.");
+				}
+			}
 		}
 	}
 

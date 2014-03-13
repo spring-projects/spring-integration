@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,11 @@
 
 package org.springframework.integration.config;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.context.Lifecycle;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.MethodFilter;
-import org.springframework.messaging.MessageHandler;
+import org.springframework.integration.expression.ControlBusMethodFilter;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.util.CustomizableThreadCreator;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a SpEL expression.
@@ -39,9 +29,9 @@ import org.springframework.util.ReflectionUtils;
  */
 public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
-	private volatile Long sendTimeout;
+	private static final MethodFilter methodFilter = new ControlBusMethodFilter();
 
-	private final MethodFilter methodFilter = new ControlBusMethodFilter();
+	private volatile Long sendTimeout;
 
 
 	public void setSendTimeout(Long sendTimeout) {
@@ -51,7 +41,7 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 	@Override
 	protected MessageHandler createHandler() {
 		ExpressionCommandMessageProcessor processor =
-				new ExpressionCommandMessageProcessor(this.methodFilter, this.getBeanFactory());
+				new ExpressionCommandMessageProcessor(methodFilter, this.getBeanFactory());
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
@@ -59,40 +49,5 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 		return handler;
 	}
 
-
-	private static class ControlBusMethodFilter implements MethodFilter {
-
-		public List<Method> filter(List<Method> methods) {
-			List<Method> supportedMethods = new ArrayList<Method>();
-			for (Method method : methods) {
-				if (this.accept(method)) {
-					supportedMethods.add(method);
-				}
-			}
-			return supportedMethods;
-		}
-
-		private boolean accept(Method method) {
-			Class<?> declaringClass = method.getDeclaringClass();
-			if (Lifecycle.class.isAssignableFrom(declaringClass)
-					&& ReflectionUtils.findMethod(Lifecycle.class, method.getName(), method.getParameterTypes()) != null) {
-				return true;
-			}
-			if (CustomizableThreadCreator.class.isAssignableFrom(declaringClass)
-					&& (method.getName().startsWith("get")
-							|| method.getName().startsWith("set")
-							|| method.getName().startsWith("shutdown"))) {
-				return true;
-			}
-			if (this.hasAnnotation(method, ManagedAttribute.class) || this.hasAnnotation(method, ManagedOperation.class)) {
-				return true;
-			}
-			return false;
-		}
-
-		private boolean hasAnnotation(Method method, Class<? extends Annotation> annotationType) {
-			return AnnotationUtils.findAnnotation(method, annotationType) != null;
-		}
-	}
 
 }
