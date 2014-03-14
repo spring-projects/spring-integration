@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,17 @@ package org.springframework.integration.config.xml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -43,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Dave Syer
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -58,6 +62,9 @@ public class ControlBusTests {
 	@Autowired
 	private DefaultHeaderChannelRegistry registry;
 
+	@Autowired
+	private Service service;
+
 	@Test
 	public void testDefaultEvaluationContext() {
 		Message<?> message = MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo").setHeader("foo", "bar").build();
@@ -67,14 +74,23 @@ public class ControlBusTests {
 	}
 
 	@Test
+	public void testvoidOperation() throws Exception {
+		Message<?> message = MessageBuilder.withPayload("@service.voidOp('foo')").build();
+		this.input.send(message);
+		assertTrue(this.service.latch.await(10, TimeUnit.SECONDS));
+	}
+
+	@Test
 	public void testLifecycleMethods() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ControlBusLifecycleTests-context.xml", this.getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"ControlBusLifecycleTests-context.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
 		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);
 		assertNull(outputChannel.receive(1000));
 		Message<?> message = MessageBuilder.withPayload("@adapter.start()").build();
 		inputChannel.send(message);
 		assertNotNull(outputChannel.receive(1000));
+		context.close();
 	}
 
 	@Test
@@ -101,9 +117,16 @@ public class ControlBusTests {
 
 	public static class Service {
 
+		private final CountDownLatch latch = new CountDownLatch(1);
+
 		@ManagedOperation
 		public String convert(String input) {
 			return "cat";
+		}
+
+		@ManagedOperation
+		public void voidOp(String input) {
+			latch.countDown();
 		}
 
 	}
