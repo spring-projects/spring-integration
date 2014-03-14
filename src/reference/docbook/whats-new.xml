@@ -65,6 +65,20 @@
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>
+		<section id="4.0-redis-cms">
+			<title>Redis Channel Message Stores</title>
+			<para>
+				A new Redis <interfacename>MessageGroupStore</interfacename>, that is optimized for
+				use when backing a <classname>QueueChannel</classname> for persistence, is now
+				provided.
+				For more information, see <xref linkend="redis-cms"/>.
+			</para>
+			<para>
+				A new Redis <interfacename>ChannelPriorityMessageStore</interfacename> is now
+				provided. This can be used to retrieve messages by priority.
+				For more information, see <xref linkend="redis-cms"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">

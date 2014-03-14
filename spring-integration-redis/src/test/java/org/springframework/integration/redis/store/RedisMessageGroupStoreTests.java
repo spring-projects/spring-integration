@@ -29,6 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import junit.framework.AssertionFailedError;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -45,8 +47,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-
-import junit.framework.AssertionFailedError;
 
 /**
  * @author Oleg Zhurakousky
@@ -318,6 +318,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor = Executors.newCachedThreadPool();
 
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store1.addMessageToGroup(1, message);
 					if (group.getMessages().size() != 1){
@@ -327,6 +328,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 				}
 			});
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
 					if (group.getMessages().size() != 0){
@@ -367,6 +369,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
 		input.send(m3);
 		assertNotNull(output.receive(1000));
+		context.close();
 	}
 
 }

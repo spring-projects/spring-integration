@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="cms" class="org.springframework.integration.redis.store.RedisChannelMessageStore">
+		<constructor-arg>
+			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<int:channel id="testChannel1">
+		<int:queue message-store="cms" />
+	</int:channel>
+
+	<int:channel id="testChannel2">
+		<int:queue message-store="cms" />
+	</int:channel>
+
+	<bean id="priorityCms" class="org.springframework.integration.redis.store.RedisChannelPriorityMessageStore">
+		<constructor-arg>
+			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<int:channel id="testChannel3">
+		<int:queue message-store="priorityCms" />
+	</int:channel>
+
+	<int:channel id="testChannel4">
+		<int:priority-queue message-store="priorityCms" />
+	</int:channel>
+
+</beans>

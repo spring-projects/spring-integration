@@ -274,10 +274,25 @@
 				<xsd:documentation>
 					<![CDATA[
 	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
-	interface and provides logic based on which Messages will be prioritized.
+	interface and provides logic based on which Messages will be prioritized. Not allowed with `message-store`.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-store" type="xsd:string">
+				<xsd:annotation>
+						<xsd:appinfo>
+								<tool:annotation kind="ref">
+										<tool:expected-type type="org.springframework.integration.store.ChannelPriorityMessageStore" />
+								</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+						A reference to a bean that implements 'org.springframework.integration.store.ChannelPriorityMessageStore'.
+						A message store that supports priority in a manner defined by the store. When set, the underlying
+						channel will be a 'QueueChannel` that delegates to a `MessageGroupQueue' backed by the store.
+						This attribute is mutually exclusive with 'comparator'.
+						</xsd:documentation>
+				</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 
