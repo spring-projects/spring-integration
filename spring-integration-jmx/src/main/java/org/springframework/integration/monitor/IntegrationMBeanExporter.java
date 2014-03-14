@@ -699,7 +699,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				logger.info("Finalized stop for component " + component + "; it reported " + n + " active messages");
 			}
 		}
-		logger.debug("Initiated stop OrderlyShutdownCapable components");
+		logger.debug("Finalized stop OrderlyShutdownCapable components");
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Channel Count")
