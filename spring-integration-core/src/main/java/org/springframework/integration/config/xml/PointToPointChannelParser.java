@@ -50,9 +50,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		boolean isFixedSubscriber = "true".equals(fixedSubscriberChannel.trim().toLowerCase());
 
 		// configure a queue-based channel if any queue sub-element is defined
+		String channel = element.getAttribute(ID_ATTRIBUTE);
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
-			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE));
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, channel, false);
 			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
 			if (!hasStoreRef) {
 				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
@@ -75,6 +76,15 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			if (StringUtils.hasText(comparatorRef)) {
 				builder.addConstructorArgReference(comparatorRef);
 			}
+			if (parseStoreRef(builder, queueElement, channel, true)) {
+				if (StringUtils.hasText(comparatorRef)) {
+					parserContext.getReaderContext().error(
+							"The 'message-store' attribute is not allowed" + " when providing a 'comparator' to a priority queue.",
+							element);
+				}
+				builder.getRawBeanDefinition().setBeanClass(QueueChannel.class);
+			}
+
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(RendezvousChannel.class);
@@ -158,13 +168,14 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		return false;
 	}
 
-	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel) {
+	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel, boolean priority) {
 		String storeRef = queueElement.getAttribute("message-store");
 		if (StringUtils.hasText(storeRef)) {
 			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(MessageGroupQueue.class);
 			queueBuilder.addConstructorArgReference(storeRef);
 			queueBuilder.addConstructorArgValue(new TypedStringValue(storeRef).getValue() + ":" + channel);
+			queueBuilder.addPropertyValue("priority", priority);
 			parseQueueCapacity(queueBuilder, queueElement);
 			builder.addConstructorArgValue(queueBuilder.getBeanDefinition());
 			return true;

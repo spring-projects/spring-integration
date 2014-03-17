@@ -577,13 +577,20 @@ payload to an Integer.
      the <emphasis>org.springframework.integration.jdbc</emphasis> package of that module (spring-integration-jdbc).
 
      <important>
-     One important feature is that with any transactional persistent store (e.g., JdbcMessageStore), as long as the poller has a transaction configured,
+     One important feature is that with any transactional persistent store (e.g., JdbcChannelMessageStore), as long as the poller has a transaction configured,
      a Message removed from the store will only be permanently removed if the transaction completes
      successfully, otherwise the transaction will roll back and the Message will not be lost.
      </important>
      Many other implementations of the Message Store will be available as the growing number of Spring projects
      related to "NoSQL" data stores provide the underlying support. Of course, you can always provide your own implementation
      of the MessageGroupStore interface if you cannot find one that meets your particular needs.
+      </para>
+      <para>
+        Since <emphasis>version 4.0</emphasis>, it is recommended that <classname>QueueChannel</classname>s are
+        configured to use a <interfacename>ChannelMessageStore</interfacename> if possible. These are generally optimized
+        for this use, when compared with a general message store. If the <interfacename>ChannelMessageStore</interfacename>
+        is a <interfacename>ChannelPriorityMessageStore</interfacename> the messages will be received in
+        FIFO within priority order. The notion of priority is determined by the message store implementation.
       </para>
     </section>
 
@@ -651,6 +658,13 @@ payload to an Integer.
                     capacity="10"/>
 </int:channel>
 ]]></programlisting>
+      </para>
+      <para>
+        Since <emphasis>version 4.0</emphasis>, the <code>priority-channel</code> child element supports
+        the <code>message-store</code> option (<code>comparator</code> is not allowed in that case).
+        The message store must be a <interfacename>ChannelPriorityMessageStore</interfacename> and, in this
+        case, the namespace parser will declare a <classname>QueueChannel</classname> instead of
+        a <classname>PriorityChannel</classname>. See <xref linkend="channel-configuration-queuechannel"/>.
       </para>
     </section>
     <section id="channel-configuration-rendezvouschannel">

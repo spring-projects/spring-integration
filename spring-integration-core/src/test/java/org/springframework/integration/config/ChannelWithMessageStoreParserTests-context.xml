@@ -23,4 +23,10 @@
 		<beans:property name="replyMessageText" value="hello"/>
 	</beans:bean>
 
+	<channel id="priority">
+		<priority-queue message-store="priorityMessageStore" />
+	</channel>
+
+	<beans:bean id="priorityMessageStore" class="org.springframework.integration.config.ChannelWithMessageStoreParserTests$DummyPriorityMS" />
+
 </beans:beans>
