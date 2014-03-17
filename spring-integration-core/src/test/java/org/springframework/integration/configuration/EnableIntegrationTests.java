@@ -19,9 +19,13 @@ package org.springframework.integration.configuration;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -45,9 +49,12 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorBeanPostProcessor;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.MessageBuilder;
@@ -55,6 +62,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -78,14 +87,29 @@ public class EnableIntegrationTests {
 	private PollableChannel publishedChannel;
 
 	@Autowired
+	private PollableChannel wireTapChannel;
+
+	@Autowired
 	private MessageHistoryConfigurer configurer;
 
 	@Autowired
 	private TestGateway testGateway;
 
+	@Autowired
+	private TestChannelInterceptor testChannelInterceptor;
+
+	@Autowired
+	private GlobalChannelInterceptorBeanPostProcessor beanPostProcessor;
+
 	@Test
 	public void testAnnotatedServiceActivator() {
+		assertEquals(3, TestUtils.getPropertyValue(this.beanPostProcessor, "channelInterceptors", List.class).size());
 		this.input.send(MessageBuilder.withPayload("Foo").build());
+
+		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);
+		assertNotNull(interceptedMessage);
+		assertEquals("Foo", interceptedMessage.getPayload());
+
 		Message<?> receive = this.output.receive(1000);
 		assertNotNull(receive);
 		assertEquals("FOO", receive.getPayload());
@@ -107,6 +131,9 @@ public class EnableIntegrationTests {
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("input")));
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
 		assertThat(messageHistoryString, Matchers.containsString("publishedChannel"));
+
+		assertNull(this.wireTapChannel.receive(0));
+		assertThat(this.testChannelInterceptor.getInvoked(), Matchers.greaterThan(0));
 	}
 
 	@Test @DirtiesContext
@@ -145,6 +172,36 @@ public class EnableIntegrationTests {
 		@Bean
 		public PollableChannel output() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel wireTapChannel() {
+			return new QueueChannel();
+		}
+
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = "input")
+		public WireTap wireTap() {
+			return new WireTap(this.wireTapChannel());
+		}
+
+	}
+
+	@Component
+	@GlobalChannelInterceptor
+	public static class TestChannelInterceptor extends ChannelInterceptorAdapter {
+
+		private final AtomicInteger invoked = new AtomicInteger();
+
+		@Override
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+			this.invoked.incrementAndGet();
+			return message;
+		}
+
+		public Integer getInvoked() {
+			return invoked.get();
 		}
 
 	}

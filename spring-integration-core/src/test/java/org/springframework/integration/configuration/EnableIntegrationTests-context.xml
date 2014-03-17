@@ -8,10 +8,13 @@
 
 	<message-history tracked-components="publishedChannel,input,*AnnotationTestService*"/>
 
-<annotation-config default-publisher-channel="publishedChannel"/>
-<channel-interceptor pattern="none">
+	<annotation-config default-publisher-channel="publishedChannel"/>
+
+	<channel-interceptor pattern="none">
 		<wire-tap channel="bar" />
 	</channel-interceptor>
 
 	<service-activator input-channel="bar" expression="'foo'" />
-</beans:beans>
+	<channel-interceptor>
+		<beans:bean class="org.springframework.integration.configuration.EnableIntegrationTests$TestChannelInterceptor"/>
+	</channel-interceptor></beans:beans>
