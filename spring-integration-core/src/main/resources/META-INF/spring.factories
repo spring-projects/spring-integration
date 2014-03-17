@@ -1,2 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 org.springframework.integration.config.boot.IntegrationAutoConfiguration
+org.springframework.integration.config.IntegrationConfigurationInitializer=\
+org.springframework.integration.config.GlobalChannelInterceptorInitializer

@@ -72,6 +72,14 @@
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>
+		<section id="4.0-global-channel-interceptor">
+			<title>@GlobalChannelInterceptor</title>
+			<para>
+				As well as the <code>@EnableIntegration</code> annotation mentioned above,
+				the <code>@GlobalChannelInterceptor</code> annotation has bean introduced.
+				For more information, see <xref linkend="enable-integration"/>.
+			</para>
+		</section>
 		<section id="4.0-enable-publisher">
 			<title>@EnablePublisher</title>
 			<para>

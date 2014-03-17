@@ -18,16 +18,24 @@ package org.springframework.integration.configuration;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -43,11 +51,15 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.MessageBuilder;
@@ -55,6 +67,9 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -69,13 +84,19 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public class EnableIntegrationTests {
 
 	@Autowired
+	private ApplicationContext context;
+
+	@Autowired
 	private MessageChannel input;
 
 	@Autowired
-	private PollableChannel output;
+	private QueueChannel output;
 
 	@Autowired
 	private PollableChannel publishedChannel;
+
+	@Autowired
+	private PollableChannel wireTapChannel;
 
 	@Autowired
 	private MessageHistoryConfigurer configurer;
@@ -83,9 +104,20 @@ public class EnableIntegrationTests {
 	@Autowired
 	private TestGateway testGateway;
 
+	@Autowired
+	private TestChannelInterceptor testChannelInterceptor;
+
+	@Autowired
+	private AtomicInteger fbInterceptorCounter;
+
 	@Test
 	public void testAnnotatedServiceActivator() {
 		this.input.send(MessageBuilder.withPayload("Foo").build());
+
+		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);
+		assertNotNull(interceptedMessage);
+		assertEquals("Foo", interceptedMessage.getPayload());
+
 		Message<?> receive = this.output.receive(1000);
 		assertNotNull(receive);
 		assertEquals("FOO", receive.getPayload());
@@ -107,19 +139,24 @@ public class EnableIntegrationTests {
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("input")));
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
 		assertThat(messageHistoryString, Matchers.containsString("publishedChannel"));
+
+		assertNull(this.wireTapChannel.receive(0));
+		assertThat(this.testChannelInterceptor.getInvoked(), Matchers.greaterThan(0));
+		assertThat(this.fbInterceptorCounter.get(), Matchers.greaterThan(0));
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void testChangePatterns() {
 		try {
-			this.configurer.setComponentNamePatterns(new String[] {"*"});
+			this.configurer.setComponentNamePatterns(new String[]{"*"});
 			fail("ExpectedException");
 		}
 		catch (IllegalStateException e) {
 			assertThat(e.getMessage(), containsString("cannot be changed"));
 		}
 		this.configurer.stop();
-		this.configurer.setComponentNamePatterns(new String[] {"*"});
+		this.configurer.setComponentNamePatterns(new String[]{"*"});
 		assertEquals("*", TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0]);
 	}
 
@@ -127,6 +164,32 @@ public class EnableIntegrationTests {
 	public void testMessagingGateway() {
 		String payload = "bar";
 		assertEquals(payload.toUpperCase(), this.testGateway.echo(payload));
+	}
+
+	@Test
+	public void testParentChildAnnotationConfiguration() {
+		AnnotationConfigApplicationContext child = new AnnotationConfigApplicationContext();
+		child.register(ChildConfiguration.class);
+		child.setParent(this.context);
+		child.refresh();
+		AbstractMessageChannel foo = child.getBean("foo", AbstractMessageChannel.class);
+		ChannelInterceptor baz = child.getBean("baz", ChannelInterceptor.class);
+		assertTrue(foo.getChannelInterceptors().contains(baz));
+		assertFalse(this.output.getChannelInterceptors().contains(baz));
+		child.close();
+	}
+
+	@Test
+	public void testParentChildAnnotationConfigurationFromAnotherPackage() {
+		AnnotationConfigApplicationContext child = new AnnotationConfigApplicationContext();
+		child.register(org.springframework.integration.configuration2.ChildConfiguration.class);
+		child.setParent(this.context);
+		child.refresh();
+		AbstractMessageChannel foo = child.getBean("foo", AbstractMessageChannel.class);
+		ChannelInterceptor baz = child.getBean("baz", ChannelInterceptor.class);
+		assertTrue(foo.getChannelInterceptors().contains(baz));
+		assertFalse(this.output.getChannelInterceptors().contains(baz));
+		child.close();
 	}
 
 	@Configuration
@@ -145,6 +208,65 @@ public class EnableIntegrationTests {
 		@Bean
 		public PollableChannel output() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel wireTapChannel() {
+			return new QueueChannel();
+		}
+
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = "input")
+		public WireTap wireTap() {
+			return new WireTap(this.wireTapChannel());
+		}
+
+		@Bean
+		public AtomicInteger fbInterceptorCounter() {
+			return new AtomicInteger();
+		}
+
+		@Bean
+		@GlobalChannelInterceptor
+		public FactoryBean<ChannelInterceptor> ciFactoryBean() {
+			return new AbstractFactoryBean<ChannelInterceptor>() {
+
+				@Override
+				public Class<?> getObjectType() {
+					return ChannelInterceptor.class;
+				}
+
+				@Override
+				protected ChannelInterceptor createInstance() throws Exception {
+					return new ChannelInterceptorAdapter() {
+
+						@Override
+						public Message<?> preSend(Message<?> message, MessageChannel channel) {
+							fbInterceptorCounter().incrementAndGet();
+							return super.preSend(message, channel);
+						}
+					};
+				}
+			};
+		}
+
+	}
+
+	@Component
+	@GlobalChannelInterceptor
+	public static class TestChannelInterceptor extends ChannelInterceptorAdapter {
+
+		private final AtomicInteger invoked = new AtomicInteger();
+
+		@Override
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+			this.invoked.incrementAndGet();
+			return message;
+		}
+
+		public Integer getInvoked() {
+			return invoked.get();
 		}
 
 	}
@@ -173,6 +295,24 @@ public class EnableIntegrationTests {
 
 	}
 
+	@Configuration
+	@EnableIntegration
+	public static class ChildConfiguration {
+
+		@Bean
+		public MessageChannel foo() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = "*")
+		public WireTap baz() {
+			return new WireTap(new NullChannel());
+		}
+
+	}
+
+
 	@MessageEndpoint
 	public static class AnnotationTestService {
 
@@ -196,7 +336,7 @@ public class EnableIntegrationTests {
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public static interface TestGateway {
 
-		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression="#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
 		String echo(String payload);
 
 	}
