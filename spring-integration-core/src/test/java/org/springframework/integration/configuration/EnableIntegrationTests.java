@@ -59,7 +59,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
-import org.springframework.integration.configuration2.ChildConfiguration;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.MessageBuilder;
@@ -109,7 +108,7 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testAnnotatedServiceActivator() {
-		assertEquals(3, TestUtils.getPropertyValue(this.beanPostProcessor, "channelInterceptors", List.class).size());
+		assertEquals(4, TestUtils.getPropertyValue(this.beanPostProcessor, "channelInterceptors", List.class).size());
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);
@@ -176,7 +175,7 @@ public class EnableIntegrationTests {
 		child.close();
 	}
 
-	@Test
+@Test
 	public void testParentChildAnnotationConfigurationFromAnotherPackage() {
 		AnnotationConfigApplicationContext child = new AnnotationConfigApplicationContext();
 		child.register(org.springframework.integration.configuration2.ChildConfiguration.class);

@@ -34,6 +34,13 @@
 
 package org.springframework.integration.config;
 
+<<<<<<< .mine
+import java.lang.annotation.Annotation;
+import java.util.List;
+=======
+
+
+>>>>>>> .theirs
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
@@ -76,7 +83,7 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 					annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
 				}
 
-				if (!CollectionUtils.isEmpty(annotationAttributes)) {
+			if (!CollectionUtils.isEmpty(annotationAttributes)) {
 					BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
 							.addConstructorArgReference(interceptorBeanName)
 							.addPropertyValue("patterns", annotationAttributes.get("patterns"))
