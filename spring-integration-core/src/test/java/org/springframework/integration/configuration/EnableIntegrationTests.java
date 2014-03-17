@@ -59,6 +59,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.configuration2.ChildConfiguration;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.MessageBuilder;
@@ -187,7 +188,6 @@ public class EnableIntegrationTests {
 		assertFalse(this.output.getChannelInterceptors().contains(baz));
 		child.close();
 	}
-
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
