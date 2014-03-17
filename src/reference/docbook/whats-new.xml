@@ -65,6 +65,14 @@
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>
+		<section id="4.0-enable-publisher">
+			<title>@EnablePublisher</title>
+			<para>
+				The <code>@EnablePublisher</code> annotation has been added, to allow the specification of a
+				<code>default-publisher-channel</code> for <classname>@Publisher</classname> annotations.
+				See <xref linkend="enable-integration"/> for more information.
+			</para>
+		</section>
 		<section id="4.0-redis-cms">
 			<title>Redis Channel Message Stores</title>
 			<para>

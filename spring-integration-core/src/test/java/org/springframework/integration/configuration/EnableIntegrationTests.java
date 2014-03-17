@@ -47,6 +47,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
+import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.MessageBuilder;
@@ -152,6 +153,7 @@ public class EnableIntegrationTests {
 	@EnableIntegration
 	@ImportResource("classpath:org/springframework/integration/configuration/EnableIntegrationTests-context.xml")
 	@EnableMessageHistory("${message.history.tracked.components}")
+	@EnablePublisher("publishedChannel")
 	public static class ContextConfiguration2 {
 
 		@Bean
@@ -175,7 +177,7 @@ public class EnableIntegrationTests {
 	public static class AnnotationTestService {
 
 		@ServiceActivator(inputChannel = "input", outputChannel = "output")
-		@Publisher(channel = "publishedChannel")
+		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle(String payload) {
 			return payload.toUpperCase();

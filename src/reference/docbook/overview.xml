@@ -345,12 +345,20 @@
       components to be declared once only, in the parent context.
     </para>
 	<para>
-        The <code>@IntegrationComponentScan</code> annotation has also been introduced to permit classpath
+		The <code>@IntegrationComponentScan</code> annotation has also been introduced to permit classpath
 		scanning. This annotation plays a similar role as the standard Spring Framework <code>@ComponentScan</code> annotation,
 		but it is restricted just to Spring Integration specific components and annotations,
 		which aren't reachable by the standard Spring Framework component scan mechanism.
 		For example <xref linkend="messaging-gateway-annotation"/>.
-    </para>
+	</para>
+	<para>
+		The <code>@EnablePublisher</code> annotation has been introduced to register a
+		<classname>PublisherAnnotationBeanPostProcessor</classname> bean and configure the <code>default-publisher-channel</code>
+		for those <classname>@Publisher</classname> annotations which are provided without a <code>channel</code> attribute.
+		If more than one <code>@EnablePublisher</code> annotation is found, they must all have the same value
+		for the default channel.
+		See <xref linkend="publisher-annotation"/> for more information.
+	</para>
   </section>
 
 </chapter>

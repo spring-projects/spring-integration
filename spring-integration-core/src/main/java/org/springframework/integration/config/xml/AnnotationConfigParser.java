@@ -41,7 +41,7 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 			@Override
 			public Map<String, Object> getAnnotationAttributes(String annotationType) {
-				return Collections.<String, Object> singletonMap("defaultPublisherChannel", element.getAttribute("default-publisher-channel"));
+				return Collections.<String, Object> singletonMap("value", element.getAttribute("default-publisher-channel"));
 			}
 		}, parserContext.getRegistry());
 
