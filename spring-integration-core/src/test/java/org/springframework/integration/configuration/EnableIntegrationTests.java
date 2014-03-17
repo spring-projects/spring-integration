@@ -108,6 +108,7 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testAnnotatedServiceActivator() {
+		assertEquals(3, TestUtils.getPropertyValue(this.beanPostProcessor, "channelInterceptors", List.class).size());
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);

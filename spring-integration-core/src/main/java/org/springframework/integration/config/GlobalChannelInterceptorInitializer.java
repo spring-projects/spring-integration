@@ -1,3 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -71,3 +89,21 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
