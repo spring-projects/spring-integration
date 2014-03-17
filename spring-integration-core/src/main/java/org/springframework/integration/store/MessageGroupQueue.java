@@ -93,9 +93,25 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		}
 	}
 
+	/**
+	 * If true, ensures that the message store supports priority. If false WARNs if the
+	 * message store uses priority to determine the message order when receiving.
+	 * @param priority true if priority is expected to be used.
+	 */
 	public void setPriority(boolean priority) {
 		if (priority) {
-			Assert.isInstanceOf(ChannelPriorityMessageStore.class, this.messageGroupStore);
+			Assert.isInstanceOf(PriorityCapableChannelMessageStore.class, this.messageGroupStore);
+			Assert.isTrue(((PriorityCapableChannelMessageStore) this.messageGroupStore).isPriorityEnabled(),
+					"When using priority, the 'PriorityCapableChannelMessageStore' must have priority enabled.");
+		}
+		else {
+			if (logger.isWarnEnabled() && this.messageGroupStore instanceof PriorityCapableChannelMessageStore
+					&& ((PriorityCapableChannelMessageStore) this.messageGroupStore).isPriorityEnabled()) {
+				logger.warn("It's not recommended to use a priority-based message store " +
+						"when declaring a non-priority 'MessageGroupQueue'; message retrieval may not be FIFO; " +
+						"set 'priority' to 'true' if that is your intent. If you are using the namespace to " +
+						"define a channel, use '<priority-queue message-store.../> instead.");
+			}
 		}
 	}
 

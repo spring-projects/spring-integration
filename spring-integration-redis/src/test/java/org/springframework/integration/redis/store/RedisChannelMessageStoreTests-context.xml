@@ -30,7 +30,7 @@
 	</bean>
 
 	<int:channel id="testChannel3">
-		<int:queue message-store="priorityCms" />
+		<int:priority-queue message-store="priorityCms" />
 	</int:channel>
 
 	<int:channel id="testChannel4">

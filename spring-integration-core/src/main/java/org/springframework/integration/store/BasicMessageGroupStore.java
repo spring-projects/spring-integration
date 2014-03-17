@@ -24,7 +24,6 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  * @since 4.0
  *
- * @param <T> The key type.
  */
 public interface BasicMessageGroupStore {
 

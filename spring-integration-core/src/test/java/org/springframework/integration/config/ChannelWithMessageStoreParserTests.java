@@ -26,8 +26,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.store.ChannelPriorityMessageStore;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -95,7 +95,12 @@ public class ChannelWithMessageStoreParserTests {
 				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
 	}
 
-	public static class DummyPriorityMS extends SimpleMessageStore implements ChannelPriorityMessageStore {
+	public static class DummyPriorityMS extends SimpleMessageStore implements PriorityCapableChannelMessageStore {
+
+		@Override
+		public boolean isPriorityEnabled() {
+			return true;
+		}
 
 	}
 

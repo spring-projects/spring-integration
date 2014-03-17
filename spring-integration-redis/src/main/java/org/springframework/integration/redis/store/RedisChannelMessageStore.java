@@ -15,36 +15,35 @@
  */
 package org.springframework.integration.redis.store;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.store.BasicMessageGroupStore;
+import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * Specialized Redis {@link MessageGroupStore} that uses a list to back a QueueChannel.
+ * Specialized Redis {@link ChannelMessageGroupStore} that uses a list to back a QueueChannel.
  * <p>
- * Operations other than those needed to support channel persistence are unsupported.
+ * Requires {@link #setBeanName(String)} which is used as part of the key.
  *
  * @author Gary Russell
  * @since 4.0
  *
  */
-public class RedisChannelMessageStore implements BasicMessageGroupStore, BeanNameAware {
+public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAware, InitializingBean {
 
-	private final RedisTemplate<Object, Object> redisTemplate;
+	private final RedisTemplate<Object, Message<?>> redisTemplate;
 
 	private String beanName;
 
@@ -54,7 +53,7 @@ public class RedisChannelMessageStore implements BasicMessageGroupStore, BeanNam
 	 * @param connectionFactory The redis connection factory.
 	 */
 	public RedisChannelMessageStore(RedisConnectionFactory connectionFactory) {
-		this.redisTemplate = new RedisTemplate<Object, Object>();
+		this.redisTemplate = new RedisTemplate<Object, Message<?>>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
 		this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -74,6 +73,7 @@ public class RedisChannelMessageStore implements BasicMessageGroupStore, BeanNam
 
 	@Override
 	public void setBeanName(String name) {
+		Assert.notNull(name, "'beanName' must not be null");
 		this.beanName = name;
 	}
 
@@ -81,8 +81,13 @@ public class RedisChannelMessageStore implements BasicMessageGroupStore, BeanNam
 		return beanName;
 	}
 
-	protected RedisTemplate<Object, Object> getRedisTemplate() {
+	protected RedisTemplate<Object, Message<?>> getRedisTemplate() {
 		return redisTemplate;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.beanName, "'beanName' must not be null");
 	}
 
 	@Override
@@ -91,11 +96,10 @@ public class RedisChannelMessageStore implements BasicMessageGroupStore, BeanNam
 		return (int) this.redisTemplate.boundListOps(groupId).size().longValue();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		List<?> messages = this.redisTemplate.boundListOps(groupId).range(0, -1);
-		return new SimpleMessageGroup((Collection<? extends Message<?>>) messages, groupId);
+		List<Message<?>> messages = this.redisTemplate.boundListOps(groupId).range(0, -1);
+		return new SimpleMessageGroup(messages, groupId);
 	}
 
 	@Override
@@ -110,7 +114,7 @@ public class RedisChannelMessageStore implements BasicMessageGroupStore, BeanNam
 
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
-		return (Message<?>) this.redisTemplate.boundListOps(groupId).rightPop();
+		return this.redisTemplate.boundListOps(groupId).rightPop();
 	}
 
 	@ManagedAttribute

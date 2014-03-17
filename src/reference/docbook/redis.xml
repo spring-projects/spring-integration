@@ -447,7 +447,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 		</para>
 		<important>
 			These stores implement only <interfacename>BasicMessageGroupStore</interfacename> and
-			do implement <interfacename>MessageGroupStore</interfacename>; they
+			do not implement <interfacename>MessageGroupStore</interfacename>; they
 			can only be used for situations such as backing a <classname>QueueChannel</classname>.
 		</important>
 	</section>

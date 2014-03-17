@@ -80,13 +80,13 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		}
 		assertEquals(1, this.cms.getMessageGroupCount());
 		assertEquals(10, this.cms.messageGroupSize("cms:testChannel1"));
-		assertEquals(10, this.priorityCms.getMessageGroup("cms:testChannel1").size());
+		assertEquals(10, this.cms.getMessageGroup("cms:testChannel1").size());
 		for (int i = 0; i < 10; i++) {
 			this.testChannel2.send(new MutableMessage<Integer>(i));
 		}
 		assertEquals(2, this.cms.getMessageGroupCount());
 		assertEquals(10, this.cms.messageGroupSize("cms:testChannel2"));
-		assertEquals(10, this.priorityCms.getMessageGroup("cms:testChannel2").size());
+		assertEquals(10, this.cms.getMessageGroup("cms:testChannel2").size());
 		assertEquals(20, this.cms.getMessageCountForAllMessageGroups());
 		for (int i = 0; i < 10; i++) {
 			Message<?> out = this.testChannel1.receive(0);
@@ -113,6 +113,7 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 	}
 
 	@Test
+	@RedisAvailable
 	public void testPriority() {
 		for (int i = 0; i < 10; i++) {
 			Message<Integer> message = MessageBuilder.withPayload(i).setPriority(9-i).build();

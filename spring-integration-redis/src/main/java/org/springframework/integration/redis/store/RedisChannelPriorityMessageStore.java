@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.redis.store;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,8 +25,8 @@ import java.util.Set;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.ChannelMessageStore;
-import org.springframework.integration.store.ChannelPriorityMessageStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
@@ -37,7 +36,7 @@ import org.springframework.util.Assert;
  * Specialized Redis {@link ChannelMessageStore} that uses lists to back a QueueChannel.
  * Messages are removed in priority order ({@link IntegrationMessageHeaderAccessor#PRIORITY}.
  * Priorities 0-9 are supported; higher values are treated with the same priority (none)
- * as messages with no priority header.
+ * as messages with no priority header (retrieved after any messages that have a priority)
  * <p>
  * Requires that groupId is a String.
  *
@@ -45,12 +44,16 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore implements ChannelPriorityMessageStore {
+public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore implements PriorityCapableChannelMessageStore {
 
 	public RedisChannelPriorityMessageStore(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory);
 	}
 
+	@Override
+	public boolean isPriorityEnabled() {
+		return true;
+	}
 
 	@Override
 	@ManagedAttribute
@@ -64,16 +67,16 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore i
 		return count;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		List<Object> allMessages = new LinkedList<Object>();
+		Assert.isInstanceOf(String.class, groupId);
+		List<Message<?>> allMessages = new LinkedList<Message<?>>();
 		List<String> list = sortedKeys((String) groupId);
 		for (String key : list) {
-			List<?> messages = this.getRedisTemplate().boundListOps(key).range(0, -1);
+			List<Message<?>> messages = this.getRedisTemplate().boundListOps(key).range(0, -1);
 			allMessages.addAll(messages);
 		}
-		return new SimpleMessageGroup((Collection<? extends Message<?>>) allMessages, groupId);
+		return new SimpleMessageGroup(allMessages, groupId);
 	}
 
 
@@ -105,8 +108,8 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore i
 		return null;
 	}
 
-	private List<String> sortedKeys(String channel) {
-		Set<Object> keys = this.getRedisTemplate().keys(this.getBeanName() + ":" + channel == null ? "*" : (channel + "*"));
+	private List<String> sortedKeys(String groupId) {
+		Set<Object> keys = this.getRedisTemplate().keys(groupId == null ? (this.getBeanName() + ":*") : (groupId + "*"));
 		List<String> list = new LinkedList<String>();
 		for (Object key : keys) {
 			Assert.isInstanceOf(String.class, key);
