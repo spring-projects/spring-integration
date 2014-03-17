@@ -18,6 +18,7 @@ package org.springframework.integration.configuration;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -32,6 +33,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +50,7 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorBeanPostProcessor;
@@ -55,6 +59,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.configuration2.ChildConfiguration;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.MessageBuilder;
@@ -62,6 +67,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
@@ -78,10 +84,13 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public class EnableIntegrationTests {
 
 	@Autowired
+	private ApplicationContext context;
+
+	@Autowired
 	private MessageChannel input;
 
 	@Autowired
-	private PollableChannel output;
+	private QueueChannel output;
 
 	@Autowired
 	private PollableChannel publishedChannel;
@@ -136,17 +145,18 @@ public class EnableIntegrationTests {
 		assertThat(this.testChannelInterceptor.getInvoked(), Matchers.greaterThan(0));
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void testChangePatterns() {
 		try {
-			this.configurer.setComponentNamePatterns(new String[] {"*"});
+			this.configurer.setComponentNamePatterns(new String[]{"*"});
 			fail("ExpectedException");
 		}
 		catch (IllegalStateException e) {
 			assertThat(e.getMessage(), containsString("cannot be changed"));
 		}
 		this.configurer.stop();
-		this.configurer.setComponentNamePatterns(new String[] {"*"});
+		this.configurer.setComponentNamePatterns(new String[]{"*"});
 		assertEquals("*", TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0]);
 	}
 
@@ -154,6 +164,19 @@ public class EnableIntegrationTests {
 	public void testMessagingGateway() {
 		String payload = "bar";
 		assertEquals(payload.toUpperCase(), this.testGateway.echo(payload));
+	}
+
+	@Test
+	public void testParentChildAnnotationConfiguration() {
+		AnnotationConfigApplicationContext child = new AnnotationConfigApplicationContext();
+		child.register(ChildConfiguration.class);
+		child.setParent(this.context);
+		child.refresh();
+		AbstractMessageChannel foo = child.getBean("foo", AbstractMessageChannel.class);
+		ChannelInterceptor baz = child.getBean("baz", ChannelInterceptor.class);
+		assertTrue(foo.getChannelInterceptors().contains(baz));
+		assertFalse(this.output.getChannelInterceptors().contains(baz));
+		child.close();
 	}
 
 	@Configuration
@@ -253,7 +276,7 @@ public class EnableIntegrationTests {
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public static interface TestGateway {
 
-		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression="#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
 		String echo(String payload);
 
 	}
