@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.type.StandardMethodMetadata;
+import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorBeanPostProcessor;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -36,9 +37,9 @@ import org.springframework.messaging.support.ChannelInterceptor;
 /**
  * The {@link IntegrationConfigurationInitializer} to populate {@link GlobalChannelInterceptorWrapper}
  * for {@link ChannelInterceptor}s marked with {@link GlobalChannelInterceptor} annotation.
- * <p>
+ * <p/>
  * {@link org.springframework.context.annotation.Bean} methods are also processed.
- * <p>
+ * <p/>
  * In addition this component registers {@link GlobalChannelInterceptorBeanPostProcessor} if necessary.
  *
  * @author Artem Bilan
@@ -61,8 +62,27 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 			if (annotation == null) {
 				BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
 				if (beanDefinition instanceof AnnotatedBeanDefinition) {
-					StandardMethodMetadata beanMethod = (StandardMethodMetadata) beanDefinition.getSource();
-					annotation = AnnotationUtils.findAnnotation(beanMethod.getIntrospectedMethod(), GlobalChannelInterceptor.class);
+					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
+					final Map<String, Object> annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+					if (annotationAttributes != null) {
+						annotation = new GlobalChannelInterceptor() {
+
+							@Override
+							public String[] patterns() {
+								return (String[]) annotationAttributes.get("patterns");
+							}
+
+							@Override
+							public int order() {
+								return (Integer) annotationAttributes.get("order");
+							}
+
+							@Override
+							public Class<? extends Annotation> annotationType() {
+								return GlobalChannelInterceptor.class;
+							}
+						};
+					}
 				}
 			}
 			if (annotation != null) {
