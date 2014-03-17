@@ -8,4 +8,6 @@
 
 	<message-history tracked-components="publishedChannel,input,*AnnotationTestService*"/>
 
+	<annotation-config default-publisher-channel="publishedChannel"/>
+
 </beans:beans>

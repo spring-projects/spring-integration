@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -51,7 +50,6 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link ImportBeanDefinitionRegistrar} implementation that configures integration infrastructure.
@@ -302,20 +300,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
 		}
 
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)
-					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-			Map<String, Object> attrs = meta.getAnnotationAttributes(EnableIntegration.class.getName());
-
-			String defaultPublisherChannel = (String) attrs.get("defaultPublisherChannel");
-			if (StringUtils.hasText(defaultPublisherChannel)) {
-				builder.addPropertyReference("defaultChannel", defaultPublisherChannel);
-			}
-
-			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
-		}
-
+		new PublisherRegistrar().registerBeanDefinitions(meta, registry);
 	}
 
 	/**
