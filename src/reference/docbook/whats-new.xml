@@ -94,6 +94,13 @@
 				For more information, see <xref linkend="redis-cms"/>.
 			</para>
 		</section>
+		<section id="4.0-message-history">
+			<title>@EnableIntegrationMBeanExport</title>
+			<para>
+				<classname>IntegrationMBeanExporter</classname> can now be enabled with the <code>@EnableIntegrationMBeanExport</code>
+				annotation in a <code>@Configuration</code> class. For more information, see <xref linkend="jmx-mbean-exporter"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">

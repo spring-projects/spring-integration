@@ -37,7 +37,7 @@ public class JmxIntegrationConfigurationInitializer implements IntegrationConfig
 	}
 
 	private void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
-		if (!beanFactory.getBeansOfType(IntegrationMBeanExporter.class, false, false).isEmpty()) {
+		if (beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class).length > 0) {
 			MBeanExporterHelper mBeanExporterHelper = new MBeanExporterHelper();
 			mBeanExporterHelper.postProcessBeanFactory(beanFactory);
 			beanFactory.registerSingleton(MBEAN_EXPORTER_HELPER_BEAN_NAME, mBeanExporterHelper);
