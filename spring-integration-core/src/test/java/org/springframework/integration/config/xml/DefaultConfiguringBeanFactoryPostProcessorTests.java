@@ -16,9 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.DirectFieldAccessor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -26,13 +30,13 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -64,18 +68,22 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 	public void taskSchedulerRegistered() {
 		Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
 		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
-		Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
+		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler", ErrorHandler.class);
 		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-		Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
+		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "defaultErrorChannel", MessageChannel.class);
+		assertNull(defaultErrorChannel);
+		errorHandler.handleError(new Throwable());
+		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "defaultErrorChannel", MessageChannel.class);
+		assertNotNull(defaultErrorChannel);
 		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
 	}
-	
+
 	@Test
 	public void taskSchedulerNotRegisteredMoreThanOnce() {
 		ClassPathXmlApplicationContext superParentApplicationContext = new ClassPathXmlApplicationContext("superParentApplicationContext.xml", this.getClass());
-		ClassPathXmlApplicationContext parentApplicationContext = 
+		ClassPathXmlApplicationContext parentApplicationContext =
 				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/parentApplicationContext.xml"}, superParentApplicationContext);
-		ClassPathXmlApplicationContext childApplicationContext = 
+		ClassPathXmlApplicationContext childApplicationContext =
 				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/childApplicationContext.xml"}, parentApplicationContext);
 		TaskScheduler parentScheduler = childApplicationContext.getParent().getBean("taskScheduler", TaskScheduler.class);
         TaskScheduler childScheduler = childApplicationContext.getBean("taskScheduler", TaskScheduler.class);
