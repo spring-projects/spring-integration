@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Import;
 /**
  * Provides the registration for {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor}
  * to allow use {@link org.springframework.integration.annotation.Publisher} annotation.
- * In addition the {@code default-publisher-channel} name can be configured as the {@value } of this annotation.
+ * In addition the {@code default-publisher-channel} name have to be configured as the {@code value} of this annotation.
  * <p>
  * Note: the {@link org.springframework.integration.annotation.Publisher} annotation is enabled by default via
  * {@link EnableIntegration} processing, but there is no hook to configure the {@code default-publisher-channel}.
@@ -44,5 +44,5 @@ public @interface EnablePublisher {
 	/**
 	 * @return the {@code default-publisher-channel} name.
 	 */
-	String value() default "";
+	String value();
 }

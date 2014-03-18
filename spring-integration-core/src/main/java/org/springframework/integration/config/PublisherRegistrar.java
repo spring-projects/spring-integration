@@ -18,6 +18,9 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -36,6 +39,8 @@ import org.springframework.util.StringUtils;
  */
 public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
+	private static final Log logger = LogFactory.getLog(PublisherRegistrar.class);
+
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
@@ -49,6 +54,9 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
 			if (StringUtils.hasText(value)) {
 				builder.addPropertyReference("defaultChannel", value);
+				if (logger.isInfoEnabled()) {
+					logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
+				}
 			}
 
 			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
@@ -60,6 +68,9 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 			if (StringUtils.hasText(value)) {
 				if (defaultChannel == null) {
 					propertyValues.addPropertyValue("defaultChannel", new RuntimeBeanReference(value));
+					if (logger.isInfoEnabled()) {
+						logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
+					}
 				}
 				else if (!value.equals(defaultChannel.getBeanName())) {
 					throw new BeanDefinitionStoreException("When more than one enable publisher definition " +
