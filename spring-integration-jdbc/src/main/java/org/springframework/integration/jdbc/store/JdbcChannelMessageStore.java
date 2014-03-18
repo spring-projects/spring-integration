@@ -46,6 +46,7 @@ import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageSto
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.AbstractMessageGroupStore;
+import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -89,7 +90,8 @@ import org.springframework.util.StringUtils;
  * @since 2.2
  */
 @ManagedResource
-public class JdbcChannelMessageStore extends AbstractMessageGroupStore implements InitializingBean {
+public class JdbcChannelMessageStore extends AbstractMessageGroupStore
+		implements InitializingBean, ChannelMessageStore {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);
 

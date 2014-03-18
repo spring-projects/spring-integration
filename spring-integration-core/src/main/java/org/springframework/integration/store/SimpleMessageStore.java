@@ -44,7 +44,8 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 @ManagedResource
-public class SimpleMessageStore extends AbstractMessageGroupStore implements MessageStore, MessageGroupStore {
+public class SimpleMessageStore extends AbstractMessageGroupStore
+		implements MessageStore, ChannelMessageStore {
 
 	private volatile LockRegistry lockRegistry;
 

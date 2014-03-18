@@ -17,18 +17,23 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
+import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -39,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ChannelWithMessageStoreParserTests {
-	
+
 	private static final String BASE_PACKAGE = "org.springframework.integration";
 
 	@Autowired
@@ -53,8 +58,14 @@ public class ChannelWithMessageStoreParserTests {
 	@Autowired
 	private TestHandler handler;
 
-	@Autowired
+	@Autowired @Qualifier("messageStore")
 	private MessageGroupStore messageGroupStore;
+
+	@Autowired @Qualifier("priority")
+	private PollableChannel priorityChannel;
+
+	@Autowired @Qualifier("priorityMessageStore")
+	private MessageGroupStore priorityMessageStore;
 
 	@Test
 	@DirtiesContext
@@ -65,17 +76,32 @@ public class ChannelWithMessageStoreParserTests {
 		assertEquals("The message payload is not correct", "123", handler.getMessageString());
 		// The group id for buffered messages is the channel name
 		assertEquals(1, messageGroupStore.getMessageGroup("messageStore:output").size());
-		
+
 		Message<?> result = output.receive(100);
 		assertEquals("hello", result.getPayload());
 		assertEquals(0, messageGroupStore.getMessageGroup(BASE_PACKAGE+".store:output").size());
 
 	}
 
+	@Test
+	@DirtiesContext
+	public void testPriorityMessageStore() {
+		assertSame(this.priorityMessageStore, TestUtils.getPropertyValue(this.priorityChannel, "queue.messageGroupStore"));
+	}
+
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {
 		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
+	}
+
+	public static class DummyPriorityMS extends SimpleMessageStore implements PriorityCapableChannelMessageStore {
+
+		@Override
+		public boolean isPriorityEnabled() {
+			return true;
+		}
+
 	}
 
 }

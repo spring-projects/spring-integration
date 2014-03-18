@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.message;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -36,7 +37,9 @@ import org.springframework.util.ObjectUtils;
  * @since 4.0
  *
  */
-public class MutableMessage<T> implements Message<T> {
+public class MutableMessage<T> implements Message<T>, Serializable {
+
+	private static final long serialVersionUID = -636635024258737500L;
 
 	private T payload;
 

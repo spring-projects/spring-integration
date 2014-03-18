@@ -18,7 +18,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 
 /**
- * Interface for storage operations on groups of messages linked by a group id.
+ * Defines additional storage operations on groups of messages linked by a group id.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
@@ -27,7 +27,7 @@ import org.springframework.messaging.Message;
  * @since 2.0
  *
  */
-public interface MessageGroupStore {
+public interface MessageGroupStore extends BasicMessageGroupStore {
 
 	/**
 	 * Optional attribute giving the number of messages in the store over all groups. Implementations may decline to
@@ -38,6 +38,7 @@ public interface MessageGroupStore {
 	 */
 	@ManagedAttribute
 	int getMessageCountForAllMessageGroups();
+
 	/**
 	 * Optional attribute giving the number of  message groups. Implementations may decline
 	 * to respond by throwing an exception.
@@ -47,33 +48,6 @@ public interface MessageGroupStore {
 	 */
 	@ManagedAttribute
 	int getMessageGroupCount();
-
-	/**
-	 * Returns the size of this MessageGroup.
-	 *
-	 * @param groupId The group identifier.
-	 * @return The size.
-	 */
-	@ManagedAttribute
-	int messageGroupSize(Object groupId);
-
-	/**
-	 * Return all Messages currently in the MessageStore that were stored using
-	 * {@link #addMessageToGroup(Object, Message)} with this group id.
-	 *
-	 * @param groupId The group identifier.
-	 * @return A group of messages, empty if none exists for this key.
-	 */
-	MessageGroup getMessageGroup(Object groupId);
-
-	/**
-	 * Store a message with an association to a group id. This can be used to group messages together.
-	 *
-	 * @param groupId The group id to store the message under.
-	 * @param message A message.
-	 * @return The message group.
-	 */
-	MessageGroup addMessageToGroup(Object groupId, Message<?> message);
 
 	/**
 	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is
@@ -124,16 +98,6 @@ public interface MessageGroupStore {
 	 * @return The iterator of currently accumulated {@link MessageGroup}s.
 	 */
 	Iterator<MessageGroup> iterator();
-
-
-	/**
-	 * Polls Message from this {@link MessageGroup} (in FIFO style if supported by the implementation)
-	 * while also removing the polled {@link Message}
-	 *
-	 * @param groupId The group identifier.
-	 * @return The message.
-	 */
-	Message<?> pollMessageFromGroup(Object groupId);
 
 	/**
 	 * Completes this MessageGroup. Completion of the MessageGroup generally means
