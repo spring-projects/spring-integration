@@ -434,7 +434,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 	<int:queue message-store="redisMessageStore"/>
 <int:channel>]]></programlisting>
 		<para>
-			The keys are used to store the data have the form <code>&lt;storeBeanName&gt;:&lt;channelId&gt;</code>
+			The keys that are used to store the data have the form <code>&lt;storeBeanName&gt;:&lt;channelId&gt;</code>
 			(in the above example, <code>redisMessageStore:somePersistentQueueChannel</code>).
 		</para>
 		<para>

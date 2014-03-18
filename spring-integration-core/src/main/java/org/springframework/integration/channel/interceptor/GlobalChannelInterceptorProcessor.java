@@ -20,17 +20,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
@@ -40,11 +45,12 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
-final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcessor, InitializingBean {
+final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, SmartLifecycle {
 
-	private static final Log logger = LogFactory.getLog(GlobalChannelInterceptorBeanPostProcessor.class);
+	private static final Log logger = LogFactory.getLog(GlobalChannelInterceptorProcessor.class);
 
 
 	private final OrderComparator comparator = new OrderComparator();
@@ -55,38 +61,79 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 
 	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
 
+	private BeanFactory beanFactory;
 
-	GlobalChannelInterceptorBeanPostProcessor(List<GlobalChannelInterceptorWrapper> channelInterceptors) {
-		this.channelInterceptors = channelInterceptors;
-	}
-
+	private volatile boolean processed;
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		for (GlobalChannelInterceptorWrapper channelInterceptor : this.channelInterceptors) {
-			if (channelInterceptor.getOrder() >= 0) {
-				this.positiveOrderInterceptors.add(channelInterceptor);
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public synchronized void start() {
+		if (!processed && this.beanFactory instanceof ListableBeanFactory) {
+			setUp();
+			Map<String, MessageChannel> channels = ((ListableBeanFactory) this.beanFactory).getBeansOfType(MessageChannel.class);
+			for (Entry<String, MessageChannel> entry : channels.entrySet()) {
+				this.applyGlobalInterceptors(entry.getValue(), entry.getKey());
 			}
-			else {
-				this.negativeOrderInterceptors.add(channelInterceptor);
-			}
+			this.processed = true;
 		}
 	}
 
 	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
+	public void stop() {
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof ChannelInterceptorAware && bean instanceof MessageChannel) {
+	public boolean isRunning() {
+		return false;
+	}
+
+	@Override
+	public int getPhase() {
+		return Integer.MIN_VALUE;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return true;
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+	}
+
+	public void setUp() {
+		Map<String, GlobalChannelInterceptorWrapper> interceptorBeans = null;
+		if (this.beanFactory instanceof ListableBeanFactory) {
+			interceptorBeans = ((ListableBeanFactory) this.beanFactory)
+					.getBeansOfType(GlobalChannelInterceptorWrapper.class);
+		}
+		this.channelInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>(interceptorBeans.values());
+		if (interceptorBeans != null) {
+			for (GlobalChannelInterceptorWrapper channelInterceptor : this.channelInterceptors) {
+				if (channelInterceptor.getOrder() >= 0) {
+					this.positiveOrderInterceptors.add(channelInterceptor);
+				}
+				else {
+					this.negativeOrderInterceptors.add(channelInterceptor);
+				}
+			}
+		}
+	}
+
+	public void applyGlobalInterceptors(MessageChannel channel, String beanName) throws BeansException {
+		if (channel instanceof ChannelInterceptorAware && channel instanceof MessageChannel) {
+			if (channelInterceptors == null) {
+				setUp();
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Applying global interceptors on channel '" + beanName + "'");
 			}
-			this.addMatchingInterceptors((ChannelInterceptorAware) bean, beanName);
+			this.addMatchingInterceptors((ChannelInterceptorAware) channel, beanName);
 		}
-		return bean;
 	}
 
 	/**
@@ -103,7 +150,11 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 		}
 		Collections.sort(tempInterceptors, this.comparator);
 		for (GlobalChannelInterceptorWrapper next : tempInterceptors) {
-			channel.addInterceptor(next.getChannelInterceptor());
+			ChannelInterceptor channelInterceptor = next.getChannelInterceptor();
+			if (!(channelInterceptor instanceof VetoCapableInterceptor)
+					|| ((VetoCapableInterceptor) channelInterceptor).shouldIntercept(beanName, channel)) {
+				channel.addInterceptor(channelInterceptor);
+			}
 		}
 
 		tempInterceptors.clear();
@@ -117,7 +168,11 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 		Collections.sort(tempInterceptors, comparator);
 		if (!tempInterceptors.isEmpty()) {
 			for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
-				channel.addInterceptor(0, tempInterceptors.get(i).getChannelInterceptor());
+				ChannelInterceptor channelInterceptor = tempInterceptors.get(i).getChannelInterceptor();
+				if (!(channelInterceptor instanceof VetoCapableInterceptor)
+						|| ((VetoCapableInterceptor) channelInterceptor).shouldIntercept(beanName, channel)) {
+					channel.addInterceptor(0, channelInterceptor);
+				}
 			}
 		}
 	}

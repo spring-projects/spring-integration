@@ -9,6 +9,13 @@
 		in more details, please see the Issue Tracker tickets that
 		were resolved as part of the 4.0 development process.
 	</para>
+	<para>
+		Please be sure to also see the
+		<ulink url="https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-3.0-to-4.0-Migration-Guide"
+		>Migration Guide</ulink> for important changes that might affect your applications.
+		Migration guides for all versions back to <emphasis>2.1</emphasis> can be found on the
+		<ulink url="https://github.com/spring-projects/spring-integration/wiki">Wiki</ulink>.
+	</para>
 	<section id="4.0-new-components">
 		<title>New Components</title>
 		<section id="4.0-mqtt">

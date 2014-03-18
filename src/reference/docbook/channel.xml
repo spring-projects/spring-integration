@@ -837,6 +837,17 @@ payload to an Integer.
        best of both worlds: 1) the sending of a JMS Message can occur within the transaction while
        2) it is still a "fire-and-forget" action thereby preventing any noticeable delay in the main message flow.
       </para>
+      <important>
+       Starting with <emphasis>version 4.0</emphasis>, it is important to avoid circular references when an
+       interceptor (such as <classname>WireTap</classname>) references a channel itself. You need to exclude
+       such channels from those being intercepted by the current interceptor. This can be done with appropriate
+       <code>patterns</code> or programmatically. If you have a custom <interfacename>ChannelInterceptor</interfacename>
+       that references a <code>channel</code>, consider implementing <interfacename>VetoCapableInterceptor</interfacename>.
+       That way, the framework will ask the interceptor if it's OK to intercept each channel that is a candidate based
+       on the pattern. You can also add runtime protection in the interceptor methods that ensures that the channel is
+       not one that is referenced by the interceptor. The <classname>WireTap</classname> uses both of these
+       techniques.
+      </important>
   </section>
   <section id="channel-global-wiretap">
       <title>Global Wire Tap Configuration</title>
