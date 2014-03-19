@@ -84,6 +84,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		this.registerIntegrationEvaluationContext(registry);
 		this.registerIntegrationProperties(registry);
 		this.registerHeaderChannelRegistry(registry);
+		this.registerGlobalChannelInterceptorProcessor(registry);
 		this.registerBuiltInBeans(registry);
 		this.registerDefaultConfiguringBeanFactoryPostProcessor(registry);
 		this.registerDefaultDatatypeChannelMessageConverter(registry);
@@ -282,6 +283,20 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 					schedulerBuilder.getBeanDefinition(),
 					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(replyChannelRegistryComponent, registry);
+		}
+	}
+
+	/**
+	 * Register a {@link GlobalChannelInterceptorProcessor} in the given {@link BeanDefinitionRegistry}, if necessary.
+	 *
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 */
+	private void registerGlobalChannelInterceptorProcessor(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class)
+					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
 		}
 	}
 

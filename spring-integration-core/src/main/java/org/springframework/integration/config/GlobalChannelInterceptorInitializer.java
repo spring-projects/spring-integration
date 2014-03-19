@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
@@ -25,22 +23,19 @@ import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
-import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorBeanPostProcessor;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.util.CollectionUtils;
 
 /**
  * The {@link IntegrationConfigurationInitializer} to populate {@link GlobalChannelInterceptorWrapper}
  * for {@link ChannelInterceptor}s marked with {@link GlobalChannelInterceptor} annotation.
  * <p/>
  * {@link org.springframework.context.annotation.Bean} methods are also processed.
- * <p/>
- * In addition this component registers {@link GlobalChannelInterceptorBeanPostProcessor} if necessary.
  *
  * @author Artem Bilan
  * @since 4.0
@@ -51,62 +46,28 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
-		List<GlobalChannelInterceptorWrapper> globalChannelInterceptors = new ManagedList<GlobalChannelInterceptorWrapper>();
+		String[] channelInterceptorNames = beanFactory.getBeanNamesForType(ChannelInterceptor.class);
 
-		Map<String, ChannelInterceptor> beansOfType = beanFactory.getBeansOfType(ChannelInterceptor.class);
-
-		for (Map.Entry<String, ChannelInterceptor> entry : beansOfType.entrySet()) {
-			String beanName = entry.getKey();
-			ChannelInterceptor interceptor = entry.getValue();
-			GlobalChannelInterceptor annotation = AnnotationUtils.findAnnotation(interceptor.getClass(), GlobalChannelInterceptor.class);
-			if (annotation == null) {
-				BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
-				if (beanDefinition instanceof AnnotatedBeanDefinition) {
+		for (String interceptorBeanName : channelInterceptorNames) {
+			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(interceptorBeanName);
+			if (beanDefinition instanceof AnnotatedBeanDefinition) {
+				AnnotationMetadata metadata = ((AnnotatedBeanDefinition) beanDefinition).getMetadata();
+				Map<String, Object> annotationAttributes = metadata.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+				if (CollectionUtils.isEmpty(annotationAttributes)) {
 					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
-					final Map<String, Object> annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
-					if (annotationAttributes != null) {
-						annotation = new GlobalChannelInterceptor() {
+					annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+				}
 
-							@Override
-							public String[] patterns() {
-								return (String[]) annotationAttributes.get("patterns");
-							}
+				if (!CollectionUtils.isEmpty(annotationAttributes)) {
+					BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
+							.addConstructorArgReference(interceptorBeanName)
+							.addPropertyValue("patterns", annotationAttributes.get("patterns"))
+							.addPropertyValue("order", annotationAttributes.get("order"));
 
-							@Override
-							public int order() {
-								return (Integer) annotationAttributes.get("order");
-							}
-
-							@Override
-							public Class<? extends Annotation> annotationType() {
-								return GlobalChannelInterceptor.class;
-							}
-						};
-					}
+					BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), registry);
 				}
 			}
-			if (annotation != null) {
-				GlobalChannelInterceptorWrapper wrapper = new GlobalChannelInterceptorWrapper(interceptor);
-				wrapper.setPatterns(annotation.patterns());
-				wrapper.setOrder(annotation.order());
-				globalChannelInterceptors.add(wrapper);
-			}
 		}
-
-		if (beanFactory.containsBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_POST_PROCESSOR_BEAN_NAME)) {
-			BeanDefinition postProcessorDef = registry.getBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_POST_PROCESSOR_BEAN_NAME);
-			@SuppressWarnings("unchecked")
-			List<Object> globalChannelInterceptorsValue = (List<Object>) postProcessorDef
-					.getConstructorArgumentValues().getIndexedArgumentValues().values().iterator().next().getValue();
-			globalChannelInterceptorsValue.addAll(globalChannelInterceptors);
-		}
-		else {
-			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorBeanPostProcessor.class);
-			postProcessorBuilder.addConstructorArgValue(globalChannelInterceptors);
-			BeanDefinition beanDef = postProcessorBuilder.getBeanDefinition();
-			registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_POST_PROCESSOR_BEAN_NAME, beanDef);
-		}
-
 	}
 
 }

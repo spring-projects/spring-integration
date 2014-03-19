@@ -54,7 +54,6 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorBeanPostProcessor;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
@@ -107,12 +106,8 @@ public class EnableIntegrationTests {
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
 
-	@Autowired
-	private GlobalChannelInterceptorBeanPostProcessor beanPostProcessor;
-
 	@Test
 	public void testAnnotatedServiceActivator() {
-		assertEquals(4, TestUtils.getPropertyValue(this.beanPostProcessor, "channelInterceptors", List.class).size());
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);
