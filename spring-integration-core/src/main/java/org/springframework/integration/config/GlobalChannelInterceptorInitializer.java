@@ -34,13 +34,8 @@
 
 package org.springframework.integration.config;
 
-<<<<<<< .mine
 import java.lang.annotation.Annotation;
 import java.util.List;
-=======
-
-
->>>>>>> .theirs
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
@@ -72,7 +67,6 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
 		String[] channelInterceptorNames = beanFactory.getBeanNamesForType(ChannelInterceptor.class, false, false);
-
 		for (String interceptorBeanName : channelInterceptorNames) {
 			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(interceptorBeanName);
 			if (beanDefinition instanceof AnnotatedBeanDefinition) {
@@ -96,7 +90,6 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 	}
 
 }
-
 
 
 
