@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:wire-tap channel="bar" />
+
+	<int:service-activator input-channel="bar" expression="'foo'" />
+
+	<int:channel-interceptor>
+		<bean class="org.springframework.integration.channel.interceptor.ImplicitConsumerChannelTests$Interceptor1">
+			<property name="channel" ref="foo" />
+		</bean>
+	</int:channel-interceptor>
+
+	<int:channel-interceptor>
+		<bean class="org.springframework.integration.channel.interceptor.ImplicitConsumerChannelTests$Interceptor2">
+			<property name="channel" ref="baz" />
+		</bean>
+	</int:channel-interceptor>
+
+	<int:channel id="foo" />
+
+	<int:channel id="baz" />
+
+</beans>

@@ -8,6 +8,10 @@
 
 	<message-history tracked-components="publishedChannel,input,*AnnotationTestService*"/>
 
-	<annotation-config default-publisher-channel="publishedChannel"/>
+<annotation-config default-publisher-channel="publishedChannel"/>
+<channel-interceptor pattern="none">
+		<wire-tap channel="bar" />
+	</channel-interceptor>
 
+	<service-activator input-channel="bar" expression="'foo'" />
 </beans:beans>

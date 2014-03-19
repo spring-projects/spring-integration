@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -39,6 +40,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  * @since 2.0
  */
 public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser {
@@ -49,14 +51,13 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 
 	private static final String REF_ATTRIBUTE = "ref";
 
-	private static final String GLOBAL_POST_PROCESSOR_CLASSNAME = "GlobalChannelInterceptorBeanPostProcessor";
+	private static final String GLOBAL_INTERCEPTOR_PROCESSOR_CLASSNAME = "GlobalChannelInterceptorProcessor";
 
 
 	private final ManagedList<RuntimeBeanReference> globalInterceptors = new ManagedList<RuntimeBeanReference>();
 
-	private volatile boolean postProcessorCreated;
 
-
+	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		this.createAndRegisterGlobalPostProcessorIfNecessary(parserContext);
 		BeanDefinitionBuilder globalChannelInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class);
@@ -73,14 +74,12 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 	}
 
 	private void createAndRegisterGlobalPostProcessorIfNecessary(ParserContext parserContext) {
-		if (!this.postProcessorCreated) {
-			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					BASE_PACKAGE + GLOBAL_POST_PROCESSOR_CLASSNAME);
-			postProcessorBuilder.addConstructorArgValue(this.globalInterceptors);
-			BeanDefinition beanDef = postProcessorBuilder.getBeanDefinition();
-			String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
-			parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
-			this.postProcessorCreated = true;
+		if (!parserContext.getRegistry().containsBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME)) {
+			BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					BASE_PACKAGE + GLOBAL_INTERCEPTOR_PROCESSOR_CLASSNAME);
+			BeanDefinition beanDef = processorBuilder.getBeanDefinition();
+			parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef,
+					IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME));
 		}
 	}
 
