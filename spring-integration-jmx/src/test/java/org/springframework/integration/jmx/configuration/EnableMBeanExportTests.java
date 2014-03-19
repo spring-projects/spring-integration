@@ -16,8 +16,10 @@
 
 package org.springframework.integration.jmx.configuration;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 
@@ -25,17 +27,22 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -44,7 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @since 4.0
  */
-@ContextConfiguration
+@ContextConfiguration(initializers = EnableMBeanExportTests.EnvironmentApplicationContextInitializer.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class EnableMBeanExportTests {
@@ -58,6 +65,11 @@ public class EnableMBeanExportTests {
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException {
 		assertSame(this.mBeanServer, this.exporter.getServer());
+		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
+		for (String componentNamePattern : componentNamePatterns) {
+			assertThat(componentNamePattern, Matchers.isOneOf("input", "in*"));
+			assertThat(componentNamePattern, Matchers.not(Matchers.equalTo("*")));
+		}
 		Set<ObjectName> names = this.mBeanServer.queryNames(ObjectName.getInstance("org.springframework.integration:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
 		assertEquals(1, names.size());
@@ -68,7 +80,7 @@ public class EnableMBeanExportTests {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationMBeanExport(server = "mbeanServer", managedComponents = "input")
+	@EnableIntegrationMBeanExport(server = "#{mbeanServer}", managedComponents = {"input", "${managed.component}"})
 	public static class ContextConfiguration {
 
 		@Bean
@@ -84,6 +96,15 @@ public class EnableMBeanExportTests {
 		@Bean
 		public QueueChannel output() {
 			return new QueueChannel();
+		}
+
+	}
+
+	public static class EnvironmentApplicationContextInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+
+		@Override
+		public void initialize(GenericApplicationContext applicationContext) {
+			applicationContext.setEnvironment(new MockEnvironment().withProperty("managed.component", "input,in*"));
 		}
 
 	}

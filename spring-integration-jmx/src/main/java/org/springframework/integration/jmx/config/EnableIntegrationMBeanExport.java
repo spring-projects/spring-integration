@@ -47,12 +47,15 @@ public @interface EnableIntegrationMBeanExport {
 
 	/**
 	 * The default domain to use when generating JMX ObjectNames.
+	 * Supports property placeholders (e.g. {@code ${project.domain}).
 	 */
 	String defaultDomain() default "";
 
 	/**
 	 * The bean name of the MBeanServer to which MBeans should be exported. Default is to
 	 * use the platform's default MBeanServer.
+	 * Supports property placeholders (e.g. {@code ${project.mbeanServer})
+	 * and SpEL expression (e.g. {@code #{mbeanServer}).
 	 */
 	String server() default "";
 
@@ -69,6 +72,7 @@ public @interface EnableIntegrationMBeanExport {
 	 * the 'name' property of the ObjectName.  A MessageChannel and a MessageHandler (for instance)
 	 * can share a name because they have a different type, so in that case they would either both
 	 * be included or both excluded.
+	 * Supports property placeholders (e.g. {@code ${managed.components}). Can be applied for each element.
 	 */
 	String[] managedComponents() default "*";
 
