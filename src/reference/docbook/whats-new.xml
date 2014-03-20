@@ -101,6 +101,14 @@
 				annotation in a <code>@Configuration</code> class. For more information, see <xref linkend="jmx-mbean-exporter"/>.
 			</para>
 		</section>
+		<section id="4.0-channel-security-interceptor">
+			<title>ChannelSecurityInterceptorFactoryBean</title>
+			<para>
+				Configuration of Spring Security for message channels using <code>@Configuration</code> classes is
+				now supported by using a <classname>ChannelSecurityInterceptorFactoryBean</classname>.
+				For more information, see <xref linkend="security"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">

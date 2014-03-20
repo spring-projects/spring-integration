@@ -20,14 +20,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.aop.support.AopUtils;
-import org.springframework.messaging.MessageChannel;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.security.config.ChannelSecurityInterceptorBeanPostProcessor;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Mark Fisher
@@ -35,11 +40,25 @@ import org.springframework.integration.security.config.ChannelSecurityIntercepto
 public class ChannelSecurityInterceptorBeanPostProcessorTests {
 
 	@Test
-	public void securedChannelIsProxied() {
+	public void securedChannelIsProxied() throws Exception {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
 		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
-		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
-		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(Collections.singletonList(interceptor));
+
+		final ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
+
+		ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
+		Mockito.doAnswer(new Answer<Map<String, ChannelSecurityInterceptor>>() {
+
+			@Override
+			public Map<String, ChannelSecurityInterceptor> answer(InvocationOnMock invocation) throws Throwable {
+				return Collections.singletonMap("interceptor", interceptor);
+			}
+		}).when(beanFactory).getBeansOfType(ChannelSecurityInterceptor.class);
+
+		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor();
+		postProcessor.setBeanFactory(beanFactory);
+		postProcessor.afterPropertiesSet();
+
 		QueueChannel securedChannel = new QueueChannel();
 		securedChannel.setBeanName("securedChannel");
 		MessageChannel postProcessedChannel = (MessageChannel) postProcessor.postProcessAfterInitialization(securedChannel, "securedChannel");
@@ -47,11 +66,24 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 	}
 
 	@Test
-	public void nonsecuredChannelIsNotProxied() {
+	public void nonsecuredChannelIsNotProxied() throws Exception {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
 		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
-		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
-		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(Collections.singletonList(interceptor));
+		final ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
+
+		ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
+		Mockito.doAnswer(new Answer<Map<String, ChannelSecurityInterceptor>>() {
+
+			@Override
+			public Map<String, ChannelSecurityInterceptor> answer(InvocationOnMock invocation) throws Throwable {
+				return Collections.singletonMap("interceptor", interceptor);
+			}
+		}).when(beanFactory).getBeansOfType(ChannelSecurityInterceptor.class);
+
+		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor();
+		postProcessor.setBeanFactory(beanFactory);
+		postProcessor.afterPropertiesSet();
+
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
 		MessageChannel postProcessedChannel = (MessageChannel) postProcessor.postProcessAfterInitialization(channel, "testChannel");

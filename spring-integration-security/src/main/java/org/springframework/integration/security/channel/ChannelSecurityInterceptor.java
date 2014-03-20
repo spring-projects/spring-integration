@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import org.springframework.security.access.SecurityMetadataSource;
 import org.springframework.security.access.intercept.AbstractSecurityInterceptor;
 import org.springframework.security.access.intercept.InterceptorStatusToken;
 import org.springframework.util.Assert;
- 
+
 /**
  * An AOP interceptor that enforces authorization for MessageChannel send and/or receive calls.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class ChannelSecurityInterceptor extends AbstractSecurityInterceptor implements MethodInterceptor {
+public final class ChannelSecurityInterceptor extends AbstractSecurityInterceptor implements MethodInterceptor {
 
 	private final ChannelSecurityMetadataSource securityMetadataSource;
 

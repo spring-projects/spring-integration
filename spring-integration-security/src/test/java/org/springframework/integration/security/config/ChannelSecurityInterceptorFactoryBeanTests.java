@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,46 +14,50 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.channel;
+package org.springframework.integration.security.config;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Mark Fisher
- * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @since 4.0
  */
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4SpringContextTests {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+public class ChannelSecurityInterceptorFactoryBeanTests {
 
 	@Autowired
-	@Qualifier("securedChannelAdapter")
-	MessageChannel securedChannelAdapter;
+	MessageChannel securedChannel;
 
 	@Autowired
-	@Qualifier("securedChannelAdapter")
-	MessageChannel securedChannelAdapter2;
+	MessageChannel securedChannel2;
 
 	@Autowired
-	@Qualifier("unsecuredChannelAdapter")
-	MessageChannel unsecuredChannelAdapter;
+	MessageChannel unsecuredChannel;
 
 	@Autowired
 	TestHandler testConsumer;
@@ -66,61 +70,53 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 
 
 	@Test(expected = AccessDeniedException.class)
-	@DirtiesContext
 	public void testSecuredWithNotEnoughPermission() {
 		login("bob", "bobspassword", "ROLE_ADMINA");
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
+		securedChannel.send(new GenericMessage<String>("test"));
 	}
 
 	@Test
-	@DirtiesContext
 	public void testSecuredWithPermission() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
-		securedChannelAdapter2.send(new GenericMessage<String>("test"));
+		securedChannel.send(new GenericMessage<String>("test"));
+		securedChannel2.send(new GenericMessage<String>("test"));
 		assertEquals("Wrong size of message list in target", 2, testConsumer.sentMessages.size());
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	@DirtiesContext
 	public void testSecuredWithoutPermision() {
 		login("bob", "bobspassword", "ROLE_USER");
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
+		securedChannel.send(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	@DirtiesContext
 	public void testSecured2WithoutPermision() {
 		login("bob", "bobspassword", "ROLE_USER");
-		securedChannelAdapter2.send(new GenericMessage<String>("test"));
+		securedChannel2.send(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = AuthenticationException.class)
-	@DirtiesContext
 	public void testSecuredWithoutAuthenticating() {
-		securedChannelAdapter.send(new GenericMessage<String>("test"));
+		securedChannel.send(new GenericMessage<String>("test"));
 	}
 
 	@Test
-	@DirtiesContext
 	public void testUnsecuredAsAdmin() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
-		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
+		unsecuredChannel.send(new GenericMessage<String>("test"));
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
 	@Test
-	@DirtiesContext
 	public void testUnsecuredAsUser() {
 		login("bob", "bobspassword", "ROLE_USER");
-		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
+		unsecuredChannel.send(new GenericMessage<String>("test"));
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
 	@Test
-	@DirtiesContext
 	public void testUnsecuredWithoutAuthenticating() {
-		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
+		unsecuredChannel.send(new GenericMessage<String>("test"));
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
@@ -128,6 +124,44 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	private void login(String username, String password, String... roles) {
 		SecurityContext context = SecurityTestUtils.createContext(username, password, roles);
 		SecurityContextHolder.setContext(context);
+	}
+
+
+	@Configuration
+	@EnableIntegration
+	@ImportResource("classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml")
+	public static class ContextConfiguration {
+
+		@Bean
+		public SubscribableChannel securedChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public SubscribableChannel securedChannel2() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public SubscribableChannel unsecuredChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public TestHandler testHandler() {
+			TestHandler testHandler = new TestHandler();
+			this.securedChannel().subscribe(testHandler);
+			this.securedChannel2().subscribe(testHandler);
+			this.unsecuredChannel().subscribe(testHandler);
+			return testHandler;
+		}
+
+		@Bean
+		public ChannelSecurityInterceptorFactoryBean channelSecurityInterceptor() {
+			return new ChannelSecurityInterceptorFactoryBean()
+					.accessPolicy("securedChannel.*", "ROLE_ADMIN, ROLE_PRESIDENT");
+		}
+
 	}
 
 }
