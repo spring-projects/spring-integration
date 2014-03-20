@@ -16,8 +16,6 @@
 
 package org.springframework.integration.security.config;
 
-import java.util.Collection;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
@@ -33,8 +31,7 @@ public class SecurityIntegrationConfigurationInitializer implements IntegrationC
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		Collection<ChannelSecurityInterceptor> securityInterceptors = beanFactory.getBeansOfType(ChannelSecurityInterceptor.class).values();
-		beanFactory.addBeanPostProcessor(new ChannelSecurityInterceptorBeanPostProcessor(securityInterceptors));
+		beanFactory.addBeanPostProcessor(new ChannelSecurityInterceptorBeanPostProcessor(beanFactory.getBeansOfType(ChannelSecurityInterceptor.class).values()));
 	}
 
 }

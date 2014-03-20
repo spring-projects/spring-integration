@@ -17,7 +17,6 @@
 package org.springframework.integration.security.config;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 
@@ -65,9 +64,8 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 	private BeanDefinition parseSecurityMetadataSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ChannelSecurityMetadataSource.class);
 		List<Element> accessPolicyElements = DomUtils.getChildElementsByTagName(element, "access-policy");
-		ManagedMap<Pattern, BeanDefinition> patternMappings = new ManagedMap<Pattern, BeanDefinition>();
+		ManagedMap<String, BeanDefinition> patternMappings = new ManagedMap<String, BeanDefinition>();
 		for (Element accessPolicyElement : accessPolicyElements) {
-			Pattern pattern = Pattern.compile(accessPolicyElement.getAttribute("pattern"));
 			String sendAccess = accessPolicyElement.getAttribute("send-access");
 			String receiveAccess = accessPolicyElement.getAttribute("receive-access");
 			if (!StringUtils.hasText(sendAccess) && !StringUtils.hasText(receiveAccess)) {
@@ -78,7 +76,7 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 			accessPolicyBuilder.addConstructorArgValue(sendAccess);
 			accessPolicyBuilder.addConstructorArgValue(receiveAccess);
 			accessPolicyBuilder.getBeanDefinition().setRole(BeanDefinition.ROLE_SUPPORT);
-			patternMappings.put(pattern, accessPolicyBuilder.getBeanDefinition());
+			patternMappings.put(accessPolicyElement.getAttribute("pattern"), accessPolicyBuilder.getBeanDefinition());
 		}
 		builder.addConstructorArgValue(patternMappings);
 
