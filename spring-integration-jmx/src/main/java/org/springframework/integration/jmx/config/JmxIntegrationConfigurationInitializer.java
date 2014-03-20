@@ -29,8 +29,6 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
  */
 public class JmxIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
-	private static final String MBEAN_EXPORTER_HELPER_BEAN_NAME = MBeanExporterHelper.class.getName();
-
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		this.registerMBeanExporterHelperIfNecessary(beanFactory);
@@ -39,9 +37,8 @@ public class JmxIntegrationConfigurationInitializer implements IntegrationConfig
 	private void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
 		if (beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class).length > 0) {
 			MBeanExporterHelper mBeanExporterHelper = new MBeanExporterHelper();
-			mBeanExporterHelper.postProcessBeanFactory(beanFactory);
-			beanFactory.registerSingleton(MBEAN_EXPORTER_HELPER_BEAN_NAME, mBeanExporterHelper);
-			beanFactory.initializeBean(mBeanExporterHelper, MBEAN_EXPORTER_HELPER_BEAN_NAME);
+			mBeanExporterHelper.setBeanFactory(beanFactory);
+			beanFactory.addBeanPostProcessor(mBeanExporterHelper);
 		}
 	}
 
