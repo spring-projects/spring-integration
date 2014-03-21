@@ -65,8 +65,6 @@ public class DefaultConfigurationTests {
 		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
 		Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
 		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-		Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
-		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
 	}
 
 }

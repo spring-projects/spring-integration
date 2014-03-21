@@ -23,6 +23,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectInstance;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -38,7 +39,7 @@ import org.springframework.jmx.export.MBeanExporter;
  */
 public class Int2307Tests {
 
-//	@Rule
+	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@SuppressWarnings("unchecked")

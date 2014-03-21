@@ -16,8 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -30,9 +34,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -66,16 +67,14 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
 		Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
 		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-		Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
-		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
 	}
-	
+
 	@Test
 	public void taskSchedulerNotRegisteredMoreThanOnce() {
 		ClassPathXmlApplicationContext superParentApplicationContext = new ClassPathXmlApplicationContext("superParentApplicationContext.xml", this.getClass());
-		ClassPathXmlApplicationContext parentApplicationContext = 
+		ClassPathXmlApplicationContext parentApplicationContext =
 				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/parentApplicationContext.xml"}, superParentApplicationContext);
-		ClassPathXmlApplicationContext childApplicationContext = 
+		ClassPathXmlApplicationContext childApplicationContext =
 				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/childApplicationContext.xml"}, parentApplicationContext);
 		TaskScheduler parentScheduler = childApplicationContext.getParent().getBean("taskScheduler", TaskScheduler.class);
         TaskScheduler childScheduler = childApplicationContext.getBean("taskScheduler", TaskScheduler.class);

@@ -16,8 +16,12 @@
 
 package org.springframework.integration.file.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,9 +32,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -64,8 +65,6 @@ public class DefaultConfigurationTests {
         assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
         Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
         assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-        Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
-        assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
     }
 
 }

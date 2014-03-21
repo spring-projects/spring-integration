@@ -74,8 +74,7 @@ public class EnableMBeanExportTests {
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
 		assertTrue(AopUtils.isAopProxy(this.beanFactory.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)));
-
-//		TODO assertTrue(AopUtils.isAopProxy(this.beanFactory.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)));
+		assertTrue(AopUtils.isAopProxy(this.beanFactory.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)));
 
 		assertSame(this.mBeanServer, this.exporter.getServer());
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
@@ -106,7 +105,7 @@ public class EnableMBeanExportTests {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationMBeanExport(server = "mbeanServer", defaultDomain = "${managed.domain}", managedComponents = {"input", "${managed.component}"})
+	@EnableIntegrationMBeanExport(server = "#{mbeanServer}", defaultDomain = "${managed.domain}", managedComponents = {"input", "${managed.component}"})
 	public static class ContextConfiguration {
 
 		@Bean
