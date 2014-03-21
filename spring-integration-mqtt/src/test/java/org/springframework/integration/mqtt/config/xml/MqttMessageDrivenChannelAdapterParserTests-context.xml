@@ -19,6 +19,7 @@
 		converter="myConverter"
 		client-factory="clientFactory"
 		send-timeout="123"
+		error-channel="errors"
 		channel="out" />
 
 	<int-mqtt:message-driven-channel-adapter id="twoTopicsAdapter"
@@ -37,4 +38,6 @@
 	<bean id="myConverter" class="org.springframework.integration.mqtt.support.DefaultPahoMessageConverter" />
 
 	<bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory" />
+
+	<int:channel id="errors" />
 </beans>

@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.mqtt.inbound;
 
+import java.util.Arrays;
 import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -111,7 +112,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				this.cancelReconnect();
 			}
 			if (logger.isDebugEnabled()) {
-				logger.debug("Connected and subscribed to " + this.getTopic());
+				logger.debug("Connected and subscribed to " + Arrays.asList(this.getTopic()));
 			}
 		}
 	}
@@ -158,7 +159,13 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
 		Message<?> message = this.getConverter().toMessage(topic, mqttMessage);
-		this.sendMessage(message);
+		try {
+			this.sendMessage(message);
+		}
+		catch (RuntimeException e) {
+			logger.error("Unhandled exception for " + message.toString(), e);
+			throw e;
+		}
 	}
 
 	@Override

@@ -61,6 +61,7 @@ public class BackTobackAdapterTests {
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+		adapter.stop();
 	}
 
 	@Test
@@ -90,6 +91,8 @@ public class BackTobackAdapterTests {
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("bar", out.getPayload());
-		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));	}
+		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+		adapter.stop();
+	}
 
 }
