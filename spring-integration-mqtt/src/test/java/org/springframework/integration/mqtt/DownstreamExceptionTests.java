@@ -30,7 +30,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -57,8 +57,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class DownstreamExceptionTests {
 
-	@Rule
-	public final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+	@ClassRule
+	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
 
 	@Autowired
 	private Service service;

@@ -66,6 +66,7 @@ public class BrokerRunning extends TestWatcher {
 		finally {
 			if (client != null) {
 				try {
+					client.disconnect();
 					client.close();
 				}
 				catch (MqttException e) {
