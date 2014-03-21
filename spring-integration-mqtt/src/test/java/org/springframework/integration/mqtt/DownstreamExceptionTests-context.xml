@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/mqtt http://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
+
+	<int-mqtt:message-driven-channel-adapter id="noErrorChannel"
+		url="tcp://localhost:1883"
+		client-id="fooEx1" channel="foo" topics="mqtt-fooEx1" />
+
+	<int-mqtt:message-driven-channel-adapter id="withErrorChannel"
+		url="tcp://localhost:1883"
+		error-channel="errors"
+		client-id="fooEx2" channel="foo" topics="mqtt-fooEx2" />
+
+	<int:channel id="foo" />
+
+	<int:service-activator input-channel="foo" ref="service" />
+
+	<bean id="service" class="org.springframework.integration.mqtt.DownstreamExceptionTests$Service" />
+
+	<int:channel id="errors">
+		<int:queue />
+	</int:channel>
+
+</beans>
