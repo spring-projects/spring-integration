@@ -21,6 +21,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 
 /**
@@ -42,6 +43,7 @@ public class MqttMessageDrivenChannelAdapterParser extends AbstractChannelAdapte
 		MqttParserUtils.parseCommon(element, builder);
 		builder.addConstructorArgValue(element.getAttribute("topics"));
 		builder.addPropertyReference("outputChannel", channelName);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 
 		return builder.getBeanDefinition();
 	}

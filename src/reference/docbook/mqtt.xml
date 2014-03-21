@@ -48,6 +48,7 @@
 	converter="myConverter"]]> <co id="mqtt-i-04"/><![CDATA[
 	client-factory="clientFactory"]]> <co id="mqtt-i-05"/><![CDATA[
 	send-timeout="123"]]> <co id="mqtt-i-06"/><![CDATA[
+	error-channel="errors"]]> <co id="mqtt-i-07"/><![CDATA[
 	channel="out" />]]></programlisting>
 		<calloutlist>
 			<callout arearefs="mqtt-i-01">
@@ -79,6 +80,11 @@
 				The send timeout - only applies if the channel might block (such as a bounded <code>QueueChannel</code>
 				that is currently full).
 			</callout>
+			<callout arearefs="mqtt-i-07">
+				The error channel - downstream exceptions will be sent to this channel, if supplied, in an
+				<classname>ErrorMessage</classname>; the payload is a <classname>MessagingException</classname>
+				containing the failed message and cause.
+			</callout>
 		</calloutlist>
 	</section>
 
@@ -99,16 +105,16 @@
 	client-factory="clientFactory"]]> <co id="mqtt-o-04"/><![CDATA[
 	default-qos="1"]]> <co id="mqtt-o-05"/><![CDATA[
 	default-retained="true"]]> <co id="mqtt-o-06"/><![CDATA[
-	default-topic="bar"]]> <co id="mqtt-i-07"/><![CDATA[
+	default-topic="bar"]]> <co id="mqtt-o-07"/><![CDATA[
 	channel="target" />]]></programlisting>
 		<calloutlist>
-			<callout arearefs="mqtt-i-01">
+			<callout arearefs="mqtt-o-01">
 				The client id.
 			</callout>
-			<callout arearefs="mqtt-i-02">
+			<callout arearefs="mqtt-o-02">
 				The broker URL.
 			</callout>
-			<callout arearefs="mqtt-i-03">
+			<callout arearefs="mqtt-o-03">
 				An <interfacename>MqttMessageConverter</interfacename> (optional). The default
 				<classname>DefaultPahoMessageConverter</classname> 
 				recognizes the following headers:
@@ -118,18 +124,18 @@
 					<listitem><code>mqtt_qos</code> - the quality of service</listitem>
 				</itemizedlist>
 			</callout>
-			<callout arearefs="mqtt-i-04">
+			<callout arearefs="mqtt-o-04">
 				The client factory.
 			</callout>
-			<callout arearefs="mqtt-i-05">
+			<callout arearefs="mqtt-o-05">
 				The default quality of service (used if no <code>mqtt_qos</code> header is found). Not allowed
 				if a custom <code>converter</code> is supplied.
 			</callout>
-			<callout arearefs="mqtt-i-06">
+			<callout arearefs="mqtt-o-06">
 				The default value of the retained flag (used if no <code>mqtt_retaind</code> header is found). Not allowed
 				if a custom <code>converter</code> is supplied.
 			</callout>
-			<callout arearefs="mqtt-i-07">
+			<callout arearefs="mqtt-o-07">
 				The default topic to which the message will be sent (used if no <code>mqtt_topic</code> header is found).
 			</callout>
 		</calloutlist>

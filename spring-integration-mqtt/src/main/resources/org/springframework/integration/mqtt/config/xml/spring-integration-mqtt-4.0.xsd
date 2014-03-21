@@ -47,16 +47,26 @@
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						Allows you to specify how long this inbound-channel-adapter
-						will wait for the message (containing the retrieved entities)
+						will wait for the message
 						to be sent successfully to the message channel, before throwing
 						an exception.
-
-						Keep in mind that when sending to a DirectChannel, the
-						invocation will occur in the sender's thread so the failing
-						of the send operation may be caused by other components
-						further downstream. By default the Inbound Channel Adapter
-						will wait indefinitely. The value is specified in milliseconds.
+						This only applies when the channel might block (such as a bounded QueueChannel
+						that is full).
 					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a downstream exception is thrown and an error-channel is specified,
+						the MessagingException will be sent to this channel. Otherwise, any such exception
+						will be logged.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

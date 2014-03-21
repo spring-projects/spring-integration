@@ -55,6 +55,9 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 	@Autowired
 	private DefaultMqttPahoClientFactory clientFactory;
 
+	@Autowired
+	private MessageChannel errors;
+
 	@Test
 	public void testOneTopic() {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(oneTopicAdapter, "url"));
@@ -66,6 +69,7 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertEquals(123L, TestUtils.getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout"));
 		assertSame(out, TestUtils.getPropertyValue(oneTopicAdapter, "outputChannel"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(oneTopicAdapter, "clientFactory"));
+		assertSame(errors, TestUtils.getPropertyValue(oneTopicAdapter, "errorChannel"));
 	}
 
 	@Test
