@@ -68,6 +68,10 @@ import com.mongodb.DBObject;
  * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
  * strategies that relies upon MongoDB for persistence.
  *
+ * @deprecated in favor of {@link org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore}
+ * together with {@code org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter}.
+ * Will be removed in future releases and {@code ConfigurableMongoDbMessageStore} will be renamed to {@code MongoDbMessageStore}.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Sean Brandt
@@ -76,6 +80,7 @@ import com.mongodb.DBObject;
  * @author Artem Bilan
  * @since 2.1
  */
+@Deprecated
 public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";

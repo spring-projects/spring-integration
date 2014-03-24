@@ -12,8 +12,10 @@
         <beans:constructor-arg value="test"/>
     </beans:bean>
 
-    <beans:bean id="messageStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
+    <beans:bean id="messageStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
         <beans:constructor-arg ref="mongoConnectionFactory"/>
+		<beans:constructor-arg ref="testConverter"/>
+		<beans:constructor-arg value="messages"/>
     </beans:bean>
 
     <channel id="output">
@@ -25,5 +27,9 @@
 			 output-channel="output"
 			 default-delay="10000"
 			 message-store="messageStore"/>
+
+	<beans:bean id="testConverter" class="org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter">
+		<beans:constructor-arg ref="mongoConnectionFactory"/>
+	</beans:bean>
 
 </beans:beans>
