@@ -6,15 +6,15 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="mongoStore"/>
-	
+
 	<int:channel id="outputChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
 		<constructor-arg ref="mongoConnectionFactory"/>
 	</bean>
-	
+
 	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
 		<constructor-arg>
 			<bean class="com.mongodb.Mongo"/>

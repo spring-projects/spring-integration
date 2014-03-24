@@ -29,10 +29,18 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.serializer.support.DeserializingConverter;
+import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mapping.context.MappingContext;
@@ -46,6 +54,8 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -54,6 +64,7 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -76,7 +87,8 @@ import com.mongodb.DBObject;
  * @author Artem Bilan
  * @since 2.1
  */
-public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
+public class MongoDbMessageStore extends AbstractMessageGroupStore
+		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -90,16 +102,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private final static String GROUP_UPDATE_TIMESTAMP_KEY = "_group_update_timestamp";
 
-	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
-
 	private final static String CREATED_DATE = "_createdDate";
 
 
 	private final MongoTemplate template;
 
+	private final MessageReadingMongoConverter converter;
+
 	private final String collectionName;
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+
+	private ApplicationContext applicationContext;
 
 
 	/**
@@ -119,9 +133,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	 */
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
-		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
-		converter.afterPropertiesSet();
-		this.template = new MongoTemplate(mongoDbFactory, converter);
+		this.converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
+		this.template = new MongoTemplate(mongoDbFactory, this.converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
 	}
 
@@ -130,6 +143,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		Assert.notNull(classLoader, "classLoader must not be null");
 		this.classLoader = classLoader;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (this.applicationContext != null) {
+			this.template.setApplicationContext(this.applicationContext);
+			this.converter.setApplicationContext(this.applicationContext);
+		}
+		this.converter.afterPropertiesSet();
 	}
 
 	@Override
@@ -335,6 +362,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			customConverters.add(new DBObjectToUUIDConverter());
 			customConverters.add(new MessageHistoryToDBObjectConverter());
 			customConverters.add(new DBObjectToGenericMessageConverter());
+			customConverters.add(new DBObjectToMutableMessageConverter());
+			customConverters.add(new DBObjectToErrorMessageConverter());
+			customConverters.add(new DBObjectToAdviceMessageConverter());
+			customConverters.add(new ThrowableToBytesConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
@@ -355,24 +386,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				return super.read(clazz, source);
 			}
 			if (source != null) {
-				Map<String, Object> headers = this.normalizeHeaders((Map<String, Object>) source.get("headers"));
-
-				Object payload = source.get("payload");
-				Object payloadType = source.get(PAYLOAD_TYPE_KEY);
-				if (payloadType != null && payload instanceof DBObject) {
-					try {
-						Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
-						payload = this.read(payloadClass, (DBObject) payload);
-					}
-					catch (Exception e) {
-						throw new IllegalStateException("failed to load class: " + payloadType, e);
-					}
+				Message<?> message = null;
+				Object messageType = source.get("_messageType");
+				if (messageType == null) {
+					messageType = GenericMessage.class.getName();
 				}
-				GenericMessage message = new GenericMessage(payload, headers);
-				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-				innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+				try {
+					message = (Message<?>) this.read(ClassUtils.forName(messageType.toString(), classLoader), source);
+				}
+				catch (ClassNotFoundException e) {
+					throw new IllegalStateException("failed to load class: " + messageType, e);
+				}
+
 				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
 				Long lastModified = (Long)source.get(GROUP_UPDATE_TIMESTAMP_KEY);
 				Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE_NUMBER);
@@ -432,7 +457,33 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			}
 			return normalizedHeaders;
 		}
+
+		private Object extractPayload(DBObject source) {
+			Object payload = source.get("payload");
+			if (payload instanceof DBObject) {
+				DBObject payloadObject = (DBObject) payload;
+				Object payloadType = payloadObject.get("_class");
+				try {
+					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
+					payload = this.read(payloadClass, payloadObject);
+				}
+				catch (Exception e) {
+					throw new IllegalStateException("failed to load class: " + payloadType, e);
+				}
+			}
+			return payload;
+		}
+
 	}
+
+	@SuppressWarnings("unchecked")
+	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
+		Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
+		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+		innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+	}
+
 
 	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
 		@Override
@@ -474,53 +525,118 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
 
 		@Override
-		@SuppressWarnings("unchecked")
-		public GenericMessage<?> convert(DBObject source) {
-			MessageReadingMongoConverter converter = (MessageReadingMongoConverter) MongoDbMessageStore.this.template
-					.getConverter();
-			Map<String, Object> headers = converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
-			Object payload = source.get("payload");
-			Object payloadType = source.get(PAYLOAD_TYPE_KEY);
-			if (payloadType != null && payload instanceof DBObject) {
+		public GenericMessage<?> convert(DBObject source) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			GenericMessage<?> message = new GenericMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
+			enhanceHeaders(message.getHeaders(), headers);
+			return message;
+		}
+
+	}
+
+	private class DBObjectToMutableMessageConverter implements Converter<DBObject, MutableMessage<?>> {
+
+		@Override
+		public MutableMessage<?> convert(DBObject source) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			return new MutableMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
+		}
+
+	}
+
+	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage> {
+
+		@Override
+		public AdviceMessage convert(DBObject source) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			Message<?> inputMessage = null;
+
+			if (source.get("inputMessage") != null) {
+				DBObject inputMessageObject = (DBObject) source.get("inputMessage");
+				Object inputMessageType = inputMessageObject.get("_class");
 				try {
-					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
-					payload = converter.read(payloadClass, (DBObject) payload);
+					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(), classLoader);
+					inputMessage = (Message<?>) MongoDbMessageStore.this.converter.read(messageClass, inputMessageObject);
 				}
 				catch (Exception e) {
-					throw new IllegalStateException("failed to load class: " + payloadType, e);
+					throw new IllegalStateException("failed to load class: " + inputMessageType, e);
 				}
 			}
 
-			@SuppressWarnings("rawtypes")
-			GenericMessage<Object> message = new GenericMessage(payload, headers);
-			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			AdviceMessage message = new AdviceMessage(MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
+			enhanceHeaders(message.getHeaders(), headers);
 
 			return message;
 		}
 
 	}
 
+	private class DBObjectToErrorMessageConverter implements Converter<DBObject, ErrorMessage> {
+
+		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
+
+		@Override
+		public ErrorMessage convert(DBObject source) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			Object payload = this.deserializingConverter.convert((byte[]) source.get("payload"));
+			ErrorMessage message = new ErrorMessage((Throwable) payload, headers);
+			enhanceHeaders(message.getHeaders(), headers);
+
+			return message;
+		}
+
+	}
+
+	@WritingConverter
+	private class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
+
+		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
+
+		@Override
+		public byte[] convert(Throwable source) {
+			return serializingConverter.convert(source);
+		}
+
+	}
+
+
 	/**
 	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.
 	 */
 	private static final class MessageWrapper {
+
+		/*
+		 * Needed as a persistence property to suppress 'Cannot determine IsNewStrategy' MappingException
+		 * when the application context is configured with auditing. The document is not
+		 * currently Auditable.
+		 */
+		@SuppressWarnings("unused")
+		@Id
+		private String _id;
 
 		private volatile Object _groupId;
 
 		@Transient
 		private final Message<?> message;
 
+		@SuppressWarnings("unused")
+		private final String _messageType;
+
 		private final Object payload;
 
 		@SuppressWarnings("unused")
 		private final Map<String, ?> headers;
 
-		@SuppressWarnings("unused")
-		private final String _payloadType;
+		private final Message<?> inputMessage;
 
 		private volatile long _group_timestamp;
 
@@ -533,9 +649,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		public MessageWrapper(Message<?> message) {
 			Assert.notNull(message, "'message' must not be null");
 			this.message = message;
+			this._messageType = message.getClass().getName();
 			this.payload = message.getPayload();
 			this.headers = message.getHeaders();
-			this._payloadType = this.payload.getClass().getName();
+			if (message instanceof AdviceMessage) {
+				this.inputMessage = ((AdviceMessage) message).getInputMessage();
+			}
+			else {
+				this.inputMessage = null;
+			}
 		}
 
 		public int get_LastReleasedSequenceNumber() {

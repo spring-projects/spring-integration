@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -33,7 +33,9 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 
 	@Override
 	protected MongoDbMessageStore getMessageGroupStore() throws Exception {
-		return new MongoDbMessageStore( new SimpleMongoDbFactory(new Mongo(), "test"));
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore( new SimpleMongoDbFactory(new Mongo(), "test"));
+		mongoDbMessageStore.afterPropertiesSet();
+		return mongoDbMessageStore;
 	}
 
 	@Override
