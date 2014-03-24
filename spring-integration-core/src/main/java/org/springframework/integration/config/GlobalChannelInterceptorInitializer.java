@@ -46,7 +46,7 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
-		String[] channelInterceptorNames = beanFactory.getBeanNamesForType(ChannelInterceptor.class);
+		String[] channelInterceptorNames = beanFactory.getBeanNamesForType(ChannelInterceptor.class, false, false);
 
 		for (String interceptorBeanName : channelInterceptorNames) {
 			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(interceptorBeanName);
