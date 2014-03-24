@@ -82,7 +82,7 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME = "messageBuilderFactory";
 
-	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "gloabelChannelInterceptorProcessor";
+	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

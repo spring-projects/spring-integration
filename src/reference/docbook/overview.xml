@@ -360,13 +360,14 @@
 		See <xref linkend="publisher-annotation"/> for more information.
 	</para>
 	<para>
-        In addition the convenient <classname>@GlobalChannelInterceptor</classname> annotation has been introduced to
-		mark <interfacename>ChannelInterceptor</interfacename> beans for global interception options.
+		In addition, the convenient <classname>@GlobalChannelInterceptor</classname> annotation has been introduced to
+		mark <interfacename>ChannelInterceptor</interfacename> beans for global channel interception.
 		This annotation is an analogue of <code>&lt;int:channel-interceptor&gt;</code> xml element
-		(see <xref linkend="global-channel-configuration-interceptors"/>). <code>@GlobalChannelInterceptor</code> annotation
-		can be placed on class level together with <classname>@Component</classname> stereotype annotation, or
-		on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes.
-    </para>
+		(see <xref linkend="global-channel-configuration-interceptors"/>). <code>@GlobalChannelInterceptor</code> annotations
+		can be placed at the class level together with <classname>@Component</classname> stereotype annotation, or
+		on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes. In either case,
+		the bean must be a <interfacename>ChannelInterceptor</interfacename>, or the annotation will be ignored.
+	</para>
   </section>
 
 </chapter>
