@@ -53,13 +53,13 @@
 			described in the following sections, and the framework will automatically configure
 			the factory bean on your behalf.
 		</para>
-		<programlisting language="xml"><![CDATA[<beans:bean id="integrationEvaluationContext"
+		<programlisting language="xml"><![CDATA[<bean id="integrationEvaluationContext"
 			class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
 	<property name="propertyAccessors">
 		<util:map>
-			<beans:entry key="foo">
-				<beans:bean class="<bean class="foo.MyCustomPropertyAccessor"/>"/>
-			</beans:entry>
+			<entry key="foo">
+				<bean class="foo.MyCustomPropertyAccessor"/>
+			</entry>
 		</util:map>
 	</property>
 	<property name="functions">
@@ -89,6 +89,20 @@
 			and configure a custom property accessor to do so. So, your final expression might be
 			<code>"#barcalc(payload.myBar)"</code>.
 		</para>
+		<para>
+			The factory bean has another property <code>typeLocator</code> which allows you to customize
+			the <interfacename>TypeLocator</interfacename> used during SpEL evaluation. This might be
+			necessary when running in some environments that use a non-standard <classname>ClassLoader</classname>.
+			In the following example, SpEL expressions will always use the bean factory's class loader:
+		</para>
+		<programlisting language="xml"><![CDATA[<bean id="integrationEvaluationContext"
+		class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
+	<property name="typeLocator">
+		<bean class="org.springframework.expression.spel.support.StandardTypeLocator">
+			<constructor-arg value="#{beanFactory.beanClassLoader}"/>
+		</bean>
+	</property>
+</bean>]]></programlisting>
 	</section>
 	<section id="spel-functions">
 		<title>SpEL Functions</title>

@@ -34,6 +34,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypeConverter;
+import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -79,6 +80,8 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 
 	private TypeConverter typeConverter = new StandardTypeConverter();
 
+	private volatile TypeLocator typeLocator;
+
 	private BeanResolver beanResolver;
 
 	private ApplicationContext applicationContext;
@@ -106,6 +109,10 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 		Assert.notNull(functionsArg, "'functions' must not be null.");
 		Assert.noNullElements(functionsArg.values().toArray(), "'functions' cannot have null values.");
 		this.functions = new LinkedHashMap<String, Method>(functionsArg);
+	}
+
+	public void setTypeLocator(TypeLocator typeLocator) {
+		this.typeLocator = typeLocator;
 	}
 
 
@@ -159,6 +166,9 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 	@Override
 	public StandardEvaluationContext getObject() throws Exception {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		if (this.typeLocator != null) {
+			evaluationContext.setTypeLocator(this.typeLocator);
+		}
 
 		evaluationContext.setBeanResolver(this.beanResolver);
 		evaluationContext.setTypeConverter(this.typeConverter);
