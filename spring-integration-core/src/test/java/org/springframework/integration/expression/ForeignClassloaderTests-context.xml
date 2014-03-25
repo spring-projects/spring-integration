@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:service-activator input-channel="foo" output-channel="bar"
+		expression="new org.springframework.integration.expression.ForeignClassloaderTests$Foo()" />
+
+	<int:channel id="bar">
+		<int:queue />
+	</int:channel>
+
+	<bean id="integrationEvaluationContext" class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
+		<property name="typeLocator">
+			<bean class="org.springframework.expression.spel.support.StandardTypeLocator">
+				<constructor-arg value="#{beanFactory.beanClassLoader}"/>
+			</bean>
+		</property>
+	</bean>
+
+</beans>
