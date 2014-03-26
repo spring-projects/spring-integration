@@ -20,7 +20,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
  * {@link ChannelInterceptor}s implementing this interface can veto
- * global interception of a particular channel name. Could be used, for example,
+ * global interception of a particular channel. Could be used, for example,
  * when an interceptor itself writes to an output channel (which should
  * not be intercepted with this interceptor).
  *
@@ -32,6 +32,7 @@ public interface VetoCapableInterceptor {
 
 	/**
 	 * @param beanName The channel name.
+	 * @param channel The channel that is about to be intercepted.
 	 * @return false if the intercept wishes to veto the interception.
 	 */
 	boolean shouldIntercept(String beanName, ChannelInterceptorAware channel);

@@ -23,7 +23,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,23 +52,6 @@ public class ChannelInterceptorTests {
 
 	private final QueueChannel channel = new QueueChannel();
 
-	@Test
-	public void test() {
-		final AtomicInteger bar = new AtomicInteger();
-			for (int i = 0; i < 1000000000; i++) {
-				List<String> foo = getFoo();
-				if (foo.size() > 0) {
-					for (String baz : foo) {
-						bar.incrementAndGet();
-					}
-				}
-			}
-	}
-
-	protected List<String> getFoo() {
-		List<String> foo = new ArrayList<String>();
-		return foo;
-	}
 
 	@Test
 	public void testPreSendInterceptorReturnsMessage() {

@@ -51,6 +51,7 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,6 +62,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class HeaderChannelRegistryTests {
 
 	@Autowired
@@ -147,9 +149,11 @@ public class HeaderChannelRegistryTests {
 		DefaultHeaderChannelRegistry registry = new DefaultHeaderChannelRegistry(50);
 		registry.setTaskScheduler(this.taskScheduler);
 		registry.start();
-		Thread.sleep(200);
 		String id = (String) registry.channelToChannelName(new DirectChannel());
-		Thread.sleep(300);
+		int n = 0;
+		while (n++ < 100 && registry.channelNameToChannel(id) != null) {
+			Thread.sleep(100);
+		}
 		assertNull(registry.channelNameToChannel(id));
 		registry.stop();
 	}
