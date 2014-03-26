@@ -1,4 +1,4 @@
-Spring Integration
+Spring Integration <img src="https://build.spring.io/plugins/servlet/buildStatusImage/INT-B40X">
 ==================
 
 # Checking out and Building
