@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
@@ -49,7 +50,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 	public static final String DELAYER_ID = "delayerWithMongoMS";
 
-//	@Rule
+	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
@@ -107,7 +108,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 		Message<String> original1 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) payload).getOriginal();
 		messageInStore = iterator.next();
 		Message<String> original2 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) messageInStore.getPayload()).getOriginal();
-		assertThat(message1.getPayload(), Matchers.anyOf(Matchers.is(original1.getPayload()), Matchers.is(original2.getPayload())));
+		assertThat(message1, Matchers.anyOf(Matchers.is(original1), Matchers.is(original2)));
 
 		context.refresh();
 

@@ -23,6 +23,7 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.util.ObjectUtils;
  * a reference to the message and changes will be reflected there too.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -52,9 +54,10 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public MutableMessage(T payload, MessageHeaders headers) {
-		this.payload = payload;
+	public MutableMessage(T payload, Map<String, Object> headers) {
+		Assert.notNull(payload, "payload must not be null");
 		this.headers = new MessageHeaders(headers);
+		this.payload = payload;
 		// Needs SPR-11468 to avoid DFA and header manipulation
 		rawHeaders = (Map<String, Object>) new DirectFieldAccessor(this.headers)
 				.getPropertyValue("headers");
@@ -63,6 +66,7 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 			this.rawHeaders.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 		}
 	}
+
 
 	@Override
 	public MessageHeaders getHeaders() {
@@ -75,6 +79,7 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 	}
 
 	public void setPayload(T payload) {
+		Assert.notNull(payload, "'payload' must not be null");
 		this.payload = payload;
 	}
 

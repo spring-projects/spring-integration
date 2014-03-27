@@ -18,22 +18,29 @@ package org.springframework.integration.mongodb.store;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 
 import com.mongodb.Mongo;
 
@@ -103,13 +110,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		MessageStore store = getMessageStore();
 		Foo foo = new Foo();
 		foo.setName("foo");
-		Message<?> message = MessageBuilder.withPayload(foo).
-				setHeader("foo", foo).
-				setHeader("bar", new Bar("bar")).
-				setHeader("baz", new Baz()).
-				setHeader("abc", new Abc()).
-				setHeader("xyz", new Xyz()).
-				build();
+		Message<?> message = MessageBuilder.withPayload(foo).build();
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
@@ -120,11 +121,6 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		store.addMessage(message);
 		message = store.getMessage(message.getHeaders().getId());
 		assertNotNull(message);
-		assertTrue(message.getHeaders().get("foo") instanceof Foo);
-		assertTrue(message.getHeaders().get("bar") instanceof Bar);
-		assertTrue(message.getHeaders().get("baz") instanceof Baz);
-		assertTrue(message.getHeaders().get("abc") instanceof Abc);
-		assertTrue(message.getHeaders().get("xyz") instanceof Xyz);
 		MessageHistory messageHistory = MessageHistory.read(message);
 		assertNotNull(messageHistory);
 		assertEquals(2, messageHistory.size());
@@ -150,6 +146,108 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(messageToStore, retrievedMessage);
 	}
+
+	@Test
+	@MongoDbAvailable
+	public void testInt3076MessageAsPayload() throws Exception{
+		MessageStore store = this.getMessageStore();
+		Person p = new Person();
+		p.setFname("John");
+		p.setLname("Doe");
+		Message<?> messageToStore = new GenericMessage<Message<?>>(MessageBuilder.withPayload(p).build());
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertTrue(retrievedMessage.getPayload() instanceof GenericMessage);
+		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(((Message<?>) messageToStore.getPayload()).getPayload(), p);
+		assertEquals(messageToStore, retrievedMessage);
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testInt3076AdviceMessage() throws Exception{
+		MessageStore store = this.getMessageStore();
+		Person p = new Person();
+		p.setFname("John");
+		p.setLname("Doe");
+		Message<Person> inputMessage = MessageBuilder.withPayload(p).build();
+		Message<?> messageToStore = new AdviceMessage("foo", inputMessage);
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertTrue(retrievedMessage instanceof AdviceMessage);
+		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(inputMessage, ((AdviceMessage) retrievedMessage).getInputMessage());
+		assertEquals(messageToStore, retrievedMessage);
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testAdviceMessageAsPayload() throws Exception{
+		MessageStore store = this.getMessageStore();
+		Person p = new Person();
+		p.setFname("John");
+		p.setLname("Doe");
+		Message<Person> inputMessage = MessageBuilder.withPayload(p).build();
+		Message<?> messageToStore = new GenericMessage<Message<?>>(new AdviceMessage("foo", inputMessage));
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertTrue(retrievedMessage.getPayload() instanceof AdviceMessage);
+		AdviceMessage adviceMessage = (AdviceMessage) retrievedMessage.getPayload();
+		assertEquals("foo", adviceMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(inputMessage, adviceMessage.getInputMessage());
+		assertEquals(messageToStore, retrievedMessage);
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testMutableMessageAsPayload() throws Exception{
+		MessageStore store = this.getMessageStore();
+		Person p = new Person();
+		p.setFname("John");
+		p.setLname("Doe");
+		Message<?> messageToStore = new GenericMessage<Message<?>>(new MutableMessage<Object>(p));
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertTrue(retrievedMessage.getPayload() instanceof MutableMessage);
+		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(((Message<?>) messageToStore.getPayload()).getPayload(), p);
+		assertEquals(messageToStore, retrievedMessage);
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testInt3076ErrorMessage() throws Exception{
+		MessageStore store = this.getMessageStore();
+		Person p = new Person();
+		p.setFname("John");
+		p.setLname("Doe");
+		Message<Person> failedMessage = MessageBuilder.withPayload(p).build();
+		MessagingException messagingException;
+		try {
+			throw new RuntimeException("intentional");
+		}
+		catch (Exception e) {
+			messagingException = new MessagingException(failedMessage, "intentional MessagingException", e);
+		}
+		Message<?> messageToStore = new ErrorMessage(messagingException);
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertTrue(retrievedMessage instanceof ErrorMessage);
+		assertThat(retrievedMessage.getPayload(), Matchers.instanceOf(MessagingException.class));
+		assertEquals("intentional MessagingException", ((MessagingException) retrievedMessage.getPayload()).getMessage());
+		assertEquals(failedMessage, ((MessagingException) retrievedMessage.getPayload()).getFailedMessage());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+	}
+
 
 	public static class Foo implements Serializable {
 		/**
@@ -194,34 +292,6 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 			return name;
 		}
 	}
-
-	public static class Abc implements Serializable {
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
-
-		private final String name = "abx";
-
-		private Abc(){}
-
-		public String getName() {
-			return name;
-		}
-	}
-
-	public static class Xyz implements Serializable {
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
-
-		@SuppressWarnings("unused")
-		private final String name = "xyz";
-
-		private Xyz(){}
-	}
-
 
 	public static class Person implements Serializable{
 

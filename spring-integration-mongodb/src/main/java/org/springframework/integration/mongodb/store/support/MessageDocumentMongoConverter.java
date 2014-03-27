@@ -29,15 +29,23 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.serializer.support.DeserializingConverter;
+import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.message.MutableMessage;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -46,6 +54,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
 /**
+ * The custom {@link MappingMongoConverter} to decompose {@link Message} as a MongoDB field set.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
@@ -55,23 +65,13 @@ public class MessageDocumentMongoConverter extends MappingMongoConverter impleme
 
 	private static final Log logger = LogFactory.getLog(MessageDocumentMongoConverter.class);
 
-	private final static String CREATED_TIME_KEY = "createdTime";
+	private final static String PAYLOAD_TYPE = "_payloadType";
 
-	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
+	private final static String MESSAGE_TYPE = "_messageType";
 
-	private final static String HEADERS_KEY = "headers";
+	private final static String HEADERS = "headers";
 
-	private final static String PAYLOAD_KEY = "payload";
-
-	private static final String MESSAGE_ID = "messageId";
-
-	private static final String GROUP_ID = "groupId";
-
-	private static final String LAST_MODIFIED_TIME = "lastModifiedTime";
-
-	private static final String LAST_RELEASED_SEQUENCE = "lastReleasedSequence";
-
-	private static final String COMPLETE = "complete";
+	private final static String PAYLOAD = "payload";
 
 	private ClassLoader classLoader;
 
@@ -86,9 +86,13 @@ public class MessageDocumentMongoConverter extends MappingMongoConverter impleme
 
 	@Override
 	public void afterPropertiesSet() {
-		List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
+		List<Object> customConverters = new ArrayList<Object>();
 		customConverters.add(new MessageHistoryToDBObjectConverter());
-		customConverters.add(new DBObjectToMessageConverter());
+		customConverters.add(new DBObjectToGenericMessageConverter());
+		customConverters.add(new DBObjectToMutableMessageConverter());
+		customConverters.add(new DBObjectToErrorMessageConverter());
+		customConverters.add(new DBObjectToAdviceMessageConverter());
+		customConverters.add(new ThrowableToBytesConverter());
 		this.setCustomConversions(new CustomConversions(customConverters));
 		super.afterPropertiesSet();
 	}
@@ -100,59 +104,63 @@ public class MessageDocumentMongoConverter extends MappingMongoConverter impleme
 		MessageDocument document = (MessageDocument) source;
 		Message<?> message = document.getMessage();
 
-		target.put(CREATED_TIME_KEY, document.getCreatedTime());
-		target.put(GROUP_ID, document.getGroupId());
-		target.put(LAST_MODIFIED_TIME, document.getLastModifiedTime());
-		target.put(LAST_RELEASED_SEQUENCE, document.getLastReleasedSequence());
-		target.put(COMPLETE, document.isComplete());
-		target.put(MESSAGE_ID, message.getHeaders().getId());
+		target.put(MessageDocumentFields.CREATED_TIME, document.getCreatedTime());
+		target.put(MessageDocumentFields.GROUP_ID, document.getGroupId());
+		target.put(MessageDocumentFields.LAST_MODIFIED_TIME, document.getLastModifiedTime());
+		target.put(MessageDocumentFields.LAST_RELEASED_SEQUENCE, document.getLastReleasedSequence());
+		target.put(MessageDocumentFields.COMPLETE, document.isComplete());
+		target.put(MessageDocumentFields.MESSAGE_ID, message.getHeaders().getId());
 
-		target.put(HEADERS_KEY, this.convertToMongoType(message.getHeaders()));
+		target.put(HEADERS, this.convertToMongoType(message.getHeaders()));
 
-		target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
+		target.put(MESSAGE_TYPE, message.getClass().getName());
+		target.put(PAYLOAD_TYPE, message.getPayload().getClass().getName());
 		Object payload = message.getPayload();
 		if (!this.conversions.isSimpleType(payload.getClass())) {
 			DBObject dbo = new BasicDBObject();
 			super.write(payload, dbo);
 			payload = dbo;
 		}
-		target.put(PAYLOAD_KEY, payload);
+		else if (payload instanceof Throwable) {
+			payload = this.convertToMongoType(payload);
+		}
+
+		target.put(PAYLOAD, payload);
+
+		if (message instanceof AdviceMessage) {
+			DBObject dbo = new BasicDBObject();
+			super.write(((AdviceMessage) message).getInputMessage(), dbo);
+			target.put("inputMessage", dbo);
+		}
 		target.put("_class", MessageDocument.class.getName());
 	}
 
 
 	@Override
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings("unchecked")
 	public <S> S read(Class<S> clazz, DBObject source) {
 		if (!MessageDocument.class.equals(clazz)) {
 			return super.read(clazz, source);
 		}
 		if (source != null) {
-			Map<String, Object> headers = this.normalizeHeaders((Map<String, Object>) source.get(HEADERS_KEY));
-
-			Object payload = source.get(PAYLOAD_KEY);
-			Object payloadType = source.get(PAYLOAD_TYPE_KEY);
-			if (payloadType != null && payload instanceof DBObject) {
-				try {
-					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
-					payload = this.read(payloadClass, (DBObject) payload);
-				}
-				catch (Exception e) {
-					throw new IllegalStateException("failed to load class: " + payloadType, e);
-				}
+			Message<?> message = null;
+			Object messageType = source.get(MESSAGE_TYPE);
+			try {
+				message = (Message<?>) this.read(ClassUtils.forName(messageType.toString(), classLoader), source);
 			}
-			MutableMessage<Object> message = new MutableMessage<Object>(payload);
-			message.getRawHeaders().putAll(headers);
+			catch (ClassNotFoundException e) {
+				throw new IllegalStateException("failed to load class: " + messageType, e);
+			}
 
-			Long groupTimestamp = (Long)source.get(CREATED_TIME_KEY);
-			Long lastModified = (Long)source.get(LAST_MODIFIED_TIME);
-			Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE);
-			Boolean completeGroup = (Boolean)source.get(COMPLETE);
+			Long groupTimestamp = (Long)source.get(MessageDocumentFields.CREATED_TIME);
+			Long lastModified = (Long)source.get(MessageDocumentFields.LAST_MODIFIED_TIME);
+			Integer lastReleasedSequenceNumber = (Integer)source.get(MessageDocumentFields.LAST_RELEASED_SEQUENCE);
+			Boolean completeGroup = (Boolean)source.get(MessageDocumentFields.COMPLETE);
 
 			MessageDocument document = new MessageDocument(message);
 
-			if (source.containsField(GROUP_ID)){
-				document.setGroupId(source.get(GROUP_ID));
+			if (source.containsField(MessageDocumentFields.GROUP_ID)){
+				document.setGroupId(source.get(MessageDocumentFields.GROUP_ID));
 			}
 			if (groupTimestamp != null){
 				document.setCreatedTime(groupTimestamp);
@@ -204,8 +212,24 @@ public class MessageDocumentMongoConverter extends MappingMongoConverter impleme
 		return normalizedHeaders;
 	}
 
+	private Object extractPayload(DBObject source) {
+		Object payload = source.get(PAYLOAD);
+		if (payload instanceof DBObject) {
+			DBObject payloadObject = (DBObject) payload;
+			Object payloadType = payloadObject.get("_class");
+			try {
+				Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
+				payload = MessageDocumentMongoConverter.this.read(payloadClass, payloadObject);
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("failed to load class: " + payloadType, e);
+			}
+		}
+		return payload;
+	}
 
-	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory,DBObject> {
+
+	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory, DBObject> {
 
 		@Override
 		public DBObject convert(MessageHistory source) {
@@ -224,29 +248,97 @@ public class MessageDocumentMongoConverter extends MappingMongoConverter impleme
 		}
 	}
 
-	private class DBObjectToMessageConverter implements Converter<DBObject, Message<?>> {
+	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
 
 		@Override
-		public Message<?> convert(DBObject source) {
+		@SuppressWarnings("unchecked")
+		public GenericMessage<?> convert(DBObject source) {
+			Map<String, Object> headers = MessageDocumentMongoConverter.this.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			GenericMessage<?> message = new GenericMessage<Object>(MessageDocumentMongoConverter.this.extractPayload(source), headers);
+			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+
+			return message;
+		}
+
+	}
+
+	private class DBObjectToMutableMessageConverter implements Converter<DBObject, MutableMessage<?>> {
+
+		@Override
+		public MutableMessage<?> convert(DBObject source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers = MessageDocumentMongoConverter.this.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
-			Object payload = source.get(PAYLOAD_KEY);
-			Object payloadType = source.get(PAYLOAD_TYPE_KEY);
-			if (payloadType != null && payload instanceof DBObject) {
+			return new MutableMessage<Object>(MessageDocumentMongoConverter.this.extractPayload(source), headers);
+		}
+
+	}
+
+	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage> {
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public AdviceMessage convert(DBObject source) {
+			Map<String, Object> headers = MessageDocumentMongoConverter.this.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			Message<?> inputMessage = null;
+
+			if (source.get("inputMessage") != null) {
+				DBObject inputMessageObject = (DBObject) source.get("inputMessage");
+				Object inputMessageType = inputMessageObject.get("_class");
 				try {
-					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
-					payload = MessageDocumentMongoConverter.this.read(payloadClass, (DBObject) payload);
+					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(), classLoader);
+					inputMessage = (Message<?>) MessageDocumentMongoConverter.this.read(messageClass, inputMessageObject);
 				}
 				catch (Exception e) {
-					throw new IllegalStateException("failed to load class: " + payloadType, e);
+					throw new IllegalStateException("failed to load class: " + inputMessageType, e);
 				}
 			}
 
-			MutableMessage<Object> message = new MutableMessage<Object>(payload);
-			message.getRawHeaders().putAll(headers);
+			AdviceMessage message = new AdviceMessage(MessageDocumentMongoConverter.this.extractPayload(source), headers, inputMessage);
+			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 
 			return message;
+		}
+
+	}
+
+	private class DBObjectToErrorMessageConverter implements Converter<DBObject, ErrorMessage> {
+
+		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public ErrorMessage convert(DBObject source) {
+			Map<String, Object> headers = MessageDocumentMongoConverter.this.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			Object payload = this.deserializingConverter.convert((byte[]) source.get(PAYLOAD));
+			ErrorMessage message = new ErrorMessage((Throwable) payload, headers);
+			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+
+			return message;
+		}
+
+	}
+
+	@WritingConverter
+	private class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
+
+		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
+
+		@Override
+		public byte[] convert(Throwable source) {
+			return serializingConverter.convert(source);
 		}
 
 	}
