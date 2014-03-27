@@ -140,12 +140,12 @@
 	<section id="tree-polling-channel-adapter">
 		<title>Tree Polling Channel Adapter</title>
 		<para>
-			The <emphasis>Tree Polling Channel Adapter</emphasis> queries the JMX MBean tree and 
-			sends a message with a payload that is the graph of objects that matches the query. By 
-			default the MBeans are mapped to primitives and simple Objects like Map, List and arrays - 
-			permitting simple transformation, for example, to JSON. An MBeanServer reference is also 
-			required, but it will automatically check for a bean named <emphasis>mbeanServer</emphasis> 
-			by default, just like the <emphasis>Notification-listening Channel Adapter</emphasis> 
+			The <emphasis>Tree Polling Channel Adapter</emphasis> queries the JMX MBean tree and
+			sends a message with a payload that is the graph of objects that matches the query. By
+			default the MBeans are mapped to primitives and simple Objects like Map, List and arrays -
+			permitting simple transformation, for example, to JSON. An MBeanServer reference is also
+			required, but it will automatically check for a bean named <emphasis>mbeanServer</emphasis>
+			by default, just like the <emphasis>Notification-listening Channel Adapter</emphasis>
 			described above. A basic configuration would be:
 		</para>
 		<programlisting language="xml"><![CDATA[<int-jmx:tree-polling-channel-adapter id="adapter"
@@ -277,7 +277,26 @@
 		    It also has a useful operation, as discussed in <xref linkend="jmx-mbean-shutdown"/>.
 		  </para>
 		</important>
+		<para>
+			Starting with <emphasis>Spring Integration 4.0</emphasis> the <code>@EnableIntegrationMBeanExport</code>
+			annotation has been introduced for convenient configuration default bean (<code>mbeanExporter</code>)
+			for <classname>IntegrationMBeanExporter</classname> with several useful options
+			on the <code>@Configuration</code> class level. For example:
+<programlisting language="java"><![CDATA[@Configuration
+@EnableIntegration
+@EnableIntegrationMBeanExport(server = "mbeanServer", managedComponents = "input")
+public class ContextConfiguration {
 
+	@Bean
+	public MBeanServerFactoryBean mbeanServer() {
+		return new MBeanServerFactoryBean();
+	}
+}]]></programlisting>
+			If there is need to provide more options or have several <classname>IntegrationMBeanExporter</classname> beans,
+			e.g. for different MBean Servers, or avoid conflicts with standard Spring <classname>MBeanExporter</classname>
+			(e.g. via <code>@EnableMBeanExport</code>), it's just enough to configure <classname>IntegrationMBeanExporter</classname>
+			as generic bean.
+		</para>
 		<section id="jmx-mbean-features">
 			<title>MBean ObjectNames</title>
 

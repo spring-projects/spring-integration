@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 package org.springframework.integration_.mbeanexporterhelper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import org.springframework.jmx.export.MBeanExporter;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class Int2307Tests {
@@ -70,9 +72,17 @@ public class Int2307Tests {
 		assertEquals(4, count);
 
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
-		Object mBeanExporterHelper = context.getBean(clazz);
-		assertTrue(((Set<String>)TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("z"));
-		assertTrue(((Set<String>)TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("zz"));
+		List<Object> beanPostProcessors = TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors", List.class);
+		Object mBeanExporterHelper = null;
+		for (Object beanPostProcessor : beanPostProcessors) {
+			if (clazz.isAssignableFrom(beanPostProcessor.getClass())) {
+				mBeanExporterHelper = beanPostProcessor;
+				break;
+			}
+		}
+		assertNotNull(mBeanExporterHelper);
+		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("z"));
+		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("zz"));
 
 		// make sure there are no duplicate MBean ObjectNames if 2 contexts loaded from same config
 		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
@@ -90,8 +100,16 @@ public class Int2307Tests {
 		assertTrue(excludedBeanNames.contains("y"));
 		assertTrue(excludedBeanNames.contains("foo")); // non SI bean
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
-		Object mBeanExporterHelper = context.getBean(clazz);
-		assertTrue(((Set<String>)TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("z"));
+		List<Object> beanPostProcessors = TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors", List.class);
+		Object mBeanExporterHelper = null;
+		for (Object beanPostProcessor : beanPostProcessors) {
+			if (clazz.isAssignableFrom(beanPostProcessor.getClass())) {
+				mBeanExporterHelper = beanPostProcessor;
+				break;
+			}
+		}
+		assertNotNull(mBeanExporterHelper);
+		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("z"));
 	}
 
 	public static class Foo{}

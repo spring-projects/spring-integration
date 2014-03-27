@@ -80,6 +80,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		this.registerImplicitChannelCreator(registry);
+		this.registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
 		this.registerIntegrationEvaluationContext(registry);
 		this.registerIntegrationProperties(registry);
 		this.registerHeaderChannelRegistry(registry);
@@ -89,7 +90,6 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		if (importingClassMetadata != null) {
 			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
-		this.registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
 		this.registerMessageBuilderFactory(registry);
 	}
 

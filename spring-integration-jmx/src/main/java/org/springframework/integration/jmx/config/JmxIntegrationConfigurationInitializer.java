@@ -18,6 +18,8 @@ package org.springframework.integration.jmx.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 
@@ -37,11 +39,9 @@ public class JmxIntegrationConfigurationInitializer implements IntegrationConfig
 	}
 
 	private void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
-		if (!beanFactory.getBeansOfType(IntegrationMBeanExporter.class, false, false).isEmpty()) {
-			MBeanExporterHelper mBeanExporterHelper = new MBeanExporterHelper();
-			mBeanExporterHelper.postProcessBeanFactory(beanFactory);
-			beanFactory.registerSingleton(MBEAN_EXPORTER_HELPER_BEAN_NAME, mBeanExporterHelper);
-			beanFactory.initializeBean(mBeanExporterHelper, MBEAN_EXPORTER_HELPER_BEAN_NAME);
+		if (beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class).length > 0) {
+			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(MBEAN_EXPORTER_HELPER_BEAN_NAME,
+					new RootBeanDefinition(MBeanExporterHelper.class));
 		}
 	}
 
