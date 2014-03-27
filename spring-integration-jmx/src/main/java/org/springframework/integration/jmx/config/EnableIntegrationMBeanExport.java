@@ -30,7 +30,7 @@ import org.springframework.jmx.support.RegistrationPolicy;
  * well as well all {@code @ManagedResource} annotated beans.
  *
  * <p>The resulting {@link org.springframework.integration.monitor.IntegrationMBeanExporter}
- * bean is defined under the name "mbeanExporter". Alternatively, consider defining a
+ * bean is defined under the name {@code integrationMbeanExporter}. Alternatively, consider defining a
  * custom {@link org.springframework.integration.monitor.IntegrationMBeanExporter} bean explicitly.
  *
  * <p>This annotation is modeled after and functionally equivalent to Spring XML's

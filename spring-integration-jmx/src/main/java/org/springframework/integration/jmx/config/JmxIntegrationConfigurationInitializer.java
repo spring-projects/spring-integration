@@ -18,6 +18,8 @@ package org.springframework.integration.jmx.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 
@@ -29,6 +31,8 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
  */
 public class JmxIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
+	private static final String MBEAN_EXPORTER_HELPER_BEAN_NAME = MBeanExporterHelper.class.getName();
+
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		this.registerMBeanExporterHelperIfNecessary(beanFactory);
@@ -36,9 +40,8 @@ public class JmxIntegrationConfigurationInitializer implements IntegrationConfig
 
 	private void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
 		if (beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class).length > 0) {
-			MBeanExporterHelper mBeanExporterHelper = new MBeanExporterHelper();
-			mBeanExporterHelper.setBeanFactory(beanFactory);
-			beanFactory.addBeanPostProcessor(mBeanExporterHelper);
+			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(MBEAN_EXPORTER_HELPER_BEAN_NAME,
+					new RootBeanDefinition(MBeanExporterHelper.class));
 		}
 	}
 

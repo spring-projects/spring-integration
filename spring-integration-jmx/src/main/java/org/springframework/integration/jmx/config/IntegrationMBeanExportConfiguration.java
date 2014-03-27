@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
 @Configuration
 public class IntegrationMBeanExportConfiguration implements ImportAware, EnvironmentAware, BeanFactoryAware {
 
-	private static final String MBEAN_EXPORTER_NAME = "mbeanExporter";
+	private static final String MBEAN_EXPORTER_NAME = "integrationMbeanExporter";
 
 	private AnnotationAttributes attributes;
 
