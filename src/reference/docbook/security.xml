@@ -58,6 +58,35 @@
   </programlisting>
 
     </para>
+	<para>
+		Starting with <emphasis>version 4.0</emphasis> the same configuration is available from JavaConfig using
+		<classname>ChannelSecurityInterceptorFactoryBean</classname>. This class delegates all options for
+		<classname>ChannelSecurityInterceptor</classname> by Builder pattern manner:
+<programlisting language="java"><![CDATA[@Configuration
+@EnableIntegration
+public class ContextConfiguration {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+	@Autowired
+    private AccessDecisionManager accessDecisionManager;
+
+	@Bean
+	public ChannelSecurityInterceptorFactoryBean channelSecurityInterceptor() {
+		return new ChannelSecurityInterceptorFactoryBean()
+		        .authenticationManager(this.authenticationManager)
+		        .accessDecisionManager(this.accessDecisionManager)
+				.accessPolicy("admin.*", "ROLE_ADMIN")
+				.accessPolicy("user.*", null, "ROLE_USER");
+	}
+}]]></programlisting>
+    Note, the <classname>@EnableIntegration</classname> annotation is required to provide the Spring Integration
+    infrastructure (including Security) to the Application Context. In addition this <interfacename>FactoryBean</interfacename>
+    does fallback to <interfacename>AuthenticationManager</interfacename> and <interfacename>AccessDecisionManager</interfacename>
+    beans with names <code>authenticationManager</code> and <code>accessDecisionManager</code> appropriately, if they aren't provided
+    from <classname>ChannelSecurityInterceptorFactoryBean</classname> bean definition.
+	</para>
   </section>
 
 

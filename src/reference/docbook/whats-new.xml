@@ -94,6 +94,14 @@
 				For more information, see <xref linkend="redis-cms"/>.
 			</para>
 		</section>
+		<section id="4.0-channel-security-interceptor">
+			<title>ChannelSecurityInterceptorFactoryBean</title>
+			<para>
+				To allow configure Spring Security for message channels from JavaConfig
+				the <classname>ChannelSecurityInterceptorFactoryBean</classname> has been provided.
+				For more information, see <xref linkend="security"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">
