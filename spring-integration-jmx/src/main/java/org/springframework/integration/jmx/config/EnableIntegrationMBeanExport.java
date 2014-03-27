@@ -33,7 +33,7 @@ import org.springframework.jmx.support.RegistrationPolicy;
  * bean is defined under the name {@code integrationMbeanExporter}. Alternatively, consider defining a
  * custom {@link org.springframework.integration.monitor.IntegrationMBeanExporter} bean explicitly.
  *
- * <p>This annotation is modeled after and functionally equivalent to Spring XML's
+ * <p>This annotation is modeled after and functionally equivalent to Spring Integration XML's
  * {@code <int-jmx:mbean-export/>} element.
  *
  * @author Artem Bilan
@@ -47,15 +47,17 @@ public @interface EnableIntegrationMBeanExport {
 
 	/**
 	 * The default domain to use when generating JMX ObjectNames.
-	 * Supports property placeholders (e.g. {@code ${project.domain}).
+	 * Supports property placeholders (e.g. {@code ${project.domain}}).
+	 * @return the domain.
 	 */
 	String defaultDomain() default "";
 
 	/**
 	 * The bean name of the MBeanServer to which MBeans should be exported. Default is to
 	 * use the platform's default MBeanServer.
-	 * Supports property placeholders (e.g. {@code ${project.mbeanServer})
-	 * and SpEL expression (e.g. {@code #{mbeanServer}).
+	 * Supports property placeholders (e.g. {@code ${project.mbeanServer}})
+	 * and SpEL expression (e.g. {@code #{mbeanServer}}).
+	 * @return the server.
 	 */
 	String server() default "";
 
@@ -63,6 +65,7 @@ public @interface EnableIntegrationMBeanExport {
 	 * The policy to use when attempting to register an MBean under an
 	 * {@link javax.management.ObjectName} that already exists. Defaults to
 	 * {@link org.springframework.jmx.support.RegistrationPolicy#FAIL_ON_EXISTING}.
+	 * @return the registration policy.
 	 */
 	RegistrationPolicy registration() default RegistrationPolicy.FAIL_ON_EXISTING;
 
@@ -72,7 +75,8 @@ public @interface EnableIntegrationMBeanExport {
 	 * the 'name' property of the ObjectName.  A MessageChannel and a MessageHandler (for instance)
 	 * can share a name because they have a different type, so in that case they would either both
 	 * be included or both excluded.
-	 * Supports property placeholders (e.g. {@code ${managed.components}). Can be applied for each element.
+	 * Supports property placeholders (e.g. {@code ${managed.components}}). Can be applied for each element.
+	 * @return the patterns.
 	 */
 	String[] managedComponents() default "*";
 

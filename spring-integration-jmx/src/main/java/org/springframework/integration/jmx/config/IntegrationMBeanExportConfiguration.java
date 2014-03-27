@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@code @Configuration} class that registers a {@link IntegrationMBeanExporter} bean.
- * <p/>
+ *
  * <p>This configuration class is automatically imported when using the
  * {@link EnableIntegrationMBeanExport} annotation. See its javadoc for complete usage details.
  *
