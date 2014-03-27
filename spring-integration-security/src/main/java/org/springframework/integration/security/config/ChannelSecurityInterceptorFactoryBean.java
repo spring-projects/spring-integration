@@ -16,6 +16,7 @@
 
 package org.springframework.integration.security.config;
 
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.BeansException;
@@ -34,6 +35,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link FactoryBean} for {@code <security:secured-channels/>} JavaConfig variant to provide options
+ * for {@link ChannelSecurityInterceptor} beans.
+ *
  * @author Artem Bilan
  * @since 4.0
  */
@@ -61,42 +65,42 @@ public class ChannelSecurityInterceptorFactoryBean implements FactoryBean<Channe
 		this.name = name;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean accessDecisionManager(AccessDecisionManager accessDecisionManager) {
+	public ChannelSecurityInterceptorFactoryBean setAccessDecisionManager(AccessDecisionManager accessDecisionManager) {
 		interceptor.setAccessDecisionManager(accessDecisionManager);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean afterInvocationManager(AfterInvocationManager afterInvocationManager) {
+	public ChannelSecurityInterceptorFactoryBean setAfterInvocationManager(AfterInvocationManager afterInvocationManager) {
 		interceptor.setAfterInvocationManager(afterInvocationManager);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean alwaysReauthenticate(boolean alwaysReauthenticate) {
+	public ChannelSecurityInterceptorFactoryBean setAlwaysReauthenticate(boolean alwaysReauthenticate) {
 		interceptor.setAlwaysReauthenticate(alwaysReauthenticate);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean authenticationManager(AuthenticationManager newManager) {
+	public ChannelSecurityInterceptorFactoryBean setAuthenticationManager(AuthenticationManager newManager) {
 		interceptor.setAuthenticationManager(newManager);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean publishAuthorizationSuccess(boolean publishAuthorizationSuccess) {
+	public ChannelSecurityInterceptorFactoryBean setPublishAuthorizationSuccess(boolean publishAuthorizationSuccess) {
 		interceptor.setPublishAuthorizationSuccess(publishAuthorizationSuccess);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean rejectPublicInvocations(boolean rejectPublicInvocations) {
+	public ChannelSecurityInterceptorFactoryBean setRejectPublicInvocations(boolean rejectPublicInvocations) {
 		interceptor.setRejectPublicInvocations(rejectPublicInvocations);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean runAsManager(RunAsManager runAsManager) {
+	public ChannelSecurityInterceptorFactoryBean setRunAsManager(RunAsManager runAsManager) {
 		interceptor.setRunAsManager(runAsManager);
 		return this;
 	}
 
-	public ChannelSecurityInterceptorFactoryBean validateConfigAttributes(boolean validateConfigAttributes) {
+	public ChannelSecurityInterceptorFactoryBean setValidateConfigAttributes(boolean validateConfigAttributes) {
 		interceptor.setValidateConfigAttributes(validateConfigAttributes);
 		return this;
 	}
@@ -109,6 +113,15 @@ public class ChannelSecurityInterceptorFactoryBean implements FactoryBean<Channe
 		Assert.hasText(pattern);
 		((ChannelSecurityMetadataSource) interceptor.obtainSecurityMetadataSource())
 				.addPatternMapping(Pattern.compile(pattern), new DefaultChannelAccessPolicy(sendAccess, receiveAccess));
+		return this;
+	}
+
+	public ChannelSecurityInterceptorFactoryBean setAccessPolicies(Map<String, DefaultChannelAccessPolicy> accessPolicies) {
+		Assert.notNull(accessPolicies);
+		ChannelSecurityMetadataSource channelSecurityMetadataSource = (ChannelSecurityMetadataSource) interceptor.obtainSecurityMetadataSource();
+		for (Map.Entry<String, DefaultChannelAccessPolicy> entry : accessPolicies.entrySet()) {
+			channelSecurityMetadataSource.addPatternMapping(Pattern.compile(entry.getKey()), entry.getValue());
+		}
 		return this;
 	}
 

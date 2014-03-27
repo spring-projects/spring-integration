@@ -18,8 +18,9 @@ package org.springframework.integration.security.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
-import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 
 /**
  * The Integration Security infrastructure {@code beanFactory} initializer.
@@ -29,9 +30,14 @@ import org.springframework.integration.security.channel.ChannelSecurityIntercept
  */
 public class SecurityIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
+	private static final String CHANNEL_SECURITY_INTERCEPTOR_BPP_BEAN_NAME = ChannelSecurityInterceptorBeanPostProcessor.class.getName();
+
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		beanFactory.addBeanPostProcessor(new ChannelSecurityInterceptorBeanPostProcessor(beanFactory.getBeansOfType(ChannelSecurityInterceptor.class).values()));
+		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+		if (!registry.containsBeanDefinition(CHANNEL_SECURITY_INTERCEPTOR_BPP_BEAN_NAME)) {
+			registry.registerBeanDefinition(CHANNEL_SECURITY_INTERCEPTOR_BPP_BEAN_NAME, new RootBeanDefinition(ChannelSecurityInterceptorBeanPostProcessor.class));
+		}
 	}
 
 }
