@@ -142,14 +142,14 @@
 	 </para>
 	 <note>
 		 Starting with <emphasis>Spring Integration 4.0</emphasis> the <classname>MongoDbMessageStore</classname> is
-		 deprecated and will be removed in future release and the <classname>ConfigurableMongoDbMessageStore</classname>
-		 will be renamed. To achieve the similar MongoDB documents representation as it is with <classname>MongoDbMessageStore</classname>
-		 (to have an access to the <code>headers</code> and <code>payload</code> properties) it is just necessary to configure
-		 <classname>ConfigurableMongoDbMessageStore</classname> with <classname>MessageReadingMongoConverter</classname>:
+		 deprecated and will be removed in future release. To achieve the similar MongoDB documents representation
+		 as it is with <classname>MongoDbMessageStore</classname> (to have an access to the <code>headers</code>
+		 and <code>payload</code> properties) it is just necessary to configure
+		 <classname>ConfigurableMongoDbMessageStore</classname> with <classname>MessageDocumentMongoConverter</classname>:
 	  <programlisting language="xml"><![CDATA[<bean id="mongoDbMessageStore" class="o.s.i.mongodb.store.ConfigurableMongoDbMessageStore">
     <constructor-arg ref="mongoDbFactory"/>
     <constructor-arg name="mappingMongoConverter">
-        <bean class="org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter">
+        <bean class="org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter">
 			<constructor-arg ref="mongoConnectionFactory"/>
 		</bean>
     </constructor-arg>

@@ -113,7 +113,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testCountMessagesInGroup() throws Exception{
+	public void testCountMessagesInGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
@@ -125,12 +125,13 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testPollMessages() throws Exception{
+	public void testPollMessages() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
 		store.addMessageToGroup(1, messageA);
+		Thread.sleep(10);
 		store.addMessageToGroup(1, messageB);
 		assertEquals(2, store.messageGroupSize(1));
 		Message<?> out = store.pollMessageFromGroup(1);
@@ -144,7 +145,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testSameMessageMultipleGroupsPoll() throws Exception{
+	public void testSameMessageMultipleGroupsPoll() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");

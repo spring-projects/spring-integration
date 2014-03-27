@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter;
+import org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter;
 import org.springframework.integration.store.MessageStore;
 
 import com.mongodb.Mongo;
@@ -36,7 +36,7 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	@Override
 	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory);
+		MessageDocumentMongoConverter converter = new MessageDocumentMongoConverter(mongoDbFactory);
 		converter.afterPropertiesSet();
 		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory, converter, "messages");
 		messageStore.afterPropertiesSet();

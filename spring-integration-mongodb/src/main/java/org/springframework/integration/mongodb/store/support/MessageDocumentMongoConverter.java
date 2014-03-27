@@ -29,7 +29,6 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -37,10 +36,8 @@ import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore;
+import org.springframework.integration.message.MutableMessage;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -54,9 +51,9 @@ import com.mongodb.DBObject;
  * @author Artem Bilan
  * @since 4.0
  */
-public class MessageReadingMongoConverter extends MappingMongoConverter implements BeanClassLoaderAware {
+public class MessageDocumentMongoConverter extends MappingMongoConverter implements BeanClassLoaderAware {
 
-	private static final Log logger = LogFactory.getLog(MessageReadingMongoConverter.class);
+	private static final Log logger = LogFactory.getLog(MessageDocumentMongoConverter.class);
 
 	private final static String CREATED_TIME_KEY = "createdTime";
 
@@ -66,9 +63,19 @@ public class MessageReadingMongoConverter extends MappingMongoConverter implemen
 
 	private final static String PAYLOAD_KEY = "payload";
 
+	private static final String MESSAGE_ID = "messageId";
+
+	private static final String GROUP_ID = "groupId";
+
+	private static final String LAST_MODIFIED_TIME = "lastModifiedTime";
+
+	private static final String LAST_RELEASED_SEQUENCE = "lastReleasedSequence";
+
+	private static final String COMPLETE = "complete";
+
 	private ClassLoader classLoader;
 
-	public MessageReadingMongoConverter(MongoDbFactory mongoDbFactory) {
+	public MessageDocumentMongoConverter(MongoDbFactory mongoDbFactory) {
 		super(mongoDbFactory, new MongoMappingContext());
 	}
 
@@ -81,7 +88,7 @@ public class MessageReadingMongoConverter extends MappingMongoConverter implemen
 	public void afterPropertiesSet() {
 		List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
 		customConverters.add(new MessageHistoryToDBObjectConverter());
-		customConverters.add(new DBObjectToGenericMessageConverter());
+		customConverters.add(new DBObjectToMessageConverter());
 		this.setCustomConversions(new CustomConversions(customConverters));
 		super.afterPropertiesSet();
 	}
@@ -94,11 +101,11 @@ public class MessageReadingMongoConverter extends MappingMongoConverter implemen
 		Message<?> message = document.getMessage();
 
 		target.put(CREATED_TIME_KEY, document.getCreatedTime());
-		target.put(ConfigurableMongoDbMessageStore.GROUP_ID, document.getGroupId());
-		target.put(ConfigurableMongoDbMessageStore.LAST_MODIFIED_TIME, document.getLastModifiedTime());
-		target.put(ConfigurableMongoDbMessageStore.LAST_RELEASED_SEQUENCE, document.getLastReleasedSequence());
-		target.put(ConfigurableMongoDbMessageStore.COMPLETE, document.isComplete());
-		target.put(ConfigurableMongoDbMessageStore.MESSAGE_ID, message.getHeaders().getId());
+		target.put(GROUP_ID, document.getGroupId());
+		target.put(LAST_MODIFIED_TIME, document.getLastModifiedTime());
+		target.put(LAST_RELEASED_SEQUENCE, document.getLastReleasedSequence());
+		target.put(COMPLETE, document.isComplete());
+		target.put(MESSAGE_ID, message.getHeaders().getId());
 
 		target.put(HEADERS_KEY, this.convertToMongoType(message.getHeaders()));
 
@@ -134,20 +141,18 @@ public class MessageReadingMongoConverter extends MappingMongoConverter implemen
 					throw new IllegalStateException("failed to load class: " + payloadType, e);
 				}
 			}
-			GenericMessage message = new GenericMessage(payload, headers);
-			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			MutableMessage<Object> message = new MutableMessage<Object>(payload);
+			message.getRawHeaders().putAll(headers);
+
 			Long groupTimestamp = (Long)source.get(CREATED_TIME_KEY);
-			Long lastModified = (Long)source.get(ConfigurableMongoDbMessageStore.LAST_MODIFIED_TIME);
-			Integer lastReleasedSequenceNumber = (Integer)source.get(ConfigurableMongoDbMessageStore.LAST_RELEASED_SEQUENCE);
-			Boolean completeGroup = (Boolean)source.get(ConfigurableMongoDbMessageStore.COMPLETE);
+			Long lastModified = (Long)source.get(LAST_MODIFIED_TIME);
+			Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE);
+			Boolean completeGroup = (Boolean)source.get(COMPLETE);
 
 			MessageDocument document = new MessageDocument(message);
 
-			if (source.containsField(ConfigurableMongoDbMessageStore.GROUP_ID)){
-				document.setGroupId(source.get(ConfigurableMongoDbMessageStore.GROUP_ID));
+			if (source.containsField(GROUP_ID)){
+				document.setGroupId(source.get(GROUP_ID));
 			}
 			if (groupTimestamp != null){
 				document.setCreatedTime(groupTimestamp);
@@ -219,31 +224,27 @@ public class MessageReadingMongoConverter extends MappingMongoConverter implemen
 		}
 	}
 
-	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
+	private class DBObjectToMessageConverter implements Converter<DBObject, Message<?>> {
 
 		@Override
-		@SuppressWarnings("unchecked")
-		public GenericMessage<?> convert(DBObject source) {
-			Map<String, Object> headers = MessageReadingMongoConverter.this.normalizeHeaders((Map<String, Object>) source.get("headers"));
+		public Message<?> convert(DBObject source) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> headers = MessageDocumentMongoConverter.this.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			Object payload = source.get(PAYLOAD_KEY);
 			Object payloadType = source.get(PAYLOAD_TYPE_KEY);
 			if (payloadType != null && payload instanceof DBObject) {
 				try {
 					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
-					payload = MessageReadingMongoConverter.this.read(payloadClass, (DBObject) payload);
+					payload = MessageDocumentMongoConverter.this.read(payloadClass, (DBObject) payload);
 				}
 				catch (Exception e) {
 					throw new IllegalStateException("failed to load class: " + payloadType, e);
 				}
 			}
 
-			@SuppressWarnings("rawtypes")
-			GenericMessage<Object> message = new GenericMessage(payload, headers);
-			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			MutableMessage<Object> message = new MutableMessage<Object>(payload);
+			message.getRawHeaders().putAll(headers);
 
 			return message;
 		}

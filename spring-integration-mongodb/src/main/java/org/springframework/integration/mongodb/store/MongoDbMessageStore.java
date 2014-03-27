@@ -69,8 +69,8 @@ import com.mongodb.DBObject;
  * strategies that relies upon MongoDB for persistence.
  *
  * @deprecated in favor of {@link org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore}
- * together with {@code org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter}.
- * Will be removed in future releases and {@code ConfigurableMongoDbMessageStore} will be renamed to {@code MongoDbMessageStore}.
+ * together with {@code org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter}.
+ * Will be removed in future releases.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky

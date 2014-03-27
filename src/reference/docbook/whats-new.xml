@@ -186,10 +186,10 @@
 			</para>
 		</section>
 		<section id="4.0-mongoDB-message-store">
-			<title>MongoDB MessageStore: MessageReadingMongoConverter</title>
+			<title>MongoDB MessageStore: MessageDocumentMongoConverter</title>
 			<para>
 				The <classname>MongoDbMessageStore</classname> has been deprecated in favor of
-				<classname>ConfigurableMongoDbMessageStore</classname>. The new <classname>MessageReadingMongoConverter</classname>
+				<classname>ConfigurableMongoDbMessageStore</classname>. The new <classname>MessageDocumentMongoConverter</classname>
 				has been introduced to provide MongoDB document representation similar to <classname>MongoDbMessageStore</classname> results.
 				For more information see <xref linkend="mongodb-message-store"/>.
 			</para>

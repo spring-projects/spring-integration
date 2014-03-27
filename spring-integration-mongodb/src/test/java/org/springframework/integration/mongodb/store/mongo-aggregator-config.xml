@@ -24,7 +24,7 @@
 		<constructor-arg value="test"/>
 	</bean>
 
-    <bean id="testConverter" class="org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter">
+    <bean id="testConverter" class="org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter">
 		<constructor-arg ref="mongoConnectionFactory"/>
     </bean>
 

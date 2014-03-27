@@ -28,7 +28,7 @@
 			 default-delay="10000"
 			 message-store="messageStore"/>
 
-	<beans:bean id="testConverter" class="org.springframework.integration.mongodb.store.support.MessageReadingMongoConverter">
+	<beans:bean id="testConverter" class="org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter">
 		<beans:constructor-arg ref="mongoConnectionFactory"/>
 	</beans:bean>
 
