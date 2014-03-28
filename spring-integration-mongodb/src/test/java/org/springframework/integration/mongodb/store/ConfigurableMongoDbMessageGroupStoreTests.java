@@ -81,7 +81,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		TestGateway gateway = context.getBean(TestGateway.class);
 		String result = gateway.service("foo");
 		assertEquals("FOO", result);
-
+		context.close();
 	}
 
 	public static interface TestGateway {
