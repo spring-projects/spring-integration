@@ -72,6 +72,10 @@
 		<priority value="42"/>
 	</header-enricher>
 
+	<header-enricher input-channel="priorityExpressionInput">
+		<priority expression="payload.priority"/>
+	</header-enricher>
+
 	<header-enricher input-channel="payloadExpressionInput">
 		<header name="testHeader" expression="payload.name + 'bar'"/>
 	</header-enricher>
