@@ -1,21 +1,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -34,8 +19,6 @@
 
 package org.springframework.integration.config;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
@@ -54,7 +37,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * The {@link IntegrationConfigurationInitializer} to populate {@link GlobalChannelInterceptorWrapper}
  * for {@link ChannelInterceptor}s marked with {@link GlobalChannelInterceptor} annotation.
- * <p/>
+ * <p>
  * {@link org.springframework.context.annotation.Bean} methods are also processed.
  *
  * @author Artem Bilan
@@ -66,19 +49,19 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
-		String[] channelInterceptorNames = beanFactory.getBeanNamesForType(ChannelInterceptor.class, false, false);		for (String interceptorBeanName : channelInterceptorNames) {
-			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(interceptorBeanName);
+		for (String beanName : registry.getBeanDefinitionNames()) {
+			BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
 			if (beanDefinition instanceof AnnotatedBeanDefinition) {
 				AnnotationMetadata metadata = ((AnnotatedBeanDefinition) beanDefinition).getMetadata();
 				Map<String, Object> annotationAttributes = metadata.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
-				if (CollectionUtils.isEmpty(annotationAttributes)) {
+				if (CollectionUtils.isEmpty(annotationAttributes) && beanDefinition.getSource() instanceof MethodMetadata) {
 					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
 					annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
 				}
 
-			if (!CollectionUtils.isEmpty(annotationAttributes)) {
+				if (!CollectionUtils.isEmpty(annotationAttributes)) {
 					BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
-							.addConstructorArgReference(interceptorBeanName)
+							.addConstructorArgReference(beanName)
 							.addPropertyValue("patterns", annotationAttributes.get("patterns"))
 							.addPropertyValue("order", annotationAttributes.get("order"));
 

@@ -31,7 +31,9 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -105,6 +107,9 @@ public class EnableIntegrationTests {
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
 
+	@Autowired
+	private AtomicInteger fbInterceptorCounter;
+
 	@Test
 	public void testAnnotatedServiceActivator() {
 		this.input.send(MessageBuilder.withPayload("Foo").build());
@@ -137,6 +142,7 @@ public class EnableIntegrationTests {
 
 		assertNull(this.wireTapChannel.receive(0));
 		assertThat(this.testChannelInterceptor.getInvoked(), Matchers.greaterThan(0));
+		assertThat(this.fbInterceptorCounter.get(), Matchers.greaterThan(0));
 	}
 
 	@Test
@@ -173,7 +179,7 @@ public class EnableIntegrationTests {
 		child.close();
 	}
 
-@Test
+	@Test
 	public void testParentChildAnnotationConfigurationFromAnotherPackage() {
 		AnnotationConfigApplicationContext child = new AnnotationConfigApplicationContext();
 		child.register(org.springframework.integration.configuration2.ChildConfiguration.class);
@@ -185,6 +191,7 @@ public class EnableIntegrationTests {
 		assertFalse(this.output.getChannelInterceptors().contains(baz));
 		child.close();
 	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -213,6 +220,35 @@ public class EnableIntegrationTests {
 		@GlobalChannelInterceptor(patterns = "input")
 		public WireTap wireTap() {
 			return new WireTap(this.wireTapChannel());
+		}
+
+		@Bean
+		public AtomicInteger fbInterceptorCounter() {
+			return new AtomicInteger();
+		}
+
+		@Bean
+		@GlobalChannelInterceptor
+		public FactoryBean<ChannelInterceptor> ciFactoryBean() {
+			return new AbstractFactoryBean<ChannelInterceptor>() {
+
+				@Override
+				public Class<?> getObjectType() {
+					return ChannelInterceptor.class;
+				}
+
+				@Override
+				protected ChannelInterceptor createInstance() throws Exception {
+					return new ChannelInterceptorAdapter() {
+
+						@Override
+						public Message<?> preSend(Message<?> message, MessageChannel channel) {
+							fbInterceptorCounter().incrementAndGet();
+							return super.preSend(message, channel);
+						}
+					};
+				}
+			};
 		}
 
 	}
