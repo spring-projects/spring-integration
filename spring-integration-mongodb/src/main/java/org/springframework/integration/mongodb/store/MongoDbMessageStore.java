@@ -474,6 +474,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
+	@SuppressWarnings("unchecked")
+	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
+		Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
+		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+		innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+	}
+
+
 	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
 		@Override
 		public DBObject convert(UUID source) {
@@ -514,16 +523,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
 
 		@Override
-		@SuppressWarnings("unchecked")
+
 		public GenericMessage<?> convert(DBObject source) {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			GenericMessage<?> message = new GenericMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
-			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-
+			enhanceHeaders(message.getHeaders(), headers);
 			return message;
 		}
 
@@ -544,8 +550,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage> {
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public AdviceMessage convert(DBObject source) {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			Message<?> inputMessage = null;
@@ -563,10 +569,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			}
 
 			AdviceMessage message = new AdviceMessage(MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
-			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			enhanceHeaders(message.getHeaders(), headers);
 
 			return message;
 		}
@@ -578,16 +581,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public ErrorMessage convert(DBObject source) {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			Object payload = this.deserializingConverter.convert((byte[]) source.get("payload"));
 			ErrorMessage message = new ErrorMessage((Throwable) payload, headers);
-			Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			enhanceHeaders(message.getHeaders(), headers);
 
 			return message;
 		}
@@ -617,6 +617,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		 * when the application context is configured with auditing. The document is not
 		 * currently Auditable.
 		 */
+		@SuppressWarnings("unused")
 		@Id
 		private String _id;
 

@@ -362,6 +362,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		 * when the application context is configured with auditing. The document is not
 		 * currently Auditable.
 		 */
+		@SuppressWarnings("unused")
 		@Id
 		private String _id;
 
