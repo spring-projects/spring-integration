@@ -131,6 +131,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
 		store.addMessageToGroup(1, messageA);
+		Thread.sleep(10);
 		store.addMessageToGroup(1, messageB);
 		assertEquals(2, store.messageGroupSize(1));
 		Message<?> out = store.pollMessageFromGroup(1);
