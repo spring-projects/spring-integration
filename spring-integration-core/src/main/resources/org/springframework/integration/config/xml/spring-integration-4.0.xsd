@@ -1915,38 +1915,16 @@
 			<xsd:element name="expiration-date" type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
-					Shortcut to specify value for 'expirationDate' header (java.lang.Long)
+					Shortcut to specify a value for the 'expirationDate' header (java.lang.Long).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="priority">
+			<xsd:element name="priority"  type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
-						Shortcut to specify value for 'priority' header when using PriorityChannel
+						Shortcut to specify a value for the 'priority' header.
 					</xsd:documentation>
 				</xsd:annotation>
-				<xsd:complexType>
-					<xsd:attribute name="value">
-						<xsd:annotation>
-							<xsd:documentation>
-								Integer value identifying the value of the 'priority' header.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="overwrite">
-						<xsd:annotation>
-							<xsd:documentation>
-								Boolean value to indicate whether this header value should overwrite
-								an existing header
-								value
-								for the same name.
-							</xsd:documentation>
-						</xsd:annotation>
-						<xsd:simpleType>
-							<xsd:union memberTypes="xsd:boolean xsd:string" />
-						</xsd:simpleType>
-					</xsd:attribute>
-				</xsd:complexType>
 			</xsd:element>
 			<xsd:element name="header" type="userDefinedHeaderType">
 				<xsd:annotation>
