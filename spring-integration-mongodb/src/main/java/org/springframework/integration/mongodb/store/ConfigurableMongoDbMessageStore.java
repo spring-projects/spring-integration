@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.IndexOperations;
@@ -356,6 +357,14 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	 * The entity class to wrap {@link Message} to the MongoDB document.
 	 */
 	private static class MessageDocument {
+
+		/*
+		 * Needed as a persistence property to suppress 'Cannot determine IsNewStrategy' MappingException
+		 * when the application context is configured with auditing. The document is not
+		 * currently Auditable.
+		 */
+		@Id
+		private String _id;
 
 		private final Message<?> message;
 
