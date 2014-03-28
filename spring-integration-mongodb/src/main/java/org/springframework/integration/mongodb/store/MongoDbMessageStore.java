@@ -29,11 +29,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.domain.Sort;
@@ -82,7 +87,8 @@ import com.mongodb.DBObject;
  * @author Artem Bilan
  * @since 2.1
  */
-public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
+public class MongoDbMessageStore extends AbstractMessageGroupStore
+		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -107,6 +113,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
+	private ApplicationContext applicationContext;
+
 
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory}.and the default collection name.
@@ -126,7 +134,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		this.converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
-		this.converter.afterPropertiesSet();
 		this.template = new MongoTemplate(mongoDbFactory, this.converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
 	}
@@ -136,6 +143,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		Assert.notNull(classLoader, "classLoader must not be null");
 		this.classLoader = classLoader;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.template.setApplicationContext(this.applicationContext);
+		this.converter.setApplicationContext(this.applicationContext);
+		this.converter.afterPropertiesSet();
 	}
 
 	@Override
@@ -592,6 +611,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.
 	 */
 	private static final class MessageWrapper {
+
+		/*
+		 * Needed as a persistence property to suppress 'Cannot determine IsNewStrategy' MappingException
+		 * when the application context is configured with auditing. The document is not
+		 * currently Auditable.
+		 */
+		@Id
+		private String _id;
 
 		private volatile Object _groupId;
 
