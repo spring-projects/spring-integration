@@ -26,7 +26,6 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
-import org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
@@ -44,10 +43,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	@MongoDbAvailable
 	public void stringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MessageDocumentMongoConverter converter = new MessageDocumentMongoConverter(mongoDbFactory);
-		converter.afterPropertiesSet();
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory, converter, "messages");
-		messageStore.afterPropertiesSet();
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Message<?> originalMessage = MessageBuilder.withPayload("test1").build();
@@ -56,16 +52,14 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
 		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
 		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
+		assertEquals(originalMessage, checkedOutMessage);
 	}
 
 	@Test
 	@MongoDbAvailable
 	public void objectPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MessageDocumentMongoConverter converter = new MessageDocumentMongoConverter(mongoDbFactory);
-		converter.afterPropertiesSet();
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory, converter, "messages");
-		messageStore.afterPropertiesSet();
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Beverage payload = new Beverage();
@@ -78,6 +72,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
 		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
 		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
+		assertEquals(originalMessage, checkedOutMessage);
 	}
 
 	@Test

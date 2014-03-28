@@ -110,7 +110,13 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		MessageStore store = getMessageStore();
 		Foo foo = new Foo();
 		foo.setName("foo");
-		Message<?> message = MessageBuilder.withPayload(foo).build();
+		Message<?> message = MessageBuilder.withPayload(foo).
+				setHeader("foo", foo).
+				setHeader("bar", new Bar("bar")).
+				setHeader("baz", new Baz()).
+				setHeader("abc", new Abc()).
+				setHeader("xyz", new Xyz()).
+				build();
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
@@ -121,6 +127,11 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		store.addMessage(message);
 		message = store.getMessage(message.getHeaders().getId());
 		assertNotNull(message);
+		assertTrue(message.getHeaders().get("foo") instanceof Foo);
+		assertTrue(message.getHeaders().get("bar") instanceof Bar);
+		assertTrue(message.getHeaders().get("baz") instanceof Baz);
+		assertTrue(message.getHeaders().get("abc") instanceof Abc);
+		assertTrue(message.getHeaders().get("xyz") instanceof Xyz);
 		MessageHistory messageHistory = MessageHistory.read(message);
 		assertNotNull(messageHistory);
 		assertEquals(2, messageHistory.size());
@@ -292,6 +303,34 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 			return name;
 		}
 	}
+
+	public static class Abc implements Serializable {
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		private final String name = "abx";
+
+		private Abc(){}
+
+		public String getName() {
+			return name;
+		}
+	}
+
+	public static class Xyz implements Serializable {
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@SuppressWarnings("unused")
+		private final String name = "xyz";
+
+		private Xyz(){}
+	}
+
 
 	public static class Person implements Serializable{
 

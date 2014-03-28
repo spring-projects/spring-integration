@@ -11,10 +11,8 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
+	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
 		<constructor-arg ref="mongoConnectionFactory"/>
-		<constructor-arg ref="testConverter"/>
-		<constructor-arg value="messages"/>
 	</bean>
 
 	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
@@ -23,9 +21,5 @@
 		</constructor-arg>
 		<constructor-arg value="test"/>
 	</bean>
-
-    <bean id="testConverter" class="org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter">
-		<constructor-arg ref="mongoConnectionFactory"/>
-    </bean>
 
 </beans>

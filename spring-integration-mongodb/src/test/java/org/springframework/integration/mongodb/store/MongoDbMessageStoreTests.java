@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.mongodb.store;
 
-import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
-import org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter;
 import org.springframework.integration.store.MessageStore;
 
 import com.mongodb.Mongo;
-
 /**
+ * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @author Artem Bilan
- * @since 4.0
+ *
  */
 public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
 	@Override
 	protected MessageStore getMessageStore() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MessageDocumentMongoConverter converter = new MessageDocumentMongoConverter(mongoDbFactory);
-		converter.afterPropertiesSet();
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory, converter, "messages");
-		messageStore.afterPropertiesSet();
-		return messageStore;
+		return new MongoDbMessageStore(new SimpleMongoDbFactory(new Mongo(), "test"));
 	}
 
 }

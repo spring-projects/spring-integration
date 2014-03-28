@@ -17,10 +17,8 @@ package org.springframework.integration.mongodb.store;
 
 import org.junit.Test;
 
-import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.store.support.MessageDocumentMongoConverter;
 import org.springframework.integration.store.MessageStore;
 
 import com.mongodb.Mongo;
@@ -34,13 +32,8 @@ import com.mongodb.Mongo;
 public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
 
 	@Override
-	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MessageDocumentMongoConverter converter = new MessageDocumentMongoConverter(mongoDbFactory);
-		converter.afterPropertiesSet();
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory, converter, "messages");
-		messageStore.afterPropertiesSet();
-		return messageStore;
+	protected MongoDbMessageStore getMessageGroupStore() throws Exception {
+		return new MongoDbMessageStore( new SimpleMongoDbFactory(new Mongo(), "test"));
 	}
 
 	@Override
