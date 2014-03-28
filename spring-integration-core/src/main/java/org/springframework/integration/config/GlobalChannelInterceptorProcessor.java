@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.interceptor;
+package org.springframework.integration.config;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +35,8 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
+import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
