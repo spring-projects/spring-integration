@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.IndexOperations;
@@ -356,14 +357,18 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	 */
 	private static class MessageDocument {
 
+		/* Needs as persistence property to suppress 'Cannot determine IsNewStrategy' MappingException
+		from configured AuditingEventListener in the application context.
+		*/
+		@Id
+		private String _id;
+
 		private final Message<?> message;
 
-		@SuppressWarnings("unused")
 		private final UUID messageId;
 
 		private volatile Long createdTime = 0L;
 
-		@SuppressWarnings("unused")
 		private volatile Object groupId;
 
 		private volatile Long lastModifiedTime = 0L;
