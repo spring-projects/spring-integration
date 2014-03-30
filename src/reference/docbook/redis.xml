@@ -677,8 +677,8 @@ the serialization of values, you may want to consider providing your own
 		arguments-serializer="" ]]><co id="redis-o-g-arguments-serializer"/><![CDATA[
 		command-expression="" ]]><co id="redis-o-g-command-expression"/><![CDATA[
 		argument-expressions="" ]]><co id="redis-o-g-argument-expressions"/><![CDATA[
-		arguments-strategy="" ]]><co id="redis-o-g-arguments-strategy"/><![CDATA[
-		use-payload-as-arguments="" />]]><co id="redis-o-g-use-payload-as-arguments"/>
+		use-command-variable="" ]]><co id="redis-o-g-use-command-variable"/><![CDATA[
+		arguments-strategy="" />]]><co id="redis-o-g-arguments-strategy"/>
 			</programlisting>
 			<calloutlist>
 				<callout arearefs="redis-o-g-request-channel">
@@ -730,20 +730,22 @@ the serialization of values, you may want to consider providing your own
 				<callout arearefs="redis-o-g-argument-expressions">
 					<para>
 						Comma-separate SpEL expressions that will be evaluated as command arguments.
-						Mutually exclusive with <code>arguments-strategy</code> and <code>use-payload-as-arguments</code> attributes.
+						Mutually exclusive with <code>arguments-strategy</code> attribute. If no one of them is provided
+						the <code>payload</code> is used as a command arguments.
+					</para>
+				</callout>
+				<callout arearefs="redis-o-g-use-command-variable">
+					<para>
+						The <code>boolean</code> flag to pecify, if Redis command string will be used as <code>#cmd</code> variable
+						for expression evaluation context in the <classname>org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy</classname>
+						in case of <code>argument-expressions</code> is configured, otherwise this attribute is ignored.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-arguments-strategy">
 					<para>
 						Reference to an instance of <interfacename>org.springframework.integration.redis.outbound.ArgumentsStrategy</interfacename>.
-						Mutually exclusive with <code>argument-expressions</code> and <code>use-payload-as-arguments</code> attributes.
-					</para>
-				</callout>
-				<callout arearefs="use-payload-as-arguments">
-					<para>
-						Specifies if the <interfacename>Message</interfacename> <code>payload</code> will be used as a Redis command arguments.
-						Mutually exclusive with <code>arguments-strategy</code> and <code>argument-expressions</code> attributes.
-						Default is <code>false</code>.
+						Mutually exclusive with <code>argument-expressions</code> attribute. If no one of them is provided
+						the <code>payload</code> is used as a command arguments.
 					</para>
 				</callout>
 			</calloutlist>
@@ -753,17 +755,15 @@ the serialization of values, you may want to consider providing your own
 		   Redis operation. For example to get incremented value from Redis Atomic Number:
 			<programlisting language="xml"><![CDATA[<int-redis:outbound-gateway request-channel="requestChannel"
 	reply-channel="replyChannel"
-	command-expression="'INCR'"
-	use-payload-as-arguments="true"/>]]></programlisting>
+	command-expression="'INCR'"/>]]></programlisting>
 			where the Message <code>payload</code> should be a name of <code>redisCounter</code>, which may be provided
 			by <classname>org.springframework.data.redis.support.atomic.RedisAtomicInteger</classname> bean definition.
 		</para>
 		<para>
 		  The <code>RedisConnection#execute</code> has a generic <classname>Object</classname> as return type and real
-		  result depends on command type, for example <code>MGET</code> returns a <code>List&lt;byte[]&gt;</code>,
-		  and also depends on the Redis client library. For more information about commands and result type see, for example, source code of
-		  <ulink url="https://github.com/spring-projects/spring-data-redis/blob/master/src/main/java/org/springframework/data/redis/connection/lettuce/LettuceConnection.java"
-				  >Spring Data Redis <classname>LettuceConnection.TypeHints</classname></ulink>.
+		  result depends on command type, for example <code>MGET</code> returns a <code>List&lt;byte[]&gt;</code>.
+			For more information about commands, their arguments and result type see
+		  <ulink url="http://redis.io/commands">Redis Specification</ulink>.
 		</para>
 	</section>
 </chapter>

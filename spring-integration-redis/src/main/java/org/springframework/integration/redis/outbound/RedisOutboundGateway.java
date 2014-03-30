@@ -31,6 +31,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * The Gateway component implementation to perform Redis commands with provided arguments and to return command result.
@@ -51,7 +52,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private volatile Expression commandExpression = PARSER.parseExpression("headers[" + RedisHeaders.COMMAND + "]");
 
-	private volatile ArgumentsStrategy argumentsStrategy;
+	private volatile ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
 
 	public RedisOutboundGateway(RedisTemplate<?, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
@@ -85,58 +86,54 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.argumentsStrategy = argumentsStrategy;
 	}
 
-	public void setUsePayloadAsArguments(boolean usePayloadAsArguments) {
-		if (usePayloadAsArguments) {
-			this.argumentsStrategy = new ArgumentsStrategy() {
-
-				@Override
-				public Object[] resolve(Message<?> message) {
-					Object payload = message.getPayload();
-					if (payload instanceof Object[]) {
-						return (Object[]) payload;
-					}
-					else {
-						return new Object[]{payload};
-					}
-				}
-			};
-		}
-		else {
-			this.argumentsStrategy = null;
-		}
-	}
-
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		final String command = this.commandExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		byte[][] args = null;
 		if (this.argumentsStrategy != null) {
-			Object[] arguments = this.argumentsStrategy.resolve(requestMessage);
-			args = new byte[arguments.length][];
+			Object[] arguments = this.argumentsStrategy.resolve(command, requestMessage);
+			if (!ObjectUtils.isEmpty(arguments)) {
+				args = new byte[arguments.length][];
 
-			for (int i = 0; i < arguments.length; i++) {
-				Object argument = arguments[i];
-				byte[] arg = null;
-				if (argument instanceof byte[]) {
-					arg = (byte[]) argument;
+				for (int i = 0; i < arguments.length; i++) {
+					Object argument = arguments[i];
+					byte[] arg = null;
+					if (argument instanceof byte[]) {
+						arg = (byte[]) argument;
+					}
+					else {
+						arg = this.argumentsSerializer.serialize(argument);
+					}
+					args[i] = arg;
 				}
-				else {
-					arg = this.argumentsSerializer.serialize(argument);
-				}
-				args[i] = arg;
 			}
 		}
 
-		final byte[][] actulalArgs = args;
+		final byte[][] actualArgs = args;
 
 		return this.redisTemplate.execute(new RedisCallback<Object>() {
 
 			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.execute(command, actulalArgs);
+				return connection.execute(command, actualArgs);
 			}
 
 		});
+	}
+
+	private class PayloadArgumentsStrategy implements ArgumentsStrategy {
+
+		@Override
+		public Object[] resolve(String command, Message<?> message) {
+			Object payload = message.getPayload();
+			if (payload instanceof Object[]) {
+				return (Object[]) payload;
+			}
+			else {
+				return new Object[]{payload};
+			}
+		}
+
 	}
 
 }

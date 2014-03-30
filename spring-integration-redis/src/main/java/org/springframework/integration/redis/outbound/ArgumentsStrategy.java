@@ -24,6 +24,6 @@ import org.springframework.messaging.Message;
  */
 public interface ArgumentsStrategy {
 
-	Object[] resolve(Message<?> message);
+	Object[] resolve(String command, Message<?> message);
 
 }

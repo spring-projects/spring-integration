@@ -62,27 +62,24 @@ public class RedisOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		String argumentExpressions = element.getAttribute("argument-expressions");
 		boolean hasArgumentExpressions = StringUtils.hasText(argumentExpressions);
 		String argumentsStrategy = element.getAttribute("arguments-strategy");
-		boolean hasArgumentsStrategy = StringUtils.hasText(argumentsStrategy);
-		String usePayloadAsArguments = element.getAttribute("use-payload-as-arguments");
-		boolean hasUsePayloadAsArguments = StringUtils.hasText(usePayloadAsArguments);
+		boolean hasArgumentStrategy = element.hasAttribute("arguments-strategy");
 
-		if ((hasArgumentExpressions & hasArgumentsStrategy)
-				| (hasArgumentExpressions & hasUsePayloadAsArguments)
-				| (hasArgumentsStrategy & hasUsePayloadAsArguments)) {
+		if (hasArgumentExpressions & hasArgumentStrategy) {
 			parserContext.getReaderContext()
-					.error("'argument-expressions', 'arguments-strategy' and 'use-payload-as-arguments' are mutually exclusive.", element);
+					.error("'argument-expressions' and 'arguments-strategy' are mutually exclusive.", element);
 		}
 
 		if (hasArgumentExpressions) {
-			BeanDefinitionBuilder argumentsBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionArgumentsStrategy.class);
-			argumentsBuilder.addConstructorArgValue(argumentExpressions);
+			BeanDefinitionBuilder argumentsBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionArgumentsStrategy.class)
+					.addConstructorArgValue(argumentExpressions)
+					.addPropertyValue("useCommandVariable", element.getAttribute("use-command-variable"));
 			builder.addPropertyValue("argumentsStrategy", argumentsBuilder.getBeanDefinition());
 		}
-		else if (hasArgumentsStrategy) {
+		else if (StringUtils.hasLength(argumentsStrategy)) {
 			builder.addPropertyReference("argumentsStrategy", argumentsStrategy);
 		}
-		else if (hasUsePayloadAsArguments) {
-			builder.addPropertyValue("usePayloadAsArguments", usePayloadAsArguments);
+		else if (hasArgumentStrategy) {
+			builder.addPropertyValue("argumentsStrategy", null);
 		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");

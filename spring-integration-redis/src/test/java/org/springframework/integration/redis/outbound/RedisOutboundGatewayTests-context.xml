@@ -18,37 +18,35 @@
 
 	<int:channel id="leftPushChannel"/>
 
-	<int:channel id="rightPopChannel"/>
+	<int:channel id="leftPushRightPopChannel"/>
 
 	<int:channel id="incrementAtomicIntegerChannel"/>
 
 	<int:channel id="getCommandChannel"/>
 
+	<int:channel id="setDelCommandChannel"/>
+
 	<int:channel id="mgetCommandChannel"/>
 
-	<int-redis:outbound-gateway request-channel="pingChannel" reply-channel="replyChannel"/>
+	<int-redis:outbound-gateway request-channel="pingChannel" reply-channel="replyChannel"
+			arguments-strategy=""/>
 
-	<int-redis:outbound-gateway request-channel="leftPushChannel" reply-channel="replyChannel"
-								command-expression="'#{T (com.lambdaworks.redis.protocol.CommandType).LPUSH}'"
-								redis-template="redisTemplate"
-								use-payload-as-arguments="true"/>
-
-	<int-redis:outbound-gateway request-channel="rightPopChannel" reply-channel="replyChannel"
-								command-expression="'rpop'"
+	<int-redis:outbound-gateway request-channel="leftPushRightPopChannel" reply-channel="replyChannel"
 								connection-factory="redisConnectionFactory"
-								argument-expressions="payload"/>
+								argument-expressions="headers.queue, #cmd == 'LPUSH' ? payload : null"
+								use-command-variable="true"/>
 
 	<int-redis:outbound-gateway request-channel="incrementAtomicIntegerChannel" reply-channel="replyChannel"
 								command-expression="payload"
 								argument-expressions="'si.test.RedisAtomicInteger'"/>
 
+	<int-redis:outbound-gateway request-channel="setDelCommandChannel" reply-channel="replyChannel"/>
+
 	<int-redis:outbound-gateway request-channel="getCommandChannel" reply-channel="replyChannel"
-								command-expression="'GET'"
-								use-payload-as-arguments="true"/>
+								command-expression="'GET'"/>
 
 	<int-redis:outbound-gateway request-channel="mgetCommandChannel" reply-channel="replyChannel"
-								command-expression="'MGET'"
-								use-payload-as-arguments="true"/>
+								command-expression="'MGET'"/>
 
 
 	<bean id="redisConnectionFactory"

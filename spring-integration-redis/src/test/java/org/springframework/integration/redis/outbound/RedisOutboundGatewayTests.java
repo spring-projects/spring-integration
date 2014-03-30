@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
@@ -58,16 +60,16 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	private MessageChannel pingChannel;
 
 	@Autowired
-	private MessageChannel leftPushChannel;
-
-	@Autowired
-	private MessageChannel rightPopChannel;
+	private MessageChannel leftPushRightPopChannel;
 
 	@Autowired
 	private MessageChannel incrementAtomicIntegerChannel;
 
 	@Autowired
 	private RedisAtomicInteger atomicInteger;
+
+	@Autowired
+	private MessageChannel setDelCommandChannel;
 
 	@Autowired
 	private MessageChannel getCommandChannel;
@@ -77,7 +79,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testDefaults() {
+	public void testPingPongCommand() {
 		this.pingChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, CommandType.PING).build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
@@ -89,11 +91,17 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	public void testPushAndPopCommands() {
 		final String queueName = "si.test.testRedisOutboundGateway";
 		String payload = "testing";
-		this.leftPushChannel.send(MessageBuilder.withPayload(new String[] {queueName, payload}).build());
+		this.leftPushRightPopChannel.send(MessageBuilder.withPayload(payload)
+				.setHeader(RedisHeaders.COMMAND, CommandType.LPUSH)
+				.setHeader("queue", queueName)
+				.build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 
-		this.rightPopChannel.send(MessageBuilder.withPayload(queueName).build());
+		this.leftPushRightPopChannel.send(MessageBuilder.withPayload(payload)
+				.setHeader(RedisHeaders.COMMAND, CommandType.RPOP)
+				.setHeader("queue", queueName)
+				.build());
 		receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertTrue(Arrays.equals(payload.getBytes(), (byte[]) receive.getPayload()));
@@ -113,11 +121,28 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testGetCommand() {
-		this.getConnectionFactoryForTest().getConnection().set("foo".getBytes(), "bar".getBytes());
-		this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
+		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[]{"foo", "bar"}).setHeader(RedisHeaders.COMMAND, CommandType.SET).build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
+		assertEquals("OK", receive.getPayload());
+
+		this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
+		receive = this.replyChannel.receive(1000);
+		assertNotNull(receive);
 		assertTrue(Arrays.equals("bar".getBytes(), (byte[]) receive.getPayload()));
+
+		this.setDelCommandChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, CommandType.DEL).build());
+		receive = this.replyChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals(1L, receive.getPayload());
+
+		try {
+			this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
+			fail("ReplyRequiredException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(ReplyRequiredException.class));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

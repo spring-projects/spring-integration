@@ -16,12 +16,17 @@
 
 package org.springframework.integration.redis.outbound;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -30,13 +35,17 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 4.0
  */
-public class ExpressionArgumentsStrategy implements ArgumentsStrategy, IntegrationEvaluationContextAware {
+public class ExpressionArgumentsStrategy implements ArgumentsStrategy, IntegrationEvaluationContextAware, BeanFactoryAware {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private volatile Expression[] argumentExpressions = new Expression[0];
 
 	private EvaluationContext evaluationContext;
+
+	private volatile boolean useCommandVariable;
+
+	private BeanFactory beanFactory;
 
 	public ExpressionArgumentsStrategy(String[] argumentExpressions) {
 		Assert.notNull(argumentExpressions, "'argumentExpressions' must not be null");
@@ -54,13 +63,30 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, Integrati
 	}
 
 	@Override
-	public Object[] resolve(Message<?> message) {
-		final Object[] arguments = new Object[this.argumentExpressions.length];
-		for (int i = 0; i < this.argumentExpressions.length; i++) {
-			Object argument = argumentExpressions[i].getValue(this.evaluationContext, message);
-			arguments[i] = argument;
-		}
-		return arguments;
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
+	public void setUseCommandVariable(boolean useCommandVariable) {
+		this.useCommandVariable = useCommandVariable;
+	}
+
+	@Override
+	public Object[] resolve(String command, Message<?> message) {
+		EvaluationContext evaluationContext = this.evaluationContext;
+
+		if (this.useCommandVariable) {
+			evaluationContext = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
+			evaluationContext.setVariable("cmd", command);
+		}
+
+		List<Object> arguments = new ArrayList<Object>();
+		for (Expression argumentExpression : this.argumentExpressions) {
+			Object argument = argumentExpression.getValue(evaluationContext, message);
+			if (argument != null) {
+				arguments.add(argument);
+			}
+		}
+		return arguments.toArray();
+	}
 }
