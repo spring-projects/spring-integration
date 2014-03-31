@@ -3,3 +3,5 @@ services:
   - mongodb
   - rabbitmq
   - redis-server
+env:
+  - TERM=dumb
