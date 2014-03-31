@@ -598,16 +598,19 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Comma-separated SpEL expressions that will be evaluated as command arguments.
-						Mutually exclusive with 'arguments-strategy' attribute. If 'use-command-variable' is
+						Mutually exclusive with the 'arguments-strategy' attribute. If 'use-command-variable' is
 						specified to 'true', the '#cmd' variable will be presented within evaluation context.
+						Argument expressions may evaluate to 'null', to support a variable number of arguments.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="use-command-variable" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specifies, if Redis command string will be used as '#cmd' variable for SpEL evaluation context in the
-						org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy in case of 'argument-expressions' is
+						Specifies, if the evaluated Redis command string will be made available
+						as the '#cmd' variable in the SpEL evaluation context in the
+						org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy
+						when 'argument-expressions' is
 						configured, otherwise this attribute is ignored.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -617,9 +620,9 @@
 					<xsd:appinfo>
 						<xsd:documentation>
 							Reference to an instance of org.springframework.integration.redis.outbound.ArgumentsStrategy.
-							Mutually exclusive with 'argument-expressions' attribute. By default the 'payload' is used
-							as command arguments. To disable any strategy (means no arguments) this attribute should be
-							configured as empty string.
+							Mutually exclusive with the 'argument-expressions' attribute. By default the 'payload' is used
+							as the command argument(s). To disable any strategy (no arguments) this attribute should be
+							configured as an empty string.
 						</xsd:documentation>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.integration.redis.outbound.ArgumentsStrategy"/>

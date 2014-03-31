@@ -121,7 +121,7 @@
 			<title>Redis Command Gateway</title>
 			<para>
 				The Redis support now provides the <code>&lt;outbound-gateway&gt;</code> component
-				to perform generic Redis commands using <code>RedisConnection#execute</code> method.
+				to perform generic Redis commands using the <code>RedisConnection#execute</code> method.
 				For more information, see <xref linkend="redis-outbound-gateway"/>.
 			</para>
 		</section>

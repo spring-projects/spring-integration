@@ -725,27 +725,31 @@ the serialization of values, you may want to consider providing your own
 				<callout arearefs="redis-o-g-command-expression">
 					<para>
 						The SpEL expression that returns the command key. Default is the <code>redis_command</code> message header.
+						Must not evaluate to <code>null</code>.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-argument-expressions">
 					<para>
 						Comma-separate SpEL expressions that will be evaluated as command arguments.
-						Mutually exclusive with <code>arguments-strategy</code> attribute. If no one of them is provided
-						the <code>payload</code> is used as a command arguments.
+						Mutually exclusive with the <code>arguments-strategy</code> attribute. If neither of them is provided
+						the <code>payload</code> is used as the command argument(s).
+						Argument expressions may evaluate to 'null', to support a variable number of arguments.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-use-command-variable">
 					<para>
-						The <code>boolean</code> flag to pecify, if Redis command string will be used as <code>#cmd</code> variable
-						for expression evaluation context in the <classname>org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy</classname>
-						in case of <code>argument-expressions</code> is configured, otherwise this attribute is ignored.
+						A <code>boolean</code> flag to specify if the evaluated Redis command string will be
+						made available as the <code>#cmd</code> variable
+						in the expression evaluation context in the
+						<classname>org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy</classname>
+						when <code>argument-expressions</code> is configured, otherwise this attribute is ignored.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-arguments-strategy">
 					<para>
 						Reference to an instance of <interfacename>org.springframework.integration.redis.outbound.ArgumentsStrategy</interfacename>.
-						Mutually exclusive with <code>argument-expressions</code> attribute. If no one of them is provided
-						the <code>payload</code> is used as a command arguments.
+						Mutually exclusive with <code>argument-expressions</code> attribute. If neither of them is provided
+						the <code>payload</code> is used as the command argument(s).
 					</para>
 				</callout>
 			</calloutlist>
