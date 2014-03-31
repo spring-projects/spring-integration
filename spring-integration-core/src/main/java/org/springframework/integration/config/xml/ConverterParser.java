@@ -43,13 +43,13 @@ public class ConverterParser extends AbstractBeanDefinitionParser {
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
 		BeanComponentDefinition converterDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (converterDefinition != null) {
-			INTEGRATION_CONVERTER_INITIALIZER.registerConvert(registry, converterDefinition);
+			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(registry, converterDefinition);
 		}
 		else {
 			String beanName = element.getAttribute("ref");
 			Assert.isTrue(StringUtils.hasText(beanName),
 					"Either a 'ref' attribute pointing to a Converter or a <bean> sub-element defining a Converter is required.");
-			INTEGRATION_CONVERTER_INITIALIZER.registerConvert(registry, new RuntimeBeanReference(beanName));
+			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(registry, new RuntimeBeanReference(beanName));
 		}
 		return null;
 	}

@@ -84,7 +84,7 @@
 			<title>@IntegrationConverter</title>
 			<para>
 				The <code>@IntegrationConverter</code> annotation has bean introduced,
-				as an analogue of <code>&lt;int:convert/&gt;</code> component.
+				as an analogue of <code>&lt;int:converter/&gt;</code> component.
 				For more information, see <xref linkend="enable-integration"/>.
 			</para>
 		</section>

@@ -21,7 +21,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 
 /**
- * This is a workaround until we depend on Spring 3.1 and specifically when SPR-8818 is resolved.
+ * This is a workaround until SPR-8818 will be resolved.
  * See INT-2259 and INT-1893 for more detail.
  *
  * @author Oleg Zhurakousky
@@ -38,4 +38,5 @@ class CustomConversionServiceFactoryBean extends ConversionServiceFactoryBean {
 		}
 		return service;
 	}
+
 }

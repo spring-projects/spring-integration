@@ -56,14 +56,14 @@ public class IntegrationConverterInitializer implements IntegrationConfiguration
 				}
 
 				if (hasIntegrationConverter) {
-					this.registerConvert(registry, new RuntimeBeanReference(beanName));
+					this.registerConverter(registry, new RuntimeBeanReference(beanName));
 				}
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public void registerConvert(BeanDefinitionRegistry registry, BeanMetadataElement converterBeanDefinition) {
+	public void registerConverter(BeanDefinitionRegistry registry, BeanMetadataElement converterBeanDefinition) {
 		Set<BeanMetadataElement> converters = new ManagedSet<BeanMetadataElement>();
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.CONVERTER_REGISTRAR_BEAN_NAME)) {
 			BeanDefinitionBuilder converterRegistrarBuilder = BeanDefinitionBuilder.genericBeanDefinition(CONTEXT_PACKAGE + "ConverterRegistrar")
