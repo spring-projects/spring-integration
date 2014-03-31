@@ -56,7 +56,7 @@
 			<title>@MessagingGateway</title>
 			<para>
 				Messaging gateway interfaces can now be configured with the <code>@MessagingGateway</code> annotation.
-				It is an analogue of the <code>&lt;gateway/&gt;</code> xml element.
+				It is an analogue of the <code>&lt;int:gateway/&gt;</code> xml element.
 				For more information, see <xref linkend="messaging-gateway-annotation"/>.
 			</para>
 		</section>
@@ -68,7 +68,7 @@
 				Spring Integration infrastructure beans to be configured using Spring Boot's
 				<code>@EnableAutoConfiguration</code>.
 				For more information see
-				<ulink url="http://projects.spring.io/spring-boot/docs/spring-boot-autoconfigure/README.html"
+				<ulink url="http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>
@@ -77,6 +77,14 @@
 			<para>
 				As well as the <code>@EnableIntegration</code> annotation mentioned above,
 				the <code>@GlobalChannelInterceptor</code> annotation has bean introduced.
+				For more information, see <xref linkend="enable-integration"/>.
+			</para>
+		</section>
+		<section id="4.0-integration-converter">
+			<title>@IntegrationConverter</title>
+			<para>
+				The <code>@IntegrationConverter</code> annotation has bean introduced,
+				as an analogue of <code>&lt;int:converter/&gt;</code> component.
 				For more information, see <xref linkend="enable-integration"/>.
 			</para>
 		</section>

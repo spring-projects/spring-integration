@@ -52,6 +52,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String METADATA_STORE_BEAN_NAME = "metadataStore";
 
+	public static final String CONVERTER_REGISTRAR_BEAN_NAME = "converterRegistrar";
+
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";

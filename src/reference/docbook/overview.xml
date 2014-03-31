@@ -368,6 +368,15 @@
 		on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes. In either case,
 		the bean <emphasis role="bold">must</emphasis> be a <interfacename>ChannelInterceptor</interfacename>.
 	</para>
+	  <para>
+		  The <classname>@IntegrationConverter</classname> annotation has been introduced to
+		  mark <interfacename>Converter</interfacename>, <interfacename>GenericConverter</interfacename> or
+		  <interfacename>ConverterFactory</interfacename> beans as candidate converters for <code>integrationConversionService</code>.
+		  This annotation is an analogue of the <code>&lt;int:converter&gt;</code> xml element
+		  (see <xref linkend="payload-type-conversion"/>). <code>@IntegrationConverter</code> annotations
+		  can be placed at the class level (with a <classname>@Component</classname> stereotype annotation), or
+		  on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes.
+	  </para>
   </section>
 
 </chapter>
