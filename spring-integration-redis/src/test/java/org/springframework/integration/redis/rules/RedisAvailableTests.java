@@ -68,8 +68,6 @@ public class RedisAvailableTests {
 		while (n++ < 100 && !connection.isSubscribed()) {
 			Thread.sleep(100);
 		}
-		// TODO: remove this additional delay when/if https://jira.springsource.org/browse/DATAREDIS-242 is resolved
-		Thread.sleep(250);
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
 	}
 
@@ -82,8 +80,6 @@ public class RedisAvailableTests {
 		while (n++ < 100 && connection.getSubscription().getPatterns().size() == 0) {
 			Thread.sleep(100);
 		}
-		// TODO: remove this additional delay when/if https://jira.springsource.org/browse/DATAREDIS-242 is resolved
-		Thread.sleep(250);
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
 	}
 
