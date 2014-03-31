@@ -72,7 +72,7 @@ public class RedisOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		if (hasArgumentExpressions) {
 			BeanDefinitionBuilder argumentsBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionArgumentsStrategy.class)
 					.addConstructorArgValue(argumentExpressions)
-					.addPropertyValue("useCommandVariable", element.getAttribute("use-command-variable"));
+					.addConstructorArgValue(element.getAttribute("use-command-variable"));
 			builder.addPropertyValue("argumentsStrategy", argumentsBuilder.getBeanDefinition());
 		}
 		else if (StringUtils.hasLength(argumentsStrategy)) {

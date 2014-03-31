@@ -39,15 +39,19 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, Integrati
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	private volatile Expression[] argumentExpressions = new Expression[0];
+	private final Expression[] argumentExpressions;
 
 	private EvaluationContext evaluationContext;
 
-	private volatile boolean useCommandVariable;
+	private final boolean useCommandVariable;
 
 	private BeanFactory beanFactory;
 
 	public ExpressionArgumentsStrategy(String[] argumentExpressions) {
+		this(argumentExpressions, false);
+	}
+
+	public ExpressionArgumentsStrategy(String[] argumentExpressions, boolean useCommandVariable) {
 		Assert.notNull(argumentExpressions, "'argumentExpressions' must not be null");
 		Assert.noNullElements(argumentExpressions, "'argumentExpressions' cannot have null values.");
 		List<Expression> expressions = new LinkedList<Expression>();
@@ -55,20 +59,18 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, Integrati
 			expressions.add(PARSER.parseExpression(argumentExpression));
 		}
 		this.argumentExpressions = expressions.toArray(new Expression[expressions.size()]);
+		this.useCommandVariable = useCommandVariable;
 	}
 
 	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		Assert.notNull(evaluationContext);
 		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
-	}
-
-	public void setUseCommandVariable(boolean useCommandVariable) {
-		this.useCommandVariable = useCommandVariable;
 	}
 
 	@Override
@@ -89,4 +91,5 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, Integrati
 		}
 		return arguments.toArray();
 	}
+
 }
