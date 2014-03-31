@@ -23,14 +23,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * {@link org.springframework.messaging.support.ChannelInterceptor} components with this
- * annotation will be applied as global channel interceptors
- * using the provided {@code patterns} to match channel names.
+ * A marker annotation (an analogue of {@code <int:converter/>}) to register
+ * {@link org.springframework.core.convert.converter.Converter},
+ * {@link org.springframework.core.convert.converter.GenericConverter} or
+ * {@link org.springframework.core.convert.converter.ConverterFactory} beans for the {@code integrationConversionService}.
  * <p>
  * This annotation can be used at the {@code class} level for {@link org.springframework.stereotype.Component} beans
  * and on methods with {@link org.springframework.context.annotation.Bean}.
- * <p>
- * This annotation is an analogue of {@code <int:channel-interceptor/>}.
  *
  * @author Artem Bilan
  * @since 4.0
@@ -38,21 +37,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface GlobalChannelInterceptor {
-
-	/**
-	 * An array of simple patterns against which channel names will be matched. Default is "*"
-	 * (all channels). See {@link org.springframework.util.PatternMatchUtils#simpleMatch(String, String)}.
-	 * @return The pattern.
-	 */
-	String[] patterns() default "*";
-
-	/**
-	 * The order of the interceptor. Interceptors with negative order values will be placed before any
-	 * explicit interceptors on the channel; interceptors with positive order values will be
-	 * placed after explicit interceptors.
-	 * @return The order.
-	 */
-	int order() default 0;
+public @interface IntegrationConverter {
 
 }

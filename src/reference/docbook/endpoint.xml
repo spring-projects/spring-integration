@@ -588,10 +588,12 @@ any transaction configuration essentially allowing you to enhance the behavior o
       In this scenario we need to perform type conversion. Spring Integration provides a convenient way for registering type
       converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named
       <emphasis>integrationConversionService</emphasis>.
-      That bean is automatically created as soon as the first converter is defined using the Spring Integration namespace support.
+      That bean is automatically created as soon as the first converter is defined using the Spring Integration infrastructure.
 
       To register a Converter all you need is to implement
-      <interfacename>org.springframework.core.convert.converter.Converter</interfacename> and define it via
+      <interfacename>org.springframework.core.convert.converter.Converter</interfacename>,
+		<interfacename>org.springframework.core.convert.converter.GenericConverter</interfacename> or
+		<interfacename>org.springframework.core.convert.converter.ConverterFactory</interfacename> and define it via
       convenient namespace support:
       <programlisting language="xml"><![CDATA[<int:converter ref="sampleConverter"/>
 
@@ -602,6 +604,31 @@ any transaction configuration essentially allowing you to enhance the behavior o
     <bean class="o.s.i.config.xml.ConverterParserTests$TestConverter3"/>
 </int:converter>]]></programlisting>
      </para>
+	 <para>
+		 Starting with <emphasis>Spring Integration 4.0</emphasis>, the above configuration is available using annotations:
+		 <programlisting language="java"><![CDATA[@Component
+@IntegrationConverter
+public class TestConverter implements Converter<Boolean, Number> {
+
+	public Number convert(Boolean source) {
+		return source ? 1 : 0;
+	}
+
+}]]></programlisting>
+
+	or as a <code>@Configuration</code> part:
+	<programlisting language="java"><![CDATA[@Configuration
+@EnableIntegration
+public class ContextConfiguration {
+
+	@Bean
+	@IntegrationConverter
+	public SerializingConverter serializingConverter() {
+		return new SerializingConverter();
+	}
+
+}]]></programlisting>
+	 </para>
      <important>
          <para>
              When configuring an <emphasis>Application Context</emphasis>, the

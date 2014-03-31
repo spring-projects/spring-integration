@@ -22,7 +22,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.util.Assert;
@@ -30,19 +29,19 @@ import org.springframework.util.Assert;
 /**
  * Utility class that keeps track of a set of Converters in order to register
  * them with the "integrationConversionService" upon initialization.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
  */
 class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
 
-	private final Set<Converter<?, ?>> converters;
+	private final Set<?> converters;
 
 	private BeanFactory beanFactory;
 
 
-	public ConverterRegistrar(Set<Converter<?, ?>> converters) {
+	public ConverterRegistrar(Set<?> converters) {
 		this.converters = converters;
 	}
 
@@ -55,7 +54,7 @@ class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
 		Assert.notNull(beanFactory, "BeanFactory is required");
 		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
 		if (conversionService instanceof GenericConversionService) {
-			ConversionServiceFactory.registerConverters(converters, (GenericConversionService) conversionService);			
+			ConversionServiceFactory.registerConverters(converters, (GenericConversionService) conversionService);
 		}
 		else {
 			Assert.notNull(conversionService, "Failed to locate '" + IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME + "'");
