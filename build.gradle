@@ -63,7 +63,7 @@ subprojects { subproject ->
 		ftpServerVersion = '1.0.6'
 
 
-		springVersionDefault = '3.2.6.RELEASE'
+		springVersionDefault = '3.2.8.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.2.0.RELEASE'
