@@ -42,6 +42,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.IntegrationComponentScan;
@@ -53,6 +55,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -60,8 +63,10 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
+import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -69,6 +74,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -109,6 +115,15 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private AtomicInteger fbInterceptorCounter;
+
+	@Autowired
+	private MessageChannel numberChannel;
+
+	@Autowired
+	private TestConverter testConverter;
+
+	@Autowired
+	private MessageChannel bytesChannel;
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -192,6 +207,17 @@ public class EnableIntegrationTests {
 		child.close();
 	}
 
+	@Test
+	public void testIntegrationConverter() {
+		this.numberChannel.send(new GenericMessage<Integer>(10));
+		this.numberChannel.send(new GenericMessage<Boolean>(true));
+		assertThat(this.testConverter.getInvoked(), Matchers.greaterThan(0));
+
+		assertTrue(this.bytesChannel.send(new GenericMessage<byte[]>("foo".getBytes())));
+		assertTrue(this.bytesChannel.send(new GenericMessage<Message<?>>(new MutableMessage<Object>(""))));
+
+	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -271,6 +297,23 @@ public class EnableIntegrationTests {
 
 	}
 
+	@Component
+	@IntegrationConverter
+	public static class TestConverter implements Converter<Boolean, Number> {
+
+		private final AtomicInteger invoked = new AtomicInteger();
+
+		@Override
+		public Number convert(Boolean source) {
+			this.invoked.incrementAndGet();
+			return source ? 1 : 0;
+		}
+
+		public Integer getInvoked() {
+			return invoked.get();
+		}
+	}
+
 	@Configuration
 	@EnableIntegration
 	@ImportResource("classpath:org/springframework/integration/configuration/EnableIntegrationTests-context.xml")
@@ -291,6 +334,26 @@ public class EnableIntegrationTests {
 		@Bean
 		public DirectChannel gatewayChannel() {
 			return new DirectChannel();
+		}
+
+		@Bean
+		public QueueChannel numberChannel() {
+			QueueChannel channel = new QueueChannel();
+			channel.setDatatypes(Number.class);
+			return channel;
+		}
+
+		@Bean
+		public QueueChannel bytesChannel() {
+			QueueChannel channel = new QueueChannel();
+			channel.setDatatypes(byte[].class);
+			return channel;
+		}
+
+		@Bean
+		@IntegrationConverter
+		public SerializingConverter serializingConverter() {
+			return new SerializingConverter();
 		}
 
 	}
