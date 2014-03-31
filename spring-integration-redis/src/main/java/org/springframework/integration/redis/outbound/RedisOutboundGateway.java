@@ -89,7 +89,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		final String command = this.commandExpression.getValue(this.evaluationContext, requestMessage, String.class);
-		Assert.notNull(command, "The 'command' can't be evaluated as 'null'.");
+		Assert.notNull(command, "The 'command' must not evaluate to 'null'.");
 		byte[][] args = null;
 		if (this.argumentsStrategy != null) {
 			Object[] arguments = this.argumentsStrategy.resolve(command, requestMessage);
