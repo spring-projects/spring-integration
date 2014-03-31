@@ -29,9 +29,9 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -54,6 +54,9 @@ import com.lambdaworks.redis.protocol.CommandType;
 public class RedisOutboundGatewayTests extends RedisAvailableTests {
 
 	@Autowired
+	private BeanFactory beanFactory;
+
+	@Autowired
 	private PollableChannel replyChannel;
 
 	@Autowired
@@ -64,9 +67,6 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 
 	@Autowired
 	private MessageChannel incrementAtomicIntegerChannel;
-
-	@Autowired
-	private RedisAtomicInteger atomicInteger;
 
 	@Autowired
 	private MessageChannel setDelCommandChannel;
@@ -110,12 +110,17 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testIncrementAtomicCommand() {
+		// Since 'atomicInteger' is lazy-init to avoid early Redis connection, we have to initialize it before send the INCR command.
+		this.beanFactory.getBean("atomicInteger");
 		this.incrementAtomicIntegerChannel.send(MessageBuilder.withPayload(CommandType.INCR).build());
-		System.out.println();
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals(11L, receive.getPayload());
-		assertEquals(11, this.atomicInteger.get());
+
+		this.getCommandChannel.send(MessageBuilder.withPayload("si.test.RedisAtomicInteger").build());
+		receive = this.replyChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("11", new String((byte[]) receive.getPayload()));
 	}
 
 	@Test

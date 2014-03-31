@@ -58,7 +58,7 @@
 		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>
 
-	<bean id="atomicInteger" class="org.springframework.data.redis.support.atomic.RedisAtomicInteger">
+	<bean id="atomicInteger" class="org.springframework.data.redis.support.atomic.RedisAtomicInteger" lazy-init="true">
 		<constructor-arg value="si.test.RedisAtomicInteger"/>
 		<constructor-arg ref="redisConnectionFactory"/>
 		<constructor-arg value="10"/>
