@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -100,6 +101,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -128,6 +130,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -159,6 +162,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
@@ -191,6 +195,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));

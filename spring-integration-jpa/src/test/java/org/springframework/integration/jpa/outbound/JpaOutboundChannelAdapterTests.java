@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,24 +12,27 @@
  */
 package org.springframework.integration.jpa.outbound;
 
+import static org.mockito.Mockito.mock;
+
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
@@ -42,6 +45,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -155,6 +159,7 @@ public class JpaOutboundChannelAdapterTests {
 
 		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
+		jpaOutboundChannelAdapter.setBeanFactory(mock(BeanFactory.class));
 		jpaOutboundChannelAdapter.afterPropertiesSet();
 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();

@@ -75,7 +75,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		channel.send(new GenericMessage<String>("1"));
 		channel.send(new GenericMessage<String>("2"));
 		channel.send(new GenericMessage<String>("3"));
-		assertTrue(latch.await(5, TimeUnit.SECONDS));
+		assertTrue(latch.await(20, TimeUnit.SECONDS));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -60,6 +61,7 @@ import com.rabbitmq.client.Channel;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class InboundEndpointTests {
@@ -84,6 +86,7 @@ public class InboundEndpointTests {
 		PollableChannel channel = new QueueChannel();
 
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 
 		Object payload = new Foo("bar1");
@@ -122,6 +125,7 @@ public class InboundEndpointTests {
 		PollableChannel channel = new QueueChannel();
 
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 
 		Object payload = new Foo("bar1");
@@ -171,6 +175,7 @@ public class InboundEndpointTests {
 		gateway.setMessageConverter(new JsonMessageConverter());
 
 		gateway.setRequestChannel(channel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 
 		RabbitTemplate rabbitTemplate = Mockito.spy(TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class));

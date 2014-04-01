@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,28 @@ package org.springframework.integration.router;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RecipientListRouterTests {
 
@@ -50,6 +54,7 @@ public class RecipientListRouterTests {
 		channels.add(channel2);
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(channels);
+		router.setBeanFactory(mock(BeanFactory.class));
 		router.afterPropertiesSet();
 		List<Recipient> recipients = (List<Recipient>)
 				new DirectFieldAccessor(router).getPropertyValue("recipients");
@@ -67,6 +72,7 @@ public class RecipientListRouterTests {
 		channels.add(channel2);
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(channels);
+		router.setBeanFactory(mock(BeanFactory.class));
 		router.afterPropertiesSet();
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
@@ -350,6 +356,7 @@ public class RecipientListRouterTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void noChannelListFailsInitialization() {
 		RecipientListRouter router = new RecipientListRouter();
+		router.setBeanFactory(mock(BeanFactory.class));
 		router.afterPropertiesSet();
 	}
 
@@ -404,6 +411,7 @@ public class RecipientListRouterTests {
 
 	private static class AlwaysTrueSelector implements MessageSelector {
 
+		@Override
 		public boolean accept(Message<?> message) {
 			return true;
 		}
@@ -412,6 +420,7 @@ public class RecipientListRouterTests {
 
 	private static class AlwaysFalseSelector implements MessageSelector {
 
+		@Override
 		public boolean accept(Message<?> message) {
 			return false;
 		}

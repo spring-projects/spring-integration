@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,8 @@ import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
@@ -42,6 +45,7 @@ import org.springframework.messaging.MessageChannel;
  * @author Dave Syer
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ResequencerTests {
 
@@ -54,6 +58,7 @@ public class ResequencerTests {
 	@Before
 	public void configureResequencer() {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
+		this.resequencer.setBeanFactory(mock(BeanFactory.class));
 		this.resequencer.afterPropertiesSet();
 	}
 
@@ -82,6 +87,7 @@ public class ResequencerTests {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
+		this.resequencer.setBeanFactory(mock(BeanFactory.class));
 		this.resequencer.afterPropertiesSet();
 
 		QueueChannel replyChannel = new QueueChannel();
@@ -102,10 +108,12 @@ public class ResequencerTests {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		QueueChannel replyChannel = new QueueChannel();
 		this.resequencer.setCorrelationStrategy(new CorrelationStrategy() {
+			@Override
 			public Object getCorrelationKey(Message<?> message) {
 				return "A";
 			}
 		});
+		this.resequencer.setBeanFactory(mock(BeanFactory.class));
 		this.resequencer.afterPropertiesSet();
 
 		//Message<?> message0 = MessageBuilder.withPayload("0").setSequenceNumber(0).build();

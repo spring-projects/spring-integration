@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -57,6 +58,7 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -93,6 +95,7 @@ public class SubscribableJmsChannelTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
@@ -100,6 +103,7 @@ public class SubscribableJmsChannelTests {
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
 				latch.countDown();
@@ -108,6 +112,7 @@ public class SubscribableJmsChannelTests {
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestination(this.queue);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
@@ -131,6 +136,7 @@ public class SubscribableJmsChannelTests {
 		final CountDownLatch latch = new CountDownLatch(4);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
@@ -138,6 +144,7 @@ public class SubscribableJmsChannelTests {
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
 				latch.countDown();
@@ -146,6 +153,7 @@ public class SubscribableJmsChannelTests {
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestination(this.topic);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
@@ -173,6 +181,7 @@ public class SubscribableJmsChannelTests {
 		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
@@ -181,6 +190,7 @@ public class SubscribableJmsChannelTests {
 		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
 				latch.countDown();
@@ -190,6 +200,7 @@ public class SubscribableJmsChannelTests {
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestinationName("dynamicQueue");
 		factoryBean.setPubSubDomain(false);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
@@ -217,6 +228,7 @@ public class SubscribableJmsChannelTests {
 		final CountDownLatch latch = new CountDownLatch(4);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
@@ -224,6 +236,7 @@ public class SubscribableJmsChannelTests {
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
 				latch.countDown();
@@ -234,6 +247,7 @@ public class SubscribableJmsChannelTests {
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestinationName("dynamicTopic");
 		factoryBean.setPubSubDomain(true);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
@@ -279,6 +293,7 @@ public class SubscribableJmsChannelTests {
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestinationName("noSubscribersQueue");
 		factoryBean.setBeanName("noSubscribersChannel");
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
@@ -303,6 +318,7 @@ public class SubscribableJmsChannelTests {
 		factoryBean.setDestinationName("noSubscribersTopic");
 		factoryBean.setBeanName("noSubscribersChannel");
 		factoryBean.setPubSubDomain(true);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
@@ -323,6 +339,7 @@ public class SubscribableJmsChannelTests {
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation)
 					throws Throwable {
 				String message = (String) invocation.getArguments()[0];

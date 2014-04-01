@@ -87,6 +87,11 @@ public abstract class IntegrationContextUtils {
 	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
 	/**
+	 * Should be set to TRUE on CI plans and framework developer systems.
+	 */
+	public static final boolean fatalWhenNoBeanFactory = Boolean.valueOf(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
+
+	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".
 	 */
@@ -194,6 +199,9 @@ public abstract class IntegrationContextUtils {
 			if (logger.isWarnEnabled()) {
 				logger.warn("No 'beanFactory' supplied; cannot find MessageBuilderFactory"
 							+ ", using default.");
+			}
+			if (fatalWhenNoBeanFactory) {
+				throw new RuntimeException("All Message creators need a BeanFactory");
 			}
 		}
 		if (messageBuilderFactory == null) {

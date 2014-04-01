@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,27 @@
 
 package org.springframework.integration.jms;
 
+import static org.mockito.Mockito.mock;
+
 import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ChannelPublishingJmsMessageListenerTests {
 
@@ -47,12 +52,14 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setRequestChannel(requestChannel);
 		listener.setMessageConverter(new TestMessageConverter());
 		javax.jms.Message jmsMessage = session.createTextMessage("test");
+		listener.setBeanFactory(mock(BeanFactory.class));
 		listener.afterPropertiesSet();
 		listener.onMessage(jmsMessage, session);
 	}
 
 	private void startBackgroundReplier(final PollableChannel channel) {
 		new SimpleAsyncTaskExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> request = channel.receive(5000);
 				Message<?> reply = new GenericMessage<String>(((String) request.getPayload()).toUpperCase());
@@ -63,10 +70,12 @@ public class ChannelPublishingJmsMessageListenerTests {
 
 	private static class TestMessageConverter implements MessageConverter {
 
+		@Override
 		public Object fromMessage(javax.jms.Message message) throws JMSException, MessageConversionException {
 			return "test-from";
 		}
 
+		@Override
 		public javax.jms.Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
 			return new StubTextMessage("test-to");
 		}

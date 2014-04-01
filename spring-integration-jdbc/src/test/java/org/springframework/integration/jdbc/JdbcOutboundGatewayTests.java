@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,18 +14,21 @@ package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import javax.sql.DataSource;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  *
  */
@@ -41,6 +44,7 @@ public class JdbcOutboundGatewayTests {
 
 		try {
 			jdbcOutboundGateway.setMaxRowsPerPoll(10);
+			jdbcOutboundGateway.setBeanFactory(mock(BeanFactory.class));
 			jdbcOutboundGateway.afterPropertiesSet();
 
 		} catch (IllegalArgumentException e) {

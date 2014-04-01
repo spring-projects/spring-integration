@@ -18,6 +18,7 @@ package org.springframework.integration.file.tail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,11 +33,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
@@ -104,6 +106,7 @@ public class FileTailingMessageProducerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		adapter.setTailAttemptsDelay(500);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		File file = new File(testDir, "foo");
 		File renamed = new File(testDir, "bar");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.DirectChannel;
@@ -48,7 +49,6 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -56,6 +56,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -79,6 +80,7 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory2.isActive()).thenReturn(true);
 		doThrow(new IOException("fail")).when(conn1).send(Mockito.any(Message.class));
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -127,6 +129,7 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory2.isActive()).thenReturn(true);
 		final AtomicBoolean failedOnce = new AtomicBoolean();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				if (!failedOnce.get()) {
 					failedOnce.set(true);
@@ -170,6 +173,7 @@ public class FailoverClientConnectionFactoryTests {
 		factories.add(factory2);
 		TcpConnectionSupport conn1 = makeMockConnection();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -200,6 +204,7 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory2.isActive()).thenReturn(true);
 		final AtomicInteger failCount = new AtomicInteger();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				if (failCount.incrementAndGet() < 3) {
 					throw new IOException("fail");
@@ -314,16 +319,21 @@ public class FailoverClientConnectionFactoryTests {
 		SubscribableChannel channel = new DirectChannel();
 		final AtomicReference<String> connectionId = new AtomicReference<String>();
 		channel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				connectionId.set((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
 				((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
 			}
 		});
 		gateway1.setRequestChannel(channel);
+		gateway1.setBeanFactory(mock(BeanFactory.class));
+		gateway1.afterPropertiesSet();
 		gateway1.start();
 		TcpInboundGateway gateway2 = new TcpInboundGateway();
 		gateway2.setConnectionFactory(server2);
 		gateway2.setRequestChannel(channel);
+		gateway2.setBeanFactory(mock(BeanFactory.class));
+		gateway2.afterPropertiesSet();
 		gateway2.start();
 		TestingUtilities.waitListening(server1, null);
 		TestingUtilities.waitListening(server2, null);
@@ -333,6 +343,7 @@ public class FailoverClientConnectionFactoryTests {
 		FailoverClientConnectionFactory failFactory = new FailoverClientConnectionFactory(factories);
 		boolean singleUse = client1.isSingleUse();
 		failFactory.setSingleUse(singleUse);
+		failFactory.setBeanFactory(mock(BeanFactory.class));
 		failFactory.afterPropertiesSet();
 		TcpOutboundGateway outGateway = new TcpOutboundGateway();
 		outGateway.setConnectionFactory(failFactory);

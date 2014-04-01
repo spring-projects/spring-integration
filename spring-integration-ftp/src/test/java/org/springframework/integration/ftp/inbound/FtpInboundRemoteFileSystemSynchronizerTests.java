@@ -44,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -117,6 +118,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		ms.setAutoCreateLocalDirectory(true);
 
 		ms.setLocalDirectory(localDirectoy);
+		ms.setBeanFactory(mock(BeanFactory.class));
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,11 @@ package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
@@ -30,6 +33,7 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class HeaderAnnotationTransformerTests {
@@ -39,6 +43,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "appendCorrelationId");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -54,6 +59,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalCorrelationId");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -69,6 +75,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "appendFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -84,6 +91,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,13 +33,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
@@ -78,6 +80,7 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setServer(this.server);
 		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 		this.numberHolder.publish("foo");
@@ -99,6 +102,7 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setOutputChannel(outputChannel);
 		Integer handback = new Integer(123);
 		adapter.setHandback(handback);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 		this.numberHolder.publish("foo");
@@ -120,10 +124,12 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
 		adapter.setFilter(new NotificationFilter() {
+			@Override
 			public boolean isNotificationEnabled(Notification notification) {
 				return !notification.getMessage().equals("bad");
 			}
 		});
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 		this.numberHolder.publish("bad");
@@ -154,6 +160,7 @@ public class NotificationListeningMessageProducerTests {
 			this.number.set(value);
 		}
 
+		@Override
 		public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
 			this.notificationPublisher = notificationPublisher;
 		}

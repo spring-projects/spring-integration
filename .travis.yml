@@ -4,4 +4,4 @@ services:
   - rabbitmq
   - redis-server
 env:
-  - TERM=dumb
+  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true GRADLE_OPTS='-XX:MaxPermSize=512M -Xmx1024M'
