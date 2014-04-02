@@ -133,10 +133,14 @@ subprojects { subproject ->
 
 	// dependencies that are common across all java projects
 	dependencies {
-		testCompile "junit:junit:$junitVersion"
+		testCompile ("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest'
+		}
 		testCompile "log4j:log4j:$log4jVersion"
 		testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		testCompile "org.mockito:mockito-all:$mockitoVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest'
+		}
 		testCompile "org.springframework:spring-test:$springVersion"
 		if (!(subproject.name ==~ /.*-(core|test)/)) {
 			testCompile project(":spring-integration-test")
@@ -530,9 +534,13 @@ project('spring-integration-test') {
 	description = 'Spring Integration Test Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "junit:junit:$junitVersion"
+		compile ("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest'
+		}
 		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		compile "org.mockito:mockito-core:$mockitoVersion"
+		compile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest'
+		}
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 	}

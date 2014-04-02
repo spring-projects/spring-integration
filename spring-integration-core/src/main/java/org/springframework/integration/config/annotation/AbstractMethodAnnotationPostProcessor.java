@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
@@ -29,20 +30,28 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -108,9 +117,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					adviceChain.add((Advice) adviceChainBean);
 				}
 				else if (adviceChainBean instanceof Advice[]) {
-					for (Advice advice : (Advice[]) adviceChainBean) {
-						adviceChain.add(advice);
-					}
+					Collections.addAll(adviceChain, (Advice[]) adviceChainBean);
 				}
 				else if (adviceChainBean instanceof Collection) {
 					@SuppressWarnings("unchecked")
@@ -126,10 +133,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
 		}
-	}
-
-	protected boolean shouldCreateEndpoint(T annotation) {
-		return (StringUtils.hasText((String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE)));
 	}
 
 	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation) {
@@ -149,9 +152,71 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
-			Assert.isInstanceOf(SubscribableChannel.class, inputChannel,
-					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
-			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+
+			if (inputChannel instanceof PollableChannel) {
+				PollerMetadata pollerMetadata = null;
+				Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+				if (!ObjectUtils.isEmpty(pollers)) {
+					Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
+					Poller poller = pollers[0];
+
+					String ref = poller.ref();
+					String triggerRef = poller.trigger();
+					long fixedDelay = poller.fixedDelay();
+					long fixedRate = poller.fixedRate();
+					String cron = poller.cron();
+
+					if (StringUtils.hasText(ref)) {
+						Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(cron) && fixedDelay == -1 && fixedRate == -1,
+								"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
+						pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
+					}
+					else {
+						pollerMetadata = new PollerMetadata();
+						pollerMetadata.setMaxMessagesPerPoll(poller.maxMessagesPerPoll());
+						Trigger trigger = null;
+						if (StringUtils.hasText(triggerRef)) {
+							Assert.state(!StringUtils.hasText(cron) && fixedDelay == -1 && fixedRate == -1,
+									"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
+							trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
+						}
+						else if (StringUtils.hasText(cron)) {
+							Assert.state(fixedDelay == -1 && fixedRate == -1,
+									"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
+							trigger = new CronTrigger(cron);
+						}
+						else if (fixedDelay > -1) {
+							Assert.state(fixedRate == -1,
+									"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
+							trigger = new PeriodicTrigger(fixedDelay);
+						}
+						else if (fixedRate > -1) {
+							trigger = new PeriodicTrigger(fixedRate);
+							((PeriodicTrigger) trigger).setFixedRate(true);
+						}
+						pollerMetadata.setTrigger(trigger);
+					}
+
+
+				}
+				else {
+					pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
+					Assert.notNull(pollerMetadata, "No poller has been defined for Annotation-based endpoint, " +
+							"and no default poller is available within the context.");
+				}
+				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
+				pollingConsumer.setTaskExecutor(pollerMetadata.getTaskExecutor());
+				pollingConsumer.setTrigger(pollerMetadata.getTrigger());
+				pollingConsumer.setAdviceChain(pollerMetadata.getAdviceChain());
+				pollingConsumer.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
+				pollingConsumer.setErrorHandler(pollerMetadata.getErrorHandler());
+				pollingConsumer.setReceiveTimeout(pollerMetadata.getReceiveTimeout());
+				pollingConsumer.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
+				endpoint = pollingConsumer;
+			}
+			else {
+				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+			}
 		}
 		return endpoint;
 	}

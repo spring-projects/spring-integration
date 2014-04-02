@@ -33,6 +33,7 @@ import org.springframework.integration.aggregator.AbstractCorrelatingMessageHand
  *
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -64,4 +65,5 @@ public @interface Aggregator {
 	 */
 	boolean sendPartialResultsOnExpiry() default false;
 
+	Poller[] poller() default {};
 }

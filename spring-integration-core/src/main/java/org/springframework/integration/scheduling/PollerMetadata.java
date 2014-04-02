@@ -39,6 +39,11 @@ public class PollerMetadata {
 	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME =
 			"org.springframework.integration.context.defaultPollerMetadata";
 
+	/**
+	 * The convenient short alias for global default poller bean name.
+	 */
+	public static final String DEFAULT_POLLER = DEFAULT_POLLER_METADATA_BEAN_NAME;
+
 	private volatile Trigger trigger;
 
 	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
