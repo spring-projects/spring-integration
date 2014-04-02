@@ -22,12 +22,13 @@ import static org.mockito.Mockito.mock;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
-import org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -40,6 +41,7 @@ public class PresenceSendingMessageHandlerTests {
 	@Test
 	public void testPresencePayload(){
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage(mock(Presence.class)));
 	}
@@ -48,6 +50,7 @@ public class PresenceSendingMessageHandlerTests {
 	@Test(expected=MessageHandlingException.class)
 	public void testWrongPayload(){
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage(new Object()));
 	}
@@ -65,6 +68,7 @@ public class PresenceSendingMessageHandlerTests {
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler();
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
 }

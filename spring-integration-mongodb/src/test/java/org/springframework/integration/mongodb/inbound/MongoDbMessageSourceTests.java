@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.util.List;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -42,6 +44,7 @@ import com.mongodb.util.JSON;
 /**
  * @author Amol Nayak
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  * @since 2.2
  *
@@ -80,6 +83,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<DBObject> results = ((List<DBObject>)messageSource.receive().getPayload());
@@ -101,6 +105,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setEntityClass(Object.class);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>)messageSource.receive().getPayload());
@@ -123,6 +128,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setExpectSingleResult(true);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		Person person = (Person)messageSource.receive().getPayload();
 
@@ -143,6 +149,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setEntityClass(Object.class);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>)messageSource.receive().getPayload());
@@ -164,6 +171,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
@@ -183,6 +191,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'NJ'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		assertNull(messageSource.receive());
 	}
@@ -202,6 +211,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		MappingMongoConverter converter = new TestMongoConverter(mongoDbFactory, new MongoMappingContext());
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		messageSource.setMongoConverter(converter);
@@ -226,6 +236,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory, converter);
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(template, queryExpression);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 
 		MongoTemplate writingTemplate = new MongoTemplate(mongoDbFactory, converter);
@@ -247,15 +258,16 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 
 		template.save(JSON.parse("{'name' : 'Manny', 'id' : 1}"), "data");
-		
+
 		Expression queryExpression = new LiteralExpression("{'name' : 'Manny'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setExpectSingleResult(true);
+		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		DBObject result = (DBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");
 		result.put("company","PepBoys");
-		template.save(result, "data"); 
+		template.save(result, "data");
 		result = (DBObject) messageSource.receive().getPayload();
 		assertEquals(id, result.get("_id"));
 	}

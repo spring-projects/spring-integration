@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +36,8 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -44,7 +47,6 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -52,6 +54,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 public class TcpInboundGatewayTests {
@@ -63,12 +66,14 @@ public class TcpInboundGatewayTests {
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
+			@Override
 			public MessageChannel resolveDestination(String channelName) {
 				return channel;
 			}
@@ -97,12 +102,13 @@ public class TcpInboundGatewayTests {
 		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
-		handler.handleMessage(channel.receive());
-		handler.handleMessage(channel.receive());
+		handler.handleMessage(channel.receive(10000));
+		handler.handleMessage(channel.receive(10000));
 		byte[] bytes = new byte[12];
 		readFully(socket.getInputStream(), bytes);
 		assertEquals("Echo:Test1\r\n", new String(bytes));
@@ -121,6 +127,7 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		gateway.setClientMode(true);
 		gateway.setRetryInterval(10000);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		final CountDownLatch latch1 = new CountDownLatch(1);
@@ -128,6 +135,7 @@ public class TcpInboundGatewayTests {
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 10);
@@ -181,8 +189,10 @@ public class TcpInboundGatewayTests {
 		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
+			@Override
 			public MessageChannel resolveDestination(String channelName) {
 				return channel;
 			}
@@ -191,8 +201,8 @@ public class TcpInboundGatewayTests {
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket2.getOutputStream().write("Test2\r\n".getBytes());
-		handler.handleMessage(channel.receive());
-		handler.handleMessage(channel.receive());
+		handler.handleMessage(channel.receive(10000));
+		handler.handleMessage(channel.receive(10000));
 		byte[] bytes = new byte[12];
 		readFully(socket1.getInputStream(), bytes);
 		assertEquals("Echo:Test1\r\n", new String(bytes));
@@ -211,12 +221,13 @@ public class TcpInboundGatewayTests {
 		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
-		handler.handleMessage(channel.receive());
-		handler.handleMessage(channel.receive());
+		handler.handleMessage(channel.receive(10000));
+		handler.handleMessage(channel.receive(10000));
 		Set<String> results = new HashSet<String>();
 		byte[] bytes = new byte[12];
 		readFully(socket.getInputStream(), bytes);
@@ -237,6 +248,7 @@ public class TcpInboundGatewayTests {
 		SubscribableChannel errorChannel = new DirectChannel();
 		final String errorMessage = "An error occurred";
 		errorChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(new GenericMessage<String>(errorMessage));
@@ -247,6 +259,7 @@ public class TcpInboundGatewayTests {
 		TestingUtilities.waitListening(scf, 20000L);
 		final SubscribableChannel channel = new DirectChannel();
 		gateway.setRequestChannel(channel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
 		channel.subscribe(handler);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);

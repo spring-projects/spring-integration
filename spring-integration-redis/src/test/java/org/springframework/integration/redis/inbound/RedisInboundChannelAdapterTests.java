@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -20,19 +20,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
@@ -59,6 +61,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);
 		adapter.setTopics(redisChannelName);
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 

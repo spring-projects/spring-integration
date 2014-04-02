@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package org.springframework.integration.ip.tcp.connection;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 
@@ -37,6 +39,7 @@ public class TcpConnectionEventListenerTests {
 		TcpConnectionEventListeningMessageProducer eventProducer = new TcpConnectionEventListeningMessageProducer();
 		QueueChannel outputChannel = new QueueChannel();
 		eventProducer.setOutputChannel(outputChannel);
+		eventProducer.setBeanFactory(mock(BeanFactory.class));
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
@@ -67,6 +70,7 @@ public class TcpConnectionEventListenerTests {
 		eventProducer.setOutputChannel(outputChannel);
 		Class<?>[] eventTypes = new Class<?>[]{FooEvent.class, BarEvent.class};
 		eventProducer.setEventTypes((Class<? extends TcpConnectionEvent>[]) eventTypes);
+		eventProducer.setBeanFactory(mock(BeanFactory.class));
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);

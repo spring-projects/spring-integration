@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -62,14 +61,15 @@ import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryState;
@@ -198,6 +198,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		// failing advice with success
@@ -259,6 +260,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		// failing advice with failure
@@ -326,6 +328,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		doFail.set(true);
@@ -413,6 +416,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -442,6 +446,7 @@ public class AdvisedMessageHandlerTests {
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
 		advice.setRetryStateGenerator(new RetryStateGenerator() {
+			@Override
 			public RetryState determineRetryState(Message<?> message) {
 				return new DefaultRetryState(message.getHeaders().getId());
 			}
@@ -450,6 +455,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -486,6 +492,7 @@ public class AdvisedMessageHandlerTests {
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
 		advice.setRetryStateGenerator(new RetryStateGenerator() {
+			@Override
 			public RetryState determineRetryState(Message<?> message) {
 				return new DefaultRetryState(message.getHeaders().getId());
 			}
@@ -522,6 +529,7 @@ public class AdvisedMessageHandlerTests {
 															  AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
 		advice.setRecoveryCallback(new RecoveryCallback<Object>() {
 
+			@Override
 			public Object recover(RetryContext context) throws Exception {
 				return "baz";
 			}
@@ -530,6 +538,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -563,6 +572,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -595,11 +605,13 @@ public class AdvisedMessageHandlerTests {
 			}
 		});
 		advice.setRetryTemplate(retryTemplate);
+		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.afterPropertiesSet();
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -626,12 +638,14 @@ public class AdvisedMessageHandlerTests {
 
 		adviceChain.add(new RequestHandlerRetryAdvice());
 		adviceChain.add(new MethodInterceptor() {
+			@Override
 			public Object invoke(MethodInvocation invocation) throws Throwable {
 				counter.getAndDecrement();
 				throw new RuntimeException("intentional");
 			}
 		});
 
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setAdviceChain(adviceChain);
 		handler.afterPropertiesSet();
 
@@ -680,12 +694,14 @@ public class AdvisedMessageHandlerTests {
 		adviceChain.add(expressionAdvice);
 		adviceChain.add(new RequestHandlerRetryAdvice());
 		adviceChain.add(new MethodInterceptor() {
+			@Override
 			public Object invoke(MethodInvocation invocation) throws Throwable {
 				throw new RuntimeException("intentional: " + counter.incrementAndGet());
 			}
 		});
 
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<String>("test"));
@@ -719,12 +735,14 @@ public class AdvisedMessageHandlerTests {
 		adviceChain.add(new RequestHandlerRetryAdvice());
 		adviceChain.add(expressionAdvice);
 		adviceChain.add(new MethodInterceptor() {
+			@Override
 			public Object invoke(MethodInvocation invocation) throws Throwable {
 				throw new RuntimeException("intentional: " + counter.incrementAndGet());
 			}
 		});
 
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		try {
@@ -772,6 +790,7 @@ public class AdvisedMessageHandlerTests {
 		when(methodInvocation.getArguments()).thenReturn(new Object[] {new GenericMessage<String>("foo")});
 		try {
 			doAnswer(new Answer<Object>() {
+				@Override
 				public Object answer(InvocationOnMock invocation) throws Throwable {
 					throw theThrowable;
 				}
@@ -838,6 +857,7 @@ public class AdvisedMessageHandlerTests {
 					public void handleError(Throwable t) {
 					}
 				}));
+		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 
 		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "poller.pollingTask", Callable.class);
@@ -898,6 +918,7 @@ public class AdvisedMessageHandlerTests {
 			}
 		});
 		filter.setAdviceChain(adviceChain);
+		filter.setBeanFactory(mock(BeanFactory.class));
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<String>("foo"));
 		assertNotNull(discardedWithinAdvice.get());
@@ -928,6 +949,7 @@ public class AdvisedMessageHandlerTests {
 		});
 		filter.setAdviceChain(adviceChain);
 		filter.setDiscardWithinAdvice(false);
+		filter.setBeanFactory(mock(BeanFactory.class));
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<String>("foo"));
 		assertTrue(adviceCalled.get());
@@ -979,6 +1001,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -1007,6 +1030,7 @@ public class AdvisedMessageHandlerTests {
 			this.throwable = throwable;
 		}
 
+		@Override
 		public Object handleRequestMessage(Message<?> message) throws Throwable {
 			throw this.throwable;
 		}

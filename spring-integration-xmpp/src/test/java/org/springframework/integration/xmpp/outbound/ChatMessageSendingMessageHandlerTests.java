@@ -27,14 +27,15 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -48,6 +49,7 @@ public class ChatMessageSendingMessageHandlerTests {
 	public void validateMessagePostAsString() throws Exception{
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("Test Message").
 					setHeader(XmppHeaders.TO, "kermit@frog.com").
@@ -56,7 +58,8 @@ public class ChatMessageSendingMessageHandlerTests {
 		handler.handleMessage(message);
 
 		class EqualSmackMessage extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
-		      public boolean matches(Object msg) {
+		      @Override
+			public boolean matches(Object msg) {
 		    	  org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
 		    	  boolean bodyMatches = smackMessage.getBody().equals("Test Message");
 		    	  boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
@@ -73,7 +76,8 @@ public class ChatMessageSendingMessageHandlerTests {
 			build();
 
 		class EqualSmackMessageWithThreadId extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
-		      public boolean matches(Object msg) {
+		      @Override
+			public boolean matches(Object msg) {
 		    	  org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
 		    	  boolean bodyMatches = smackMessage.getBody().equals("Hello Kitty");
 		    	  boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
@@ -92,6 +96,7 @@ public class ChatMessageSendingMessageHandlerTests {
 	public void validateMessagePostAsSmackMessage() throws Exception{
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
@@ -141,6 +146,7 @@ public class ChatMessageSendingMessageHandlerTests {
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler();
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
 }

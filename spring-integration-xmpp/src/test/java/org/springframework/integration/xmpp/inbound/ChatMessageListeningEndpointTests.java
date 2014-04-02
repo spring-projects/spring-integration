@@ -35,15 +35,16 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -63,6 +64,7 @@ public class ChatMessageListeningEndpointTests {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(connection);
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				packetListSet.add((PacketListener) invocation.getArguments()[0]);
 				return null;
@@ -70,6 +72,7 @@ public class ChatMessageListeningEndpointTests {
 		}).when(connection).addPacketListener(Mockito.any(PacketListener.class), (PacketFilter) Mockito.any());
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				packetListSet.remove(invocation.getArguments()[0]);
 				return null;
@@ -78,6 +81,7 @@ public class ChatMessageListeningEndpointTests {
 
 		assertEquals(0, packetListSet.size());
 		endpoint.setOutputChannel(new QueueChannel());
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 		assertEquals(1, packetListSet.size());
@@ -105,6 +109,7 @@ public class ChatMessageListeningEndpointTests {
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 	}
 
@@ -123,6 +128,7 @@ public class ChatMessageListeningEndpointTests {
 
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message)
 					throws MessagingException {
 				throw new RuntimeException("ooops");

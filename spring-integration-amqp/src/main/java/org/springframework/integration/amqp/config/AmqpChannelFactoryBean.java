@@ -318,9 +318,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 				if (this.maxSubscribers != null) {
 					pubsub.setMaxSubscribers(this.maxSubscribers);
 				}
-				if (this.getBeanFactory() != null) {
-					pubsub.setBeanFactory(this.getBeanFactory());
-				}
 				this.channel = pubsub;
 			}
 			else {
@@ -350,8 +347,11 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
 			this.channel.setInterceptors(this.interceptors);
 		}
-		this.channel.afterPropertiesSet();
 		this.channel.setBeanName(this.beanName);
+		if (this.getBeanFactory() != null) {
+			this.channel.setBeanFactory(this.getBeanFactory());
+		}
+		this.channel.afterPropertiesSet();
 		return this.channel;
 	}
 

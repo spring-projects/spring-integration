@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,21 @@ package org.springframework.integration.transformer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.UUID;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.transformer.HeaderFilter;
-import org.springframework.integration.transformer.MessageTransformingHandler;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class HeaderFilterTests {
@@ -62,6 +63,7 @@ public class HeaderFilterTests {
 				.build();
 		HeaderFilter filter = new HeaderFilter("x", "z");
 		MessageTransformingHandler handler = new MessageTransformingHandler(filter);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(message);
 		Message<?> result = replyChannel.receive(0);

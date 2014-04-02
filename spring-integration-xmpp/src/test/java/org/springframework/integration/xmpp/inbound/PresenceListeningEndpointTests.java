@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,20 +38,22 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class PresenceListeningEndpointTests {
 
@@ -63,6 +65,7 @@ public class PresenceListeningEndpointTests {
 		when(connection.getRoster()).thenReturn(roster);
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				rosterSet.add((RosterListener) invocation.getArguments()[0]);
 				return null;
@@ -70,6 +73,7 @@ public class PresenceListeningEndpointTests {
 		}).when(roster).addRosterListener(Mockito.any(RosterListener.class));
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				rosterSet.remove(invocation.getArguments()[0]);
 				return null;
@@ -77,6 +81,7 @@ public class PresenceListeningEndpointTests {
 		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		rosterEndpoint.setOutputChannel(new QueueChannel());
+		rosterEndpoint.setBeanFactory(mock(BeanFactory.class));
 		rosterEndpoint.afterPropertiesSet();
 		assertEquals(0, rosterSet.size());
 		rosterEndpoint.start();
@@ -99,6 +104,7 @@ public class PresenceListeningEndpointTests {
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
 		rosterEndpoint.setOutputChannel(channel);
+		rosterEndpoint.setBeanFactory(mock(BeanFactory.class));
 		rosterEndpoint.afterPropertiesSet();
 		rosterEndpoint.start();
 		RosterListener rosterListener = (RosterListener) TestUtils.getPropertyValue(rosterEndpoint, "rosterListener");
@@ -122,6 +128,7 @@ public class PresenceListeningEndpointTests {
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection() {
 		PresenceListeningEndpoint handler = new PresenceListeningEndpoint();
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
 
@@ -140,6 +147,7 @@ public class PresenceListeningEndpointTests {
 
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message)
 					throws MessagingException {
 				throw new RuntimeException("ooops");

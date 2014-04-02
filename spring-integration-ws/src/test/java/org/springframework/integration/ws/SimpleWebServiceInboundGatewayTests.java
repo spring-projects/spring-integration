@@ -21,6 +21,7 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +42,8 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -54,7 +57,7 @@ import org.springframework.ws.context.MessageContext;
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleWebServiceInboundGatewayTests {
 
-	private SimpleWebServiceInboundGateway gateway = new SimpleWebServiceInboundGateway();
+	private final SimpleWebServiceInboundGateway gateway = new SimpleWebServiceInboundGateway();
 
 	@Mock
 	private MessageContext context;
@@ -68,20 +71,21 @@ public class SimpleWebServiceInboundGatewayTests {
 	@Mock
 	private MessageChannel requestChannel;
 
-	private MessageChannel replyChannel = new DirectChannel();
+	private final MessageChannel replyChannel = new DirectChannel();
 
-	private String input = "<hello/>";
+	private final String input = "<hello/>";
 
-	private Source payloadSource = new StreamSource(new StringReader(input));
+	private final Source payloadSource = new StreamSource(new StringReader(input));
 
-	private StringWriter output = new StringWriter();
+	private final StringWriter output = new StringWriter();
 
-	private Result payloadResult = new StreamResult(output);
+	private final Result payloadResult = new StreamResult(output);
 
 	@Before
 	public void setup() {
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		when(context.getResponse()).thenReturn(response);
 		when(response.getPayloadResult()).thenReturn(payloadResult);
 		when(context.getRequest()).thenReturn(request);
@@ -111,10 +115,12 @@ public class SimpleWebServiceInboundGatewayTests {
 	private Message<?> messageWithPayload(final Object payload) {
 		return argThat(new BaseMatcher<Message<?>>() {
 
+			@Override
 			public boolean matches(Object candidate) {
 				return ((Message<?>) candidate).getPayload().equals(payload);
 			}
 
+			@Override
 			public void describeTo(Description description) {
 				description.appendText("A message with payload: " + payload);
 			}
@@ -123,6 +129,7 @@ public class SimpleWebServiceInboundGatewayTests {
 
 	private Answer<Boolean> withReplyTo(final MessageChannel replyChannel) {
 		return new Answer<Boolean>() {
+			@Override
 			public Boolean answer(InvocationOnMock invocation) throws Throwable {
 				replyChannel.send((Message<?>) invocation.getArguments()[0]);
 				return true;

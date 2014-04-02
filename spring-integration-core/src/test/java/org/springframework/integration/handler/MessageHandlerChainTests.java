@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler;
 
+import static org.mockito.Mockito.mock;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageProducer;
@@ -96,6 +99,7 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setOutputChannel(outputChannel);
+		chain.setBeanFactory(mock(BeanFactory.class));
 		chain.afterPropertiesSet();
 	}
 

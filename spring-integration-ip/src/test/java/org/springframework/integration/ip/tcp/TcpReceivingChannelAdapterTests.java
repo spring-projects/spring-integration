@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,12 +42,11 @@ import javax.net.SocketFactory;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -58,6 +58,8 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -79,6 +81,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
@@ -128,6 +131,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		adapter.setClientMode(true);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		adapter.setRetryInterval(10000);

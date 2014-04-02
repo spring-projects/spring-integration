@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,11 +18,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -36,6 +38,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class AggregatorTests {
 
@@ -47,6 +50,7 @@ public class AggregatorTests {
 	@Before
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
+		this.aggregator.setBeanFactory(mock(BeanFactory.class));
 		this.aggregator.afterPropertiesSet();
 	}
 
@@ -218,6 +222,7 @@ public class AggregatorTests {
 
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
+		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
 			for (Message<?> message : group.getMessages()) {

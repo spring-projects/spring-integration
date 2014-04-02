@@ -44,6 +44,7 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
 
@@ -80,6 +81,7 @@ public class DispatcherHasNoSubscribersTests {
 		PointToPointSubscribableAmqpChannel amqpChannel = new PointToPointSubscribableAmqpChannel("noSubscribersChannel",
 				container, amqpTemplate);
 		amqpChannel.setBeanName("noSubscribersChannel");
+		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
 
 		MessageListener listener = (MessageListener) container.getMessageListener();
@@ -115,6 +117,7 @@ public class DispatcherHasNoSubscribersTests {
 						return queue;
 					}};
 		amqpChannel.setBeanName("noSubscribersChannel");
+		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
 
 		List<String> logList = insertMockLoggerInListener(amqpChannel);

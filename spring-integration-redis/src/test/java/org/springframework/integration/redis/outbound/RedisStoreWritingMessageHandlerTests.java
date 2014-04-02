@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.redis.outbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,18 +41,19 @@ import org.springframework.data.redis.support.collections.RedisCollectionFactory
 import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
@@ -67,6 +70,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -95,6 +99,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
 
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -122,6 +127,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -147,6 +153,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setExtractPayloadElements(false);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -177,6 +184,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -215,6 +223,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -256,6 +265,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -299,6 +309,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -330,6 +341,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Map<String, Double> presidents = new HashMap<String, Double>();
@@ -373,6 +385,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<President, Double>();
@@ -417,6 +430,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<President, Double>();
@@ -440,6 +454,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setMapKeyExpression(new LiteralExpression(key));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
 
@@ -453,6 +468,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.SET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
 
@@ -466,6 +482,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
 
@@ -479,6 +496,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.MAP);
 		handler.setMapKeyExpression(new LiteralExpression(key));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		try {
 			handler.afterPropertiesSet();
 		}
@@ -497,6 +515,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.PROPERTIES);
 		handler.setMapKeyExpression(new LiteralExpression(key));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		try {
 			handler.afterPropertiesSet();
 		}

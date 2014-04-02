@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
@@ -64,6 +65,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setPort(port);
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
+		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		factory.start();
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
@@ -98,6 +100,7 @@ public class SyslogReceivingChannelAdapterTests {
 			}
 		}).when(publisher).publishEvent(any(ApplicationEvent.class));
 		factory.setApplicationEventPublisher(publisher);
+		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		factory.start();
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 
 package org.springframework.integration.handler;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -37,16 +37,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
+
 
 /**
  * @author Mark Fisher
@@ -349,6 +351,7 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void gatewayTest() throws Exception {
 		GatewayProxyFactoryBean gwFactoryBean = new GatewayProxyFactoryBean();
+		gwFactoryBean.setBeanFactory(mock(BeanFactory.class));
 		gwFactoryBean.afterPropertiesSet();
 		Object target = gwFactoryBean.getObject();
 		// just instantiate a helper with a simple target; we're going to invoke getTargetClass with reflection
@@ -365,14 +368,17 @@ public class MethodInvokingMessageProcessorTests {
 
 		class Foo {
 
+			@SuppressWarnings("unused")
 			public String handleMessage(Message<Number> message) {
 				return "" + (message.getPayload().intValue() * 2);
 			}
 
+			@SuppressWarnings("unused")
 			public String objectMethod(Integer foo) {
 				return foo.toString();
 			}
 
+			@SuppressWarnings("unused")
 			public String voidMethod() {
 				return "foo";
 			}
@@ -390,10 +396,12 @@ public class MethodInvokingMessageProcessorTests {
 
 		class Foo {
 
+			@SuppressWarnings("unused")
 			public String getFoo() {
 				return "foo";
 			}
 
+			@SuppressWarnings("unused")
 			public String getBar() {
 				return "foo";
 			}
@@ -414,14 +422,17 @@ public class MethodInvokingMessageProcessorTests {
 
 		class Foo {
 
+			@SuppressWarnings("unused")
 			public String m1(Message<String> message) {
 				return message.getPayload();
 			}
 
+			@SuppressWarnings("unused")
 			public Integer m2(Message<Integer> message) {
 				return message.getPayload();
 			}
 
+			@SuppressWarnings("unused")
 			public Object m3(Message<?> message) {
 				return message.getPayload();
 			}
@@ -441,14 +452,17 @@ public class MethodInvokingMessageProcessorTests {
 
 		class Foo {
 
+			@SuppressWarnings("unused")
 			public String m1(String payload) {
 				return payload;
 			}
 
+			@SuppressWarnings("unused")
 			public Integer m2(Integer payload) {
 				return payload;
 			}
 
+			@SuppressWarnings("unused")
 			public Object m3(Object payload) {
 				return payload;
 			}
@@ -468,15 +482,18 @@ public class MethodInvokingMessageProcessorTests {
 
 		class Foo {
 
+			@SuppressWarnings("unused")
 			public Object m1(Message<String> message) {
 				fail("This method must not be invoked");
 				return message;
 			}
 
+			@SuppressWarnings("unused")
 			public Object m2(String payload) {
 				return payload;
 			}
 
+			@SuppressWarnings("unused")
 			public Object m3() {
 				return "FOO";
 			}
@@ -506,6 +523,7 @@ public class MethodInvokingMessageProcessorTests {
 			return type.isAssignableFrom(cause.getClass());
 		}
 
+		@Override
 		public void describeTo(Description description) {
 			description.appendText("cause to be ").appendValue(type).appendText("but was ").appendValue(cause);
 		}

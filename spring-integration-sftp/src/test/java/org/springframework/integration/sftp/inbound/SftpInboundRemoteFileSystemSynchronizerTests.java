@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -113,6 +114,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 				new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectoy);
+		ms.setBeanFactory(mock(BeanFactory.class));
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);

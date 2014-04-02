@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -337,9 +337,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.container = this.createContainer();
 			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
 			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
-			if (this.getBeanFactory() != null) {
-				subscribableJmsChannel.setBeanFactory(this.getBeanFactory());
-			}
 			this.channel = subscribableJmsChannel;
 		}
 		else {
@@ -355,6 +352,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.channel.setInterceptors(this.interceptors);
 		}
 		this.channel.setBeanName(this.beanName);
+		if (this.getBeanFactory() != null) {
+			this.channel.setBeanFactory(this.getBeanFactory());
+		}
 		this.channel.afterPropertiesSet();
 		return this.channel;
 	}

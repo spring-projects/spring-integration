@@ -19,18 +19,19 @@ package org.springframework.integration.gateway;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -48,6 +49,7 @@ import org.springframework.messaging.PollableChannel;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @SuppressWarnings("unchecked")
 public class MessagingGatewayTests {
@@ -249,12 +251,14 @@ public class MessagingGatewayTests {
 	public void validateErroMessageCanNotBeReplyMessage() {
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("ooops");
 			}
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyErrorService());
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
@@ -263,6 +267,7 @@ public class MessagingGatewayTests {
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
 		this.messagingGateway.setReplyChannel(null);
+		this.messagingGateway.setBeanFactory(mock(BeanFactory.class));
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 
@@ -274,12 +279,14 @@ public class MessagingGatewayTests {
 	public void validateErrorChannelWithSuccessfulReply() {
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("ooops");
 			}
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyOneWayErrorService());
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
@@ -288,6 +295,7 @@ public class MessagingGatewayTests {
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
 		this.messagingGateway.setReplyChannel(null);
+		this.messagingGateway.setBeanFactory(mock(BeanFactory.class));
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 

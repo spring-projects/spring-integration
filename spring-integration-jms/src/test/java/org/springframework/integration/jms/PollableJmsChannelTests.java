@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,6 +42,7 @@ import org.apache.activemq.command.ActiveMQQueue;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
@@ -75,6 +77,7 @@ public class PollableJmsChannelTests {
 		ccf.setCacheConsumers(false);
 		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestination(this.queue);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
@@ -101,6 +104,7 @@ public class PollableJmsChannelTests {
 		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestinationName("someDynamicQueue");
 		factoryBean.setPubSubDomain(false);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
@@ -131,6 +135,7 @@ public class PollableJmsChannelTests {
 		ChannelInterceptor interceptor = spy(new SampleInterceptor(false));
 		interceptorList.add(interceptor);
 		factoryBean.setInterceptors(interceptorList);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
@@ -157,6 +162,7 @@ public class PollableJmsChannelTests {
 		ChannelInterceptor interceptor = spy(new SampleInterceptor(true));
 		interceptorList.add(interceptor);
 		factoryBean.setInterceptors(interceptorList);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
@@ -184,6 +190,7 @@ public class PollableJmsChannelTests {
 		int ttl = 10000;
 		factoryBean.setTimeToLive(ttl);
 		factoryBean.setDeliveryPersistent(false);
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		final JmsTemplate receiver = new JmsTemplate(this.connectionFactory);
@@ -234,6 +241,7 @@ public class PollableJmsChannelTests {
 
 		factoryBean.setMessageSelector("baz='qux'");
 
+		factoryBean.setBeanFactory(mock(BeanFactory.class));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));

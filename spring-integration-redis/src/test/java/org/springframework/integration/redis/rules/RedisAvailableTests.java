@@ -51,6 +51,7 @@ public class RedisAvailableTests {
 		rt.afterPropertiesSet();
 		rt.execute(new RedisCallback<Object>() {
 
+			@Override
 			public Object doInRedis(RedisConnection connection)
 					throws DataAccessException {
 				connection.flushDb();
@@ -69,6 +70,8 @@ public class RedisAvailableTests {
 			Thread.sleep(100);
 		}
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
+		// wait another second because of race condition in Lettuce
+		Thread.sleep(1000);
 	}
 
 	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
@@ -81,6 +84,8 @@ public class RedisAvailableTests {
 			Thread.sleep(100);
 		}
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
+		// wait another second because of race condition in Lettuce
+		Thread.sleep(1000);
 	}
 
 	protected void prepareList(RedisConnectionFactory connectionFactory){

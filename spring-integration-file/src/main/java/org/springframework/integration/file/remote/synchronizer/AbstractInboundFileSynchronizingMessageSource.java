@@ -138,6 +138,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 			}
 			this.fileSource.setDirectory(this.localDirectory);
 			this.fileSource.setFilter(this.buildFilter());
+			if (this.getBeanFactory() != null) {
+				this.fileSource.setBeanFactory(this.getBeanFactory());
+			}
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
 		}

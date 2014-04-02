@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.syslog.MessageConverter;
 import org.springframework.integration.syslog.inbound.SyslogReceivingChannelAdapterSupport;
 import org.springframework.integration.syslog.inbound.TcpSyslogReceivingChannelAdapter;
 import org.springframework.integration.syslog.inbound.UdpSyslogReceivingChannelAdapter;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -212,6 +212,9 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 		}
 		if (this.beanName != null) {
 			adapter.setBeanName(this.beanName);
+		}
+		if (this.getBeanFactory() != null) {
+			adapter.setBeanFactory(this.getBeanFactory());
 		}
 		adapter.afterPropertiesSet();
 		this.adapter = adapter;

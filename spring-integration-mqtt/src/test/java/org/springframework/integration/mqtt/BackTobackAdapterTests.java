@@ -17,10 +17,12 @@ package org.springframework.integration.mqtt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
@@ -44,6 +46,7 @@ public class BackTobackAdapterTests {
 	public void testSingleTopic() {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo");
@@ -52,6 +55,7 @@ public class BackTobackAdapterTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
 		inbound.afterPropertiesSet();
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
@@ -68,6 +72,7 @@ public class BackTobackAdapterTests {
 	public void testTwoTopics() {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo", "mqtt-bar");
@@ -76,6 +81,7 @@ public class BackTobackAdapterTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
 		inbound.afterPropertiesSet();
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
