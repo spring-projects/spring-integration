@@ -28,6 +28,7 @@ import org.springframework.integration.config.IntegrationConfigurationInitialize
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping;
 import org.springframework.integration.http.support.HttpContextUtils;
+import org.springframework.util.ClassUtils;
 
 /**
  * The HTTP Integration infrastructure {@code beanFactory} initializer.
@@ -38,6 +39,9 @@ import org.springframework.integration.http.support.HttpContextUtils;
 public class HttpIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
 	private static final Log logger = LogFactory.getLog(HttpIntegrationConfigurationInitializer.class);
+
+	private static boolean servletPresent = ClassUtils.isPresent("javax.servlet.Servlet",
+			HttpIntegrationConfigurationInitializer.class.getClassLoader());
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -54,9 +58,13 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 	 * which could also be overridden by the user by simply registering
 	 * a {@link IntegrationRequestMappingHandlerMapping} {@code <bean>} with 'id'
 	 * {@link HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
+	 * <p>
+	 * In addition checks if {@code javax.servlet.Servlet} class is present in classpath.
+	 * In case of Spring Integration HTTP is used only as HTTP client, there is no reason to use and register
+	 * the HTTP server components.
 	 */
 	private void registerRequestMappingHandlerMappingIfNecessary(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
+		if (!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME) && servletPresent) {
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
 			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
