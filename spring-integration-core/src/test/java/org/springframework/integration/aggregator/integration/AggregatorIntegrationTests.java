@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,20 @@ package org.springframework.integration.aggregator.integration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -39,29 +41,31 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Iwein Fuld
  * @author Alex Peters
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class AggregatorIntegrationTests {
 
 	@Autowired
-	@Qualifier("input")
 	private MessageChannel input;
 
 	@Autowired
-	@Qualifier("expiringAggregatorInput")
 	private MessageChannel expiringAggregatorInput;
 
 	@Autowired
-	@Qualifier("nonExpiringAggregatorInput")
 	private MessageChannel nonExpiringAggregatorInput;
 
 	@Autowired
-	@Qualifier("output")
+	private MessageChannel groupTimeoutAggregatorInput;
+
+	@Autowired
+	private MessageChannel groupTimeoutExpressionAggregatorInput;
+
+	@Autowired
 	private PollableChannel output;
 
 	@Autowired
-	@Qualifier("discard")
 	private PollableChannel discard;
 
 	@Test//(timeout=5000)
@@ -115,6 +119,47 @@ public class AggregatorIntegrationTests {
 		assertNull(discard.receive(0));
 
 	}
+
+	@Test
+	public void testGroupTimeoutScheduling() throws Exception {
+		for (int i = 0; i < 5; i++) {
+			Map<String, Object> headers = stubHeaders(i, 5, 1);
+			this.groupTimeoutAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+
+			//Wait until 'group-timeout' does the stuff.
+			assertNotNull(this.output.receive(1000));
+			assertNull(this.discard.receive(0));
+		}
+	}
+
+
+	@Test
+	public void testGroupTimeoutExpressionScheduling() throws Exception {
+		// Since group-timeout-expression="size() == 2 ? 100 : 0". The first message won't be scheduled to 'forceComplete'
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(1, stubHeaders(1, 5, 1)));
+		assertNull(this.output.receive(500));
+		assertNull(this.discard.receive(0));
+
+		// As far as 'group.size() == 2' it will be scheduled to 'forceComplete'
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(2, stubHeaders(2, 5, 1)));
+		assertNotNull(this.output.receive(500));
+		assertNull(this.discard.receive(0));
+
+		// The same with these two messages
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(3, stubHeaders(3, 5, 1)));
+		assertNull(this.output.receive(500));
+		assertNull(this.discard.receive(0));
+
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(4, stubHeaders(4, 5, 1)));
+		assertNotNull(this.output.receive(500));
+		assertNull(this.discard.receive(0));
+
+		// The last message in the sequence - normal release by provided 'ReleaseStrategy'
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(5, stubHeaders(5, 5, 1)));
+		assertNotNull(this.output.receive(10));
+		assertNull(this.discard.receive(0));
+	}
+
 
 	// configured in context associated with this test
 	public static class SummingAggregator {

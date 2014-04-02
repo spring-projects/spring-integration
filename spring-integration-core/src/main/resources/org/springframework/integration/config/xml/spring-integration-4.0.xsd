@@ -3433,6 +3433,44 @@
 						<xsd:documentation>A SpEL expression to evaluate against a root object that is the Collection of messages within the message group (e.g, size() > 6)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="group-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The schedule timeout in milliseconds to 'forceComplete' the MessageGroup,
+							when the 'ReleaseStrategy' can't 'release' on the current arrived Message.
+							If 'group-timeout' less than or equal '0' the MessageGroup won't be scheduled to 'forceComplete'.
+							Mutually exclusive with 'group-timeout-expression' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="group-timeout-expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The SpEL expression to evaluate 'group-timeout' against the MessageGroup as root evaluation context object
+							for scheduling the MessageGroup to 'forceComplete',
+							when the 'ReleaseStrategy' can't 'release' on the current arrived Message.
+							If 'group-timeout' less than or equal '0' the MessageGroup won't be scheduled to 'forceComplete'.
+							Mutually exclusive with 'group-timeout' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="scheduler" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.scheduling.TaskScheduler" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							Provide a reference to the TaskScheduler instance to schedule 'forceComplete' the MessageGroup
+							when there is no new message arrives for the MessageGroup. If not
+							provided, the default scheduler 'taskScheduler',
+							registered in the ApplicationContext {ThreadPoolTaskScheduler} will be
+							used. This attribute doesn't have value if 'group-timeout' or
+							'group-timeout-expression' isn't specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
