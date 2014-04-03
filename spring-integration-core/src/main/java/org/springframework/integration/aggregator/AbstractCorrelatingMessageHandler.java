@@ -16,6 +16,7 @@ package org.springframework.integration.aggregator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -313,6 +314,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		lock.lockInterruptibly();
 		try {
+			ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
+			if (scheduledFuture != null) {
+				boolean canceled = scheduledFuture.cancel(true);
+				if (canceled && logger.isDebugEnabled()) {
+					logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ " + correlationKey + "].");
+				}
+			}
 			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
 			if (this.sequenceAware){
 				messageGroup = new SequenceAwareMessageGroup(messageGroup);
@@ -325,13 +333,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				messageGroup = this.store(correlationKey, message);
 
 				if (releaseStrategy.canRelease(messageGroup)) {
-					ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.get(groupIdUuid);
-					if (scheduledFuture != null) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + messageGroup + "].");
-						}
-						scheduledFuture.cancel(true);
-					}
 					Collection<Message<?>> completedMessages = null;
 					try {
 						completedMessages = this.completeGroup(message, correlationKey, messageGroup);
@@ -344,22 +345,27 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				}
 				else {
 					Long groupTimeout = this.obtainGroupTimeout(messageGroup);
-					if (groupTimeout != null && groupTimeout > 0) {
+					if (groupTimeout != null && groupTimeout >= 0) {
+						if (groupTimeout > 0) {
+							final MessageGroup messageGroupToSchedule = messageGroup;
 
-						final MessageGroup messageGroupToSchedule = messageGroup;
+							scheduledFuture = this.getTaskScheduler()
+									.schedule(new Runnable() {
 
-						if (logger.isDebugEnabled()) {
-							logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
+										@Override
+										public void run() {
+											AbstractCorrelatingMessageHandler.this.forceComplete(messageGroupToSchedule);
+										}
+									}, new Date(System.currentTimeMillis() + groupTimeout));
+
+							if (logger.isDebugEnabled()) {
+								logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
+							}
+							this.expireGroupScheduledFutures.put(groupIdUuid, scheduledFuture);
 						}
-						ScheduledFuture<?> scheduledFuture = this.getTaskScheduler()
-								.scheduleWithFixedDelay(new Runnable() {
-									@Override
-									public void run() {
-										AbstractCorrelatingMessageHandler.this.forceComplete(messageGroupToSchedule);
-									}
-								}, groupTimeout);
-
-						this.expireGroupScheduledFutures.put(groupIdUuid, scheduledFuture);
+						else {
+							this.forceComplete(messageGroup);
+						}
 					}
 				}
 			}
@@ -388,6 +394,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		try {
 			lock.lockInterruptibly();
 			try {
+				ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(UUIDConverter.getUUID(correlationKey));
+				if (scheduledFuture != null) {
+					boolean canceled = scheduledFuture.cancel(false);
+					if (canceled && logger.isDebugEnabled()) {
+						logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + group + "].");
+					}
+				}
 				MessageGroup groupNow = group;
 				/*
 				 * If the group argument is not already complete,
@@ -445,19 +458,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				if (removeGroup) {
 					this.remove(group);
 				}
-				ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.get(UUIDConverter.getUUID(correlationKey));
-				if (scheduledFuture != null) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + group + "].");
-					}
-					scheduledFuture.cancel(true);
-				}
 				lock.unlock();
 			}
 		}
 		catch (InterruptedException ie) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Thread was interrupted while trying to obtain lock");
+			logger.debug("Thread was interrupted while trying to obtain lock");
 		}
 	}
 
@@ -470,7 +476,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		List<Message<?>> sorted = new ArrayList<Message<?>>(partialSequence);
 		Collections.sort(sorted, new SequenceNumberComparator());
 
-		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
+		Message<?> lastReleasedMessage = sorted.get(partialSequence.size() - 1);
 
 		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}

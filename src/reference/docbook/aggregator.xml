@@ -368,7 +368,11 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		release-strategy-expression="size() == 5" ]]><co id="aggxml17" /><![CDATA[
 
 		expire-groups-upon-completion="false" ]]><co id="aggxml18" /><![CDATA[
-		empty-group-min-timeout="60000" /> ]]><co id="aggxml19" /><![CDATA[
+		empty-group-min-timeout="60000" ]]><co id="aggxml19" /><![CDATA[
+
+		group-timeout="60000" ]]><co id="aggxml20" /><![CDATA[
+		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" /><![CDATA[
+		scheduler="taskScheduler" /> ]]><co id="aggxml22" /><![CDATA[
 
 <int:channel id="outputChannel"/>
 
@@ -524,6 +528,39 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         property and it could be as much as this value plus the timeout.</para>
       </callout>
 
+	  <callout arearefs="aggxml20">
+        <para>
+			The schedule timeout in milliseconds to <emphasis>forceComplete</emphasis> the <code>MessageGroup</code>,
+			when the <interfacename>ReleaseStrategy</interfacename> can't <emphasis>release</emphasis> on the current arrived Message.
+			This attribute provides some built-in <emphasis>Time-base Release Strategy</emphasis> for the aggregator,
+			when there is need to emit some partial result, if a new Message for the <code>MessageGroup</code> isn't arrived during some time or at all.
+			When the new Message comes to the aggregator, the <interfacename>ScheduledFuture&lt;?&gt;</interfacename>
+			for its <code>MessageGroup</code> is canceled and new one will be scheduled, if <interfacename>ReleaseStrategy</interfacename>
+			returns <code>false</code> and <code>groupTimeout != null &amp;&amp; groupTimeout &gt; 0</code>.
+			Note, if <code>groupTimeout == 0</code>, the <code>MessageGroup</code> is <emphasis>forceCompleted</emphasis> immediately
+			within the current Thread.
+			Mutually exclusive with 'group-timeout-expression' attribute.
+        </para>
+      </callout>
+	  <callout arearefs="aggxml21">
+			<para>
+				The SpEL expression to evaluate <code>groupTimeout</code> against the <code>MessageGroup</code>
+				as root evaluation context object for scheduling the <code>MessageGroup</code> to <emphasis>forceComplete</emphasis>,
+				when the <interfacename>ReleaseStrategy</interfacename> can't <emphasis>release</emphasis> on the current arrived Message.
+				Mutually exclusive with 'group-timeout' attribute.
+			</para>
+	  </callout>
+	  <callout arearefs="aggxml22">
+			<para>
+				The <interfacename>TaskScheduler</interfacename> bean reference to schedule <emphasis>forceComplete</emphasis>
+				the <code>MessageGroup</code> when there is no new message arrives for the <code>MessageGroup</code>.
+				If isn't provided, the default scheduler <code>taskScheduler</code>,
+				registered in the <interfacename>ApplicationContext</interfacename> {<classname>ThreadPoolTaskScheduler</classname>}
+				will be used. This attribute doesn't have value if <code>group-timeout</code> or <code>group-timeout-expression</code>
+				isn't specified.
+			</para>
+	  </callout>
+
     </calloutlist>
 
     <para>Using a <code>ref</code> attribute is generally recommended if a custom
@@ -662,6 +699,22 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 	In this example the root object of the SpEL Evaluation Context is the
     <interfacename>MessageGroup</interfacename> itself, and you are simply stating
     that as soon as there are more than 5 messages in this group, it should be released.
+    </para>
+
+    <para>
+		Starting with <emphasis>version 4.0</emphasis> two new mutually exclusive attributes have been introduced:
+		<code>group-timeout</code> and <code>group-timeout-expression</code> (see the description above). There are some
+		cases where it is needed to emit the aggregator result, even if <interfacename>ReleaseStrategy</interfacename>
+		can't <emphasis>release</emphasis> on the current arrived Message and there is no arrived new messages for the group.
+		For this purpose the <code>groupTimeout</code> option allows to schedule the <code>MessageGroup</code> to <code>forceComplete</code>:
+		<programlisting language="xml"><![CDATA[<aggregator input-channel="input" output-channel="output"
+		send-partial-result-on-expiry="true"
+		group-timeout-expression="size() ge 2 ? 10000 : -1"
+		release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>]]></programlisting>
+		With this sample the normal <emphasis>release</emphasis> will be possible, if the aggregator receives the last message
+		in sequence. It is presented by <code>release-strategy-expression</code>. All other cases are up to the <code>groupTimeout</code>
+		to schedule <code>forceComplete</code> partial result or not: the <code>group-timeout-expression</code> says, that group
+		should be <code>forceCompleted</code> after 10 seconds and only, if the group contains at least 2 Messages.
     </para>
   </section>
 

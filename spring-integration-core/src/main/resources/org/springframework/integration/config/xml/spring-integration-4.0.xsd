@@ -3438,7 +3438,7 @@
 						<xsd:documentation>
 							The schedule timeout in milliseconds to 'forceComplete' the MessageGroup,
 							when the 'ReleaseStrategy' can't 'release' on the current arrived Message.
-							If 'group-timeout' less than or equal '0' the MessageGroup won't be scheduled to 'forceComplete'.
+							If 'group-timeout' is 'null' or less than '0' the MessageGroup won't be scheduled to 'forceComplete'.
 							Mutually exclusive with 'group-timeout-expression' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
@@ -3449,7 +3449,7 @@
 							The SpEL expression to evaluate 'group-timeout' against the MessageGroup as root evaluation context object
 							for scheduling the MessageGroup to 'forceComplete',
 							when the 'ReleaseStrategy' can't 'release' on the current arrived Message.
-							If 'group-timeout' less than or equal '0' the MessageGroup won't be scheduled to 'forceComplete'.
+							If 'group-timeout' is 'null' or less than '0' the MessageGroup won't be scheduled to 'forceComplete'.
 							Mutually exclusive with 'group-timeout' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
@@ -3463,7 +3463,7 @@
 						</xsd:appinfo>
 						<xsd:documentation>
 							Provide a reference to the TaskScheduler instance to schedule 'forceComplete' the MessageGroup
-							when there is no new message arrives for the MessageGroup. If not
+							when there is no new message arrives for the MessageGroup. If isn't
 							provided, the default scheduler 'taskScheduler',
 							registered in the ApplicationContext {ThreadPoolTaskScheduler} will be
 							used. This attribute doesn't have value if 'group-timeout' or

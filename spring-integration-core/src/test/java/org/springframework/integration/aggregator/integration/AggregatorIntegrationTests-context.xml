@@ -40,7 +40,7 @@
 
 	<aggregator input-channel="groupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
-				group-timeout-expression="size() == 2 ? 100 : 0"
+				group-timeout-expression="size() ge 2 ? 100 : -1"
 			    release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
 
 
