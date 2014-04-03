@@ -12,9 +12,13 @@
 
 	<mongo:db-factory dbname="test"/>
 
-	<beans:bean id="messageStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
-		<beans:constructor-arg ref="mongoDbFactory"/>
-		<beans:constructor-arg>
+	<beans:bean id="abstractMessageStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore"
+				abstract="true">
+		<beans:constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+	</beans:bean>
+
+	<beans:bean id="messageStore" parent="abstractMessageStore">
+		<beans:constructor-arg name="mappingMongoConverter">
 			<mongo:mapping-converter>
 				<mongo:custom-converters>
 					<mongo:converter>
@@ -23,7 +27,7 @@
 				</mongo:custom-converters>
 			</mongo:mapping-converter>
 		</beans:constructor-arg>
-		<beans:constructor-arg value="testConfigurableMongoDbMessageStore"/>
+		<beans:constructor-arg name="collectionName" value="testConfigurableMongoDbMessageStore"/>
 	</beans:bean>
 
 	<gateway id="gateway"
@@ -41,5 +45,16 @@
 	<transformer input-channel="inputChannel" expression="payload.toUpperCase()">
 		<poller fixed-delay="1000"/>
 	</transformer>
+
+	<poller default="true" fixed-delay="10000"/>
+
+	<beans:bean id="priorityMessageStore" parent="abstractMessageStore">
+		<beans:constructor-arg name="collectionName" value="testConfigurablePriorityMongoDbMessageStore"/>
+		<beans:property name="priorityEnabled" value="true"/>
+	</beans:bean>
+
+	<channel id="priorityChannel">
+		<priority-queue message-store="priorityMessageStore"/>
+	</channel>
 
 </beans:beans>

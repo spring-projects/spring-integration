@@ -16,9 +16,12 @@
 package org.springframework.integration.mongodb.store;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -26,6 +29,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.PriorityChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -81,6 +87,48 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		TestGateway gateway = context.getBean(TestGateway.class);
 		String result = gateway.service("foo");
 		assertEquals("FOO", result);
+		context.close();
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testPriorityChannel() throws Exception {
+		this.prepareMongoFactory("testConfigurablePriorityMongoDbMessageStore");
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
+		context.refresh();
+
+		Object priorityChannel = context.getBean("priorityChannel");
+		assertThat(priorityChannel, Matchers.not(Matchers.instanceOf(PriorityChannel.class)));
+		assertThat(priorityChannel, Matchers.instanceOf(QueueChannel.class));
+
+		QueueChannel channel = (QueueChannel) priorityChannel;
+
+		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("3").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("2").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 2).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("31").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		channel.send(message);
+
+		Message<?> receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("3", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("31", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("2", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("1", receive.getPayload());
+
 		context.close();
 	}
 

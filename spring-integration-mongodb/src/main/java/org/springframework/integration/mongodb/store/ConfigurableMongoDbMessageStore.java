@@ -37,6 +37,7 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
@@ -47,10 +48,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.AbstractMessageGroupStore;
+import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -68,9 +72,11 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
-		implements MessageStore, InitializingBean, ApplicationContextAware {
+		implements MessageStore, ChannelMessageStore, PriorityCapableChannelMessageStore, InitializingBean, ApplicationContextAware {
 
 	public final static String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
+
+	public final static String SEQUENCE_NAME = "messagesSequence";
 
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
@@ -85,9 +91,13 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static final String MESSAGE_ID = "messageId";
 
+	private static final String PRIORITY = "priority";
+
 	private static final String GROUP_ID = "groupId";
 
 	private static final String LAST_MODIFIED_TIME = "lastModifiedTime";
+
+	private static final String SEQUENCE = "sequence";
 
 	private static final String LAST_RELEASED_SEQUENCE = "lastReleasedSequence";
 
@@ -100,6 +110,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	private volatile MongoTemplate mongoTemplate;
 
 	private volatile MappingMongoConverter mappingMongoConverter;
+
+	private boolean priorityEnabled;
 
 	private ApplicationContext applicationContext;
 
@@ -141,6 +153,15 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		this.applicationContext = applicationContext;
 	}
 
+	public void setPriorityEnabled(boolean priorityEnabled) {
+		this.priorityEnabled = priorityEnabled;
+	}
+
+	@Override
+	public boolean isPriorityEnabled() {
+		return this.priorityEnabled;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.mongoTemplate == null) {
@@ -160,7 +181,17 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 		indexOperations.ensureIndex(new Index(MESSAGE_ID, Order.ASCENDING));
-		indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING).on(LAST_MODIFIED_TIME, Order.DESCENDING));
+		if (this.priorityEnabled) {
+			indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
+					.on(PRIORITY, Order.DESCENDING)
+					.on(LAST_MODIFIED_TIME, Order.ASCENDING)
+					.on(SEQUENCE, Order.ASCENDING));
+		}
+		else {
+			indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
+					.on(LAST_MODIFIED_TIME, Order.DESCENDING)
+					.on(SEQUENCE, Order.DESCENDING));
+		}
 	}
 
 
@@ -278,6 +309,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		document.setLastReleasedSequence(lastReleasedSequence);
 		document.setCreatedTime(createdTime == 0 ? System.currentTimeMillis() : createdTime);
 		document.setLastModifiedTime(System.currentTimeMillis());
+		document.setSequence(this.getNextId());
 
 		this.addMessageDocument(document);
 
@@ -318,7 +350,12 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Query query = groupIdQuery(groupId).with(new Sort(Sort.Direction.ASC, LAST_MODIFIED_TIME));
+
+		Sort sort = new Sort(LAST_MODIFIED_TIME, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = groupIdQuery(groupId).with(sort);
 		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);
 		Message<?> message = null;
 		if (document != null) {
@@ -352,6 +389,16 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		return Query.query(Criteria.where(GROUP_ID).is(groupId));
 	}
 
+	private int getNextId() {
+		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
+		query.fields().include(SEQUENCE);
+		return (Integer) this.mongoTemplate.findAndModify(query,
+				new Update().inc(SEQUENCE, 1),
+				FindAndModifyOptions.options().returnNew(true).upsert(true),
+				Map.class,
+				this.collectionName).get(SEQUENCE);
+	}
+
 	/**
 	 * The entity class to wrap {@link Message} to the MongoDB document.
 	 */
@@ -371,21 +418,27 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private final UUID messageId;
 
-		private volatile Long createdTime = 0L;
+		@SuppressWarnings("unused")
+		private final Integer priority;
+
+		private Long createdTime = 0L;
 
 		@SuppressWarnings("unused")
-		private volatile Object groupId;
+		private Object groupId;
 
-		private volatile Long lastModifiedTime = 0L;
+		private Long lastModifiedTime = 0L;
 
-		private volatile Boolean complete = false;
+		private Boolean complete = false;
 
-		private volatile Integer lastReleasedSequence = 0;
+		private Integer lastReleasedSequence = 0;
+
+		private int sequence;
 
 		public MessageDocument(Message<?> message) {
 			Assert.notNull(message, "'message' must not be null");
 			this.message = message;
 			this.messageId = message.getHeaders().getId();
+			this.priority = new IntegrationMessageHeaderAccessor(message).getPriority();
 		}
 
 		public Message<?> getMessage() {
@@ -428,6 +481,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 			this.lastReleasedSequence = lastReleasedSequence;
 		}
 
+		public void setSequence(int sequence) {
+			this.sequence = sequence;
+		}
 	}
 
 	/**
