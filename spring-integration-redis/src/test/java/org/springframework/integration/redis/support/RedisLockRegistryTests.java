@@ -1,0 +1,257 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.integration.redis.support;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collection;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+
+import org.junit.After;
+import org.junit.Test;
+
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.support.RedisLockRegistry.RedisLock;
+import org.springframework.integration.test.util.TestUtils;
+
+/**
+ * @author Gary Russell
+ * @since 4.0
+ *
+ */
+public class RedisLockRegistryTests extends RedisAvailableTests {
+
+	@After
+	public void shutDown() {
+		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
+		template.setConnectionFactory(this.getConnectionFactoryForTest());
+		template.afterPropertiesSet();
+		template.delete("rlrTests");
+	}
+
+	@Test
+	@RedisAvailable
+	public void testLock() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		for (int i = 0; i < 10; i++) {
+			Lock lock = registry.obtain("foo");
+			lock.lockInterruptibly();
+			try {
+
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testRentrantLock() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		for (int i = 0; i < 10; i++) {
+			Lock lock1 = registry.obtain("foo");
+			lock1.lockInterruptibly();
+			try {
+				Lock lock2 = registry.obtain("foo");
+				assertSame(lock1, lock2);
+				lock2.lockInterruptibly();
+				try {
+
+				}
+				finally {
+					lock2.unlock();
+				}
+			}
+			finally {
+				lock1.unlock();
+			}
+		}
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testTwoLocks() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		for (int i = 0; i < 10; i++) {
+			Lock lock1 = registry.obtain("foo");
+			lock1.lockInterruptibly();
+			try {
+				Lock lock2 = registry.obtain("bar");
+				assertNotSame(lock1, lock2);
+				lock2.lockInterruptibly();
+				try {
+
+				}
+				finally {
+					lock2.unlock();
+				}
+			}
+			finally {
+				lock1.unlock();
+			}
+		}
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testTwoThreads() throws Exception {
+		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		final Lock lock1 = registry.obtain("foo");
+		lock1.lockInterruptibly();
+		final AtomicBoolean locked = new AtomicBoolean();
+		final CountDownLatch latch = new CountDownLatch(1);
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
+
+			@Override
+			public Object call() throws Exception {
+				Lock lock2 = registry.obtain("foo");
+				try {
+					locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
+					latch.countDown();
+					lock2.unlock();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				catch (IllegalStateException ise) {
+					return ise;
+				}
+				return null;
+			}
+		});
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertFalse(locked.get());
+		lock1.unlock();
+		Object ise = result.get(10, TimeUnit.SECONDS);
+		assertThat(ise, instanceOf(IllegalStateException.class));
+		assertThat(((Exception) ise).getMessage(), containsString("Lock is not locked"));
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testTwoThreadsWrongOneUnlocks() throws Exception {
+		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		final Lock lock = registry.obtain("foo");
+		lock.lockInterruptibly();
+		final AtomicBoolean locked = new AtomicBoolean();
+		final CountDownLatch latch = new CountDownLatch(1);
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
+
+			@Override
+			public Object call() throws Exception {
+				try {
+					lock.unlock();
+				}
+				catch (IllegalStateException ise) {
+					latch.countDown();
+					return ise;
+				}
+				return null;
+			}
+		});
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertFalse(locked.get());
+		lock.unlock();
+		Object ise = result.get(10, TimeUnit.SECONDS);
+		assertThat(ise, instanceOf(IllegalStateException.class));
+		assertThat(((Exception) ise).getMessage(), containsString("Lock is owned by"));
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testList() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		Lock foo = registry.obtain("foo");
+		foo.lockInterruptibly();
+		Lock bar = registry.obtain("bar");
+		bar.lockInterruptibly();
+		Lock baz = registry.obtain("baz");
+		baz.lockInterruptibly();
+		Collection<RedisLock> locks = registry.listLocks();
+		assertEquals(3, locks.size());
+		foo.unlock();
+		bar.unlock();
+		baz.unlock();
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testExpireNoKey() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		registry.setExpireAfter(1);
+		Lock foo = registry.obtain("foo");
+		foo.lockInterruptibly();
+		Thread.sleep(100);
+		registry.expireLocks();
+		try {
+			foo.unlock();
+			fail("Expected exception");
+		}
+		catch (IllegalStateException e) {
+			assertThat(e.getMessage(), containsString("Lock was released due to expiration"));
+		}
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testExpireReOwned() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		registry.setExpireAfter(1);
+		Lock foo1 = registry.obtain("foo");
+		foo1.lockInterruptibly();
+		Thread.sleep(100);
+		registry.expireLocks();
+		Lock foo2 = registry.obtain("foo");
+		assertNotSame(foo1, foo2);
+		foo2.lockInterruptibly();
+		try {
+			foo1.unlock();
+			fail("Expected exception");
+		}
+		catch (IllegalStateException e) {
+			assertThat(e.getMessage(), containsString("Lock was released due to expiration"));
+			assertThat(e.getMessage(), containsString("lock in store:"));
+		}
+		foo2.unlock();
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+}
