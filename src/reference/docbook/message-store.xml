@@ -94,4 +94,17 @@
     </important>
   </para>
 
+	<para>
+		<emphasis>Spring Integration 4.0</emphasis> introduced two new interfaces <interfacename>ChannelMessageStore</interfacename> -
+		to implement operations specific for <classname>QueueChannel</classname>s, <interfacename>PriorityCapableChannelMessageStore</interfacename> -
+		to mark <interfacename>MessageStore</interfacename> implementation to be used for <classname>PriorityChannel</classname>s and to provide
+		<emphasis>priority</emphasis> order for persisted Messages. The real behaviour depends on implementation. The Framework provides these implementations,
+		which can be used as a persistent <interfacename>MessageStore</interfacename> for <classname>PriorityChannel</classname>:
+		<itemizedlist>
+			<listitem><xref linkend="redis-cms"/></listitem>
+			<listitem><xref linkend="mongodb-priority-channel-message-store"/></listitem>
+			<listitem><xref linkend="jdbc-message-store-channels"/></listitem>
+		</itemizedlist>
+	</para>
+
 </section>

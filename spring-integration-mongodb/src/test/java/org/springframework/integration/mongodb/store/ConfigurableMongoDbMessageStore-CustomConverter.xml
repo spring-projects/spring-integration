@@ -12,18 +12,21 @@
 
 	<mongo:db-factory dbname="test"/>
 
-	<beans:bean id="messageStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
-		<beans:constructor-arg ref="mongoDbFactory"/>
-		<beans:constructor-arg>
-			<mongo:mapping-converter>
-				<mongo:custom-converters>
-					<mongo:converter>
-						<beans:bean class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests$MessageReadConverter"/>
-					</mongo:converter>
-				</mongo:custom-converters>
-			</mongo:mapping-converter>
-		</beans:constructor-arg>
-		<beans:constructor-arg value="testConfigurableMongoDbMessageStore"/>
+	<beans:bean id="abstractMessageStore" class="org.springframework.integration.mongodb.store.MongoDbChannelMessageStore"
+				abstract="true">
+		<beans:constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+	</beans:bean>
+
+	<mongo:mapping-converter id="customConverter">
+		<mongo:custom-converters>
+			<mongo:converter>
+				<beans:bean class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests$MessageReadConverter"/>
+			</mongo:converter>
+		</mongo:custom-converters>
+	</mongo:mapping-converter>
+
+	<beans:bean id="messageStore" parent="abstractMessageStore">
+		<beans:constructor-arg name="mappingMongoConverter" ref="customConverter"/>
 	</beans:bean>
 
 	<gateway id="gateway"
@@ -41,5 +44,15 @@
 	<transformer input-channel="inputChannel" expression="payload.toUpperCase()">
 		<poller fixed-delay="1000"/>
 	</transformer>
+
+	<poller default="true" fixed-delay="10000"/>
+
+	<beans:bean id="priorityMessageStore" parent="abstractMessageStore">
+		<beans:property name="priorityEnabled" value="true"/>
+	</beans:bean>
+
+	<channel id="priorityChannel">
+		<priority-queue message-store="priorityMessageStore"/>
+	</channel>
 
 </beans:beans>

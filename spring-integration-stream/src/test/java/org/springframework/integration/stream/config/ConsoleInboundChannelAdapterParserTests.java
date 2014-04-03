@@ -16,9 +16,9 @@
 
 package org.springframework.integration.stream.config;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -59,8 +59,8 @@ public class ConsoleInboundChannelAdapterParserTests {
 		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		assertTrue(source instanceof NamedComponent);
 		assertEquals("adapterWithDefaultCharset.adapter", adapter.getComponentName());
-		assertEquals("stream:stdin-channel-adapter", adapter.getComponentType());
-		assertEquals("stream:stdin-channel-adapter", ((NamedComponent)source).getComponentType());
+		assertEquals("stream:stdin-channel-adapter(character)", adapter.getComponentType());
+		assertEquals("stream:stdin-channel-adapter(character)", ((NamedComponent)source).getComponentType());
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());
