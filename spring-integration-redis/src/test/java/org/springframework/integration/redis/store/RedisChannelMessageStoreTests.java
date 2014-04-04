@@ -116,7 +116,7 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testPriority() {
 		for (int i = 0; i < 10; i++) {
-			Message<Integer> message = MessageBuilder.withPayload(i).setPriority(9-i).build();
+			Message<Integer> message = MessageBuilder.withPayload(i).setPriority(i).build();
 			this.testChannel3.send(message);
 			this.testChannel3.send(message);
 		}
@@ -135,11 +135,10 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		for (int i = 0; i < 10; i++) {
 			Message<?> m = this.testChannel3.receive(0);
 			assertNotNull(m);
-			assertEquals(Integer.valueOf(i), new IntegrationMessageHeaderAccessor(m).getPriority());
-			assertEquals(Integer.valueOf(9-i), m.getPayload());
+			assertEquals(Integer.valueOf(9-i), new IntegrationMessageHeaderAccessor(m).getPriority());
 			m = this.testChannel3.receive(0);
 			assertNotNull(m);
-			assertEquals(Integer.valueOf(i), new IntegrationMessageHeaderAccessor(m).getPriority());
+			assertEquals(Integer.valueOf(9-i), new IntegrationMessageHeaderAccessor(m).getPriority());
 		}
 		Message<?> m = this.testChannel3.receive(0);
 		assertNotNull(m);
