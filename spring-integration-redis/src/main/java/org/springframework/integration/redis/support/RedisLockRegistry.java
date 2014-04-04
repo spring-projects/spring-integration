@@ -208,14 +208,20 @@ public final class RedisLockRegistry implements LockRegistry {
 		public void lock() {
 			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
 			localLock.lock();
-			while (true) {
-				try {
-					while (!this.obtainLock()) {
-						Thread.sleep(100);
+			try {
+				while (true) {
+					try {
+						while (!this.obtainLock()) {
+							Thread.sleep(100);
+						}
+					}
+					catch (InterruptedException e) {
 					}
 				}
-				catch (InterruptedException e) {
-				}
+			}
+			catch (Exception e) {
+				localLock.unlock();
+				throw new RuntimeException(e);
 			}
 		}
 
@@ -223,18 +229,38 @@ public final class RedisLockRegistry implements LockRegistry {
 		public void lockInterruptibly() throws InterruptedException {
 			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
 			localLock.lockInterruptibly();
-			while (!this.obtainLock()) {
-				Thread.sleep(100);
+			try {
+				while (!this.obtainLock()) {
+					Thread.sleep(100);
+				}
+			}
+			catch (InterruptedException ie) {
+				localLock.unlock();
+				throw ie;
+			}
+			catch (Exception e) {
+				localLock.unlock();
+				throw new RuntimeException(e);
 			}
 		}
 
 		@Override
 		public boolean tryLock() {
 			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
-			if (!localLock.tryLock()) {
-				return false;
+			try {
+				if (!localLock.tryLock()) {
+					return false;
+				}
+				boolean obtainedLock = this.obtainLock();
+				if (!obtainedLock) {
+					localLock.unlock();
+				}
+				return obtainedLock;
 			}
-			return this.obtainLock();
+			catch (Exception e) {
+				localLock.unlock();
+				throw new RuntimeException(e);
+			}
 		}
 
 		private boolean obtainLock() {
@@ -267,11 +293,20 @@ public final class RedisLockRegistry implements LockRegistry {
 			if (!localLock.tryLock(time, unit)) {
 				return false;
 			}
-			boolean acquired = false;
-			while (!(acquired = this.obtainLock()) && System.currentTimeMillis() < expire) {
-				Thread.sleep(100);
+			try {
+				boolean acquired = false;
+				while (!(acquired = this.obtainLock()) && System.currentTimeMillis() < expire) {
+					Thread.sleep(100);
+				}
+				if (!acquired) {
+					localLock.unlock();
+				}
+				return acquired;
 			}
-			return acquired;
+			catch (Exception e) {
+				localLock.unlock();
+				throw new RuntimeException(e);
+			}
 		}
 
 		@Override
@@ -282,25 +317,29 @@ public final class RedisLockRegistry implements LockRegistry {
 				}
 				throw new IllegalStateException("Lock is owned by " + this.thread.getName() + "; " + this.toString());
 			}
-			if (this.reLock-- <= 0) {
-				List<RedisLock> locks = RedisLockRegistry.this.threadLocks.get();
-				if (locks != null) {
-					removeLockFromThreadLocal(locks, this);
-					if (locks.size() == 0) { // last lock for this thread
-						RedisLockRegistry.this.threadLocks.remove();
+			try {
+				if (this.reLock-- <= 0) {
+					List<RedisLock> locks = RedisLockRegistry.this.threadLocks.get();
+					if (locks != null) {
+						removeLockFromThreadLocal(locks, this);
+						if (locks.size() == 0) { // last lock for this thread
+							RedisLockRegistry.this.threadLocks.remove();
+						}
 					}
-				}
-				if (this.lockInRedisUnchanged()) {
-					RedisLockRegistry.this.redisTemplate.delete(constructLockKey());
-					if (logger.isDebugEnabled()) {
-						logger.debug("Released lock; " + this.toString());
+					if (this.lockInRedisUnchanged()) {
+						RedisLockRegistry.this.redisTemplate.delete(constructLockKey());
+						if (logger.isDebugEnabled()) {
+							logger.debug("Released lock; " + this.toString());
+						}
 					}
+					this.thread = null;
+					this.reLock = 0;
 				}
-				this.thread = null;
-				this.reLock = 0;
 			}
-			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
-			localLock.unlock();
+			finally {
+				Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+				localLock.unlock();
+			}
 		}
 
 		private boolean lockInRedisUnchanged() {

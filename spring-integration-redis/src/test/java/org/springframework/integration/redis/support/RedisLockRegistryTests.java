@@ -301,7 +301,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testExpireNoLockInStore() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1);
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1000);
 		Lock foo = registry.obtain("foo");
 		foo.lockInterruptibly();
 		this.waitForExpire("foo");
@@ -318,7 +318,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testExpireNewLockInStore() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1);
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1000);
 		Lock foo1 = registry.obtain("foo");
 		foo1.lockInterruptibly();
 		this.waitForExpire("foo");
