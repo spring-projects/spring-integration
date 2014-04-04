@@ -16,6 +16,7 @@
 package org.springframework.integration.redis.store;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +34,7 @@ import org.springframework.util.Assert;
 /**
  * Specialized Redis {@link PriorityCapableChannelMessageStore} that uses lists to back a QueueChannel.
  * Messages are removed in priority order ({@link IntegrationMessageHeaderAccessor#PRIORITY}).
- * Priorities 0-9 are supported; higher values are treated with the same priority (none)
+ * Priorities 0-9 are supported (9 the highest); invalid priority values are treated with the same priority (none)
  * as messages with no priority header (retrieved after any messages that have a priority).
  * <p>
  * Requires that groupId is a String.
@@ -86,9 +87,6 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore i
 		if (priority != null && priority < 10 && priority >= 0) {
 			key = key + ":" + priority;
 		}
-		else {
-			key = key + ":z";
-		}
 		return super.addMessageToGroup(key, message);
 	}
 
@@ -113,7 +111,13 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore i
 			Assert.isInstanceOf(String.class, key);
 			list.add((String) key);
 		}
-		Collections.sort(list);
+		Collections.sort(list, new Comparator<String>() {
+
+			@Override
+			public int compare(String s1, String s2) {
+				return s2.compareTo(s1);
+			}
+		});
 		return list;
 	}
 
