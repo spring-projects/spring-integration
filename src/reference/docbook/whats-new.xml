@@ -142,6 +142,17 @@
 				For more information, see <xref linkend="redis-lock-registry"/> and <xref linkend="aggregator"/>.
 			</para>
 		</section>
+		<section id="4.0-poller-annotation">
+			<title>@Poller</title>
+			<para>
+				The messaging configurations now have <code>poller</code> attribute as a value of
+				<interfacename>@Poller</interfacename> annotation. It allows to mark methods with
+				messaging annotations (<interfacename>@ServiceActivator</interfacename>,
+				<interfacename>@Aggregator</interfacename> etc.) and use <code>inputChannel</code> as
+				a reference to the <interfacename>PollableChannel</interfacename>.
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">

@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -64,6 +65,7 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 <<<<<<< HEAD
@@ -80,6 +82,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
@@ -100,6 +103,10 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private PollableChannel input;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.AnnotationTestService.handle.serviceActivator")
+	private PollingConsumer serviceActivatorEndpoint;
 
 	@Autowired
 	private QueueChannel output;
@@ -133,6 +140,13 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testAnnotatedServiceActivator() {
+		assertEquals(10L, TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll"));
+
+		Trigger trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "trigger", Trigger.class);
+		assertThat(trigger, Matchers.instanceOf(PeriodicTrigger.class));
+		assertEquals(100L, TestUtils.getPropertyValue(trigger, "period"));
+		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
+
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);
@@ -392,7 +406,8 @@ public class EnableIntegrationTests {
 	@MessageEndpoint
 	public static class AnnotationTestService {
 
-		@ServiceActivator(inputChannel = "input", outputChannel = "output", poller = @Poller(maxMessagesPerPoll = 10, fixedDelay = 100))
+		@ServiceActivator(inputChannel = "input", outputChannel = "output",
+				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.fixedDelay}"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle(String payload) {

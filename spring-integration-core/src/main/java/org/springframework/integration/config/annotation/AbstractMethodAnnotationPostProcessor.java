@@ -30,6 +30,8 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
@@ -70,12 +72,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final BeanFactory beanFactory;
 
+	protected final Environment environment;
+
 	protected final DestinationResolver<MessageChannel> channelResolver;
 
 
-	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
+	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
+		this.environment = environment;
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
@@ -160,20 +165,26 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
 					Poller poller = pollers[0];
 
-					String ref = poller.ref();
+					String ref = poller.value();
 					String triggerRef = poller.trigger();
-					long fixedDelay = poller.fixedDelay();
-					long fixedRate = poller.fixedRate();
-					String cron = poller.cron();
+					String executorRef = poller.taskExecutor();
+					long fixedDelay = Long.parseLong(this.environment.resolvePlaceholders(poller.fixedDelay()));
+					long fixedRate = Long.parseLong(this.environment.resolvePlaceholders(poller.fixedRate()));
+					long maxMessagesPerPoll = Long.parseLong(this.environment.resolvePlaceholders(poller.maxMessagesPerPoll()));
+					String cron = this.environment.resolvePlaceholders(poller.cron());
 
 					if (StringUtils.hasText(ref)) {
-						Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(cron) && fixedDelay == -1 && fixedRate == -1,
+						Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) && !StringUtils.hasText(cron)
+										&& fixedDelay == -1 && fixedRate == -1,
 								"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
 						pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
 					}
 					else {
 						pollerMetadata = new PollerMetadata();
-						pollerMetadata.setMaxMessagesPerPoll(poller.maxMessagesPerPoll());
+						pollerMetadata.setMaxMessagesPerPoll(maxMessagesPerPoll);
+						if (StringUtils.hasText(executorRef)) {
+							pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
+						}
 						Trigger trigger = null;
 						if (StringUtils.hasText(triggerRef)) {
 							Assert.state(!StringUtils.hasText(cron) && fixedDelay == -1 && fixedRate == -1,
@@ -194,6 +205,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 							trigger = new PeriodicTrigger(fixedRate);
 							((PeriodicTrigger) trigger).setFixedRate(true);
 						}
+						//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
 						pollerMetadata.setTrigger(trigger);
 					}
 

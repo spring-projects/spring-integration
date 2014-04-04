@@ -314,19 +314,8 @@ public class FooService {
       location (and besides the namespace-based XML configuration is not very verbose). If you do prefer to provide
       channels with the annotations however, you just need to enable a SI Annotations BeanPostProcessor. The following element should
       be added: <programlisting language="xml"><![CDATA[<int:annotation-config/>]]></programlisting>
-      <note>
-        When configuring the "inputChannel" and "outputChannel" with annotations, the "inputChannel"
-        <emphasis>must</emphasis> be a reference to a <interfacename>SubscribableChannel</interfacename> instance.
-        Otherwise, it would be necessary to also provide the full poller configuration via annotations, and those
-        settings (e.g. the trigger for scheduling the poller) should be externalized rather than hard-coded within
-        an annotation. If the input channel that you want to receive Messages from is indeed a
-        <interfacename>PollableChannel</interfacename> instance, one option to consider is the Messaging Bridge.
-        Spring Integration's "bridge" element can be used to connect a PollableChannel directly to a
-        SubscribableChannel. Then, the polling metadata is externally configured, but the annotation option is
-        still available. For more detail see <xref linkend="bridge"/>.
-      </note>
     </para>
-	  <para>
+	 <para>
 		  The processing of these annotations creates the same beans (<classname>EventDrivenConsumer</classname>s and
 		  <interfacename>MessageHandler</interfacename>s) as with similar xml components. The bean names are generated
 		  with this pattern:
@@ -334,6 +323,34 @@ public class FooService {
 		  endpoint and the same name with an additional <code>.handler</code> suffix for
 		  the <interfacename>MessageHandler</interfacename> bean. The
 		  <interfacename>MessageHandler</interfacename>s are also eligible to be tracked by <xref linkend="message-history"/>.
+	  </para>
+	  <para>
+		  <emphasis>@Poller</emphasis>
+	  </para>
+	  <para>
+		  Before <emphasis>Spring Integration 4.0</emphasis> mentioned above Messaging Annotations allowed to provide the
+		  <code>inputChannel</code> reference only for <interfacename>SubscribableChannel</interfacename>s.
+		  For <interfacename>PollableChannel</interfacename>s there was need to provide a <code>&lt;int:bridge/&gt;</code>,
+		  to have an option to configure <code>&lt;int:poller/&gt;</code> to provide a <classname>PollingConsumer</classname>
+		  endpoint for the <interfacename>PollableChannel</interfacename>. Starting with <emphasis>version 4.0</emphasis>
+		  the <interfacename>@Poller</interfacename> annotation has been introduced to allow to configure <code>poller</code>
+		  attribute of Messaging Annotations:
+		  <programlisting language="java">public class AnnotationService {
+
+	@Transformer(inputChannel = "input", outputChannel = "output",
+			  poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.fixedDelay}"))
+	 public void handle(String payload) {
+			  ...
+	 }
+}</programlisting>
+		  This annotation provides most simple options for <classname>PollerMetadata</classname>.
+		  <interfacename>@Poller</interfacename>'s attributes <code>maxMessagesPerPoll</code>, <code>fixedDelay</code>,
+		  <code>fixedRate</code> and <code>cron</code> can be configured with <emphasis>property-placeholder</emphasis> options.
+		  If it is necessary to provide more polling options (e.g. transaction, advice-chain, error-handler), the
+		  <classname>PollerMetadata</classname> should be configured as generic bean and its bean name can be used for
+		  <interfacename>@Poller</interfacename>'s <code>value</code> attribute. All other options aren't allowed in this case.
+		  Note, if <code>inputChannel</code> is <interfacename>PollableChannel</interfacename> and <interfacename>@Poller</interfacename>
+		  isn't configured the default <classname>PollerMetadata</classname> will be used, if it is present in the application context.
 	  </para>
     <para>
         Also see <xref linkend="advising-with-annotations"/>.

@@ -28,41 +28,57 @@ import org.springframework.scheduling.Trigger;
 
 /**
  * Provides the {@link PollerMetadata} options for the Messaging annotations.
+ * It is an analogue of {@code <poller/>}, but provides only simple attributes.
+ * If {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
+ * (e.g. Transactional and other Advices) or {@code initialDelay, receiveTimeout} etc,
+ * the {@link org.springframework.integration.scheduling.PollerMetadata} should be configured as
+ * generic bean and its bean name can be specified as {@code value} attribute of this annotation.
+ * <p>
+ * Non-reference attributes support Property Placeholder resolutions.
  *
  * @author Artem Bilan
  * @since 4.0
  */
-@Target({ })
+@Target({})
 @Retention(RUNTIME)
 public @interface Poller {
 
 	/**
 	 * @return The {@link PollerMetadata} bean name.
 	 */
-	String ref() default "";
-
-	/**
-	 * @return The maximum number of messages to receive for each poll.
-	 */
-	long maxMessagesPerPoll() default PollerMetadata.MAX_MESSAGES_UNBOUNDED;
-
-	/**
-	 * @return The fixed rate in milliseconds to create the {@link PeriodicTrigger}.
-	 */
-	long fixedDelay() default -1;
-
-	/**
-	 * @return The fixed rate in milliseconds to create the {@link PeriodicTrigger} with {@code fixedRate}.
-	 */
-	long fixedRate() default -1;
-
-	/**
-	 * @return The cron expression to create the {@link CronTrigger}.
-	 */
-	String cron() default "";
+	String value() default "";
 
 	/**
 	 * @return The {@link Trigger} bean name.
 	 */
 	String trigger() default "";
+
+	/**
+	 * @return The {@link org.springframework.core.task.TaskExecutor} bean name.
+	 */
+	String taskExecutor() default "";
+
+	/**
+	 * @return The maximum number of messages to receive for each poll.
+	 * Can be specified as 'property placeholder', e.g. {@code ${poller.maxMessagesPerPoll}}.
+	 */
+	String maxMessagesPerPoll() default "0x80000000"; //PollerMetadata.MAX_MESSAGES_UNBOUNDED
+
+	/**
+	 * @return The fixed delay in milliseconds to create the {@link PeriodicTrigger}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedDelay}}.
+	 */
+	String fixedDelay() default "-1";
+
+	/**
+	 * @return The fixed rate in milliseconds to create the {@link PeriodicTrigger} with {@code fixedRate}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedRate}}.
+	 */
+	String fixedRate() default "-1";
+
+	/**
+	 * @return The cron expression to create the {@link CronTrigger}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${poller.cron}}.
+	 */
+	String cron() default "";
 }
