@@ -370,6 +370,8 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		expire-groups-upon-completion="false" ]]><co id="aggxml18" /><![CDATA[
 		empty-group-min-timeout="60000" ]]><co id="aggxml19" /><![CDATA[
 
+        lock-registry="lockRegistry" ]]><co id="aggxml191" /><![CDATA[
+
 		group-timeout="60000" ]]><co id="aggxml20" /><![CDATA[
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" /><![CDATA[
 		scheduler="taskScheduler" /> ]]><co id="aggxml22" /><![CDATA[
@@ -439,8 +441,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		or by simply invoking that method if you have a reference to the <classname>MessageGroupStore</classname> instance.
 		Otherwise by itself this attribute has no behavior. It only serves as an indicator of what to do (discard or send to the output/reply
 		channel) with Messages that are still in the <classname>MessageGroup</classname> that is about to be expired.
-        <emphasis>Optional</emphasis>.</para>
-        <para><emphasis>Default - 'false'</emphasis>.</para>
+        <emphasis>Optional</emphasis>. <emphasis>Default - 'false'</emphasis>.</para>
       </callout>
 
        <callout arearefs="aggxml09">
@@ -528,6 +529,14 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         property and it could be as much as this value plus the timeout.</para>
       </callout>
 
+	  <callout arearefs="aggxml191">
+        <para>
+			The reference for the <interfacename>org.springframework.integration.util.LockRegistry</interfacename> bean
+			to obtain <interfacename>Lock</interfacename> by <code>groupId</code> for concurrent operation around each
+			<code>MessageGroup</code>. By default it is and internal <classname>DefaultLockRegistry</classname>.
+        </para>
+      </callout>
+
 	  <callout arearefs="aggxml20">
         <para>
 			The schedule timeout in milliseconds to <emphasis>forceComplete</emphasis> the <code>MessageGroup</code>,
@@ -555,7 +564,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				The <interfacename>TaskScheduler</interfacename> bean reference to schedule <emphasis>forceComplete</emphasis>
 				the <code>MessageGroup</code> when there is no new message arrives for the <code>MessageGroup</code>.
 				If isn't provided, the default scheduler <code>taskScheduler</code>,
-				registered in the <interfacename>ApplicationContext</interfacename> {<classname>ThreadPoolTaskScheduler</classname>}
+				registered in the <interfacename>ApplicationContext</interfacename> (<classname>ThreadPoolTaskScheduler</classname>)
 				will be used. This attribute doesn't have value if <code>group-timeout</code> or <code>group-timeout-expression</code>
 				isn't specified.
 			</para>
@@ -701,7 +710,11 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     that as soon as there are more than 5 messages in this group, it should be released.
     </para>
 
-    <para>
+	<para>
+		<emphasis>Aggregators and Group Timeout</emphasis>
+	</para>
+
+	<para>
 		Starting with <emphasis>version 4.0</emphasis> two new mutually exclusive attributes have been introduced:
 		<code>group-timeout</code> and <code>group-timeout-expression</code> (see the description above). There are some
 		cases where it is needed to emit the aggregator result, even if <interfacename>ReleaseStrategy</interfacename>
@@ -716,6 +729,17 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		to schedule <code>forceComplete</code> partial result or not: the <code>group-timeout-expression</code> says, that group
 		should be <code>forceCompleted</code> after 10 seconds and only, if the group contains at least 2 Messages.
     </para>
+    <para>
+		The <code>forceComplete</code> result depends of the <code>send-partial-result-on-expiry</code>. If it is <code>true</code>
+		existing messages in the <code>MessageGroup</code> will be released as normal aggregator reply Message to the
+		<code>output-channel</code>, otherwise they will be discarded.
+    </para>
+	<para>
+		There is a difference between <code>groupTimeout</code> behaviour and <classname>MessageGroupStoreReaper</classname>
+		(see <xref linkend="aggregator-config"/>). The last one initiate <code>forceComplete</code> for all <code>MessageGroup</code>s
+		in the <code>MessageGroupStore</code> periodically. The <code>groupTimeout</code> does it only for one <code>MessageGroup</code>
+		and only once, and if the new Message isn't arrived during <code>groupTimeout</code>.
+	</para>
   </section>
 
   <section id="aggregator-annotations">

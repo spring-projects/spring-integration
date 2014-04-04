@@ -308,7 +308,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
 		}
 
-		// TODO: INT-1117 - make the lock global?
 		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
 		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
 

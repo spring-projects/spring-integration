@@ -3471,6 +3471,20 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="lock-registry" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.util.LockRegistry" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							The reference to the 'org.springframework.integration.util.LockRegistry' bean
+							to obtain 'java.util.concurrent.locks.Lock' by 'groupId' for concurrent operation around each
+							MessageGroup. By default it is an internal 'DefaultLockRegistry'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
