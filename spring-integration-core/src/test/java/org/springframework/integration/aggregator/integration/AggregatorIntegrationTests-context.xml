@@ -34,7 +34,8 @@
 	<aggregator id="nonExpiringAggregator" input-channel="nonExpiringAggregatorInput" output-channel="output"
 				expire-groups-upon-completion="false" discard-channel="discard"/>
 
-	<aggregator input-channel="groupTimeoutAggregatorInput" output-channel="output" discard-channel="discard"
+	<aggregator id="gta"
+				input-channel="groupTimeoutAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
 				group-timeout="100"/>
 

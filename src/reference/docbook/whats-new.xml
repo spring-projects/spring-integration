@@ -212,12 +212,12 @@
 		<section id="4.0-release-strategy-group-timeout">
 			<title>Correlation Endpoint: Time-based Release Strategy</title>
 			<para>
-				New mutually exclusive <code>group-timeout</code> and <code>group-timeout-expression</code>
-				attributes have been added for the <code>&lt;int:aggregator&gt;</code> and <code>&lt;int:resequencer&gt;</code>.
-				The <code>group-timeout</code> option makes the Correlation Endpoint as active and allow to
-				<emphasis>forceComplete</emphasis> the <code>MessageGroup</code>, if <interfacename>ReleaseStrategy</interfacename>
-				returns <code>false</code>, but it is needed to emit result after some period, if the new Message for group
-				isn't arrived. For more information see <xref linkend="aggregator-config"/>.
+				The mutually exclusive <code>group-timeout</code> and <code>group-timeout-expression</code>
+				attributes have been added to the <code>&lt;int:aggregator&gt;</code> and <code>&lt;int:resequencer&gt;</code>.
+				These attributes allow forced completion of a partial <code>MessageGroup</code>,
+				if the <interfacename>ReleaseStrategy</interfacename> does not release a group and no
+				further messages arrive within the time specified.
+				For more information see <xref linkend="aggregator-config"/>.
 			</para>
 		</section>
 	</section>

@@ -19,19 +19,21 @@ package org.springframework.integration.aggregator.integration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -44,10 +46,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Alex Peters
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class AggregatorIntegrationTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Autowired
 	private MessageChannel input;
@@ -128,7 +134,14 @@ public class AggregatorIntegrationTests {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			this.groupTimeoutAggregatorInput.send(new GenericMessage<Integer>(i, headers));
 
-			//Wait until 'group-timeout' does the stuff.
+			//Wait until 'group-timeout' does its stuff.
+			MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
+					MessageGroupStore.class);
+			int n = 0;
+			while (n++ < 100 && mgs.getMessageGroupCount() > 0) {
+				Thread.sleep(100);
+			}
+			assertTrue("Group did not complete", n < 100);
 			assertNotNull(this.output.receive(1000));
 			assertNull(this.discard.receive(0));
 		}
@@ -147,7 +160,7 @@ public class AggregatorIntegrationTests {
 		assertNull(this.output.receive(0));
 		Message<?> receive = this.output.receive(500);
 		assertNotNull(receive);
-		assertEquals(2, ((Collection) receive.getPayload()).size());
+		assertEquals(2, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));
 
 		// The same with these three messages
@@ -163,14 +176,14 @@ public class AggregatorIntegrationTests {
 		assertNull(this.output.receive(0));
 		receive = this.output.receive(500);
 		assertNotNull(receive);
-		assertEquals(3, ((Collection) receive.getPayload()).size());
+		assertEquals(3, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));
 
 		// The last message in the sequence - normal release by provided 'ReleaseStrategy'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(6, stubHeaders(6, 6, 1)));
 		receive = this.output.receive(0);
 		assertNotNull(receive);
-		assertEquals(1, ((Collection) receive.getPayload()).size());
+		assertEquals(1, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));
 	}
 

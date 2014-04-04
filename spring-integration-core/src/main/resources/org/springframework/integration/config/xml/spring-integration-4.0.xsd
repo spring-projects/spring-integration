@@ -3436,21 +3436,27 @@
 				<xsd:attribute name="group-timeout" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							The schedule timeout in milliseconds to 'forceComplete' the MessageGroup,
-							when the 'ReleaseStrategy' can't 'release' on the current arrived Message.
-							If 'group-timeout' is 'null' or less than '0' the MessageGroup won't be scheduled to 'forceComplete'.
-							Mutually exclusive with 'group-timeout-expression' attribute.
+							A timeout in milliseconds to force the MessageGroup complete,
+							when the 'ReleaseStrategy' does not 'release' the group when the current Message arrives.
+							If 'group-timeout' is not provided or is less than '0' the MessageGroup won't be scheduled
+							to be forced complete.
+							The action taken when the group is forced complete depends on the
+							'send-partial-result-on-expiry' attribute.
+							Mutually exclusive with the 'group-timeout-expression' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="group-timeout-expression" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							The SpEL expression to evaluate 'group-timeout' against the MessageGroup as root evaluation context object
-							for scheduling the MessageGroup to 'forceComplete',
-							when the 'ReleaseStrategy' can't 'release' on the current arrived Message.
-							If 'group-timeout' is 'null' or less than '0' the MessageGroup won't be scheduled to 'forceComplete'.
-							Mutually exclusive with 'group-timeout' attribute.
+							A SpEL expression to evaluate a 'group-timeout' with the MessageGroup as the #root evaluation
+							context object for scheduling the MessageGroup forced completion,
+							when the 'ReleaseStrategy' does not 'release' the group when the current Message arrives.
+							If 'group-timeout-expression' evaluates to 'null' or less than '0',
+							the MessageGroup won't be scheduled to be forced complete.
+							The action taken when the group is forced complete depends on the
+							'send-partial-result-on-expiry' attribute.
+							Mutually exclusive with the 'group-timeout' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -3462,12 +3468,14 @@
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
-							Provide a reference to the TaskScheduler instance to schedule 'forceComplete' the MessageGroup
-							when there is no new message arrives for the MessageGroup. If isn't
+							Provide a reference to the TaskScheduler instance to schedule 'forceComplete' on
+							the MessageGroup
+							when no new message arrives for the MessageGroup within the
+							'group-timeout' or 'group-timeout-expression'. If it isn't
 							provided, the default scheduler 'taskScheduler',
 							registered in the ApplicationContext {ThreadPoolTaskScheduler} will be
-							used. This attribute doesn't have value if 'group-timeout' or
-							'group-timeout-expression' isn't specified.
+							used. This attribute only applies if 'group-timeout' or
+							'group-timeout-expression' is specified.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -3479,9 +3487,9 @@
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
-							The reference to the 'org.springframework.integration.util.LockRegistry' bean
-							to obtain 'java.util.concurrent.locks.Lock' by 'groupId' for concurrent operation around each
-							MessageGroup. By default it is an internal 'DefaultLockRegistry'.
+							A reference to a 'org.springframework.integration.util.LockRegistry' bean
+							to obtain 'java.util.concurrent.locks.Lock' by 'groupId'. Used for concurrent operations on
+							MessageGroups. By default an internal 'DefaultLockRegistry' is used.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

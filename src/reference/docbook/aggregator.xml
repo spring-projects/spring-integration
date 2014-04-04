@@ -370,7 +370,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		expire-groups-upon-completion="false" ]]><co id="aggxml18" /><![CDATA[
 		empty-group-min-timeout="60000" ]]><co id="aggxml19" /><![CDATA[
 
-        lock-registry="lockRegistry" ]]><co id="aggxml191" /><![CDATA[
+		lock-registry="lockRegistry" ]]><co id="aggxml191" /><![CDATA[
 
 		group-timeout="60000" ]]><co id="aggxml20" /><![CDATA[
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" /><![CDATA[
@@ -531,42 +531,55 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
 	  <callout arearefs="aggxml191">
         <para>
-			The reference for the <interfacename>org.springframework.integration.util.LockRegistry</interfacename> bean
-			to obtain <interfacename>Lock</interfacename> by <code>groupId</code> for concurrent operation around each
-			<code>MessageGroup</code>. By default it is and internal <classname>DefaultLockRegistry</classname>.
+			A reference to a <interfacename>org.springframework.integration.util.LockRegistry</interfacename> bean;
+			used to obtain a <interfacename>Lock</interfacename> based on the <code>groupId</code> for
+			concurrent operations on the
+			<code>MessageGroup</code>. By default, an internal <classname>DefaultLockRegistry</classname> is used.
         </para>
       </callout>
 
 	  <callout arearefs="aggxml20">
         <para>
-			The schedule timeout in milliseconds to <emphasis>forceComplete</emphasis> the <code>MessageGroup</code>,
-			when the <interfacename>ReleaseStrategy</interfacename> can't <emphasis>release</emphasis> on the current arrived Message.
-			This attribute provides some built-in <emphasis>Time-base Release Strategy</emphasis> for the aggregator,
-			when there is need to emit some partial result, if a new Message for the <code>MessageGroup</code> isn't arrived during some time or at all.
-			When the new Message comes to the aggregator, the <interfacename>ScheduledFuture&lt;?&gt;</interfacename>
-			for its <code>MessageGroup</code> is canceled and new one will be scheduled, if <interfacename>ReleaseStrategy</interfacename>
-			returns <code>false</code> and <code>groupTimeout != null &amp;&amp; groupTimeout &gt; 0</code>.
-			Note, if <code>groupTimeout == 0</code>, the <code>MessageGroup</code> is <emphasis>forceCompleted</emphasis> immediately
-			within the current Thread.
+			A timeout in milliseconds to force the <code>MessageGroup</code> complete,
+			when the <interfacename>ReleaseStrategy</interfacename> doesn't <emphasis>release</emphasis>
+			the group when the current Message arrives.
+			This attribute provides a built-in <emphasis>Time-base Release Strategy</emphasis> for the aggregator,
+			when there is a need to emit a partial result (or discard the group), if a new Message does not arrive
+			for the <code>MessageGroup</code> within the timeout.
+			When a new Message arrives at the aggregator, any existing <interfacename>ScheduledFuture&lt;?&gt;</interfacename>
+			for its <code>MessageGroup</code> is canceled. If the
+			<interfacename>ReleaseStrategy</interfacename>
+			returns <code>false</code> (don't release) and the <code>groupTimeout &gt; 0</code> a new task will be
+			scheduled to expire the group.
+			Setting this attribute to zero is not advised because it will effectively disable the aggregator because every
+			message group will be immediately completed. It is possible, however to conditionally set it to zero using an
+			expression; see <code>group-timeout-expressoin</code> for information.
+			The action taken during the completion depends on the release strategy and the
+			<code>send-partial-group-on-expiry</code> attribute. See <xref linkend="agg-and-group-to"/> for
+			more information.
 			Mutually exclusive with 'group-timeout-expression' attribute.
         </para>
       </callout>
 	  <callout arearefs="aggxml21">
 			<para>
-				The SpEL expression to evaluate <code>groupTimeout</code> against the <code>MessageGroup</code>
-				as root evaluation context object for scheduling the <code>MessageGroup</code> to <emphasis>forceComplete</emphasis>,
-				when the <interfacename>ReleaseStrategy</interfacename> can't <emphasis>release</emphasis> on the current arrived Message.
+				The SpEL expression that evaluates to a <code>groupTimeout</code> with the <code>MessageGroup</code>
+				as the <code>#root</code> evaluation context object. Used for scheduling the <code>MessageGroup</code> to
+				<emphasis>forceComplete()</emphasis>. If the expression evaluates to null or <code>&lt; 0</code>, the
+				completion is not scheduled. If it evaluates to zero, the group is completed immediately on
+				the current thread. In effect, this provides a dynamic <code>group-timeout</code> property.
+				See <code>group-timeout</code> for more information.
 				Mutually exclusive with 'group-timeout' attribute.
 			</para>
 	  </callout>
 	  <callout arearefs="aggxml22">
 			<para>
-				The <interfacename>TaskScheduler</interfacename> bean reference to schedule <emphasis>forceComplete</emphasis>
-				the <code>MessageGroup</code> when there is no new message arrives for the <code>MessageGroup</code>.
-				If isn't provided, the default scheduler <code>taskScheduler</code>,
+				A <interfacename>TaskScheduler</interfacename> bean reference to schedule <emphasis>forceComplete()</emphasis>
+				for the <code>MessageGroup</code> when there no new message arrives for the <code>MessageGroup</code>
+				within the <code>groupTimeout</code>.
+				If not provided, the default scheduler <code>taskScheduler</code>,
 				registered in the <interfacename>ApplicationContext</interfacename> (<classname>ThreadPoolTaskScheduler</classname>)
-				will be used. This attribute doesn't have value if <code>group-timeout</code> or <code>group-timeout-expression</code>
-				isn't specified.
+				will be used. This attribute does not apply if <code>group-timeout</code> or
+				<code>group-timeout-expression</code> is not specified.
 			</para>
 	  </callout>
 
@@ -710,36 +723,44 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     that as soon as there are more than 5 messages in this group, it should be released.
     </para>
 
-	<para>
-		<emphasis>Aggregators and Group Timeout</emphasis>
-	</para>
+	<section id="agg-and-group-to">
+		<title>Aggregators and Group Timeout</title>
 
 	<para>
-		Starting with <emphasis>version 4.0</emphasis> two new mutually exclusive attributes have been introduced:
+		Starting with <emphasis>version 4.0</emphasis>, two new mutually exclusive attributes have been introduced:
 		<code>group-timeout</code> and <code>group-timeout-expression</code> (see the description above). There are some
-		cases where it is needed to emit the aggregator result, even if <interfacename>ReleaseStrategy</interfacename>
-		can't <emphasis>release</emphasis> on the current arrived Message and there is no arrived new messages for the group.
-		For this purpose the <code>groupTimeout</code> option allows to schedule the <code>MessageGroup</code> to <code>forceComplete</code>:
+		cases where it is needed to emit the aggregator result (or discard the group) after a timeout
+		if the <interfacename>ReleaseStrategy</interfacename>
+		doesn't <emphasis>release</emphasis> when the current Message arrives.
+		For this purpose the <code>groupTimeout</code> option allows scheduling the <code>MessageGroup</code> to
+		<code>forceComplete()</code>:
 		<programlisting language="xml"><![CDATA[<aggregator input-channel="input" output-channel="output"
 		send-partial-result-on-expiry="true"
 		group-timeout-expression="size() ge 2 ? 10000 : -1"
 		release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>]]></programlisting>
-		With this sample the normal <emphasis>release</emphasis> will be possible, if the aggregator receives the last message
-		in sequence. It is presented by <code>release-strategy-expression</code>. All other cases are up to the <code>groupTimeout</code>
-		to schedule <code>forceComplete</code> partial result or not: the <code>group-timeout-expression</code> says, that group
-		should be <code>forceCompleted</code> after 10 seconds and only, if the group contains at least 2 Messages.
+		With this example, the normal <emphasis>release</emphasis> will be possible if the aggregator receives the last message
+		in sequence as defined by the <code>release-strategy-expression</code>. If that specific message does not arrive,
+		the <code>groupTimeout</code> will force the group complete after 10 seconds as long a the group contains at least 2 Messages.
     </para>
     <para>
-		The <code>forceComplete</code> result depends of the <code>send-partial-result-on-expiry</code>. If it is <code>true</code>
-		existing messages in the <code>MessageGroup</code> will be released as normal aggregator reply Message to the
-		<code>output-channel</code>, otherwise they will be discarded.
+		The results of the <code>forceComplete()</code> depends on the release strategy and
+		the <code>send-partial-result-on-expiry</code>.
+		First, the release strategy is again consulted to see if a "normal" release is to be made - while the
+		group won't have changed, the release strategy can decide to release the group at this time. If the
+		release strategy still does not release the group, it will be expired.
+		If <code>send-partial-result-on-expiry</code> is <code>true</code>,
+		existing messages in the (partial) <code>MessageGroup</code> will be released as a normal aggregator reply Message to the
+		<code>output-channel</code>, otherwise it will be discarded.
     </para>
 	<para>
-		There is a difference between <code>groupTimeout</code> behaviour and <classname>MessageGroupStoreReaper</classname>
-		(see <xref linkend="aggregator-config"/>). The last one initiate <code>forceComplete</code> for all <code>MessageGroup</code>s
-		in the <code>MessageGroupStore</code> periodically. The <code>groupTimeout</code> does it only for one <code>MessageGroup</code>
-		and only once, and if the new Message isn't arrived during <code>groupTimeout</code>.
+		There is a difference between <code>groupTimeout</code> behavior and <classname>MessageGroupStoreReaper</classname>
+		(see <xref linkend="aggregator-config"/>). The reaper initiate <code>forceComplete</code> for all <code>MessageGroup</code>s
+		in the <code>MessageGroupStore</code> periodically. The <code>groupTimeout</code> does it for each <code>MessageGroup</code>
+		individually, if the new Message isn't arrived during <code>groupTimeout</code>. Also, the reaper can be used to
+		remove empty groups (empty groups are retained in order to discard late messages,
+		if <code>expire-groups-upon-completion</code> is false).
 	</para>
+	</section>
   </section>
 
   <section id="aggregator-annotations">
