@@ -19,11 +19,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -36,10 +38,33 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
 import org.springframework.util.Assert;
 
 /**
+ * Implementation of {@link LockRegistry} providing a distributed lock using Redis.
+ * Locks are stored under the key {@code registryKey:lockKey}. Locks expire after
+ * (default 60) seconds. Threads unlocking an
+ * expired lock will get an {@link IllegalStateException}. This should be
+ * considered as a critical error because it is possible the protected
+ * resources were compromised.
+ * <p>
+ * Locks are reentrant.
+ * <p>
+ * <b>Note: This is not intended for low latency applications.</b> It is intended
+ * for resource locking across multiple JVMs.
+ * When a lock is released by a remote system, waiting threads may take up to 100ms
+ * to acquire the lock.
+ * A more performant version would need to get notifications from the Redis stores
+ * of key changes. This is currently only available using the SYNC command.
+ * <p>
+ * This limitation will usually not apply when a lock is released within this registry,
+ * unless another system takes the lock after the local lock is acquired here.
+ * A {@link DefaultLockRegistry} is used internally to achieve this optimization.
+ * <p>
+ * {@link Condition}s are not supported.
+ *
  * @author Gary Russell
  * @since 4.0
  *
@@ -58,7 +83,9 @@ public final class RedisLockRegistry implements LockRegistry {
 
 	private final ThreadLocal<List<RedisLock>> threadLocks = new ThreadLocal<List<RedisLock>>();
 
-	private volatile long expireAfter = DEFAULT_EXPIRE_AFTER;
+	private final long expireAfter;
+
+	private final LockRegistry localRegistry = new DefaultLockRegistry();
 
 	static {
 		String host;
@@ -71,17 +98,30 @@ public final class RedisLockRegistry implements LockRegistry {
 		hostName = host.getBytes();
 	}
 
+	/**
+	 * Constructs a lock registry with the default (60 second) lock expiration.
+	 * @param connectionFactory The connection factory.
+	 * @param registryKey The key prefix for locks.
+	 */
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey) {
+		this(connectionFactory, registryKey, DEFAULT_EXPIRE_AFTER);
+	}
+
+	/**
+	 * Constructs a lock registry with the supplied lock expiration.
+	 * @param connectionFactory The connection factory.
+	 * @param registryKey The key prefix for locks.
+	 * @param expireAfter The expiration in milliseconds.
+	 */
+	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, long expireAfter) {
+		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
+		Assert.notNull(registryKey, "'registryKey' cannot be null");
 		this.redisTemplate = new RedisTemplate<String, RedisLockRegistry.RedisLock>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
-		this.redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-		this.redisTemplate.setHashValueSerializer(new LockSerializer());
+		this.redisTemplate.setValueSerializer(new LockSerializer());
 		this.redisTemplate.afterPropertiesSet();
 		this.registryKey = registryKey;
-	}
-
-	protected void setExpireAfter(long expireAfter) {
 		this.expireAfter = expireAfter;
 	}
 
@@ -101,8 +141,8 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 		}
 		if (lock != null) {
-			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate.<String, RedisLock> boundHashOps(
-					this.registryKey).get(lockKey);
+			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate
+					.boundValueOps(this.registryKey + ":" + lockKey).get();
 			if (lockInStore == null || !lock.equals(lockInStore)) {
 				// lock has changed - must have expired
 				lock = null;
@@ -116,7 +156,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		return lock;
 	}
 
-	protected void removeLockFromThreadLocal(List<RedisLock> locks, RedisLock lock) {
+	private void removeLockFromThreadLocal(List<RedisLock> locks, RedisLock lock) {
 		Iterator<RedisLock> iterator = locks.iterator();
 		while (iterator.hasNext()) {
 			if (iterator.next().equals(lock)) {
@@ -127,27 +167,15 @@ public final class RedisLockRegistry implements LockRegistry {
 	}
 
 	public Collection<RedisLock> listLocks() {
-		return this.redisTemplate.<String, RedisLock>boundHashOps(this.registryKey).entries().values();
-	}
-
-	/**
-	 * Emergency unlock mechanism in case of server failure and a lock remains locked.
-	 *
-	 * TODO: consider using individual keys for each lock instead of a hash - that way Redis can handle
-	 * the expiration automatically. However, this might create a lot of keys. Maybe 2 versions so they
-	 * can choose?
-	 */
-	public void expireLocks() {
-		Collection<RedisLock> locks = this.listLocks();
-		long expireIfBefore = System.currentTimeMillis() - this.expireAfter;
-		for (RedisLock lock : locks) {
-			if (lock.getLockedAt() < expireIfBefore) {
-				this.redisTemplate.boundHashOps(this.registryKey).delete(lock.getLockKey());
-				if (logger.isDebugEnabled()) {
-					logger.warn("Expired: " + lock.toString());
-				}
+		Set<String> keys = this.redisTemplate.keys(this.registryKey + ":*");
+		List<RedisLock> locks = new ArrayList<RedisLock>(keys.size());
+		for (String key : keys) {
+			RedisLock lock = this.redisTemplate.boundValueOps(key).get();
+			if (lock != null) {
+				locks.add(lock);
 			}
 		}
+		return locks;
 	}
 
 	public class RedisLock implements Lock {
@@ -178,29 +206,56 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public void lock() {
-			throw new UnsupportedOperationException("Uninterruptible lock() is not supported");
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			localLock.lock();
+			while (true) {
+				try {
+					while (!this.obtainLock()) {
+						Thread.sleep(100);
+					}
+				}
+				catch (InterruptedException e) {
+				}
+			}
 		}
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
-			while (!this.tryLock()) {
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			localLock.lockInterruptibly();
+			while (!this.obtainLock()) {
 				Thread.sleep(100);
 			}
 		}
 
 		@Override
 		public boolean tryLock() {
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			if (!localLock.tryLock()) {
+				return false;
+			}
+			return this.obtainLock();
+		}
+
+		private boolean obtainLock() {
 			if (Thread.currentThread().equals(this.thread)) {
 				this.reLock++;
 				return true;
 			}
 			this.lockedAt = System.currentTimeMillis();
 			this.thread = Thread.currentThread();
-			Boolean success = RedisLockRegistry.this.redisTemplate.boundHashOps(RedisLockRegistry.this.registryKey)
-					.putIfAbsent(this.lockKey, this);
+			Boolean success = RedisLockRegistry.this.redisTemplate.boundValueOps(
+					constructLockKey()).setIfAbsent(this);
 			if (!success) {
 				this.lockedAt = 0;
 				this.thread = null;
+			}
+			else {
+				RedisLockRegistry.this.redisTemplate.expire(constructLockKey(),
+						RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+				if (logger.isDebugEnabled()) {
+					logger.debug("New lock; " + this.toString());
+				}
 			}
 			return success;
 		}
@@ -208,8 +263,12 @@ public final class RedisLockRegistry implements LockRegistry {
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
 			long expire = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			if (!localLock.tryLock(time, unit)) {
+				return false;
+			}
 			boolean acquired = false;
-			while (!(acquired = this.tryLock()) && System.currentTimeMillis() < expire) {
+			while (!(acquired = this.obtainLock()) && System.currentTimeMillis() < expire) {
 				Thread.sleep(100);
 			}
 			return acquired;
@@ -232,16 +291,21 @@ public final class RedisLockRegistry implements LockRegistry {
 					}
 				}
 				if (this.lockInRedisUnchanged()) {
-					RedisLockRegistry.this.redisTemplate.boundHashOps(RedisLockRegistry.this.registryKey).delete(this.lockKey);
+					RedisLockRegistry.this.redisTemplate.delete(constructLockKey());
+					if (logger.isDebugEnabled()) {
+						logger.debug("Released lock; " + this.toString());
+					}
 				}
 				this.thread = null;
 				this.reLock = 0;
 			}
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			localLock.unlock();
 		}
 
 		private boolean lockInRedisUnchanged() {
-			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate.<String, RedisLock> boundHashOps(
-					RedisLockRegistry.this.registryKey).get(this.lockKey);
+			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate.boundValueOps(
+					constructLockKey()).get();
 			if (lockInStore != null && this.equals(lockInStore)) {
 				return true;
 			}
@@ -249,6 +313,10 @@ public final class RedisLockRegistry implements LockRegistry {
 				throw new IllegalStateException("Lock was released due to expiration; " + this.toString()
 						+ (lockInStore == null ? "" : "; lock in store: " + lockInStore.toString()));
 			}
+		}
+
+		private String constructLockKey() {
+			return RedisLockRegistry.this.registryKey + ":" + this.lockKey;
 		}
 
 		@Override

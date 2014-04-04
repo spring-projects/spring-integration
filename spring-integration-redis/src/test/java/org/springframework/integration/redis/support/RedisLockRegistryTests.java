@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -53,10 +54,15 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@After
 	public void shutDown() {
+		RedisTemplate<String, ?> template = this.createTemplate();
+		template.delete("rlrTests");
+	}
+
+	private RedisTemplate<String, ?> createTemplate() {
 		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
 		template.setConnectionFactory(this.getConnectionFactoryForTest());
 		template.afterPropertiesSet();
-		template.delete("rlrTests");
+		return template;
 	}
 
 	@Test
@@ -67,7 +73,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-
+				assertNotNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
 			}
 			finally {
 				lock.unlock();
@@ -128,7 +134,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testTwoThreads() throws Exception {
+	public void testTwoThreadsSecondFailsToGetLock() throws Exception {
 		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
 		final Lock lock1 = registry.obtain("foo");
 		lock1.lockInterruptibly();
@@ -139,13 +145,10 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			@Override
 			public Object call() throws Exception {
 				Lock lock2 = registry.obtain("foo");
+				locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
+				latch.countDown();
 				try {
-					locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
-					latch.countDown();
 					lock2.unlock();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
 				}
 				catch (IllegalStateException ise) {
 					return ise;
@@ -160,6 +163,90 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		assertThat(ise, instanceOf(IllegalStateException.class));
 		assertThat(((Exception) ise).getMessage(), containsString("Lock is not locked"));
 		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testTwoThreads() throws Exception {
+		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		final Lock lock1 = registry.obtain("foo");
+		final AtomicBoolean locked = new AtomicBoolean();
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		final CountDownLatch latch3 = new CountDownLatch(1);
+		lock1.lockInterruptibly();
+		assertNotNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				Lock lock2 = registry.obtain("foo");
+				try {
+					latch1.countDown();
+					lock2.lockInterruptibly();
+					assertNotNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+					latch2.await(10, TimeUnit.SECONDS);
+					locked.set(true);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
+					lock2.unlock();
+					latch3.countDown();
+				}
+			}
+		});
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertFalse(locked.get());
+		lock1.unlock();
+		latch2.countDown();
+		assertTrue(latch3.await(10, TimeUnit.SECONDS));
+		assertTrue(locked.get());
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testTwoThreadsDifferentRegistries() throws Exception {
+		final RedisLockRegistry registry1 = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		final RedisLockRegistry registry2 = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		final Lock lock1 = registry1.obtain("foo");
+		final AtomicBoolean locked = new AtomicBoolean();
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		final CountDownLatch latch3 = new CountDownLatch(1);
+		lock1.lockInterruptibly();
+		assertNotNull(TestUtils.getPropertyValue(registry1, "threadLocks", ThreadLocal.class).get());
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				Lock lock2 = registry2.obtain("foo");
+				try {
+					latch1.countDown();
+					lock2.lockInterruptibly();
+					assertNotNull(TestUtils.getPropertyValue(registry2, "threadLocks", ThreadLocal.class).get());
+					latch2.await(10, TimeUnit.SECONDS);
+					locked.set(true);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
+					lock2.unlock();
+					latch3.countDown();
+				}
+			}
+		});
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertFalse(locked.get());
+		lock1.unlock();
+		latch2.countDown();
+		assertTrue(latch3.await(10, TimeUnit.SECONDS));
+		assertTrue(locked.get());
+		assertNull(TestUtils.getPropertyValue(registry1, "threadLocks", ThreadLocal.class).get());
+		assertNull(TestUtils.getPropertyValue(registry2, "threadLocks", ThreadLocal.class).get());
 	}
 
 	@Test
@@ -213,13 +300,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testExpireNoKey() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
-		registry.setExpireAfter(1);
+	public void testExpireNoLockInStore() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1);
 		Lock foo = registry.obtain("foo");
 		foo.lockInterruptibly();
-		Thread.sleep(100);
-		registry.expireLocks();
+		this.waitForExpire("foo");
 		try {
 			foo.unlock();
 			fail("Expected exception");
@@ -232,13 +317,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testExpireReOwned() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
-		registry.setExpireAfter(1);
+	public void testExpireNewLockInStore() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1);
 		Lock foo1 = registry.obtain("foo");
 		foo1.lockInterruptibly();
-		Thread.sleep(100);
-		registry.expireLocks();
+		this.waitForExpire("foo");
 		Lock foo2 = registry.obtain("foo");
 		assertNotSame(foo1, foo2);
 		foo2.lockInterruptibly();
@@ -252,6 +335,15 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		foo2.unlock();
 		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	private void waitForExpire(String key) throws Exception {
+		RedisTemplate<String, ?> template = this.createTemplate();
+		int n = 0;
+		while (n++ < 100 && template.keys("rlrTests:" + key).size() > 0) {
+			Thread.sleep(100);
+		}
+		assertTrue(key + " key did not expire", n < 100);
 	}
 
 }
