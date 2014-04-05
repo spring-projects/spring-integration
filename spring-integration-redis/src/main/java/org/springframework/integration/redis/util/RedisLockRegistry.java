@@ -53,6 +53,11 @@ import org.springframework.util.Assert;
  * <p>
  * Locks are reentrant.
  * <p>
+ * <b>However, locks are scoped by the registry; a lock from a different registry with the
+ * same key (even if the registry uses the same 'registryKey') are different
+ * locks, and the second cannot be acquired by the same thread while the first is
+ * locked.</b>
+ * <p>
  * <b>Note: This is not intended for low latency applications.</b> It is intended
  * for resource locking across multiple JVMs.
  * When a lock is released by a remote system, waiting threads may take up to 100ms
@@ -141,11 +146,14 @@ public final class RedisLockRegistry implements LockRegistry {
 				break;
 			}
 		}
-		if (lock != null) {
+		/*
+		 * If the lock is locked, check that it matches what's in the store.
+		 * If it doesn't, the lock must have expired.
+		 */
+		if (lock != null && lock.thread != null) {
 			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate
 					.boundValueOps(this.registryKey + ":" + lockKey).get();
 			if (lockInStore == null || !lock.equals(lockInStore)) {
-				// lock has changed - must have expired
 				removeLockFromThreadLocal(locks, lock);
 				lock = null;
 			}

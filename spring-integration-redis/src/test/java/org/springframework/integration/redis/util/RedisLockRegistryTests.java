@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -37,8 +38,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
@@ -52,10 +55,12 @@ import org.springframework.integration.test.util.TestUtils;
  */
 public class RedisLockRegistryTests extends RedisAvailableTests {
 
+	@Before
 	@After
 	public void shutDown() {
 		RedisTemplate<String, ?> template = this.createTemplate();
 		template.delete("rlrTests");
+		template.delete("rlrTests2");
 	}
 
 	private RedisTemplate<String, ?> createTemplate() {
@@ -379,6 +384,39 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		}
 		foo2.unlock();
 		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testEquals() throws Exception {
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+		RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, "rlrTests");
+		RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, "rlrTests");
+		RedisLockRegistry registry3 = new RedisLockRegistry(connectionFactory, "rlrTests2");
+		Lock lock1 = registry1.obtain("foo");
+		Lock lock2 = registry1.obtain("foo");
+		assertEquals(lock1, lock2);
+		lock1.lock();
+		lock2.lock();
+		assertEquals(lock1, lock2);
+		lock1.unlock();
+		lock2.unlock();
+		assertEquals(lock1, lock2);
+
+		lock1 = registry1.obtain("foo");
+		lock2 = registry2.obtain("foo");
+		assertNotEquals(lock1, lock2);
+		lock1.lock();
+		assertFalse(lock2.tryLock());
+		lock1.unlock();
+
+		lock1 = registry1.obtain("foo");
+		lock2 = registry3.obtain("foo");
+		assertNotEquals(lock1, lock2);
+		lock1.lock();
+		lock2.lock();
+		lock1.unlock();
+		lock2.unlock();
 	}
 
 	private void waitForExpire(String key) throws Exception {

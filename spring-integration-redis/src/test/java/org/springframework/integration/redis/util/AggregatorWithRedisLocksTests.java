@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +75,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	private RedisTemplate<String, ?> template;
 
 	@Before
+	@After
 	public void setup() {
 		this.template = this.createTemplate();
 		Set<String> keys = template.keys("aggregatorWithRedisLocksTests:*");
