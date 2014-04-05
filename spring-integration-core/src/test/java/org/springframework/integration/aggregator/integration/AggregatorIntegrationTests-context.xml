@@ -34,5 +34,15 @@
 	<aggregator id="nonExpiringAggregator" input-channel="nonExpiringAggregatorInput" output-channel="output"
 				expire-groups-upon-completion="false" discard-channel="discard"/>
 
+	<aggregator id="gta"
+				input-channel="groupTimeoutAggregatorInput" output-channel="output" discard-channel="discard"
+				send-partial-result-on-expiry="true"
+				group-timeout="100"/>
+
+	<aggregator input-channel="groupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
+				send-partial-result-on-expiry="true"
+				group-timeout-expression="size() ge 2 ? 100 : -1"
+			    release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+
 
 </beans:beans>

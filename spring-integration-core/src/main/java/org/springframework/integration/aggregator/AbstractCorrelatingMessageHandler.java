@@ -16,7 +16,12 @@ package org.springframework.integration.aggregator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
@@ -25,10 +30,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -43,6 +52,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -70,11 +80,14 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @since 2.0
  */
-public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
+public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler
+		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
+
+	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<UUID, ScheduledFuture<?>>();
 
 	protected volatile MessageGroupStore messageStore;
 
@@ -105,6 +118,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private volatile long minimumTimeoutForEmptyGroups;
 
 	private volatile boolean releasePartialSequences;
+
+	private volatile Expression groupTimeoutExpression;
+
+	private EvaluationContext evaluationContext;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -164,6 +181,20 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	public void setOutputChannelName(String outputChannelName) {
 		this.outputChannelName = outputChannelName;
+	}
+
+	public void setGroupTimeoutExpression(Expression groupTimeoutExpression) {
+		this.groupTimeoutExpression = groupTimeoutExpression;
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+	@Override
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		super.setTaskScheduler(taskScheduler);
 	}
 
 	@Override
@@ -277,11 +308,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
 		}
 
-		// TODO: INT-1117 - make the lock global?
-		Lock lock = this.lockRegistry.obtain(UUIDConverter.getUUID(correlationKey).toString());
+		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
+		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
 
 		lock.lockInterruptibly();
 		try {
+			ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
+			if (scheduledFuture != null) {
+				boolean canceled = scheduledFuture.cancel(true);
+				if (canceled && logger.isDebugEnabled()) {
+					logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ " + correlationKey + "].");
+				}
+			}
 			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
 			if (this.sequenceAware){
 				messageGroup = new SequenceAwareMessageGroup(messageGroup);
@@ -302,6 +340,31 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						// Always clean up even if there was an exception
 						// processing messages
 						this.afterRelease(messageGroup, completedMessages);
+					}
+				}
+				else {
+					Long groupTimeout = this.obtainGroupTimeout(messageGroup);
+					if (groupTimeout != null && groupTimeout >= 0) {
+						if (groupTimeout > 0) {
+							final MessageGroup messageGroupToSchedule = messageGroup;
+
+							scheduledFuture = this.getTaskScheduler()
+									.schedule(new Runnable() {
+
+										@Override
+										public void run() {
+											AbstractCorrelatingMessageHandler.this.forceComplete(messageGroupToSchedule);
+										}
+									}, new Date(System.currentTimeMillis() + groupTimeout));
+
+							if (logger.isDebugEnabled()) {
+								logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
+							}
+							this.expireGroupScheduledFutures.put(groupIdUuid, scheduledFuture);
+						}
+						else {
+							this.forceComplete(messageGroup);
+						}
 					}
 				}
 			}
@@ -330,6 +393,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		try {
 			lock.lockInterruptibly();
 			try {
+				ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(UUIDConverter.getUUID(correlationKey));
+				if (scheduledFuture != null) {
+					boolean canceled = scheduledFuture.cancel(false);
+					if (canceled && logger.isDebugEnabled()) {
+						logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + group + "].");
+					}
+				}
 				MessageGroup groupNow = group;
 				/*
 				 * If the group argument is not already complete,
@@ -392,7 +462,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 		catch (InterruptedException ie) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Thread was interrupted while trying to obtain lock");
+			logger.debug("Thread was interrupted while trying to obtain lock");
 		}
 	}
 
@@ -405,7 +475,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		List<Message<?>> sorted = new ArrayList<Message<?>>(partialSequence);
 		Collections.sort(sorted, new SequenceNumberComparator());
 
-		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
+		Message<?> lastReleasedMessage = sorted.get(partialSequence.size() - 1);
 
 		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
@@ -510,6 +580,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			}
 		}
 		return false;
+	}
+
+	private Long obtainGroupTimeout(MessageGroup group) {
+		return this.groupTimeoutExpression != null
+				? this.groupTimeoutExpression.getValue(this.evaluationContext, group, Long.class) : null;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		for (ScheduledFuture<?> future : expireGroupScheduledFutures.values()) {
+			future.cancel(true);
+		}
 	}
 
 	private static class SequenceAwareMessageGroup extends SimpleMessageGroup {

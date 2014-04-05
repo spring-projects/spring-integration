@@ -52,8 +52,13 @@
   release-strategy="releaseStrategyBean" ]]><co id="resxml14-co" linkends="resxml14" /><![CDATA[
   release-strategy-method="release" ]]><co id="resxml15-co" linkends="resxml15" /><![CDATA[
   release-strategy-expression="size() == 10" ]]><co id="resxml16-co" linkends="resxml16" /><![CDATA[
-  empty-group-min-timeout="60000" />]]><co id="resxml17-co" linkends="resxml17" /></programlisting>
+  empty-group-min-timeout="60000" ]]><co id="resxml17-co" linkends="resxml17" /><![CDATA[
 
+  lock-registry="lockRegistry" ]]><co id="resxml18" /><![CDATA[
+
+		group-timeout="60000" ]]><co id="resxml19" /><![CDATA[
+		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="resxml20" /><![CDATA[
+		scheduler="taskScheduler" /> ]]><co id="resxml21" /></programlisting>
     <para><calloutlist>
         <callout arearefs="resxml1-co" id="resxml1">
           <para>The id of the resequencer is
@@ -160,7 +165,27 @@
           empty group will also be affected by the reaper's <emphasis>timeout</emphasis>
           property and it could be as much as this value plus the timeout.</para>
         </callout>
+		<callout arearefs="resxml18">
+			<para>
+				See <xref linkend="aggregator-xml"/>.
+			</para>
+		</callout>
 
+		<callout arearefs="resxml19">
+			<para>
+				See <xref linkend="aggregator-xml"/>.
+			</para>
+		</callout>
+		<callout arearefs="resxml20">
+			<para>
+				See <xref linkend="aggregator-xml"/>.
+			</para>
+		</callout>
+		<callout arearefs="resxml21">
+			<para>
+				See <xref linkend="aggregator-xml"/>.
+			</para>
+		</callout>
       </calloutlist></para>
 
     <note>
