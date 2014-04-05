@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.redis.support;
+package org.springframework.integration.redis.util;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -370,7 +370,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		@Override
 		public String toString() {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd@HH:mm:ss.SSS");
-			return "RedisLock [lockKey=" + this.lockKey
+			return "RedisLock [lockKey=" + RedisLockRegistry.this.registryKey + ":" + this.lockKey
 					+ ",lockedAt=" + dateFormat.format(new Date(this.lockedAt))
 					+ ", thread=" + this.threadName
 					+ ", lockHost=" + new String(this.lockHost)

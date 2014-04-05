@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.redis.support;
+package org.springframework.integration.redis.util;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -40,9 +40,10 @@ import org.junit.After;
 import org.junit.Test;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.redis.support.RedisLockRegistry.RedisLock;
+import org.springframework.integration.redis.util.RedisLockRegistry.RedisLock;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -61,6 +62,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	private RedisTemplate<String, ?> createTemplate() {
 		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
 		template.setConnectionFactory(this.getConnectionFactoryForTest());
+		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
 		return template;
 	}
