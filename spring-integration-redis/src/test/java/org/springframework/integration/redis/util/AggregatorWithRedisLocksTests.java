@@ -64,6 +64,9 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	private MessageChannel in;
 
 	@Autowired
+	private MessageChannel in2;
+
+	@Autowired
 	private PollableChannel out;
 
 	private volatile Exception exception;
@@ -113,6 +116,33 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 		assertNotNull(this.out.receive(10000));
 		assertNotNull(this.out.receive(10000));
 		assertEquals(3, this.releaseStrategy.maxCallers.get());
+		this.assertNoLocksAfterTest();
+		assertNull("Unexpected exception:" + (this.exception != null ? this.exception.toString() : ""), this.exception);
+	}
+
+	@Test
+	@RedisAvailable
+	public void testDistributedAggregator() throws Exception {
+		this.releaseStrategy.reset(1);
+		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					exception = e;
+				}
+			}
+		});
+		assertTrue(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS));
+		assertEquals(1, this.template.keys("aggregatorWithRedisLocksTests:*").size());
+		this.releaseStrategy.latch1.countDown();
+		assertNotNull(this.out.receive(10000));
+		assertEquals(1, this.releaseStrategy.maxCallers.get());
 		this.assertNoLocksAfterTest();
 		assertNull("Unexpected exception:" + (this.exception != null ? this.exception.toString() : ""), this.exception);
 	}

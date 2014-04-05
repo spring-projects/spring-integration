@@ -6,11 +6,27 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
+		message-store="sms"
 		expire-groups-upon-completion="true" lock-registry="redisLockRegistry" />
 
 	<bean id="latching" class="org.springframework.integration.redis.util.AggregatorWithRedisLocksTests$LatchingReleaseStrategy" />
 
 	<bean id="redisLockRegistry" class="org.springframework.integration.redis.util.RedisLockRegistry">
+		<constructor-arg>
+			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+			</bean>
+		</constructor-arg>
+		<constructor-arg value="aggregatorWithRedisLocksTests" />
+	</bean>
+
+	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore" />
+
+	<int:aggregator input-channel="in2" release-strategy="latching" output-channel="out"
+		message-store="sms"
+		expire-groups-upon-completion="true" lock-registry="redisLockRegistry2" />
+
+	<bean id="redisLockRegistry2" class="org.springframework.integration.redis.util.RedisLockRegistry">
 		<constructor-arg>
 			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
 				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
