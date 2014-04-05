@@ -553,8 +553,8 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 			scheduled to expire the group.
 			Setting this attribute to zero is not advised because it will effectively disable the aggregator because every
 			message group will be immediately completed. It is possible, however to conditionally set it to zero using an
-			expression; see <code>group-timeout-expressoin</code> for information.
-			The action taken during the completion depends on the release strategy and the
+			expression; see <code>group-timeout-expression</code> for information.
+			The action taken during the completion depends on the <interfacename>ReleaseStrategy</interfacename> and the
 			<code>send-partial-group-on-expiry</code> attribute. See <xref linkend="agg-and-group-to"/> for
 			more information.
 			Mutually exclusive with 'group-timeout-expression' attribute.
@@ -724,7 +724,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     </para>
 
 	<section id="agg-and-group-to">
-		<title>Aggregators and Group Timeout</title>
+		<title>Aggregator and Group Timeout</title>
 
 	<para>
 		Starting with <emphasis>version 4.0</emphasis>, two new mutually exclusive attributes have been introduced:
@@ -740,13 +740,13 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>]]></programlisting>
 		With this example, the normal <emphasis>release</emphasis> will be possible if the aggregator receives the last message
 		in sequence as defined by the <code>release-strategy-expression</code>. If that specific message does not arrive,
-		the <code>groupTimeout</code> will force the group complete after 10 seconds as long a the group contains at least 2 Messages.
+		the <code>groupTimeout</code> will force the group complete after 10 seconds as long as the group contains at least 2 Messages.
     </para>
     <para>
-		The results of the <code>forceComplete()</code> depends on the release strategy and
+		The results of the <code>forceComplete()</code> depends on the <interfacename>ReleaseStrategy</interfacename> and
 		the <code>send-partial-result-on-expiry</code>.
-		First, the release strategy is again consulted to see if a "normal" release is to be made - while the
-		group won't have changed, the release strategy can decide to release the group at this time. If the
+		First, the release strategy is again consulted to see if a <emphasis>normal</emphasis> release is to be made - while the
+		group won't have changed, the <interfacename>ReleaseStrategy</interfacename> can decide to release the group at this time. If the
 		release strategy still does not release the group, it will be expired.
 		If <code>send-partial-result-on-expiry</code> is <code>true</code>,
 		existing messages in the (partial) <code>MessageGroup</code> will be released as a normal aggregator reply Message to the
@@ -754,7 +754,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     </para>
 	<para>
 		There is a difference between <code>groupTimeout</code> behavior and <classname>MessageGroupStoreReaper</classname>
-		(see <xref linkend="aggregator-config"/>). The reaper initiate <code>forceComplete</code> for all <code>MessageGroup</code>s
+		(see <xref linkend="aggregator-config"/>). The reaper initiates <code>forceComplete</code> for all <code>MessageGroup</code>s
 		in the <code>MessageGroupStore</code> periodically. The <code>groupTimeout</code> does it for each <code>MessageGroup</code>
 		individually, if the new Message isn't arrived during <code>groupTimeout</code>. Also, the reaper can be used to
 		remove empty groups (empty groups are retained in order to discard late messages,
