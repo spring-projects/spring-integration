@@ -96,6 +96,7 @@ subprojects { subproject ->
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
 		servletApiVersion = '3.1.0'
+		slf4jVersion = "1.7.6"
 		smackVersion = '3.2.1'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.3.1.RELEASE'
 		springDataMongoVersion = '1.1.1.RELEASE'
@@ -453,6 +454,7 @@ project('spring-integration-redis') {
 			exclude group: 'org.springframework'
 		}
 		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
+		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 }
 
