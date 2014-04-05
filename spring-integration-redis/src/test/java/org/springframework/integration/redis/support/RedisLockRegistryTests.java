@@ -71,6 +71,23 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
+			lock.lock();
+			try {
+				assertNotNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testLockInterruptibly() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		for (int i = 0; i < 10; i++) {
+			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
 				assertNotNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
@@ -85,6 +102,31 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRentrantLock() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
+		for (int i = 0; i < 10; i++) {
+			Lock lock1 = registry.obtain("foo");
+			lock1.lock();
+			try {
+				Lock lock2 = registry.obtain("foo");
+				assertSame(lock1, lock2);
+				lock2.lock();
+				try {
+
+				}
+				finally {
+					lock2.unlock();
+				}
+			}
+			finally {
+				lock1.unlock();
+			}
+		}
+		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testRentrantLockInterruptibly() throws Exception {
 		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests");
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");

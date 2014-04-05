@@ -20,6 +20,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -145,8 +146,8 @@ public final class RedisLockRegistry implements LockRegistry {
 					.boundValueOps(this.registryKey + ":" + lockKey).get();
 			if (lockInStore == null || !lock.equals(lockInStore)) {
 				// lock has changed - must have expired
-				lock = null;
 				removeLockFromThreadLocal(locks, lock);
+				lock = null;
 			}
 		}
 		if (lock == null) {
@@ -194,6 +195,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		private RedisLock(String lockKey) {
 			this.lockKey = lockKey;
+			this.lockHost = RedisLockRegistry.hostName;
 		}
 
 		protected String getLockKey() {
@@ -214,6 +216,7 @@ public final class RedisLockRegistry implements LockRegistry {
 						while (!this.obtainLock()) {
 							Thread.sleep(100);
 						}
+						break;
 					}
 					catch (InterruptedException e) {
 					}
@@ -264,19 +267,24 @@ public final class RedisLockRegistry implements LockRegistry {
 		}
 
 		private boolean obtainLock() {
-			if (Thread.currentThread().equals(this.thread)) {
+			Thread currentThread = Thread.currentThread();
+			if (currentThread.equals(this.thread)) {
 				this.reLock++;
 				return true;
 			}
+			/*
+			 * Set these now so they will be persisted if successful.
+			 */
 			this.lockedAt = System.currentTimeMillis();
-			this.thread = Thread.currentThread();
+			this.threadName = currentThread.getName();
 			Boolean success = RedisLockRegistry.this.redisTemplate.boundValueOps(
 					constructLockKey()).setIfAbsent(this);
 			if (!success) {
 				this.lockedAt = 0;
-				this.thread = null;
+				this.threadName = null;
 			}
 			else {
+				this.thread = currentThread;
 				RedisLockRegistry.this.redisTemplate.expire(constructLockKey(),
 						RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
 				if (logger.isDebugEnabled()) {
@@ -288,12 +296,12 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			long expire = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
 			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
 			if (!localLock.tryLock(time, unit)) {
 				return false;
 			}
 			try {
+				long expire = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
 				boolean acquired = false;
 				while (!(acquired = this.obtainLock()) && System.currentTimeMillis() < expire) {
 					Thread.sleep(100);
@@ -326,11 +334,10 @@ public final class RedisLockRegistry implements LockRegistry {
 							RedisLockRegistry.this.threadLocks.remove();
 						}
 					}
-					if (this.lockInRedisUnchanged()) {
-						RedisLockRegistry.this.redisTemplate.delete(constructLockKey());
-						if (logger.isDebugEnabled()) {
-							logger.debug("Released lock; " + this.toString());
-						}
+					this.assertLockInRedisIsUnchanged();
+					RedisLockRegistry.this.redisTemplate.delete(constructLockKey());
+					if (logger.isDebugEnabled()) {
+						logger.debug("Released lock; " + this.toString());
 					}
 					this.thread = null;
 					this.reLock = 0;
@@ -342,13 +349,10 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 		}
 
-		private boolean lockInRedisUnchanged() {
+		private void assertLockInRedisIsUnchanged() {
 			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate.boundValueOps(
 					constructLockKey()).get();
-			if (lockInStore != null && this.equals(lockInStore)) {
-				return true;
-			}
-			else {
+			if (lockInStore == null || !this.equals(lockInStore)) {
 				throw new IllegalStateException("Lock was released due to expiration; " + this.toString()
 						+ (lockInStore == null ? "" : "; lock in store: " + lockInStore.toString()));
 			}
@@ -368,23 +372,60 @@ public final class RedisLockRegistry implements LockRegistry {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd@HH:mm:ss.SSS");
 			return "RedisLock [lockKey=" + this.lockKey
 					+ ",lockedAt=" + dateFormat.format(new Date(this.lockedAt))
-					+ ", thread=" + (this.thread != null ? this.thread.getName() : this.threadName)
-					+ ", lockHost=" + (this.lockHost != null ? new String(this.lockHost) :
-						new String(RedisLockRegistry.hostName))
+					+ ", thread=" + this.threadName
+					+ ", lockHost=" + new String(this.lockHost)
 					+ "]";
 		}
 
 		@Override
 		public int hashCode() {
-			return this.toString().hashCode();
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + Arrays.hashCode(lockHost);
+			result = prime * result + ((lockKey == null) ? 0 : lockKey.hashCode());
+			result = prime * result + (int) (lockedAt ^ (lockedAt >>> 32));
+			result = prime * result + ((threadName == null) ? 0 : threadName.hashCode());
+			return result;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
 			if (obj == null) {
 				return false;
 			}
-			return this.toString().equals(obj.toString());
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			RedisLock other = (RedisLock) obj;
+			if (!getOuterType().equals(other.getOuterType())) {
+				return false;
+			}
+			if (!Arrays.equals(lockHost, other.lockHost)) {
+				return false;
+			}
+			if (!lockKey.equals(other.lockKey)) {
+				return false;
+			}
+			if (lockedAt != other.lockedAt) {
+				return false;
+			}
+			if (threadName == null) {
+				if (other.threadName != null) {
+					return false;
+				}
+			}
+			else if (!threadName.equals(other.threadName)) {
+				return false;
+			}
+			return true;
+		}
+
+		private RedisLockRegistry getOuterType() {
+			return RedisLockRegistry.this;
 		}
 
 	}
@@ -393,19 +434,19 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public byte[] serialize(RedisLock t) throws SerializationException {
-			int hostLength = RedisLockRegistry.hostName.length;
+			int hostLength = t.lockHost.length;
 			int keyLength = t.lockKey.length();
-			int threadNameLength = t.thread.getName().length();
+			int threadNameLength = t.threadName.length();
 			byte[] value = new byte[1 + hostLength +
 			                        1 + keyLength +
 			                        1 + threadNameLength + 8];
 			ByteBuffer buff = ByteBuffer.wrap(value);
 			buff.put((byte) hostLength)
-				.put(RedisLockRegistry.hostName)
+				.put(t.lockHost)
 				.put((byte) keyLength)
 				.put(t.lockKey.getBytes())
 				.put((byte) threadNameLength)
-				.put(t.thread.getName().getBytes())
+				.put(t.threadName.getBytes())
 				.putLong(t.lockedAt);
 			return value;
 		}
