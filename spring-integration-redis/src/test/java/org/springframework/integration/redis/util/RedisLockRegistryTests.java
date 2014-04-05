@@ -43,7 +43,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.redis.util.RedisLockRegistry.RedisLock;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -334,11 +333,12 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		bar.lockInterruptibly();
 		Lock baz = registry.obtain("baz");
 		baz.lockInterruptibly();
-		Collection<RedisLock> locks = registry.listLocks();
+		Collection<Lock> locks = registry.listLocks();
 		assertEquals(3, locks.size());
 		foo.unlock();
 		bar.unlock();
 		baz.unlock();
+		System.out.println(locks.iterator().next());
 		assertNull(TestUtils.getPropertyValue(registry, "threadLocks", ThreadLocal.class).get());
 	}
 

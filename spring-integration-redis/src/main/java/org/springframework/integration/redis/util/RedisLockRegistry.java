@@ -167,9 +167,9 @@ public final class RedisLockRegistry implements LockRegistry {
 		}
 	}
 
-	public Collection<RedisLock> listLocks() {
+	public Collection<Lock> listLocks() {
 		Set<String> keys = this.redisTemplate.keys(this.registryKey + ":*");
-		List<RedisLock> locks = new ArrayList<RedisLock>(keys.size());
+		List<Lock> locks = new ArrayList<Lock>(keys.size());
 		for (String key : keys) {
 			RedisLock lock = this.redisTemplate.boundValueOps(key).get();
 			if (lock != null) {
@@ -179,7 +179,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		return locks;
 	}
 
-	public class RedisLock implements Lock {
+	private class RedisLock implements Lock {
 
 		private final String lockKey;
 
@@ -198,12 +198,8 @@ public final class RedisLockRegistry implements LockRegistry {
 			this.lockHost = RedisLockRegistry.hostName;
 		}
 
-		protected String getLockKey() {
+		private String getLockKey() {
 			return lockKey;
-		}
-
-		protected long getLockedAt() {
-			return lockedAt;
 		}
 
 		@Override
@@ -219,6 +215,11 @@ public final class RedisLockRegistry implements LockRegistry {
 						break;
 					}
 					catch (InterruptedException e) {
+						/*
+						 * This method must be uninterruptible so catch and ignore
+						 * interrupts and only break out of the while loop when
+						 * we get the lock.
+						 */
 					}
 				}
 			}
@@ -370,7 +371,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		@Override
 		public String toString() {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd@HH:mm:ss.SSS");
-			return "RedisLock [lockKey=" + RedisLockRegistry.this.registryKey + ":" + this.lockKey
+			return "RedisLock [lockKey=" + constructLockKey()
 					+ ",lockedAt=" + dateFormat.format(new Date(this.lockedAt))
 					+ ", thread=" + this.threadName
 					+ ", lockHost=" + new String(this.lockHost)
