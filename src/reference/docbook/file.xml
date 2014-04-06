@@ -36,11 +36,21 @@
       <classname>AcceptOnceFileListFilter</classname> is used. This filter
       ensures files are picked up only once from the directory.
       <note>
+       <para>
         The <classname>AcceptOnceFileListFilter</classname> stores its state in memory. If you wish the
         state to survive a system restart, consider using the
         <classname>FileSystemPersistentAcceptOnceFileListFilter</classname> instead. This filter stores
-        the accepted file names in a <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
+        the accepted file names in a <interfacename>MetadataStore</interfacename> implementation
+        (<xref linkend="metadata-store"/>).
         This filter matches on the filename and modified time.
+       </para>
+       <para>
+        Since <emphasis>version 4.0</emphasis>, this filter requires a <interfacename
+        >ConcurrentMetadataStore</interfacename>. When used with a shared data store
+        (such as <code>Redis</code> with the <classname>RedisMetadataStore</classname>) this allows
+        filter keys to be shared across multiple application instances, or when a network
+        file share is being used by multiple servers.
+       </para>
       </note>
       <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
     class="org.springframework.integration.file.FileReadingMessageSource"

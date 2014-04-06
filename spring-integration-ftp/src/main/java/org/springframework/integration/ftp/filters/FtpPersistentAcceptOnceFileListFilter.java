@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,11 @@ package org.springframework.integration.ftp.filters;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
-import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.metadata.ConcurrentMetadataStore;
 
 /**
- * Since the super class deems files as 'not seen' if the timestamp is different, remote file
- * users should use the adapter's preserve-timestamp option. Otherwise if a file is re-fetched
- * it will have a new timestamp.
+ * Persistent file list filter using the server's file timestamp to detect if we've already
+ * 'seen' this file.
  *
  * @author Gary Russell
  * @since 3.0
@@ -32,7 +31,7 @@ import org.springframework.integration.metadata.MetadataStore;
  */
 public class FtpPersistentAcceptOnceFileListFilter extends AbstractPersistentAcceptOnceFileListFilter<FTPFile> {
 
-	public FtpPersistentAcceptOnceFileListFilter(MetadataStore store, String prefix) {
+	public FtpPersistentAcceptOnceFileListFilter(ConcurrentMetadataStore store, String prefix) {
 		super(store, prefix);
 	}
 

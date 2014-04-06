@@ -535,6 +535,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 			used to obtain a <interfacename>Lock</interfacename> based on the <code>groupId</code> for
 			concurrent operations on the
 			<code>MessageGroup</code>. By default, an internal <classname>DefaultLockRegistry</classname> is used.
+			Use of a distributed <interfacename>LockRegistry</interfacename>, such as the <classname
+			>RedisLockRegistry</classname>, ensures only one instance of the aggregator will operate
+			on a group concurrently. See <xref linkend="redis-lock-registry"/> for more information.
         </para>
       </callout>
 

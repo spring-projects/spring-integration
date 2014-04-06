@@ -196,6 +196,12 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
         <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
         This filter matches on the filename and the remote modified time.
     </para>
+    <para>
+        Since <emphasis>version 4.0</emphasis>, this filter requires a <interfacename
+        >ConcurrentMetadataStore</interfacename>. When used with a shared data store
+        (such as <code>Redis</code> with the <classname>RedisMetadataStore</classname>) this allows
+        filter keys to be shared across multiple application or server instances.
+    </para>
 	<note>
 	  <para>
 		Beginning with <emphasis>version 3.0</emphasis>, you can also specify a filter used to filter the files locally, once they have

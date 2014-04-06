@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,8 +13,8 @@
 
 package org.springframework.integration.metadata;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 /**
@@ -22,24 +22,37 @@ import java.util.Map;
  * The metadata will not be persisted across application restarts.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
-public class SimpleMetadataStore implements MetadataStore {
+public class SimpleMetadataStore implements ConcurrentMetadataStore {
 
-	private final Map<String, String> metadata = new HashMap<String, String>();
+	private final ConcurrentMap<String, String> metadata = new ConcurrentHashMap<String, String>();
 
 
+	@Override
 	public void put(String key, String value) {
 		this.metadata.put(key, value);
 	}
 
+	@Override
 	public String get(String key) {
 		return this.metadata.get(key);
 	}
 
 	@Override
 	public String remove(String key) {
-		return metadata.remove(key);
+		return this.metadata.remove(key);
+	}
+
+	@Override
+	public String putIfAbsent(String key, String value) {
+		return this.metadata.putIfAbsent(key, value);
+	}
+
+	@Override
+	public boolean replace(String key, String oldValue, String newValue) {
+		return this.metadata.replace(key, oldValue, newValue);
 	}
 
 }

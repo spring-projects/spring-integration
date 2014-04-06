@@ -453,6 +453,7 @@ project('spring-integration-redis') {
 		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
 			exclude group: 'org.springframework'
 		}
+		testCompile project(":spring-integration-file")
 		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
