@@ -795,14 +795,14 @@ the serialization of values, you may want to consider providing your own
 		<para>
 			To avoid "hung" locks (when a server fails), the locks in this registry are expired after a default
 			60 seconds, but this can be configured on the registry. Locks are normally held for a much smaller
-			time. 
+			time.
 		</para>
 		<important>
 			Because the keys can expire, an attempt to unlock an expired lock will result in an exception
 			being thrown. However, be aware that the resources protected by such a lock may have been
 			compromised so such exceptions should be considered severe. The expiry should be set at
 			a large enough value to prevent this condition, while small enough that the lock can
-			be recovered after a server failure in a reasonable amount of time. 
+			be recovered after a server failure in a reasonable amount of time.
 		</important>
 	</section>
 </chapter>
