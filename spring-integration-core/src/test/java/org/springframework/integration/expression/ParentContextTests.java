@@ -42,7 +42,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.json.JsonPathUtils;
-import org.springframework.integration.message.MutableMessage;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -138,7 +138,7 @@ public class ParentContextTests {
 		Message<?> out = child.getBean("output", QueueChannel.class).receive(0);
 		assertNotNull(out);
 		assertEquals("foobar", out.getPayload());
-		child.getBean("parentIn", MessageChannel.class).send(new MutableMessage<String>("bar"));
+		child.getBean("parentIn", MessageChannel.class).send(MutableMessageBuilder.withPayload("bar").build());
 		out = child.getBean("parentOut", QueueChannel.class).receive(0);
 		assertNotNull(out);
 		assertThat(out, instanceOf(GenericMessage.class));
@@ -158,7 +158,7 @@ public class ParentContextTests {
 		parent.getBean("fromParentToChild", MessageChannel.class).send(new GenericMessage<String>("foo"));
 		out = child.getBean("output", QueueChannel.class).receive(0);
 		assertNotNull(out);
-		assertThat(out, instanceOf(MutableMessage.class));
+		assertEquals("org.springframework.integration.support.MutableMessage", out.getClass().getName());
 		assertEquals("FOO", out.getPayload());
 
 		child.close();

@@ -23,10 +23,12 @@ import static org.springframework.integration.history.MessageHistory.TYPE_PROPER
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.BeansException;
@@ -35,7 +37,9 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.annotation.Id;
@@ -55,12 +59,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -357,7 +361,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public void afterPropertiesSet() {
-			List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
+			List<Object> customConverters = new ArrayList<Object>();
 			customConverters.add(new UuidToDBObjectConverter());
 			customConverters.add(new DBObjectToUUIDConverter());
 			customConverters.add(new MessageHistoryToDBObjectConverter());
@@ -537,16 +541,35 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private class DBObjectToMutableMessageConverter implements Converter<DBObject, MutableMessage<?>> {
+	private class DBObjectToMutableMessageConverter implements GenericConverter {
 
-		@Override
-		public MutableMessage<?> convert(DBObject source) {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+		private final Class<?> mutableMessageClass;
 
-			return new MutableMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
+		private DBObjectToMutableMessageConverter() {
+			try {
+				this.mutableMessageClass = ClassUtils.forName("org.springframework.integration.support.MutableMessage",
+						MongoDbMessageStore.this.classLoader);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 
+		@Override
+		public Set<ConvertiblePair> getConvertibleTypes() {
+			Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>();
+			convertiblePairs.add(new ConvertiblePair(DBObject.class, this.mutableMessageClass));
+			return convertiblePairs;
+		}
+
+		@Override
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+			DBObject dbObject = (DBObject) source;
+			@SuppressWarnings("unchecked")
+			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) dbObject.get("headers"));
+
+			return MutableMessageBuilder.withPayload(MongoDbMessageStore.this.converter.extractPayload(dbObject)).copyHeaders(headers).build();
+		}
 	}
 
 	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage> {

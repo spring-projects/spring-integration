@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
@@ -28,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -151,7 +149,7 @@ public class MessageBuilderTests {
 		in.send(new GenericMessage<String>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
-		assertThat(m1, Matchers.instanceOf(MutableMessage.class));
+		assertEquals("org.springframework.integration.support.MutableMessage", m1.getClass().getName());
 		assertTrue(m1 == m2);
 	}
 
