@@ -55,7 +55,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -66,8 +65,8 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
-import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -214,7 +213,7 @@ public class EnableIntegrationTests {
 		assertThat(this.testConverter.getInvoked(), Matchers.greaterThan(0));
 
 		assertTrue(this.bytesChannel.send(new GenericMessage<byte[]>("foo".getBytes())));
-		assertTrue(this.bytesChannel.send(new GenericMessage<Message<?>>(new MutableMessage<Object>(""))));
+		assertTrue(this.bytesChannel.send(new GenericMessage<Message<?>>(MutableMessageBuilder.withPayload("").build())));
 
 	}
 

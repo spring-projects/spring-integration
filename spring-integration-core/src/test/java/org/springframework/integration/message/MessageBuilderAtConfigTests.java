@@ -16,10 +16,9 @@
 
 package org.springframework.integration.message;
 
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -64,7 +63,7 @@ public class MessageBuilderAtConfigTests {
 		in.send(new GenericMessage<String>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
-		assertThat(m1, Matchers.instanceOf(MutableMessage.class));
+		assertEquals("org.springframework.integration.support.MutableMessage", m1.getClass().getName());
 		assertTrue(m1 == m2);
 	}
 

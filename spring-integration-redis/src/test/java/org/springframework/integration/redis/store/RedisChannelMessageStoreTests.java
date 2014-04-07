@@ -27,10 +27,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -82,7 +82,7 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		assertEquals(10, this.cms.messageGroupSize("cms:testChannel1"));
 		assertEquals(10, this.cms.getMessageGroup("cms:testChannel1").size());
 		for (int i = 0; i < 10; i++) {
-			this.testChannel2.send(new MutableMessage<Integer>(i));
+			this.testChannel2.send(MutableMessageBuilder.withPayload(i).build());
 		}
 		assertEquals(2, this.cms.getMessageGroupCount());
 		assertEquals(10, this.cms.messageGroupSize("cms:testChannel2"));
@@ -91,13 +91,13 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		for (int i = 0; i < 10; i++) {
 			Message<?> out = this.testChannel1.receive(0);
 			assertThat(out, Matchers.instanceOf(GenericMessage.class));
-			assertEquals(Integer.valueOf(i), out.getPayload());
+			assertEquals(i, out.getPayload());
 		}
 		assertNull(this.testChannel1.receive(0));
 		for (int i = 0; i < 10; i++) {
 			Message<?> out = this.testChannel2.receive(0);
-			assertThat(out, Matchers.instanceOf(MutableMessage.class));
-			assertEquals(Integer.valueOf(i), out.getPayload());
+			assertEquals("org.springframework.integration.support.MutableMessage", out.getClass().getName());
+			assertEquals(i, out.getPayload());
 		}
 		assertNull(this.testChannel2.receive(0));
 		assertEquals(0, this.cms.getMessageGroupCount());
@@ -143,11 +143,11 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		Message<?> m = this.testChannel3.receive(0);
 		assertNotNull(m);
 		assertEquals(Integer.valueOf(199), new IntegrationMessageHeaderAccessor(m).getPriority());
-		assertEquals(Integer.valueOf(99), m.getPayload());
+		assertEquals(99, m.getPayload());
 		m = this.testChannel3.receive(0);
 		assertNotNull(m);
 		assertNull(new IntegrationMessageHeaderAccessor(m).getPriority());
-		assertEquals(Integer.valueOf(98), m.getPayload());
+		assertEquals(98, m.getPayload());
 		assertEquals(0, this.priorityCms.messageGroupSize("priorityCms:testChannel3"));
 
 		m = this.testChannel4.receive(0);

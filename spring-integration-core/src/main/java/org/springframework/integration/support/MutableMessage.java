@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.message;
+package org.springframework.integration.support;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -39,7 +39,7 @@ import org.springframework.util.ObjectUtils;
  * @since 4.0
  *
  */
-public class MutableMessage<T> implements Message<T>, Serializable {
+class MutableMessage<T> implements Message<T>, Serializable {
 
 	private static final long serialVersionUID = -636635024258737500L;
 
@@ -49,12 +49,12 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 
 	private final Map<String, Object> rawHeaders;
 
-	public MutableMessage(T payload) {
+	MutableMessage(T payload) {
 		this(payload, null);
 	}
 
 	@SuppressWarnings("unchecked")
-	public MutableMessage(T payload, Map<String, Object> headers) {
+	MutableMessage(T payload, Map<String, Object> headers) {
 		Assert.notNull(payload, "payload must not be null");
 		this.headers = new MessageHeaders(headers);
 		this.payload = payload;

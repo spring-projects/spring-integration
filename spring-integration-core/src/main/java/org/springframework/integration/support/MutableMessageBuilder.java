@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.message.MutableMessage;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
