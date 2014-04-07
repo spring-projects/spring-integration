@@ -62,6 +62,8 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	private File file;
 
+	private final LockRegistry lockRegistry = new DefaultLockRegistry();
+
 
 	public void setBaseDirectory(String baseDirectory) {
 		Assert.hasText(baseDirectory, "'baseDirectory' must be non-empty");
