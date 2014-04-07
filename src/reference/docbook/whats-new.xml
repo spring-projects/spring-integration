@@ -272,4 +272,14 @@
 			</para>
 		</section>
 	</section>
+		<section id="4.0-priority-channel-mondodb">
+			<title>Priority Channel and MongodDB Message Store</title>
+			<para>
+				MongoDB <interfacename>MessageStore</interfacename>s now implement <interfacename>PriorityCapableChannelMessageStore</interfacename>
+				to provide <code>priorityEnabled</code> option and can be used as a reference for <code>&lt;int:priority-queue&gt;</code>
+				to achieve <emphasis>priority</emphasis> order polling for persisted message.
+				For more information see <xref linkend="mongodb-message-store-priority-channel"/>.
+			</para>
+		</section>
+	</section>
 </chapter>

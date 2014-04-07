@@ -142,6 +142,61 @@
 		 <code>configurableStoreMessages</code>. It is recommended to use this implementation for robust and flexible solutions
 		 when messages contain complex data types.
 	 </para>
+	  <section id="mongodb-message-store-priority-channel">
+		  <title>Priority Channel and MongodDB Message Store</title>
+
+		  <para>
+			  Starting with <emphasis>version 4.0</emphasis> the <code>PriorityChannel</code> can be configured with
+			  <code>message-store</code> reference and allows to persist and poll Messages in <emphasis>priority</emphasis>
+			  manner. MongoDB <interfacename>MessageStore</interfacename>s implement the new <interfacename>PriorityCapableChannelMessageStore</interfacename>
+			  and provide <code>priorityEnabled</code> option to configure <interfacename>MessageStore</interfacename> to poll
+			  persisted Messages in the <emphasis>priority</emphasis> order. The <emphasis>priority</emphasis> MonogDB document
+			  field is the <code>IntegrationMessageHeaderAccessor.PRIORITY</code> (the <code>priority</code> Message header).
+		  </para>
+		  <important>
+			  <para>
+				  It's recommended to use different MonogDB collections for different <interfacename>MessageStore</interfacename>s:
+				  one for Aggregator, Claim-Check etc, another for queue channels and one more for priority channels. As soon as
+				  the mentioned components perform different operations for <code>Message</code>s (<code>MessageGroup</code>s)
+				  they use different <emphasis>index</emphasis>es. To avoid index ambiguity it is necessary to configure several
+				  <interfacename>MessageStore</interfacename> beans and specify different collections for them:
+				  <programlisting language="xml"><![CDATA[<bean id="abstractMessageStore"
+			   class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore"
+			   abstract="true">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+</bean>
+
+<bean id="messageStore" parent="abstractMessageStore">
+	<constructor-arg name="collectionName" value="messageStore"/>
+</bean>
+
+<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="mongoStore"/>
+
+<bean id="channelMessageStore" parent="abstractMessageStore">
+	<constructor-arg name="collectionName" value="channelMessageStore"/>
+</bean>
+
+<int:channel id="queueChannel">
+	<int:queue message-store="channelMessageStore"/>
+</int:channel>
+
+<bean id="priorityChannelMessageStore" parent="abstractMessageStore">
+	<constructor-arg name="collectionName" value="priorityChannelMessageStore"/>
+	<property name="priorityEnabled" value="true"/>
+</bean>
+
+<int:channel id="priorityChannel">
+	<int:priority-queue message-store="priorityChannelMessageStore"/>
+</int:channel>]]></programlisting>
+			  </para>
+		  </important>
+		  <para>
+			  In addition MongoDB <interfacename>MessageStore</interfacename>s add <code>sequence</code> field for MessageGroup
+			  documents. The <code>sequence</code> value is a result of <code>$inc</code> operation for simple <code>sequence</code>
+			  document from the collection, which is created on demand. The <code>sequence</code> field is used in <code>poll</code>
+			  operations to allow to have correct messages order, which isn't possible when only <code>timestamp</code> field is used.
+		  </para>
+	  </section>
   </section>
 
   <section id="mongodb-inbound-channel-adapter">

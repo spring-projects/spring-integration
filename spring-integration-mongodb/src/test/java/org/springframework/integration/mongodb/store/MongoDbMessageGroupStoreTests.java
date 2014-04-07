@@ -48,4 +48,12 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	public void testWithAggregatorWithShutdown() throws Exception {
 		super.testWithAggregatorWithShutdown("mongo-aggregator-config.xml");
 	}
+
+	@Test
+	@MongoDbAvailable
+	public void testPriorityChannel() throws Exception {
+		this.prepareMongoFactory("testPriorityMongoDbMessageStore");
+		this.testPriorityChannel("mongo-aggregator-config.xml");
+	}
+
 }

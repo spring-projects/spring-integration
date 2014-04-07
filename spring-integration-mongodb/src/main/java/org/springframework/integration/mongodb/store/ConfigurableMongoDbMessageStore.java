@@ -432,6 +432,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 		private Integer lastReleasedSequence = 0;
 
+		@SuppressWarnings("unused")
 		private int sequence;
 
 		public MessageDocument(Message<?> message) {
