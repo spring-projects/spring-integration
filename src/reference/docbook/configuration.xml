@@ -364,7 +364,7 @@ public class FooService {
 		  <programlisting language="java"><![CDATA[public class AnnotationService {
 
 	@Transformer(inputChannel = "input", outputChannel = "output",
-		poller = @Poller(PollerMetadata.DEFAULT_POLLER))
+		poller = @Poller("org.springframework.integration.context.defaultPollerMetadata"))
 	public String handle(String payload) {
 		...
 	}
