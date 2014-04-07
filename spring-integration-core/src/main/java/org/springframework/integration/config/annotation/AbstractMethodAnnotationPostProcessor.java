@@ -168,41 +168,44 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					String ref = poller.value();
 					String triggerRef = poller.trigger();
 					String executorRef = poller.taskExecutor();
-					long fixedDelay = Long.parseLong(this.environment.resolvePlaceholders(poller.fixedDelay()));
-					long fixedRate = Long.parseLong(this.environment.resolvePlaceholders(poller.fixedRate()));
-					long maxMessagesPerPoll = Long.parseLong(this.environment.resolvePlaceholders(poller.maxMessagesPerPoll()));
+					String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
+					String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
+					String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
 					String cron = this.environment.resolvePlaceholders(poller.cron());
 
 					if (StringUtils.hasText(ref)) {
 						Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) && !StringUtils.hasText(cron)
-										&& fixedDelay == -1 && fixedRate == -1,
+										&& !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue)
+										&& !StringUtils.hasText(maxMessagesPerPollValue),
 								"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
 						pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
 					}
 					else {
 						pollerMetadata = new PollerMetadata();
-						pollerMetadata.setMaxMessagesPerPoll(maxMessagesPerPoll);
+						if (StringUtils.hasText(maxMessagesPerPollValue)) {
+							pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
+						}
 						if (StringUtils.hasText(executorRef)) {
 							pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
 						}
 						Trigger trigger = null;
 						if (StringUtils.hasText(triggerRef)) {
-							Assert.state(!StringUtils.hasText(cron) && fixedDelay == -1 && fixedRate == -1,
+							Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
 									"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
 							trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
 						}
 						else if (StringUtils.hasText(cron)) {
-							Assert.state(fixedDelay == -1 && fixedRate == -1,
+							Assert.state(!StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
 									"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
 							trigger = new CronTrigger(cron);
 						}
-						else if (fixedDelay > -1) {
-							Assert.state(fixedRate == -1,
+						else if (StringUtils.hasText(fixedDelayValue)) {
+							Assert.state(!StringUtils.hasText(fixedRateValue),
 									"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
-							trigger = new PeriodicTrigger(fixedDelay);
+							trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
 						}
-						else if (fixedRate > -1) {
-							trigger = new PeriodicTrigger(fixedRate);
+						else if (StringUtils.hasText(fixedRateValue)) {
+							trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
 							((PeriodicTrigger) trigger).setFixedRate(true);
 						}
 						//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.

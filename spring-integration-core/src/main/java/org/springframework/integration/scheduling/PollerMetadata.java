@@ -40,7 +40,7 @@ public class PollerMetadata {
 			"org.springframework.integration.context.defaultPollerMetadata";
 
 	/**
-	 * The convenient short alias for global default poller bean name.
+	 *  A convenient short alias for the global default poller bean name.
 	 */
 	public static final String DEFAULT_POLLER = DEFAULT_POLLER_METADATA_BEAN_NAME;
 

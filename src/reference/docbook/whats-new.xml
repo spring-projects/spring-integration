@@ -145,11 +145,10 @@
 		<section id="4.0-poller-annotation">
 			<title>@Poller</title>
 			<para>
-				The messaging configurations now have <code>poller</code> attribute as a value of
-				<interfacename>@Poller</interfacename> annotation. It allows to mark methods with
-				messaging annotations (<interfacename>@ServiceActivator</interfacename>,
-				<interfacename>@Aggregator</interfacename> etc.) and use <code>inputChannel</code> as
-				a reference to the <interfacename>PollableChannel</interfacename>.
+				Annotation-based messaging configuration can now have a <code>poller</code> attribute.
+				This means that methods annotated with (<interfacename>@ServiceActivator</interfacename>,
+				<interfacename>@Aggregator</interfacename> etc.) can now use an <code>inputChannel</code> that
+				is a reference to a <interfacename>PollableChannel</interfacename>.
 				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>

@@ -68,11 +68,7 @@ import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
-<<<<<<< HEAD
-=======
-import org.springframework.integration.message.MutableMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
->>>>>>> c1f05d8... INT-3351: Add `@Poller` for Messaging annotations
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;

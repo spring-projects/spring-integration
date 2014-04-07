@@ -27,12 +27,14 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.scheduling.Trigger;
 
 /**
- * Provides the {@link PollerMetadata} options for the Messaging annotations.
- * It is an analogue of {@code <poller/>}, but provides only simple attributes.
- * If {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
+ * Provides the {@link PollerMetadata} options for the Messaging annotations for
+ * polled endpoints.
+ * It is an analogue of the XML {@code <poller/>} element, but provides only simple attributes.
+ * If the {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
  * (e.g. Transactional and other Advices) or {@code initialDelay, receiveTimeout} etc,
  * the {@link org.springframework.integration.scheduling.PollerMetadata} should be configured as
- * generic bean and its bean name can be specified as {@code value} attribute of this annotation.
+ * a generic bean and its bean name can be specified as the {@code value} attribute of this annotation.
+ * In that case, the other attributes are not allowed.
  * <p>
  * Non-reference attributes support Property Placeholder resolutions.
  *
@@ -62,19 +64,19 @@ public @interface Poller {
 	 * @return The maximum number of messages to receive for each poll.
 	 * Can be specified as 'property placeholder', e.g. {@code ${poller.maxMessagesPerPoll}}.
 	 */
-	String maxMessagesPerPoll() default "0x80000000"; //PollerMetadata.MAX_MESSAGES_UNBOUNDED
+	String maxMessagesPerPoll() default "";
 
 	/**
 	 * @return The fixed delay in milliseconds to create the {@link PeriodicTrigger}.
 	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedDelay}}.
 	 */
-	String fixedDelay() default "-1";
+	String fixedDelay() default "";
 
 	/**
 	 * @return The fixed rate in milliseconds to create the {@link PeriodicTrigger} with {@code fixedRate}.
 	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedRate}}.
 	 */
-	String fixedRate() default "-1";
+	String fixedRate() default "";
 
 	/**
 	 * @return The cron expression to create the {@link CronTrigger}.

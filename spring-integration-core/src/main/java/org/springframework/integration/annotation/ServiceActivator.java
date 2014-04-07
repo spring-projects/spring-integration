@@ -54,9 +54,10 @@ public @interface ServiceActivator {
 	String[] adviceChain() default {};
 
 	/**
-	 * @return the {@link Poller} options for {@link org.springframework.integration.scheduling.PollerMetadata}.
-	 * This attribute is an {@code array} just for convenience to allow to avoid it.
-	 * Only one {@link Poller} element may be presented.
+	 * @return the {@link Poller} options for a polled endpoint
+	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
+	 * This attribute is an {@code array} just to allow an empty default (no poller).
+	 * Only one {@link Poller} element is allowed.
 	 */
 	Poller[] poller() default {};
 }

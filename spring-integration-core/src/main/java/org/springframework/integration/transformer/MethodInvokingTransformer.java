@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
+import org.springframework.util.Assert;
 
 /**
  * A Message Transformer implementation that invokes the specified method
@@ -35,6 +36,7 @@ public class MethodInvokingTransformer extends AbstractMessageProcessingTransfor
 
 	public MethodInvokingTransformer(Object object, Method method) {
 		super(new MethodInvokingMessageProcessor<Object>(object, method));
+		Assert.state(!Void.class.isAssignableFrom(method.getReturnType()), "'transformer' method must not be 'void'.");
 	}
 
 	public MethodInvokingTransformer(Object object, String methodName) {
