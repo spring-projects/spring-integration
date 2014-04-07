@@ -17,18 +17,13 @@ package org.springframework.integration.redis.rules;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.UUID;
-
 import org.junit.Rule;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.test.util.TestUtils;
@@ -44,19 +39,14 @@ public class RedisAvailableTests {
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
-	protected RedisConnectionFactory getConnectionFactoryForTest(){
-		LettuceConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
-		RedisTemplate<UUID, Object> rt = new RedisTemplate<UUID, Object>();
-		rt.setConnectionFactory(connectionFactory);
-		rt.afterPropertiesSet();
-		rt.execute(new RedisCallback<Object>() {
+	private RedisConnectionFactory connectionFactory;
 
-			public Object doInRedis(RedisConnection connection)
-					throws DataAccessException {
-				connection.flushDb();
-				return null;
-			}
-		});
+	protected RedisConnectionFactory getConnectionFactoryForTest() {
+		if (this.connectionFactory != null) {
+			return this.connectionFactory;
+		}
+		LettuceConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
+		this.connectionFactory = connectionFactory;
 		return connectionFactory;
 	}
 
@@ -89,9 +79,8 @@ public class RedisAvailableTests {
 
 	protected void prepareList(RedisConnectionFactory connectionFactory){
 
-		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.afterPropertiesSet();
+		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
+		redisTemplate.delete("presidents");
 		BoundListOperations<String, String> ops = redisTemplate.boundListOps("presidents");
 
 		ops.rightPush("John Adams");
@@ -113,10 +102,9 @@ public class RedisAvailableTests {
 
 	protected void prepareZset(RedisConnectionFactory connectionFactory){
 
-		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.afterPropertiesSet();
+		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 
+		redisTemplate.delete("presidents");
 		BoundZSetOperations<String, String> ops = redisTemplate.boundZSetOps("presidents");
 
 		ops.add("John Adams", 18);
@@ -133,7 +121,23 @@ public class RedisAvailableTests {
 		ops.add("Ronald Reagan", 20);
 		ops.add("William J. Clinton", 20);
 		ops.add("Abraham Lincoln", 19);
-		ops.add("George Washington", 18);
+		ops.add("George Wahington", 18);
+	}
+
+	protected void deletePresidents(RedisConnectionFactory connectionFactory){
+		this.deleteKey(connectionFactory, "presidents");
+	}
+
+	protected void deleteKey(RedisConnectionFactory connectionFactory, String key) {
+		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
+		redisTemplate.delete(key);
+	}
+
+	protected StringRedisTemplate createStringRedisTemplate(RedisConnectionFactory connectionFactory) {
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.afterPropertiesSet();
+		return redisTemplate;
 	}
 
 }

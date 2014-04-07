@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 
 import java.util.concurrent.TimeUnit;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTests {
@@ -62,6 +64,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		connectionFactory.afterPropertiesSet();
 	}
 
+	@AfterClass
 	public static void tearDown() {
 		connectionFactory.destroy();
 	}
@@ -126,6 +129,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 		assertEquals(1, messageStore.getMessageGroupCount());
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
+
+		messageStore.removeMessageGroup(delayerMessageGroupId);
 
 	}
 
