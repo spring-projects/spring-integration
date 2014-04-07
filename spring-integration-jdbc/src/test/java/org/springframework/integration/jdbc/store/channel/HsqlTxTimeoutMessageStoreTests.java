@@ -12,11 +12,19 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -30,6 +38,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext // close at the end after class
 public class HsqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
+
+	@Autowired
+	private PollableChannel priorityChannel;
 
 	@Test
 	@Override
@@ -47,6 +58,52 @@ public class HsqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStor
 	@Override
 	public void testInt3181ConcurrentPolling() throws InterruptedException {
 		super.testInt3181ConcurrentPolling();
+	}
+
+	@Test
+	public void testPriorityChannel() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("-1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, -1).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("3").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("0").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 0).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("2").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 2).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("none").build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("31").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		priorityChannel.send(message);
+
+		Message<?> receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("3", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("31", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("2", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("1", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("0", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("-1", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("none", receive.getPayload());
 	}
 
 }

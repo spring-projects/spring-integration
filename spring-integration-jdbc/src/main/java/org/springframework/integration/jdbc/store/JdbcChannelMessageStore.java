@@ -38,6 +38,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
@@ -50,6 +51,7 @@ import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
@@ -91,7 +93,7 @@ import org.springframework.util.StringUtils;
  */
 @ManagedResource
 public class JdbcChannelMessageStore extends AbstractMessageGroupStore
-		implements InitializingBean, ChannelMessageStore {
+		implements InitializingBean, ChannelMessageStore, PriorityCapableChannelMessageStore {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);
 
@@ -116,8 +118,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	public static final String DEFAULT_REGION = "DEFAULT";
 
 	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
-
-	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
@@ -148,6 +148,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 
 	private boolean usingIdCache = false;
 
+	private boolean priorityEnabled;
+
 	/**
 	 * Convenient constructor for configuration use.
 	 */
@@ -171,8 +173,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
-
-		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
@@ -188,8 +188,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
-
-		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
@@ -355,6 +353,15 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		this.usingIdCache = usingIdCache;
 	}
 
+	public void setPriorityEnabled(boolean priorityEnabled) {
+		this.priorityEnabled = priorityEnabled;
+	}
+
+	@Override
+	public boolean isPriorityEnabled() {
+		return this.priorityEnabled;
+	}
+
 	/**
 	 * Check mandatory properties ({@link DataSource} and
 	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
@@ -379,16 +386,17 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1 && logger.isWarnEnabled()) {
-			logger.warn("The jdbcTemplate's fetchsize is not 1 but %s. This may cause FIFO issues with Oracle databases.");
+			logger.warn("The jdbcTemplate's fetchsize is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
+		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
 	 * Store a message in the database. The groupId identifies the channel for which
 	 * the message is to be stored.
 	 *
-	 * Keep in mind that the actual groupdId (Channel
+	 * Keep in mind that the actual groupId (Channel
 	 * Identifier) is converted to a String-based UUID identifier.
 	 *
 	 * @param groupId the group id to store the message under
@@ -396,13 +404,13 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	 */
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 
 		final String groupKey = getKey(groupId);
 
 		final long createdDate = System.currentTimeMillis();
 		final Message<?> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
+				.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 		final Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 		// using reflection to set ID since it is immutable through MessageHeaders
@@ -421,7 +429,19 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 				ps.setString(2, groupKey);
 				ps.setString(3, region);
 				ps.setLong(4, createdDate);
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
+
+				Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
+				if (priority != null) {
+					ps.setInt(5, priority);
+				}
+				else {
+					/*
+					Since not all RDBMS implement 'NULLS LAST' order option, usage 'Integer.MIN_VALUE'
+					is a good compromise to present the 'null' priorities.
+					*/
+					ps.setInt(5, Integer.MIN_VALUE);
+				}
+				lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
 			}
 		});
 
@@ -454,7 +474,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		parameters.addValue("region", region);
 		parameters.addValue("group_key", groupIdKey);
 
-		final String query;
+		String query;
 
 		final List<Message<?>> messages;
 
@@ -463,8 +483,12 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 			if (this.usingIdCache && !this.idCache.isEmpty()) {
 				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
 				parameters.addValue("message_ids", idCache);
-			} else {
+			}
+			else {
 				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
+			}
+			if (this.priorityEnabled) {
+				query = query.replaceFirst("CREATED_DATE ASC", "MESSAGE_PRIORITY DESC, CREATED_DATE ASC");
 			}
 			messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
 		}
@@ -476,7 +500,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
 
-			final Message<?>message = messages.get(0);
+			final Message<?> message = messages.get(0);
 			final String messageId = message.getHeaders().getId().toString();
 
 			if (this.usingIdCache) {
