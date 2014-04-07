@@ -31,11 +31,14 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.AssertionFailedError;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
@@ -50,9 +53,20 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 public class RedisMessageGroupStoreTests extends RedisAvailableTests {
+
+	@Before
+	@After
+	public void setUpTearDown() {
+		StringRedisTemplate template = this.createStringRedisTemplate(this.getConnectionFactoryForTest());
+		template.delete("MESSAGE_GROUP_1");
+		template.delete("MESSAGE_GROUP_2");
+		template.delete("MESSAGE_GROUP_3");
+	}
 
 	@Test
 	@RedisAvailable
@@ -317,6 +331,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor = Executors.newCachedThreadPool();
 
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store1.addMessageToGroup(1, message);
 					if (group.getMessages().size() != 1){
@@ -326,6 +341,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 				}
 			});
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
 					if (group.getMessages().size() != 0){
@@ -344,9 +360,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testWithAggregatorWithShutdown(){
-		this.getConnectionFactoryForTest(); // for this test it only ensures that DB was flushed before test
-
+	public void testWithAggregatorWithShutdown() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
@@ -366,6 +380,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
 		input.send(m3);
 		assertNotNull(output.receive(1000));
+		context.close();
 	}
 
 }
