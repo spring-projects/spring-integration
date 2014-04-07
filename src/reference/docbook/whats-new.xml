@@ -234,8 +234,8 @@
 			<para>
 				The <classname>RedisMetadataStore</classname> now implements <interfacename
 				>ConcurrentMetadataStore</interfacename>, allowing it to be used, for example,
-				in a persistent accept once file list filter in a multiple application instance/server
-				environment.
+				in a <classname>AbstractPersistentAcceptOnceFileListFilter</classname>
+				implementation in a multiple application instance/server environment.
 				For more information, see <xref linkend="redis-metadata-store"/>,  
 				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/> and
 				<xref linkend="sftp-inbound"/>.

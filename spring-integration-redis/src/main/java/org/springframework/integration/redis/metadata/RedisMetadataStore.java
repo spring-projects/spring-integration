@@ -114,25 +114,33 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	@Override
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		return (String) this.properties.get(key);
+		Object value = this.properties.get(key);
+		if (value != null) {
+			Assert.isInstanceOf(String.class, value, "Invalid type in the store");
+		}
+		return (String) value;
 	}
 
 	@Override
 
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		return (String) this.properties.remove(key);
+		Object removed = this.properties.remove(key);
+		if (removed != null) {
+			Assert.isInstanceOf(String.class, removed, "The removed value was an invalid type");
+		}
+		return (String) removed;
 	}
 
 	@Override
 	public String putIfAbsent(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		Object result = this.properties.putIfAbsent(key, value);
-		if (result != null) {
-			Assert.isInstanceOf(String.class, "This metadata store can only operate on String values");
+		Object oldValue = this.properties.putIfAbsent(key, value);
+		if (oldValue != null) {
+			Assert.isInstanceOf(String.class, oldValue, "Invalid type in the store");
 		}
-		return (String) result;
+		return (String) oldValue;
 	}
 
 	@Override
