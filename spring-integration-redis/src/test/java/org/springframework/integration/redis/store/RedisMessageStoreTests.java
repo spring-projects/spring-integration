@@ -24,21 +24,31 @@ import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
 public class RedisMessageStoreTests extends RedisAvailableTests {
+
+	@Before
+	@After
+	public void setUpTearDown() {
+		StringRedisTemplate template = this.createStringRedisTemplate(this.getConnectionFactoryForTest());
+		template.delete(template.keys("MESSAGE_*"));
+	}
 
 	@Test
 	@RedisAvailable

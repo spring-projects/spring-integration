@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,7 +66,8 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 	private RedisChannelMessageStore priorityCms;
 
 	@Before
-	public void setup() {
+	@After
+	public void setUpTearDown() {
 		this.cms.removeMessageGroup("cms:testChannel1");
 		this.cms.removeMessageGroup("cms:testChannel2");
 		this.priorityCms.removeMessageGroup("priorityCms:testChannel3");

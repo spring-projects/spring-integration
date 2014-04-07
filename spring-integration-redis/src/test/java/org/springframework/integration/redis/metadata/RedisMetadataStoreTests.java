@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors
+ * Copyright 2013-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -30,10 +32,17 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  *
  */
 public class RedisMetadataStoreTests extends RedisAvailableTests {
+
+	@Before
+	@After
+	public void setUpTearDown() {
+		this.createStringRedisTemplate(this.getConnectionFactoryForTest()).delete("testMetadata");
+	}
 
 	@Test
 	@RedisAvailable
@@ -48,11 +57,11 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testPersistKeyValue() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "foo");
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 		metadataStore.put("RedisMetadataStoreTests-Spring", "Integration");
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(jcf);
-		BoundHashOperations<String,Object,Object> ops = redisTemplate.boundHashOps("foo");
+		BoundHashOperations<String,Object,Object> ops = redisTemplate.boundHashOps("testMetadata");
 
 		assertEquals("Integration", ops.get("RedisMetadataStoreTests-Spring"));
 	}
@@ -62,7 +71,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	public void testGetValueFromMetadataStore() {
 
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 		metadataStore.put("RedisMetadataStoreTests-GetValue", "Hello Redis");
 
 		String retrievedValue = metadataStore.get("RedisMetadataStoreTests-GetValue");
@@ -74,7 +83,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	public void testPersistEmptyStringToMetadataStore() {
 
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 		metadataStore.put("RedisMetadataStoreTests-PersistEmpty", "");
 
 		String retrievedValue = metadataStore.get("RedisMetadataStoreTests-PersistEmpty");
@@ -86,7 +95,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	public void testPersistNullStringToMetadataStore() {
 
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 
 		try {
 			metadataStore.put("RedisMetadataStoreTests-PersistEmpty", null);
@@ -104,7 +113,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testPersistWithEmptyKeyToMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 		metadataStore.put("", "PersistWithEmptyKey");
 
 		String retrievedValue = metadataStore.get("");
@@ -115,7 +124,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testPersistWithNullKeyToMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 
 		try {
 			metadataStore.put(null, "something");
@@ -132,7 +141,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testGetValueWithNullKeyFromMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 
 		try {
 			metadataStore.get(null);
@@ -149,7 +158,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testRemoveFromMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
 
 		String testKey = "RedisMetadataStoreTests-Remove";
 		String testValue = "Integration";
