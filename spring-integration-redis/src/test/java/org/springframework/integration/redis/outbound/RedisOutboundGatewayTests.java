@@ -47,6 +47,7 @@ import com.lambdaworks.redis.protocol.CommandType;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 @ContextConfiguration
@@ -121,6 +122,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("11", new String((byte[]) receive.getPayload()));
+		this.createStringRedisTemplate(this.getConnectionFactoryForTest()).delete("si.test.RedisAtomicInteger");
 	}
 
 	@Test
@@ -163,6 +165,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertThat((List<byte[]>) receive.getPayload(), Matchers.contains(value1, value2));
+		connection.del("foo1".getBytes(), "foo2".getBytes());
 	}
 
 }

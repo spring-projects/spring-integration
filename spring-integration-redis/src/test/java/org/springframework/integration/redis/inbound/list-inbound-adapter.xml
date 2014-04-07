@@ -49,7 +49,7 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int:transaction-synchronization-factory id="syncFactory">
-		<int:after-commit expression="#resource.attributes['store'].rename('bar')"/>
+		<int:after-commit expression="#store.rename('bar')"/>
 		<int:after-rollback expression="#store.rename('baz')"/>
 	</int:transaction-synchronization-factory>
 

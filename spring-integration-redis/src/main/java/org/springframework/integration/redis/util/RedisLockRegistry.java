@@ -34,7 +34,10 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
@@ -92,6 +95,8 @@ public final class RedisLockRegistry implements LockRegistry {
 	private final long expireAfter;
 
 	private final LockRegistry localRegistry = new DefaultLockRegistry();
+
+	private final LockSerializer lockSerializer = new LockSerializer();
 
 	static {
 		String host;
@@ -176,15 +181,21 @@ public final class RedisLockRegistry implements LockRegistry {
 	}
 
 	public Collection<Lock> listLocks() {
-		Set<String> keys = this.redisTemplate.keys(this.registryKey + ":*");
-		List<Lock> locks = new ArrayList<Lock>(keys.size());
-		for (String key : keys) {
-			RedisLock lock = this.redisTemplate.boundValueOps(key).get();
-			if (lock != null) {
-				locks.add(lock);
+		return this.redisTemplate.execute(new RedisCallback<Collection<Lock>>() {
+
+			@Override
+			public Collection<Lock> doInRedis(RedisConnection connection) throws DataAccessException {
+				Set<byte[]> keys = connection.keys((registryKey + ":*").getBytes());
+				ArrayList<Lock> list = new ArrayList<Lock>(keys.size());
+				if (keys.size() > 0) {
+					List<byte[]> locks = connection.mGet(keys.toArray(new byte[keys.size()][]));
+					for (byte[] lock : locks) {
+						list.add(lockSerializer.deserialize(lock));
+					}
+				}
+				return list;
 			}
-		}
-		return locks;
+		});
 	}
 
 	private class RedisLock implements Lock {
