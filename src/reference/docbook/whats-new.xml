@@ -262,5 +262,14 @@
 				<xref linkend="sftp-inbound"/>.
 			</para>
 		</section>
+		<section id="4.0-jdbc-cs">
+			<title>JdbcChannelMessageStore and PriorityChannel</title>
+			<para>
+				The <classname>JdbcChannelMessageStore</classname> now implements
+				<interfacename>PriorityCapableChannelMessageStore</interfacename>, allowing it to be used as
+				a <code>message-store</code> reference for <code>priority-queue</code>s.
+				For more information, see <xref linkend="jdbc-message-store-channels"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

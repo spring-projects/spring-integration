@@ -566,15 +566,16 @@ payload to an Integer.
       <code>message-store</code> attribute as shown in the next example.
 
       <programlisting language="xml"><![CDATA[<int:channel id="dbBackedChannel">
-    <int:queue message-store="messageStore"/>
+    <int:queue message-store="channelStore"/>
 </int:channel>
 
-<int-jdbc:message-store id="messageStore" data-source="someDataSource"/>]]></programlisting>
+<bean id="channelStore" class="o.s.i.jdbc.store.JdbcChannelMessageStore">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="channelMessageStoreQueryProvider" ref="queryProvider"/>
+</bean>]]></programlisting>
 
-     The above example also shows that <classname>JdbcMessageStore</classname> can be configured with the namespace support
-     provided by the Spring Integration JDBC module. All you need to do is inject any <classname>javax.sql.DataSource</classname>
-     instance. The Spring Integration JDBC module also provides schema DDL for most popular databases. These schemas are located in
-     the <emphasis>org.springframework.integration.jdbc</emphasis> package of that module (spring-integration-jdbc).
+     The Spring Integration JDBC module also provides schema DDL for a number of popular databases. These schemas are located in
+     the <emphasis>org.springframework.integration.jdbc.store.channel</emphasis> package of that module (spring-integration-jdbc).
 
      <important>
      One important feature is that with any transactional persistent store (e.g., JdbcChannelMessageStore), as long as the poller has a transaction configured,
@@ -662,9 +663,12 @@ payload to an Integer.
       <para>
         Since <emphasis>version 4.0</emphasis>, the <code>priority-channel</code> child element supports
         the <code>message-store</code> option (<code>comparator</code> is not allowed in that case).
-        The message store must be a <interfacename>ChannelPriorityMessageStore</interfacename> and, in this
+        The message store must be a <interfacename>PriorityCapableChannelMessageStore</interfacename> and, in this
         case, the namespace parser will declare a <classname>QueueChannel</classname> instead of
-        a <classname>PriorityChannel</classname>. See <xref linkend="channel-configuration-queuechannel"/>.
+        a <classname>PriorityChannel</classname>. Implementations of the
+        <classname>PriorityCapableChannelMessageStore</classname> are currently provided for <code>Redis</code>
+        and <code>JDBC</code>.
+        See <xref linkend="channel-configuration-queuechannel"/>.
       </para>
     </section>
     <section id="channel-configuration-rendezvouschannel">

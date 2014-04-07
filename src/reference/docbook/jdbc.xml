@@ -420,16 +420,12 @@
 	<section id="jdbc-message-store-channels">
 		<title>Backing Message Channels</title>
 		<para>
-			If you intent backing <emphasis>Message Channels</emphasis> using JDBC,
+			If you intend backing <emphasis>Message Channels</emphasis> using JDBC,
 			it is recommended to use the provided <classname>JdbcChannelMessageStore</classname>
-			implementation instead. It can only be used in conjuntion
+			implementation instead. It can only be used in conjunction
 			with <emphasis>Message Channels</emphasis>.
 		</para>
-		<note>
-			The provided <classname>JdbcChannelMessageStore</classname>
-			implementation is available since <emphasis>Spring Integration 2.2.</emphasis>.
-		</note>
-		<para><emphasis>Supported Database</emphasis></para>
+		<para><emphasis role="bold">Supported Databases</emphasis></para>
 		<para>
 			The <classname>JdbcChannelMessageStore</classname> uses database specific
 			SQL queries to retrieve messages from the database. Therefore, users must
@@ -451,19 +447,27 @@
 			the <classname>AbstractChannelMessageStoreQueryProvider</classname>
 			class and provide your own custom queries.
 		</para>
+		<para>
+			Since <emphasis>version 4.0</emphasis>, the <code>MESSAGE_SEQUENCE</code> column has been
+			added to the table to ensure first-in-first-out (FIFO) queueing even when messages are
+			stored in the same millisecond.
+		</para>
 		<important>
 			<para>
-				Generally it is not recommened to use a relational database for the
+				Generally it is not recommended to use a relational database for the
 				purpose of queuing. Instead, if possible, consider using either JMS or
-				AMQP, for which message store implementation are provided as well. For
+				AMQP backed channels instead. For
 				further reference please see the following resources:
 			</para>
 			<itemizedlist>
-				<listitem><ulink url="https://www.engineyard.com/blog/2011/5-subtle-ways-youre-using-mysql-as-a-queue-and-why-itll-bite-you/">5 subtle ways you’re using MySQL as a queue, and why it’ll bite you</ulink></listitem>
-				<listitem><ulink url="http://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html">The Database As Queue Anti-Pattern</ulink></listitem>
+				<listitem><ulink url=
+					"https://www.engineyard.com/blog/2011/5-subtle-ways-youre-using-mysql-as-a-queue-and-why-itll-bite-you/"
+					>5 subtle ways you’re using MySQL as a queue, and why it’ll bite you</ulink>.</listitem>
+				<listitem><ulink url="http://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html"
+					>The Database As Queue Anti-Pattern</ulink>.</listitem>
 			</itemizedlist>
 		</important>
-		<para><emphasis>Concurrent Polling</emphasis></para>
+		<para><emphasis role="bold">Concurrent Polling</emphasis></para>
 		<para>
 			When polling a <emphasis>Message Channel</emphasis>, you have the option
 			to configure the associated <classname>Poller</classname> with a
@@ -520,7 +524,46 @@
 
 <int:channel id="outputChannel" />
 …]]></programlisting>
+	<para>
+		<emphasis role="bold">Priority Channel</emphasis>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis>, the <classname>JdbcChannelMessageStore</classname>
+			implements <interfacename>PriorityCapableChannelMessageStore</interfacename> and provides the
+			<code>priorityEnabled</code> option allowing it to be used as a <code>message-store</code>
+			reference for <code>priority-queue</code>s. For this purpose, the <code>INT_CHANNEL_MESSAGE</code>
+			has a <code>MESSAGE_PRIORITY</code> column to store the value of <code>PRIORITY</code> Message header.
+			In addition, a new <code>MESSAGE_SEQUENCE</code> column is also provided to achieve a robust first-in-first-out
+			(FIFO) polling mechanism, even when multiple messages are stored with the same priority
+			in the same millisecond. Messages are polled (selected) from the database with
+			<code>order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE</code>.
+		</para>
+		<note>
+			<para>
+				It's not recommended to use the same <classname>JdbcChannelMessageStore</classname> bean
+				for priority and non-priority queue channel, because <code>priorityEnabled</code> option applies to the
+				entire store and proper FIFO queue semantics will not be retained for the queue channel.
+				However the same <code>INT_CHANNEL_MESSAGE</code> table, and even <code>region</code>, can be used for both
+				<classname>JdbcChannelMessageStore</classname> types. To configure that scenario, simply
+				extend one message store bean from the other:
+			</para>
+		</note>
+		<programlisting language="xml"><![CDATA[<bean id="channelStore" class="o.s.i.jdbc.store.JdbcChannelMessageStore">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="channelMessageStoreQueryProvider" ref="queryProvider"/>
+</bean>
 
+<int:channel id="queueChannel">
+    <int:queue message-store="store"/>
+</int:channel>
+
+<bean id="priorityStore" parent="channelStore">
+    <property name="priorityEnabled" value="true"/>
+</bean>
+
+<int:channel id="priorityChannel">
+    <int:priority-queue message-store="priorityStore"/>
+</int:channel>]]></programlisting>
+	</para>
 	</section>
     <section>
       <title>Initializing the Database</title>
