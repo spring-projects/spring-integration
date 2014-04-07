@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,24 +26,46 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.redis.metadata.RedisMetadataStore;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 
 /**
  * @author Gary Russell
- * @since 3.0
+ * @since 4.0
  *
  */
-public class PersistentAcceptOnceFileListFilterTests {
+public class PersistentAcceptOnceFileListFilterRedisTests extends RedisAvailableTests {
+
+	@Before
+	@After
+	public void setupShutDown() {
+		RedisTemplate<String, ?> template = this.createTemplate();
+		template.delete("persistentAcceptOnceFileListFilterRedisTests");
+	}
+
+	private RedisTemplate<String, ?> createTemplate() {
+		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
+		template.setConnectionFactory(this.getConnectionFactoryForTest());
+		template.setKeySerializer(new StringRedisSerializer());
+		template.afterPropertiesSet();
+		return template;
+	}
 
 	@Test
+	@RedisAvailable
 	public void testFileSystem() throws Exception {
 		final AtomicBoolean suspend = new AtomicBoolean();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		ConcurrentMetadataStore store = new SimpleMetadataStore() {
+		RedisMetadataStore store = new RedisMetadataStore(this.getConnectionFactoryForTest(),
+				"persistentAcceptOnceFileListFilterRedisTests") {
 
 			@Override
 			public boolean replace(String key, String oldValue, String newValue) {
@@ -61,7 +83,7 @@ public class PersistentAcceptOnceFileListFilterTests {
 
 		};
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
-				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
+				new FileSystemPersistentAcceptOnceFileListFilter(store,"foo:");
 		final File file = File.createTempFile("foo", ".txt");
 		assertEquals(1, filter.filterFiles(new File[] {file}).size());
 		String ts = store.get("foo:" + file.getAbsolutePath());

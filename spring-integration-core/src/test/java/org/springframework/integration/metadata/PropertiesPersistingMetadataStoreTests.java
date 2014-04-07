@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.metadata;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -32,6 +34,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStoreTests {
@@ -43,7 +46,10 @@ public class PropertiesPersistingMetadataStoreTests {
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		assertTrue(file.exists());
-		metadataStore.put("foo", "bar");
+		assertNull(metadataStore.putIfAbsent("foo", "baz"));
+		assertNotNull(metadataStore.putIfAbsent("foo", "baz"));
+		assertFalse(metadataStore.replace("foo", "xxx", "bar"));
+		assertTrue(metadataStore.replace("foo", "baz", "bar"));
 		metadataStore.destroy();
 		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
 		assertNotNull(persistentProperties);

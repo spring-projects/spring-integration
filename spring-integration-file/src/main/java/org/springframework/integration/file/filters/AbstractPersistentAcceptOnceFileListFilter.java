@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.file.filters;
 
-import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
 /**
@@ -30,13 +30,13 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> {
 
-	protected final MetadataStore store;
+	protected final ConcurrentMetadataStore store;
 
 	protected final String prefix;
 
 	private final Object monitor = new Object();
 
-	public AbstractPersistentAcceptOnceFileListFilter(MetadataStore store, String prefix) {
+	public AbstractPersistentAcceptOnceFileListFilter(ConcurrentMetadataStore store, String prefix) {
 		Assert.notNull(store, "'store' cannot be null");
 		Assert.notNull(prefix, "'prefix' cannot be null");
 		this.store = store;
@@ -47,13 +47,16 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	protected boolean accept(F file) {
 		String key = buildKey(file);
 		synchronized(monitor) {
-			String value = store.get(key);
-			if (value != null && isEqual(file, value)) {
+			String newValue = value(file);
+			String oldValue = this.store.putIfAbsent(key, newValue);
+			if (oldValue == null) { // not in store
+				return true;
+			}
+			if (isEqual(file, oldValue)) { // same value in store
 				return false;
 			}
-			store.put(key, value(file));
+			return this.store.replace(key, oldValue, newValue); // true if replace successful
 		}
-		return true;
 	}
 
 	/**
@@ -73,7 +76,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	 * @return true if equal.
 	 */
 	protected boolean isEqual(F file, String value) {
-		return Long.valueOf(value).longValue() == this.modified(file);
+		return Long.valueOf(value) == this.modified(file);
 	}
 
 	/**

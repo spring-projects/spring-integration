@@ -56,9 +56,9 @@
 
   lock-registry="lockRegistry" ]]><co id="resxml18" /><![CDATA[
 
-		group-timeout="60000" ]]><co id="resxml19" /><![CDATA[
-		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="resxml20" /><![CDATA[
-		scheduler="taskScheduler" /> ]]><co id="resxml21" /></programlisting>
+  group-timeout="60000" ]]><co id="resxml19" /><![CDATA[
+  group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="resxml20" /><![CDATA[
+  scheduler="taskScheduler" /> ]]><co id="resxml21" /></programlisting>
     <para><calloutlist>
         <callout arearefs="resxml1-co" id="resxml1">
           <para>The id of the resequencer is

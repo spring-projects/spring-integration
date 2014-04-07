@@ -258,6 +258,9 @@ project('spring-integration-file') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context:$springVersion"
 		compile "commons-io:commons-io:$commonsIoVersion"
+		testCompile project(":spring-integration-redis")
+		testCompile project(":spring-integration-redis").sourceSets.test.output
+		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 	}
 }
 

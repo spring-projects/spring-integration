@@ -40,6 +40,12 @@
 		<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
 		and configure it as a bean in the Application Context.
 	</para>
+	<para>
+		Starting with <emphasis>version 4.0</emphasis>, <classname>SimpleMetadataStore</classname>,
+		<classname>PropertiesPersistingMetadataStore</classname> and
+		<classname>RedisMetadataStore</classname> implement <interfacename>ConcurrentMetadataStore</interfacename>.
+		These provide for atomic updates and can be used across multiple component or application instances.
+	</para>
 	<section id="idempotent-receiver">
 		<title>Idempotent Receiver</title>
 		<para>

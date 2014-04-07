@@ -57,7 +57,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Before
 	@After
-	public void shutDown() {
+	public void setupShutDown() {
 		RedisTemplate<String, ?> template = this.createTemplate();
 		template.delete("rlrTests");
 		template.delete("rlrTests2");

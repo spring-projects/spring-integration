@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.util.DefaultLockRegistry;
+import org.springframework.integration.util.LockRegistry;
 import org.springframework.util.Assert;
 import org.springframework.util.DefaultPropertiesPersister;
 
@@ -45,7 +48,7 @@ import org.springframework.util.DefaultPropertiesPersister;
  * @author Gary Russell
  * @since 2.0
  */
-public class PropertiesPersistingMetadataStore implements MetadataStore, InitializingBean, DisposableBean {
+public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStore, InitializingBean, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -53,9 +56,11 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 
 	private final DefaultPropertiesPersister persister = new DefaultPropertiesPersister();
 
-	private volatile File file;
+	private final LockRegistry lockRegistry = new DefaultLockRegistry();
 
-	private volatile String baseDirectory = System.getProperty("java.io.tmpdir") + "/spring-integration/";
+	private String baseDirectory = System.getProperty("java.io.tmpdir") + "/spring-integration/";
+
+	private File file;
 
 
 	public void setBaseDirectory(String baseDirectory) {
@@ -82,17 +87,85 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 
 	@Override
 	public void put(String key, String value) {
-		this.metadata.setProperty(key, value);
+		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(value, "'value' cannot be null");
+		Lock lock = this.lockRegistry.obtain(key);
+		lock.lock();
+		try {
+			this.metadata.setProperty(key, value);
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
 	public String get(String key) {
-		return this.metadata.getProperty(key);
+		Assert.notNull(key, "'key' cannot be null");
+		Lock lock = this.lockRegistry.obtain(key);
+		lock.lock();
+		try {
+			return this.metadata.getProperty(key);
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
 	public String remove(String key) {
-		return (String) this.metadata.remove(key);
+		Assert.notNull(key, "'key' cannot be null");
+		Lock lock = this.lockRegistry.obtain(key);
+		lock.lock();
+		try {
+			return (String) this.metadata.remove(key);
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public String putIfAbsent(String key, String value) {
+		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(value, "'value' cannot be null");
+		Lock lock = this.lockRegistry.obtain(key);
+		lock.lock();
+		try {
+			String property = this.metadata.getProperty(key);
+			if (property == null) {
+				this.metadata.setProperty(key, value);
+				return null;
+			}
+			else {
+				return property;
+			}
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public boolean replace(String key, String oldValue, String newValue) {
+		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(oldValue, "'oldValue' cannot be null");
+		Assert.notNull(newValue, "'newValue' cannot be null");
+		Lock lock = this.lockRegistry.obtain(key);
+		lock.lock();
+		try {
+			String property = this.metadata.getProperty(key);
+			if (oldValue.equals(property)) {
+				this.metadata.setProperty(key, newValue);
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	@Override

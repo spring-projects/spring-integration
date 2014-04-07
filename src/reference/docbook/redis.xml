@@ -489,6 +489,11 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 			<code>key</code> plays the role of a <emphasis>region</emphasis>, which is useful in distributed environment,
 			when several applications use the same Redis server. By default this <code>key</code> has the value <code>MetaData</code>.
 		</para>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis>, this store now implements <interfacename
+			>ConcurrentMetadataStore</interfacename>, allowing it to be reliably shared across multiple
+			application instances where only one instance will be allowed to store or modify a key's value.
+		</para>
 	</section>
   <section id="redis-store-inbound-channel-adapter">
         <title>RedisStore Inbound Channel Adapter</title>
@@ -769,5 +774,35 @@ the serialization of values, you may want to consider providing your own
 			For more information about commands, their arguments and result type see
 		  <ulink url="http://redis.io/commands">Redis Specification</ulink>.
 		</para>
+	</section>
+	<section id="redis-lock-registry">
+		<title>Redis Lock Registry</title>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis>, the <classname>RedisLockRegistry</classname> is
+			available. Certain components (for example aggregator and resequencer) use a lock obtained from
+			a <interfacename>LockRegistry</interfacename> instance to ensure
+			that only one thread is manipulating a group at a time. The <classname>DefaultLockRegistry</classname>
+			performs this function within a single component; you can now configure an external lock registry
+			on these components. When used with a shared <interfacename>MessageGroupStore</interfacename>,
+			the <classname>RedisLockRegistry</classname> can be use to provide this functionality across
+			multiple application instances, such that only one instance can manipulate the group at a time.
+		</para>
+		<para>
+			When a lock is released by a local thread, another local thread will generally be able to acquire the
+			lock immediately. If a lock is released by a thread using a different registry instance, it can take up to
+			100ms to acquire the lock.
+		</para>
+		<para>
+			To avoid "hung" locks (when a server fails), the locks in this registry are expired after a default
+			60 seconds, but this can be configured on the registry. Locks are normally held for a much smaller
+			time. 
+		</para>
+		<important>
+			Because the keys can expire, an attempt to unlock an expired lock will result in an exception
+			being thrown. However, be aware that the resources protected by such a lock may have been
+			compromised so such exceptions should be considered severe. The expiry should be set at
+			a large enough value to prevent this condition, while small enough that the lock can
+			be recovered after a server failure in a reasonable amount of time. 
+		</important>
 	</section>
 </chapter>
