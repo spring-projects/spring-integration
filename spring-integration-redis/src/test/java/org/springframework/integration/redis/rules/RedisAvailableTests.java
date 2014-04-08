@@ -15,17 +15,18 @@
  */
 package org.springframework.integration.redis.rules;
 
-import java.util.UUID;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
-import org.springframework.dao.DataAccessException;
+
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -36,29 +37,50 @@ public class RedisAvailableTests {
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public JedisConnectionFactory getConnectionFactoryForTest(){
+	private JedisConnectionFactory connectionFactory;
+
+	public JedisConnectionFactory getConnectionFactoryForTest() {
+		if (this.connectionFactory != null) {
+			return this.connectionFactory;
+		}
 		JedisConnectionFactory jcf = new JedisConnectionFactory();
 		jcf.setPort(7379);
 		jcf.afterPropertiesSet();
-		RedisTemplate rt = new RedisTemplate<UUID, Object>();
-		rt.setConnectionFactory(jcf);
-		rt.execute(new RedisCallback() {
-
-			public Object doInRedis(RedisConnection connection)
-					throws DataAccessException {
-				connection.flushDb();
-				return null;
-			}
-		});
+		this.connectionFactory = jcf;
 		return jcf;
+	}
+
+	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
+		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
+				RedisConnection.class);
+
+		int n = 0;
+		while (n++ < 100 && !connection.isSubscribed()) {
+			Thread.sleep(100);
+		}
+		// TODO: remove this additional delay when/if https://jira.springsource.org/browse/DATAREDIS-242 is resolved
+		Thread.sleep(250);
+		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
+	}
+
+	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
+		this.awaitContainerSubscribed(container);
+		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
+				RedisConnection.class);
+
+		int n = 0;
+		while (n++ < 100 && connection.getSubscription().getPatterns().size() == 0) {
+			Thread.sleep(100);
+		}
+		// TODO: remove this additional delay when/if https://jira.springsource.org/browse/DATAREDIS-242 is resolved
+		Thread.sleep(250);
+		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
 	}
 
 	protected void prepareList(JedisConnectionFactory jcf){
 
-		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(jcf);
-		redisTemplate.afterPropertiesSet();
+		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
+		redisTemplate.delete("presidents");
 		BoundListOperations<String, String> ops = redisTemplate.boundListOps("presidents");
 
 		ops.rightPush("John Adams");
@@ -80,10 +102,9 @@ public class RedisAvailableTests {
 
 	protected void prepareZset(JedisConnectionFactory jcf){
 
-		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(jcf);
-		redisTemplate.afterPropertiesSet();
+		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 
+		redisTemplate.delete("presidents");
 		BoundZSetOperations<String, String> ops = redisTemplate.boundZSetOps("presidents");
 
 		ops.add("John Adams", 18);
@@ -100,6 +121,22 @@ public class RedisAvailableTests {
 		ops.add("Ronald Reagan", 20);
 		ops.add("William J. Clinton", 20);
 		ops.add("Abraham Lincoln", 19);
-		ops.add("George Washington", 18);
+		ops.add("George Wahington", 18);
+	}
+
+	protected void deletePresidents(RedisConnectionFactory connectionFactory){
+		this.deleteKey(connectionFactory, "presidents");
+	}
+
+	protected void deleteKey(RedisConnectionFactory connectionFactory, String key) {
+		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
+		redisTemplate.delete(key);
+	}
+
+	protected StringRedisTemplate createStringRedisTemplate(RedisConnectionFactory connectionFactory) {
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.afterPropertiesSet();
+		return redisTemplate;
 	}
 }

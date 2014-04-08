@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisZSet;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -59,6 +60,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void testListWithListPayloadParsedAndProvidedKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -81,12 +83,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		assertEquals("Manny", redisList.get(0));
 		assertEquals("Moe", redisList.get(1));
 		assertEquals("Jack", redisList.get(2));
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadParsedAndProvidedKeyAsHeader() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -109,12 +113,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		assertEquals("Manny", redisList.get(0));
 		assertEquals("Moe", redisList.get(1));
 		assertEquals("Jack", redisList.get(2));
+		this.deleteKey(jcf, "foo");
 	}
 
 	@RedisAvailable
 	@Test(expected=MessageHandlingException.class)
 	public void testListWithListPayloadParsedAndNoKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new RedisTemplate<String, String>()));
@@ -131,12 +137,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		list.add("Jack");
 		Message<List<String>> message = MessageBuilder.withPayload(list).build();
 		handler.handleMessage(message);
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadAsSingleEntry() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisList<List<String>> redisList =
 				new DefaultRedisList<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
@@ -162,12 +170,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		assertEquals("Manny", resultList.get(0));
 		assertEquals("Moe", resultList.get(1));
 		assertEquals("Jack", resultList.get(2));
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyDefault() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -200,12 +210,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		for (TypedTuple<String> pepboy : pepboys) {
 			assertEquals(Double.valueOf(2), pepboy.getScore());
 		}
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrement() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -241,12 +253,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		for (TypedTuple<String> pepboy : pepboys) {
 			assertTrue(pepboy.getScore() == 2);
 		}
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() {// see INT-2775
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -282,12 +296,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		for (TypedTuple<String> pepboy : pepboys) {
 			assertTrue(pepboy.getScore() == 2);
 		}
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisZSet<List<String>> redisZset =
 				new DefaultRedisZSet<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
@@ -315,12 +331,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		for (TypedTuple<List<String>> pepboys : entries) {
 			assertTrue(pepboys.getScore() == 4);
 		}
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadParsedHeaderKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deletePresidents(jcf);
 		String key = "presidents";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -357,12 +375,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 		Set<TypedTuple<String>> entries = redisZset.rangeByScoreWithScores(18, 19);
 		assertEquals(6, entries.size());
+		this.deletePresidents(jcf);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadPojoParsedHeaderKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deletePresidents(jcf);
 		String key = "presidents";
 		RedisZSet<President> redisZset =
 				new DefaultRedisZSet<President>(key, this.initTemplate(jcf, new RedisTemplate<String, President>()));
@@ -400,12 +420,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 		Set<TypedTuple<President>> entries = redisZset.rangeByScoreWithScores(18, 19);
 		assertEquals(6, entries.size());
+		this.deletePresidents(jcf);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadPojoAsSingleEntryHeaderKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deletePresidents(jcf);
 		String key = "presidents";
 		RedisZSet<Map<President, Double>> redisZset =
 				new DefaultRedisZSet<Map<President, Double>>(key, this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>()));
@@ -430,6 +452,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.handleMessage(message);
 
 		assertEquals(1, redisZset.size());
+		this.deletePresidents(jcf);
 	}
 
 	@Test(expected=IllegalStateException.class)
@@ -474,6 +497,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void testMapWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -486,12 +510,14 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		catch (Exception e) {
 			fail("No exception expected:" + e.getMessage());
 		}
+		this.deleteKey(jcf, "foo");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testPropertiesWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.deleteKey(jcf, "foo");
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -504,10 +530,12 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		catch (Exception e) {
 			fail("No exception expected:" + e.getMessage());
 		}
+		this.deleteKey(jcf, "foo");
 	}
 
 	private <K,V> RedisTemplate<K,V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K,V> redisTemplate) {
 		redisTemplate.setConnectionFactory(rcf);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.afterPropertiesSet();
 		return redisTemplate;
 	}
