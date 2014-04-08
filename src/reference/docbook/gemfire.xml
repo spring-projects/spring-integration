@@ -178,4 +178,26 @@ In the above examle, the cache and region are configured using the spring-gemfir
 Note the <emphasis>pool</emphasis> element is configured with the address of a cache server (a locator may be substituted here). The region is configured as a 'PROXY' so that no data will be stored locally. The region's id corresponds to a region with the same name configured in the cache server.
 </para>
 </section>
+	<section id="gemfire-lock-registry">
+		<title>Gemfire Lock Registry</title>
+
+		<para>
+			Starting with <emphasis>version 4.0</emphasis>, the <classname>GemfireLockRegistry</classname> is
+			available. Certain components (for example aggregator and resequencer) use a lock obtained from
+			a <interfacename>LockRegistry</interfacename> instance to ensure
+			that only one thread is manipulating a group at a time. The <classname>DefaultLockRegistry</classname>
+			performs this function within a single component; you can now configure an external lock registry
+			on these components. When used with a shared <interfacename>MessageGroupStore</interfacename>,
+			the <classname>GemfireLockRegistry</classname> can be use to provide this functionality across
+			multiple application instances, such that only one instance can manipulate the group at a time.
+			<note>
+				One of the <classname>GemfireLockRegistry</classname> constructors requires a <interfacename>Region</interfacename>
+				as an argument; it is used to obtain a <interfacename>Lock</interfacename> via the
+				<code>getDistributedLock()</code> method. This operation requires <code>GLOBAL</code>
+				scope for the <interfacename>Region</interfacename>.
+				Another constructor requires <interfacename>Cache</interfacename> and the <interfacename>Region</interfacename>
+				will be created with <code>GLOBAL</code> scope and with the name <code>LockRegistry</code>.
+			</note>
+		</para>
+	</section>
 </chapter>

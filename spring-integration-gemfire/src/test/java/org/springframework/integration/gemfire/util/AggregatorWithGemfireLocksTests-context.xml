@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<gfe:cache />
+
+	<bean id="lockRegistry" class="org.springframework.integration.gemfire.util.GemfireLockRegistry">
+		<constructor-arg ref="gemfireCache"/>
+	</bean>
+
+	<bean id="lockRegistry2" class="org.springframework.integration.gemfire.util.GemfireLockRegistry">
+		<constructor-arg value="#{gemfireCache.getRegion(T(org.springframework.integration.gemfire.util.GemfireLockRegistry).LOCK_REGISTRY_REGION)}"/>
+	</bean>
+
+	<bean id="latching"
+		  class="org.springframework.integration.gemfire.util.AggregatorWithGemfireLocksTests$LatchingReleaseStrategy"/>
+
+	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
+					message-store="sms"
+					expire-groups-upon-completion="true" lock-registry="lockRegistry"/>
+
+	<int:aggregator input-channel="in2" release-strategy="latching" output-channel="out"
+					message-store="sms"
+					expire-groups-upon-completion="true" lock-registry="lockRegistry2"/>
+
+	<int:channel id="out">
+		<int:queue/>
+	</int:channel>
+
+</beans>

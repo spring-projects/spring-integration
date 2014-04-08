@@ -133,13 +133,15 @@
 				For more information, see <xref linkend="redis-outbound-gateway"/>.
 			</para>
 		</section>
-		<section id="4.0-redis-lock-registry">
-			<title>RedisLockRegistry</title>
+		<section id="4.0-redis-gemfire-lock-registry">
+			<title>RedisLockRegistry and GemfireLockRegistry</title>
 			<para>
-				The <classname>RedisLockRegistry</classname> is now available supporting global locks visible
-				to multiple application instances/servers. This can be used with aggregating message handlers
-				across multiple application instances such that group release will occur on only one instance.
-				For more information, see <xref linkend="redis-lock-registry"/> and <xref linkend="aggregator"/>.
+				The <classname>RedisLockRegistry</classname> and <classname>GemfireLockRegistry</classname> are now
+				available supporting global locks visible to multiple application instances/servers.
+				These can be used with aggregating message handlers across multiple application instances such
+				that group release will occur on only one instance.
+				For more information, see <xref linkend="redis-lock-registry"/>, <xref linkend="gemfire-lock-registry"/>
+				and <xref linkend="aggregator"/>.
 			</para>
 		</section>
 		<section id="4.0-poller-annotation">
