@@ -21,17 +21,23 @@ package org.springframework.integration.jdbc.store.channel;
 public class HsqlChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
 	@Override
+	public String getCreateMessageQuery() {
+		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, MESSAGE_SEQUENCE, MESSAGE_BYTES)"
+				+ " values (?, ?, ?, ?, ?, NEXT VALUE FOR %PREFIX%MESSAGE_SEQ, ?)";
+	}
+
+	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE ASC LIMIT 1";
+				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"order by CREATED_DATE ASC LIMIT 1";
+				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
 	}
 
 	@Override
@@ -39,14 +45,14 @@ public class HsqlChannelMessageStoreQueryProvider extends AbstractChannelMessage
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
-				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE ASC LIMIT 1";
+				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE ASC LIMIT 1";
+				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
 	}
 
 }

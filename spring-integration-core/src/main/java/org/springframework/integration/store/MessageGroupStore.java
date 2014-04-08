@@ -60,13 +60,6 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
 
 	/**
-	 * Remove the message group with this id.
-	 *
-	 * @param groupId The id of the group to remove.
-	 */
-	void removeMessageGroup(Object groupId);
-
-	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.
 	 *
 	 * @param callback A callback to execute when a message group is cleaned up.

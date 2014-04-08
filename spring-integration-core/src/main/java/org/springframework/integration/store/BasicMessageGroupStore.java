@@ -63,4 +63,10 @@ public interface BasicMessageGroupStore {
 	 */
 	Message<?> pollMessageFromGroup(Object groupId);
 
+	/**
+	 * Remove the message group with this id.
+	 *
+	 * @param groupId The id of the group to remove.
+	 */
+	void removeMessageGroup(Object groupId);
 }
