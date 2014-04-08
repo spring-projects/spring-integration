@@ -24,9 +24,7 @@
 
 	<int:poller default="true" fixed-delay="10000"/>
 
-	<bean id="priorityMessageStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
-		<constructor-arg ref="mongoConnectionFactory"/>
-		<constructor-arg name="collectionName" value="testPriorityMongoDbMessageStore"/>
+	<bean id="priorityMessageStore" parent="mongoStore">
 		<property name="priorityEnabled" value="true"/>
 	</bean>
 

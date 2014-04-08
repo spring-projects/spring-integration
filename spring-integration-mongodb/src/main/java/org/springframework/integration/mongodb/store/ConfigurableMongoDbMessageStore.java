@@ -181,17 +181,15 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 		indexOperations.ensureIndex(new Index(MESSAGE_ID, Order.ASCENDING));
-		if (this.priorityEnabled) {
-			indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
-					.on(PRIORITY, Order.DESCENDING)
-					.on(LAST_MODIFIED_TIME, Order.ASCENDING)
-					.on(SEQUENCE, Order.ASCENDING));
-		}
-		else {
-			indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
-					.on(LAST_MODIFIED_TIME, Order.DESCENDING)
-					.on(SEQUENCE, Order.DESCENDING));
-		}
+
+		indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
+				.on(LAST_MODIFIED_TIME, Order.DESCENDING)
+				.on(SEQUENCE, Order.DESCENDING));
+
+		indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
+				.on(PRIORITY, Order.DESCENDING)
+				.on(LAST_MODIFIED_TIME, Order.ASCENDING)
+				.on(SEQUENCE, Order.ASCENDING));
 	}
 
 
@@ -259,7 +257,13 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		List<MessageDocument> messageDocuments = this.mongoTemplate.find(groupIdQuery(groupId), MessageDocument.class,
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Sort sort = new Sort(Sort.Direction.DESC, LAST_MODIFIED_TIME, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = groupIdQuery(groupId).with(sort);
+		List<MessageDocument> messageDocuments = this.mongoTemplate.find(query, MessageDocument.class,
 				this.collectionName);
 
 		long createdTime = 0;
@@ -290,8 +294,12 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		MessageDocument messageDocument = this.mongoTemplate.findOne(groupIdQuery(groupId), MessageDocument.class,
-				this.collectionName);
+		Sort sort = new Sort(Sort.Direction.DESC, LAST_MODIFIED_TIME, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = groupIdQuery(groupId).with(sort);
+		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
 
 		long createdTime = 0;
 		int lastReleasedSequence = 0;
@@ -332,7 +340,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings("rawtypes")
 	public Iterator<MessageGroup> iterator() {
 		Map<Object, MessageGroup> messageGroupMap = new HashMap<Object, MessageGroup>();
 		Query query = Query.query(Criteria.where(GROUP_ID).exists(true));
@@ -377,7 +385,12 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 
 	private void updateGroup(Object groupId, Update update) {
-		this.mongoTemplate.updateFirst(groupIdQuery(groupId), update, this.collectionName);
+		Sort sort = new Sort(Sort.Direction.DESC, LAST_MODIFIED_TIME, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = groupIdQuery(groupId).with(sort);
+		this.mongoTemplate.updateFirst(query, update, this.collectionName);
 	}
 
 	private static Update lastModifiedUpdate() {

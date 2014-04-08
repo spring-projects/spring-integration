@@ -49,7 +49,6 @@
 	<poller default="true" fixed-delay="10000"/>
 
 	<beans:bean id="priorityMessageStore" parent="abstractMessageStore">
-		<beans:constructor-arg name="collectionName" value="testConfigurablePriorityMongoDbMessageStore"/>
 		<beans:property name="priorityEnabled" value="true"/>
 	</beans:bean>
 

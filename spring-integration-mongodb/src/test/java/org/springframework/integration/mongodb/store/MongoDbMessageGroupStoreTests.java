@@ -52,7 +52,6 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	@Test
 	@MongoDbAvailable
 	public void testPriorityChannel() throws Exception {
-		this.prepareMongoFactory("testPriorityMongoDbMessageStore");
 		this.testPriorityChannel("mongo-aggregator-config.xml");
 	}
 

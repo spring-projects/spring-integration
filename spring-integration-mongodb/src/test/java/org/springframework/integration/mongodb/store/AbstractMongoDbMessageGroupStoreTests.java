@@ -504,7 +504,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	}
 
 	protected void testPriorityChannel(String ctx) throws Exception {
-		this.prepareMongoFactory("testConfigurablePriorityMongoDbMessageStore");
+		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(ctx, this.getClass());
 		context.refresh();
 

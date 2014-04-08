@@ -46,17 +46,19 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -103,6 +105,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
 	public final static String SEQUENCE_NAME = "messagesSequence";
+
+	/**
+	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
+	 * optimization for the put method.
+	 */
+	public static final String SAVED_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".SAVED";
+
+	/**
+	 * The name of the message header that stores a timestamp for the time the message was inserted.
+	 */
+	public static final String CREATED_DATE_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private final static String GROUP_ID_KEY = "_groupId";
 
@@ -183,13 +196,50 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this.converter.setApplicationContext(this.applicationContext);
 		}
 		this.converter.afterPropertiesSet();
+
+		IndexOperations indexOperations = this.template.indexOps(this.collectionName);
+
+		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Order.ASCENDING)
+				.on(GROUP_UPDATE_TIMESTAMP_KEY, Order.DESCENDING)
+				.on(SEQUENCE, Order.DESCENDING));
+
+		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Order.ASCENDING)
+				.on(PRIORITY, Order.DESCENDING)
+				.on(GROUP_UPDATE_TIMESTAMP_KEY, Order.ASCENDING)
+				.on(SEQUENCE, Order.ASCENDING));
 	}
 
 	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		this.template.insert(new MessageWrapper(message), this.collectionName);
+		this.addMessageDocument(new MessageWrapper(message));
 		return message;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void addMessageDocument(MessageWrapper document) {
+		Message<?> message = document.getMessage();
+		if (message.getHeaders().containsKey(SAVED_KEY)) {
+			Message<?> saved = getMessage(message.getHeaders().getId());
+			if (saved != null) {
+				if (saved.equals(message)) {
+					return;
+				} // We need to save it under its own id
+			}
+		}
+
+		final long createdDate = document.get_Group_timestamp() == 0 ? System.currentTimeMillis() : document.get_Group_timestamp();
+
+		Message<?> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+				.setHeader(CREATED_DATE_KEY, createdDate).build();
+
+		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
+		// using reflection to set ID since it is immutable through MessageHeaders
+		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
+		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
+
+		document.set_Group_timestamp(createdDate);
+		this.template.insert(document, this.collectionName);
 	}
 
 	@Override
@@ -215,7 +265,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
+		Sort sort = new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = whereGroupIdIs(groupId).with(sort);
+		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		long timestamp = 0;
 		long lastmodified = 0;
@@ -246,28 +301,33 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		MessageGroup messageGroup = this.getMessageGroup(groupId);
-
-		long messageGroupTimestamp = messageGroup.getTimestamp();
-		long lastModified = messageGroup.getLastModified();
-
-		if (messageGroupTimestamp == 0) {
-			messageGroupTimestamp = System.currentTimeMillis();
-			lastModified = messageGroupTimestamp;
+		Sort sort = new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
 		}
-		else {
-			lastModified = System.currentTimeMillis();
+		Query query = whereGroupIdIs(groupId).with(sort);
+		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
+
+		long createdTime = 0;
+		int lastReleasedSequence = 0;
+		boolean complete = false;
+
+		if (messageDocument != null) {
+			createdTime = messageDocument.get_Group_timestamp();
+			lastReleasedSequence = messageDocument.get_LastReleasedSequenceNumber();
+			complete = messageDocument.get_Group_complete();
 		}
+
 
 		MessageWrapper wrapper = new MessageWrapper(message);
 		wrapper.set_GroupId(groupId);
-		wrapper.set_Group_timestamp(messageGroupTimestamp);
-		wrapper.set_Group_update_timestamp(lastModified);
-		wrapper.set_Group_complete(messageGroup.isComplete());
-		wrapper.set_LastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
+		wrapper.set_Group_timestamp(createdTime == 0 ? System.currentTimeMillis() : createdTime);
+		wrapper.set_Group_update_timestamp(System.currentTimeMillis());
+		wrapper.set_Group_complete(complete);
+		wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
 		wrapper.setSequence(this.getNextId());
 
-		this.template.insert(wrapper, this.collectionName);
+		this.addMessageDocument(wrapper);
 		return this.getMessageGroup(groupId);
 	}
 
@@ -277,56 +337,45 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 		this.template.findAndRemove(whereMessageIdIsAndGroupIdIs(
 				messageToRemove.getHeaders().getId(), groupId), MessageWrapper.class, this.collectionName);
-		this.updateGroup(groupId);
+		this.updateGroup(groupId, lastModifiedUpdate());
 		return this.getMessageGroup(groupId);
 	}
 
 	@Override
 	public void removeMessageGroup(Object groupId) {
-		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
-		for (MessageWrapper messageWrapper : messageWrappers) {
-			this.removeMessageFromGroup(groupId, messageWrapper.getMessage());
-		}
+		this.template.remove(whereGroupIdIs(groupId), this.collectionName);
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public Iterator<MessageGroup> iterator() {
-		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
-		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
-		for (MessageWrapper groupedMessage : groupedMessages) {
-			Object groupId = groupedMessage.get_GroupId();
-			if (!messageGroups.containsKey(groupId)) {
-				messageGroups.put(groupId, this.getMessageGroup(groupId));
+		Map<Object, MessageGroup> messageGroupMap = new HashMap<Object, MessageGroup>();
+		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
+		query.fields().include(GROUP_ID_KEY);
+		List<Map> groupIds = this.template.find(query, Map.class, this.collectionName);
+		for (Map groupId : groupIds) {
+			Object key = groupId.get(GROUP_ID_KEY);
+			if (!messageGroupMap.containsKey(key)) {
+				messageGroupMap.put(key, this.getMessageGroup(groupId));
 			}
 		}
-		return messageGroups.values().iterator();
-	}
-
-	@Override
-	public void completeGroup(Object groupId) {
-		Update update = Update.update(GROUP_COMPLETE_KEY, true);
-		Query q = whereGroupIdIs(groupId);
-		this.template.updateFirst(q, update, this.collectionName);
-		this.updateGroup(groupId);
-	}
-
-	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		Update update = Update.update(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber);
-		Query q = whereGroupIdIs(groupId);
-		this.template.updateFirst(q, update, this.collectionName);
-		this.updateGroup(groupId);
+		return messageGroupMap.values().iterator();
 	}
 
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		MessageWrapper messageWrapper = this.template.findAndRemove(this.whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
+		Sort sort = new Sort(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = whereGroupIdIs(groupId).with(sort);
+		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
 		if (messageWrapper != null) {
 			message = messageWrapper.getMessage();
 		}
-		this.updateGroup(groupId);
+		this.updateGroup(groupId, lastModifiedUpdate());
 		return message;
 	}
 
@@ -335,6 +384,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		long lCount = this.template.count(new Query(where(GROUP_ID_KEY).is(groupId)), this.collectionName);
 		Assert.isTrue(lCount <= Integer.MAX_VALUE, "Message count is out of Integer's range");
 		return (int) lCount;
+	}
+
+	@Override
+	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		this.updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber));
+	}
+
+	@Override
+	public void completeGroup(Object groupId) {
+		this.updateGroup(groupId, lastModifiedUpdate().set(GROUP_COMPLETE_KEY, true));
+	}
+
+	private static Update lastModifiedUpdate() {
+		return Update.update(GROUP_UPDATE_TIMESTAMP_KEY, System.currentTimeMillis());
 	}
 
 	/*
@@ -350,9 +413,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private static Query whereGroupIdIs(Object groupId) {
-		Query q = new Query(where(GROUP_ID_KEY).is(groupId));
-		q.with(new Sort(Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY));
-		return q;
+		return new Query(where(GROUP_ID_KEY).is(groupId));
 	}
 
 	private static Query whereGroupIdExists() {
@@ -367,10 +428,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		return new Query(where(GROUP_ID_KEY).is(groupId)).with(sort).limit(1);
 	}
 
-	private void updateGroup(Object groupId) {
-		Update update = Update.update(GROUP_UPDATE_TIMESTAMP_KEY, System.currentTimeMillis());
-		Query q = whereGroupIdIs(groupId);
-		this.template.updateFirst(q, update, this.collectionName);
+	private void updateGroup(Object groupId, Update update) {
+		Sort sort = new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
+		if (this.priorityEnabled) {
+			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+		}
+		Query query = whereGroupIdIs(groupId).with(sort);
+		this.template.updateFirst(query, update, this.collectionName);
 	}
 
 	private int getNextId() {

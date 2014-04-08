@@ -153,43 +153,6 @@
 			  persisted Messages in the <emphasis>priority</emphasis> order. The <emphasis>priority</emphasis> MonogDB document
 			  field is the <code>IntegrationMessageHeaderAccessor.PRIORITY</code> (the <code>priority</code> Message header).
 		  </para>
-		  <important>
-			  <para>
-				  It's recommended to use different MonogDB collections for different <interfacename>MessageStore</interfacename>s:
-				  one for Aggregator, Claim-Check etc, another for queue channels and one more for priority channels. As soon as
-				  the mentioned components perform different operations for <code>Message</code>s (<code>MessageGroup</code>s)
-				  they use different <emphasis>index</emphasis>es. To avoid index ambiguity it is necessary to configure several
-				  <interfacename>MessageStore</interfacename> beans and specify different collections for them:
-				  <programlisting language="xml"><![CDATA[<bean id="abstractMessageStore"
-			   class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore"
-			   abstract="true">
-		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
-</bean>
-
-<bean id="messageStore" parent="abstractMessageStore">
-	<constructor-arg name="collectionName" value="messageStore"/>
-</bean>
-
-<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="mongoStore"/>
-
-<bean id="channelMessageStore" parent="abstractMessageStore">
-	<constructor-arg name="collectionName" value="channelMessageStore"/>
-</bean>
-
-<int:channel id="queueChannel">
-	<int:queue message-store="channelMessageStore"/>
-</int:channel>
-
-<bean id="priorityChannelMessageStore" parent="abstractMessageStore">
-	<constructor-arg name="collectionName" value="priorityChannelMessageStore"/>
-	<property name="priorityEnabled" value="true"/>
-</bean>
-
-<int:channel id="priorityChannel">
-	<int:priority-queue message-store="priorityChannelMessageStore"/>
-</int:channel>]]></programlisting>
-			  </para>
-		  </important>
 		  <para>
 			  In addition MongoDB <interfacename>MessageStore</interfacename>s add <code>sequence</code> field for MessageGroup
 			  documents. The <code>sequence</code> value is a result of <code>$inc</code> operation for simple <code>sequence</code>

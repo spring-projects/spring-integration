@@ -87,7 +87,6 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testPriorityChannel() throws Exception {
-		this.prepareMongoFactory("testConfigurablePriorityMongoDbMessageStore");
 		this.testPriorityChannel("ConfigurableMongoDbMessageStore-CustomConverter.xml");
 	}
 
