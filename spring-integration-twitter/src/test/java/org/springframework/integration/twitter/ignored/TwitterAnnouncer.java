@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,20 @@
 
 package org.springframework.integration.twitter.ignored;
 
-import org.springframework.messaging.Message;
+import java.util.Collection;
+
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.messaging.Message;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Oleg Zhurakousky
+ * @author Mark Fisher
+ * @author Gary Russell
+ *
+ */
 @Component
 public class TwitterAnnouncer {
 
@@ -41,6 +49,16 @@ public class TwitterAnnouncer {
 	public void mention(Tweet s) {
 		System.out.println("A tweet mentioning (or replying) to you was received having text "
 				+ s.getFromUser() + "-" +  s.getText() + " from " + s.getSource());
+	}
+
+	public void searchResult(Collection<Tweet> tweets) {
+		if (tweets.size() == 0) {
+			System.out.println("No results");
+		}
+		for (Tweet s : tweets) {
+			System.out.println("Search result: "
+					+ s.getFromUser() + "-" +  s.getText() + " from " + s.getSource());
+		}
 	}
 
 	public void updates(Tweet t) {

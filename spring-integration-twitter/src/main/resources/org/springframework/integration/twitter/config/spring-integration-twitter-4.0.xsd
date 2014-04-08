@@ -96,7 +96,9 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="outbound-twitter-type"/>
+				<xsd:extension base="outbound-twitter-type">
+					<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
@@ -110,7 +112,94 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="outbound-twitter-type"/>
+				<xsd:extension base="outbound-twitter-type">
+					<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="search-outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Builds an outbound gateway used to issue Twitter searches.
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="outbound-twitter-type">
+					<xsd:attribute name="id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The bean id of this gateway; the MessageHandler is also registered with this id
+								plus a suffix '.handler'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="search-args-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression that evaluates to search arguments; the evaluation result type can be
+								an 'org.springframework.social.twitter.api.SearchParameters', a 'String', in 
+								which case the default page size of 20 is used, or the expression can evaluate to
+								a list of search
+								arguments, for example: "{payload, headers.pageSize, headers.sinceId, headers.maxId}".
+								Default: "payload".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-channel" use="required" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.messaging.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Identifies the request channel attached to this gateway.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.messaging.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Identifies the reply channel attached to this
+								gateway.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
+
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>					
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
@@ -145,7 +234,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
-		<xsd:attribute name="twitter-template"  type="xsd:string">
+		<xsd:attribute name="twitter-template"  type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -172,32 +261,39 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="page-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Limits the number of tweets retrieved on each poll; default: 20.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="outbound-twitter-type">
-		<xsd:all>
+		<xsd:choice minOccurs="0" maxOccurs="2">
 			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
-		</xsd:all>
-		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
-			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.social.twitter.api.Twitter"/>
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Reference to a TwitterTemplate bean provided by the Spring Social project.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="order">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specifies the order for invocation when this endpoint is connected as a
-						subscriber to a SubscribableChannel.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:choice>
+		<xsd:attribute name="twitter-template" use="required" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.social.twitter.api.Twitter"/>
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					Reference to a TwitterTemplate bean provided by the Spring Social project.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="order">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the order for invocation when this endpoint is connected as a
+					subscriber to a SubscribableChannel.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 </xsd:schema>

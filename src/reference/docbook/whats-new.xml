@@ -163,6 +163,15 @@
 				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>
+		<section id="4.0-twitter-sog">
+			<title>Twitter Search Outbound Gateway</title>
+			<para>
+				A new twitter endpoint <classname>&lt;int-twitter-search-outbound-gateway/&gt;</classname>
+				has been added. Unlike the search inbound adapter which polls using the same search
+				query each time, the outbound gateway allows on-demand customized queries.
+				For more information, see <xref linkend="twitter-sog"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">

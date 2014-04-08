@@ -11,29 +11,30 @@
 		xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
 		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
 						http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-	<channel id="searchChannel"/>
+	<message-history/>
 
-	<beans:bean id="twitter" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.social.twitter.api.Twitter" />
+	<context:property-placeholder location="classpath:sample.properties"/>
+
+	<beans:bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
+		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
+		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessToken}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessTokenSecret}"/>
 	</beans:bean>
 
+	<channel id="search" />
 
-	<twitter:search-inbound-channel-adapter id="searchAdapterWithTemplate" 
-						channel="searchChannel" 
-						twitter-template="twitter"
-						page-size="23"
-						query="#springintegration"
-						auto-startup="false">
-		<poller fixed-rate="5000" max-messages-per-poll="3"/>
-	</twitter:search-inbound-channel-adapter>
+	<twitter:search-outbound-gateway request-channel="search" twitter-template="twitterTemplate"
+		reply-channel="inbound" />
 
+	<service-activator input-channel="inbound" ref="twitterAnnouncer" method="searchResult"/>
+
+	<beans:bean id="twitterAnnouncer" class="org.springframework.integration.twitter.ignored.TwitterAnnouncer" />
 
 </beans:beans>
-
-
