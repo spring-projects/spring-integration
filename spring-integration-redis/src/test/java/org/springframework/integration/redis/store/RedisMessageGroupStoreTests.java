@@ -361,8 +361,6 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testWithAggregatorWithShutdown(){
-		this.getConnectionFactoryForTest(); // for this test it only ensures that DB was flushed before test
-
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);

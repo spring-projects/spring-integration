@@ -74,7 +74,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	// syncronization commit renames the list
+	// synchronization commit renames the list
 	public void testListInboundConfigurationWithSynchronization() throws Exception{
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
@@ -101,7 +101,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 	@Test
 	@RedisAvailable
-	// syncronization rollback renames the list
+	// synchronization rollback renames the list
 	public void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception{
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
@@ -138,7 +138,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	// syncronization commit renames the list
+	// synchronization commit renames the list
 	public void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception{
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate template = this.createStringRedisTemplate(jcf);

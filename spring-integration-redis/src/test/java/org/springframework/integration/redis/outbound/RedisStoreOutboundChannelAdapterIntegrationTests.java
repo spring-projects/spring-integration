@@ -429,6 +429,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		String hello = redisMap.get("foo");
 
 		assertEquals("hello, world!", hello);
+		this.deleteKey(jcf, "bar");
 		context.close();
 	}
 
