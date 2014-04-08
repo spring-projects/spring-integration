@@ -431,16 +431,14 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 				ps.setLong(4, createdDate);
 
 				Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
-				if (priority != null) {
+
+				if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
 					ps.setInt(5, priority);
 				}
 				else {
-					/*
-					Since not all RDBMS implement 'NULLS LAST' order option, usage 'Integer.MIN_VALUE'
-					is a good compromise to present the 'null' priorities.
-					*/
-					ps.setInt(5, Integer.MIN_VALUE);
+					ps.setNull(5, Types.NUMERIC);
 				}
+
 				lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
 			}
 		});
@@ -481,11 +479,21 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		this.idCacheReadLock.lock();
 		try {
 			if (this.usingIdCache && !this.idCache.isEmpty()) {
-				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
+				if (this.priorityEnabled) {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPriorityPollFromGroupExcludeIdsQuery());
+				}
+				else {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
+				}
 				parameters.addValue("message_ids", idCache);
 			}
 			else {
-				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
+				if (this.priorityEnabled) {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPriorityPollFromGroupQuery());
+				}
+				else {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
+				}
 			}
 			if (this.priorityEnabled) {
 				query = query.replaceFirst("CREATED_DATE ASC", "MESSAGE_PRIORITY DESC, CREATED_DATE ASC");

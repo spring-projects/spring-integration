@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 package org.springframework.integration.jdbc.store.channel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
@@ -33,10 +34,12 @@ import org.junit.Assert;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -79,6 +82,8 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 	@Autowired
 	private AtomicInteger errorAtomicInteger;
 
+	@Autowired
+	protected PollableChannel priorityChannel;
 
 	public void test() throws InterruptedException {
 
@@ -183,6 +188,51 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 		assertTrue(this.successfulLatch.await(5, TimeUnit.SECONDS));
 
 		assertEquals(0, errorAtomicInteger.get());
+	}
+
+	public void testPriorityChannel() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("-1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, -1).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("3").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("0").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 0).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("2").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 2).build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("none").build();
+		priorityChannel.send(message);
+		message = MessageBuilder.withPayload("31").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		priorityChannel.send(message);
+
+		Message<?> receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("3", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("31", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("2", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("1", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("0", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("-1", receive.getPayload());
+
+		receive = priorityChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("none", receive.getPayload());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
  * {@link JdbcChannelMessageStore} to provide database-specific queries.
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  */
 public interface ChannelMessageStoreQueryProvider {
@@ -46,6 +47,21 @@ public interface ChannelMessageStoreQueryProvider {
 	 * @return Sql Query
 	 */
 	String getPollFromGroupQuery();
+
+	/**
+	 * Get the query used to retrieve the oldest message by priority for a channel excluding
+	 * messages that match the provided message ids.
+	 *
+	 * @return Sql Query
+	 */
+	String getPriorityPollFromGroupExcludeIdsQuery();
+
+	/**
+	 * Get the query used to retrieve the oldest message by priority for a channel.
+	 *
+	 * @return Sql Query
+	 */
+	String getPriorityPollFromGroupQuery();
 
 	/**
 	 * Query that retrieves a message for the provided message id, channel and
