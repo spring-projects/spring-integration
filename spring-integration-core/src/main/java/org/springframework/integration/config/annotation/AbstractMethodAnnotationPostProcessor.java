@@ -230,6 +230,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				endpoint = pollingConsumer;
 			}
 			else {
+				Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+				Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for for Annotation-based endpoint, " +
+						"since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 			}
 		}

@@ -36,8 +36,7 @@ public class PollerMetadata {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = Integer.MIN_VALUE;
 
-	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME =
-			"org.springframework.integration.context.defaultPollerMetadata";
+	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "defaultPollerMetadata";
 
 	/**
 	 *  A convenient short alias for the global default poller bean name.

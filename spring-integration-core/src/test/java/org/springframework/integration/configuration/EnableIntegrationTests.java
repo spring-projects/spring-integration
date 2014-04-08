@@ -124,10 +124,6 @@ public class EnableIntegrationTests {
 	private PollingConsumer serviceActivatorEndpoint4;
 
 	@Autowired
-	@Qualifier("enableIntegrationTests.AnnotationTestService.handle5.serviceActivator")
-	private EventDrivenConsumer serviceActivatorEndpoint5;
-
-	@Autowired
 	private Trigger myTrigger;
 
 	@Autowired
@@ -497,8 +493,7 @@ public class EnableIntegrationTests {
 			return payload.toUpperCase();
 		}
 
-		@ServiceActivator(inputChannel = "input3", outputChannel = "output",
-				poller = @Poller("org.springframework.integration.context.defaultPollerMetadata"))
+		@ServiceActivator(inputChannel = "input3", outputChannel = "output", poller = @Poller("defaultPollerMetadata"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle3(String payload) {
@@ -514,16 +509,14 @@ public class EnableIntegrationTests {
 		}
 
 		/*
-		 * This should be an error because input5 is not defined and is therefore a
-		 * DirectChannel.
+		 * This is an error because input5 is not defined and is therefore a DirectChannel.
 		 */
-		@ServiceActivator(inputChannel = "input5", outputChannel = "output",
-				poller = @Poller("org.springframework.integration.context.defaultPollerMetadata"))
+		/*@ServiceActivator(inputChannel = "input5", outputChannel = "output", poller = @Poller("defaultPollerMetadata"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle5(String payload) {
 			return payload.toUpperCase();
-		}
+		}*/
 
 		@Transformer(inputChannel = "gatewayChannel")
 		public String transform(Message<String> message) {
