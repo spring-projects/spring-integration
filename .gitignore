@@ -28,3 +28,4 @@ target
 vf.gf.dmn-*
 /atlassian-ide-plugin.xml
 hostkey.ser
+.springBeans

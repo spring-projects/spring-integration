@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -24,9 +24,12 @@ import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -39,6 +42,13 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
  *
  */
 public class RedisMessageStoreTests extends RedisAvailableTests {
+
+	@Before
+	@After
+	public void setUpTearDown() {
+		StringRedisTemplate template = this.createStringRedisTemplate(this.getConnectionFactoryForTest());
+		template.delete(template.keys("MESSAGE_*"));
+	}
 
 	@Test
 	@RedisAvailable
