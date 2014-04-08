@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -33,6 +34,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -50,6 +52,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
@@ -63,8 +66,11 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -74,6 +80,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -92,7 +101,30 @@ public class EnableIntegrationTests {
 	private ApplicationContext context;
 
 	@Autowired
-	private MessageChannel input;
+	private PollableChannel input;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.AnnotationTestService.handle.serviceActivator")
+	private PollingConsumer serviceActivatorEndpoint;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.AnnotationTestService.handle1.serviceActivator")
+	private PollingConsumer serviceActivatorEndpoint1;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.AnnotationTestService.handle2.serviceActivator")
+	private PollingConsumer serviceActivatorEndpoint2;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.AnnotationTestService.handle3.serviceActivator")
+	private PollingConsumer serviceActivatorEndpoint3;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.AnnotationTestService.handle4.serviceActivator")
+	private PollingConsumer serviceActivatorEndpoint4;
+
+	@Autowired
+	private Trigger myTrigger;
 
 	@Autowired
 	private QueueChannel output;
@@ -126,6 +158,33 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testAnnotatedServiceActivator() {
+		assertEquals(10L, TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll"));
+
+		Trigger trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "trigger", Trigger.class);
+		assertThat(trigger, Matchers.instanceOf(PeriodicTrigger.class));
+		assertEquals(100L, TestUtils.getPropertyValue(trigger, "period"));
+		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
+
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint1, "trigger", Trigger.class);
+		assertThat(trigger, Matchers.instanceOf(PeriodicTrigger.class));
+		assertEquals(100L, TestUtils.getPropertyValue(trigger, "period"));
+		assertTrue(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
+
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint2, "trigger", Trigger.class);
+		assertThat(trigger, Matchers.instanceOf(CronTrigger.class));
+		assertEquals("0 5 7 * * *", TestUtils.getPropertyValue(trigger, "sequenceGenerator.expression"));
+
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint3, "trigger", Trigger.class);
+		assertThat(trigger, Matchers.instanceOf(PeriodicTrigger.class));
+		assertEquals(10L, TestUtils.getPropertyValue(trigger, "period"));
+		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
+
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint4, "trigger", Trigger.class);
+		assertThat(trigger, Matchers.instanceOf(PeriodicTrigger.class));
+		assertEquals(1000L, TestUtils.getPropertyValue(trigger, "period"));
+		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
+		assertSame(this.myTrigger, trigger);
+
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(1000);
@@ -226,8 +285,33 @@ public class EnableIntegrationTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		public MessageChannel input() {
-			return new DirectChannel();
+		public QueueChannel input() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel input1() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel input2() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel input3() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel input4() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public Trigger myTrigger() {
+			return new PeriodicTrigger(1000L);
 		}
 
 		@Bean
@@ -331,8 +415,8 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
-		public DirectChannel gatewayChannel() {
-			return new DirectChannel();
+		public PollableChannel gatewayChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean
@@ -347,6 +431,13 @@ public class EnableIntegrationTests {
 			QueueChannel channel = new QueueChannel();
 			channel.setDatatypes(byte[].class);
 			return channel;
+		}
+
+		@Bean(name = PollerMetadata.DEFAULT_POLLER)
+		public PollerMetadata defaultPoller() {
+			PollerMetadata pollerMetadata = new PollerMetadata();
+			pollerMetadata.setTrigger(new PeriodicTrigger(10));
+			return pollerMetadata;
 		}
 
 		@Bean
@@ -378,12 +469,54 @@ public class EnableIntegrationTests {
 	@MessageEndpoint
 	public static class AnnotationTestService {
 
-		@ServiceActivator(inputChannel = "input", outputChannel = "output")
+		@ServiceActivator(inputChannel = "input", outputChannel = "output",
+				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.interval}"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle(String payload) {
 			return payload.toUpperCase();
 		}
+
+		@ServiceActivator(inputChannel = "input1", outputChannel = "output",
+				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedRate = "${poller.interval}"))
+		@Publisher
+		@Payload("#args[0].toLowerCase()")
+		public String handle1(String payload) {
+			return payload.toUpperCase();
+		}
+
+		@ServiceActivator(inputChannel = "input2", outputChannel = "output",
+				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", cron = "0 5 7 * * *"))
+		@Publisher
+		@Payload("#args[0].toLowerCase()")
+		public String handle2(String payload) {
+			return payload.toUpperCase();
+		}
+
+		@ServiceActivator(inputChannel = "input3", outputChannel = "output", poller = @Poller("defaultPollerMetadata"))
+		@Publisher
+		@Payload("#args[0].toLowerCase()")
+		public String handle3(String payload) {
+			return payload.toUpperCase();
+		}
+
+		@ServiceActivator(inputChannel = "input4", outputChannel = "output",
+				poller = @Poller(trigger = "myTrigger"))
+		@Publisher
+		@Payload("#args[0].toLowerCase()")
+		public String handle4(String payload) {
+			return payload.toUpperCase();
+		}
+
+		/*
+		 * This is an error because input5 is not defined and is therefore a DirectChannel.
+		 */
+		/*@ServiceActivator(inputChannel = "input5", outputChannel = "output", poller = @Poller("defaultPollerMetadata"))
+		@Publisher
+		@Payload("#args[0].toLowerCase()")
+		public String handle5(String payload) {
+			return payload.toUpperCase();
+		}*/
 
 		@Transformer(inputChannel = "gatewayChannel")
 		public String transform(Message<String> message) {

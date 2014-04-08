@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,11 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.Router;
@@ -59,16 +61,19 @@ import org.springframework.util.StringUtils;
 /**
  * A {@link BeanPostProcessor} implementation that processes method-level
  * messaging annotations such as @Transformer, @Splitter, @Router, and @Filter.
- * 
+ *
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent> {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
+		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ConfigurableListableBeanFactory beanFactory;
 
+	private Environment environment;
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
@@ -86,14 +91,19 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 	}
 
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory, this.environment));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -185,6 +195,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		return name;
 	}
 
+
 	public void onApplicationEvent(ApplicationEvent event) {
 		for (ApplicationListener<ApplicationEvent> listener : listeners) {
 			try  {
@@ -198,7 +209,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			}
 		}
 	}
-
 
 	// Lifecycle implementation
 
@@ -223,5 +233,4 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		}
 		this.running = false;
 	}
-
 }

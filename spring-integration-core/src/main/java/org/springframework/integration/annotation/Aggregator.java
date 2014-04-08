@@ -33,6 +33,7 @@ import org.springframework.integration.aggregator.AbstractCorrelatingMessageHand
  *
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -64,4 +65,11 @@ public @interface Aggregator {
 	 */
 	boolean sendPartialResultsOnExpiry() default false;
 
+	/**
+	 * @return the {@link Poller} options for a polled endpoint
+	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
+	 * This attribute is an {@code array} just to allow an empty default (no poller).
+	 * Only one {@link Poller} element is allowed.
+	 */
+	Poller[] poller() default {};
 }

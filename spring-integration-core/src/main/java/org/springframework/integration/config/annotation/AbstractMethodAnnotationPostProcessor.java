@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
@@ -29,20 +30,30 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -61,12 +72,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final BeanFactory beanFactory;
 
+	protected final Environment environment;
+
 	protected final DestinationResolver<MessageChannel> channelResolver;
 
 
-	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
+	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
+		this.environment = environment;
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
@@ -108,9 +122,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					adviceChain.add((Advice) adviceChainBean);
 				}
 				else if (adviceChainBean instanceof Advice[]) {
-					for (Advice advice : (Advice[]) adviceChainBean) {
-						adviceChain.add(advice);
-					}
+					Collections.addAll(adviceChain, (Advice[]) adviceChainBean);
 				}
 				else if (adviceChainBean instanceof Collection) {
 					@SuppressWarnings("unchecked")
@@ -126,10 +138,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
 		}
-	}
-
-	protected boolean shouldCreateEndpoint(T annotation) {
-		return (StringUtils.hasText((String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE)));
 	}
 
 	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation) {
@@ -149,9 +157,84 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
-			Assert.isInstanceOf(SubscribableChannel.class, inputChannel,
-					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
-			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+
+			if (inputChannel instanceof PollableChannel) {
+				PollerMetadata pollerMetadata = null;
+				Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+				if (!ObjectUtils.isEmpty(pollers)) {
+					Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
+					Poller poller = pollers[0];
+
+					String ref = poller.value();
+					String triggerRef = poller.trigger();
+					String executorRef = poller.taskExecutor();
+					String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
+					String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
+					String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
+					String cron = this.environment.resolvePlaceholders(poller.cron());
+
+					if (StringUtils.hasText(ref)) {
+						Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) && !StringUtils.hasText(cron)
+										&& !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue)
+										&& !StringUtils.hasText(maxMessagesPerPollValue),
+								"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
+						pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
+					}
+					else {
+						pollerMetadata = new PollerMetadata();
+						if (StringUtils.hasText(maxMessagesPerPollValue)) {
+							pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
+						}
+						if (StringUtils.hasText(executorRef)) {
+							pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
+						}
+						Trigger trigger = null;
+						if (StringUtils.hasText(triggerRef)) {
+							Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
+									"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
+							trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
+						}
+						else if (StringUtils.hasText(cron)) {
+							Assert.state(!StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
+									"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
+							trigger = new CronTrigger(cron);
+						}
+						else if (StringUtils.hasText(fixedDelayValue)) {
+							Assert.state(!StringUtils.hasText(fixedRateValue),
+									"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
+							trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
+						}
+						else if (StringUtils.hasText(fixedRateValue)) {
+							trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
+							((PeriodicTrigger) trigger).setFixedRate(true);
+						}
+						//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
+						pollerMetadata.setTrigger(trigger);
+					}
+
+
+				}
+				else {
+					pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
+					Assert.notNull(pollerMetadata, "No poller has been defined for Annotation-based endpoint, " +
+							"and no default poller is available within the context.");
+				}
+				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
+				pollingConsumer.setTaskExecutor(pollerMetadata.getTaskExecutor());
+				pollingConsumer.setTrigger(pollerMetadata.getTrigger());
+				pollingConsumer.setAdviceChain(pollerMetadata.getAdviceChain());
+				pollingConsumer.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
+				pollingConsumer.setErrorHandler(pollerMetadata.getErrorHandler());
+				pollingConsumer.setReceiveTimeout(pollerMetadata.getReceiveTimeout());
+				pollingConsumer.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
+				endpoint = pollingConsumer;
+			}
+			else {
+				Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+				Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for for Annotation-based endpoint, " +
+						"since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
+				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+			}
 		}
 		return endpoint;
 	}

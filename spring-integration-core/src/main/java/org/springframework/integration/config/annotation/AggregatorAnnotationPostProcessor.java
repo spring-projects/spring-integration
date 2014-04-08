@@ -20,9 +20,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
@@ -45,11 +45,8 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
-	private final BeanFactory beanFactory;
-
-	public AggregatorAnnotationPostProcessor(ListableBeanFactory beanFactory) {
-		super(beanFactory);
-		this.beanFactory = beanFactory;
+	public AggregatorAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
+		super(beanFactory, environment);
 	}
 
 
