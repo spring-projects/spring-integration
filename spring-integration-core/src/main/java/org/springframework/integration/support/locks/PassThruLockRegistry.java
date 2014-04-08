@@ -10,11 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.util;
+package org.springframework.integration.support.locks;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+
 /**
  * The {@link LockRegistry} implementation which has no effect. Mainly used in cases where locking itself must be conditional
  * but an extra IF statement would clutter the code.

@@ -32,8 +32,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.util.DefaultLockRegistry;
-import org.springframework.integration.util.LockRegistry;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.util.Assert;
 import org.springframework.util.DefaultPropertiesPersister;
 

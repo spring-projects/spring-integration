@@ -18,6 +18,7 @@ package org.springframework.integration.util;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.messaging.MessagingException;
 
 /**

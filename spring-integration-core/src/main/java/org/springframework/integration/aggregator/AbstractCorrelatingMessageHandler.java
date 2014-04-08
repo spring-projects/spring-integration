@@ -45,8 +45,8 @@ import org.springframework.integration.store.MessageGroupStore.MessageGroupCallb
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.util.DefaultLockRegistry;
-import org.springframework.integration.util.LockRegistry;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
