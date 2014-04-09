@@ -26,6 +26,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
@@ -48,6 +50,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
+import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -66,6 +69,7 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
@@ -80,6 +84,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
@@ -94,6 +99,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  */
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class, classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class EnableIntegrationTests {
 
 	@Autowired
@@ -158,6 +164,15 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private MessageChannel bytesChannel;
+
+	@Autowired
+	private PollableChannel counterChannel;
+
+	@Autowired
+	private PollableChannel fooChannel;
+
+	@Autowired
+	private PollableChannel messageChannel;
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -224,6 +239,27 @@ public class EnableIntegrationTests {
 		assertNull(this.wireTapChannel.receive(0));
 		assertThat(this.testChannelInterceptor.getInvoked(), Matchers.greaterThan(0));
 		assertThat(this.fbInterceptorCounter.get(), Matchers.greaterThan(0));
+
+		assertTrue(this.context.containsBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source"));
+		Object messageSource = this.context.getBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source");
+		assertThat(messageSource, Matchers.instanceOf(MethodInvokingMessageSource.class));
+
+		for (int i = 0; i < 10; i++) {
+			Message<?> message = this.counterChannel.receive(1000);
+			assertNotNull(message);
+			assertEquals(i + 1, message.getPayload());
+		}
+
+		Message<?> message = this.fooChannel.receive(1000);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+		assertNull(this.fooChannel.receive(10));
+
+		message = this.messageChannel.receive(1000);
+		assertNotNull(message);
+		assertEquals("bar", message.getPayload());
+		assertTrue(message.getHeaders().containsKey("foo"));
+		assertEquals("FOO", message.getHeaders().get("foo"));
 	}
 
 	@Test
@@ -320,6 +356,19 @@ public class EnableIntegrationTests {
 		@Bean
 		public Trigger myTrigger() {
 			return new PeriodicTrigger(1000L);
+		}
+
+		@Bean
+		public Trigger onlyOnceTrigger() {
+			return new Trigger() {
+
+				private final AtomicBoolean invoked = new AtomicBoolean();
+
+				@Override
+				public Date nextExecutionTime(TriggerContext triggerContext) {
+					return this.invoked.getAndSet(true) ? null : new Date();
+				}
+			};
 		}
 
 		@Bean
@@ -428,6 +477,21 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
+		public PollableChannel counterChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel fooChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel messageChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public QueueChannel numberChannel() {
 			QueueChannel channel = new QueueChannel();
 			channel.setDatatypes(Number.class);
@@ -483,6 +547,8 @@ public class EnableIntegrationTests {
 
 	@MessageEndpoint
 	public static class AnnotationTestService {
+
+		private AtomicInteger counter = new AtomicInteger();
 
 		@ServiceActivator(inputChannel = "input", outputChannel = "output",
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.interval}"))
@@ -541,6 +607,37 @@ public class EnableIntegrationTests {
 			assertEquals("echo", message.getHeaders().get("calledMethod"));
 			return this.handle(message.getPayload());
 		}
+
+		@InboundChannelAdapter("counterChannel")
+		public Integer count() {
+			return this.counter.incrementAndGet();
+		}
+
+		@InboundChannelAdapter(value = "fooChannel", poller = @Poller(trigger = "onlyOnceTrigger", maxMessagesPerPoll = "1"))
+		public String foo() {
+			return "foo";
+		}
+
+		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}", maxMessagesPerPoll = "1"))
+		public Message<?> message() {
+			return MessageBuilder.withPayload("bar").setHeader("foo", "FOO").build();
+		}
+
+		/*
+		 * This is an error because 'InboundChannelAdapter' method must not have any arguments.
+		 */
+		/*@InboundChannelAdapter("errorChannel")
+		public String error1(Object arg) {
+			return "foo";
+		}*/
+
+		/*
+		 * This is an error because 'InboundChannelAdapter' return type must not be 'void'.
+		 */
+		/*@InboundChannelAdapter("errorChannel")
+		public void error2() {
+		}*/
+
 	}
 
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))

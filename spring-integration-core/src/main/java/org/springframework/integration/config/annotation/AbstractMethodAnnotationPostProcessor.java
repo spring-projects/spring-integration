@@ -37,6 +37,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -159,74 +160,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 
 			if (inputChannel instanceof PollableChannel) {
-				PollerMetadata pollerMetadata = null;
-				Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
-				if (!ObjectUtils.isEmpty(pollers)) {
-					Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
-					Poller poller = pollers[0];
-
-					String ref = poller.value();
-					String triggerRef = poller.trigger();
-					String executorRef = poller.taskExecutor();
-					String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
-					String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
-					String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
-					String cron = this.environment.resolvePlaceholders(poller.cron());
-
-					if (StringUtils.hasText(ref)) {
-						Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) && !StringUtils.hasText(cron)
-										&& !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue)
-										&& !StringUtils.hasText(maxMessagesPerPollValue),
-								"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
-						pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
-					}
-					else {
-						pollerMetadata = new PollerMetadata();
-						if (StringUtils.hasText(maxMessagesPerPollValue)) {
-							pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
-						}
-						if (StringUtils.hasText(executorRef)) {
-							pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
-						}
-						Trigger trigger = null;
-						if (StringUtils.hasText(triggerRef)) {
-							Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
-									"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
-							trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
-						}
-						else if (StringUtils.hasText(cron)) {
-							Assert.state(!StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
-									"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
-							trigger = new CronTrigger(cron);
-						}
-						else if (StringUtils.hasText(fixedDelayValue)) {
-							Assert.state(!StringUtils.hasText(fixedRateValue),
-									"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
-							trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
-						}
-						else if (StringUtils.hasText(fixedRateValue)) {
-							trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
-							((PeriodicTrigger) trigger).setFixedRate(true);
-						}
-						//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
-						pollerMetadata.setTrigger(trigger);
-					}
-
-
-				}
-				else {
-					pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
-					Assert.notNull(pollerMetadata, "No poller has been defined for Annotation-based endpoint, " +
-							"and no default poller is available within the context.");
-				}
 				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-				pollingConsumer.setTaskExecutor(pollerMetadata.getTaskExecutor());
-				pollingConsumer.setTrigger(pollerMetadata.getTrigger());
-				pollingConsumer.setAdviceChain(pollerMetadata.getAdviceChain());
-				pollingConsumer.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
-				pollingConsumer.setErrorHandler(pollerMetadata.getErrorHandler());
-				pollingConsumer.setReceiveTimeout(pollerMetadata.getReceiveTimeout());
-				pollingConsumer.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
+				this.configurePollingEndpoint(pollingConsumer, annotation);
 				endpoint = pollingConsumer;
 			}
 			else {
@@ -239,7 +174,79 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	private String generateHandlerBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
+	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, T annotation) {
+		PollerMetadata pollerMetadata = null;
+		Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+		if (!ObjectUtils.isEmpty(pollers)) {
+			Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
+			Poller poller = pollers[0];
+
+			String ref = poller.value();
+			String triggerRef = poller.trigger();
+			String executorRef = poller.taskExecutor();
+			String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
+			String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
+			String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
+			String cron = this.environment.resolvePlaceholders(poller.cron());
+
+			if (StringUtils.hasText(ref)) {
+				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) && !StringUtils.hasText(cron)
+								&& !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue)
+								&& !StringUtils.hasText(maxMessagesPerPollValue),
+						"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
+				pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
+			}
+			else {
+				pollerMetadata = new PollerMetadata();
+				if (StringUtils.hasText(maxMessagesPerPollValue)) {
+					pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
+				}
+				if (StringUtils.hasText(executorRef)) {
+					pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
+				}
+				Trigger trigger = null;
+				if (StringUtils.hasText(triggerRef)) {
+					Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
+							"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
+					trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
+				}
+				else if (StringUtils.hasText(cron)) {
+					Assert.state(!StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
+							"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
+					trigger = new CronTrigger(cron);
+				}
+				else if (StringUtils.hasText(fixedDelayValue)) {
+					Assert.state(!StringUtils.hasText(fixedRateValue),
+							"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
+					trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
+				}
+				else if (StringUtils.hasText(fixedRateValue)) {
+					trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
+					((PeriodicTrigger) trigger).setFixedRate(true);
+				}
+				//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
+				pollerMetadata.setTrigger(trigger);
+			}
+
+
+		}
+		else {
+			pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
+			Assert.notNull(pollerMetadata, "No poller has been defined for Annotation-based endpoint, " +
+					"and no default poller is available within the context.");
+		}
+		pollingEndpoint.setTaskExecutor(pollerMetadata.getTaskExecutor());
+		pollingEndpoint.setTrigger(pollerMetadata.getTrigger());
+		pollingEndpoint.setAdviceChain(pollerMetadata.getAdviceChain());
+		pollingEndpoint.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
+		pollingEndpoint.setErrorHandler(pollerMetadata.getErrorHandler());
+		if (pollingEndpoint instanceof PollingConsumer) {
+			((PollingConsumer) pollingEndpoint).setReceiveTimeout(pollerMetadata.getReceiveTimeout());
+		}
+		pollingEndpoint.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
+	}
+
+	protected String generateHandlerBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
 		String baseName = originalBeanName + "." + method.getName() + "." + ClassUtils.getShortNameAsProperty(annotationType);
 		String name = baseName;
 		int count = 1;

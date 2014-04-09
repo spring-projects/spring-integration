@@ -154,6 +154,15 @@
 				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>
+		<section id="4.0-inbound-channel-adapter-annotation">
+			<title>@InboundChannelAdapter</title>
+			<para>
+				Annotation-based messaging configuration now have one more annotation -
+				<interfacename>@InboundChannelAdapter</interfacename> - an analogue of
+				<code>&lt;int:inbound-channel-adapter&gt;</code> component.
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">
