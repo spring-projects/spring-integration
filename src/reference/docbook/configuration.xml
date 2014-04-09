@@ -230,6 +230,7 @@ public class FooService {
 		<listitem>@ServiceActivator</listitem>
 		<listitem>@Splitter</listitem>
 		<listitem>@Transformer</listitem>
+		<listitem>@InboundChannelAdapter</listitem>
       </itemizedlist>
     </para>
     <para>The behavior of each is described in its own chapter or section within
@@ -385,6 +386,20 @@ public PollerMetadata myPoller() {
 	}
 }]]></programlisting>
 	  </para>
+	  <para>
+		  <emphasis role="bold">@InboundChannelAdapter</emphasis>
+	  </para>
+	<para>
+		Starting with <emphasis>version 4.0</emphasis> Messaging Annotations configuration has introduced
+		<interfacename>@InboundChannelAdapter</interfacename> to mark methods to produce <classname>SourcePollingChannelAdapter</classname>
+		integration component based on <classname>MethodInvokingMessageSource</classname> for the marked method.
+		This annotation is an analogue of <code>&lt;int:inbound-channel-adapter&gt;</code> XML component and has the same restrictions:
+		method has to be without arguments and return type must not be <code>void</code>. It has two attributes: <code>value</code> -
+		the required <interfacename>MessageChannel</interfacename> bean name and <code>poller</code> - optional
+		<interfacename>@Poller</interfacename> annotation described above. If there is need to provide some <interfacename>MessageHeaders</interfacename>,
+		it just enough to return from method whole <interfacename>Message</interfacename> and use <classname>MessageBuilder</classname>
+		to build <interfacename>Message</interfacename> and configure its <interfacename>MessageHeaders</interfacename>.
+	</para>
     <para>
         Also see <xref linkend="advising-with-annotations"/>.
     </para>

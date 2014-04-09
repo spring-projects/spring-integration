@@ -1,0 +1,87 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.config.annotation;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.env.Environment;
+import org.springframework.integration.annotation.InboundChannelAdapter;
+import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.util.Assert;
+
+/**
+ * Post-processor for Methods annotated with {@link InboundChannelAdapter @InboundChannelAdapter}.
+ *
+ * @author Artem Bilan
+ * @since 4.0
+ */
+public class InboundChannelAdapterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<InboundChannelAdapter> {
+
+	public InboundChannelAdapterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
+		super(beanFactory, environment);
+	}
+
+	@Override
+	public Object postProcess(Object bean, String beanName, Method method, InboundChannelAdapter annotation) {
+		Assert.isTrue(!Void.class.isAssignableFrom(method.getReturnType()), "The method '" + method + "' for 'SourcePollingChannelAdapter'" +
+				"must not have 'void' return type.");
+		Assert.isTrue(method.getParameterTypes().length == 0, "The method '" + method
+				+ "' for 'SourcePollingChannelAdapter' must not have any parameter.");
+
+		String channelName = (String) AnnotationUtils.getValue(annotation);
+		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
+
+		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
+
+		MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
+		messageSource.setObject(bean);
+		messageSource.setMethod(method);
+		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+			String handlerBeanName = this.generateHandlerBeanName(beanName, method, annotation.annotationType());
+			ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
+			listableBeanFactory.registerSingleton(handlerBeanName, messageSource);
+			messageSource = (MethodInvokingMessageSource) listableBeanFactory.initializeBean(messageSource, handlerBeanName);
+		}
+
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		adapter.setOutputChannel(channel);
+		adapter.setSource(messageSource);
+		this.configurePollingEndpoint(adapter, annotation);
+
+		return adapter;
+	}
+
+	@Override
+	protected String generateHandlerBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
+		return super.generateHandlerBeanName(originalBeanName, method, annotationType)
+				.replaceFirst(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX + "$", ".source");
+	}
+
+	@Override
+	protected MessageHandler createHandler(Object bean, Method method, InboundChannelAdapter annotation) {
+		throw new UnsupportedOperationException();
+	}
+
+}
