@@ -199,7 +199,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 *
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
 	}
@@ -403,7 +403,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param message a message
 	 */
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 
 		final String groupKey = getKey(groupId);
@@ -422,7 +422,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()){
+				if (logger.isDebugEnabled()) {
 					logger.debug("Inserting message with id key=" + messageId);
 				}
 				ps.setString(1, messageId);
@@ -525,7 +525,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		final String key = getKey(groupId);
 		final Message<?> polledMessage = this.doPollForMessage(key);
 
-		if (polledMessage != null){
+		if (polledMessage != null) {
 			if (!this.doRemoveMessageFromGroup(groupId, polledMessage)) {
 				return null;
 			}
@@ -581,7 +581,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
-		if (messages.size() > 0){
+		if (messages.size() > 0) {
 
 			final Message<?> message = messages.get(0);
 			final String messageId = message.getHeaders().getId().toString();
@@ -609,7 +609,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		final UUID id = messageToRemove.getHeaders().getId();
 
 		int updated = jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[] { getKey(id), getKey(groupId), region }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
+				new Object[] {getKey(id), getKey(groupId), region}, new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;
 		if (result) {

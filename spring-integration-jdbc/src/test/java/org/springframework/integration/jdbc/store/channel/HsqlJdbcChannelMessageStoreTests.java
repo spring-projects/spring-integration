@@ -16,38 +16,12 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
  */
 @ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
 public class HsqlJdbcChannelMessageStoreTests extends AbstractJdbcChannelMessageStoreTests {
-
-	@Before
-	@Override
-	public void init() throws Exception {
-		super.init();
-	}
-
-	@Test
-	@Override
-	public void testGetNonExistentMessageFromGroup() throws Exception {
-		super.testGetNonExistentMessageFromGroup();
-	}
-
-	@Test
-	@Override
-	public void testAddAndGet() throws Exception {
-		super.testAddAndGet();
-	}
 
 }

@@ -12,15 +12,7 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
-import java.util.concurrent.ExecutionException;
-
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 
 /**
  *
@@ -28,33 +20,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  *
  */
-@Ignore
+//@Ignore
 @ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
 public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
-
-	@Test
-	@Override
-	public void test() throws InterruptedException {
-		super.test();
-	}
-
-	@Test
-	@Override
-	public void testInt3181ConcurrentPolling() throws InterruptedException {
-		super.testInt3181ConcurrentPolling();
-	}
-
-	@Test
-	@Override
-	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
-		super.testInt2993IdCacheConcurrency();
-	}
-
-	@Test
-	@Override
-	public void testPriorityChannel() throws Exception {
-		super.testPriorityChannel();
-	}
 
 }
