@@ -154,6 +154,14 @@
 				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>
+		<section id="4.0-inbound-channel-adapter-annotation">
+			<title>@InboundChannelAdapter</title>
+			<para>
+				The <interfacename>@InboundChannelAdapter</interfacename> method annotation is now available.
+				It is an analogue of the <code>&lt;int:inbound-channel-adapter&gt;</code> XML component.
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">

@@ -34,7 +34,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -42,11 +41,11 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
@@ -104,6 +103,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory, this.environment));
 		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory, this.environment));
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory, this.environment));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -126,27 +126,20 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					if (postProcessor != null && shouldCreateEndpoint(annotation)) {
 						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
 						if (result != null && result instanceof AbstractEndpoint) {
+							AbstractEndpoint endpoint = (AbstractEndpoint) result;
 							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
-							if (result instanceof BeanNameAware) {
-								((BeanNameAware) result).setBeanName(endpointBeanName);
+							endpoint.setBeanName(endpointBeanName);
+							beanFactory.registerSingleton(endpointBeanName, endpoint);
+							endpoint.setBeanFactory(beanFactory);
+							try {
+								endpoint.afterPropertiesSet();
 							}
-							beanFactory.registerSingleton(endpointBeanName, result);
-							if (result instanceof BeanFactoryAware) {
-								((BeanFactoryAware) result).setBeanFactory(beanFactory);
+							catch (Exception e) {
+								throw new BeanInitializationException("failed to initialize annotated component", e);
 							}
-							if (result instanceof InitializingBean) {
-								try {
-									((InitializingBean) result).afterPropertiesSet();
-								}
-								catch (Exception e) {
-									throw new BeanInitializationException("failed to initialize annotated component", e);
-								}
-							}
-							if (result instanceof Lifecycle) {
-								lifecycles.add((Lifecycle) result);
-								if (result instanceof SmartLifecycle && ((SmartLifecycle) result).isAutoStartup()) {
-									((SmartLifecycle) result).start();
-								}
+							lifecycles.add(endpoint);
+							if (endpoint.isAutoStartup()) {
+								endpoint.start();
 							}
 							if (result instanceof ApplicationListener) {
 								listeners.add((ApplicationListener) result);
@@ -161,6 +154,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private boolean shouldCreateEndpoint(Annotation annotation) {
 		Object inputChannel = AnnotationUtils.getValue(annotation, "inputChannel");
+		if (inputChannel == null && annotation instanceof InboundChannelAdapter) {
+			inputChannel = AnnotationUtils.getValue(annotation);
+		}
 		return (inputChannel != null && inputChannel instanceof String
 				&& StringUtils.hasText((String) inputChannel));
 	}
@@ -233,4 +229,5 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		}
 		this.running = false;
 	}
+
 }

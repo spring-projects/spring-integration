@@ -230,6 +230,7 @@ public class FooService {
 		<listitem>@ServiceActivator</listitem>
 		<listitem>@Splitter</listitem>
 		<listitem>@Transformer</listitem>
+		<listitem>@InboundChannelAdapter</listitem>
       </itemizedlist>
     </para>
     <para>The behavior of each is described in its own chapter or section within
@@ -385,6 +386,37 @@ public PollerMetadata myPoller() {
 	}
 }]]></programlisting>
 	  </para>
+	  <para>
+		  <emphasis role="bold">@InboundChannelAdapter</emphasis>
+	  </para>
+	<para>
+		Starting with <emphasis>version 4.0</emphasis>, the
+		<interfacename>@InboundChannelAdapter</interfacename> method annotation is available.
+		This produces a <classname>SourcePollingChannelAdapter</classname>
+		integration component based on a <classname>MethodInvokingMessageSource</classname> for the annotated method.
+		This annotation is an analogue of <code>&lt;int:inbound-channel-adapter&gt;</code>
+		XML component and has the same restrictions:
+		the method cannot have parameters, and the return type must not be <code>void</code>.
+		It has two attributes: <code>value</code> -
+		the required <interfacename>MessageChannel</interfacename> bean name and <code>poller</code> - an optional
+		<interfacename>@Poller</interfacename> annotation, as described above. If there
+		is need to provide some <interfacename>MessageHeaders</interfacename>, use a
+		<interfacename>Message&lt;?&gt;</interfacename> return type and
+		build the <interfacename>Message&lt;?&gt;</interfacename> within the method
+		using a <classname>MessageBuilder</classname> to
+		configure its <interfacename>MessageHeaders</interfacename>.
+		<programlisting language="java"><![CDATA[@InboundChannelAdapter("counterChannel")
+public Integer count() {
+	return this.counter.incrementAndGet();
+}
+
+@InboundChannelAdapter(value = "fooChannel", poller = @Poller(fixed-rate = "5000"))
+public String foo() {
+	return "foo";
+}]]></programlisting>
+		The first example requires that the default poller has been declared elsewhere in the application
+		context.
+	</para>
     <para>
         Also see <xref linkend="advising-with-annotations"/>.
     </para>
