@@ -253,5 +253,16 @@
 				<xref linkend="sftp-inbound"/>.
 			</para>
 		</section>
+		<section id="4.0-redis-metadata">
+			<title>JdbcChannelMessageStore and PriorityChannel</title>
+			<para>
+				The <classname>JdbcChannelMessageStore</classname> now implements
+				<interfacename>PriorityCapableChannelMessageStore</interfacename>, allowing it to be used as
+				a <code>message-store</code> reference for <code>priority-queue</code>s.
+				For more information, see <xref linkend="redis-metadata-store"/>,
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/> and
+				<xref linkend="sftp-inbound"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

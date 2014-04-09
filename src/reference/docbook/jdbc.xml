@@ -520,7 +520,19 @@
 
 <int:channel id="outputChannel" />
 …]]></programlisting>
-
+	<para>
+		<emphasis role="bold">Priority Channel</emphasis>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis> the <classname>JdbcChannelMessageStore</classname>
+			implements <interfacename>PriorityCapableChannelMessageStore</interfacename> and provides
+			<code>priorityEnabled</code> option allowing it to be used as a <code>message-store</code>
+			reference for <code>priority-queue</code>s. For this purpose the <cod>INT_CHANNEL_MESSAGE</cod>
+			provides the <code>MESSAGE_PRIORITY</code> column to store the value of <code>PRIORITY</code> Message header.
+			In addition the new <code>MESSAGE_SEQUENCE</code> column is also provide to achieve robust 'the oldest' polling
+			mechanism. Having that the messages are polled (selected) from database with order
+			<code>order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE</code>.
+		</para>
+	</para>
 	</section>
     <section>
       <title>Initializing the Database</title>
