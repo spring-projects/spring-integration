@@ -15,10 +15,13 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.Map;
 
+import com.mongodb.DBObject;
+import com.mongodb.Mongo;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -26,14 +29,14 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.PriorityChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
 
 /**
  * @author Amol Nayak
@@ -73,7 +76,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testWithCustomConverter() throws Exception {
-		this.prepareMongoFactory("testConfigurableMongoDbMessageStore");
+		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
@@ -87,8 +90,64 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testPriorityChannel() throws Exception {
-		this.testPriorityChannel("ConfigurableMongoDbMessageStore-CustomConverter.xml");
+		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
+		context.refresh();
+
+		Object priorityChannel = context.getBean("priorityChannel");
+		assertThat(priorityChannel, Matchers.not(Matchers.instanceOf(PriorityChannel.class)));
+		assertThat(priorityChannel, Matchers.instanceOf(QueueChannel.class));
+
+		QueueChannel channel = (QueueChannel) priorityChannel;
+
+		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("-1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, -1).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("3").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("0").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 0).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("2").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 2).build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("none").build();
+		channel.send(message);
+		message = MessageBuilder.withPayload("31").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
+		channel.send(message);
+
+		Message<?> receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("3", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("31", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("2", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("1", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("0", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("-1", receive.getPayload());
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("none", receive.getPayload());
+
+		context.close();
 	}
+
+
 
 	public static interface TestGateway {
 

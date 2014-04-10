@@ -12,22 +12,21 @@
 
 	<mongo:db-factory dbname="test"/>
 
-	<beans:bean id="abstractMessageStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore"
+	<beans:bean id="abstractMessageStore" class="org.springframework.integration.mongodb.store.MongoDbChannelMessageStore"
 				abstract="true">
 		<beans:constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
 	</beans:bean>
 
+	<mongo:mapping-converter id="customConverter">
+		<mongo:custom-converters>
+			<mongo:converter>
+				<beans:bean class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests$MessageReadConverter"/>
+			</mongo:converter>
+		</mongo:custom-converters>
+	</mongo:mapping-converter>
+
 	<beans:bean id="messageStore" parent="abstractMessageStore">
-		<beans:constructor-arg name="mappingMongoConverter">
-			<mongo:mapping-converter>
-				<mongo:custom-converters>
-					<mongo:converter>
-						<beans:bean class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests$MessageReadConverter"/>
-					</mongo:converter>
-				</mongo:custom-converters>
-			</mongo:mapping-converter>
-		</beans:constructor-arg>
-		<beans:constructor-arg name="collectionName" value="testConfigurableMongoDbMessageStore"/>
+		<beans:constructor-arg name="mappingMongoConverter" ref="customConverter"/>
 	</beans:bean>
 
 	<gateway id="gateway"

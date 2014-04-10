@@ -15,13 +15,12 @@
  */
 package org.springframework.integration.mongodb.store;
 
+import com.mongodb.Mongo;
 import org.junit.Test;
 
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
-
-import com.mongodb.Mongo;
 
 /**
  * @author Oleg Zhurakousky
@@ -47,12 +46,6 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	@MongoDbAvailable
 	public void testWithAggregatorWithShutdown() throws Exception {
 		super.testWithAggregatorWithShutdown("mongo-aggregator-config.xml");
-	}
-
-	@Test
-	@MongoDbAvailable
-	public void testPriorityChannel() throws Exception {
-		this.testPriorityChannel("mongo-aggregator-config.xml");
 	}
 
 }

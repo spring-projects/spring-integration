@@ -102,7 +102,7 @@
 		which can be used as a persistent <interfacename>MessageStore</interfacename> for <classname>PriorityChannel</classname>:
 		<itemizedlist>
 			<listitem><xref linkend="redis-cms"/></listitem>
-			<listitem><xref linkend="mongodb-message-store-priority-channel"/></listitem>
+			<listitem><xref linkend="mongodb-priority-channel-message-store"/></listitem>
 		</itemizedlist>
 	</para>
 

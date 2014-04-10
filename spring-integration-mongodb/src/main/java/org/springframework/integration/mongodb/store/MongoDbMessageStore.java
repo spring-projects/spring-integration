@@ -16,10 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.integration.history.MessageHistory.NAME_PROPERTY;
-import static org.springframework.integration.history.MessageHistory.TIMESTAMP_PROPERTY;
-import static org.springframework.integration.history.MessageHistory.TYPE_PROPERTY;
+import static org.springframework.data.mongodb.core.query.Criteria.*;
+import static org.springframework.integration.history.MessageHistory.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +28,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
@@ -61,15 +63,12 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
-import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -80,10 +79,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 
 
 /**
@@ -99,8 +94,7 @@ import com.mongodb.DBObject;
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore
-		implements MessageStore, ChannelMessageStore, PriorityCapableChannelMessageStore, BeanClassLoaderAware,
-		ApplicationContextAware, InitializingBean {
+		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -129,7 +123,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private final static String CREATED_DATE = "_createdDate";
 
-	private static final String PRIORITY = "priority";
 
 	private static final String SEQUENCE = "sequence";
 
@@ -142,8 +135,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	private ApplicationContext applicationContext;
-
-	private boolean priorityEnabled;
 
 
 	/**
@@ -180,15 +171,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		this.applicationContext = applicationContext;
 	}
 
-	public void setPriorityEnabled(boolean priorityEnabled) {
-		this.priorityEnabled = priorityEnabled;
-	}
-
-	@Override
-	public boolean isPriorityEnabled() {
-		return this.priorityEnabled;
-	}
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.applicationContext != null) {
@@ -202,11 +184,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Order.ASCENDING)
 				.on(GROUP_UPDATE_TIMESTAMP_KEY, Order.DESCENDING)
 				.on(SEQUENCE, Order.DESCENDING));
-
-		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Order.ASCENDING)
-				.on(PRIORITY, Order.DESCENDING)
-				.on(GROUP_UPDATE_TIMESTAMP_KEY, Order.ASCENDING)
-				.on(SEQUENCE, Order.ASCENDING));
 	}
 
 	@Override
@@ -265,21 +242,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Sort sort = new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
-		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
-		}
-		Query query = whereGroupIdIs(groupId).with(sort);
+		Query query = whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		long timestamp = 0;
-		long lastmodified = 0;
+		long lastModified = 0;
 		int lastReleasedSequenceNumber = 0;
 		boolean completeGroup = false;
 		if (messageWrappers.size() > 0){
 			MessageWrapper messageWrapper = messageWrappers.get(0);
 			timestamp = messageWrapper.get_Group_timestamp();
-			lastmodified = messageWrapper.get_Group_update_timestamp();
+			lastModified = messageWrapper.get_Group_update_timestamp();
 			completeGroup = messageWrapper.get_Group_complete();
 			lastReleasedSequenceNumber = messageWrapper.get_LastReleasedSequenceNumber();
 		}
@@ -289,7 +262,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, completeGroup);
-		messageGroup.setLastModified(lastmodified);
+		messageGroup.setLastModified(lastModified);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
@@ -301,11 +274,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		Sort sort = new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
-		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
-		}
-		Query query = whereGroupIdIs(groupId).with(sort);
+		Query query = whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
 		long createdTime = 0;
@@ -365,11 +334,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Sort sort = new Sort(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
-		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
-		}
-		Query query = whereGroupIdIs(groupId).with(sort);
+		Query query = whereGroupIdIs(groupId).with(new Sort(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
 		if (messageWrapper != null) {
@@ -416,24 +381,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		return new Query(where(GROUP_ID_KEY).is(groupId));
 	}
 
-	private static Query whereGroupIdExists() {
-		return new Query(where(GROUP_ID_KEY).exists(true));
-	}
-
-	private Query whereGroupIdIsOrdered(Object groupId) {
-		Sort sort = new Sort(CREATED_DATE, SEQUENCE);
-		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
-		}
-		return new Query(where(GROUP_ID_KEY).is(groupId)).with(sort).limit(1);
-	}
-
 	private void updateGroup(Object groupId, Update update) {
-		Sort sort = new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE);
-		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
-		}
-		Query query = whereGroupIdIs(groupId).with(sort);
+		Query query = whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		this.template.updateFirst(query, update, this.collectionName);
 	}
 
@@ -772,9 +721,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private int sequence;
 
-		@SuppressWarnings("unused")
-		private final Integer priority;
-
 		public MessageWrapper(Message<?> message) {
 			Assert.notNull(message, "'message' must not be null");
 			this.message = message;
@@ -787,7 +733,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			else {
 				this.inputMessage = null;
 			}
-			this.priority = new IntegrationMessageHeaderAccessor(message).getPriority();
 		}
 
 		public int get_LastReleasedSequenceNumber() {
@@ -837,5 +782,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		public void setSequence(int sequence) {
 			this.sequence = sequence;
 		}
+
 	}
+
 }

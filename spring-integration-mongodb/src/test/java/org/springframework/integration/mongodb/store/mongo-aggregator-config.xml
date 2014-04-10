@@ -22,15 +22,4 @@
 		<constructor-arg value="test"/>
 	</bean>
 
-	<int:poller default="true" fixed-delay="10000"/>
-
-	<bean id="priorityMessageStore" parent="mongoStore">
-		<property name="priorityEnabled" value="true"/>
-	</bean>
-
-	<int:channel id="priorityChannel">
-		<int:priority-queue message-store="priorityMessageStore"/>
-	</int:channel>
-
-
 </beans>
