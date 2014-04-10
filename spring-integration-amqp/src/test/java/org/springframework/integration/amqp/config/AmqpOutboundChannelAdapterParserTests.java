@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -65,6 +67,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
@@ -82,6 +85,7 @@ import com.rabbitmq.client.Channel;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class AmqpOutboundChannelAdapterParserTests {
 
 	private static volatile int adviceCalled;
@@ -111,21 +115,25 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Object eventDrivenConsumer = context.getBean("withHeaderMapperCustomHeaders");
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler", AmqpOutboundEndpoint.class);
+		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
+		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
 		Mockito.doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
-				org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
-				MessageProperties properties = amqpReplyMessage.getMessageProperties();
+				org.springframework.amqp.core.Message amqpMessage = (org.springframework.amqp.core.Message) args[2];
+				MessageProperties properties = amqpMessage.getMessageProperties();
 				assertEquals("foo", properties.getHeaders().get("foo"));
 				assertEquals("foobar", properties.getHeaders().get("foobar"));
 				assertNull(properties.getHeaders().get("bar"));
+				assertEquals(shouldBePersistent.get() ? MessageDeliveryMode.PERSISTENT
+						: MessageDeliveryMode.NON_PERSISTENT, properties.getDeliveryMode());
 				return null;
 			}
 		})
@@ -138,6 +146,15 @@ public class AmqpOutboundChannelAdapterParserTests {
 		requestChannel.send(message);
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
+
+		shouldBePersistent.set(true);
+		message = MessageBuilder.withPayload("hello")
+				.setHeader("foo", "foo")
+				.setHeader("bar", "bar")
+				.setHeader("foobar", "foobar")
+				.setHeader(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.PERSISTENT)
+				.build();
+		requestChannel.send(message);
 	}
 
 	@Test
@@ -181,6 +198,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		List chainHandlers = TestUtils.getPropertyValue(eventDrivernConsumer, "handler.handlers", List.class);
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
+		assertNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -191,8 +209,10 @@ public class AmqpOutboundChannelAdapterParserTests {
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
-				org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
-				assertEquals("hello", new String(amqpReplyMessage.getBody()));
+				org.springframework.amqp.core.Message amqpMessage = (org.springframework.amqp.core.Message) args[2];
+				MessageProperties properties = amqpMessage.getMessageProperties();
+				assertEquals("hello", new String(amqpMessage.getBody()));
+				assertEquals(MessageDeliveryMode.PERSISTENT, properties.getDeliveryMode());
 				return null;
 			}
 		})

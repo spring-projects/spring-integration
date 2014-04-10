@@ -294,6 +294,7 @@ this list can also be simple patterns to be matched against the header names (e.
                                order="1"]]><co                      id="amqp-outbound-channel-adapter-xml-5-co" linkends="amqp-outbound-channel-adapter-xml-5" /><![CDATA[
                                routing-key=""]]><co                 id="amqp-outbound-channel-adapter-xml-6-co" linkends="amqp-outbound-channel-adapter-xml-6" /><![CDATA[
                                routing-key-expression=""]]><co      id="amqp-outbound-channel-adapter-xml-7-co" linkends="amqp-outbound-channel-adapter-xml-7" /><![CDATA[
+                               default-delivery-mode""]]><co        id="amqp-outbound-channel-adapter-xml-7a-co" linkends="amqp-outbound-channel-adapter-xml-7a" /><![CDATA[
                                confirm-correlation-expression=""]]><co id="amqp-outbound-channel-adapter-xml-8-co" linkends="amqp-outbound-channel-adapter-xml-8" /><![CDATA[
                                confirm-ack-channel=""]]><co         id="amqp-outbound-channel-adapter-xml-9-co" linkends="amqp-outbound-channel-adapter-xml-9" /><![CDATA[
                                confirm-nack-channel=""]]><co        id="amqp-outbound-channel-adapter-xml-10-co" linkends="amqp-outbound-channel-adapter-xml-10" /><![CDATA[
@@ -338,6 +339,16 @@ this list can also be simple patterns to be matched against the header names (e.
 					  'payload.key'). By default, this will be an empty String.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
+			<callout arearefs="amqp-outbound-channel-adapter-xml-7a-co" id="amqp-outbound-channel-adapter-xml-7a">
+				<para>
+				The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'. Overridden if the 'header-mapper'
+				sets the delivery mode. The 'DefaultHeaderMapper' sets the value if the
+				Spring Integration message header <code>amqp_deliveryMode</code>
+				is present. If this attribute is not supplied and
+				the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter'
+				used by the 'RabbitTemplate'. If that is not customized at all, the default is 'PERSISTENT'.
+				<emphasis>Optional</emphasis>.</para>
+			</callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-8-co" id="amqp-outbound-channel-adapter-xml-8">
                 <para>An expression defining correlation data. When provided, this configures the underlying
                 amqp template to receive publisher confirms. Requires a <classname>RabbitTemplate</classname> and a
@@ -446,6 +457,7 @@ this list can also be simple patterns to be matched against the header names (e.
                            reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6-co" linkends="amqp-outbound-gateway-adapter-xml-6" /><![CDATA[
                            routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[
                            routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[
+                           default-delivery-mode""]]><co            id="amqp-outbound-gateway-adapter-xml-8a-co" linkends="amqp-outbound-channel-adapter-xml-8a" /><![CDATA[
                            return-channel=""]]><co                  id="amqp-outbound-gateway-adapter-xml-9-co" linkends="amqp-outbound-gateway-adapter-xml-9" /><![CDATA[/>]]>
       </programlisting>
       <para>
@@ -490,6 +502,16 @@ this list can also be simple patterns to be matched against the header names (e.
                   <para>The routing-key to use when sending Messages evealuated
                         as an expression on the message (e.g. 'payload.key').
                         By default, this will be an empty String.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-8a-co" id="amqp-outbound-gateway-adapter-xml-7a">
+                  <para>
+                  The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'. Overridden if the 'header-mapper'
+                  sets the delivery mode. The 'DefaultHeaderMapper' sets the value if the
+                  Spring Integration message header <code>amqp_deliveryMode</code>
+                  is present. If this attribute is not supplied and
+                  the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter'
+                  used by the 'RabbitTemplate'. If that is not customized at all, the default is 'PERSISTENT'.
                   <emphasis>Optional</emphasis>.</para>
               </callout>
               <callout arearefs="amqp-outbound-gateway-adapter-xml-9-co" id="amqp-outbound-gateway-adapter-xml-9">

@@ -271,5 +271,16 @@
 				For more information, see <xref linkend="jdbc-message-store-channels"/>.
 			</para>
 		</section>
+		<section id="4.0-amqp">
+			<title>AMQP Endpoints Delivery Mode</title>
+			<para>
+				Spring AMQP, by default, creates persistent messages on the broker. This behavior can be
+				overridden by setting the <code>amqp_deliveryMode</code> header and/or customizing the
+				mappers. A convenient <code>default-delivery-mode</code> attribute has now been added
+				to the adapters to provide easier configuration of this important setting.
+				For more information, see <xref linkend="amqp-outbound-channel-adapter"/> and
+				<xref linkend="amqp-outbound-gateway"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

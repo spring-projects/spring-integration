@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,27 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -59,7 +62,8 @@ public class AmqpOutboundGatewayParserTests {
 
 	@Test
 	public void testGatewayConfig(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		Object edc = context.getBean("rabbitGateway");
 		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler", AmqpOutboundEndpoint.class);
 		assertEquals(5, gateway.getOrder());
@@ -72,15 +76,18 @@ public class AmqpOutboundGatewayParserTests {
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 
 		assertEquals(Long.valueOf(777), sendTimeout);
+		context.close();
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void withHeaderMapperCustomRequestResponse() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		Object eventDrivernConsumer = context.getBean("withHeaderMapperCustomRequestResponse");
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler", AmqpOutboundEndpoint.class);
+		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 
 		assertFalse(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class));
 
@@ -88,13 +95,17 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
+		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
 		Mockito.doAnswer(new Answer() {
-		      public Object answer(InvocationOnMock invocation) {
+		      @Override
+			public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
 		          org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 		          MessageProperties properties = amqpRequestMessage.getMessageProperties();
 		          assertEquals("foo", properties.getHeaders().get("foo"));
+		          assertEquals(shouldBePersistent.get() ? MessageDeliveryMode.PERSISTENT
+		              : MessageDeliveryMode.NON_PERSISTENT, properties.getDeliveryMode());
 		          // mock reply AMQP message
 		          MessageProperties amqpProperties = new MessageProperties();
 		  		  amqpProperties.setAppId("test.appId");
@@ -115,21 +126,35 @@ public class AmqpOutboundGatewayParserTests {
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
 		Message<?> replyMessage = queueChannel.receive(0);
+		assertNotNull(replyMessage);
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
 		assertNull(replyMessage.getHeaders().get("foobar"));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+
+		shouldBePersistent.set(true);
+		message = MessageBuilder.withPayload("hello")
+				.setHeader("foo", "foo")
+				.setHeader(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.PERSISTENT)
+				.build();
+		requestChannel.send(message);
+		replyMessage = queueChannel.receive(0);
+		assertNotNull(replyMessage);
+
+		context.close();
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void withHeaderMapperCustomAndStandardResponse() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		Object eventDrivernConsumer = context.getBean("withHeaderMapperCustomAndStandardResponse");
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler", AmqpOutboundEndpoint.class);
+		assertNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -137,7 +162,8 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer() {
-		      public Object answer(InvocationOnMock invocation) {
+		      @Override
+			public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
 		          org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 		          MessageProperties properties = amqpRequestMessage.getMessageProperties();
@@ -147,6 +173,7 @@ public class AmqpOutboundGatewayParserTests {
 		  		  amqpProperties.setAppId("test.appId");
 		  		  amqpProperties.setHeader("foobar", "foobar");
 		  		  amqpProperties.setHeader("bar", "bar");
+				  assertEquals(MessageDeliveryMode.PERSISTENT, properties.getDeliveryMode());
 		          org.springframework.amqp.core.Message amqpReplyMessage = new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 		          return amqpReplyMessage;
 		      }})
@@ -168,12 +195,14 @@ public class AmqpOutboundGatewayParserTests {
 		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
 		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		context.close();
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void withHeaderMapperNothingToMap() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		Object eventDrivernConsumer = context.getBean("withHeaderMapperNothingToMap");
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler", AmqpOutboundEndpoint.class);
@@ -184,7 +213,8 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer() {
-		      public Object answer(InvocationOnMock invocation) {
+		      @Override
+			public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
 		          org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 		          MessageProperties properties = amqpRequestMessage.getMessageProperties();
@@ -216,11 +246,13 @@ public class AmqpOutboundGatewayParserTests {
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
 		assertEquals(1, adviceCalled);
+		context.close();
 	}
 
 	@Test //INT-1029
 	public void amqpOutboundGatewayWithinChain() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		Object eventDrivenConsumer = context.getBean("chainWithRabbitOutboundGateway");
 
 		List<?> chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers", List.class);
@@ -233,6 +265,7 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer<org.springframework.amqp.core.Message>() {
+			@Override
 			public org.springframework.amqp.core.Message answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
 				org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
@@ -265,6 +298,7 @@ public class AmqpOutboundGatewayParserTests {
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		context.close();
 
 	}
 
