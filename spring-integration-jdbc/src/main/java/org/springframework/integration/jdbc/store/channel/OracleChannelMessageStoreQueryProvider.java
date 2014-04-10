@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Contains Oracle-specific queries for the {@link JdbcChannelMessageStore}.
  * Please ensure that the used {@link JdbcTemplate}'s fetchSize property is <code>1</code>.
- * <p/>
+ * <p>
  * Fore more details, please see: http://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
  *
  * @author Gunnar Hillert

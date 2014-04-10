@@ -22,8 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,12 +53,12 @@ public class Jsr223HeaderEnricherTests {
 	@Test
 	public void referencedScript() throws Exception{
 		inputA.send(new GenericMessage<String>("Hello"));
-		assertEquals("jruby", outputA.receive(1000).getHeaders().get("TEST_HEADER"));
+		assertEquals("jruby", outputA.receive(20000).getHeaders().get("TEST_HEADER"));
 	}
 
 	@Test
 	public void inlineScript() throws Exception{
 		inputB.send(new GenericMessage<String>("Hello"));
-		assertEquals("js", outputB.receive(1000).getHeaders().get("TEST_HEADER"));
+		assertEquals("js", outputB.receive(20000).getHeaders().get("TEST_HEADER"));
 	}
 }

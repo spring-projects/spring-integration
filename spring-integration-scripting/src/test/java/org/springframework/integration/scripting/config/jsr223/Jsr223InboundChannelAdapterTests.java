@@ -49,14 +49,14 @@ public class Jsr223InboundChannelAdapterTests {
 
 	@Test
 	public void testInt2867InboundChannelAdapter() throws Exception {
-		Message<?> message = this.inboundChannelAdapterChannel.receive(2000);
+		Message<?> message = this.inboundChannelAdapterChannel.receive(20000);
 		assertNotNull(message);
 		Object payload = message.getPayload();
 		assertThat(payload, Matchers.instanceOf(Date.class));
 		assertTrue(((Date) payload).before(new Date()));
 		assertEquals("bar", message.getHeaders().get("foo"));
 
-		message = this.inboundChannelAdapterChannel.receive(1000);
+		message = this.inboundChannelAdapterChannel.receive(20000);
 		assertNotNull(message);
 
 		message = this.inboundChannelAdapterChannel.receive(10);
