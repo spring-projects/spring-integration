@@ -12,41 +12,21 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
-import java.util.concurrent.ExecutionException;
+import org.junit.Rule;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 @ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
 public class HsqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
 
-	@Test
-	@Override
-	public void test() throws InterruptedException {
-		super.test();
-	}
-
-	@Test
-	@Override
-	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
-		super.testInt2993IdCacheConcurrency();
-	}
-
-	@Test
-	@Override
-	public void testInt3181ConcurrentPolling() throws InterruptedException {
-		super.testInt3181ConcurrentPolling();
-	}
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 }

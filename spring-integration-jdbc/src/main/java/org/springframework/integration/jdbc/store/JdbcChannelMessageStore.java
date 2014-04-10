@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,12 +31,17 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
@@ -45,12 +49,13 @@ import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
-import org.springframework.integration.store.AbstractMessageGroupStore;
-import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -90,8 +95,7 @@ import org.springframework.util.StringUtils;
  * @since 2.2
  */
 @ManagedResource
-public class JdbcChannelMessageStore extends AbstractMessageGroupStore
-		implements InitializingBean, ChannelMessageStore {
+public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean, BeanFactoryAware {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);
 
@@ -117,8 +121,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 
 	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
 
-	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
-
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
@@ -129,6 +131,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	 * The name of the message header that stores a timestamp for the time the message was inserted.
 	 */
 	public static final String CREATED_DATE_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".CREATED_DATE";
+
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile String region = DEFAULT_REGION;
 
@@ -147,6 +151,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	private volatile Map<String, String> queryCache = new HashMap<String, String>();
 
 	private boolean usingIdCache = false;
+
+	private boolean priorityEnabled;
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -171,8 +177,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
-
-		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
@@ -188,8 +192,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
-
-		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
@@ -197,7 +199,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	 *
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
 	}
@@ -215,15 +217,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		Assert.notNull(jdbcTemplate, "The provided jdbcTemplate must not be null.");
 		this.jdbcTemplate = jdbcTemplate;
-	}
-
-	/**
-	 * Method not implemented.
-	 * @throws UnsupportedOperationException Method not supported.
-	 */
-	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
-		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	/**
@@ -355,6 +348,20 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		this.usingIdCache = usingIdCache;
 	}
 
+	public void setPriorityEnabled(boolean priorityEnabled) {
+		this.priorityEnabled = priorityEnabled;
+	}
+
+	@Override
+	public boolean isPriorityEnabled() {
+		return this.priorityEnabled;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+	}
+
 	/**
 	 * Check mandatory properties ({@link DataSource} and
 	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
@@ -379,30 +386,31 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1 && logger.isWarnEnabled()) {
-			logger.warn("The jdbcTemplate's fetchsize is not 1 but %s. This may cause FIFO issues with Oracle databases.");
+			logger.warn("The jdbcTemplate's fetchsize is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
+		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
 	 * Store a message in the database. The groupId identifies the channel for which
 	 * the message is to be stored.
 	 *
-	 * Keep in mind that the actual groupdId (Channel
+	 * Keep in mind that the actual groupId (Channel
 	 * Identifier) is converted to a String-based UUID identifier.
 	 *
 	 * @param groupId the group id to store the message under
 	 * @param message a message
 	 */
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 
 		final String groupKey = getKey(groupId);
 
 		final long createdDate = System.currentTimeMillis();
-		final Message<?> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
+		final Message<?> result = this.messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+				.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 		final Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 		// using reflection to set ID since it is immutable through MessageHeaders
@@ -414,88 +422,28 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()){
+				if (logger.isDebugEnabled()) {
 					logger.debug("Inserting message with id key=" + messageId);
 				}
 				ps.setString(1, messageId);
 				ps.setString(2, groupKey);
 				ps.setString(3, region);
 				ps.setLong(4, createdDate);
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
+
+				Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
+
+				if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
+					ps.setInt(5, priority);
+				}
+				else {
+					ps.setNull(5, Types.NUMERIC);
+				}
+
+				lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
 			}
 		});
 
 		return getMessageGroup(groupId);
-	}
-
-	/**
-	 * Method not implemented.
-	 *
-	 * @throws UnsupportedOperationException Method not supported.
-	 */
-	@Override
-	public void completeGroup(Object groupId) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	/**
-	 * This method executes a call to the DB to get the oldest Message in the
-	 * MessageGroup which in the context of the {@link JdbcChannelMessageStore}
-	 * means the channel identifier.
-	 *
-	 * @param groupIdKey String representation of message group (Channel) ID
-	 * @return a message; could be null if query produced no Messages
-	 */
-	protected Message<?> doPollForMessage(String groupIdKey) {
-
-		final NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
-		final MapSqlParameterSource parameters = new MapSqlParameterSource();
-
-		parameters.addValue("region", region);
-		parameters.addValue("group_key", groupIdKey);
-
-		final String query;
-
-		final List<Message<?>> messages;
-
-		this.idCacheReadLock.lock();
-		try {
-			if (this.usingIdCache && !this.idCache.isEmpty()) {
-				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
-				parameters.addValue("message_ids", idCache);
-			} else {
-				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
-			}
-			messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
-		}
-		finally {
-			this.idCacheReadLock.unlock();
-		}
-
-
-		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
-		if (messages.size() > 0){
-
-			final Message<?>message = messages.get(0);
-			final String messageId = message.getHeaders().getId().toString();
-
-			if (this.usingIdCache) {
-				this.idCacheWriteLock.lock();
-				try {
-					boolean added = this.idCache.add(messageId);
-
-					if (logger.isDebugEnabled()) {
-						logger.debug(String.format("Polled message with id '%s' added: '%s'.", messageId, added));
-					}
-				}
-				finally {
-					this.idCacheWriteLock.unlock();
-				}
-			}
-
-			return message;
-		}
-		return null;
 	}
 
 	/**
@@ -507,27 +455,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	 */
 	private String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
-	}
-
-	/**
-	 * Method not implemented.
-	 * @return The message count.
-	 * @throws UnsupportedOperationException Method not supported.
-	 */
-	@ManagedAttribute
-	public long getMessageCount() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	/**
-	 * Method not implemented.
-	 * @return The message count.
-	 * @throws UnsupportedOperationException Method not supported.
-	 */
-	@Override
-	@ManagedAttribute
-	public int getMessageCountForAllMessageGroups() {
-		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	/**
@@ -544,10 +471,10 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	 * @return The message group count.
 	 * @throws UnsupportedOperationException Method not supported.
 	 */
-	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		throw new UnsupportedOperationException("Not implemented");
+		return this.jdbcTemplate.queryForObject(this.getQuery("SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
+				Integer.class, this.region);
 	}
 
 	/**
@@ -570,16 +497,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * Method not implemented.
-	 *
-	 * @throws UnsupportedOperationException Method not supported.
-	 */
-	@Override
-	public Iterator<MessageGroup> iterator() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	/**
 	 * Returns the number of messages persisted for the specified channel id (groupId)
 	 * and the specified region ({@link #setRegion(String)}).
 	 *
@@ -593,6 +510,11 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 				Integer.class, key, this.region);
 	}
 
+	public void removeMessageGroup(Object groupId) {
+		this.jdbcTemplate.update(this.getQuery(this.channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()),
+				this.getKey(groupId), this.region);
+	}
+
 	/**
 	 * Polls the database for a new message that is persisted for the given
 	 * group id which represents the channel identifier.
@@ -603,7 +525,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 		final String key = getKey(groupId);
 		final Message<?> polledMessage = this.doPollForMessage(key);
 
-		if (polledMessage != null){
+		if (polledMessage != null) {
 			if (!this.doRemoveMessageFromGroup(groupId, polledMessage)) {
 				return null;
 			}
@@ -613,25 +535,81 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * Remove a single message from the database.
+	 * This method executes a call to the DB to get the oldest Message in the
+	 * MessageGroup which in the context of the {@link JdbcChannelMessageStore}
+	 * means the channel identifier.
 	 *
-	 * @param groupId The channel id to remove the message from.
-	 * @param messageToRemove The message to remove.
-	 *
+	 * @param groupIdKey String representation of message group (Channel) ID
+	 * @return a message; could be null if query produced no Messages
 	 */
-	@Override
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+	protected Message<?> doPollForMessage(String groupIdKey) {
 
-		this.doRemoveMessageFromGroup(groupId, messageToRemove);
+		final NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+		final MapSqlParameterSource parameters = new MapSqlParameterSource();
 
-		return getMessageGroup(groupId);
+		parameters.addValue("region", region);
+		parameters.addValue("group_key", groupIdKey);
+
+		String query;
+
+		final List<Message<?>> messages;
+
+		this.idCacheReadLock.lock();
+		try {
+			if (this.usingIdCache && !this.idCache.isEmpty()) {
+				if (this.priorityEnabled) {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPriorityPollFromGroupExcludeIdsQuery());
+				}
+				else {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
+				}
+				parameters.addValue("message_ids", idCache);
+			}
+			else {
+				if (this.priorityEnabled) {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPriorityPollFromGroupQuery());
+				}
+				else {
+					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
+				}
+			}
+			messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
+		}
+		finally {
+			this.idCacheReadLock.unlock();
+		}
+
+
+		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
+		if (messages.size() > 0) {
+
+			final Message<?> message = messages.get(0);
+			final String messageId = message.getHeaders().getId().toString();
+
+			if (this.usingIdCache) {
+				this.idCacheWriteLock.lock();
+				try {
+					boolean added = this.idCache.add(messageId);
+
+					if (logger.isDebugEnabled()) {
+						logger.debug(String.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					}
+				}
+				finally {
+					this.idCacheWriteLock.unlock();
+				}
+			}
+
+			return message;
+		}
+		return null;
 	}
 
 	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		final UUID id = messageToRemove.getHeaders().getId();
 
-		int updated = jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageQuery()), new Object[] { getKey(id), getKey(groupId), region }, new int[] {
-					Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
+		int updated = jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageQuery()),
+				new Object[] {getKey(id), getKey(groupId), region}, new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;
 		if (result) {
@@ -676,27 +654,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore
 	@ManagedMetric
 	public int getSizeOfIdCache() {
 		return this.idCache.size();
-	}
-
-	/**
-	 * Will remove all messages from the message channel.
-	 */
-	@Override
-	public void removeMessageGroup(Object groupId) {
-
-		final String groupKey = getKey(groupId);
-
-		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()), new PreparedStatementSetter() {
-			@Override
-			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()){
-					logger.debug("Marking messages with group key=" + groupKey);
-				}
-				ps.setString(1, groupKey);
-				ps.setString(2, region);
-			}
-		});
-
 	}
 
 }

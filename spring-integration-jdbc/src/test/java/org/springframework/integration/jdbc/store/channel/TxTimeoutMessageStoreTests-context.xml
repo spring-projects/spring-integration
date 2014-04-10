@@ -93,5 +93,13 @@
 		<int:poller fixed-delay="1000"/>
 	</int:service-activator>
 
+	<bean id="priorityMessageStore" parent="messageStore">
+		<property name="priorityEnabled" value="true"/>
+	</bean>
+
+	<int:channel id="priorityChannel">
+		<int:priority-queue message-store="priorityMessageStore"/>
+	</int:channel>
+
 </beans>
 
