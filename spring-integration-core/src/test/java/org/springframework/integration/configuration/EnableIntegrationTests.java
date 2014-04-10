@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -244,6 +245,10 @@ public class EnableIntegrationTests {
 		Object messageSource = this.context.getBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source");
 		assertThat(messageSource, Matchers.instanceOf(MethodInvokingMessageSource.class));
 
+		assertNull(this.counterChannel.receive(10));
+
+		this.context.getBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter", SmartLifecycle.class).start();
+
 		for (int i = 0; i < 10; i++) {
 			Message<?> message = this.counterChannel.receive(1000);
 			assertNotNull(message);
@@ -266,14 +271,14 @@ public class EnableIntegrationTests {
 	@DirtiesContext
 	public void testChangePatterns() {
 		try {
-			this.configurer.setComponentNamePatterns(new String[]{"*"});
+			this.configurer.setComponentNamePatterns(new String[] {"*"});
 			fail("ExpectedException");
 		}
 		catch (IllegalStateException e) {
 			assertThat(e.getMessage(), containsString("cannot be changed"));
 		}
 		this.configurer.stop();
-		this.configurer.setComponentNamePatterns(new String[]{"*"});
+		this.configurer.setComponentNamePatterns(new String[] {"*"});
 		assertEquals("*", TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0]);
 	}
 
@@ -608,7 +613,7 @@ public class EnableIntegrationTests {
 			return this.handle(message.getPayload());
 		}
 
-		@InboundChannelAdapter("counterChannel")
+		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false")
 		public Integer count() {
 			return this.counter.incrementAndGet();
 		}
@@ -618,7 +623,8 @@ public class EnableIntegrationTests {
 			return "foo";
 		}
 
-		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}", maxMessagesPerPoll = "1"))
+		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}",
+				maxMessagesPerPoll = "1"))
 		public Message<?> message() {
 			return MessageBuilder.withPayload("bar").setHeader("foo", "FOO").build();
 		}

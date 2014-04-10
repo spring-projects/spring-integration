@@ -317,13 +317,24 @@ public class FooService {
       be added: <programlisting language="xml"><![CDATA[<int:annotation-config/>]]></programlisting>
     </para>
 	 <para>
-		  The processing of these annotations creates the same beans (<classname>EventDrivenConsumer</classname>s and
-		  <interfacename>MessageHandler</interfacename>s) as with similar xml components. The bean names are generated
-		  with this pattern:
-		  <code>[componentName].[methodName].[annotationClassShortName]</code> for the <classname>EventDrivenConsumer</classname>
-		  endpoint and the same name with an additional <code>.handler</code> suffix for
-		  the <interfacename>MessageHandler</interfacename> bean. The
-		  <interfacename>MessageHandler</interfacename>s are also eligible to be tracked by <xref linkend="message-history"/>.
+		  The processing of these annotations creates the same beans (<classname>AbstractEndpoint</classname>s and
+		  <interfacename>MessageHandler</interfacename>s, <interfacename>MessageSource</interfacename>s) as with
+		  similar xml components. The bean names are generated with this pattern:
+		  <code>[componentName].[methodName].[decapitalizedAnnotationClassShortName]</code> for the
+		 <classname>AbstractEndpoint</classname> and the same name with an additional <code>.handler</code>
+		 (<code>.source</code>) suffix for the <interfacename>MessageHandler</interfacename>
+		 (<interfacename>MessageSource</interfacename>) bean. The <interfacename>MessageHandler</interfacename>s
+		 (<interfacename>MessageSource</interfacename>s) are also eligible to be tracked by
+		 <xref linkend="message-history"/>.
+	  </para>
+	  <para>
+		  Starting with <emphasis>version 4.0</emphasis> all Messaging Annotations provide
+		  <interfacename>SmartLifecycle</interfacename> options - <code>autoStartup</code> and <code>phase</code> to
+		  allow to endpoint lifecycle on startup of application. To change the state of endpoint (e.g
+		  <code>start()/stop()</code>) there is just need to get access to endpoint bean using
+		  <interfacename>BeanFactory</interfacename> or send the <emphasis>command message</emphasis> to the
+		  <code>Control Bus</code> (<xref linkend="control-bus"/>). For this purpose you should use the
+		  <code>beanName</code> mentioned above.
 	  </para>
 	  <para>
 		  <emphasis role="bold">@Poller</emphasis>

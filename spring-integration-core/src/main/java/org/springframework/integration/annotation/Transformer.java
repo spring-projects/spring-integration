@@ -43,6 +43,14 @@ public @interface Transformer {
 
 	String[] adviceChain() default {};
 
+	/*
+	 {@code SmartLifecycle} options.
+	 Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	 */
+	String autoStartup() default "true";
+
+	String phase() default "0";
+
 	/**
 	 * @return the {@link Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
