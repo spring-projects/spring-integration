@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -222,7 +223,8 @@ public class EnableIntegrationTests {
 		assertNotNull(messageHistory);
 		String messageHistoryString = messageHistory.toString();
 		assertThat(messageHistoryString, Matchers.containsString("input"));
-		assertThat(messageHistoryString, Matchers.containsString("AnnotationTestService.handle.serviceActivator.handler"));
+		assertThat(messageHistoryString,
+				Matchers.containsString("AnnotationTestService.handle.serviceActivator.handler"));
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
 
 		receive = this.publishedChannel.receive(1000);
@@ -240,9 +242,19 @@ public class EnableIntegrationTests {
 		assertThat(this.testChannelInterceptor.getInvoked(), Matchers.greaterThan(0));
 		assertThat(this.fbInterceptorCounter.get(), Matchers.greaterThan(0));
 
-		assertTrue(this.context.containsBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source"));
-		Object messageSource = this.context.getBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source");
+		assertTrue(this.context
+				.containsBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source"));
+		Object messageSource = this.context
+				.getBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter.source");
 		assertThat(messageSource, Matchers.instanceOf(MethodInvokingMessageSource.class));
+
+		assertNull(this.counterChannel.receive(10));
+
+		SmartLifecycle countSA = this.context.getBean("enableIntegrationTests.AnnotationTestService.count.inboundChannelAdapter",
+				SmartLifecycle.class);
+		assertFalse(countSA.isAutoStartup());
+		assertEquals(23, countSA.getPhase());
+		countSA.start();
 
 		for (int i = 0; i < 10; i++) {
 			Message<?> message = this.counterChannel.receive(1000);
@@ -266,14 +278,14 @@ public class EnableIntegrationTests {
 	@DirtiesContext
 	public void testChangePatterns() {
 		try {
-			this.configurer.setComponentNamePatterns(new String[]{"*"});
+			this.configurer.setComponentNamePatterns(new String[] {"*"});
 			fail("ExpectedException");
 		}
 		catch (IllegalStateException e) {
 			assertThat(e.getMessage(), containsString("cannot be changed"));
 		}
 		this.configurer.stop();
-		this.configurer.setComponentNamePatterns(new String[]{"*"});
+		this.configurer.setComponentNamePatterns(new String[] {"*"});
 		assertEquals("*", TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0]);
 	}
 
@@ -548,7 +560,7 @@ public class EnableIntegrationTests {
 	@MessageEndpoint
 	public static class AnnotationTestService {
 
-		private AtomicInteger counter = new AtomicInteger();
+		private final AtomicInteger counter = new AtomicInteger();
 
 		@ServiceActivator(inputChannel = "input", outputChannel = "output",
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.interval}"))
@@ -608,7 +620,8 @@ public class EnableIntegrationTests {
 			return this.handle(message.getPayload());
 		}
 
-		@InboundChannelAdapter("counterChannel")
+		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false",
+				phase = "23")
 		public Integer count() {
 			return this.counter.incrementAndGet();
 		}
@@ -618,7 +631,8 @@ public class EnableIntegrationTests {
 			return "foo";
 		}
 
-		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}", maxMessagesPerPoll = "1"))
+		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}",
+				maxMessagesPerPoll = "1"))
 		public Message<?> message() {
 			return MessageBuilder.withPayload("bar").setHeader("foo", "FOO").build();
 		}

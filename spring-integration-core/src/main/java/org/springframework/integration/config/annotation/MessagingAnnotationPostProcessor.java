@@ -84,6 +84,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	private volatile boolean running = true;
 
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
 				"a ConfigurableListableBeanFactory is required");
@@ -95,6 +96,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.environment = environment;
 	}
 
+	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory, this.environment));
@@ -106,10 +108,12 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory, this.environment));
 	}
 
+	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
+	@Override
 	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		final Class<?> beanClass = this.getBeanClass(bean);
@@ -118,6 +122,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			return bean;
 		}
 		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
+			@Override
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
@@ -127,6 +132,26 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
 						if (result != null && result instanceof AbstractEndpoint) {
 							AbstractEndpoint endpoint = (AbstractEndpoint) result;
+							String autoStartup = (String) AnnotationUtils.getValue(annotation, "autoStartup");
+							if (StringUtils.hasText(autoStartup)) {
+								if (environment != null) {
+									autoStartup = environment.resolvePlaceholders(autoStartup);
+								}
+								if (StringUtils.hasText(autoStartup)) {
+									endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
+								}
+							}
+
+							String phase = (String) AnnotationUtils.getValue(annotation, "phase");
+							if (StringUtils.hasText(phase)) {
+								if (environment != null) {
+									phase = environment.resolvePlaceholders(phase);
+								}
+								if (StringUtils.hasText(phase)) {
+									endpoint.setPhase(Integer.parseInt(phase));
+								}
+							}
+
 							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
 							endpoint.setBeanName(endpointBeanName);
 							beanFactory.registerSingleton(endpointBeanName, endpoint);
@@ -192,6 +217,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 
+	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		for (ApplicationListener<ApplicationEvent> listener : listeners) {
 			try  {
@@ -208,10 +234,12 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	// Lifecycle implementation
 
+	@Override
 	public boolean isRunning() {
 		return this.running;
 	}
 
+	@Override
 	public void start() {
 		for (Lifecycle lifecycle : this.lifecycles) {
 			if (!lifecycle.isRunning()) {
@@ -221,6 +249,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.running = true;
 	}
 
+	@Override
 	public void stop() {
 		for (Lifecycle lifecycle : this.lifecycles) {
 			if (lifecycle.isRunning()) {

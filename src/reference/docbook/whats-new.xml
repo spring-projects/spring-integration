@@ -155,10 +155,11 @@
 			</para>
 		</section>
 		<section id="4.0-inbound-channel-adapter-annotation">
-			<title>@InboundChannelAdapter</title>
+			<title>@InboundChannelAdapter and SmartLifecycle for Annotated Endpoints</title>
 			<para>
 				The <interfacename>@InboundChannelAdapter</interfacename> method annotation is now available.
 				It is an analogue of the <code>&lt;int:inbound-channel-adapter&gt;</code> XML component.
+				In addition, all Messaging Annotations now provide <interfacename>SmartLifecycle</interfacename> options.
 				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>
