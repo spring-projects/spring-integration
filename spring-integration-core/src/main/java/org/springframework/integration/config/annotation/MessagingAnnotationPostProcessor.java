@@ -127,6 +127,22 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
 						if (result != null && result instanceof AbstractEndpoint) {
 							AbstractEndpoint endpoint = (AbstractEndpoint) result;
+							String autoStartup = (String) AnnotationUtils.getValue(annotation, "autoStartup");
+							if (StringUtils.hasText(autoStartup)) {
+								autoStartup = environment.resolvePlaceholders(autoStartup);
+								if (StringUtils.hasText(autoStartup)) {
+									endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
+								}
+							}
+
+							String phase = (String) AnnotationUtils.getValue(annotation, "phase");
+							if (StringUtils.hasText(phase)) {
+								phase = environment.resolvePlaceholders(phase);
+								if (StringUtils.hasText(phase)) {
+									endpoint.setPhase(Integer.parseInt(phase));
+								}
+							}
+
 							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
 							endpoint.setBeanName(endpointBeanName);
 							beanFactory.registerSingleton(endpointBeanName, endpoint);
