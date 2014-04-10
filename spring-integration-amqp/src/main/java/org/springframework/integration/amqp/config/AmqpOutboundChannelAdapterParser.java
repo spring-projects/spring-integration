@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.amqp.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -24,7 +26,6 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the AMQP 'outbound-channel-adapter' element.
@@ -48,6 +49,7 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-delivery-mode");
 
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class, null);
 

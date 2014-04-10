@@ -23,6 +23,7 @@
 
 	<amqp:outbound-channel-adapter id="withHeaderMapperCustomHeaders" channel="requestChannel"
 								   exchange-name="outboundchanneladapter.test.1"
+								   default-delivery-mode="NON_PERSISTENT"
 								   mapped-request-headers="foo*"/>
 
 	<bean id="customHeaderMapper" class="org.mockito.Mockito" factory-method="mock">
