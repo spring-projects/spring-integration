@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for the Twitter adapters.
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class TwitterNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
+	@Override
 	public void init() {
 		// inbound
 		registerBeanDefinitionParser("inbound-channel-adapter", new TwitterInboundChannelAdapterParser());
@@ -37,6 +39,7 @@ public class TwitterNamespaceHandler extends AbstractIntegrationNamespaceHandler
 		// outbound
 		registerBeanDefinitionParser("outbound-channel-adapter", new TwitterOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("dm-outbound-channel-adapter", new TwitterOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("search-outbound-gateway", new TwitterSearchOutboundGatewayParser());
 	}
 
 }

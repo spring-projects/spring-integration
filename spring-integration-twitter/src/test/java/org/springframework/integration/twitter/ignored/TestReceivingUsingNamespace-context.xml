@@ -1,60 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans
-        xmlns="http://www.springframework.org/schema/integration"
-        xmlns:beans="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:p="http://www.springframework.org/schema/p"
-        xmlns:context="http://www.springframework.org/schema/context"
-        xmlns:util="http://www.springframework.org/schema/util"
-        xmlns:tool="http://www.springframework.org/schema/tool"
-        xmlns:lang="http://www.springframework.org/schema/lang"
-        xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		xmlns="http://www.springframework.org/schema/integration"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:lang="http://www.springframework.org/schema/lang"
+		xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-                        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
 						http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-    <message-history/>
+	<message-history/>
 
-    <context:property-placeholder location="classpath:sample.properties"/>
-    
-    <channel id="inbound_dm"/>
-    <channel id="inbound_mentions"/>
-    <channel id="inbound_updates"/>
-    <channel id="inbound_search"/>
+	<context:property-placeholder location="classpath:sample.properties"/>
+
+	<channel id="inbound_dm"/>
+	<channel id="inbound_mentions"/>
+	<channel id="inbound_updates"/>
+	<channel id="inbound_search"/>
 
 	<beans:bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
-		<beans:constructor-arg value="${z_oleg.oauth.consumerKey}"/>
-		<beans:constructor-arg value="${z_oleg.oauth.consumerSecret}"/>
-		<beans:constructor-arg value="${z_oleg.oauth.accessToken}"/>
-		<beans:constructor-arg value="${z_oleg.oauth.accessTokenSecret}"/>
+		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
+		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessToken}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessTokenSecret}"/>
 	</beans:bean>
 
-<!--     <twitter:mentions-inbound-channel-adapter twitter-template="twitterTemplate" channel="inbound_mentions"> -->
-<!--     	<poller fixed-rate="5000" max-messages-per-poll="-1"/> -->
-<!--     </twitter:mentions-inbound-channel-adapter> -->
-    
-<!--     <service-activator input-channel="inbound_mentions" ref="twitterAnnouncer" method="mention"/> -->
+<!--	 <twitter:mentions-inbound-channel-adapter twitter-template="twitterTemplate" channel="inbound_mentions"> -->
+<!--	 	<poller fixed-rate="5000" max-messages-per-poll="-1"/> -->
+<!--	 </twitter:mentions-inbound-channel-adapter> -->
 
-<!--    <twitter:dm-inbound-channel-adapter twitter-template="twitterTemplate" channel="inbound_dm"> -->
-<!--    		<poller fixed-rate="5000" max-messages-per-poll="-1"/> -->
-<!--    </twitter:dm-inbound-channel-adapter> -->
-<!--    <service-activator input-channel="inbound_dm" ref="twitterAnnouncer" method="dm"/> -->
-    
-<!--    <twitter:search-inbound-channel-adapter id="searchAdapter" twitter-template="twitterTemplate" channel="inbound_search" query="#springintegration"> -->
-<!--    		<poller fixed-rate="5000" max-messages-per-poll="5"/> -->
-<!--    </twitter:search-inbound-channel-adapter> -->
-<!--    <service-activator input-channel="inbound_search" ref="twitterAnnouncer" method="search"/> -->
+<!--	 <service-activator input-channel="inbound_mentions" ref="twitterAnnouncer" method="mention"/> -->
 
-   <twitter:inbound-channel-adapter id="twitterInbound" twitter-template="twitterTemplate" channel="inbound_updates">
-   	<poller fixed-rate="1000" max-messages-per-poll="3"/>
-   </twitter:inbound-channel-adapter>
-   <service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>
+<!--	<twitter:dm-inbound-channel-adapter twitter-template="twitterTemplate" channel="inbound_dm"> -->
+<!--			<poller fixed-rate="5000" max-messages-per-poll="-1"/> -->
+<!--	</twitter:dm-inbound-channel-adapter> -->
+<!--	<service-activator input-channel="inbound_dm" ref="twitterAnnouncer" method="dm"/> -->
+
+<!--	<twitter:search-inbound-channel-adapter id="searchAdapter" twitter-template="twitterTemplate" channel="inbound_search" query="#springintegration"> -->
+<!--			<poller fixed-rate="5000" max-messages-per-poll="5"/> -->
+<!--	</twitter:search-inbound-channel-adapter> -->
+<!--	<service-activator input-channel="inbound_search" ref="twitterAnnouncer" method="search"/> -->
+
+	<twitter:inbound-channel-adapter id="twitterInbound" twitter-template="twitterTemplate" channel="inbound_updates">
+		<poller fixed-rate="1000" max-messages-per-poll="3"/>
+	</twitter:inbound-channel-adapter>
+
+	<service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>
 
 	<beans:bean id="twitterAnnouncer" class="org.springframework.integration.twitter.ignored.TwitterAnnouncer"/>
 </beans:beans>
-
 

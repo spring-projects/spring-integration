@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
+
+	<bean id="tt" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.social.twitter.api.Twitter" />
+	</bean>
+
+	<int:channel id="in" />
+
+	<int-twitter:search-outbound-gateway id="defaultTSOG" twitter-template="tt" request-channel="in" />
+
+	<int-twitter:search-outbound-gateway id="allAttsTSOG"
+		request-channel="in"
+		twitter-template="tt"
+		search-args-expression="'foo'"
+		reply-channel="out"
+		order="23"
+		reply-timeout="123"
+		auto-startup="false"
+		phase="100" />
+
+	<int-twitter:search-outbound-gateway id="polledAndAdvisedTSOG" twitter-template="tt" request-channel="out">
+		<int-twitter:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice" />
+		</int-twitter:request-handler-advice-chain>
+		<int:poller fixed-rate="1000" />
+	</int-twitter:search-outbound-gateway>
+
+	<int:channel id="out">
+		<int:queue />
+	</int:channel>
+
+</beans>

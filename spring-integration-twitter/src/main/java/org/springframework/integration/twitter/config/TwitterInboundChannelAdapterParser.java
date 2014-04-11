@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -27,13 +27,12 @@ import org.springframework.integration.twitter.inbound.DirectMessageReceivingMes
 import org.springframework.integration.twitter.inbound.MentionsReceivingMessageSource;
 import org.springframework.integration.twitter.inbound.SearchReceivingMessageSource;
 import org.springframework.integration.twitter.inbound.TimelineReceivingMessageSource;
-import org.springframework.social.twitter.api.impl.TwitterTemplate;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for inbound Twitter Channel Adapters.
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -42,17 +41,11 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Class<?> clazz = determineClass(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(clazz);
-		String templateBeanName = element.getAttribute("twitter-template");
-		if (StringUtils.hasText(templateBeanName)) {
-			builder.addConstructorArgReference(templateBeanName);
-		}
-		else {
-			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.genericBeanDefinition(TwitterTemplate.class);
-			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
-		}
+		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
 		builder.addConstructorArgValue(element.getAttribute(ID_ATTRIBUTE));
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "page-size");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "metadata-store");
 		return builder.getBeanDefinition();
 	}

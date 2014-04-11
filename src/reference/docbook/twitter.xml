@@ -2,11 +2,12 @@
 <chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="twitter"
     xmlns:xlink="http://www.w3.org/1999/xlink">
 
-  <title>Twitter Adapter</title>
+  <title>Twitter Support</title>
   <para>
     Spring Integration provides support for interacting with Twitter. With the Twitter adapters you can both
     receive and send Twitter messages. You can also perform a Twitter search based on a schedule and publish
-    the search results within Messages.
+    the search results within Messages. Since <emphasis>version 4.0</emphasis>, a search outbound
+    gateway is provided to perform dynamic searches.
   </para>
 
   <section id="twitter-intro">
@@ -21,6 +22,8 @@
 		Versions of Spring Integration prior to 2.1 were dependent upon the <ulink url="http://twitter4j.org">Twitter4J API</ulink>,
 		but with the release of <ulink url="http://projects.spring.io/spring-social">Spring Social 1.0 GA</ulink>,
 		Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
+		All Twitter endpoints require the configuration of a <classname>TwitterTemplate</classname> because even
+		search operations require an authenticated template.
 		</important>
     </para>
 
@@ -37,7 +40,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
     <title>Twitter OAuth Configuration</title>
 
   	<para>
-  	The Twitter API allows for both authenticated and anonymous operations. For authenticated operations Twitter uses OAuth
+	For authenticated operations, Twitter uses OAuth
   	- an authentication protocol that allows users to approve an application to act on their behalf without
 	sharing their password. More information can be found at <ulink url="http://oauth.net">http://oauth.net</ulink> or
 	in this article <ulink url="http://hueniverse.com/oauth">http://hueniverse.com/oauth</ulink> from Hueniverse.
@@ -156,6 +159,10 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 		<code>id</code> attribute of the Twitter Inbound Channel Adapter component plus the <code>profileId</code>
 		of the Twitter user.
 	</note>
+	<para>
+		Prior to <emphasis>version 4.0</emphasis>, the page size was hard-coded to 20. This is now configurable
+		using the <code>page-size</code> attribute (defaults to 20).
+	</para>
 
   	<section id="inbound-twitter-update">
   		<title>Inbound Message Channel Adapter</title>
@@ -290,5 +297,90 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
         each time. Another thing that works well for testing is to append a timestamp to the end of each message.
   		</important>
   	</para>
+  </section>
+  <section id="twitter-sog">
+	<title>Twitter Search Outbound Gateway</title>
+	<para>
+		In Spring Integration, an outbound gateway is used for two-way request/response communication with
+		an external service. The Twitter Search Outbound Gateway allows you to issue dynamic twitter
+		searches. The reply message payload is a collection of <classname>Tweet</classname> objects.
+		If the search returns no results, the payload is an empty collection. You can limit the number
+		of tweets and you can page through a larger set of tweets by making multiple calls. To facilitate this, search
+		reply messages contain a header <code>twitter_searchMetadata</code> with its value being
+		a <classname>SearchMetadata</classname> object. For more information
+		on the <classname>Tweet</classname>, <classname>SearchParameters</classname> and
+		<classname>SearchMetadata</classname> classes, refer to the <ulink
+		url="http://projects.spring.io/spring-social-twitter/">Spring Social Twitter</ulink>
+		documentation.
+	</para>
+	<para>
+		<emphasis role="bold">Configuring the Outbound Gateway</emphasis>
+	</para>
+	<programlisting language="xml"><![CDATA[<int-twitter:search-outbound-gateway id="twitter"
+	request-channel="in" ]]><co id="tsog010" /><![CDATA[
+	twitter-template="twitterTemplate" ]]><co id="tsog020" /><![CDATA[
+	search-args-expression="payload" ]]><co id="tsog030" /><![CDATA[
+	reply-channel="out" ]]><co id="tsog040" /><![CDATA[
+	reply-timeout="123" ]]><co id="tsog050" /><![CDATA[
+	order="1" ]]><co id="tsog060" /><![CDATA[
+	auto-startup="false" ]]><co id="tsog070" /><![CDATA[
+	phase="100" ]]><co id="tsog080" /><![CDATA[ />
+]]></programlisting>
+	<calloutlist>
+		<callout arearefs="tsog010">
+			<para>The channel used to send search requests to this gateway.</para>
+		</callout>
+		<callout arearefs="tsog020">
+			<para>A reference to a <classname>TwitterTemplate</classname> with authentication configuration.</para>
+		</callout>
+		<callout arearefs="tsog030">
+			<para>
+				A SpEL expression that evaluates to argument(s) for the search. Default:
+				<emphasis role="bold">"payload"</emphasis> - in which case the payload can be a <classname>String</classname>
+				(e.g "#springintegration") and the gateway limits the query to 20 tweets, or the payload can be a
+				<classname>SearchParameters</classname> object.
+			</para>
+			<para>
+				The expression can also be specified as a <ulink url=
+				"http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-inline-lists"
+				>SpEL List</ulink>. The first element (String) is the query, the remaining elements (Numbers)
+				are <code>pageSize, sinceId, maxId</code> respectively - refer to the Spring Social Twitter
+				documentation for more information about these parameters.
+				When specifying a <classname>SearchParameters</classname> object directly in the SpEL
+				expression, you do not have to fully qualify the class name. Some examples:
+				<programlisting language="xml">"new SearchParameters(payload).count(5).sinceId(headers.sinceId)"
+"{payload, 30}"
+"{payload, headers.pageSize, headers.sinceId, headers.maxId}"</programlisting>
+			</para>
+		</callout>
+		<callout arearefs="tsog040">
+			<para>
+				The channel to which to send the reply; if omitted, the <code>replyChannel</code> header
+				is used.
+			</para>
+		</callout>
+		<callout arearefs="tsog050">
+			<para>
+				The timeout when sending the reply message to the reply channel; only applies if the reply
+				channel can block, for example a bounded queue channel that is full.
+			</para>
+		</callout>
+		<callout arearefs="tsog060">
+			<para>
+				When subscribed to a publish/subscribe channel, the order in which this endpoint will
+				be invoked.
+			</para>
+		</callout>
+		<callout arearefs="tsog070">
+			<para>
+				<interfacename>SmartLifecycle</interfacename> method.
+			</para>
+		</callout>
+		<callout arearefs="tsog080">
+			<para>
+				<interfacename>SmartLifecycle</interfacename> method.
+			</para>
+		</callout>
+	</calloutlist>
   </section>
 </chapter>

@@ -19,16 +19,17 @@ package org.springframework.integration.twitter.inbound;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
-import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.util.Assert;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
@@ -46,13 +47,13 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 	}
 
 	@Override
-	 public String getComponentType() {
+	public String getComponentType() {
 		return "twitter:search-inbound-channel-adapter";
 	}
 
 	@Override
 	protected List<Tweet> pollForTweets(long sinceId) {
-		SearchParameters searchParameters = new SearchParameters(query).count(20).sinceId(sinceId);
+		SearchParameters searchParameters = new SearchParameters(query).count(this.getPageSize()).sinceId(sinceId);
 		SearchResults results = this.getTwitter().searchOperations().search(searchParameters);
 		return (results != null) ? results.getTweets() : Collections.<Tweet>emptyList();
 	}
