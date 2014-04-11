@@ -90,20 +90,20 @@ public class SysLogTransformerTests {
 		SyslogToMapTransformer t = new SyslogToMapTransformer();
 		Map<String, ?> transformed = t.transformPayload(
 				"<158>JUL 26 22:08:35 WEBERN TEST SYSLOG MESSAGE".getBytes());
-		assertEquals(6, transformed.size());
+		assertEquals(5, transformed.size());
 		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
 		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
 		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
 		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
-		assertNull(transformed.get(SyslogToMapTransformer.TAG));
+		assertFalse(transformed.containsKey(SyslogToMapTransformer.TAG));
 		assertEquals("TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
 
 		String[] fields = new String[] {SyslogToMapTransformer.FACILITY,
 				SyslogToMapTransformer.SEVERITY, SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
+				SyslogToMapTransformer.MESSAGE};
 
-		Object[] values = new Object[] {19, 6, date, "WEBERN", null, "TEST SYSLOG MESSAGE"};
+		Object[] values = new Object[] {19, 6, date, "WEBERN", "TEST SYSLOG MESSAGE"};
 		// check iteration order
 		int n = 0;
 		for (Entry<String, ?> entry : transformed.entrySet()) {

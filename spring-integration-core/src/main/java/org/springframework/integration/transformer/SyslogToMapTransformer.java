@@ -28,12 +28,13 @@ import java.util.regex.Pattern;
 import org.springframework.util.Assert;
 
 /**
- * Transforms a packet in Syslog (RFC5424) format to a Map.
+ * Transforms a packet in Syslog (RFC3164) format to a Map.
  * If the packet cannot be decoded, the entire packet
  * is returned as a String under the key {@code UNDECODED}. If the date field can be
  * parsed, it will be returned as a {@link Date} object; otherwise it is returned as a String.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -125,7 +126,9 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 					map.put(TIMESTAMP, timestamp);
 				}
 				map.put(HOST, matcher.group(3));
-				map.put(TAG, matcher.group(4));
+				if (matcher.group(4) != null) {
+					map.put(TAG, matcher.group(4));
+				}
 				map.put(MESSAGE, matcher.group(5));
 			}
 			catch (Exception e) {
