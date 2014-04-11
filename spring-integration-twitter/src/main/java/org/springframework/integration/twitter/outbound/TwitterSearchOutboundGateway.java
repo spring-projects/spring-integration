@@ -82,7 +82,7 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 	 * page size, sinceId, and maxId respectively. Refer to the 'Spring
 	 * Social Twitter' documentation for more details.
 	 * <p> When using a {@code SearchParameters} directly, it is not necessary
-	 * to include the package: {@code "new SearchParameters("#foo").count(20)").
+	 * to include the package: {@code "new SearchParameters("#foo").count(20)")}.
 	 * <p> Default: {@code "payload"}.
 	 * @param searchArgsExpression The expression.
 	 */
