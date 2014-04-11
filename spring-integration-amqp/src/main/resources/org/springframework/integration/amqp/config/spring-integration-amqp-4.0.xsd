@@ -464,8 +464,8 @@ standard headers to also be mapped.
 		<xsd:attribute name="return-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-Channel to which returned messages will be sent. Requires a RabbitTemplate with the 'mandatory' or
-'immediate' properties set to TRUE; requires a CachingConnectionFactory with the 'publisherReturns'
+Channel to which returned messages will be sent. Requires a RabbitTemplate with the 'mandatory'
+property set to TRUE; requires a CachingConnectionFactory with the 'publisherReturns'
 property set to TRUE.
 				]]></xsd:documentation>
 				<xsd:appinfo>
@@ -475,7 +475,28 @@ property set to TRUE.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="default-delivery-mode">
+			<xsd:annotation>
+				<xsd:documentation>
+	The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'. Overridden if the 'header-mapper'
+	sets the delivery mode. The 'DefaultHeaderMapper' sets the value if the
+	Spring Integration message header 'amqp_deliveryMode' is present. If this attribute is not supplied and
+	the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter'
+	used by the 'RabbitTemplate'. If that is not customized at all, the default is 'PERSISTENT'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="deliveryModeEnumeration xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:simpleType name="deliveryModeEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="PERSISTENT" />
+			<xsd:enumeration value="NON_PERSISTENT" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="inboundType">
 		<xsd:annotation>
