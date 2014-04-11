@@ -148,15 +148,16 @@
 		  <para>
 			  Starting with <emphasis>version 4.0</emphasis> the new <code>MongoDbChannelMessageStore</code>
 			  has been introduced. With <code>priorityEnabled = true</code> option it can be used as a reference for
-			  <code>&lt;int:priority-queue&gt;</code> to achieve <emphasis>priority</emphasis> order polling for
+			  <code>&lt;int:priority-queue&gt;</code>s to achieve <emphasis>priority</emphasis> order polling for
 			  persisted message. The <emphasis>priority</emphasis> MonogDB document field is the
 			  <code>IntegrationMessageHeaderAccessor.PRIORITY</code> (the <code>priority</code> Message header).
 		  </para>
 		  <para>
 			  In addition MongoDB <interfacename>MessageStore</interfacename>s add <code>sequence</code> field for MessageGroup
 			  documents. The <code>sequence</code> value is a result of <code>$inc</code> operation for simple <code>sequence</code>
-			  document from the collection, which is created on demand. The <code>sequence</code> field is used in <code>poll</code>
-			  operations to allow to have correct messages order, which isn't possible when only <code>timestamp</code> field is used.
+			  document from the same collection, which is created on demand. The <code>sequence</code> field is used in
+			  <code>poll</code> operations to allow to have correct messages order, which isn't possible when only
+			  <code>timestamp</code> field is used.
 		  </para>
 		  <note>
 			  <para>
@@ -164,8 +165,8 @@
 				  for priority and non-priority, because <code>priorityEnabled</code> option applies to the entire store.
 				  However the same <code>collection</code> can be used for both
 				  <classname>MongoDbChannelMessageStore</classname> types, because the real message polling from
-				  store is sorted and uses indexes. From configuration perspective it's just enough to extend one bean
-				  from another:
+				  store is sorted and uses indexes.To configure that scenario, simply extend one message store bean
+				  from the other:
 				  <programlisting language="xml"><![CDATA[<bean id="channelStore" class="o.s.i.mongodb.store.MongoDbChannelMessageStore">
 	<constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
 </bean>

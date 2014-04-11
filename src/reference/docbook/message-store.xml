@@ -103,6 +103,7 @@
 		<itemizedlist>
 			<listitem><xref linkend="redis-cms"/></listitem>
 			<listitem><xref linkend="mongodb-priority-channel-message-store"/></listitem>
+			<listitem><xref linkend="jdbc-message-store-channels"/></listitem>
 		</itemizedlist>
 	</para>
 

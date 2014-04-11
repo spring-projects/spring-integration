@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mongodb.store;
 
-import static org.springframework.integration.mongodb.store.MessageDocumentFields.*;
+package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.mongodb.DB;
+import com.mongodb.MongoException;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.DbCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -59,8 +58,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		implements MessageStore, MessageGroupStore, Iterable<MessageGroup> {
 
 	public final static String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
-
-	private static final Log logger = LogFactory.getLog(ConfigurableMongoDbMessageStore.class);
 
 	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
 
@@ -129,14 +126,16 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		MessageDocument document = this.mongoTemplate.findAndRemove(Query.query(Criteria.where(MESSAGE_ID).is(id)),
-				MessageDocument.class, this.collectionName);
+		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
+		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);
 		return (document != null) ? document.getMessage() : null;
 	}
 
 	@Override
 	public long getMessageCount() {
-		return this.mongoTemplate.getCollection(this.collectionName).getCount();
+		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).exists(true)
+				.and(MessageDocumentFields.GROUP_ID).exists(false));
+		return this.mongoTemplate.getCollection(this.collectionName).count(query.getQueryObject());
 	}
 
 
@@ -144,7 +143,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		Query query = groupIdQuery(groupId).with(new Sort(Sort.Direction.DESC, LAST_MODIFIED_TIME, SEQUENCE));
+		Query query = groupOrderQuery(groupId);
 		List<MessageDocument> messageDocuments = this.mongoTemplate.find(query, MessageDocument.class,
 				this.collectionName);
 
@@ -173,84 +172,111 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+	public MessageGroup addMessageToGroup(final Object groupId, final Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
 
-		Query query = groupIdQuery(groupId).with(new Sort(Sort.Direction.DESC, LAST_MODIFIED_TIME, SEQUENCE));
-		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		return this.mongoTemplate.executeInSession(new DbCallback<MessageGroup>() {
 
-		long createdTime = 0;
-		int lastReleasedSequence = 0;
-		boolean complete = false;
+			@Override
+			public MessageGroup doInDB(DB db) throws MongoException, DataAccessException {
+				Query query = groupOrderQuery(groupId);
+				MessageDocument messageDocument = mongoTemplate.findOne(query, MessageDocument.class, collectionName);
 
-		if (messageDocument != null) {
-			createdTime = messageDocument.getCreatedTime();
-			lastReleasedSequence = messageDocument.getLastReleasedSequence();
-			complete = messageDocument.isComplete();
-		}
+				long createdTime = 0;
+				int lastReleasedSequence = 0;
+				boolean complete = false;
 
-		MessageDocument document = new MessageDocument(message);
-		document.setGroupId(groupId);
-		document.setComplete(complete);
-		document.setLastReleasedSequence(lastReleasedSequence);
-		document.setCreatedTime(createdTime == 0 ? System.currentTimeMillis() : createdTime);
-		document.setLastModifiedTime(System.currentTimeMillis());
-		document.setSequence(this.getNextId());
+				if (messageDocument != null) {
+					createdTime = messageDocument.getCreatedTime();
+					lastReleasedSequence = messageDocument.getLastReleasedSequence();
+					complete = messageDocument.isComplete();
+				}
 
-		this.addMessageDocument(document);
+				MessageDocument document = new MessageDocument(message);
+				document.setGroupId(groupId);
+				document.setComplete(complete);
+				document.setLastReleasedSequence(lastReleasedSequence);
+				document.setCreatedTime(createdTime == 0 ? System.currentTimeMillis() : createdTime);
+				document.setLastModifiedTime(System.currentTimeMillis());
+				document.setSequence(getNextId());
 
-		return this.getMessageGroup(groupId);
+				addMessageDocument(document);
+
+				return getMessageGroup(groupId);
+			}
+		});
 	}
 
 	@Override
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+	public MessageGroup removeMessageFromGroup(final Object groupId, final Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		Query query = groupIdQuery(groupId).addCriteria(Criteria.where(MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
-		this.mongoTemplate.remove(query, this.collectionName);
-		this.updateGroup(groupId, lastModifiedUpdate());
-		return this.getMessageGroup(groupId);
+
+		return this.mongoTemplate.executeInSession(new DbCallback<MessageGroup>() {
+
+			@Override
+			public MessageGroup doInDB(DB db) throws MongoException, DataAccessException {
+				Query query = groupIdQuery(groupId)
+						.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
+				mongoTemplate.remove(query, collectionName);
+				updateGroup(groupId, lastModifiedUpdate());
+				return getMessageGroup(groupId);
+			}
+		});
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public Message<?> pollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		Query query = groupIdQuery(groupId).with(new Sort(LAST_MODIFIED_TIME, SEQUENCE));
-		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);
-		Message<?> message = null;
-		if (document != null) {
-			message = document.getMessage();
-			this.updateGroup(groupId, lastModifiedUpdate());
-		}
-		return message;
+		return this.mongoTemplate.executeInSession(new DbCallback<Message<?>>() {
+
+			@Override
+			public Message<?> doInDB(DB db) throws MongoException, DataAccessException {
+				Sort sort = new Sort(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
+				Query query = groupIdQuery(groupId).with(sort);
+				MessageDocument document = mongoTemplate.findAndRemove(query, MessageDocument.class, collectionName);
+				Message<?> message = null;
+				if (document != null) {
+					message = document.getMessage();
+					updateGroup(groupId, lastModifiedUpdate());
+				}
+				return message;
+			}
+		});
 	}
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		this.updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE, sequenceNumber));
+		this.updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
 	}
 
 	@Override
 	public void completeGroup(Object groupId) {
-		this.updateGroup(groupId, lastModifiedUpdate().set(COMPLETE, true));
+		this.updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.COMPLETE, true));
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
 	public Iterator<MessageGroup> iterator() {
-		Map<Object, MessageGroup> messageGroupMap = new HashMap<Object, MessageGroup>();
-		Query query = Query.query(Criteria.where(GROUP_ID).exists(true));
-		query.fields().include(GROUP_ID);
-		List<Map> groupIds = this.mongoTemplate.find(query, Map.class, this.collectionName);
-		for (Map groupId : groupIds) {
-			Object key = groupId.get(GROUP_ID);
-			if (!messageGroupMap.containsKey(key)) {
-				messageGroupMap.put(key, this.getMessageGroup(groupId));
+		return this.mongoTemplate.executeInSession(new DbCallback<Iterator<MessageGroup>>() {
+
+			@Override
+			public Iterator<MessageGroup> doInDB(DB db) throws MongoException, DataAccessException {
+				List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
+
+				Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
+				@SuppressWarnings("rawtypes")
+				List groupIds = mongoTemplate.getCollection(collectionName)
+						.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject());
+
+				for (Object groupId : groupIds) {
+					messageGroups.add(getMessageGroup(groupId));
+				}
+
+				return messageGroups.iterator();
 			}
-		}
-		return messageGroupMap.values().iterator();
+		});
 	}
 
 	@Override
@@ -280,21 +306,20 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		int count = 0;
-		for (MessageGroup group : this) {
-			count += group.size();
-		}
-		return count;
+		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).exists(true)
+				.and(MessageDocumentFields.GROUP_ID).exists(true));
+		long count = this.mongoTemplate.count(query, this.collectionName);
+		Assert.isTrue(count <= Integer.MAX_VALUE, "Message count is out of Integer's range");
+		return (int) count;
 	}
 
 	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		int count = 0;
-		for (@SuppressWarnings("unused") MessageGroup group : this) {
-			count ++;
-		}
-		return count;
+		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
+		return this.mongoTemplate.getCollection(this.collectionName)
+				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject())
+				.size();
 	}
 
 	private void expire(MessageGroup group) {
@@ -304,7 +329,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		for (MessageGroupCallback callback : expiryCallbacks) {
 			try {
 				callback.execute(this, group);
-			} catch (RuntimeException e) {
+			}
+			catch (RuntimeException e) {
 				if (exception == null) {
 					exception = e;
 				}
@@ -319,12 +345,16 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 
 	private void updateGroup(Object groupId, Update update) {
-		this.mongoTemplate.updateFirst(groupIdQuery(groupId).with(new Sort(LAST_MODIFIED_TIME, SEQUENCE)), update,
-				this.collectionName);
+		this.mongoTemplate.updateFirst(groupOrderQuery(groupId), update, this.collectionName);
 	}
 
 	private static Update lastModifiedUpdate() {
-		return Update.update(LAST_MODIFIED_TIME, System.currentTimeMillis());
+		return Update.update(MessageDocumentFields.LAST_MODIFIED_TIME, System.currentTimeMillis());
+	}
+
+	private static Query groupOrderQuery(Object groupId) {
+		Sort sort = new Sort(Sort.Direction.DESC, MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
+		return groupIdQuery(groupId).with(sort);
 	}
 
 }

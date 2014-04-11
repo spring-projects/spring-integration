@@ -665,6 +665,10 @@ payload to an Integer.
         the <code>message-store</code> option (<code>comparator</code> is not allowed in that case).
         The message store must be a <interfacename>PriorityCapableChannelMessageStore</interfacename> and, in this
         case, the namespace parser will declare a <classname>QueueChannel</classname> instead of
+        a <classname>PriorityChannel</classname>. Implementations of the
+		<classname>PriorityCapableChannelMessageStore</classname> are currently provided for <code>Redis</code>,
+        <code>JDBC</code> and <code>MongoDB</code>.
+        See <xref linkend="channel-configuration-queuechannel"/>.
       </para>
     </section>
     <section id="channel-configuration-rendezvouschannel">

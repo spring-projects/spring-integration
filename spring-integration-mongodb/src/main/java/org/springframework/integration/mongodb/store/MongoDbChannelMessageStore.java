@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.springframework.integration.mongodb.store.MessageDocumentFields.*;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,19 +33,18 @@ import org.springframework.util.Assert;
 /**
  * MongoDB {@link PriorityCapableChannelMessageStore} implementation.
  * This message store shall be used for message channels only.
- * <p>
- * Provide the {@link #priorityEnabled} option to allow to poll messages via {@code priority} manner.
- * <p>
- * As a priority document field the {@link org.springframework.integration.IntegrationMessageHeaderAccessor#PRIORITY}
+ *
+ * <p>Provide the {@link #priorityEnabled} option to allow to poll messages via {@code priority} manner.
+ *
+ * <p>As a priority document field the {@link org.springframework.integration.IntegrationMessageHeaderAccessor#PRIORITY}
  * message header is used.
- * <p>
- * The same collection can be used for {@link org.springframework.integration.channel.QueueChannel}s and
+ *
+ * <p>The same collection can be used for {@link org.springframework.integration.channel.QueueChannel}s and
  * {@link org.springframework.integration.channel.PriorityChannel}s, but the different instances of
  * {@link MongoDbChannelMessageStore} should be used for those cases, and the last one with
- * {@code #priorityEnabled = true} option.
+ * {@code priorityEnabled = true} option.
  *
  * @author Artem Bilan
- *
  * @since 4.0
  */
 public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessageStore
@@ -94,18 +91,10 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
 		this.mongoTemplate.indexOps(this.collectionName)
-				.ensureIndex(new Index(GROUP_ID, Order.ASCENDING)
-						.on(PRIORITY, Order.DESCENDING)
-						.on(LAST_MODIFIED_TIME, Order.ASCENDING)
-						.on(SEQUENCE, Order.ASCENDING));
-	}
-
-	/**
-	 * Not fully used. Only wraps the provided group id.
-	 */
-	@Override
-	public MessageGroup getMessageGroup(Object groupId) {
-		return new SimpleMessageGroup(groupId);
+				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Order.ASCENDING)
+						.on(MessageDocumentFields.PRIORITY, Order.DESCENDING)
+						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Order.ASCENDING)
+						.on(MessageDocumentFields.SEQUENCE, Order.ASCENDING));
 	}
 
 	@Override
@@ -126,13 +115,21 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		return this.getMessageGroup(groupId);
 	}
 
+	/**
+	 * Not fully used. Only wraps the provided group id.
+	 */
+	@Override
+	public MessageGroup getMessageGroup(Object groupId) {
+		return new SimpleMessageGroup(groupId);
+	}
+
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		Sort sort = new Sort(LAST_MODIFIED_TIME, SEQUENCE);
+		Sort sort = new Sort(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
 		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, PRIORITY).and(sort);
+			sort = new Sort(Sort.Direction.DESC, MessageDocumentFields.PRIORITY).and(sort);
 		}
 		Query query = groupIdQuery(groupId).with(sort);
 		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);
