@@ -187,8 +187,8 @@ public abstract class IntegrationContextUtils {
 						IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, MessageBuilderFactory.class);
 			}
 			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("No MessageBuilderFactory with name '"
+				if (logger.isDebugEnabled()) {
+					logger.debug("No MessageBuilderFactory with name '"
 								+ IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME
 								+ "' found: " + e.getMessage()
 								+ ", using default.");
@@ -196,8 +196,8 @@ public abstract class IntegrationContextUtils {
 			}
 		}
 		else {
-			if (logger.isWarnEnabled()) {
-				logger.warn("No 'beanFactory' supplied; cannot find MessageBuilderFactory"
+			if (logger.isDebugEnabled()) {
+				logger.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory"
 							+ ", using default.");
 			}
 			if (fatalWhenNoBeanFactory) {
