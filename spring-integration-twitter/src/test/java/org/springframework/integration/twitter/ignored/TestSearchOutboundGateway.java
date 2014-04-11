@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,38 @@
  */
 package org.springframework.integration.twitter.ignored;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.social.twitter.api.SearchParameters;
 
 /**
- * @author Oleg Zhurakousky
  * @author Gary Russell
  *
+ * @since 4.0
+ *
  */
-public class TestReceivingUsingNamespace {
+public class TestSearchOutboundGateway {
 
 	@Test
 	@Ignore
 	/*
 	 * In order to run this test you need to provide oauth properties in sample.properties on the classpath.
 	 */
-	public void testUpdatesWithRealTwitter() throws Exception{
-		CountDownLatch latch = new CountDownLatch(1);
+	public void testSearch() throws Exception{
 		ConfigurableApplicationContext ctx =
-				new ClassPathXmlApplicationContext("TestReceivingUsingNamespace-context.xml", this.getClass());
-		latch.await(10000, TimeUnit.SECONDS);
+				new ClassPathXmlApplicationContext("TestSearchOutboundGateway-context.xml", this.getClass());
+		MessageChannel search = ctx.getBean("search", MessageChannel.class);
+		search.send(new GenericMessage<String>("#springintegration"));
+		Thread.sleep(10000);
+		search.send(new GenericMessage<SearchParameters>(new SearchParameters("#springintegration").count(5)));
+		Thread.sleep(10000);
+		search.send(new GenericMessage<SearchParameters>(new SearchParameters("#jjjjunk").count(5)));
+		Thread.sleep(10000);
 		ctx.close();
 	}
 }

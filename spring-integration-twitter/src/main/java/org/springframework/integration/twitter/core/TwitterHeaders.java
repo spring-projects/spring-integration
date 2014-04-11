@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -21,12 +21,17 @@ package org.springframework.integration.twitter.core;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
-public abstract class TwitterHeaders {
+public final class TwitterHeaders {
 
 	private static final String PREFIX = "twitter_";
 
 	public static final String DM_TARGET_USER_ID = PREFIX + "dmTargetUserId";
+
+	public static final String SEARCH_METADATA = PREFIX + "searchMetadata";
+
+	private TwitterHeaders() {}
 
 }
