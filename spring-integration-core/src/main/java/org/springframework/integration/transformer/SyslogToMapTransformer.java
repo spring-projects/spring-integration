@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.transformer;
 
 import java.io.UnsupportedEncodingException;
@@ -29,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * Transforms a packet in Syslog (RFC5424) format to a Map.
  * If the packet cannot be decoded, the entire packet
- * is returned as a String under the key UNDECODED. If the date field can be
+ * is returned as a String under the key {@code UNDECODED}. If the date field can be
  * parsed, it will be returned as a {@link Date} object; otherwise it is returned as a String.
  *
  * @author Gary Russell
@@ -44,12 +45,6 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	public static final String TIMESTAMP = "TIMESTAMP";
 
-	/**
-	 * @deprecated use {@link #TIMESTAMP}
-	 */
-	@Deprecated
-	public static final String TIMESAMP = TIMESTAMP;
-
 	public static final String HOST = "HOST";
 
 	public static final String TAG = "TAG";
@@ -58,9 +53,23 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	public static final String UNDECODED = "UNDECODED";
 
-	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) ([^:]+): (.*)", Pattern.DOTALL);
+	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) (?:([^:]+): )?(.*)", Pattern.DOTALL);
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss");
+
+	@Override
+	protected Map<String, ?> transformPayload(Object payload) throws Exception {
+		boolean isByteArray = payload instanceof byte[];
+		boolean isString = payload instanceof String;
+		Assert.isTrue(isByteArray || isString, "payload must be String or byte[]");
+		if (isByteArray) {
+			return this.transform((byte[]) payload);
+		}
+		else if (isString) {
+			return this.transform((String) payload);
+		}
+		return null;
+	}
 
 	private Map<String, ?> transform(byte[] payloadBytes) {
 		String payload;
@@ -136,17 +145,4 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 		return map;
 	}
 
-	@Override
-	protected Map<String, ?> transformPayload(Object payload) throws Exception {
-		boolean isByteArray = payload instanceof byte[];
-		boolean isString = payload instanceof String;
-		Assert.isTrue(isByteArray || isString, "payload must be String or byte[]");
-		if (isByteArray) {
-			return this.transform((byte[]) payload);
-		}
-		else if (isString) {
-			return this.transform((String) payload);
-		}
-		return null;
-	}
 }
