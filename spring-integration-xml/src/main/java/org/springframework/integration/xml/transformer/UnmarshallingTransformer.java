@@ -81,6 +81,10 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 		this.alwaysUseSourceFactory = alwaysUseSourceFactory;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "xml:unmarshalling-transformer";
+	}
 
 	@Override
 	public Object transformPayload(Object payload) {

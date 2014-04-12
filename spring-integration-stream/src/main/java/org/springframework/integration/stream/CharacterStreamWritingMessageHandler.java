@@ -129,6 +129,11 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	}
 
 	@Override
+	public String getComponentType() {
+		return "stream:outbound-channel-adapter(character)";
+	}
+
+	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {

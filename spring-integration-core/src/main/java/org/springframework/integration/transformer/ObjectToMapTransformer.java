@@ -62,6 +62,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		this.shouldFlattenKeys = shouldFlattenKeys;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> transformPayload(Object payload) throws Exception {
 		Map<String,Object> result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
@@ -69,6 +70,28 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 			result = this.flattenMap(result);
 		}
 		return result;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "object-to-map-transformer";
+	}
+
+	@SuppressWarnings("unchecked")
+	private void doProcessElement(String propertyPrefix, Object element, Map<String, Object> resultMap) {
+		if (element instanceof Map) {
+			this.doFlatten(propertyPrefix, (Map<String, Object>) element, resultMap);
+		}
+		else if (element instanceof Collection) {
+			this.doProcessCollection(propertyPrefix, (Collection<?>) element, resultMap);
+		}
+		else if (element != null && element.getClass().isArray()) {
+			Collection<?> collection =  CollectionUtils.arrayToList(element);
+			this.doProcessCollection(propertyPrefix, collection, resultMap);
+		}
+		else {
+			resultMap.put(propertyPrefix, element);
+		}
 	}
 
 	private Map<String, Object> flattenMap(Map<String,Object> result){
@@ -92,23 +115,6 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		for (Object element : list) {
 			this.doProcessElement(propertyPrefix + "[" + counter + "]", element, resultMap);
 			counter ++;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private void doProcessElement(String propertyPrefix, Object element, Map<String, Object> resultMap) {
-		if (element instanceof Map) {
-			this.doFlatten(propertyPrefix, (Map<String, Object>) element, resultMap);
-		}
-		else if (element instanceof Collection) {
-			this.doProcessCollection(propertyPrefix, (Collection<?>) element, resultMap);
-		}
-		else if (element != null && element.getClass().isArray()) {
-			Collection<?> collection =  CollectionUtils.arrayToList(element);
-			this.doProcessCollection(propertyPrefix, collection, resultMap);
-		}
-		else {
-			resultMap.put(propertyPrefix, element);
 		}
 	}
 

@@ -106,6 +106,11 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	@Override
+	public String getComponentType() {
+		return "jdbc:outbound-gateway";
+	}
+
+	@Override
 	protected void doInit() {
 		if (this.maxRowsPerPoll != null) {
 			Assert.notNull(poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");

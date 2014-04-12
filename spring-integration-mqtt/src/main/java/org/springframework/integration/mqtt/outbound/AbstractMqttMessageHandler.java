@@ -87,6 +87,11 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	@Override
+	public String getComponentType() {
+		return "mqtt:outbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 		if (this.converter == null) {
@@ -152,10 +157,5 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	protected abstract void connectIfNeeded();
 
 	protected abstract void publish(String topic, Object mqttMessage) throws Exception;
-
-	@Override
-	public String getComponentType() {
-		return "mqtt:outbound-channel-adapter";
-	}
 
 }

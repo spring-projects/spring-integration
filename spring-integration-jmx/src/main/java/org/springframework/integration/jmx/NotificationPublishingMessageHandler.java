@@ -94,6 +94,11 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	}
 
 	@Override
+	public String getComponentType() {
+		return "jmx:notification-publishing-channel-adapter";
+	}
+
+	@Override
 	public final void onInit() throws Exception {
 		Assert.isTrue(this.getBeanFactory() instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		Map<String, MBeanExporter> exporters = BeanFactoryUtils.beansOfTypeIncludingAncestors(

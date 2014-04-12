@@ -141,6 +141,11 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	}
 
 	@Override
+	public String getComponentType() {
+		return "redis:store-inbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());

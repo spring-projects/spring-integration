@@ -25,9 +25,9 @@ import org.springframework.data.gemfire.GemfireCallback;
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.GemFireCheckedException;
@@ -37,7 +37,7 @@ import com.gemstone.gemfire.cache.Region;
 /**
  * A {@link MessageHandler} implementation that writes to a GemFire Region. The
  * Message's payload must be an instance of java.util.Map.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @since 2.1
@@ -51,22 +51,28 @@ public class CacheWritingMessageHandler extends AbstractMessageHandler {
 	public CacheWritingMessageHandler(Region region) {
 		Assert.notNull(region, "region must not be null");
 		this.gemfireTemplate.setRegion(region);
-		this.gemfireTemplate.afterPropertiesSet(); 
+		this.gemfireTemplate.afterPropertiesSet();
 	}
-	
+
+	@Override
+	public String getComponentType() {
+		return "gemfire:outbound-channel-adapter";
+	}
+
 	@Override
 	public void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		Map<?, ?> cacheValues = (cacheEntryExpressions.size() > 0)?parseCacheEntries(message):null;
-		
+
 		if (cacheValues == null) {
 			Assert.isTrue(payload instanceof Map, "If cache entry expressions are not configured, then payload must be a Map");
 			cacheValues = (Map<?, ?>) payload;
 		}
 
 		final Map<?, ?> map = cacheValues;
-		
+
 		this.gemfireTemplate.execute(new GemfireCallback<Object>() {
+			@Override
 			@SuppressWarnings({ "rawtypes", "unchecked" })
 			public Object doInGemfire(Region region) throws GemFireCheckedException, GemFireException {
 				region.putAll(map);
@@ -89,11 +95,11 @@ public class CacheWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	public void setCacheEntries(Map<String, String> cacheEntries) {
-		
+
 		if (cacheEntryExpressions.size() > 0) {
 			cacheEntryExpressions.clear();
 		}
-		
+
 		for (Entry<String, String> cacheEntry : cacheEntries.entrySet()) {
 			this.cacheEntryExpressions.put(new SpelExpressionParser().parseExpression(cacheEntry.getKey()),
 					new SpelExpressionParser().parseExpression(cacheEntry.getValue()));

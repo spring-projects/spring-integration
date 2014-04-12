@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.xmpp.outbound;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * MessageHandler that publishes updated Presence values for a given XMPP connection. 
+ * MessageHandler that publishes updated Presence values for a given XMPP connection.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -40,6 +40,10 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 		super(xmppConnection);
 	}
 
+	@Override
+	public String getComponentType() {
+		return "xmpp:presence-outbound-channel-adapter";
+	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {

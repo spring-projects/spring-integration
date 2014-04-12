@@ -67,8 +67,14 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	}
 
 	@Override
+	public String getComponentType() {
+		return "amqp:inbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() {
 		this.messageListenerContainer.setMessageListener(new MessageListener() {
+			@Override
 			public void onMessage(Message message) {
 				Object payload = messageConverter.fromMessage(message);
 				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
@@ -95,6 +101,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	 * <p>
 	 * Shuts down the listener container.
 	 */
+	@Override
 	public int beforeShutdown() {
 		this.stop();
 		return 0;
@@ -105,6 +112,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	 * {@inheritDoc}
 	 * <p>No-op
 	 */
+	@Override
 	public int afterShutdown() {
 		return 0;
 	}

@@ -50,6 +50,11 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
+	public String getComponentType() {
+		return "jdbc:stored-proc-outbound-gateway";
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 
 		Map<String, Object> resultMap = executor.executeStoredProcedure(requestMessage);

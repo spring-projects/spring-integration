@@ -76,6 +76,17 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this(uri, marshaller, (WebServiceMessageFactory) null);
 	}
 
+	@Override
+	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
+		Object reply = this.getWebServiceTemplate().sendAndReceive(uri,
+				new MarshallingRequestMessageCallback(requestCallback, requestMessage), new MarshallingResponseMessageExtractor());
+		return reply;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "ws:outbound-gateway(marshaling)";
+	}
 
 	/**
 	 * Sets the provided Marshaller and Unmarshaller on this gateway's WebServiceTemplate.
@@ -97,13 +108,6 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
 		this.marshaller = marshaller;
 		this.unmarshaller = unmarshaller;
-	}
-
-	@Override
-	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
-		Object reply = this.getWebServiceTemplate().sendAndReceive(uri,
-				new MarshallingRequestMessageCallback(requestCallback, requestMessage), new MarshallingResponseMessageExtractor());
-		return reply;
 	}
 
 	private class MarshallingRequestMessageCallback extends RequestMessageCallback {

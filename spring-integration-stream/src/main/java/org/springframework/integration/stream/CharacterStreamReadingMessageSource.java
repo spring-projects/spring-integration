@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 
 /**
  * A pollable source for {@link Reader Readers}.
- * 
+ *
  * @author Mark Fisher
  */
 public class CharacterStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<String> {
@@ -61,7 +61,7 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 
 
 	public String getComponentType() {
-		return "stream:stdin-channel-adapter";
+		return "stream:stdin-channel-adapter(character)";
 	}
 
 	public Message<String> receive() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,10 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
+	@Override
+	public String getComponentType() {
+		return "ws:outbound-gateway(simple)";
+	}
 
 	@Override
 	protected Object doHandle(String uri, final Message<?> requestMessage, final WebServiceMessageCallback requestCallback) {
@@ -163,6 +167,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor<DOMSource> {
 
+		@Override
 		public DOMSource extractData(Source source) throws IOException, TransformerException {
 			if (source instanceof DOMSource) {
 				return (DOMSource)source;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
@@ -27,10 +28,11 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-public class ByteStreamReadingMessageSource implements MessageSource<byte[]> {
+public class ByteStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<byte[]> {
 
 	private BufferedInputStream stream;
 
@@ -65,6 +67,11 @@ public class ByteStreamReadingMessageSource implements MessageSource<byte[]> {
 
 	public void setShouldTruncate(boolean shouldTruncate) {
 		this.shouldTruncate = shouldTruncate;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "stream:stdin-channel-adapter(byte)";
 	}
 
 	public Message<byte[]> receive() {
