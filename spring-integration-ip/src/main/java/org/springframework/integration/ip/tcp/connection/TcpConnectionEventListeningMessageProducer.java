@@ -54,6 +54,11 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	}
 
 	@Override
+	public String getComponentType() {
+		return "ip:tcp-connection-event-inbound-channel-adapter";
+	}
+
+	@Override
 	public void onApplicationEvent(TcpConnectionEvent event) {
 		if (this.isRunning()) {
 			if (CollectionUtils.isEmpty(this.eventTypes)) {

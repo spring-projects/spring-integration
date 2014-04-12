@@ -87,6 +87,11 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "object-to-json-transformer";
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
 		Object payload = ResultType.STRING.equals(this.resultType)
 				? this.jsonObjectMapper.toJson(message.getPayload())

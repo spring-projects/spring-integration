@@ -107,6 +107,11 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	}
 
 	@Override
+	public String getComponentType() {
+		return "jmx:operation-invoking-channel-adapter";
+	}
+
+	@Override
 	protected void doInit() {
 		Assert.notNull(this.server, "MBeanServer is required.");
 	}

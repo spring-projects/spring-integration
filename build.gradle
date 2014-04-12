@@ -312,6 +312,10 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
+		compile("net.java.dev.rome:rome-fetcher:$romeVersion") {
+			optional
+			exclude group: 'junit'
+		}
 
 		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 

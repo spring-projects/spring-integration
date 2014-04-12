@@ -107,6 +107,11 @@ public class XPathTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "xml:xpath-transformer";
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
 		Node node = this.converter.convertToNode(message.getPayload());
 		Object result = null;

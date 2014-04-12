@@ -43,6 +43,10 @@ public class ClaimCheckInTransformer extends AbstractTransformer {
 		this.messageStore = messageStore;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "claim-check-in";
+	}
 
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {

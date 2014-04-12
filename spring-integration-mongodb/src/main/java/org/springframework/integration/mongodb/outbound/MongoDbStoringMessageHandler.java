@@ -98,6 +98,11 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "mongo:outbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());

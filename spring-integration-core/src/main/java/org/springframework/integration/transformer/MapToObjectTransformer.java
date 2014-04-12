@@ -63,6 +63,19 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?, ?>
 	}
 
 	@Override
+	public String getComponentType() {
+		return "map-to-object-transformer";
+	}
+
+	@Override
+	protected void onInit() {
+		if (StringUtils.hasText(this.targetBeanName)) {
+			Assert.isTrue(this.getBeanFactory().isPrototype(this.targetBeanName),
+					"target bean [" + targetBeanName + "] must have 'prototype' scope");
+		}
+	}
+
+	@Override
 	protected Object transformPayload(Map<?, ?> payload) throws Exception {
 		Object target = (this.targetClass != null)
 				? BeanUtils.instantiate(this.targetClass)
@@ -77,14 +90,6 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?, ?>
 		binder.bind(new MutablePropertyValues(payload));
 
 		return target;
-	}
-
-	@Override
-	protected void onInit() {
-		if (StringUtils.hasText(this.targetBeanName)) {
-			Assert.isTrue(this.getBeanFactory().isPrototype(this.targetBeanName),
-					"target bean [" + targetBeanName + "] must have 'prototype' scope");
-		}
 	}
 
 }

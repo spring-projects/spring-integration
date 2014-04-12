@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,7 +19,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -31,6 +30,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 
 /**
@@ -96,6 +96,11 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "jdbc:outbound-channel-adapter";
 	}
 
 	/**

@@ -88,6 +88,11 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
+	public String getComponentType() {
+		return "redis:outbound-gateway";
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		final String command = this.commandExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(command, "The 'command' must not evaluate to 'null'.");

@@ -70,16 +70,16 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	}
 
 	@Override
+	public String getComponentType(){
+		return "mqtt:inbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		if (this.converter == null) {
 			this.converter = new DefaultPahoMessageConverter();
 		}
-	}
-
-	@Override
-	public String getComponentType(){
-		return "mqtt:inbound-channel-adapter";
 	}
 
 }
