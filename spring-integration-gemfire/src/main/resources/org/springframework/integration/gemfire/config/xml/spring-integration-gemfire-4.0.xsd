@@ -110,12 +110,15 @@
 				]]></xsd:documentation>
 				</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="durable" use="optional" type="xsd:boolean" default="false">
+					<xsd:attribute name="durable" use="optional" default="false">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 							Indicates if the query is a durable subscription
 							]]></xsd:documentation>
-							</xsd:annotation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:string xsd:boolean"/>
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 		</xsd:complexContent>
