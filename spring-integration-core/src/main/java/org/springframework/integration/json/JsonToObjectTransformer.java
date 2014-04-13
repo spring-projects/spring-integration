@@ -68,6 +68,11 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	}
 
 	@Override
+	public String getComponentType() {
+		return "json-to-object-transformer";
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
 		if (this.targetClass != null) {
 			return this.jsonObjectMapper.fromJson(message.getPayload(), this.targetClass);

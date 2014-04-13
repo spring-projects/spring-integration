@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.twitter.outbound;
 
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.util.Assert;
@@ -40,6 +40,10 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 		this.twitter = twitter;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "twitter:outbound-channel-adapter";
+	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {

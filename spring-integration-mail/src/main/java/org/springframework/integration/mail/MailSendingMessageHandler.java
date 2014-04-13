@@ -20,7 +20,6 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.mail.MailMessage;
@@ -30,6 +29,7 @@ import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -66,6 +66,10 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		this.mailSender = mailSender;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "mail:outbound-channel-adapter";
+	}
 
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {

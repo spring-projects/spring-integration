@@ -93,6 +93,11 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 	}
 
 	@Override
+	public String getComponentType() {
+		return "redis:outbound-channel-adapter";
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		Assert.notNull(topicExpression, "'topicExpression' must not be null.");
 		if (this.messageConverter instanceof BeanFactoryAware) {

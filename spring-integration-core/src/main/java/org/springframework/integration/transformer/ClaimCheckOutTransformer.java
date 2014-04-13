@@ -55,6 +55,11 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "claim-check-out";
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
 		Assert.isTrue(message.getPayload() instanceof UUID, "payload must be a UUID");

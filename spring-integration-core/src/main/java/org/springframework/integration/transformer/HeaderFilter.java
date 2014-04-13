@@ -46,6 +46,11 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 	}
 
 	@Override
+	public String getComponentType() {
+		return "header-filter";
+	}
+
+	@Override
 	public Message<?> transform(Message<?> message) {
 		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().fromMessage(message);
 		if (this.patternMatch){

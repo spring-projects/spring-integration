@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,8 +76,14 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "amqp:inbound-gateway";
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		this.messageListenerContainer.setMessageListener(new MessageListener() {
+			@Override
 			public void onMessage(Message message) {
 				Object payload = amqpMessageConverter.fromMessage(message);
 				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
@@ -91,6 +97,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 							"request Message being handled by the AMQP inbound gateway.");
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
 							new MessagePostProcessor() {
+								@Override
 								public Message postProcessMessage(Message message) throws AmqpException {
 									MessageProperties messageProperties = message.getMessageProperties();
 									String contentEncoding = messageProperties.getContentEncoding();

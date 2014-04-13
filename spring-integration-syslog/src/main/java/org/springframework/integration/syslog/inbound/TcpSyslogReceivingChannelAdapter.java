@@ -51,6 +51,11 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	}
 
 	@Override
+	public String getComponentType() {
+		return "syslog:inbound-channel-adapter(tcp)";
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		if (this.connectionFactory == null) {

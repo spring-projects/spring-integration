@@ -343,6 +343,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	@Override
+	public String getComponentType() {
+		return (this.expectReply ? "http:outbound-gateway" : "http:outbound-channel-adapter");
+	}
+
+	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 

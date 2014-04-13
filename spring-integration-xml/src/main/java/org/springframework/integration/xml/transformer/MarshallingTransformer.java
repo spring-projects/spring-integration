@@ -75,6 +75,11 @@ public class MarshallingTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "xml:marshalling-transformer";
+	}
+
+	@Override
 	public Object doTransform(Message<?> message) {
 		Object source = (this.extractPayload) ? message.getPayload() : message;
 		Object transformedPayload = null;

@@ -214,10 +214,15 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.sourceEvaluationContext = evaluationContext;
 	}
 
-    /**
-     * Initializes the Content Enricher. Will instantiate an internal Gateway if
-     * the requestChannel is set.
-     */
+	@Override
+	public String getComponentType() {
+		return "enricher";
+	}
+
+	/**
+	 * Initializes the Content Enricher. Will instantiate an internal Gateway if
+	 * the requestChannel is set.
+	 */
 	@Override
 	protected void doInit() {
 		if (StringUtils.hasText(this.requestChannelName)) {
@@ -383,6 +388,12 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		protected Message<?> sendAndReceiveMessage(Object object) {
 			return super.sendAndReceiveMessage(object);
 		}
+
+		@Override
+		public String getComponentType() {
+			return "enricher$gateway";
+		}
+
 	}
 
 }
