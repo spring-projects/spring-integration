@@ -274,8 +274,8 @@
               should-clone-payload="false">               ]]><co id="payload-enricher09-co" linkends="payload-enricher09" /><![CDATA[
     <int:poller></int:poller>                             ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
     <int:property name="" expression=""/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
-    <int:property name="" value=""/>
-	<int:header name="" expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
+    <int:property name="" value="23" type="java.lang.Integer"/>
+    <int:header name="" expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
     <int:header name="" value="" overwrite="" type=""/>
 </int:enricher>]]></programlisting>
 
@@ -408,6 +408,19 @@
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
 	                    </para>
+						<para>
+							Starting with <emphasis>4.0</emphasis>, when specifying
+							a <code>value</code> attribute, you can also specify an optional
+							<code>type</code> attribute. When the destination is a
+							typed setter method, the framework will coerce the value
+							appropriately (as long as a <classname>PropertyEditor</classname>)
+							exists to handle the conversion. If however, the target
+							payload is a <interfacename>Map</interfacename> the
+							entry will be populated with the value without conversion. The
+							<code>type</code> attribute allows you to, say, convert
+							a String containing a number to an <classname>Integer</classname>
+							value in the target payload.
+						</para>
 	                </callout>
 					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
 	                    <para>

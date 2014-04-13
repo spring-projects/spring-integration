@@ -2,10 +2,13 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<channel id="input"/>
 
@@ -27,7 +30,8 @@
 	                        order="99" should-clone-payload="true" output-channel="output">
 		<property name="name" expression="payload.sourceName"/>
 		<property name="age" value="42"/>
-		<property name="gender" expression="@testBean"/>
+		<property name="gender" value="#{testBean}"/>
+		<property name="married" value="1" type="java.lang.Boolean"/>
 
 		<header name="foo" value="bar"/>
 		<header name="testBean" expression="@testBean"/>
@@ -43,8 +47,6 @@
 		<header name="foo" expression="new java.util.Date()" type="int"/>
 	</enricher>
 
-	<beans:bean id="testBean" class="java.lang.String">
-		<beans:constructor-arg value="male"/>
-	</beans:bean>
+	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParserTests$Gender.MALE"/>
 
 </beans:beans>
