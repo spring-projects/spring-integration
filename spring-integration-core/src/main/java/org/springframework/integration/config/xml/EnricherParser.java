@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.transformer.ContentEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.util.CollectionUtils;
@@ -55,9 +56,27 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
-				BeanDefinition beanDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
-						"expression", parserContext, subElement, true);
-				expressions.put(name, beanDefinition);
+
+				String value = subElement.getAttribute("value");
+				String expression = subElement.getAttribute("expression");
+
+				boolean hasAttributeValue = StringUtils.hasText(value);
+				boolean hasAttributeExpression = StringUtils.hasText(expression);
+
+				if (hasAttributeValue && hasAttributeExpression){
+					parserContext.getReaderContext().error("Only one of 'value' or 'expression' is allowed", element);
+				}
+
+				if (!hasAttributeValue && !hasAttributeExpression){
+					parserContext.getReaderContext().error("One of 'value' or 'expression' is required", element);
+				}
+
+				BeanDefinition expressionDef = BeanDefinitionBuilder
+						.genericBeanDefinition(hasAttributeValue ? ValueExpression.class : ExpressionFactoryBean.class)
+						.addConstructorArgValue(hasAttributeValue ? value : expression)
+						.getBeanDefinition();
+
+				expressions.put(name, expressionDef);
 			}
 			builder.addPropertyValue("propertyExpressions", expressions);
 		}
