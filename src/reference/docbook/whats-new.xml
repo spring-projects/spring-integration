@@ -182,6 +182,17 @@
 				For more information, see <xref linkend="twitter-sog"/>.
 			</para>
 		</section>
+		<section id="4.0-gemfire-metadata">
+			<title>Gemfire Metadata Store</title>
+			<para>
+				The <classname>GemfireMetadataStore</classname> is provided, allowing it to be used, for example,
+				in a <classname>AbstractPersistentAcceptOnceFileListFilter</classname>
+				implementation in a multiple application instance/server environment.
+				For more information, see <xref linkend="metadata-store"/>,
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/> and
+				<xref linkend="sftp-inbound"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">
