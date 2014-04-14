@@ -93,8 +93,12 @@ public class EnricherParserTests {
 			else if ("gender".equals(e.getKey().getExpressionString())) {
 				assertEquals(Gender.MALE.name(), e.getValue().getExpressionString());
 			}
+			else if ("married".equals(e.getKey().getExpressionString())) {
+				assertEquals(Boolean.TRUE.toString(), e.getValue().getExpressionString());
+			}
 			else {
-				throw new IllegalStateException("expected 'name', 'age', and 'gender' only, not: " + e.getKey().getExpressionString());
+				throw new IllegalStateException("expected 'name', 'age', 'gender' and married only, not: "
+						+ e.getKey().getExpressionString());
 			}
 		}
 
@@ -150,6 +154,7 @@ public class EnricherParserTests {
 		assertEquals("foo", enriched.getName());
 		assertEquals(42, enriched.getAge());
 		assertEquals(Gender.MALE, enriched.getGender());
+		assertTrue(enriched.isMarried());
 		assertNotSame(original, enriched);
 		assertEquals(1, adviceCalled);
 
@@ -196,6 +201,8 @@ public class EnricherParserTests {
 
 		private volatile Gender gender;
 
+		private volatile boolean married;
+
 		public String getName() {
 			return name;
 		}
@@ -220,11 +227,21 @@ public class EnricherParserTests {
 			this.gender = gender;
 		}
 
+		public boolean isMarried() {
+			return married;
+		}
+
+		public void setMarried(boolean married) {
+			this.married = married;
+		}
+
 		@Override
 		public Object clone() {
 			Target copy = new Target();
 			copy.setName(this.name);
 			copy.setAge(this.age);
+			copy.setGender(this.gender);
+			copy.setMarried(this.married);
 			return copy;
 		}
 	}

@@ -21,6 +21,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -58,6 +59,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				String name = subElement.getAttribute("name");
 
 				String value = subElement.getAttribute("value");
+				String type = subElement.getAttribute("type");
 				String expression = subElement.getAttribute("expression");
 
 				boolean hasAttributeValue = StringUtils.hasText(value);
@@ -71,10 +73,26 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					parserContext.getReaderContext().error("One of 'value' or 'expression' is required", element);
 				}
 
-				BeanDefinition expressionDef = BeanDefinitionBuilder
-						.genericBeanDefinition(hasAttributeValue ? ValueExpression.class : ExpressionFactoryBean.class)
-						.addConstructorArgValue(hasAttributeValue ? value : expression)
-						.getBeanDefinition();
+				BeanDefinition expressionDef;
+
+				if (hasAttributeValue) {
+					BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ValueExpression.class);
+					if (StringUtils.hasText(type)) {
+						expressionBuilder.addConstructorArgValue(new TypedStringValue(value, type));
+					}
+					else {
+						expressionBuilder.addConstructorArgValue(value);
+					}
+					expressionDef = expressionBuilder.getBeanDefinition();
+				}
+				else {
+					expressionDef = BeanDefinitionBuilder
+							.genericBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(expression)
+							.getBeanDefinition();
+				}
+
+
 
 				expressions.put(name, expressionDef);
 			}
@@ -86,10 +104,12 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
-				BeanDefinition expressionDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
-						"expression", parserContext, subElement, true);
-				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
-				valueProcessorBuilder.addConstructorArgValue(expressionDefinition)
+				BeanDefinition expressionDefinition = IntegrationNamespaceUtils
+						.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
+								subElement, true);
+				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
+						.addConstructorArgValue(expressionDefinition)
 						.addConstructorArgValue(subElement.getAttribute("type"));
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
 				expressions.put(name, valueProcessorBuilder.getBeanDefinition());

@@ -1325,13 +1325,6 @@
 									<xsd:union memberTypes="xsd:boolean xsd:string" />
 								</xsd:simpleType>
 							</xsd:attribute>
-							<xsd:attribute name="type" type="xsd:string">
-								<xsd:annotation>
-									<xsd:documentation source="java:java.lang.Class">
-										The fully qualified class name of the header value's expected type.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:attribute>
 						</xsd:extension>
 					</xsd:complexContent>
 				</xsd:complexType>
@@ -1484,6 +1477,13 @@
 					Expression to be evaluated to produce a value for the property.
 					Either this or 'value' must be provided.
 				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[
+					The fully qualified class name of the header value's expected type.
+					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
