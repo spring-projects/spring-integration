@@ -264,6 +264,7 @@ project('spring-integration-file') {
 		compile "commons-io:commons-io:$commonsIoVersion"
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
+		testCompile project(":spring-integration-gemfire")
 		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 	}
 }
