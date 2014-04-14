@@ -15,17 +15,14 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.mongodb.Mongo;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -43,8 +40,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-
-import com.mongodb.Mongo;
 
 /**
  * @author Oleg Zhurakousky

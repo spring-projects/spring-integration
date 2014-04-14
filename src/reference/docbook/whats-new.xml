@@ -110,6 +110,16 @@
 				For more information, see <xref linkend="redis-cms"/>.
 			</para>
 		</section>
+		<section id="4.0-priority-channel-mondodb">
+			<title>MongodDB Channel  Message Store</title>
+			<para>
+				MongoDB support now provides the <classname>MongoDbChannelMessageStore</classname> -
+				a <emphasis>channel</emphasis> specific <interfacename>MessageStore</interfacename> implementation.
+				With <code>priorityEnabled = true</code> option it can be used as a reference for
+				<code>&lt;int:priority-queue&gt;</code>s to achieve <emphasis>priority</emphasis> order polling for
+				persisted message. For more information see <xref linkend="mongodb-priority-channel-message-store"/>.
+			</para>
+		</section>
 		<section id="4.0-MBeanExport-annotation">
 			<title>@EnableIntegrationMBeanExport</title>
 			<para>

@@ -25,7 +25,6 @@ import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UpperBound;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -43,7 +42,6 @@ import org.springframework.util.CollectionUtils;
  *
  * @since 2.0
  */
-@ManagedResource
 public class SimpleMessageStore extends AbstractMessageGroupStore
 		implements MessageStore, ChannelMessageStore {
 

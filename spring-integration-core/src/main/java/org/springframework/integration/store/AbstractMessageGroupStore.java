@@ -25,6 +25,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * @author Dave Syer
@@ -34,6 +35,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
  * @since 2.0
  *
  */
+@ManagedResource
 public abstract class AbstractMessageGroupStore implements MessageGroupStore, Iterable<MessageGroup>,
 		BeanFactoryAware {
 

@@ -142,6 +142,49 @@
 		 <code>configurableStoreMessages</code>. It is recommended to use this implementation for robust and flexible solutions
 		 when messages contain complex data types.
 	 </para>
+	  <section id="mongodb-priority-channel-message-store">
+		  <title>MongodDB Channel Message Store</title>
+
+		  <para>
+			  Starting with <emphasis>version 4.0</emphasis> the new <code>MongoDbChannelMessageStore</code>
+			  has been introduced. With <code>priorityEnabled = true</code> option it can be used as a reference for
+			  <code>&lt;int:priority-queue&gt;</code>s to achieve <emphasis>priority</emphasis> order polling for
+			  persisted message. The <emphasis>priority</emphasis> MonogDB document field is the
+			  <code>IntegrationMessageHeaderAccessor.PRIORITY</code> (the <code>priority</code> Message header).
+		  </para>
+		  <para>
+			  In addition MongoDB <interfacename>MessageStore</interfacename>s add <code>sequence</code> field for MessageGroup
+			  documents. The <code>sequence</code> value is a result of <code>$inc</code> operation for simple <code>sequence</code>
+			  document from the same collection, which is created on demand. The <code>sequence</code> field is used in
+			  <code>poll</code> operations to allow to have correct messages order, which isn't possible when only
+			  <code>timestamp</code> field is used.
+		  </para>
+		  <note>
+			  <para>
+				  It's not recommended to use the same <classname>MongoDbChannelMessageStore</classname> bean
+				  for priority and non-priority, because <code>priorityEnabled</code> option applies to the entire store.
+				  However the same <code>collection</code> can be used for both
+				  <classname>MongoDbChannelMessageStore</classname> types, because the real message polling from
+				  store is sorted and uses indexes.To configure that scenario, simply extend one message store bean
+				  from the other:
+				  <programlisting language="xml"><![CDATA[<bean id="channelStore" class="o.s.i.mongodb.store.MongoDbChannelMessageStore">
+	<constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+</bean>
+
+<int:channel id="queueChannel">
+<int:queue message-store="store"/>
+</int:channel>
+
+<bean id="priorityStore" parent="channelStore">
+<property name="priorityEnabled" value="true"/>
+</bean>
+
+<int:channel id="priorityChannel">
+<int:priority-queue message-store="priorityStore"/>
+</int:channel>]]></programlisting>
+			  </para>
+		  </note>
+	  </section>
   </section>
 
   <section id="mongodb-inbound-channel-adapter">
