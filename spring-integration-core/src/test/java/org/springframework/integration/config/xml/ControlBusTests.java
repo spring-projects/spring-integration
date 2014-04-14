@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -51,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class ControlBusTests {
 
 	@Autowired
@@ -113,6 +116,26 @@ public class ControlBusTests {
 		assertNotNull(result);
 		assertEquals(0, result.getPayload());
 		this.registry.setReaperDelay(60000);
+	}
+
+	@Test
+	public void testRouterMappings() {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setReceiveTimeout(1000);
+		messagingTemplate.convertAndSend(input, "@'router.handler'.getChannelMappings()");
+		Message<?> result = this.output.receive(0);
+		assertNotNull(result);
+		Map<?, ?> mappings = (Map<?, ?>) result.getPayload();
+		assertEquals("bar", mappings.get("foo"));
+		assertEquals("qux", mappings.get("baz"));
+		messagingTemplate.convertAndSend(input,
+				"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')");
+		messagingTemplate.convertAndSend(input, "@'router.handler'.getChannelMappings()");
+		result = this.output.receive(0);
+		assertNotNull(result);
+		mappings = (Map<?, ?>) result.getPayload();
+		assertEquals("bar", mappings.get("baz"));
+		assertEquals("qux", mappings.get("foo"));
 	}
 
 	public static class Service {

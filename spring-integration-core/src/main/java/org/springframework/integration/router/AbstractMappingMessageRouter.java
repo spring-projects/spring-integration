@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -64,15 +66,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 *
 	 * @param channelMappings The channel mappings.
 	 */
+	@Override
 	public void setChannelMappings(Map<String, String> channelMappings) {
-		Map<String, String> oldChannelMappings = this.channelMappings;
+		Assert.notNull(channelMappings, "'channelMappings' must not be null");
 		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
 		newChannelMappings.putAll(channelMappings);
-		this.channelMappings = newChannelMappings;
-		if (logger.isDebugEnabled()) {
-			logger.debug("Channel mappings:" + oldChannelMappings
-					+ " replaced with:" + newChannelMappings);
-		}
+		this.doSetChannelMappings(newChannelMappings);
 	}
 
 	/**
@@ -122,7 +121,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 *
 	 * @return The channel mappings.
 	 */
-	protected Map<String, String> getChannelMappings() {
+	@Override
+	@ManagedOperation
+	public Map<String, String> getChannelMappings() {
 		return Collections.unmodifiableMap(this.channelMappings);
 	}
 
@@ -174,6 +175,36 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		Collection<Object> channelKeys = this.getChannelKeys(message);
 		addToCollection(channels, channelKeys, message);
 		return channels;
+	}
+
+	/**
+	 * Convenience method allowing conversion of a list
+	 * of mappings in a control-bus message.
+	 * <p>This is intended to be called via a control-bus; keys and values that are not
+	 * Strings will be ignored.
+	 * <p>Mappings must be delimited with newlines, for example:
+	 * <p>{@code "@'myRouter.handler'.replaceChannelMappings('foo=qux \n baz=bar')"}.
+	 * @param channelMappings he channel mappings.
+	 */
+	@Override
+	@ManagedOperation
+	public void replaceChannelMappings(Properties channelMappings) {
+		Assert.notNull(channelMappings, "'channelMappings' must not be null");
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
+		Set<String> keys = channelMappings.stringPropertyNames();
+		for (String key : keys) {
+			newChannelMappings.put(key.trim(), channelMappings.getProperty(key).trim());
+		}
+		this.doSetChannelMappings(newChannelMappings);
+	}
+
+	private void doSetChannelMappings(Map<String, String> newChannelMappings) {
+		Map<String, String> oldChannelMappings = this.channelMappings;
+		this.channelMappings = newChannelMappings;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel mappings:" + oldChannelMappings
+					+ " replaced with:" + newChannelMappings);
+		}
 	}
 
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {

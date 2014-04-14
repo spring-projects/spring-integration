@@ -14,4 +14,13 @@
 
 	<beans:bean id="service" class="org.springframework.integration.config.xml.ControlBusTests$Service" />
 
+	<router id="router" expression="headers['channel']" input-channel="routerIn">
+		<mapping value="foo" channel="bar" />
+		<mapping value="baz" channel="qux" />
+	</router>
+
+	<channel id="bar" />
+
+	<channel id="qux" />
+
 </beans:beans>
