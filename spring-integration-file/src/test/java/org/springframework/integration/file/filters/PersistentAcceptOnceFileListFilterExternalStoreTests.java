@@ -26,49 +26,64 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
+import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 
+import com.gemstone.gemfire.cache.CacheFactory;
+
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
-public class PersistentAcceptOnceFileListFilterRedisTests extends RedisAvailableTests {
+public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisAvailableTests {
 
-	@Before
-	@After
-	public void setupShutDown() {
-		RedisTemplate<String, ?> template = this.createTemplate();
-		template.delete("persistentAcceptOnceFileListFilterRedisTests");
-	}
-
-	private RedisTemplate<String, ?> createTemplate() {
+	@Test
+	@RedisAvailable
+	public void testFileSystemWithRedisMetadataStore() throws Exception {
 		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
 		template.setConnectionFactory(this.getConnectionFactoryForTest());
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
-		return template;
+		template.delete("persistentAcceptOnceFileListFilterRedisTests");
+
+		try {
+			this.testFileSystem(new RedisMetadataStore(this.getConnectionFactoryForTest(),
+					"persistentAcceptOnceFileListFilterRedisTests"));
+		}
+		finally {
+			template.delete("persistentAcceptOnceFileListFilterRedisTests");
+		}
 	}
 
 	@Test
-	@RedisAvailable
-	public void testFileSystem() throws Exception {
+	public void testFileSystemWithGemfireMetadataStore() throws Exception {
+		this.testFileSystem(new GemfireMetadataStore(new CacheFactory().create()));
+	}
+
+	private void testFileSystem(ConcurrentMetadataStore store) throws Exception {
 		final AtomicBoolean suspend = new AtomicBoolean();
+
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		RedisMetadataStore store = new RedisMetadataStore(this.getConnectionFactoryForTest(),
-				"persistentAcceptOnceFileListFilterRedisTests") {
+
+		store = Mockito.spy(store);
+
+		Mockito.doAnswer(new Answer<Object>() {
 
 			@Override
-			public boolean replace(String key, String oldValue, String newValue) {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
 				if (suspend.get()) {
 					latch2.countDown();
 					try {
@@ -78,12 +93,12 @@ public class PersistentAcceptOnceFileListFilterRedisTests extends RedisAvailable
 						Thread.currentThread().interrupt();
 					}
 				}
-				return super.replace(key, oldValue, newValue);
+				return invocation.callRealMethod();
 			}
+		}).when(store).replace(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-		};
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
-				new FileSystemPersistentAcceptOnceFileListFilter(store,"foo:");
+				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
 		assertEquals(1, filter.filterFiles(new File[] {file}).size());
 		String ts = store.get("foo:" + file.getAbsolutePath());

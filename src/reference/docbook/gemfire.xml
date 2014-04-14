@@ -200,4 +200,39 @@ Note the <emphasis>pool</emphasis> element is configured with the address of a c
 			</note>
 		</para>
 	</section>
+	<section id="gemfire-metadata-store">
+		<title>Gemfire Metadata Store</title>
+		<para>
+			As of <emphasis>Spring Integration 4.0</emphasis>, a new Gemfire-based
+			<interfacename>MetadataStore</interfacename>
+			(<xref linkend="metadata-store"/>) implementation is available. The <classname>GemfireMetadataStore</classname>
+			can be used to maintain metadata state
+			across application restarts. This new <interfacename>MetadataStore</interfacename>
+			implementation can be used with adapters such as:
+		</para>
+		<itemizedlist>
+			<listitem><xref linkend="twitter-inbound"/></listitem>
+			<listitem><xref linkend="feed-inbound-channel-adapter"/></listitem>
+			<listitem><xref linkend="file-reading"/></listitem>
+			<listitem><xref linkend="ftp-inbound"/></listitem>
+			<listitem><xref linkend="sftp-inbound"/></listitem>
+		</itemizedlist>
+		<para>
+			In order to instruct these adapters to use the new <classname>GemfireMetadataStore</classname>,
+			simply declare a Spring bean using the bean name <emphasis role="bold">metadataStore</emphasis>.
+			The <emphasis>Twitter Inbound Channel Adapter</emphasis> and the
+			<emphasis>Feed Inbound Channel Adapter</emphasis> will both automatically
+			pick up and use the declared <classname>GemfireMetadataStore</classname>.
+		</para>
+		<note>
+			<para>
+				The <classname>GemfireMetadataStore</classname> also implements
+				<interfacename>ConcurrentMetadataStore</interfacename>, allowing it to be reliably shared across
+				multiple application instances where only one instance will be allowed to store or modify a key's value.
+				These methods give various levels of concurrency guarantees based on the scope and data policy of the region.
+				They are implemented in the peer cache and client/server cache but are disallowed in peer Regions having
+				NORMAL or EMPTY data policies.
+			</para>
+		</note>
+	</section>
 </chapter>

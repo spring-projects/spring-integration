@@ -28,6 +28,7 @@
 	<itemizedlist>
 		<listitem>PropertiesPersistingMetadataStore</listitem>
 		<listitem><xref linkend="redis-metadata-store"/></listitem>
+		<listitem><xref linkend="gemfire-metadata-store"/></listitem>
 	</itemizedlist>
 	<para>
 		The <classname>PropertiesPersistingMetadataStore</classname> is backed by a properties file and a
@@ -49,7 +50,7 @@
 	<section id="idempotent-receiver">
 		<title>Idempotent Receiver</title>
 		<para>
-			The <emphasis>Metadata Store</emphasis> is useful for implementating the
+			The <emphasis>Metadata Store</emphasis> is useful for implementing the
 			EIP <ulink url="http://eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink> pattern, when
 			there is need to <emphasis>filter</emphasis> an incoming Message if it has already been processed, and just discard
 			it or perform some other logic on discarding. The following configuration is an example of how to do this:
