@@ -41,7 +41,6 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
@@ -56,6 +55,7 @@ import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -359,7 +359,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	/**
@@ -510,6 +510,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 				Integer.class, key, this.region);
 	}
 
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		this.jdbcTemplate.update(this.getQuery(this.channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()),
 				this.getKey(groupId), this.region);

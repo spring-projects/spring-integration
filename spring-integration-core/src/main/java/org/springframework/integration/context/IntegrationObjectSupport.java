@@ -128,7 +128,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public final void afterPropertiesSet() {
 		try {
 			if (this.messageBuilderFactory == null) {
-				this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 			}
 			this.onInit();
 		}

@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.mongodb.DB;
-import com.mongodb.MongoException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -52,13 +50,16 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+
+import com.mongodb.DB;
+import com.mongodb.MongoException;
 
 /**
  * The abstract MongoDB {@link BasicMessageGroupStore} implementation to provide configuration for common options
@@ -121,7 +122,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
-		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.applicationContext);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
 	}
 
 	@Override

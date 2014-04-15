@@ -26,10 +26,10 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 
@@ -67,7 +67,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			if (this.evaluationContext != null && this.evaluationContext.getBeanResolver() == null) {
 				this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 			}
-			this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 		}
 	}
 
@@ -88,7 +88,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	public void afterPropertiesSet() throws Exception {
 		getEvaluationContext();
 		if (this.messageBuilderFactory == null) {
-			this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 		}
 	}
 
