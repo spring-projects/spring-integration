@@ -20,9 +20,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -33,14 +35,26 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator implements MessageSource<T> {
+public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator implements MessageSource<T>,
+		NamedComponent, BeanNameAware {
 
 	private volatile Map<String, Expression> headerExpressions = Collections.emptyMap();
 
+	private volatile String beanName;
 
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = (headerExpressions != null)
 				? headerExpressions : Collections.<String, Expression>emptyMap();
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
+	@Override
+	public String getComponentName() {
+		return this.beanName;
 	}
 
 	@Override
