@@ -1483,6 +1483,7 @@
 			<xsd:annotation>
 				<xsd:documentation source="java:java.lang.Class"><![CDATA[
 					The fully qualified class name of the header value's expected type.
+					Allowed only in case of 'value' attribute.
 					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

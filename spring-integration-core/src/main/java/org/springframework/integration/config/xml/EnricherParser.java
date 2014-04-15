@@ -111,6 +111,11 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				BeanDefinition expressionDefinition = IntegrationNamespaceUtils
 						.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
 								subElement, true);
+				if (StringUtils.hasText(subElement.getAttribute("expression"))
+						&& StringUtils.hasText(subElement.getAttribute("type"))) {
+					parserContext.getReaderContext()
+							.warning("'type' attribute is deprecated since 4.0 in case of 'expression'", element);
+				}
 				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
 						.addConstructorArgValue(expressionDefinition)
