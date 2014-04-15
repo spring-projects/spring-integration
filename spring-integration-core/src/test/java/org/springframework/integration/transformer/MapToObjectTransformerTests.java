@@ -31,8 +31,8 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
@@ -104,7 +104,7 @@ public class MapToObjectTransformerTests {
 		MapToObjectTransformer transformer = new MapToObjectTransformer(Person.class);
 		BeanFactory beanFactory = this.getBeanFactory();
 		ConverterRegistry conversionService =
-				beanFactory.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConverterRegistry.class);
+				beanFactory.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConverterRegistry.class);
 		conversionService.addConverter(new StringToAddressConverter());
 		transformer.setBeanFactory(beanFactory);
 
@@ -119,7 +119,7 @@ public class MapToObjectTransformerTests {
 
 	private BeanFactory getBeanFactory() {
 		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
-		ctx.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+		ctx.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
 				new RootBeanDefinition("org.springframework.integration.context.CustomConversionServiceFactoryBean"));
 		ctx.refresh();
 		return ctx;
@@ -183,6 +183,7 @@ public class MapToObjectTransformerTests {
 
 	public class StringToAddressConverter implements Converter<String, Address> {
 
+		@Override
 		public Address convert(String source) {
 			Address address = new Address();
 			address.setStreet(source);

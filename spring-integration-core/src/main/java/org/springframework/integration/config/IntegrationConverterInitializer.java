@@ -31,6 +31,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.utils.IntegrationUtils;
 
 /**
  * @author Artem Bilan
@@ -71,8 +72,8 @@ public class IntegrationConverterInitializer implements IntegrationConfiguration
 			registry.registerBeanDefinition(IntegrationContextUtils.CONVERTER_REGISTRAR_BEAN_NAME,
 					converterRegistrarBuilder.getBeanDefinition());
 
-			if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)) {
-				registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+			if (!registry.containsBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)) {
+				registry.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
 						new RootBeanDefinition(CONTEXT_PACKAGE + "CustomConversionServiceFactoryBean"));
 			}
 		}

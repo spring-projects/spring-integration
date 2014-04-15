@@ -47,10 +47,10 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.Payload;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -67,7 +67,7 @@ import org.springframework.util.StringUtils;
  * with messaging components without application code being aware of them allowing
  * for POJO-style interaction.
  * This component is also aware of the {@link ConversionService} set on the enclosing {@link BeanFactory}
- * under the name {@link IntegrationContextUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME} to
+ * under the name {@link IntegrationUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME} to
  * perform type conversions when necessary (thanks to Jon Schneider's contribution and suggestion in INT-1230).
  *
  * @author Mark Fisher

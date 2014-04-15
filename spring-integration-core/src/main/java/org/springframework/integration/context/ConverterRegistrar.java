@@ -24,6 +24,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -46,18 +47,20 @@ class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
 	}
 
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(beanFactory, "BeanFactory is required");
-		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
 		if (conversionService instanceof GenericConversionService) {
 			ConversionServiceFactory.registerConverters(converters, (GenericConversionService) conversionService);
 		}
 		else {
-			Assert.notNull(conversionService, "Failed to locate '" + IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME + "'");
+			Assert.notNull(conversionService, "Failed to locate '" + IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME + "'");
 		}
 	}
 

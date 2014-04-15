@@ -34,6 +34,7 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -166,7 +167,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		if (this.conversionService == null && this.beanFactory != null) {
 			synchronized (this) {
 				if (this.conversionService == null) {
-					this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+					this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 				}
 			}
 			if (this.conversionService == null && this.logger.isDebugEnabled()) {

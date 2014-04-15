@@ -24,6 +24,7 @@ import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -52,7 +53,7 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
 		}
-		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}

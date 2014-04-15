@@ -23,7 +23,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.integration.util.BeanFactoryTypeConverter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
@@ -86,7 +86,7 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
 		if (conversionService != null) {
 			this.typeConverter.setConversionService(conversionService);
 		}

@@ -26,6 +26,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.utils.IntegrationUtils;
 
 /**
  * Utility class with static methods for helping with establishing environments for
@@ -88,7 +89,7 @@ public abstract class ExpressionUtils {
 		}
 		if (evaluationContext == null) {
 			if (beanFactory != null) {
-				conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+				conversionService = IntegrationUtils.getConversionService(beanFactory);
 			}
 			evaluationContext = createStandardEvaluationContext(conversionService, beanFactory);
 		}

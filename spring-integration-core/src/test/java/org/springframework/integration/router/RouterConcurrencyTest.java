@@ -36,9 +36,9 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * @author Gary Russell
@@ -78,13 +78,14 @@ public class RouterConcurrencyTest {
 		BeanFactory beanFactory = mock(BeanFactory.class);
 		doAnswer(new Answer<Boolean>() {
 
+			@Override
 			public Boolean answer(InvocationOnMock invocation) throws Throwable {
 				if (beanCounter.getAndIncrement() < 2) {
 					semaphore.tryAcquire(4, TimeUnit.SECONDS);
 				}
 				return false;
 			}
-		}).when(beanFactory).containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
+		}).when(beanFactory).containsBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
 		router.setBeanFactory(beanFactory);
 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
@@ -92,6 +93,7 @@ public class RouterConcurrencyTest {
 				new ArrayList<ConversionService>());
 		Runnable runnable = new Runnable() {
 
+			@Override
 			public void run() {
 				ConversionService requiredConversionService = router.getRequiredConversionService();
 				returns.add(requiredConversionService);
