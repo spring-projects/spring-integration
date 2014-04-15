@@ -18,13 +18,15 @@ package org.springframework.integration.router;
 import java.util.Map;
 import java.util.Properties;
 
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * Exposes channel mapping operations when the router is proxied.
- * {@link #setChannelMappings(Map)} is also exposed, allowing
- * programmatic updates when proxied.
+ * {@link #setChannelMappings(Map)} is also exposed. This cannot
+ * be used with a control-bus, but it can be used programmatically
+ * or over JMX.
  *
  * @author Gary Russell
  * @since 2.1
@@ -50,14 +52,18 @@ public interface MappingMessageRouterManagement {
 	/**
 	 * Provide mappings from channel keys to channel names.
 	 * @param channelMappings The channel mappings.
+	 *
+	 * @since 4.0
 	 */
 	@ManagedOperation
 	void replaceChannelMappings(Properties channelMappings);
 
 	/**
 	 * @return an unmodifiable map of channel mappings.
+	 *
+	 * @since 4.0
 	 */
-	@ManagedOperation
+	@ManagedAttribute
 	Map<String, String> getChannelMappings();
 
 	/**
@@ -65,7 +71,10 @@ public interface MappingMessageRouterManagement {
 	 * Channel names will be resolved by the {@link DestinationResolver}.
 	 *
 	 * @param channelMappings The channel mappings.
+	 *
+	 * @since 4.0
 	 */
+	@ManagedAttribute
 	void setChannelMappings(Map<String, String> channelMappings);
 
 }

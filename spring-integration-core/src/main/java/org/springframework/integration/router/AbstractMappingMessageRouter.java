@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -67,6 +68,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * @param channelMappings The channel mappings.
 	 */
 	@Override
+	@ManagedAttribute
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		Assert.notNull(channelMappings, "'channelMappings' must not be null");
 		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
@@ -122,7 +124,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * @return The channel mappings.
 	 */
 	@Override
-	@ManagedOperation
+	@ManagedAttribute
 	public Map<String, String> getChannelMappings() {
 		return Collections.unmodifiableMap(this.channelMappings);
 	}
@@ -184,7 +186,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Strings will be ignored.
 	 * <p>Mappings must be delimited with newlines, for example:
 	 * <p>{@code "@'myRouter.handler'.replaceChannelMappings('foo=qux \n baz=bar')"}.
-	 * @param channelMappings he channel mappings.
+	 * @param channelMappings The channel mappings.
+	 *
+	 * @since 4.0
 	 */
 	@Override
 	@ManagedOperation

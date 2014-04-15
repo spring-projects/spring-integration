@@ -964,7 +964,7 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
                   <para>
                       <code>public void replaceChannelMappings(Properties channelMappings)</code> updates the mappings.
                       Notice that the parameter is a properties object; this allows the use of the inbuilt
-                      <code>StringToPropertiesConverter</code> by a control bus command, for example::
+                      <code>StringToPropertiesConverter</code> by a control bus command, for example:
                       <programlisting>"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')"</programlisting>
                       - note that each mapping is separted by a newline character (<code>\n</code>). For programmatic
                       changes to the map, it is recommended that the <code>setChannelMappings</code> method
