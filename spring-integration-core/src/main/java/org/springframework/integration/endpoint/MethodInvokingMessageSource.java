@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,17 @@ package org.springframework.integration.endpoint;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
  * A {@link MessageSource} implementation that invokes a no-argument method so
  * that its return value may be sent to a channel.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements InitializingBean {
 
@@ -58,6 +59,12 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 		this.methodName = methodName;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "inbound-channel-adapter";
+	}
+
+	@Override
 	public void afterPropertiesSet() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {

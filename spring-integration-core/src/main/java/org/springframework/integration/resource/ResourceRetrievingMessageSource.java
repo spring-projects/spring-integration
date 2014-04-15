@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,20 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.util.CollectionFilter;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Implementation of {@link MessageSource} based on {@link ResourcePatternResolver} which will 
+ * Implementation of {@link MessageSource} based on {@link ResourcePatternResolver} which will
  * attempt to resolve {@link Resource}s based on the pattern specified.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
@@ -65,10 +66,18 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 		this.filter = filter;
 	}
 
+	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "resource-inbound-channel-adapter";
+	}
+
+
+	@Override
 	public void afterPropertiesSet() {
 		if (this.patternResolver == null) {
 			if (this.applicationContext instanceof ResourcePatternResolver) {

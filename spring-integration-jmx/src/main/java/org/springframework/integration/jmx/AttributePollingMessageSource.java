@@ -75,6 +75,11 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 		this.attributeName = attributeName;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "jmx:attribute-polling-channel-adapter";
+	}
+
 	/**
 	 * Retrieves the JMX attribute value.
 	 */

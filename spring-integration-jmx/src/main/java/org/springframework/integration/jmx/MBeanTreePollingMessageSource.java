@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * A {@link MessageSource} implementation that retrieves a snapshot of a filtered subset of the MBean tree.
  *
  * @author Stuart Williams
+ * @author Gary Russell
  * @since 3.0
  *
  */
@@ -52,6 +53,11 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	 */
 	public MBeanTreePollingMessageSource(MBeanObjectConverter converter) {
 		this.converter = converter;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "jmx:tree-polling-channel-adapter";
 	}
 
 	/**
