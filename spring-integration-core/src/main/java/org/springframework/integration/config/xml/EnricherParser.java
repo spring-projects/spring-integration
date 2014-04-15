@@ -21,10 +21,12 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.transformer.ContentEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.util.CollectionUtils;
@@ -55,9 +57,48 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
-				BeanDefinition beanDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
-						"expression", parserContext, subElement, true);
-				expressions.put(name, beanDefinition);
+
+				String value = subElement.getAttribute("value");
+				String type = subElement.getAttribute("type");
+				String expression = subElement.getAttribute("expression");
+
+				boolean hasAttributeValue = StringUtils.hasText(value);
+				boolean hasAttributeExpression = StringUtils.hasText(expression);
+
+				if (hasAttributeValue && hasAttributeExpression){
+					parserContext.getReaderContext().error("Only one of 'value' or 'expression' is allowed", element);
+				}
+
+				if (!hasAttributeValue && !hasAttributeExpression){
+					parserContext.getReaderContext().error("One of 'value' or 'expression' is required", element);
+				}
+
+				BeanDefinition expressionDef;
+
+				if (hasAttributeValue) {
+					BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ValueExpression.class);
+					if (StringUtils.hasText(type)) {
+						expressionBuilder.addConstructorArgValue(new TypedStringValue(value, type));
+					}
+					else {
+						expressionBuilder.addConstructorArgValue(value);
+					}
+					expressionDef = expressionBuilder.getBeanDefinition();
+				}
+				else {
+					if (StringUtils.hasText(type)) {
+						parserContext.getReaderContext().error("'type' attribute for '<property>' of '<enricher>' " +
+										"isn't allowed in case of 'expression' attribute.", element);
+					}
+					expressionDef = BeanDefinitionBuilder
+							.genericBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(expression)
+							.getBeanDefinition();
+				}
+
+
+
+				expressions.put(name, expressionDef);
 			}
 			builder.addPropertyValue("propertyExpressions", expressions);
 		}
@@ -67,10 +108,17 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
-				BeanDefinition expressionDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
-						"expression", parserContext, subElement, true);
-				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
-				valueProcessorBuilder.addConstructorArgValue(expressionDefinition)
+				BeanDefinition expressionDefinition = IntegrationNamespaceUtils
+						.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
+								subElement, true);
+				if (StringUtils.hasText(subElement.getAttribute("expression"))
+						&& StringUtils.hasText(subElement.getAttribute("type"))) {
+					parserContext.getReaderContext()
+							.warning("'type' attribute is deprecated since 4.0 in case of 'expression'", element);
+				}
+				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
+						.addConstructorArgValue(expressionDefinition)
 						.addConstructorArgValue(subElement.getAttribute("type"));
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
 				expressions.put(name, valueProcessorBuilder.getBeanDefinition());

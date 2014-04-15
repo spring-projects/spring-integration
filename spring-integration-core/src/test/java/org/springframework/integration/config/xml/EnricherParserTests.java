@@ -91,10 +91,14 @@ public class EnricherParserTests {
 				assertEquals("42", e.getValue().getExpressionString());
 			}
 			else if ("gender".equals(e.getKey().getExpressionString())) {
-				assertEquals("@testBean", e.getValue().getExpressionString());
+				assertEquals(Gender.MALE.name(), e.getValue().getExpressionString());
+			}
+			else if ("married".equals(e.getKey().getExpressionString())) {
+				assertEquals(Boolean.TRUE.toString(), e.getValue().getExpressionString());
 			}
 			else {
-				throw new IllegalStateException("expected 'name', 'age', and 'gender' only, not: " + e.getKey().getExpressionString());
+				throw new IllegalStateException("expected 'name', 'age', 'gender' and married only, not: "
+						+ e.getKey().getExpressionString());
 			}
 		}
 
@@ -127,12 +131,15 @@ public class EnricherParserTests {
 	@Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
+
 		class Foo extends AbstractReplyProducingMessageHandler {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("foo");
 			}
-		};
+		}
+
 		Foo foo = new Foo();
 		foo.setOutputChannel(context.getBean("replies", MessageChannel.class));
 		requests.subscribe(foo);
@@ -146,13 +153,14 @@ public class EnricherParserTests {
 		Target enriched = (Target) reply.getPayload();
 		assertEquals("foo", enriched.getName());
 		assertEquals(42, enriched.getAge());
-		assertEquals("male", enriched.getGender());
+		assertEquals(Gender.MALE, enriched.getGender());
+		assertTrue(enriched.isMarried());
 		assertNotSame(original, enriched);
 		assertEquals(1, adviceCalled);
 
 		MessageHeaders headers = reply.getHeaders();
 		assertEquals("bar", headers.get("foo"));
-		assertEquals("male", headers.get("testBean"));
+		assertEquals(Gender.MALE, headers.get("testBean"));
 		assertEquals("foo", headers.get("sourceName"));
 		assertEquals("test", headers.get("notOverwrite"));
 	}
@@ -191,7 +199,9 @@ public class EnricherParserTests {
 
 		private volatile int age;
 
-		private volatile String gender;
+		private volatile Gender gender;
+
+		private volatile boolean married;
 
 		public String getName() {
 			return name;
@@ -209,12 +219,20 @@ public class EnricherParserTests {
 			this.age = age;
 		}
 
-		public String getGender() {
+		public Gender getGender() {
 			return gender;
 		}
 
-		public void setGender(String gender) {
+		public void setGender(Gender gender) {
 			this.gender = gender;
+		}
+
+		public boolean isMarried() {
+			return married;
+		}
+
+		public void setMarried(boolean married) {
+			this.married = married;
 		}
 
 		@Override
@@ -222,8 +240,14 @@ public class EnricherParserTests {
 			Target copy = new Target();
 			copy.setName(this.name);
 			copy.setAge(this.age);
+			copy.setGender(this.gender);
+			copy.setMarried(this.married);
 			return copy;
 		}
+	}
+
+	public static enum Gender {
+		MALE, FEMALE
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
