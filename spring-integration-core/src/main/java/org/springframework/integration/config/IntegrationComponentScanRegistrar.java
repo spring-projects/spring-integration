@@ -48,7 +48,7 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 	private ResourceLoader resourceLoader;
 
 	public IntegrationComponentScanRegistrar() {
-		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class), new MessagingGatewayRegistrar());
+		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class, true), new MessagingGatewayRegistrar());
 	}
 
 	@Override
@@ -58,7 +58,8 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String, Object> componentScan = importingClassMetadata.getAnnotationAttributes("org.springframework.integration.annotation.IntegrationComponentScan");
+		Map<String, Object> componentScan = importingClassMetadata
+				.getAnnotationAttributes("org.springframework.integration.annotation.IntegrationComponentScan");
 
 		Set<String> basePackages = new HashSet<String>();
 		for (String pkg : (String[]) componentScan.get("value")) {
@@ -98,7 +99,8 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			for (BeanDefinition candidateComponent : candidateComponents) {
 				if (candidateComponent instanceof AnnotatedBeanDefinition) {
 					for (ImportBeanDefinitionRegistrar importBeanDefinitionRegistrar : componentRegistrars.values()) {
-						importBeanDefinitionRegistrar.registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(), registry);
+						importBeanDefinitionRegistrar.registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(),
+								registry);
 					}
 				}
 			}

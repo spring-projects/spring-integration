@@ -26,6 +26,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -654,13 +658,21 @@ public class EnableIntegrationTests {
 
 	}
 
-	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
+	@TestMessagingGateway
 	public static interface TestGateway {
 
 		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
 		String echo(String payload);
 
 	}
+
+	@Target(ElementType.TYPE)
+	@Retention(RetentionPolicy.RUNTIME)
+	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
+			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
+	public static @interface TestMessagingGateway {
+	}
+
 
 	// Error because the annotation is on a class; it must be on an interface
 //	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
