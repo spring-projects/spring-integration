@@ -86,6 +86,10 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					expressionDef = expressionBuilder.getBeanDefinition();
 				}
 				else {
+					if (StringUtils.hasText(type)) {
+						parserContext.getReaderContext().error("'type' attribute for '<property>' of '<enricher>' " +
+										"isn't allowed in case of 'expression' attribute.", element);
+					}
 					expressionDef = BeanDefinitionBuilder
 							.genericBeanDefinition(ExpressionFactoryBean.class)
 							.addConstructorArgValue(expression)

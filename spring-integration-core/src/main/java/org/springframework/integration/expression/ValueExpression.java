@@ -24,8 +24,10 @@ import org.springframework.expression.TypedValue;
 import org.springframework.util.Assert;
 
 /**
- * A very simple hardcoded implementation of the Expression interface that represents an
+ * A very simple hardcoded implementation of the {@link Expression} interface that represents an
  * Object value. It is used as value holder in cases of context of expression evaluation.
+ *
+ * @param <V> - The expected value type.
  *
  * @author Artem Bilan
  * @since 4.0
@@ -35,19 +37,19 @@ public class ValueExpression<V> implements Expression {
 	/** Fixed value of this expression */
 	private final V value;
 
+	private final Class<V> aClass;
+
 	private final TypedValue typedResultValue;
 
 	private final TypeDescriptor typeDescriptor;
-
-	private final Class<V> aClass;
 
 	@SuppressWarnings("unchecked")
 	public ValueExpression(V value) {
 		Assert.notNull(value);
 		this.value = value;
+		this.aClass = (Class<V>) this.value.getClass();
 		this.typedResultValue = new TypedValue(this.value);
 		this.typeDescriptor = this.typedResultValue.getTypeDescriptor();
-		this.aClass = (Class<V>) this.value.getClass();
 	}
 
 	@Override
@@ -71,25 +73,23 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
+	public <T> T getValue(Object rootObject, Class<T> desiredResultType) throws EvaluationException {
+		return getValue(desiredResultType);
+	}
+
+	@Override
 	public <T> T getValue(Class<T> desiredResultType) throws EvaluationException {
 		return org.springframework.expression.common.ExpressionUtils
 				.convertTypedValue(null, this.typedResultValue, desiredResultType);
 	}
 
 	@Override
-	public <T> T getValue(Object rootObject, Class<T> desiredResultType) throws EvaluationException {
-		return org.springframework.expression.common.ExpressionUtils
-				.convertTypedValue(null, this.typedResultValue, desiredResultType);
+	public <T> T getValue(EvaluationContext context, Object rootObject, Class<T> desiredResultType) throws EvaluationException {
+		return getValue(context, desiredResultType);
 	}
 
 	@Override
 	public <T> T getValue(EvaluationContext context, Class<T> desiredResultType) throws EvaluationException {
-		return org.springframework.expression.common.ExpressionUtils
-				.convertTypedValue(context, this.typedResultValue, desiredResultType);
-	}
-
-	@Override
-	public <T> T getValue(EvaluationContext context, Object rootObject, Class<T> desiredResultType) throws EvaluationException {
 		return org.springframework.expression.common.ExpressionUtils
 				.convertTypedValue(context, this.typedResultValue, desiredResultType);
 	}
@@ -151,12 +151,12 @@ public class ValueExpression<V> implements Expression {
 
 	@Override
 	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
-		throw new EvaluationException(this.value.toString(), "Cannot call setValue() on a ValueExpression");
+		setValue(context, null, value);
 	}
 
 	@Override
 	public void setValue(Object rootObject, Object value) throws EvaluationException {
-		throw new EvaluationException(this.value.toString(), "Cannot call setValue() on a ValueExpression");
+		setValue(null, rootObject, value);
 	}
 
 	@Override
