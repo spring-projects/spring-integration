@@ -21,10 +21,10 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -50,7 +50,7 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {

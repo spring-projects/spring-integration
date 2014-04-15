@@ -49,6 +49,7 @@ import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -359,17 +360,17 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		boolean alreadyRegistered = false;
 		if (registry instanceof ListableBeanFactory) {
 			alreadyRegistered = ((ListableBeanFactory) registry)
-					.containsBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+					.containsBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		}
 		else {
 			alreadyRegistered = registry
-					.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+					.isBeanNameInUse(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder mbfBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(DefaultMessageBuilderFactory.class);
 			registry.registerBeanDefinition(
-					IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
 					mbfBuilder.getBeanDefinition());
 		}
 

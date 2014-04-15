@@ -19,11 +19,11 @@ package org.springframework.integration.support.converter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -73,7 +73,7 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	@Override

@@ -42,8 +42,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -81,7 +81,7 @@ public class GatewayInterfaceTests {
 		bar.foo("hello");
 		assertTrue(called.get());
 		Map<?,?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
-		Object mbf = ac.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		Object mbf = ac.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		assertSame(mbf, TestUtils.getPropertyValue(gateways.values().iterator().next(),
 				"messageConverter.messageBuilderFactory"));
 		ac.close();

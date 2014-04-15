@@ -36,12 +36,12 @@ import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
@@ -97,7 +97,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
-		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(beanFactory);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {

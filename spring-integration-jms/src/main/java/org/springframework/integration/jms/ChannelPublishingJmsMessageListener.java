@@ -32,11 +32,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -361,7 +361,7 @@ public class ChannelPublishingJmsMessageListener
 			this.gatewayDelegate.setBeanFactory(this.beanFactory);
 		}
 		this.gatewayDelegate.afterPropertiesSet();
-		this.messageBuilderFactory = IntegrationContextUtils.getMessageBuilderFactory(this.beanFactory);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected void start(){

@@ -30,8 +30,8 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.ErrorHandler;
 
@@ -54,7 +54,7 @@ public class PublishSubscribeChannelParserTests {
 		assertNull(dispatcherAccessor.getPropertyValue("executor"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
-		Object mbf = context.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		assertSame(mbf, dispatcherAccessor.getPropertyValue("messageBuilderFactory"));
 		context.close();
 	}
