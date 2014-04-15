@@ -932,7 +932,7 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             </note>
             <para>
                 Typically you would send a control message asking to invoke a
-                particular operation on a particular managed component (e.g. router). The two managed operations (methods) that are
+                particular operation on a particular managed component (e.g. router). Two managed operations (methods) that are
                 specific to changing the router resolution process are:
             </para>
             <itemizedlist>
@@ -944,6 +944,33 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
                   <para><code>public void removeChannelMapping(String channelIdentifier)</code> -
                   will allow you to remove a particular channel mapping, thus disconnecting the relationship between
                   <code>channel identifier</code> and <code>channel name</code> </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Note that these methods can be used for simple changes (updating a single route or adding/removing a
+                route). However, if you want to remove one route and add another, the updates are not atomic. This
+                means the routing table may be in an indeterminate state betweent the updates. Starting with
+                <emphasis>version 4.0</emphasis>, you can now use the control bus to update the entire routing
+                table atomically.
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <code>public Map&lt;String, String&gt;getChannelMappings()</code> returns the current
+                        mappings.
+                    </para>
+                </listitem>
+                <listitem>
+                  <para>
+                      <code>public void replaceChannelMappings(Properties channelMappings)</code> updates the mappings.
+                      Notice that the parameter is a properties object; this allows the use of the inbuilt
+                      <code>StringToPropertiesConverter</code> by a control bus command, for example:
+                      <programlisting>"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')"</programlisting>
+                      - note that each mapping is separted by a newline character (<code>\n</code>). For programmatic
+                      changes to the map, it is recommended that the <code>setChannelMappings</code> method
+                      is used instead, for type-safety. Any non-String keys or values passed into
+                      <code>replaceChannelMappings</code> are ingnored.
+                  </para>
                 </listitem>
             </itemizedlist>
         </section>
