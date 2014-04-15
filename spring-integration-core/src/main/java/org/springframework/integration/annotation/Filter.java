@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  * @author Artem Bilan
  * @since 2.0
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Filter {

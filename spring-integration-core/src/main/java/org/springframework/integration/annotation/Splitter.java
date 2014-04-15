@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Splitter {

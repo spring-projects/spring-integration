@@ -48,7 +48,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		if (importingClassMetadata != null && importingClassMetadata.hasAnnotation(MessagingGateway.class.getName())) {
+		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())) {
 			Assert.isTrue(importingClassMetadata.isInterface(),
 					"@MessagingGateway can only be specified on an interface");
 			Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());

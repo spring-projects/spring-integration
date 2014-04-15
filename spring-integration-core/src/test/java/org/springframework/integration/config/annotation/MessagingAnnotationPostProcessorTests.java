@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
@@ -48,6 +51,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessagingAnnotationPostProcessorTests {
 
@@ -157,8 +161,10 @@ public class MessagingAnnotationPostProcessorTests {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
+		DirectChannel eventBus = new DirectChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
+		context.registerChannel("eventBus", eventBus);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
@@ -170,6 +176,10 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
+
+		eventBus.send(new GenericMessage<String>("foo"));
+		assertTrue(bean.getInvoked());
+
 		context.stop();
 	}
 
@@ -353,11 +363,21 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class ServiceActivatorAnnotatedBean {
 
+		public final AtomicBoolean invoked = new AtomicBoolean();
+
 		@ServiceActivator(inputChannel="inputChannel")
 		public String test(String s) {
 			return s + s;
 		}
 
+		@EventHandler
+		public void eventBus(Object payload) {
+			invoked.set(true);
+		}
+
+		public Boolean getInvoked() {
+			return invoked.get();
+		}
 	}
 
 
@@ -378,4 +398,11 @@ public class MessagingAnnotationPostProcessorTests {
 		}
 
 	}
+
+	@Target({ ElementType.METHOD })
+	@Retention(RetentionPolicy.RUNTIME)
+	@ServiceActivator(inputChannel = "eventBus")
+	public static @interface EventHandler {
+	}
+
 }

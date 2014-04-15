@@ -125,7 +125,13 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			@Override
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
+				List<Annotation> annotations = new ArrayList<Annotation>();
+				for (Class<? extends Annotation> annotation : postProcessors.keySet()) {
+					Annotation result = AnnotationUtils.getAnnotation(method, annotation);
+					if (result != null) {
+						annotations.add(result);
+					}
+				}
 				for (Annotation annotation : annotations) {
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
 					if (postProcessor != null && shouldCreateEndpoint(annotation)) {

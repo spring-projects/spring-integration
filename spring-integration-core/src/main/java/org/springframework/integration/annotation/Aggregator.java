@@ -35,7 +35,7 @@ import org.springframework.integration.aggregator.AbstractCorrelatingMessageHand
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Aggregator {

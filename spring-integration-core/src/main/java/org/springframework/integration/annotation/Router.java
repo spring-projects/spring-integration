@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
  * @author Mark Fisher
  * @author Artem Bilan
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
