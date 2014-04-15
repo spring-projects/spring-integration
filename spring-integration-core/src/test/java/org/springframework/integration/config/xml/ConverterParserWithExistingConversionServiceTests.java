@@ -17,6 +17,7 @@ package org.springframework.integration.config.xml;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -25,7 +26,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
@@ -42,12 +43,12 @@ public class ConverterParserWithExistingConversionServiceTests {
 	private ApplicationContext applicationContext;
 
 	@Autowired
-	@Qualifier(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)
+	@Qualifier(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)
 	private ConversionService conversionService;
 
 	@Test
 	public void testConversionServiceAvailability(){
-		Assert.isTrue(applicationContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME).equals(conversionService));
+		Assert.isTrue(applicationContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME).equals(conversionService));
 		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean2.class));
 		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean3.class));
 	}
@@ -60,8 +61,8 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 		childContext.refresh();
 
-		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
-		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
+		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
+		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
 		Assert.isTrue(conversionServiceParent == conversionServiceChild); // validating that they are pointing to the same object
 		conversionServiceChild.addConverter(new TestConverter());
 		conversionServiceChild.addConverter(new TestConverter3());
@@ -72,7 +73,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 	private static class TestBean1  {
 
-		private String text;
+		private final String text;
 
 		@SuppressWarnings("unused")
 		public TestBean1(String text) {
@@ -83,26 +84,28 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 	private static class TestBean2 {
 
-		private String text;
+		private final String text;
 
 		public TestBean2(String text) {
 			this.text = text;
 		}
 
 		// called by router for channel name
+		@Override
 		public String toString() {
 			return this.text.replace("-TEST", "_TARGET_CHANNEL");
 		}
 	}
 	private static class TestBean3 {
 
-		private String text;
+		private final String text;
 
 		public TestBean3(String text) {
 			this.text = text;
 		}
 
 		// called by router for channel name
+		@Override
 		public String toString() {
 			return this.text.replace("-TEST", "_TARGET_CHANNEL");
 		}
@@ -110,6 +113,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 	private static class TestConverter implements Converter<TestBean1, TestBean2> {
 
+		@Override
 		public TestBean2 convert(TestBean1 source) {
 			return new TestBean2(source.text.toUpperCase());
 		}
@@ -117,6 +121,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 	private static class TestConverter3 implements Converter<TestBean1, TestBean3> {
 
+		@Override
 		public TestBean3 convert(TestBean1 source) {
 			return new TestBean3(source.text.toUpperCase());
 		}

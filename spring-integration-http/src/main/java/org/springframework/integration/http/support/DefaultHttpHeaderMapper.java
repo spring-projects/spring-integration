@@ -47,8 +47,8 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -402,7 +402,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.beanFactory != null){
-			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 		}
 	}
 

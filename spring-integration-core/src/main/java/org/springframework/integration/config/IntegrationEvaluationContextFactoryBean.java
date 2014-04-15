@@ -38,6 +38,7 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -119,7 +120,7 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 	public void afterPropertiesSet() throws Exception {
 		if (this.applicationContext != null) {
 			this.beanResolver = new BeanFactoryResolver(this.applicationContext);
-			ConversionService conversionService = IntegrationContextUtils.getConversionService(this.applicationContext);
+			ConversionService conversionService = IntegrationUtils.getConversionService(this.applicationContext);
 			if (conversionService != null) {
 				this.typeConverter = new StandardTypeConverter(conversionService);
 			}

@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
@@ -53,8 +52,6 @@ public abstract class IntegrationContextUtils {
 	public static final String METADATA_STORE_BEAN_NAME = "metadataStore";
 
 	public static final String CONVERTER_REGISTRAR_BEAN_NAME = "converterRegistrar";
-
-	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";
 
@@ -124,14 +121,6 @@ public abstract class IntegrationContextUtils {
 		TaskScheduler taskScheduler = getTaskScheduler(beanFactory);
 		Assert.state(taskScheduler != null, "No such bean '" + TASK_SCHEDULER_BEAN_NAME + "'");
 		return taskScheduler;
-	}
-
-	/**
-	 * @param beanFactory BeanFactory for lookup, must not be null.
-	 * @return The {@link ConversionService} bean whose name is "integrationConversionService" if available.
-	 */
-	public static ConversionService getConversionService(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
 	}
 
 	/**

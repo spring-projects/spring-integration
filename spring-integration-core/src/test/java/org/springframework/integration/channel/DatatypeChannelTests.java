@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
@@ -35,6 +36,8 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
+import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
@@ -111,18 +114,22 @@ public class DatatypeChannelTests {
 		BeanDefinitionBuilder conversionServiceBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(ConversionServiceFactoryBean.class);
 		conversionServiceBuilder.addPropertyValue("converters", Collections.singleton(converter));
-		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+		context.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
 				conversionServiceBuilder.getBeanDefinition());
 		BeanDefinition messageConverter = BeanDefinitionBuilder.genericBeanDefinition(
 				DefaultDatatypeChannelMessageConverter.class).getBeanDefinition();
 		context.registerBeanDefinition(
-				IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME, messageConverter);
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
+				IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
+				messageConverter);
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(QueueChannel.class);
 		channelBuilder.addPropertyValue("datatypes", "java.lang.Integer, java.util.Date");
 		context.registerBeanDefinition("testChannel", channelBuilder.getBeanDefinition());
 		context.refresh();
 
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
+		assertSame(context.getBean(ConversionService.class),
+				TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
 		assertEquals(1, channel.receive().getPayload());
 		context.close();

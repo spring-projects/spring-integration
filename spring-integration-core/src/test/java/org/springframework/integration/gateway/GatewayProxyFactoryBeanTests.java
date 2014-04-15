@@ -44,8 +44,8 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -91,7 +91,7 @@ public class GatewayProxyFactoryBeanTests {
 		cs.addConverter(stringToByteConverter);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, cs);
+		bf.registerSingleton(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, cs);
 
 		proxyFactory.setBeanFactory(bf);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
