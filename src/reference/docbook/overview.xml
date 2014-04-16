@@ -368,15 +368,43 @@
 		on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes. In either case,
 		the bean <emphasis role="bold">must</emphasis> be a <interfacename>ChannelInterceptor</interfacename>.
 	</para>
-	  <para>
-		  The <classname>@IntegrationConverter</classname> annotation has been introduced to
-		  mark <interfacename>Converter</interfacename>, <interfacename>GenericConverter</interfacename> or
-		  <interfacename>ConverterFactory</interfacename> beans as candidate converters for <code>integrationConversionService</code>.
-		  This annotation is an analogue of the <code>&lt;int:converter&gt;</code> xml element
-		  (see <xref linkend="payload-type-conversion"/>). <code>@IntegrationConverter</code> annotations
-		  can be placed at the class level (with a <classname>@Component</classname> stereotype annotation), or
-		  on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes.
-	  </para>
+	<para>
+		The <classname>@IntegrationConverter</classname> annotation has been introduced to
+		mark <interfacename>Converter</interfacename>, <interfacename>GenericConverter</interfacename> or
+		<interfacename>ConverterFactory</interfacename> beans as candidate converters for <code>integrationConversionService</code>.
+		This annotation is an analogue of the <code>&lt;int:converter&gt;</code> xml element
+		(see <xref linkend="payload-type-conversion"/>). <code>@IntegrationConverter</code> annotations
+		can be placed at the class level (with a <classname>@Component</classname> stereotype annotation), or
+		on <classname>@Bean</classname> methods within <classname>@Configuration</classname> classes.
+	</para>
   </section>
+  <section id="programming-considerations">
+	<title>Programming Considerations</title>
+	<para>
+		It is generally recommended that you use plain old java objects (POJOs) whenever possible and only
+		expose the framework in your code when absolutely necessary.
+	</para>
+	<para>
+		If you do expose the framework to your classes,
+		there are some considerations that need to be taken into account, especially during application startup; some of
+		these are listed here.
+	</para>
+	<itemizedlist>
+		<listitem>
+			If your component is <interfacename>ApplicationContextAware</interfacename>, you should generally not "use"
+			the <interfacename>ApplicationContext</interfacename> in the <code>setApplicationContext()</code> method;
+			just store a reference and defer such uses until later in the context lifecycle.
+		</listitem>
+		<listitem>
+			If your component is an <interfacename>InitializingBean</interfacename> or uses <code>@PostConstruct</code>
+			methods, do not send any messages from these initialization methods - the application context is not
+			yet initialized when these methods are called, and sending such messages will likely fail.
+			If you need to send a messages during startup, implement <interfacename>ApplicationListener</interfacename>
+			and wait for the <classname>ContextRefreshedEvent</classname>. Alternatively, implement
+			<interfacename>SmartLifecycle</interfacename>, put your bean in a late phase, and send the messages
+			from the <code>start()</code> method.
+		</listitem>
+	</itemizedlist>
 
+  </section>
 </chapter>

@@ -28,7 +28,7 @@
       This is an implementation of <interfacename>MessageSource</interfacename> that creates messages from
       a file system directory. <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
     class="org.springframework.integration.file.FileReadingMessageSource"
-    p:inputDirectory="${input.directory}"/>]]></programlisting>
+    p:directory="${input.directory}"/>]]></programlisting>
     </para>
     <para>
       To prevent creating messages for certain files, you may supply a
