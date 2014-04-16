@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 package org.springframework.integration.ftp.session;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import java.lang.reflect.Field;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -22,29 +28,49 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
 import org.apache.commons.net.ftp.FTPClient;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.messaging.MessagingException;
+
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.junit.Assert.fail;
-
-import static org.junit.Assert.assertEquals;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 @SuppressWarnings({"rawtypes","unchecked"})
 public class SessionFactoryTests {
 
+
+	@Test
+	public void testTimeouts() throws Exception {
+		final FTPClient client = mock(FTPClient.class);
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
+
+			@Override
+			protected FTPClient createClientInstance() {
+				return client;
+			}
+		};
+		sessionFactory.setUsername("foo");
+		sessionFactory.setConnectTimeout(123);
+		sessionFactory.setDefaultTimeout(456);
+		sessionFactory.setDataTimeout(789);
+		doReturn(200).when(client).getReplyCode();
+		doReturn(true).when(client).login("foo", null);
+		sessionFactory.getSession();
+		verify(client).setConnectTimeout(123);
+		verify(client).setDefaultTimeout(456);
+		verify(client).setDataTimeout(789);
+	}
 
 	@Test
 	public void testWithControlEncoding() {
@@ -164,6 +190,7 @@ public class SessionFactoryTests {
 		final AtomicInteger failures = new AtomicInteger();
 		for (int i = 0; i < 30; i++) {
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					try {
 						Session session = factory.getSession();
