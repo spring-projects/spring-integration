@@ -312,5 +312,15 @@
 				<xref linkend="amqp-outbound-gateway"/>.
 			</para>
 		</section>
+		<section id="4.0-ftp">
+			<title>FTP Timeouts</title>
+			<para>
+				The <classname>DefaultFtpSessionFactory</classname> now exposes the
+				<code>connectTimeout</code>, <code>defaultTimeout</code> and <code>dataTimeout</code>
+				properties, avoiding the need to subclass the factory just to set these common
+				properties. The <code>postProcess*</code> methods are still available for more
+				advanced configuration. See <xref linkend="ftp-session-factory"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

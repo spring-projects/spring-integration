@@ -63,6 +63,12 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	protected String controlEncoding = FTP.DEFAULT_CONTROL_ENCODING;
 
+	private Integer connectTimeout;
+
+	private Integer defaultTimeout;
+
+	private Integer dataTimeout;
+
 
 	/**
 	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants:
@@ -133,6 +139,30 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.clientMode = clientMode;
 	}
 
+	/**
+	 * Set the connect timeout for the socket.
+	 * @param connectTimeout the timeout
+	 */
+	public void setConnectTimeout(int connectTimeout) {
+		 this.connectTimeout = connectTimeout;
+	}
+
+	/**
+	 * Set the (socket option) timeout on the command socket.
+	 * @param defaultTimeout the timeout.
+	 */
+	public void setDefaultTimeout(int defaultTimeout) {
+		this.defaultTimeout = defaultTimeout;
+	}
+
+	/**
+	 * Set the (socket option) timeout on the data connection.
+	 * @param dataTimeout the timeout.
+	 */
+	public void setDataTimeout(int dataTimeout) {
+		this.dataTimeout = dataTimeout;
+	}
+
 	@Override
 	public Session<FTPFile> getSession() {
 		try {
@@ -148,6 +178,15 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		Assert.notNull(client, "client must not be null");
 		client.configure(this.config);
 		Assert.hasText(this.username, "username is required");
+		if (this.connectTimeout != null) {
+			client.setConnectTimeout(this.connectTimeout);
+		}
+		if (this.defaultTimeout != null) {
+			client.setDefaultTimeout(this.defaultTimeout);
+		}
+		if (this.dataTimeout != null) {
+			client.setDataTimeout(this.dataTimeout);
+		}
 
 		this.postProcessClientBeforeConnect(client);
 
