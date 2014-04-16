@@ -280,6 +280,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			auto-create-local-directory="true"
 			local-filename-generator-expression="#this.toUpperCase() + '.a'"
 			local-filter="myFilter"
+			temporary-file-suffix=".writing"
 			delete-remote-files="false">
 		<int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>]]></programlisting>
@@ -327,26 +328,40 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
         (such as <code>Redis</code> with the <classname>RedisMetadataStore</classname>) this allows
         filter keys to be shared across multiple application or server instances.
     </para>
-	<note>
-	  <para>
-		Beginning with <emphasis>version 3.0</emphasis>, you can also specify a filter used to filter the files locally, once they have
-		been retrieved. The default filter is an <classname>AcceptOnceFileListFilter</classname> which prevents processing
-		files with the same name multiple times in the same JVM execution; this can now be overridden
-		(for example with an <classname>AcceptAllFileListFilter</classname>), using the <code>local-filter</code> attribute.
-		Previously, the default	<classname>AcceptOnceFileListFilter</classname> could not be overridden.
-	  </para>
-	  <para>
-        The <classname>AcceptOnceFileListFilter</classname> stores its state in memory. If you wish the
-        state to survive a system restart, consider using the
-        <classname>FileSystemPersistentAcceptOnceFileListFilter</classname> as a local filter instead. This filter stores
-        the accepted file names in an instance of the
-        <interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>).
-        <important>
-        	This filter compares the filename and modified timestamp. If you wish to use this technique to avoid a
-        	re-synchronized file from being processed, you should use the <code>preserve-timestamp</code> attribute discussed above.
-        </important>
-	  </para>
-	</note>
+	<para>
+		The above discussion refers to filtering the files before retrieving them. Once the files have been
+		retrieved, an additional filter is applied to the files on the file system. By default, this is an
+		<classname>AcceptOnceFileListFilter</classname> which, as discussed, retains state in memory and does
+		not consider the file's modified time. Unless your application removes files after processing, the
+		adapter will re-process the files on disk by default after an application restart.
+	</para>
+	<para>
+		Also, if you configure the <code>filter</code> to use a
+		<classname>FtpPersistentAcceptOnceFileListFilter</classname>, and the remote file
+		timestamp changes (causing it to be re-fetched), the default local filter will not allow this
+		new file to be processed.
+	</para>
+	<para>
+		Use the <code>local-filter</code> attribute to configure the behavior of the local file system
+		filter. To solve these particular use cases, you can use a
+		<classname>FileSystemPersistentAcceptOnceFileListFilter</classname> as a local filter instead.
+		This filter also stores the accepted file names and modified timestamp in an instance of the
+		<interfacename>MetadataStore</interfacename> strategy (<xref linkend="metadata-store"/>), and
+		will detect the change in the local file modified time.
+	</para>
+	<important>
+		Further, if you use a distributed <interfacename>MetadataStore</interfacename> (such as
+		<xref linkend="redis-metadata-store"/> or <xref linkend="gemfire-metadata-store"/>) you can
+		have multiple instances of the same adapter/application and be sure that one and only one will
+		process a file.
+	</important>
+	<para>
+		The actual local filter is a <classname>CompositeFileListFilter</classname> containing the supplied
+		filter and a pattern filter that prevents processing files that are in the process of
+		being downloaded (based on the <code>temporary-file-suffix</code>); files are downloaded with
+		this suffix (default: <code>.writing</code>) and the file is renamed to its final name when the
+		transfer is complete, making it 'visible' to the filter.
+	</para>
   	<para>
   	Please refer to the schema for more detail on these attributes.
   	</para>
