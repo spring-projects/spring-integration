@@ -210,7 +210,10 @@ project('spring-integration-amqp') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-tx:$springVersion"
 		compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-aop'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		testCompile project(":spring-integration-stream")
 		testCompile project(":spring-integration-http") // need to test INT-2713
@@ -249,8 +252,8 @@ project('spring-integration-feed') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context:$springVersion"
-		compile("net.java.dev.rome:rome-fetcher:$romeVersion") {
-			exclude group: 'junit'
+		compile ("net.java.dev.rome:rome-fetcher:$romeVersion") {
+			exclude group: 'junit', module: 'junit'
 		}
 		compile "net.java.dev.rome:rome:$romeVersion"
 	}
@@ -289,7 +292,12 @@ project('spring-integration-gemfire') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile ("org.springframework.data:spring-data-gemfire:$springGemfireVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-aop'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-context-support'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		compile "org.springframework:spring-tx:$springVersion"
 		testCompile project(":spring-integration-stream")
@@ -315,7 +323,7 @@ project('spring-integration-http') {
 		compile "org.springframework:spring-webmvc:$springVersion"
 		compile("net.java.dev.rome:rome-fetcher:$romeVersion") {
 			optional
-			exclude group: 'junit'
+			exclude group: 'junit', module: 'junit'
 		}
 
 		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
@@ -444,7 +452,11 @@ project('spring-integration-mongodb') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-tx:$springVersion"
 		compile("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-expression'
+			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 	}
 }
@@ -463,7 +475,11 @@ project('spring-integration-redis') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-tx:$springVersion"
 		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-context-support'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -540,11 +556,11 @@ project('spring-integration-test') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile ("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest'
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
 		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
 		compile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest'
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
@@ -557,7 +573,13 @@ project('spring-integration-twitter') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-web:$springVersion"
 		compile("org.springframework.social:spring-social-twitter:$springSocialTwitterVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-expression'
+			exclude group: 'org.springframework', module: 'spring-web'
+			exclude group: 'org.springframework', module: 'spring-webmvc'
+
 		}
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-redis")
@@ -574,7 +596,13 @@ project('spring-integration-ws') {
 		compile "org.springframework:spring-oxm:$springVersion"
 		compile "org.springframework:spring-webmvc:$springVersion"
 		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-aop'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-oxm'
+			exclude group: 'org.springframework', module: 'spring-web'
+			exclude group: 'org.springframework', module: 'spring-webmvc'
 		}
 		compile("javax.xml.soap:saaj-api:$saajApiVersion") { dep ->
 			optional dep
@@ -607,7 +635,9 @@ project('spring-integration-xml') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-oxm:$springVersion"
 		compile ("org.springframework.ws:spring-xml:$springWsVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-core'
 		}
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile "xmlunit:xmlunit:$xmlUnitVersion"
