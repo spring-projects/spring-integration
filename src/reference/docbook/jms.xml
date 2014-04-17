@@ -274,7 +274,7 @@
       JMS Message that is <emphasis>received as a reply</emphasis> and then converted into a Spring Integration
       Message to be subsequently sent to the 'reply-channel' as shown in the example configuration above.
     </para>
-    <para><emphasis>&lt;reply-listener/&gt;</emphasis></para>
+    <para><emphasis role="bold">&lt;reply-listener/&gt;</emphasis></para>
     <para>
       <emphasis>Spring Integration 2.2</emphasis> introduced an alternative technique for handling replies.
       If you add a
@@ -285,13 +285,15 @@
       above.
     </para>
     <para>
-      When using a &lt;reply-listener/&gt;, instead of creating a <interfacename>TemporaryQueue</interfacename>
+      When using a <code>&lt;reply-listener/&gt;</code> with an outbound gateway with no
+      <code>reply-destination</code>,
+      instead of creating a <interfacename>TemporaryQueue</interfacename>
       for each request, a single <interfacename>TemporaryQueue</interfacename> is used
       (the gateway will create an additional <interfacename>TemporaryQueue</interfacename>, as
       necessary, if the connection to the broker is lost and recovered).
     </para>
     <para>
-      When using a <emphasis>correlation-key</emphasis>, multiple gateways can share the same
+      When using a <code>correlation-key</code>, multiple gateways can share the same
       reply destination because the listener container uses a selector that is unique
       to each gateway.
     </para>
