@@ -16,14 +16,16 @@
 
 package org.springframework.integration.config.annotation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.annotation.Router;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -31,6 +33,7 @@ import org.springframework.util.StringUtils;
  * Post-processor for Methods annotated with {@link Router @Router}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
@@ -40,10 +43,12 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Router annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, Router annotation,
+			List<Annotation> metaAnnotations) {
 		MethodInvokingRouter router = new MethodInvokingRouter(bean, method);
 		router.setBeanFactory(this.beanFactory);
-		String defaultOutputChannelName = annotation.defaultOutputChannel();
+		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(
+				metaAnnotations, annotation, "defaultOutputChannel", String.class);
 		if (StringUtils.hasText(defaultOutputChannelName)) {
 			MessageChannel defaultOutputChannel = this.channelResolver.resolveDestination(defaultOutputChannelName);
 			Assert.notNull(defaultOutputChannel, "unable to resolve defaultOutputChannel '" + defaultOutputChannelName + "'");

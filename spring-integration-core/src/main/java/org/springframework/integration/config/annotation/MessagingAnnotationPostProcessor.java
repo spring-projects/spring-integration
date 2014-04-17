@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +65,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
 		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware {
@@ -125,20 +127,22 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			@Override
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				List<Annotation> annotations = new ArrayList<Annotation>();
-				for (Class<? extends Annotation> annotation : postProcessors.keySet()) {
-					Annotation result = AnnotationUtils.getAnnotation(method, annotation);
-					if (result != null) {
-						annotations.add(result);
+				List<List<Annotation>> annotationChains = new ArrayList<List<Annotation>>();
+				for (Class<? extends Annotation> annotationType : postProcessors.keySet()) {
+					List<Annotation> annotationChain = this.getannotationChain(method, annotationType);
+					if (annotationChain.size() > 0) {
+						annotationChains.add(annotationChain);
 					}
 				}
-				for (Annotation annotation : annotations) {
+				for (List<Annotation> annotations : annotationChains) {
+					Annotation annotation = annotations.remove(0);
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
 					if (postProcessor != null && shouldCreateEndpoint(annotation)) {
-						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
+						Object result = postProcessor.postProcess(bean, beanName, method, annotation, annotations);
 						if (result != null && result instanceof AbstractEndpoint) {
 							AbstractEndpoint endpoint = (AbstractEndpoint) result;
-							String autoStartup = (String) AnnotationUtils.getValue(annotation, "autoStartup");
+							String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, annotation,
+									"autoStartup", String.class);
 							if (StringUtils.hasText(autoStartup)) {
 								if (environment != null) {
 									autoStartup = environment.resolvePlaceholders(autoStartup);
@@ -148,7 +152,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								}
 							}
 
-							String phase = (String) AnnotationUtils.getValue(annotation, "phase");
+							String phase = MessagingAnnotationUtils.resolveAttribute(annotations, annotation,
+									"phase", String.class);
 							if (StringUtils.hasText(phase)) {
 								if (environment != null) {
 									phase = environment.resolvePlaceholders(phase);
@@ -179,6 +184,44 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					}
 				}
 			}
+
+			/**
+			 * @param method the method.
+			 * @param annotationType the annotation type.
+			 * @return the hierarchical list of annotations in bottom-up order.
+			 */
+			private List<Annotation> getannotationChain(Method method, Class<? extends Annotation> annotationType) {
+				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
+				List<Annotation> annotationChain = new LinkedList<Annotation>();
+				Set<Annotation> visited = new HashSet<Annotation>();
+				for (Annotation ann : annotations) {
+					this.recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
+					if (annotationChain.size() > 0) {
+						return annotationChain;
+					}
+				}
+				return annotationChain;
+			}
+
+			private boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
+					List<Annotation> annotationChain, Set<Annotation> visited) {
+				if (ann.annotationType().equals(annotationType)) {
+					annotationChain.add(ann);
+					return true;
+				}
+				for (Annotation metaAnn : ann.annotationType().getAnnotations()) {
+					if (!ann.equals(metaAnn) && !visited.contains(metaAnn)
+							&& !(metaAnn.annotationType().getPackage().getName().startsWith("java.lang"))) {
+						visited.add(metaAnn); // prevent infinite recursion if the same annotation is found again
+						if (this.recursiveFindAnnotation(annotationType, metaAnn, annotationChain, visited)) {
+							annotationChain.add(ann);
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
 		});
 		return bean;
 	}

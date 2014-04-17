@@ -16,20 +16,22 @@
 
 package org.springframework.integration.config.annotation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
-import org.springframework.util.StringUtils;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * Post-processor for Methods annotated with {@link Transformer @Transformer}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Transformer> {
 
@@ -39,13 +41,11 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Transformer annotation) {
+	protected MessageHandler createHandler(Object bean, Method method,
+			Transformer annotation, List<Annotation> metaAnnotations) {
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		String outputChannelName = annotation.outputChannel();
-		if (StringUtils.hasText(outputChannelName)) {
-			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
-		}
+		this.setOutputChannelIfPresent(annotation, metaAnnotations, handler);
 		return handler;
 	}
 

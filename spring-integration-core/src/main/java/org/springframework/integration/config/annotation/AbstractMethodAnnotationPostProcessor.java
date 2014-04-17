@@ -87,9 +87,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 
 	@Override
-	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
-		MessageHandler handler = this.createHandler(bean, method, annotation);
-		this.setAdviceChainIfPresent(beanName, annotation, handler);
+	public Object postProcess(Object bean, String beanName, Method method, T annotation,
+			List<Annotation> metaAnnotations) {
+		MessageHandler handler = this.createHandler(bean, method, annotation, metaAnnotations);
+		this.setAdviceChainIfPresent(beanName, annotation, metaAnnotations, handler);
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
@@ -102,7 +103,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			listableBeanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) listableBeanFactory.initializeBean(handler, handlerBeanName);
 		}
-		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation);
+		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation, metaAnnotations);
 		if (endpoint != null) {
 			return endpoint;
 		}
@@ -110,11 +111,19 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 
-	protected final void setAdviceChainIfPresent(String beanName, T annotation, MessageHandler handler) {
-		String[] adviceChainNames = (String[]) AnnotationUtils.getValue(annotation, ADVICE_CHAIN_ATTRIBUTE);
+	protected final void setAdviceChainIfPresent(String beanName, T annotation, List<Annotation> metaAnnotations,
+			MessageHandler handler) {
+		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(
+				metaAnnotations, annotation, ADVICE_CHAIN_ATTRIBUTE, String[].class);
+		/*
+		 * Note: we don't merge advice chain contents; if the directAnnotation has a non-empty
+		 * attribute, it wins. You cannot "remove" an advice chain from a meta-annotation
+		 * by setting an empty array on the custom annotation.
+		 */
 		if (adviceChainNames != null && adviceChainNames.length > 0) {
 			if (!(handler instanceof AbstractReplyProducingMessageHandler)) {
-				throw new IllegalArgumentException("Cannot apply advice chain to " + handler.getClass().getName());
+				throw new IllegalArgumentException("Cannot apply advice chain to "
+						+ handler.getClass().getName());
 			}
 			List<Advice> adviceChain = new ArrayList<Advice>();
 			for (String adviceChainName : adviceChainNames) {
@@ -141,9 +150,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 	}
 
-	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation) {
+	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation, List<Annotation> metaAnnotations) {
 		AbstractEndpoint endpoint = null;
-		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
+		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(metaAnnotations, annotation,
+				INPUT_CHANNEL_ATTRIBUTE, String.class);
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel;
 			try {
@@ -161,7 +171,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 			if (inputChannel instanceof PollableChannel) {
 				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-				this.configurePollingEndpoint(pollingConsumer, annotation);
+				this.configurePollingEndpoint(pollingConsumer, annotation, metaAnnotations);
 				endpoint = pollingConsumer;
 			}
 			else {
@@ -174,9 +184,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, T annotation) {
+	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, T annotation,
+			List<Annotation> metaAnnotations) {
 		PollerMetadata pollerMetadata = null;
-		Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(metaAnnotations, annotation, "poller",
+				Poller[].class);
 		if (!ObjectUtils.isEmpty(pollers)) {
 			Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
 			Poller poller = pollers[0];
@@ -256,14 +268,25 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 	}
 
+	protected void setOutputChannelIfPresent(T annotation, List<Annotation> metaAnnotations,
+			AbstractReplyProducingMessageHandler handler) {
+		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(metaAnnotations, annotation,
+				"outputChannel", String.class);
+		if (StringUtils.hasText(outputChannelName)) {
+			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
+		}
+	}
+
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
 	 *
 	 * @param bean The bean.
 	 * @param method The method.
 	 * @param annotation The annotation.
+	 * @param metaAnnotations The meta-annotations.
 	 * @return The MessageHandler.
 	 */
-	protected abstract MessageHandler createHandler(Object bean, Method method, T annotation);
+	protected abstract MessageHandler createHandler(Object bean, Method method, T annotation,
+			List<Annotation> metaAnnotations);
 
 }

@@ -16,16 +16,17 @@
 
 package org.springframework.integration.config.annotation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Filter;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link Filter @Filter}.
@@ -42,16 +43,18 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Filter annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, Filter annotation,
+			List<Annotation> metaAnnotations) {
 		Assert.isTrue(boolean.class.equals(method.getReturnType()) || Boolean.class.equals(method.getReturnType()),
 				"The Filter annotation may only be applied to methods with a boolean return type.");
 		MethodInvokingSelector selector = new MethodInvokingSelector(bean, method);
 		MessageFilter filter = new MessageFilter(selector);
-		String outputChannelName = annotation.outputChannel();
-		if (StringUtils.hasText(outputChannelName)) {
-			filter.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
+		this.setOutputChannelIfPresent(annotation, metaAnnotations, filter);
+		Boolean discardWithinAdvice = MessagingAnnotationUtils.resolveAttribute(
+				metaAnnotations, annotation, "discardWithinAdvice", Boolean.class);
+		if (discardWithinAdvice != null) {
+			filter.setDiscardWithinAdvice(discardWithinAdvice);
 		}
-		filter.setDiscardWithinAdvice(annotation.discardWithinAdvice());
 		return filter;
 	}
 

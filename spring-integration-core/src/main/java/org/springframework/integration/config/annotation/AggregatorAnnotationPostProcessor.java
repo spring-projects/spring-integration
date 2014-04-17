@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -42,6 +43,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
@@ -51,24 +53,36 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation,
+			List<Annotation> metaAnnotations) {
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method);
 		processor.setBeanFactory(this.beanFactory);
 		MethodInvokingReleaseStrategy releaseStrategy = getReleaseStrategy(bean);
 		MethodInvokingCorrelationStrategy correlationStrategy = getCorrelationStrategy(bean);
-		AggregatingMessageHandler handler = new AggregatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
-		String discardChannelName = annotation.discardChannel();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(processor,
+				new SimpleMessageStore(), correlationStrategy, releaseStrategy);
+		String discardChannelName = MessagingAnnotationUtils.resolveAttribute(
+				metaAnnotations, annotation, "discardChannel", String.class);
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.channelResolver.resolveDestination(discardChannelName);
 			Assert.notNull(discardChannel, "failed to resolve discardChannel '" + discardChannelName + "'");
 			handler.setDiscardChannel(discardChannel);
 		}
-		String outputChannelName = annotation.outputChannel();
+		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(
+				metaAnnotations, annotation, "outputChannel", String.class);
 		if (StringUtils.hasText(outputChannelName)) {
 			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
-		handler.setSendTimeout(annotation.sendTimeout());
-		handler.setSendPartialResultOnExpiry(annotation.sendPartialResultsOnExpiry());
+		Long sendTimeout = MessagingAnnotationUtils.resolveAttribute(metaAnnotations,
+				annotation, "sendTimeout", Long.class);
+		if (sendTimeout != null) {
+			handler.setSendTimeout(sendTimeout);
+		}
+		Boolean sendPartialResultsOnExpiry = MessagingAnnotationUtils.resolveAttribute(metaAnnotations, annotation,
+				"sendPartialResultsOnExpiry", Boolean.class);
+		if (sendPartialResultsOnExpiry != null) {
+			handler.setSendPartialResultOnExpiry(sendPartialResultsOnExpiry);
+		}
 		handler.setBeanFactory(this.beanFactory);
 		handler.afterPropertiesSet();
 		return handler;

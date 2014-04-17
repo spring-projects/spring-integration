@@ -16,19 +16,21 @@
 
 package org.springframework.integration.config.annotation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.util.StringUtils;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
@@ -38,12 +40,10 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, ServiceActivator annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, ServiceActivator annotation,
+			List<Annotation> metaAnnotations) {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(bean, method);
-		String outputChannelName = annotation.outputChannel();
-		if (StringUtils.hasText(outputChannelName)) {
-			serviceActivator.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
-		}
+		this.setOutputChannelIfPresent(annotation, metaAnnotations, serviceActivator);
 		return serviceActivator;
 	}
 

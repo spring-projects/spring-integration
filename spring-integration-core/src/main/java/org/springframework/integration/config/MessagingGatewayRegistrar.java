@@ -17,8 +17,16 @@
 package org.springframework.integration.config;
 
 import java.beans.Introspector;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -31,9 +39,12 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.config.annotation.MessagingAnnotationUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -42,16 +53,37 @@ import org.springframework.util.StringUtils;
  * and to register {@link BeanDefinition} {@link GatewayProxyFactoryBean}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
-public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar {
+public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
+
+	private static final Log logger = LogFactory.getLog(MessagingGatewayRegistrar.class);
+
+	private ClassLoader beanClassLoader;
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
+	}
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())) {
+		Class<?> target = null;
+		try {
+			target = ClassUtils.forName(importingClassMetadata.getClassName(), this.beanClassLoader);
+		}
+		catch (Exception e) {
+			logger.error("Could not load target class: " + importingClassMetadata.getClassName(), e);
+		}
+		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())
+				&& (target != null && !target.isAnnotation())) {
 			Assert.isTrue(importingClassMetadata.isInterface(),
 					"@MessagingGateway can only be specified on an interface");
-			Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
+			List<MultiValueMap<String, Object>> valuesHierarchy = captureMetaAnnotationValues(importingClassMetadata);
+			Map<String, Object> annotationAttributes = importingClassMetadata
+					.getAnnotationAttributes(MessagingGateway.class.getName());
+			replaceEmptyOverrides(valuesHierarchy, annotationAttributes);
 			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
 
 			BeanDefinitionReaderUtils.registerBeanDefinition(this.parse(annotationAttributes), registry);
@@ -138,6 +170,49 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
 
 		return new BeanDefinitionHolder(gatewayProxyBuilder.getBeanDefinition(), id);
+	}
+
+	/**
+	 * See SPR-11710. Captures the meta-annotation attribute values, in order.
+	 * @param importingClassMetadata The importing class metadata
+	 * @return The captured values.
+	 */
+	private List<MultiValueMap<String, Object>> captureMetaAnnotationValues(AnnotationMetadata importingClassMetadata) {
+		Set<String> directAnnotations = importingClassMetadata.getAnnotationTypes();
+		List<MultiValueMap<String, Object>> valuesHierarchy = new ArrayList<MultiValueMap<String, Object>>();
+		// Need to grab the values now; see SPR-11710
+		for (String ann : directAnnotations) {
+			Set<String> chain = importingClassMetadata.getMetaAnnotationTypes(ann);
+			if (chain.contains(MessagingGateway.class.getName())) {
+				for (String meta : chain) {
+					valuesHierarchy.add(importingClassMetadata.getAllAnnotationAttributes(meta));
+				}
+			}
+		}
+		return valuesHierarchy;
+	}
+
+	/**
+	 * See SPR-11709. For any empty values, traverses back up the meta-annotation hierarchy to
+	 * see if a value has been overridden to empty, and replaces the first such value found.
+	 * @param valuesHierarchy The values hierarchy in order.
+	 * @param annotationAttributes The current attribute values.
+	 */
+	private void replaceEmptyOverrides(List<MultiValueMap<String, Object>> valuesHierarchy,
+			Map<String, Object> annotationAttributes) {
+		for (Entry<String, Object> entry : annotationAttributes.entrySet()) {
+			Object value = entry.getValue();
+			if (!MessagingAnnotationUtils.hasValue(value)) {
+				// see if we overrode a value that was higher in the annotation chain
+				for (MultiValueMap<String, Object> metaAttributesMap : valuesHierarchy) {
+					Object newValue = metaAttributesMap.getFirst(entry.getKey());
+					if (MessagingAnnotationUtils.hasValue(newValue)) {
+						annotationAttributes.put(entry.getKey(), newValue);
+						return;
+					}
+				}
+			}
+		}
 	}
 
 }
