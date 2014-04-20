@@ -28,7 +28,6 @@ import java.util.List;
  */
 public interface MethodAnnotationPostProcessor<T extends Annotation> {
 
-	Object postProcess(Object bean, String beanName, Method method, T annotation,
-			List<Annotation> metaAnnotations);
+	Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations);
 
 }

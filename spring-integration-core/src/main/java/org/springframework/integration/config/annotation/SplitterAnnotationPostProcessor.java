@@ -40,10 +40,9 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Splitter annotation,
-			List<Annotation> metaAnnotations) {
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(bean, method);
-		this.setOutputChannelIfPresent(annotation, metaAnnotations, splitter);
+		this.setOutputChannelIfPresent(annotations, splitter);
 		return splitter;
 	}
 

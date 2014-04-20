@@ -16,16 +16,9 @@
 
 package org.springframework.integration.configuration;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -81,6 +74,7 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -347,6 +341,9 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testMetaAnnotations() {
+
+		assertEquals(2, this.context.getBeanNamesForType(GatewayProxyFactoryBean.class).length);
+
 		PollingConsumer consumer = this.context.getBean(
 				"enableIntegrationTests.AnnotationTestService.annCount.serviceActivator",
 				PollingConsumer.class);
@@ -753,8 +750,7 @@ public class EnableIntegrationTests {
 			return this.handle(message.getPayload()) + "2";
 		}
 
-		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false",
-				phase = "23")
+		@MyInboundChannelAdapter1
 		public Integer count() {
 			return this.counter.incrementAndGet();
 		}
@@ -1020,6 +1016,28 @@ public class EnableIntegrationTests {
 		boolean sendPartialResultsOnExpiry() default true;
 
 		long sendTimeout() default 75;
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@InboundChannelAdapter(value = "counterChannel", autoStartup = "false", phase = "23")
+	public static @interface MyInboundChannelAdapter {
+
+		String value() default "";
+
+		String autoStartup() default "";
+
+		String phase() default "";
+
+		Poller[] poller() default {};
+
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyInboundChannelAdapter
+	public static @interface MyInboundChannelAdapter1 {
 
 	}
 

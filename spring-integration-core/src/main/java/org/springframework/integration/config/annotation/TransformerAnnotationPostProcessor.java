@@ -41,11 +41,10 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method,
-			Transformer annotation, List<Annotation> metaAnnotations) {
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		this.setOutputChannelIfPresent(annotation, metaAnnotations, handler);
+		this.setOutputChannelIfPresent(annotations, handler);
 		return handler;
 	}
 

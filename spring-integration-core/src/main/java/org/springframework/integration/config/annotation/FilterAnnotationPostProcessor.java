@@ -43,15 +43,14 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Filter annotation,
-			List<Annotation> metaAnnotations) {
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		Assert.isTrue(boolean.class.equals(method.getReturnType()) || Boolean.class.equals(method.getReturnType()),
 				"The Filter annotation may only be applied to methods with a boolean return type.");
 		MethodInvokingSelector selector = new MethodInvokingSelector(bean, method);
 		MessageFilter filter = new MessageFilter(selector);
-		this.setOutputChannelIfPresent(annotation, metaAnnotations, filter);
-		Boolean discardWithinAdvice = MessagingAnnotationUtils.resolveAttribute(
-				metaAnnotations, annotation, "discardWithinAdvice", Boolean.class);
+		this.setOutputChannelIfPresent(annotations, filter);
+		Boolean discardWithinAdvice = MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice",
+				Boolean.class);
 		if (discardWithinAdvice != null) {
 			filter.setDiscardWithinAdvice(discardWithinAdvice);
 		}

@@ -80,7 +80,7 @@ subprojects { subproject ->
 		javaxMailVersion = '1.4.7'
 		jmsApiVersion = '1.1-rev-1'
 		jpaApiVersion = '2.0.0'
-		jrubyVersion = '1.7.8'
+		jrubyVersion = '1.7.12'
 		jschVersion = '0.1.51'
 		jsonpathVersion = '0.9.1'
 		junitVersion = '4.11'

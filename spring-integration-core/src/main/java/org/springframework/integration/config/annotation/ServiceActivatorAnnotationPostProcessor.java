@@ -40,10 +40,9 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, ServiceActivator annotation,
-			List<Annotation> metaAnnotations) {
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(bean, method);
-		this.setOutputChannelIfPresent(annotation, metaAnnotations, serviceActivator);
+		this.setOutputChannelIfPresent(annotations, serviceActivator);
 		return serviceActivator;
 	}
 

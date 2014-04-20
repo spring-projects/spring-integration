@@ -43,12 +43,12 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Router annotation,
-			List<Annotation> metaAnnotations) {
+	protected MessageHandler createHandler(Object bean, Method method,
+			List<Annotation> annotations) {
 		MethodInvokingRouter router = new MethodInvokingRouter(bean, method);
 		router.setBeanFactory(this.beanFactory);
-		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(
-				metaAnnotations, annotation, "defaultOutputChannel", String.class);
+		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel",
+				String.class);
 		if (StringUtils.hasText(defaultOutputChannelName)) {
 			MessageChannel defaultOutputChannel = this.channelResolver.resolveDestination(defaultOutputChannelName);
 			Assert.notNull(defaultOutputChannel, "unable to resolve defaultOutputChannel '" + defaultOutputChannelName + "'");

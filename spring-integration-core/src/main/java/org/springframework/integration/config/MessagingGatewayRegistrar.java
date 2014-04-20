@@ -26,7 +26,6 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -43,7 +42,6 @@ import org.springframework.integration.config.annotation.MessagingAnnotationUtil
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -56,33 +54,17 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @since 4.0
  */
-public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
+public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar {
 
 	private static final Log logger = LogFactory.getLog(MessagingGatewayRegistrar.class);
 
-	private ClassLoader beanClassLoader;
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
-
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Class<?> target = null;
-		try {
-			target = ClassUtils.forName(importingClassMetadata.getClassName(), this.beanClassLoader);
-		}
-		catch (Exception e) {
-			logger.error("Could not load target class: " + importingClassMetadata.getClassName(), e);
-		}
-		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())
-				&& (target != null && !target.isAnnotation())) {
-			Assert.isTrue(importingClassMetadata.isInterface(),
-					"@MessagingGateway can only be specified on an interface");
+		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())) {
+			Assert.isTrue(importingClassMetadata.isInterface(),	"@MessagingGateway can only be specified on an interface");
 			List<MultiValueMap<String, Object>> valuesHierarchy = captureMetaAnnotationValues(importingClassMetadata);
-			Map<String, Object> annotationAttributes = importingClassMetadata
-					.getAnnotationAttributes(MessagingGateway.class.getName());
+			Map<String, Object> annotationAttributes =
+					importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
 			replaceEmptyOverrides(valuesHierarchy, annotationAttributes);
 			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
 
@@ -105,7 +87,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
-		Assert.state(!hasMapper || !hasDefaultPayloadExpression, "'defaultPayloadExpression' is not allowed when a 'mapper' is provided");
+		Assert.state(!hasMapper || !hasDefaultPayloadExpression,
+				"'defaultPayloadExpression' is not allowed when a 'mapper' is provided");
 
 		boolean hasDefaultHeaders = !ObjectUtils.isEmpty(defaultHeaders);
 		Assert.state(!hasMapper || !hasDefaultHeaders, "'defaultHeaders' are not allowed when a 'mapper' is provided");
@@ -124,11 +107,14 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 				boolean hasValue = StringUtils.hasText(headerValue);
 
 				if (!(hasValue ^ StringUtils.hasText(headerExpression))) {
-					throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a gateway's header.");
+					throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' " +
+							"is required on a gateway's header.");
 				}
 
-				BeanDefinition expressionDef = new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
-				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(hasValue ? headerValue : headerExpression);
+				BeanDefinition expressionDef =
+						new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
+				expressionDef.getConstructorArgumentValues()
+						.addGenericArgumentValue(hasValue ? headerValue : headerExpression);
 
 				headerExpressions.put((String) header.get("name"), expressionDef);
 			}
@@ -173,7 +159,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 	}
 
 	/**
-	 * See SPR-11710. Captures the meta-annotation attribute values, in order.
+	 * TODO until SPR-11710 will be resolved.
+	 * Captures the meta-annotation attribute values, in order.
 	 * @param importingClassMetadata The importing class metadata
 	 * @return The captured values.
 	 */
@@ -193,7 +180,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 	}
 
 	/**
-	 * See SPR-11709. For any empty values, traverses back up the meta-annotation hierarchy to
+	 * TODO until SPR-11709 will be resolved.
+	 * For any empty values, traverses back up the meta-annotation hierarchy to
 	 * see if a value has been overridden to empty, and replaces the first such value found.
 	 * @param valuesHierarchy The values hierarchy in order.
 	 * @param annotationAttributes The current attribute values.
@@ -208,7 +196,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 					Object newValue = metaAttributesMap.getFirst(entry.getKey());
 					if (MessagingAnnotationUtils.hasValue(newValue)) {
 						annotationAttributes.put(entry.getKey(), newValue);
-						return;
+						break;
 					}
 				}
 			}

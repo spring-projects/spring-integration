@@ -22,6 +22,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
+import org.springframework.integration.config.annotation.MessagingAnnotationUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -60,7 +61,8 @@ public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationSt
 				delegate = new MethodInvokingCorrelationStrategy(target, methodName);
 			}
 			else {
-				Method method = AnnotationFinder.findAnnotatedMethod(target, org.springframework.integration.annotation.CorrelationStrategy.class);
+				Method method = MessagingAnnotationUtils.findAnnotatedMethod(target,
+						org.springframework.integration.annotation.CorrelationStrategy.class);
 				if (method != null) {
 					delegate = new MethodInvokingCorrelationStrategy(target, method);
 				}
