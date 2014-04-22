@@ -47,6 +47,11 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 	}
 
 	@Override
+	protected String getInputChannelAttribute() {
+		return AnnotationUtils.VALUE;
+	}
+
+	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
 		Assert.isTrue(!Void.class.isAssignableFrom(method.getReturnType()), "The method '" + method
 				+ "' for 'SourcePollingChannelAdapter' must not have 'void' return type.");
