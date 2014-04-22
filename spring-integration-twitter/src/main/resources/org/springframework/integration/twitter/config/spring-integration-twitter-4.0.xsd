@@ -113,6 +113,16 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="outbound-twitter-type">
+					<xsd:attribute name="tweet-data-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression that evaluates to tweetData; the evaluation result type can be
+								an 'org.springframework.social.twitter.api.TweetData', a 'String' or
+								'org.springframework.social.twitter.api.Tweet'.
+								Default: "payload".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 				</xsd:extension>
 			</xsd:complexContent>

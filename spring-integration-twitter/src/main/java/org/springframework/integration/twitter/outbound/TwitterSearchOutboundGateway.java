@@ -22,7 +22,6 @@ import java.util.List;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -50,7 +49,7 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 
 	private final Twitter twitter;
 
-	private volatile Expression searchArgsExpression = new SpelExpressionParser().parseExpression("payload");
+	private volatile Expression searchArgsExpression;
 
 	private volatile EvaluationContext evaluationContext;
 
@@ -102,7 +101,13 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Object args = this.searchArgsExpression.getValue(this.evaluationContext, requestMessage);
+		Object args;
+		if (this.searchArgsExpression != null) {
+			args = this.searchArgsExpression.getValue(this.evaluationContext, requestMessage);
+		}
+		else {
+			args = requestMessage.getPayload();
+		}
 		Assert.notNull(args, "The twitter search expression cannot evaluate to 'null'.");
 		SearchParameters searchParameters;
 		if (args instanceof SearchParameters) {

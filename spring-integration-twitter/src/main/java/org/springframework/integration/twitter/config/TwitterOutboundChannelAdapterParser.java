@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -21,15 +21,18 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.twitter.outbound.DirectMessageSendingMessageHandler;
 import org.springframework.integration.twitter.outbound.StatusUpdatingMessageHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for all outbound Twitter adapters
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -39,6 +42,13 @@ public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannel
 		Class<?> clazz = determineClass(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(clazz);
 		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
+		String tweetDataExpression = element.getAttribute("tweet-data-expression");
+		if (StringUtils.hasText(tweetDataExpression)) {
+			builder.addPropertyValue("tweetDataExpression",
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(tweetDataExpression)
+							.getBeanDefinition());
+		}
 		return builder.getBeanDefinition();
 	}
 
