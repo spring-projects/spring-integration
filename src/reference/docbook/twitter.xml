@@ -253,7 +253,24 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   		channel="twitterChannel"/>]]></programlisting>
   		The only extra configuration that is required for this adapter is the <code>twitter-template</code> reference.
   		</para>
-  	</section>
+		<para>
+			Starting with <emphasis>version 4.0</emphasis> the <code>&lt;int-twitter:outbound-channel-adapter&gt;</code>
+			supports a <code>tweet-data-expression</code> to populate the <classname>TweetData</classname> argument
+			(<ulink url="http://projects.spring.io/spring-social-twitter/">Spring Social Twitter</ulink>) using the
+			message as the root object of the expression evaluation context. The result can be a <classname>String</classname>,
+			which will be used for the <classname>TweetData</classname> message; a <classname>Tweet</classname> object, the
+			<code>text</code> of which will be used for the <classname>TweetData</classname> message; or an entire
+			<classname>TweetData</classname> object. For convenience, the <classname>TweetData</classname> can be built
+			from the expression directly without needing a fully qualified class name:
+			<programlisting language="xml"><![CDATA[<int-twitter:outbound-channel-adapter
+    twitter-template="twitterTemplate"
+    channel="twitterChannel"
+    tweet-data-expression="new TweetData(payload).withMedia(headers.media).displayCoordinates(true)/>]]></programlisting>
+		</para>
+		<para>
+			This allows, for example, attaching an image to the tweet.
+		</para>
+	</section>
 
   	<section id="outbound-twitter-direct">
   		<title>Twitter Outbound Direct Message Channel Adapter</title>

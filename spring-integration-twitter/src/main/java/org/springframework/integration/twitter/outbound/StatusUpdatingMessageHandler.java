@@ -16,10 +16,16 @@
 
 package org.springframework.integration.twitter.outbound;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.TypeLocator;
+import org.springframework.expression.spel.support.StandardTypeLocator;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.TweetData;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.util.Assert;
 
@@ -28,12 +34,17 @@ import org.springframework.util.Assert;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
-public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
+public class StatusUpdatingMessageHandler extends AbstractMessageHandler
+		implements IntegrationEvaluationContextAware {
 
 	private final Twitter twitter;
 
+	private volatile Expression tweetDataExpression;
+
+	private EvaluationContext evaluationContext;
 
 	public StatusUpdatingMessageHandler(Twitter twitter) {
 		Assert.notNull(twitter, "twitter must not be null");
@@ -41,24 +52,62 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		TypeLocator typeLocator = evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			/*
+			 * Register the twitter api package so they don't need a FQCN for TweetData.
+			 */
+			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+		}
+		this.evaluationContext = evaluationContext;
+	}
+
+	@Override
 	public String getComponentType() {
 		return "twitter:outbound-channel-adapter";
 	}
 
+	/**
+	 * An expression that is used to build the {@link TweetData}; must resolve to a
+	 * {@link TweetData} object, or a {@link String}, or a {@link Tweet}.
+	 * <p> When using a {@code TweetData} directly in the expression, it is not necessary
+	 * to include the package:
+	 * {@code "new TweetData("test").withMedia(headers.mediaResource).displayCoordinates(true)")}.
+	 * @param tweetDataExpression The expression.
+	 * @since 4.0
+	 */
+	public void setTweetDataExpression(Expression tweetDataExpression) {
+		this.tweetDataExpression = tweetDataExpression;
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Object payload = message.getPayload();
-		String statusText = null;
-		if (payload instanceof Tweet) {
-			statusText = ((Tweet) payload).getText();
-		}
-		else if (payload instanceof String) {
-			statusText = (String) payload;
+		Object value;
+		if (this.tweetDataExpression != null) {
+			value = this.tweetDataExpression.getValue(this.evaluationContext, message);
 		}
 		else {
-			throw new MessageHandlingException(message, "Unsupported payload type '" + payload.getClass().getName() + "'");
+			value = message.getPayload();
 		}
-		this.twitter.timelineOperations().updateStatus(statusText);
+		Assert.notNull(value, "The tweetData cannot evaluate to 'null'.");
+
+		TweetData tweetData = null;
+
+		if (value instanceof TweetData) {
+			tweetData = (TweetData) value;
+		}
+		else if (value instanceof Tweet) {
+			tweetData = new TweetData(((Tweet) value).getText());
+		}
+		else if (value instanceof String) {
+			tweetData = new TweetData((String) value);
+		}
+		else {
+			throw new MessageHandlingException(message, "Unsupported tweetData: " + value);
+		}
+
+		this.twitter.timelineOperations().updateStatus(tweetData);
 	}
 
 }

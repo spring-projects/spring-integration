@@ -322,5 +322,15 @@
 				advanced configuration. See <xref linkend="ftp-session-factory"/> for more information.
 			</para>
 		</section>
+		<section id="4.0-twitter-status-updating">
+			<title>Twitter: StatusUpdatingMessageHandler</title>
+			<para>
+				The <classname>StatusUpdatingMessageHandler</classname> (<code>&lt;int-twitter:outbound-channel-adapter&gt;</code>)
+				now supports the <code>tweet-data-expression</code> attribute to build a
+				<classname>org.springframework.social.twitter.api.TweetData</classname> object for updating the
+				timeline status allowing, for example, attaching an image.
+				See <xref linkend="outbound-twitter-update"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
