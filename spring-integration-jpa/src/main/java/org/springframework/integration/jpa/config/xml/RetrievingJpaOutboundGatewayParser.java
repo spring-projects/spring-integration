@@ -19,11 +19,15 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * The Parser for the Retrieving Jpa Outbound Gateway.
@@ -48,27 +52,37 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 			jpaExecutorBuilder.addPropertyValue("firstResultExpression", firstResultExpression);
 		}
 
-		String maxNumberOfResults = gatewayElement.getAttribute("max-number-of-results");
-		boolean hasMaxNumberOfResults = StringUtils.hasText(maxNumberOfResults);
-
 		String maxResults = gatewayElement.getAttribute("max-results");
 		boolean hasMaxResults = StringUtils.hasText(maxResults);
-
-		if (hasMaxNumberOfResults) {
-			parserContext.getReaderContext().warning("'max-number-of-results' is deprecated in favor of 'max-results'", gatewayElement);
-			if (hasMaxResults) {
-				parserContext.getReaderContext().error("'max-number-of-results' and 'max-results' are mutually exclusive", gatewayElement);
-			}
-			else {
-				gatewayElement.setAttribute("max-results", maxNumberOfResults);
-			}
-		}
 
 		BeanDefinition maxResultsExpression = IntegrationNamespaceUtils
 				.createExpressionDefinitionFromValueOrExpression("max-results", "max-results-expression",
 						parserContext, gatewayElement, false);
 		if (maxResultsExpression != null) {
 			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", maxResultsExpression);
+		}
+
+		String idExpression = gatewayElement.getAttribute("id-expression");
+		if (StringUtils.hasText(idExpression)) {
+			String[] otherAttributes = {"jpa-query", "native-query", "named-query", "first-result",
+					"first-result-expression", "max-results", "max-results-expression", "delete-in-batch",
+					"expect-single-result", "parameter-source-factory", "use-payload-as-parameter-source"};
+			boolean others = false;
+			for (String otherAttribute : otherAttributes) {
+				if (gatewayElement.hasAttribute(otherAttribute) &&
+						StringUtils.hasText(gatewayElement.getAttribute(otherAttribute))) {
+					others = true;
+					break;
+				}
+			}
+			if (others || !CollectionUtils.isEmpty(DomUtils.getChildElementsByTagName(gatewayElement, "parameter"))) {
+				parserContext.getReaderContext().error("The 'id-expression' is allowed only with 'entity-class' " +
+						"attribute.", gatewayElement);
+			}
+			AbstractBeanDefinition idExpressionDef = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+					.addConstructorArgValue(idExpression)
+					.getBeanDefinition();
+			jpaExecutorBuilder.addPropertyValue("idExpression", idExpressionDef);
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
