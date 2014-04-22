@@ -222,6 +222,60 @@ public String send2(Map foo, Map bar);
         are not allowed on the gateway; similarly, the <code>payload-expression</code> attribute and
         <code>&lt;header/&gt;</code> elements are not allowed on any <code>&lt;method/&gt;</code> elements.
       </para>
+
+	  <para><emphasis>Mapping Method Arguments</emphasis></para>
+
+	  <para>
+		  Here are samples with annotations how methods arguments can be mapped to the message and how can't be:
+	  </para>
+		<programlisting language="java"><![CDATA[public interface MyGateway {
+
+		void payloadAndHeaderMapWithoutAnnotations(String s, Map<String, Object> map);
+
+		void payloadAndHeaderMapWithAnnotations(@Payload String s, @Headers Map<String, Object> map);
+
+		void headerValuesAndPayloadWithAnnotations(@Header("k1") String x, @Payload String s, @Header("k2") String y);
+
+		void mapOnly(Map<String, Object> map);
+
+		void twoMapsAndOneAnnotatedWithPayload(@Payload Map<String, Object> payload, Map<String, Object> headers);
+
+		@Payload("#args[0] + #args[1] + '!'")
+		void payloadAnnotationAtMethodLevel(String a, String b);
+
+		@Payload("@testBean.exclaim(#args[0])")
+		void payloadAnnotationAtMethodLevelUsingBeanResolver(String s);
+
+		void payloadAnnotationWithExpression(@Payload("toUpperCase()") String s);
+
+		void payloadAnnotationWithExpressionUsingBeanResolver(@Payload("@testBean.sum(#this)") String s);
+
+		// invalid
+		void twoMapsWithoutAnnotations(Map<String, Object> m1, Map<String, Object> m2);
+
+		// invalid
+		void twoPayloads(@Payload String s1, @Payload String s2);
+
+		// invalid
+		void payloadAndHeaderAnnotationsOnSameParameter(@Payload @Header("x") String s);
+
+		// invalid
+		void payloadAndHeadersAnnotationsOnSameParameter(@Payload @Headers Map<String, Object> map);
+
+	}
+]]></programlisting>
+		<para>
+			The XML equivalent looks a bit different, since there is no <code>#this</code> context of method argument,
+			but <code>headers</code> have more freedom to access for all method arguments using <code>expression</code>:
+			<programlisting language="xml"><![CDATA[<int:gateway id="myGateway" service-interface="org.foo.bar.MyGateway">
+  <int:method name="send1" payload-expression="#args[0] + 'bar'"/>
+		<int:method name="send2" payload-expression="@testBean.sum(#args[0])"/>
+		<int:method name="send3" payload-expression="#method"/>
+  <int:method name="send4">
+  		<int:header name="foo" expression="#args[2].toUpperCase()"/>
+  </int:method>
+</int:gateway>]]></programlisting>
+		</para>
     </section>
 
 	<section id="messaging-gateway-annotation">
