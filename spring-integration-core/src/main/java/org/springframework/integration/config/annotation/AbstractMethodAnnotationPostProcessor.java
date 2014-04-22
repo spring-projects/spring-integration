@@ -80,6 +80,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Class<T> annotationType;
 
+	protected String inputChannelAttribute;
+
 	@SuppressWarnings("unchecked")
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
@@ -88,6 +90,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 				MethodAnnotationPostProcessor.class);
+		inputChannelAttribute = INPUT_CHANNEL_ATTRIBUTE;
 	}
 
 
@@ -112,6 +115,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			return endpoint;
 		}
 		return handler;
+	}
+
+	@Override
+	public boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
+		String inputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, "inputChannel", String.class);
+		return StringUtils.hasText(inputChannel);
 	}
 
 
@@ -154,7 +163,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	private AbstractEndpoint createEndpoint(MessageHandler handler, List<Annotation> annotations) {
 		AbstractEndpoint endpoint = null;
-		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, INPUT_CHANNEL_ATTRIBUTE,
+		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, this.inputChannelAttribute,
 				String.class);
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel;

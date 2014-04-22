@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -51,6 +52,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.BridgeFrom;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -83,6 +86,7 @@ import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
@@ -176,10 +180,40 @@ public class EnableIntegrationTests {
 	private PollableChannel counterChannel;
 
 	@Autowired
+	private PollableChannel messageChannel;
+
+	@Autowired
 	private PollableChannel fooChannel;
 
 	@Autowired
-	private PollableChannel messageChannel;
+	private MessageChannel bridgeInput;
+
+	@Autowired
+	private PollableChannel bridgeOutput;
+
+	@Autowired
+	private MessageChannel pollableBridgeInput;
+
+	@Autowired
+	private PollableChannel pollableBridgeOutput;
+
+	@Autowired
+	private MessageChannel metaBridgeInput;
+
+	@Autowired
+	private PollableChannel metaBridgeOutput;
+
+	@Autowired
+	private MessageChannel bridgeToInput;
+	@Autowired
+	private PollableChannel bridgeToOutput;
+
+	@Autowired
+	private PollableChannel pollableBridgeToInput;
+
+	@Autowired
+	private MessageChannel myBridgeToInput;
+
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -415,6 +449,71 @@ public class EnableIntegrationTests {
 		assertTrue(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
 	}
 
+	@Test
+	public void testBridgeAnnotations() {
+		GenericMessage<?> testMessage = new GenericMessage<Object>("foo");
+		this.bridgeInput.send(testMessage);
+		Message<?> receive = this.bridgeOutput.receive(2000);
+		assertNotNull(receive);
+		assertSame(receive, testMessage);
+		assertNull(this.bridgeOutput.receive(10));
+
+		this.pollableBridgeInput.send(testMessage);
+		receive = this.pollableBridgeOutput.receive(2000);
+		assertNotNull(receive);
+		assertSame(receive, testMessage);
+		assertNull(this.pollableBridgeOutput.receive(10));
+
+		try {
+			this.metaBridgeInput.send(testMessage);
+			fail("MessageDeliveryException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageDeliveryException.class));
+			assertThat(e.getMessage(), Matchers.containsString("Dispatcher has no subscribers"));
+		}
+
+		this.context.getBean("enableIntegrationTests.ContextConfiguration.metaBridgeOutput.bridgeFrom",
+				Lifecycle.class).start();
+
+		this.metaBridgeInput.send(testMessage);
+		receive = this.metaBridgeOutput.receive(2000);
+		assertNotNull(receive);
+		assertSame(receive, testMessage);
+		assertNull(this.metaBridgeOutput.receive(10));
+
+		this.bridgeToInput.send(testMessage);
+		receive = this.bridgeToOutput.receive(2000);
+		assertNotNull(receive);
+		assertSame(receive, testMessage);
+		assertNull(this.bridgeToOutput.receive(10));
+
+		PollableChannel replyChannel = new QueueChannel();
+		Message<?> bridgeMessage = MessageBuilder.fromMessage(testMessage).setReplyChannel(replyChannel).build();
+		this.pollableBridgeToInput.send(bridgeMessage);
+		receive = replyChannel.receive(2000);
+		assertNotNull(receive);
+		assertSame(receive, bridgeMessage);
+		assertNull(replyChannel.receive(10));
+
+		try {
+			this.myBridgeToInput.send(testMessage);
+			fail("MessageDeliveryException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageDeliveryException.class));
+			assertThat(e.getMessage(), Matchers.containsString("Dispatcher has no subscribers"));
+		}
+
+		this.context.getBean("enableIntegrationTests.ContextConfiguration.myBridgeToInput.bridgeTo",
+				Lifecycle.class).start();
+
+		this.myBridgeToInput.send(bridgeMessage);
+		receive = replyChannel.receive(2000);
+		assertNotNull(receive);
+		assertSame(receive, bridgeMessage);
+		assertNull(replyChannel.receive(10));
+	}
 
 	@Configuration
 	@ComponentScan
@@ -512,6 +611,60 @@ public class EnableIntegrationTests {
 				}
 			};
 		}
+
+		@Bean
+		@BridgeFrom("bridgeInput")
+		public QueueChannel bridgeOutput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel pollableBridgeInput() {
+			return new QueueChannel();
+		}
+
+
+		@Bean
+		@BridgeFrom(value = "pollableBridgeInput", poller = @Poller(fixedDelay = "1000"))
+		public QueueChannel pollableBridgeOutput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@MyBridgeFrom
+		public QueueChannel metaBridgeOutput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel bridgeToOutput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@BridgeTo("bridgeToOutput")
+		public MessageChannel bridgeToInput() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@BridgeTo(poller = @Poller(fixedDelay = "500"))
+		public QueueChannel pollableBridgeToInput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@MyBridgeTo
+		public MessageChannel myBridgeToInput() {
+			return new DirectChannel();
+		}
+
+		// Error because @Bridge* annotations are only for MessageChannel beans.
+		/*@Bean
+		@BridgeTo
+		public String invalidBridgeAnnotation() {
+			return "invalidBridgeAnnotation";
+		}*/
 
 		// beans for metaAnnotation tests
 
@@ -819,6 +972,10 @@ public class EnableIntegrationTests {
 			return 42;
 		}
 
+		// Error because @Bridge* annotations are only for @Bean methods.
+		/*@BridgeFrom("")
+		public void invalidBridgeAnnotationMethod(Object payload) {}*/
+
 	}
 
 	@TestMessagingGateway
@@ -1039,6 +1196,20 @@ public class EnableIntegrationTests {
 	@MyInboundChannelAdapter
 	public static @interface MyInboundChannelAdapter1 {
 
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@BridgeFrom(value = "metaBridgeInput", autoStartup = "false")
+	public static @interface MyBridgeFrom {
+
+		String value() default "";
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@BridgeTo(autoStartup = "false")
+	public static @interface MyBridgeTo {
 	}
 
 	// Error because the annotation is on a class; it must be on an interface
