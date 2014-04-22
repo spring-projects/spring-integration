@@ -332,5 +332,14 @@
 				See <xref linkend="outbound-twitter-update"/> for more information.
 			</para>
 		</section>
+		<section id="4.0-jpa-id-expression">
+			<title>JPA Retrieving Gateway: id-expression</title>
+			<para>
+				The <code>id-expression</code> attribute has been introduced for
+				<code>&lt;int-jpa:retrieving-outbound-gateway&gt;</code> to perform
+				<code>EntityManager.find(Class entityClass, Object primaryKey)</code>.
+				See <xref linkend="jpa-retrieving-outbound-gateway"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

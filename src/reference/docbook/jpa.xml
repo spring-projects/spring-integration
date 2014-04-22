@@ -1199,6 +1199,7 @@ public class Student {
     delete-after-poll="false"
     delete-in-batch="false"
     entity-class=""
+    id-expression="" ]]><co id="outGateIdExpression"/><![CDATA[
     entity-manager=""
     entity-manager-factory=""
     expect-single-result="false" ]]><co id="outGateExpectSingleResult"/><![CDATA[
@@ -1224,13 +1225,24 @@ public class Student {
     <int-jpa:parameter name="" expression=""/>
 </int-jpa:retrieving-outbound-gateway>]]></programlisting>
 			<calloutlist>
+				<callout arearefs="outGateIdExpression">
+					<para>
+						(Since <emphasis>Spring Integration 4.0</emphasis>) The SpEL expression to determine the
+						<code>primaryKey</code>	value for
+						<code>EntityManager.find(Class entityClass, Object primaryKey)</code> method against
+						the <code>requestMessage</code> as root object of evaluation context.
+						The <code>entityClass</code> argument is determined from <code>entity-class</code> attribute,
+						if presented, otherwise from <code>payload</code> class. All other attributed are disallowed
+						in case of <code>id-expression</code>. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
 				<callout arearefs="outGateExpectSingleResult">
 					<para>
 						A boolean flag indicating whether the select operation is expected to return a single result or a <classname>List</classname> of results.
 						If this flag is set to <code>true</code>, the single entity selected is sent as the payload
 						of the message. If multiple entities are returned, an exception is thrown.
 						If <code>false</code>, the <classname>List</classname> of entities is being sent as the payload of the message.
-						By default the value is <code>false</code>.<emphasis>Optional</emphasis>.
+						By default the value is <code>false</code>. <emphasis>Optional</emphasis>.
 					</para>
 				</callout>
 				<callout arearefs="outGateMaxNumOfResults">
@@ -1380,6 +1392,20 @@ public class Student {
     <int-jpa:parameter name="firstName" expression="payload"/>
     <int-jpa:parameter name="lastName" expression="headers['lastName']"/>
 </int-jpa:outbound-gateway>]]></programlisting>
+
+			<para><emphasis>Retrieving an Entity using id-expression</emphasis></para>
+			<para>
+				The following examples uses a <emphasis>Retrieving Outbound Gateway</emphasis>
+				together with <code>id-expression</code> to retrieve (find) one and only one entity from
+				the database. The <code>primaryKey</code> is the result of <code>id-expression</code>
+				evaluation. The <code>entityClass</code> is a class of Message <code>payload</code>.
+			</para>
+
+			<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway
+	request-channel="retrievingGatewayReqChannel"
+    reply-channel="retrievingGatewayReplyChannel"
+    id-expression="payload.id"
+    entity-manager="em"/>]]></programlisting>
 
 			<para><emphasis>Update using a Named Query</emphasis></para>
 			<para>

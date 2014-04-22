@@ -245,6 +245,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="id-expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						A SpEL expression to determine the 'primaryKey' value for
+						'EntityManager.find(Class entityClass, Object primaryKey)' using
+						the request Message as the root object of evaluation context.
+						The 'entityClass' argument is determined from the 'entity-class' attribute,
+						if present, otherwise the 'payload' class is used. All other attributes
+						(except 'delete-after-poll' and 'flush-after-delete') are disallowed
+						when specifying an 'id-expression'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="coreJpaComponentAttributes" />
 			<xsd:attributeGroup ref="commonJpaOutboundGatewayAttributes"/>
 			<xsd:attributeGroup ref="commonRetrievingJpaAttributes" />
@@ -447,20 +460,13 @@
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="commonRetrievingJpaAttributes">
-		<xsd:attribute name="max-number-of-results">
-			<xsd:annotation>
-				<xsd:documentation>
-					[DEPRECATED] Use 'max-results' instead.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="max-results">
 			<xsd:annotation>
 				<xsd:documentation>
 					Specifies the maximum number of entities that shall be returned
 					by a JPA Operation. Using this attribute sets
 					the 'maxResults' property of the JPA Query object. This attribute is mutually
-					exclusive with 'max-results-expression' (and the deprecated 'max-number-of-results') attributes.
+					exclusive with 'max-results-expression' attribute.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -474,7 +480,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="expect-single-result" default="false">
+		<xsd:attribute name="expect-single-result">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 					This parameter indicates that only one result object shall be
@@ -497,7 +503,7 @@
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="delete-after-poll" default="false" use="optional">
+		<xsd:attribute name="delete-after-poll" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					Once entities have been retrieved from the database, shall
@@ -513,7 +519,7 @@
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="delete-in-batch" default="false" use="optional">
+		<xsd:attribute name="delete-in-batch" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					If you want to automatically remove retrieved entities from
@@ -528,7 +534,7 @@
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="flush-after-delete" type="xsd:string" default="false">
+		<xsd:attribute name="flush-after-delete" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					Specifies whether EntityManager.flush() should be called after performing 'deletes' for retrieved entities.

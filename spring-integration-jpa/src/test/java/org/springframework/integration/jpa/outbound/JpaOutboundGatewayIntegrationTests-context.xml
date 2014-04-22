@@ -11,6 +11,7 @@
 	<import resource="classpath:/hibernateJpa-context.xml"/>
 
 	<int:channel id="in"/>
+
 	<int:channel id="out"/>
 
 	<int-jpa:retrieving-outbound-gateway
@@ -27,4 +28,47 @@
 			reply-timeout="100">
 		<int-jpa:transactional/>
 	</int-jpa:retrieving-outbound-gateway>
+
+	<int:channel id="findByEntityClass"/>
+
+	<int-jpa:retrieving-outbound-gateway
+			entity-manager="entityManager"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			request-channel="findByEntityClass"
+			id-expression="payload"
+			reply-channel="out"/>
+
+	<int:channel id="findByPayloadType"/>
+
+	<int-jpa:retrieving-outbound-gateway
+			entity-manager="entityManager"
+			request-channel="findByPayloadType"
+			id-expression="payload.rollNumber"
+			reply-channel="out"/>
+
+	<int:channel id="findAndDelete"/>
+
+	<int:channel id="findResultChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int-jpa:retrieving-outbound-gateway
+			entity-manager="entityManager"
+			request-channel="findAndDelete"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			id-expression="payload"
+			delete-after-poll="true"
+			requires-reply="true"
+			reply-channel="findResultChannel">
+		<int-jpa:transactional/>
+	</int-jpa:retrieving-outbound-gateway>
+
+	<int:channel id="invalidIdType"/>
+
+	<int-jpa:retrieving-outbound-gateway
+			entity-manager="entityManager"
+			request-channel="invalidIdType"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			id-expression="payload"/>
+
 </beans>
