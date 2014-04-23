@@ -72,11 +72,7 @@
 				]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
-					<xsd:restriction base="xsd:NMTOKEN">
-						<xsd:enumeration value="accept_all"/>
-						<xsd:enumeration value="manual"/>
-						<xsd:enumeration value="reject_all"/>
-					</xsd:restriction>
+					<xsd:union memberTypes="subscriptionModeEnumeration xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup">
@@ -88,6 +84,14 @@
 			</xsd:attributeGroup>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="subscriptionModeEnumeration">
+		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="accept_all"/>
+			<xsd:enumeration value="manual"/>
+			<xsd:enumeration value="reject_all"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>

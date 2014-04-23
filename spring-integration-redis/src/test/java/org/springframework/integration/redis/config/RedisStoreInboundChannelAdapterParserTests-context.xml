@@ -3,9 +3,19 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder properties-ref="props" />
+
+	<util:properties id="props">
+		<prop key="collection.type">LIST</prop>
+	</util:properties>
 
 	<int-redis:store-inbound-channel-adapter id="withStringTemplate"
 											connection-factory="redisConnectionFactory"
@@ -29,7 +39,7 @@
 											channel="redisChannel"
 											auto-startup="false"
 											redis-template="redisTemplate"
-											collection-type="LIST">
+											collection-type="${collection.type}">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 	</int-redis:store-inbound-channel-adapter>
 

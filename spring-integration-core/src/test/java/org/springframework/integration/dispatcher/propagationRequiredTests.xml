@@ -2,10 +2,19 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder properties-ref="props"/>
+
+	<util:properties id="props">
+		<beans:prop key="required">REQUIRED</beans:prop>
+		<beans:prop key="readCommitted">READ_COMMITTED</beans:prop>
+	</util:properties>
 
 	<channel id="input">
 		<queue capacity="1"/>
@@ -21,7 +30,7 @@
 	                   method="good"
                        output-channel="output">
         <poller max-messages-per-poll="1" fixed-delay="10000">
-        	<transactional transaction-manager="txManager" propagation="REQUIRED"/>
+        	<transactional transaction-manager="txManager" propagation="${required}" isolation="${readCommitted}"/>
         </poller>
     </service-activator>
 

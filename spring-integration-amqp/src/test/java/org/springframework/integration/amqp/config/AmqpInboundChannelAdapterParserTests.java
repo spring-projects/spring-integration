@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
@@ -67,6 +68,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		Object adapter = context.getBean("autoStartFalse.adapter");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(adapter, "phase"));
+		assertEquals(AcknowledgeMode.NONE, TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"));
 	}
 
 	@Test
