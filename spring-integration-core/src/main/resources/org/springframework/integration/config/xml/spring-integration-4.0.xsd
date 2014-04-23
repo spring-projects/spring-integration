@@ -334,28 +334,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="round-robin">
-						<xsd:annotation>
-							<xsd:documentation>
-								[DEFAULT] Defines a Round Robin dispatching strategy which allows
-								load balancing of messages
-								between multiple Message Handlers. Which
-								message
-								handler receives the message first is determined by the 'order'
-								attribute
-								of such Message Handler.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="none">
-						<xsd:annotation>
-							<xsd:documentation>
-								No LoadBalancingStrategy will be used.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-				</xsd:restriction>
+				<xsd:union memberTypes="loadBalancerEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="failover" type="xsd:string">
@@ -403,6 +382,31 @@
 		</xsd:attribute>
 		<xsd:attributeGroup ref="subscribersAttributeGroup" />
 	</xsd:complexType>
+
+	<xsd:simpleType name="loadBalancerEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="round-robin">
+				<xsd:annotation>
+					<xsd:documentation>
+						[DEFAULT] Defines a Round Robin dispatching strategy which allows
+						load balancing of messages
+						between multiple Message Handlers. Which
+						message
+						handler receives the message first is determined by the 'order'
+						attribute
+						of such Message Handler.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						No LoadBalancingStrategy will be used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
@@ -1751,10 +1755,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="MILLISECONDS" />
-					<xsd:enumeration value="SECONDS" />
-				</xsd:restriction>
+				<xsd:union memberTypes="timeUnitEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="cron" type="xsd:string">
@@ -1793,6 +1794,13 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:simpleType name="timeUnitEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="MILLISECONDS" />
+			<xsd:enumeration value="SECONDS" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:element name="selector-chain">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -1812,16 +1820,20 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="ALL" />
-						<xsd:enumeration value="ANY" />
-						<xsd:enumeration value="MAJORITY" />
-						<xsd:enumeration value="MAJORITY_OR_TIE" />
-					</xsd:restriction>
+					<xsd:union memberTypes="votingStrategyEnumeration xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="votingStrategyEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ALL" />
+			<xsd:enumeration value="ANY" />
+			<xsd:enumeration value="MAJORITY" />
+			<xsd:enumeration value="MAJORITY_OR_TIE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="selector">
 		<xsd:complexType>
@@ -3687,15 +3699,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="REQUIRED" />
-					<xsd:enumeration value="SUPPORTS" />
-					<xsd:enumeration value="MANDATORY" />
-					<xsd:enumeration value="REQUIRES_NEW" />
-					<xsd:enumeration value="NOT_SUPPORTED" />
-					<xsd:enumeration value="NEVER" />
-					<xsd:enumeration value="NESTED" />
-				</xsd:restriction>
+				<xsd:union memberTypes="propagationEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="isolation" default="DEFAULT">
@@ -3705,13 +3709,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="DEFAULT" />
-					<xsd:enumeration value="READ_UNCOMMITTED" />
-					<xsd:enumeration value="READ_COMMITTED" />
-					<xsd:enumeration value="REPEATABLE_READ" />
-					<xsd:enumeration value="SERIALIZABLE" />
-				</xsd:restriction>
+				<xsd:union memberTypes="isolationEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="timeout" type="xsd:string" default="-1">
@@ -3742,6 +3740,28 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:simpleType name="propagationEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="REQUIRED" />
+			<xsd:enumeration value="SUPPORTS" />
+			<xsd:enumeration value="MANDATORY" />
+			<xsd:enumeration value="REQUIRES_NEW" />
+			<xsd:enumeration value="NOT_SUPPORTED" />
+			<xsd:enumeration value="NEVER" />
+			<xsd:enumeration value="NESTED" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="isolationEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="DEFAULT" />
+			<xsd:enumeration value="READ_UNCOMMITTED" />
+			<xsd:enumeration value="READ_COMMITTED" />
+			<xsd:enumeration value="REPEATABLE_READ" />
+			<xsd:enumeration value="SERIALIZABLE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="pseudoTransactionalType">
 		<xsd:attributeGroup ref="transactionSyncAttributeGroup" />

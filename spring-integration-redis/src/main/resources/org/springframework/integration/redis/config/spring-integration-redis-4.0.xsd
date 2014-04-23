@@ -278,43 +278,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="LIST">
-									<xsd:annotation>
-										<xsd:documentation>
-											[DEFAULT] Redis List
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="SET">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Set
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="ZSET">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Sorted Set
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="MAP">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Map
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="PROPERTIES">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Properties
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-							</xsd:restriction>
+							<xsd:union memberTypes="redisTypeEnumeration xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
@@ -828,44 +792,49 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="LIST">
-						<xsd:annotation>
-							<xsd:documentation>
-								[DEFAULT] Redis List
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="SET">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Set
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="ZSET">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Sorted Set
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="MAP">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Map
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="PROPERTIES">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Properties
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-				</xsd:restriction>
+				<xsd:union memberTypes="redisTypeEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:attributeGroup>
+
+	<xsd:simpleType name="redisTypeEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="LIST">
+				<xsd:annotation>
+					<xsd:documentation>
+						[DEFAULT] Redis List
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="SET">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Set
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="ZSET">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Sorted Set
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="MAP">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Map
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="PROPERTIES">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Properties
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 </xsd:schema>
