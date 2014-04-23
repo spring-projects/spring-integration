@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.springframework.integration.xmpp.config;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
@@ -27,29 +29,31 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * This class configures an {@link org.jivesoftware.smack.XMPPConnection} object. 
+ * This class configures an {@link org.jivesoftware.smack.XMPPConnection} object.
  * This object is used for all scenarios to talk to a Smack server.
  *
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Florian Schmaus
+ *
  * @see org.jivesoftware.smack.XMPPConnection
  * @since 2.0
  */
 public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle{
 
 	private final ConnectionConfiguration connectionConfiguration;
-	
+
 	private volatile String resource = null; // server will generate resource if not provided
-	
+
 	private volatile String user;
-		
+
 	private volatile String password;
-	
+
 	private volatile String subscriptionMode = "accept_all";
-	
+
 	private volatile XMPPConnection connection;
-	
+
 	private volatile boolean autoStartup = true;
 
 	private volatile int phase = Integer.MIN_VALUE;
@@ -69,6 +73,10 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		this.autoStartup = autoStartup;
 	}
 
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
 	public void setSubscriptionMode(String subscriptionMode) {
 		this.subscriptionMode = subscriptionMode;
 	}
@@ -80,11 +88,11 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
+
 	public void setResource(String resource) {
 		this.resource = resource;
 	}
-	
+
 	@Override
 	public Class<? extends XMPPConnection> getObjectType() {
 		return XMPPConnection.class;
@@ -92,7 +100,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		this.connection = new XMPPConnection(this.connectionConfiguration);
+		this.connection = new XMPPTCPConnection(this.connectionConfiguration);
 		return this.connection;
 	}
 
@@ -118,7 +126,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 				this.running = true;
 			}
 			catch (Exception e) {
-				throw new BeanInitializationException("failed to connect to " + this.connectionConfiguration.getHost(), e);
+				throw new BeanInitializationException("failed to connect to XMPP service for "
+						+ this.connectionConfiguration.getServiceName(), e);
 			}
 		}
 	}
@@ -126,7 +135,11 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
-				this.connection.disconnect();
+				try {
+					this.connection.disconnect();
+				} catch (NotConnectedException e) {
+					// Ignore
+				}
 				this.running = false;
 			}
 		}
@@ -170,6 +183,16 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 		public void connectionClosed() {
 			logger.debug("Connection closed");
+		}
+
+		@Override
+		public void connected(XMPPConnection connection) {
+			logger.debug("Connection connected");
+		}
+
+		@Override
+		public void authenticated(XMPPConnection connection) {
+			logger.debug("Connection authenticated");
 		}
 	}
 

@@ -205,7 +205,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 		<title>Advanced Configuration</title>
 
     	<para>
-    	Since Spring Integration XMPP support is based on the Smack 3.1 API (http://www.igniterealtime.org/downloads/index.jsp), it is important
+    	Since Spring Integration XMPP support is based on the Smack 4.0 API (http://www.igniterealtime.org/projects/smack/), it is important
     	to know a few details related to more complex configuration of the XMPP Connection object.
     	</para>
     	<para>
@@ -221,7 +221,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     <constructor-arg>
         <bean class="org.jivesoftware.smack.ConnectionConfiguration">
             <constructor-arg value="myServiceName"/>
-            <property name="truststorePath" value="..."/>
             <property name="socketFactory" ref="..."/>
         </bean>
     </constructor-arg>

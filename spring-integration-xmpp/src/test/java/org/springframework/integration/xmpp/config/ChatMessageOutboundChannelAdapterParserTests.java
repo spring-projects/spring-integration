@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import java.util.List;
 
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -53,6 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Florian Schmaus
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -117,7 +119,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		          Object[] args = invocation.getArguments();
 		          org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
 		          assertEquals("oleg", xmppMessage.getTo());
-		          assertEquals("foobar", xmppMessage.getProperty("foobar"));
+		          assertEquals("foobar", JivePropertiesManager.getProperty(xmppMessage, "foobar"));
 		          return null;
 		      }})
 		  .when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
