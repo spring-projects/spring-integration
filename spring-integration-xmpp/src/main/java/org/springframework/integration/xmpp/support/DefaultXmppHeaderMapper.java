@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
-
+import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
+import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.StringUtils;
@@ -86,8 +87,12 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(Message source) {
 		Map<String, Object> headers = new HashMap<String, Object>();
-		for (String propertyName : source.getPropertyNames()) {
-			headers.put(propertyName, source.getProperty(propertyName));
+		JivePropertiesExtension jpe = (JivePropertiesExtension) source.getExtension(JivePropertiesExtension.NAMESPACE);
+		if (jpe == null) {
+			return headers;
+		}
+		for (String propertyName : jpe.getPropertyNames()) {
+			headers.put(propertyName, JivePropertiesManager.getProperty(source, propertyName));
 		}
 		return headers;
 	}
@@ -129,7 +134,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 
 	@Override
 	protected void populateUserDefinedHeader(String headerName, Object headerValue, Message target) {
-		target.setProperty(headerName, headerValue);
+		JivePropertiesManager.addProperty(target, headerName, headerValue);
 	}
 
 	@Override

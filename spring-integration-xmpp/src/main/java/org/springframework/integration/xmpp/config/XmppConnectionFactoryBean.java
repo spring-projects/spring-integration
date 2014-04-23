@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.springframework.integration.xmpp.config;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
@@ -92,7 +94,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		this.connection = new XMPPConnection(this.connectionConfiguration);
+		this.connection = new XMPPTCPConnection(this.connectionConfiguration);
 		return this.connection;
 	}
 
@@ -118,7 +120,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 				this.running = true;
 			}
 			catch (Exception e) {
-				throw new BeanInitializationException("failed to connect to " + this.connectionConfiguration.getHost(), e);
+				throw new BeanInitializationException("failed to connect to XMPP service for " + this.connectionConfiguration.getServiceName(), e);
 			}
 		}
 	}
@@ -126,7 +128,11 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
-				this.connection.disconnect();
+				try {
+					this.connection.disconnect();
+				} catch (NotConnectedException e) {
+					// Ignore
+				}
 				this.running = false;
 			}
 		}
@@ -170,6 +176,16 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 		public void connectionClosed() {
 			logger.debug("Connection closed");
+		}
+
+		@Override
+		public void connected(XMPPConnection connection) {
+			logger.debug("Connection connected");
+		}
+
+		@Override
+		public void authenticated(XMPPConnection connection) {
+			logger.debug("Connection authenticated");
 		}
 	}
 
