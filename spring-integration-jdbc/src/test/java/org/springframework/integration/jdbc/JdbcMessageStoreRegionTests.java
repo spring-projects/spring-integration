@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class JdbcMessageStoreRegionTests {
 
@@ -63,10 +64,12 @@ public class JdbcMessageStoreRegionTests {
 	public void beforeTest() {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		this.messageStore1 = new JdbcMessageStore(dataSource);
-		messageStore1.setRegion("region1");
+		this.messageStore1.setRegion("region1");
+		this.messageStore1.setBeanClassLoader(this.getClass().getClassLoader());
 
 		this.messageStore2 = new JdbcMessageStore(dataSource);
 		this.messageStore2.setRegion("region2");
+		this.messageStore2.setBeanClassLoader(this.getClass().getClassLoader());
 	}
 
 	@After

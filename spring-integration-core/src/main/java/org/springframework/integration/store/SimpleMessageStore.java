@@ -158,6 +158,16 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		return getMessageGroup(groupId);
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		return getMessageGroup(groupId).getOne();
+	}
+
+	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		if (!groupUpperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()

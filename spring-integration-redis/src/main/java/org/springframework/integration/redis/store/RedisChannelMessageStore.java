@@ -103,9 +103,14 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 	}
 
 	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		return new SimpleMessageGroup(groupId);
+	}
+
+	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		this.redisTemplate.boundListOps(groupId).leftPush(message);
-		return null;
+		return new SimpleMessageGroup(groupId);
 	}
 
 	public void removeMessageGroup(Object groupId) {

@@ -123,6 +123,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	public void testPollMessages() throws Exception{
 		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
+
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
 		store.addMessageToGroup(1, messageA);

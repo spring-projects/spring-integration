@@ -83,7 +83,8 @@ public class JdbcMessageStoreTests {
 
 	@Before
 	public void init() {
-		messageStore = new JdbcMessageStore(dataSource);
+		this.messageStore = new JdbcMessageStore(this.dataSource);
+		this.messageStore.setBeanClassLoader(this.getClass().getClassLoader());
 	}
 
 	@Test
@@ -447,9 +448,11 @@ public class JdbcMessageStoreTests {
 
 		final JdbcMessageStore messageStore1 = new JdbcMessageStore(dataSource);
 		messageStore1.setRegion(region1);
+		messageStore1.setBeanClassLoader(this.getClass().getClassLoader());
 
 		final JdbcMessageStore messageStore2 = new JdbcMessageStore(dataSource);
-		messageStore1.setRegion(region2);
+		messageStore2.setRegion(region2);
+		messageStore2.setBeanClassLoader(this.getClass().getClassLoader());
 
 		final Message<String> message = MessageBuilder.withPayload("foo").build();
 
@@ -474,8 +477,8 @@ public class JdbcMessageStoreTests {
 		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
 		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(1, messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(2, messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 
@@ -494,6 +497,7 @@ public class JdbcMessageStoreTests {
 		 * (discard behavior performed by the AbstractCorrelatingMessageHandler.handleMessageInternal)
 		 */
 		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource);
+		messageStore.setBeanClassLoader(this.getClass().getClassLoader());
 		//init
 		String groupId = "group";
 		//build the messages

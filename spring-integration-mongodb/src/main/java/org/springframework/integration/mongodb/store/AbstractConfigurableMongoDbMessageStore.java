@@ -23,11 +23,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.mongodb.DB;
+import com.mongodb.MongoException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -58,9 +61,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
-import com.mongodb.DB;
-import com.mongodb.MongoException;
-
 /**
  * The abstract MongoDB {@link BasicMessageGroupStore} implementation to provide configuration for common options
  * for implementations of this class.
@@ -70,7 +70,7 @@ import com.mongodb.MongoException;
  */
 
 public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMessageGroupStore, InitializingBean,
-		ApplicationContextAware {
+		ApplicationContextAware, BeanClassLoaderAware {
 
 	public final static String SEQUENCE_NAME = "messagesSequence";
 
@@ -99,6 +99,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 
 	protected MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	protected ClassLoader classLoader;
+
 	public AbstractConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate, String collectionName) {
 		Assert.notNull("'mongoTemplate' must not be null");
 		Assert.hasText("'collectionName' must not be empty");
@@ -111,7 +113,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter, String collectionName) {
+	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory,
+			MappingMongoConverter mappingMongoConverter, String collectionName) {
 		Assert.notNull("'mongoDbFactory' must not be null");
 		Assert.hasText("'collectionName' must not be empty");
 		this.collectionName = collectionName;
@@ -123,6 +126,11 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
 	}
 
 	@Override
@@ -206,7 +214,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 						.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 				@SuppressWarnings("unchecked")
-				Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
+				Map<String, Object> innerMap =
+						(Map<String, Object>) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 				// using reflection to set ID since it is immutable through MessageHeaders
 				innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
 				innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
@@ -223,9 +232,9 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	}
 
 	/**
-	 * A {@link org.springframework.core.convert.converter.GenericConverter} implementation to convert {@link org.springframework.messaging.Message} to
-	 * serialized {@link byte[]} to store {@link org.springframework.messaging.Message} to the MongoDB.
-	 * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link org.springframework.messaging.Message}.
+	 * A {@link GenericConverter} implementation to convert {@link Message} to
+	 * serialized {@link byte[]} to store {@link Message} to the MongoDB.
+	 * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link Message}.
 	 */
 	private static class MongoDbMessageBytesConverter implements GenericConverter {
 

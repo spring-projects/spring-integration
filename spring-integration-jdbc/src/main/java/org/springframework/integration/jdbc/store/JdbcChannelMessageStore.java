@@ -465,6 +465,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		return new SimpleMessageGroup(groupId);
 	}
 
+	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		return getMessageGroup(groupId);
+	}
+
 	/**
 	 * Method not implemented.
 	 *
