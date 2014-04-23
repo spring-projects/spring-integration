@@ -19,20 +19,24 @@ package org.springframework.integration.amqp.inbound;
 import java.util.Map;
 
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
+import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
@@ -82,11 +86,15 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	@Override
 	protected void onInit() throws Exception {
-		this.messageListenerContainer.setMessageListener(new MessageListener() {
+		this.messageListenerContainer.setMessageListener(new ChannelAwareMessageListener() {
 			@Override
-			public void onMessage(Message message) {
+			public void onMessage(Message message, Channel channel) {
 				Object payload = amqpMessageConverter.fromMessage(message);
-				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
+				Map<String, Object> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
+				if (messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
+					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
+					headers.put(AmqpHeaders.CHANNEL, channel);
+				}
 				org.springframework.messaging.Message<?> request =
 						AmqpInboundGateway.this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
 				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
@@ -119,6 +127,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 							});
 				}
 			}
+
 		});
 		this.messageListenerContainer.afterPropertiesSet();
 		this.amqpTemplate.afterPropertiesSet();

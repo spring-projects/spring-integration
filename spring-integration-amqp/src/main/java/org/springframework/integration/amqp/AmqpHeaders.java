@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.amqp;
 
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * Pre-defined names and prefixes to be used for setting and/or retrieving AMQP
@@ -86,6 +86,8 @@ public abstract class AmqpHeaders {
 	public static final String RETURN_EXCHANGE = PREFIX + "returnExchange";
 
 	public static final String RETURN_ROUTING_KEY = PREFIX + "returnRoutingKey";
+
+	public static final String CHANNEL = PREFIX + "channel";
 
 	/**
 	 * Compatibility with Spring-AMQP 1.1

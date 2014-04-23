@@ -95,6 +95,12 @@
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-04-co" id="amqp-inbound-channel-adapter-xml-04">
                 <para>Acknowledge Mode for the <interface>MessageListenerContainer</interface>.
+                When set to MANUAL, the delivery tag and channel are provided in
+                message headers <code>amqp_deliveryTag</code> and
+                <code>amqp_channel</code> respectively; the user application is
+                responsible for acknowledgement. NONE means no acknowledgements
+                (autoAck); AUTO means the adapter's container will acknowledge
+                when the downstream flow completes.
                 <emphasis>Optional (Defaults to AUTO)</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-05-co" id="amqp-inbound-channel-adapter-xml-05">
@@ -399,6 +405,7 @@ this list can also be simple patterns to be matched against the header names (e.
                           advice-chain=""]]><co                        id="amqp-inbound-gateway-adapter-xml-4-co" linkends="amqp-inbound-gateway-adapter-xml-4" /><![CDATA[
                           concurrent-consumers="1"]]><co               id="amqp-inbound-gateway-adapter-xml-5-co" linkends="amqp-inbound-gateway-adapter-xml-5" /><![CDATA[
                           connection-factory="connectionFactory"]]><co id="amqp-inbound-gateway-adapter-xml-6-co" linkends="amqp-inbound-gateway-adapter-xml-6" /><![CDATA[
+                          acknowledge-mode="AUTO"]]><co                id="amqp-inbound-gateway-adapter-xml-6a-co" linkends="amqp-inbound-gateway-adapter-xml-6a" /><![CDATA[
                           reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-7-co" linkends="amqp-inbound-gateway-adapter-xml-7" /><![CDATA[/>]]>
       </programlisting>
       <para>
@@ -433,6 +440,16 @@ this list can also be simple patterns to be matched against the header names (e.
                   <para>Bean reference to the RabbitMQ ConnectionFactory.
                   <emphasis>Optional (Defaults to 'connectionFactory')</emphasis>.</para>
               </callout>
+            <callout arearefs="amqp-inbound-gateway-adapter-xml-6a-co" id="amqp-inbound-gateway-adapter-xml-6a">
+                <para>Acknowledge Mode for the <interface>MessageListenerContainer</interface>.
+                When set to MANUAL, the delivery tag and channel are provided in
+                message headers <code>amqp_deliveryTag</code> and
+                <code>amqp_channel</code> respectively; the user application is
+                responsible for acknowledgement. NONE means no acknowledgements
+                (autoAck); AUTO means the adapter's container will acknowledge
+                when the downstream flow completes.
+                <emphasis>Optional (Defaults to AUTO)</emphasis>.</para>
+            </callout>
               <callout arearefs="amqp-inbound-gateway-adapter-xml-7-co" id="amqp-inbound-gateway-adapter-xml-7">
                   <para>Message Channel where reply Messages will be expected.
                   <emphasis>Optional</emphasis>.</para>
