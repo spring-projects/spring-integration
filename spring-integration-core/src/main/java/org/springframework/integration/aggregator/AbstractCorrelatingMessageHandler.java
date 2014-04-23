@@ -320,7 +320,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 					logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ " + correlationKey + "].");
 				}
 			}
-			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
+			MessageGroup messageGroup = messageStore.getMessageGroupMetadata(correlationKey);
 			if (this.sequenceAware){
 				messageGroup = new SequenceAwareMessageGroup(messageGroup);
 			}
@@ -418,7 +418,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				 * for reaping if it's empty (and both timestamps are unaltered).
 				 */
 				if (!group.isComplete()) {
-					groupNow = this.messageStore.getMessageGroup(correlationKey);
+					groupNow = this.messageStore.getMessageGroupMetadata(correlationKey);
 				}
 				long lastModifiedNow = groupNow.getLastModified();
 				int groupSize = groupNow.size();

@@ -33,6 +33,7 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	@Override
 	protected MongoDbMessageStore getMessageGroupStore() throws Exception {
 		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore( new SimpleMongoDbFactory(new Mongo(), "test"));
+		mongoDbMessageStore.setBeanClassLoader(this.getClass().getClassLoader());
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}

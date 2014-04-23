@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,9 +35,10 @@ import org.springframework.util.Assert;
  * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}
  *
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.1
  */
-public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore{
+public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
@@ -95,6 +97,45 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return this.buildMessageGroup(groupId, false);
 	}
 
+	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+
+			SimpleMessageGroup messageGroup = new SimpleMessageGroup(Collections.<Message<?>> emptyList(),
+					groupId, messageGroupMetadata.getTimestamp(), messageGroupMetadata.isComplete());
+			messageGroup.setLastModified(messageGroupMetadata.getLastModified());
+			messageGroup.setLastReleasedMessageSequenceNumber(messageGroupMetadata.getLastReleasedMessageSequenceNumber());
+			return proxyMessageGroup(messageGroup);
+		}
+		else {
+			return new SimpleMessageGroup(groupId);
+		}
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+
+			UUID messageId = messageGroupMetadata.messageIdIterator().next();
+			if (messageId != null) {
+				return getMessage(messageId);
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
 
 	/**
 	 * Add a Message to the group with the provided group ID.
@@ -123,7 +164,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
 
 		// return clean MG
-		return this.getMessageGroup(groupId);
+		return this.getMessageGroupMetadata(groupId);
 	}
 
 	/**
@@ -137,9 +178,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		// build raw MG
 		SimpleMessageGroup rawGroup = this.buildMessageGroup(groupId, true);
 
-		// create a clean instance of
-		SimpleMessageGroup messageGroup = this.normalizeSimpleMessageGroup(rawGroup);
-
 		for (Message<?> message : rawGroup.getMessages()) {
 			if (message.getHeaders().getId().equals(messageToRemove.getHeaders().getId())){
 				rawGroup.remove(message);
@@ -149,9 +187,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		rawGroup.setLastModified(System.currentTimeMillis());
 
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
-		messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
-
-		return messageGroup;
+		return this.getSimpleMessageGroup(this.getMessageGroupMetadata(groupId));
 	}
 
 
@@ -347,7 +383,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		@Override
 		public MessageGroup next() {
 			Object messageGroupId = idIterator.next();
-			return getMessageGroup(messageGroupId);
+			return getMessageGroupMetadata(messageGroupId);
 		}
 
 		@Override

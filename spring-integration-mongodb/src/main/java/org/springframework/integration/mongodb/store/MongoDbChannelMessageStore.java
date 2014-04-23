@@ -74,7 +74,8 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter, String collectionName) {
+	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
+			String collectionName) {
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
 
@@ -121,6 +122,11 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		return new SimpleMessageGroup(groupId);
+	}
+
+	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		return getMessageGroup(groupId);
 	}
 
 	@Override

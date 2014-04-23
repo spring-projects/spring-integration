@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessageStoreTests {
 
@@ -96,7 +97,17 @@ public class MessageStoreTests {
 			return removed ? new SimpleMessageGroup(correlationKey) : testMessages;
 		}
 
+		@Override
+		public MessageGroup getMessageGroupMetadata(Object groupId) {
+			return getMessageGroup(groupId);
+		}
+
 		public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Message<?> getOneMessageFromGroup(Object groupId) {
 			throw new UnsupportedOperationException();
 		}
 

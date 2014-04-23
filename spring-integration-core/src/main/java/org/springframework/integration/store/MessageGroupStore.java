@@ -23,6 +23,7 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  *
@@ -100,6 +101,14 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @param groupId The group identifier.
 	 */
 	void completeGroup(Object groupId);
+
+	/**
+	 * Return the one {@link org.springframework.messaging.Message} from {@link org.springframework.integration.store.MessageGroup}.
+	 * @param groupId The group identifier.
+	 * @return the {@link org.springframework.messaging.Message}.
+	 * @since 4.0
+	 */
+	Message<?> getOneMessageFromGroup(Object groupId);
 
 	/**
 	 * Invoked when a MessageGroupStore expires a group.

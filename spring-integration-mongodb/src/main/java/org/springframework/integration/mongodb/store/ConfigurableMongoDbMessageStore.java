@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.integration.store.LazyLoadMessagesInterceptor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -84,7 +86,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter, String collectionName) {
+	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
+			String collectionName) {
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
 
@@ -172,6 +175,46 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = groupOrderQuery(groupId);
+		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+
+		long createdTime = 0;
+		long lastModifiedTime = 0;
+		int lastReleasedSequence = 0;
+		boolean complete = false;
+
+		if (messageDocument != null) {
+			createdTime = messageDocument.getCreatedTime();
+			lastModifiedTime = messageDocument.getLastModifiedTime();
+			complete = messageDocument.isComplete();
+			lastReleasedSequence = messageDocument.getLastReleasedSequence();
+		}
+
+
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(Collections.<Message<?>> emptyList(), groupId,
+				createdTime, complete);
+		messageGroup.setLastModified(lastModifiedTime);
+		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+
+		return LazyLoadMessagesInterceptor.proxyMessageGroup(messageGroup, this, this.classLoader);
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = groupOrderQuery(groupId);
+		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		if (messageDocument != null) {
+			return messageDocument.getMessage();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
 	public MessageGroup addMessageToGroup(final Object groupId, final Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
@@ -203,7 +246,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 				addMessageDocument(document);
 
-				return getMessageGroup(groupId);
+				return getMessageGroupMetadata(groupId);
 			}
 		});
 	}
@@ -221,7 +264,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 						.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
 				mongoTemplate.remove(query, collectionName);
 				updateGroup(groupId, lastModifiedUpdate());
-				return getMessageGroup(groupId);
+				return getMessageGroupMetadata(groupId);
 			}
 		});
 	}
@@ -271,7 +314,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 						.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject());
 
 				for (Object groupId : groupIds) {
-					messageGroups.add(getMessageGroup(groupId));
+					messageGroups.add(getMessageGroupMetadata(groupId));
 				}
 
 				return messageGroups.iterator();

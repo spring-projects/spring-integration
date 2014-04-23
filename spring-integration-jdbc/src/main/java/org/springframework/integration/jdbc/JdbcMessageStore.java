@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -77,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Matt Stine
  * @author Gunnar Hillert
  * @author Will Schipp
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -127,7 +129,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
 					"and m.REGION = ?)"),
 
-		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
+		GET_GROUP_INFO("SELECT GROUP_KEY, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ? and REGION=?"),
 
 		GET_MESSAGE("SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and REGION=?"),
@@ -181,6 +183,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
+	private final RowMapper<Message<?>> mapper = new MessageMapper();
+
+	private final RowMapper<SimpleMessageGroup> messageGroupMetadataMapper = new MessageGroupMetadataRowMapper();
+
 	private volatile String region = "DEFAULT";
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -192,8 +198,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile SerializingConverter serializer;
 
 	private volatile LobHandler lobHandler = new DefaultLobHandler();
-
-	private volatile MessageMapper mapper = new MessageMapper();
 
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
 
@@ -334,7 +338,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		final long createdDate = System.currentTimeMillis();
 		Message<T> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
+				.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 		// using reflection to set ID since it is immutable through MessageHeaders
@@ -395,7 +399,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(3, region);
 			}
 		});
-		return getMessageGroup(groupId);
+		return getMessageGroupMetadata(groupId);
 
 	}
 
@@ -452,7 +456,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 
 		long timestamp = createDate.get().getTime();
-		boolean complete = completeFlag.get().booleanValue();
+		boolean complete = completeFlag.get();
 
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
 		messageGroup.setLastModified(updateDate.get().getTime());
@@ -461,6 +465,23 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 
 		return messageGroup;
+	}
+
+	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		SimpleMessageGroup messageGroup = this.jdbcTemplate.queryForObject(getQuery(Query.GET_GROUP_INFO),
+				this.messageGroupMetadataMapper, getKey(groupId), this.region);
+		if (messageGroup != null) {
+			return proxyMessageGroup(messageGroup);
+		}
+		else {
+			return new SimpleMessageGroup(groupId);
+		}
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		return jdbcTemplate.queryForObject(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), this.mapper, getKey(groupId), region);
 	}
 
 	@Override
@@ -481,7 +502,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		});
 		this.removeMessage(messageToRemove.getHeaders().getId());
 		this.updateMessageGroup(groupKey);
-		return getMessageGroup(groupId);
+		return getMessageGroupMetadata(groupId);
 	}
 
 	@Override
@@ -581,7 +602,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 			@Override
 			public MessageGroup next() {
-				return getMessageGroup(iterator.next());
+				return getMessageGroupMetadata(iterator.next());
 			}
 
 			@Override
@@ -628,7 +649,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @return a message; could be null if query produced no Messages
 	 */
 	protected Message<?> doPollForMessage(String groupIdKey) {
-		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), new Object[] { groupIdKey, region, groupIdKey, region }, mapper);
+		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), new Object[] {groupIdKey, region, groupIdKey, region}, mapper);
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
 			return messages.get(0);
@@ -710,8 +731,24 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		@Override
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
-			return message;
+			return  (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 		}
 	}
+
+	private class MessageGroupMetadataRowMapper implements RowMapper<SimpleMessageGroup> {
+
+		@Override
+		public SimpleMessageGroup mapRow(ResultSet rs, int rowNum) throws SQLException {
+			UUID groupId = UUID.fromString(rs.getString("GROUP_KEY"));
+			long createDate = rs.getTimestamp("CREATED_DATE").getTime();
+			boolean complete = rs.getInt("COMPLETE") > 0;
+			SimpleMessageGroup group = new SimpleMessageGroup(Collections.<Message<?>> emptyList(),
+					groupId, createDate, complete);
+			group.setLastModified(rs.getTimestamp("UPDATED_DATE").getTime());
+			group.setLastReleasedMessageSequenceNumber(rs.getInt("LAST_RELEASED_SEQUENCE"));
+			return group;
+		}
+
+	}
+
 }

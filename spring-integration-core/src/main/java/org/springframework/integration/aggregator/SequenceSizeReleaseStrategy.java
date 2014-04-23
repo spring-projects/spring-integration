@@ -38,6 +38,7 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
@@ -70,13 +71,14 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 		boolean canRelease = false;
 
-		Collection<Message<?>> messages = messageGroup.getMessages();
-
-		if (releasePartialSequences && !messages.isEmpty()) {
+		int size = messageGroup.size();
+		if (releasePartialSequences && size > 0) {
 
 			if (logger.isTraceEnabled()) {
 				logger.trace("Considering partial release of group [" + messageGroup + "]");
 			}
+
+			Collection<Message<?>> messages = messageGroup.getMessages();
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, comparator);
 
@@ -84,17 +86,15 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 
 			if (nextSequenceNumber - lastReleasedMessageSequence == 1){
-				canRelease = true;;
+				canRelease = true;
 			}
 		}
 		else {
-			int size = messages.size();
-
 			if (size == 0){
 				canRelease = true;
 			}
 			else {
-				int sequenceSize = new IntegrationMessageHeaderAccessor(messageGroup.getOne()).getSequenceSize();
+				int sequenceSize = messageGroup.getSequenceSize();
 				// If there is no sequence then it must be incomplete....
 				if (sequenceSize == size){
 					canRelease = true;

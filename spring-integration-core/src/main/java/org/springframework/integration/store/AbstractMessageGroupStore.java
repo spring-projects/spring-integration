@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -31,13 +32,14 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  *
  */
 @ManagedResource
 public abstract class AbstractMessageGroupStore implements MessageGroupStore, Iterable<MessageGroup>,
-		BeanFactoryAware {
+		BeanFactoryAware, BeanClassLoaderAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -49,6 +51,8 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	protected ClassLoader classLoader;
+
 	public AbstractMessageGroupStore() {
 		super();
 	}
@@ -57,6 +61,11 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -133,6 +142,10 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 			count ++;
 		}
 		return count;
+	}
+
+	protected MessageGroup proxyMessageGroup(SimpleMessageGroup group) {
+		return LazyLoadMessagesInterceptor.proxyMessageGroup(group, this, this.classLoader);
 	}
 
 	private void expire(MessageGroup group) {

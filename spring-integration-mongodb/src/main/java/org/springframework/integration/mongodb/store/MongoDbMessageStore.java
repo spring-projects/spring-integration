@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,7 +35,6 @@ import com.mongodb.MongoException;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -95,7 +95,7 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore
-		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
+		implements MessageStore, ApplicationContextAware, InitializingBean {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -133,8 +133,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private final String collectionName;
 
-	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
-
 	private ApplicationContext applicationContext;
 
 
@@ -160,12 +158,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
 	}
 
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		Assert.notNull(classLoader, "classLoader must not be null");
-		this.classLoader = classLoader;
-	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -208,13 +200,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					}
 				}
 
-				final long createdDate = document.get_Group_timestamp() == 0 ? System.currentTimeMillis() : document.get_Group_timestamp();
+				long createdDate = document.get_Group_timestamp() == 0 ? System.currentTimeMillis() : document.get_Group_timestamp();
 
 				Message<?> result = getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 						.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 				@SuppressWarnings("unchecked")
-				Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
+				Map<String, Object> innerMap =
+						(Map<String, Object>) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 				// using reflection to set ID since it is immutable through MessageHeaders
 				innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
 				innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
@@ -242,7 +235,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		MessageWrapper messageWrapper =  this.template.findAndRemove(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
+		MessageWrapper messageWrapper =  this.template.findAndRemove(whereMessageIdIs(id), MessageWrapper.class,
+				this.collectionName);
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
 
@@ -278,6 +272,44 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public MessageGroup getMessageGroupMetadata(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = whereGroupIdOrder(groupId);
+		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
+		long timestamp = 0;
+		long lastModified = 0;
+		int lastReleasedSequenceNumber = 0;
+		boolean completeGroup = false;
+
+		if (messageWrapper != null){
+			timestamp = messageWrapper.get_Group_timestamp();
+			lastModified = messageWrapper.get_Group_update_timestamp();
+			completeGroup = messageWrapper.get_Group_complete();
+			lastReleasedSequenceNumber = messageWrapper.get_LastReleasedSequenceNumber();
+		}
+
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(Collections.<Message<?>> emptyList(), groupId,
+				timestamp, completeGroup);
+		messageGroup.setLastModified(lastModified);
+		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
+
+		return proxyMessageGroup(messageGroup);
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = whereGroupIdOrder(groupId);
+		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
+		if (messageWrapper != null) {
+			return messageWrapper.getMessage();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
 	public MessageGroup addMessageToGroup(final Object groupId, final Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
@@ -308,7 +340,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				wrapper.setSequence(getNextId());
 
 				addMessageDocument(wrapper);
-				return getMessageGroup(groupId);
+				return getMessageGroupMetadata(groupId);
 			}
 		});
 	}
@@ -325,7 +357,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				template.findAndRemove(whereMessageIdIsAndGroupIdIs(messageToRemove.getHeaders().getId(), groupId),
 						MessageWrapper.class, collectionName);
 				updateGroup(groupId, lastModifiedUpdate());
-				return getMessageGroup(groupId);
+				return getMessageGroupMetadata(groupId);
 			}
 		});
 	}
@@ -349,7 +381,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 						.distinct(GROUP_ID_KEY, query.getQueryObject());
 
 				for (Object groupId : groupIds) {
-					messageGroups.add(getMessageGroup(groupId));
+					messageGroups.add(getMessageGroupMetadata(groupId));
 				}
 
 				return messageGroups.iterator();
@@ -583,7 +615,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@SuppressWarnings("unchecked")
 	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
-		Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
+		Map<String, Object> innerMap =
+				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
 		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
 		innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
 		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
@@ -633,9 +666,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		public GenericMessage<?> convert(DBObject source) {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+			Map<String, Object> headers =
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
-			GenericMessage<?> message = new GenericMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
+			GenericMessage<?> message =
+					new GenericMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
 			enhanceHeaders(message.getHeaders(), headers);
 			return message;
 		}
@@ -667,9 +702,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 			DBObject dbObject = (DBObject) source;
 			@SuppressWarnings("unchecked")
-			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) dbObject.get("headers"));
+			Map<String, Object> headers =
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) dbObject.get("headers"));
 
-			return MutableMessageBuilder.withPayload(MongoDbMessageStore.this.converter.extractPayload(dbObject)).copyHeaders(headers).build();
+			return MutableMessageBuilder.withPayload(MongoDbMessageStore.this.converter.extractPayload(dbObject))
+					.copyHeaders(headers).build();
 		}
 	}
 
@@ -678,7 +715,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@Override
 		public AdviceMessage convert(DBObject source) {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+			Map<String, Object> headers =
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			Message<?> inputMessage = null;
 
@@ -694,7 +732,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				}
 			}
 
-			AdviceMessage message = new AdviceMessage(MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
+			AdviceMessage message = new AdviceMessage(MongoDbMessageStore.this.converter.extractPayload(source),
+					headers, inputMessage);
 			enhanceHeaders(message.getHeaders(), headers);
 
 			return message;
@@ -709,7 +748,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@Override
 		public ErrorMessage convert(DBObject source) {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> headers = MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+			Map<String, Object> headers =
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			Object payload = this.deserializingConverter.convert((byte[]) source.get("payload"));
 			ErrorMessage message = new ErrorMessage((Throwable) payload, headers);

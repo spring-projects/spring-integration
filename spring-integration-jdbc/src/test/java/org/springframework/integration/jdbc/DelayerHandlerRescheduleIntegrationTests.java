@@ -13,11 +13,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -105,7 +101,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		String delayerMessageGroupId = UUIDConverter.getUUID(DELAYER_ID + ".messageGroupId").toString();
 
 		assertEquals(1, messageStore.getMessageGroupCount());
-		assertEquals(delayerMessageGroupId, messageStore.iterator().next().getGroupId());
+		assertEquals(delayerMessageGroupId, messageStore.iterator().next().getGroupId().toString());
 		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
 		assertEquals(2, messageStore.getMessageCountForAllMessageGroups());
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
