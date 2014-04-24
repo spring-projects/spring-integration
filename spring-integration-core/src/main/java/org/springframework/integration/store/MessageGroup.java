@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public interface MessageGroup {
 
@@ -90,5 +91,10 @@ public interface MessageGroup {
 	 * @return the timestamp (milliseconds since epoch) associated with the time this group was last updated
 	 */
 	long getLastModified();
+
+	/**
+	 * @return the size of the group in storage; does not fetch the group.
+	 */
+	int metaSize();
 
 }

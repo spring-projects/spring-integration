@@ -298,4 +298,15 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	public int messageGroupSize(Object groupId) {
 		return this.getMessageGroup(groupId).size();
 	}
+
+	@Override
+	public MessageGroupMetadata getGroupMetadata(Object groupId) {
+		return new MessageGroupMetadata(this.getMessageGroup(groupId));
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		return this.getMessageGroup(groupId).getOne();
+	}
+
 }

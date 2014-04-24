@@ -299,6 +299,74 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return messageStore;
 	}
 
+	protected Map<UUID, ScheduledFuture<?>> getExpireGroupScheduledFutures() {
+		return expireGroupScheduledFutures;
+	}
+
+	protected MessageGroupProcessor getOutputProcessor() {
+		return outputProcessor;
+	}
+
+	protected CorrelationStrategy getCorrelationStrategy() {
+		return correlationStrategy;
+	}
+
+	protected ReleaseStrategy getReleaseStrategy() {
+		return releaseStrategy;
+	}
+
+	protected MessageChannel getOutputChannel() {
+		return outputChannel;
+	}
+
+	protected String getOutputChannelName() {
+		return outputChannelName;
+	}
+
+	protected MessagingTemplate getMessagingTemplate() {
+		return messagingTemplate;
+	}
+
+	protected MessageChannel getDiscardChannel() {
+		return discardChannel;
+	}
+
+	protected String getDiscardChannelName() {
+		return discardChannelName;
+	}
+
+	protected boolean isSendPartialResultOnExpiry() {
+		return sendPartialResultOnExpiry;
+	}
+
+	protected boolean isSequenceAware() {
+		return sequenceAware;
+	}
+
+	protected LockRegistry getLockRegistry() {
+		return lockRegistry;
+	}
+
+	protected boolean isLockRegistrySet() {
+		return lockRegistrySet;
+	}
+
+	protected long getMinimumTimeoutForEmptyGroups() {
+		return minimumTimeoutForEmptyGroups;
+	}
+
+	protected boolean isReleasePartialSequences() {
+		return releasePartialSequences;
+	}
+
+	protected Expression getGroupTimeoutExpression() {
+		return groupTimeoutExpression;
+	}
+
+	protected EvaluationContext getEvaluationContext() {
+		return evaluationContext;
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = correlationStrategy.getCorrelationKey(message);
@@ -480,11 +548,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
 
-	private MessageGroup store(Object correlationKey, Message<?> message) {
+	protected MessageGroup store(Object correlationKey, Message<?> message) {
 		return messageStore.addMessageToGroup(correlationKey, message);
 	}
 
-	private void expireGroup(Object correlationKey, MessageGroup group) {
+	protected void expireGroup(Object correlationKey, MessageGroup group) {
 		if (logger.isInfoEnabled()) {
 			logger.info("Expiring MessageGroup with correlationKey[" + correlationKey + "]");
 		}
@@ -506,7 +574,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 	}
 
-	private void completeGroup(Object correlationKey, MessageGroup group) {
+	protected void completeGroup(Object correlationKey, MessageGroup group) {
 		Message<?> first = null;
 		if (group != null) {
 			first = group.getOne();
@@ -515,7 +583,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	@SuppressWarnings("unchecked")
-	private Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
+	protected Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 		}
@@ -530,13 +598,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return partialSequence;
 	}
 
-	private void verifyResultCollectionConsistsOfMessages(Collection<?> elements){
+	protected void verifyResultCollectionConsistsOfMessages(Collection<?> elements){
 		Class<?> commonElementType = CollectionUtils.findCommonElementType(elements);
 		Assert.isAssignable(Message.class, commonElementType, "The expected collection of Messages contains non-Message element: " + commonElementType);
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void sendReplies(Object processorResult, Message message) {
+	protected void sendReplies(Object processorResult, Message message) {
 		Object replyChannelHeader = null;
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
@@ -555,7 +623,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 	}
 
-	private void sendReplyMessage(Object reply, Object replyChannel) {
+	protected void sendReplyMessage(Object reply, Object replyChannel) {
 		if (replyChannel instanceof MessageChannel) {
 			if (reply instanceof Message<?>) {
 				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
@@ -573,7 +641,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 	}
 
-	private boolean shouldSendMultipleReplies(Iterable<?> iter) {
+	protected boolean shouldSendMultipleReplies(Iterable<?> iter) {
 		for (Object next : iter) {
 			if (next instanceof Message<?>) {
 				return true;
@@ -582,7 +650,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return false;
 	}
 
-	private Long obtainGroupTimeout(MessageGroup group) {
+	protected Long obtainGroupTimeout(MessageGroup group) {
 		return this.groupTimeoutExpression != null
 				? this.groupTimeoutExpression.getValue(this.evaluationContext, group, Long.class) : null;
 	}
@@ -594,7 +662,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 	}
 
-	private static class SequenceAwareMessageGroup extends SimpleMessageGroup {
+	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {
 
 		public SequenceAwareMessageGroup(MessageGroup messageGroup) {
 			super(messageGroup);
@@ -624,7 +692,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			return true;
 		}
 
-		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
+		protected boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
 			for (Message<?> member : messages) {
 				Integer memberSequenceNumber = new IntegrationMessageHeaderAccessor(member).getSequenceNumber();
 				if (messageSequenceNumber.equals(memberSequenceNumber)) {

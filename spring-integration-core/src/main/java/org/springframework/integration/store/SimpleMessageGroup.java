@@ -68,6 +68,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(), messageGroup.isComplete());
 	}
 
+	@Override
 	public long getTimestamp() {
 		return timestamp;
 	}
@@ -76,10 +77,12 @@ public class SimpleMessageGroup implements MessageGroup {
 		this.lastModified = lastModified;
 	}
 
+	@Override
 	public long getLastModified() {
 		return lastModified;
 	}
 
+	@Override
 	public boolean canAdd(Message<?> message) {
 		return true;
 	}
@@ -92,6 +95,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		messages.remove(message);
 	}
 
+	@Override
 	public int getLastReleasedMessageSequenceNumber() {
 		return lastReleasedMessageSequence;
 	}
@@ -100,6 +104,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return this.messages.offer(message);
 	}
 
+	@Override
 	public Collection<Message<?>> getMessages() {
 		return Collections.unmodifiableCollection(messages);
 	}
@@ -108,18 +113,22 @@ public class SimpleMessageGroup implements MessageGroup {
 		this.lastReleasedMessageSequence = sequenceNumber;
 	}
 
+	@Override
 	public Object getGroupId() {
 		return groupId;
 	}
 
+	@Override
 	public boolean isComplete() {
 		return this.complete;
 	}
 
+	@Override
 	public void complete() {
 		this.complete = true;
 	}
 
+	@Override
 	public int getSequenceSize() {
 		if (size() == 0) {
 			return 0;
@@ -127,10 +136,17 @@ public class SimpleMessageGroup implements MessageGroup {
 		return new IntegrationMessageHeaderAccessor(getOne()).getSequenceSize();
 	}
 
+	@Override
 	public int size() {
 		return this.messages.size();
 	}
 
+	@Override
+	public int metaSize() {
+		return this.size();
+	}
+
+	@Override
 	public Message<?> getOne() {
 		Message<?> one = messages.peek();
 		return one;
