@@ -102,6 +102,23 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	void completeGroup(Object groupId);
 
 	/**
+	 * Obtain the group metadata without fetching any messages; must supply all other
+	 * group properties; may include the id of the first message.
+	 * @param groupId The group id.
+	 * @return The metadata.
+	 * @since 4.0
+	 */
+	MessageGroupMetadata getGroupMetadata(Object groupId);
+
+	/**
+	 * Return the one {@link org.springframework.messaging.Message} from {@link org.springframework.integration.store.MessageGroup}.
+	 * @param groupId The group identifier.
+	 * @return the {@link org.springframework.messaging.Message}.
+	 * @since 4.0
+	 */
+	Message<?> getOneMessageFromGroup(Object groupId);
+
+	/**
 	 * Invoked when a MessageGroupStore expires a group.
 	 */
 	public interface MessageGroupCallback {
