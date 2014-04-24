@@ -37,4 +37,8 @@ public class StubClientInterceptor implements ClientInterceptor {
 		return false;
 	}
 
+	public void afterCompletion(MessageContext messageContext, Exception ex) throws WebServiceClientException {
+
+	}
+
 }
