@@ -16,13 +16,13 @@
 package org.springframework.integration.mongodb.store;
 
 
+import com.mongodb.MongoClient;
+
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.test.util.TestUtils;
-
-import com.mongodb.Mongo;
 
 /**
  * @author Amol Nayak
@@ -32,7 +32,7 @@ public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessage
 
 	@Override
 	protected MessageStore getMessageStore() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
 		GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		testApplicationContext.refresh();

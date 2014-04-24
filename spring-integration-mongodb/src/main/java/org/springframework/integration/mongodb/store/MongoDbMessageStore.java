@@ -55,13 +55,13 @@ import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.history.MessageHistory;
@@ -182,9 +182,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		IndexOperations indexOperations = this.template.indexOps(this.collectionName);
 
-		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Order.ASCENDING)
-				.on(GROUP_UPDATE_TIMESTAMP_KEY, Order.DESCENDING)
-				.on(SEQUENCE, Order.DESCENDING));
+		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Sort.Direction.ASC)
+				.on(GROUP_UPDATE_TIMESTAMP_KEY, Sort.Direction.DESC)
+				.on(SEQUENCE, Sort.Direction.DESC));
 	}
 
 	@Override
@@ -457,7 +457,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		public MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
-			super(mongoDbFactory, mappingContext);
+			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
 
 		@Override

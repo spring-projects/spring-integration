@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import org.junit.Test;
 
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
@@ -32,7 +32,7 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 
 	@Override
 	protected MongoDbMessageStore getMessageGroupStore() throws Exception {
-		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore( new SimpleMongoDbFactory(new Mongo(), "test"));
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore( new SimpleMongoDbFactory(new MongoClient(), "test"));
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}

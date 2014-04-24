@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.mongodb.DB;
+import com.mongodb.MongoException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,17 +39,18 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.DbCallback;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.store.BasicMessageGroupStore;
@@ -57,9 +60,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
-
-import com.mongodb.DB;
-import com.mongodb.MongoException;
 
 /**
  * The abstract MongoDB {@link BasicMessageGroupStore} implementation to provide configuration for common options
@@ -129,7 +129,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	public void afterPropertiesSet() throws Exception {
 		if (this.mongoTemplate == null) {
 			if (this.mappingMongoConverter == null) {
-				this.mappingMongoConverter = new MappingMongoConverter(this.mongoDbFactory, new MongoMappingContext());
+				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
+						new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
 				List<Object> customConverters = new ArrayList<Object>();
 				customConverters.add(new MongoDbMessageBytesConverter());
@@ -144,11 +145,11 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 
-		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Order.ASCENDING));
+		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
 
-		indexOperations.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Order.ASCENDING)
-				.on(MessageDocumentFields.LAST_MODIFIED_TIME, Order.DESCENDING)
-				.on(MessageDocumentFields.SEQUENCE, Order.DESCENDING));
+		indexOperations.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+				.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.DESC)
+				.on(MessageDocumentFields.SEQUENCE, Sort.Direction.DESC));
 	}
 
 	public Message<?> getMessage(UUID id) {
