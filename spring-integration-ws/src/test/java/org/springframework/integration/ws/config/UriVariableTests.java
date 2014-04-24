@@ -259,6 +259,10 @@ public class UriVariableTests {
 		public boolean handleFault(MessageContext messageContext) throws WebServiceClientException {
 			return false;
 		}
+
+		public void afterCompletion(MessageContext messageContext, Exception ex) throws WebServiceClientException {
+
+		}
 	}
 
 	private static class Int2720EmailTestClientInterceptor extends TestClientInterceptor {
