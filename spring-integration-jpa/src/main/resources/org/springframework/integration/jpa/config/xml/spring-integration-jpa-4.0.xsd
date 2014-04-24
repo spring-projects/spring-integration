@@ -248,12 +248,12 @@
 			<xsd:attribute name="id-expression">
 				<xsd:annotation>
 					<xsd:documentation>
-						The SpEL expression to determine the 'primaryKey' value for
-						'EntityManager.find(Class entityClass, Object primaryKey)' against
-						the requestMessage as root object of evaluation context.
-						The 'entityClass' argument is determined from 'entity-class' attribute,
-						if presented, otherwise from 'payload' class. All other attributed are disallowed
-						in case of id-expression.
+						A SpEL expression to determine the 'primaryKey' value for
+						'EntityManager.find(Class entityClass, Object primaryKey)' using
+						the request Message as the root object of evaluation context.
+						The 'entityClass' argument is determined from the 'entity-class' attribute,
+						if present, otherwise the 'payload' class is used. All other attributes are disallowed
+						when specifying an 'id-expression'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
