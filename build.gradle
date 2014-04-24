@@ -5,9 +5,10 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url 'http://repo.spring.io/plugins-release' }
+		maven { url 'http://repo.spring.io/plugins-snapshot' }
 	}
 	dependencies {
+		classpath 'org.springframework.build.gradle:springio-platform-plugin:0.0.3.BUILD-SNAPSHOT'
 		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
 	}
 }
@@ -23,6 +24,8 @@ ext {
 
 allprojects {
 	group = 'org.springframework.integration'
+
+	apply plugin: 'springio-platform'
 
 	repositories {
 		if (version.endsWith('BUILD-SNAPSHOT')) {
@@ -152,9 +155,12 @@ subprojects { subproject ->
 	ext.xLintArg = '-Xlint:all,-options'
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
-	test {
+	tasks.withType(Test).all {
 		// suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
+	}
+
+	test {
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
 	}
 
@@ -285,7 +291,7 @@ project('spring-integration-ftp') {
 
 project('spring-integration-gemfire') {
 	description = 'Spring Integration GemFire Support'
-	test {
+	tasks.withType(Test).all {
 		forkEvery = 1
 		systemProperties['gemfire.disableShutdownHook'] = 'true'
 	}
@@ -422,11 +428,13 @@ project('spring-integration-jpa') {
 	//Suppress openjpa annotation processor warnings
 	compileTestJava.options.compilerArgs = ["${xLintArg},-processing"]
 
-	test.doFirst {
-		def javaAgents = configurations.testRuntime.resolvedConfiguration.resolvedArtifacts
-				.findAll { it.name in ['spring-instrument', 'openjpa'] }
-				.collect { "-javaagent:${it.file}" }
-		jvmArgs javaAgents
+	tasks.withType(Test).all {
+		doFirst {
+			def javaAgents = classpath.files
+					.findAll { it.name.contains('spring-instrument') || it.name.contains('openjpa')}
+					.collect { "-javaagent:$it" }
+			jvmArgs javaAgents
+		}
 	}
 
 }
