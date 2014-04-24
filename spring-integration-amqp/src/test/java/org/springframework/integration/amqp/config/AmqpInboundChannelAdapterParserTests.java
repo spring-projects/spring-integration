@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -44,6 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  */
 @ContextConfiguration
@@ -72,12 +73,14 @@ public class AmqpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void withHeaderMapperStandardAndCustomHeaders() {
-		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperStandardAndCustomHeaders", AmqpInboundChannelAdapter.class);
+	public void withHeaderMapperStandardAndCustomHeaders() throws Exception {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperStandardAndCustomHeaders",
+				AmqpInboundChannelAdapter.class);
 
 		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
+				ChannelAwareMessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -87,7 +90,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage);
+		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertEquals("foo", siMessage.getHeaders().get("foo"));
@@ -99,12 +102,14 @@ public class AmqpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void withHeaderMapperOnlyCustomHeaders() {
-		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperOnlyCustomHeaders", AmqpInboundChannelAdapter.class);
+	public void withHeaderMapperOnlyCustomHeaders() throws Exception {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperOnlyCustomHeaders",
+				AmqpInboundChannelAdapter.class);
 
 		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
+				ChannelAwareMessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -114,7 +119,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage);
+		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertEquals("foo", siMessage.getHeaders().get("foo"));
@@ -126,12 +131,14 @@ public class AmqpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void withHeaderMapperNothingToMap() {
-		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperNothingToMap", AmqpInboundChannelAdapter.class);
+	public void withHeaderMapperNothingToMap() throws Exception {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperNothingToMap",
+				AmqpInboundChannelAdapter.class);
 
 		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
+				ChannelAwareMessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -141,7 +148,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage);
+		listener.onMessage(amqpMessage, null);
 
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
@@ -154,12 +161,14 @@ public class AmqpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void withHeaderMapperDefaultMapping() {
-		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperDefaultMapping", AmqpInboundChannelAdapter.class);
+	public void withHeaderMapperDefaultMapping() throws Exception {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperDefaultMapping",
+				AmqpInboundChannelAdapter.class);
 
 		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
+				ChannelAwareMessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -169,7 +178,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage);
+		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertNull(siMessage.getHeaders().get("bar"));
@@ -183,7 +192,8 @@ public class AmqpInboundChannelAdapterParserTests {
 	@Test
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
 		try {
-			new ClassPathXmlApplicationContext("AmqpInboundChannelAdapterParserTests-headerMapper-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("AmqpInboundChannelAdapterParserTests-headerMapper-fail-context.xml",
+					this.getClass());
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +

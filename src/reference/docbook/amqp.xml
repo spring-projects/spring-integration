@@ -52,7 +52,8 @@
 
     <para>A configuration sample for an AMQP Inbound Channel Adapter is shown
           below.</para>
-    <programlisting language="xml"><![CDATA[<int-amqp:inbound-channel-adapter id="inboundAmqp"]]><co                id="amqp-inbound-channel-adapter-xml-01-co" linkends="amqp-inbound-channel-adapter-xml-01" /><![CDATA[
+    <programlisting language="xml"><![CDATA[<int-amqp:inbound-channel-adapter
+                                  id="inboundAmqp"]]><co        		id="amqp-inbound-channel-adapter-xml-01-co"	linkends="amqp-inbound-channel-adapter-xml-01" /><![CDATA[
                                   channel="inboundChannel"]]><co        id="amqp-inbound-channel-adapter-xml-02-co" linkends="amqp-inbound-channel-adapter-xml-02" /><![CDATA[
                                   queue-names="si.test.queue"]]><co     id="amqp-inbound-channel-adapter-xml-03-co" linkends="amqp-inbound-channel-adapter-xml-03" /><![CDATA[
                                   acknowledge-mode="AUTO"]]><co         id="amqp-inbound-channel-adapter-xml-04-co" linkends="amqp-inbound-channel-adapter-xml-04" /><![CDATA[
@@ -95,7 +96,13 @@
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-04-co" id="amqp-inbound-channel-adapter-xml-04">
                 <para>Acknowledge Mode for the <interface>MessageListenerContainer</interface>.
-                <emphasis>Optional (Defaults to AUTO)</emphasis>.</para>
+                When set to MANUAL, the delivery tag and channel are provided in
+                message headers <code>amqp_deliveryTag</code> and
+                <code>amqp_channel</code> respectively; the user application is
+                responsible for acknowledgement. NONE means no acknowledgements
+                (autoAck); AUTO means the adapter's container will acknowledge
+                when the downstream flow completes.
+                <emphasis>Optional (Defaults to AUTO)</emphasis> see <xref linkend="amqp-inbound-ack"/>.</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-05-co" id="amqp-inbound-channel-adapter-xml-05">
                 <para>Extra AOP Advice(s) to handle cross cutting behavior associated with this Inbound Channel Adapter.
@@ -282,6 +289,119 @@ this list can also be simple patterns to be matched against the header names (e.
     </important>
   </section>
 
+  <section id="amqp-inbound-gateway">
+      <title>Inbound Gateway</title>
+      <para>A configuration sample for an AMQP Inbound Gateway is shown
+            below.</para>
+      <programlisting language="xml"><![CDATA[<int-amqp:inbound-gateway
+                          id="inboundGateway"]]><co                   id="amqp-inbound-gateway-adapter-xml-1-co" linkends="amqp-inbound-gateway-adapter-xml-1" /><![CDATA[
+                          request-channel="myRequestChannel"]]><co     id="amqp-inbound-gateway-adapter-xml-2-co" linkends="amqp-inbound-gateway-adapter-xml-2" /><![CDATA[
+                          queue-names="si.test.queue"]]><co            id="amqp-inbound-gateway-adapter-xml-3-co" linkends="amqp-inbound-gateway-adapter-xml-3" /><![CDATA[
+                          advice-chain=""]]><co                        id="amqp-inbound-gateway-adapter-xml-4-co" linkends="amqp-inbound-gateway-adapter-xml-4" /><![CDATA[
+                          concurrent-consumers="1"]]><co               id="amqp-inbound-gateway-adapter-xml-5-co" linkends="amqp-inbound-gateway-adapter-xml-5" /><![CDATA[
+                          connection-factory="connectionFactory"]]><co id="amqp-inbound-gateway-adapter-xml-6-co" linkends="amqp-inbound-gateway-adapter-xml-6" /><![CDATA[
+                          acknowledge-mode="AUTO"]]><co                id="amqp-inbound-gateway-adapter-xml-6a-co" linkends="amqp-inbound-gateway-adapter-xml-6a" /><![CDATA[
+                          reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-7-co" linkends="amqp-inbound-gateway-adapter-xml-7" /><![CDATA[/>]]>
+      </programlisting>
+      <para>
+          <calloutlist>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-1-co" id="amqp-inbound-gateway-adapter-xml-1">
+                  <para>Unique ID for this adapter.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-2-co" id="amqp-inbound-gateway-adapter-xml-2">
+                  <para>Message Channel to which converted Messages should be sent.
+                        <emphasis>Required</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-3-co" id="amqp-inbound-gateway-adapter-xml-3">
+                  <para>Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
+                  <emphasis>Required</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-4-co" id="amqp-inbound-gateway-adapter-xml-4">
+                  <para>Extra AOP Advice(s) to handle cross cutting behavior associated with this Inbound Gateway.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-5-co" id="amqp-inbound-gateway-adapter-xml-5">
+                  <para>Specify the number of concurrent consumers to
+						create. Default is 1. Raising the number of concurrent
+						consumers is recommended in order to scale the
+						consumption of messages coming in from a queue.
+						However, note that any ordering guarantees are lost
+						once multiple consumers are registered. In general,
+						stick with 1 consumer for low-volume queues.
+                  <emphasis>Optional (Defaults to 1)</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-6-co" id="amqp-inbound-gateway-adapter-xml-6">
+                  <para>Bean reference to the RabbitMQ ConnectionFactory.
+                  <emphasis>Optional (Defaults to 'connectionFactory')</emphasis>.</para>
+              </callout>
+            <callout arearefs="amqp-inbound-gateway-adapter-xml-6a-co" id="amqp-inbound-gateway-adapter-xml-6a">
+                <para>Acknowledge Mode for the <interface>MessageListenerContainer</interface>.
+                When set to MANUAL, the delivery tag and channel are provided in
+                message headers <code>amqp_deliveryTag</code> and
+                <code>amqp_channel</code> respectively; the user application is
+                responsible for acknowledgement. NONE means no acknowledgements
+                (autoAck); AUTO means the adapter's container will acknowledge
+                when the downstream flow completes.
+                <emphasis>Optional (Defaults to AUTO) see <xref linkend="amqp-inbound-ack"/></emphasis>.</para>
+            </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-7-co" id="amqp-inbound-gateway-adapter-xml-7">
+                  <para>Message Channel where reply Messages will be expected.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+          </calloutlist>
+      </para>
+      <para>
+        See the note in <xref linkend="amqp-inbound-channel-adapter"/> about configuring the <code>listener-container</code>
+        attribute.
+      </para>
+  </section>
+
+  <section id="amqp-inbound-ack">
+    <title>Inbound Endpoint Acknowledge Mode</title>
+    <para>
+      By default the inbound endpoints use acknowledge mode <code>AUTO</code>, which means the container
+      automatically <emphasis>acks</emphasis> the message when the downstream integration flow completes (or a message is
+      handed off to another thread using a <classname>QueueChannel</classname> or <classname>ExecutorChannel</classname>).
+      Setting the mode to <code>NONE</code> configures the consumer such that acks are not used at all
+      (the broker automatically acks the message as soon as it is sent). Setting the mode to
+      <code>MANUAL</code> allows user code to ack the message at some other point during processing.
+      To support this, with this mode, the endpoints provide the <classname>Channel</classname> and
+      <code>deliveryTag</code> in the <code>amqp_channel</code> and <code>amqp_deliveryTag</code>
+      headers respectively.
+    </para>
+    <para>
+      You can perform any valid rabbit command on the <classname>Channel</classname> but, generally, only
+      <code>basicAck</code> and <code>basicNack</code> (or <code>basicReject</code>) would be used.
+      In order to not interfere with the operation of the container, you should not retain a reference
+      to the channel and just use it in the context of the current message.
+    </para>
+    <note>
+      Since the <classname>Channel</classname> is a reference to a "live" object, it cannot be serialized
+      and will be lost if a message is persisted.
+    </note>
+    <para>
+      This is an example of how you might use <code>MANUAL</code> acknowledgement:
+    </para>
+    <programlisting language="java"><![CDATA[@ServiceActivator(inputChannel = "foo", outputChannel = "bar")
+public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Channel channel,
+        @Header(AmqpHeaders.DELIVERY_TAG) Long deliveryTag) throws Exception {
+
+    // Do some processing
+
+    if (allOK) {
+        channel.basicAck(deliveryTag, false);
+
+        // perhaps do some more processing
+
+    }
+    else {
+        channel.basicNack(deliveryTag, false, true);
+    }
+    return someResultForDownStreamProcessing;
+}]]></programlisting>
+  </section>
+
   <section id="amqp-outbound-channel-adapter">
     <title>Outbound Channel Adapter</title>
 
@@ -387,62 +507,6 @@ this list can also be simple patterns to be matched against the header names (e.
             </callout>
         </calloutlist>
     </para>
-  </section>
-
-  <section id="amqp-inbound-gateway">
-      <title>Inbound Gateway</title>
-      <para>A configuration sample for an AMQP Inbound Gateway is shown
-            below.</para>
-      <programlisting language="xml"><![CDATA[<int-amqp:inbound-gateway id="inboundGateway"]]><co                    id="amqp-inbound-gateway-adapter-xml-1-co" linkends="amqp-inbound-gateway-adapter-xml-1" /><![CDATA[
-                          request-channel="myRequestChannel"]]><co     id="amqp-inbound-gateway-adapter-xml-2-co" linkends="amqp-inbound-gateway-adapter-xml-2" /><![CDATA[
-                          queue-names="si.test.queue"]]><co            id="amqp-inbound-gateway-adapter-xml-3-co" linkends="amqp-inbound-gateway-adapter-xml-3" /><![CDATA[
-                          advice-chain=""]]><co                        id="amqp-inbound-gateway-adapter-xml-4-co" linkends="amqp-inbound-gateway-adapter-xml-4" /><![CDATA[
-                          concurrent-consumers="1"]]><co               id="amqp-inbound-gateway-adapter-xml-5-co" linkends="amqp-inbound-gateway-adapter-xml-5" /><![CDATA[
-                          connection-factory="connectionFactory"]]><co id="amqp-inbound-gateway-adapter-xml-6-co" linkends="amqp-inbound-gateway-adapter-xml-6" /><![CDATA[
-                          reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-7-co" linkends="amqp-inbound-gateway-adapter-xml-7" /><![CDATA[/>]]>
-      </programlisting>
-      <para>
-          <calloutlist>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-1-co" id="amqp-inbound-gateway-adapter-xml-1">
-                  <para>Unique ID for this adapter.
-                  <emphasis>Optional</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-2-co" id="amqp-inbound-gateway-adapter-xml-2">
-                  <para>Message Channel to which converted Messages should be sent.
-                        <emphasis>Required</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-3-co" id="amqp-inbound-gateway-adapter-xml-3">
-                  <para>Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
-                  <emphasis>Required</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-4-co" id="amqp-inbound-gateway-adapter-xml-4">
-                  <para>Extra AOP Advice(s) to handle cross cutting behavior associated with this Inbound Gateway.
-                  <emphasis>Optional</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-5-co" id="amqp-inbound-gateway-adapter-xml-5">
-                  <para>Specify the number of concurrent consumers to
-						create. Default is 1. Raising the number of concurrent
-						consumers is recommended in order to scale the
-						consumption of messages coming in from a queue.
-						However, note that any ordering guarantees are lost
-						once multiple consumers are registered. In general,
-						stick with 1 consumer for low-volume queues.
-                  <emphasis>Optional (Defaults to 1)</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-6-co" id="amqp-inbound-gateway-adapter-xml-6">
-                  <para>Bean reference to the RabbitMQ ConnectionFactory.
-                  <emphasis>Optional (Defaults to 'connectionFactory')</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-7-co" id="amqp-inbound-gateway-adapter-xml-7">
-                  <para>Message Channel where reply Messages will be expected.
-                  <emphasis>Optional</emphasis>.</para>
-              </callout>
-          </calloutlist>
-      </para>
-      <para>
-        See the note in <xref linkend="amqp-inbound-channel-adapter"/> about configuring the <code>listener-container</code>
-        attribute.
-      </para>
   </section>
 
   <section id="amqp-outbound-gateway">
