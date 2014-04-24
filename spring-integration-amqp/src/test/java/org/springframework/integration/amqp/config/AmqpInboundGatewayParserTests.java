@@ -29,8 +29,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -123,7 +123,8 @@ public class AmqpInboundGatewayParserTests {
 
 		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(gateway, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
+				ChannelAwareMessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -134,7 +135,7 @@ public class AmqpInboundGatewayParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage);
+		listener.onMessage(amqpMessage, null);
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), Mockito.any(CorrelationData.class));

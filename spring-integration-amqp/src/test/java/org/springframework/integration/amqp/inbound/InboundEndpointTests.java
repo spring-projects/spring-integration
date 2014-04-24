@@ -19,6 +19,7 @@ package org.springframework.integration.amqp.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
@@ -32,10 +33,11 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -43,6 +45,7 @@ import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -67,7 +70,7 @@ import com.rabbitmq.client.Channel;
 public class InboundEndpointTests {
 
 	@Test
-	public void testInt2809JavaTypePropertiesToAmqp() {
+	public void testInt2809JavaTypePropertiesToAmqp() throws Exception {
 		Connection connection = mock(Connection.class);
 		doAnswer(new Answer<Channel>() {
 			@Override
@@ -79,6 +82,7 @@ public class InboundEndpointTests {
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
+		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setMessageConverter(new JsonMessageConverter());
@@ -95,19 +99,24 @@ public class InboundEndpointTests {
 		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(payload));
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
+		amqpMessageProperties.setDeliveryTag(123L);
 		org.springframework.amqp.core.Message amqpMessage =
 				new SimpleMessageConverter().toMessage(jsonMessage.getPayload(), amqpMessageProperties);
 		new DefaultAmqpHeaderMapper().fromHeadersToRequest(jsonMessage.getHeaders(), amqpMessageProperties);
 
-		MessageListener listener = (MessageListener) container.getMessageListener();
-		listener.onMessage(amqpMessage);
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		Channel rabbitChannel = mock(Channel.class);
+		listener.onMessage(amqpMessage, rabbitChannel);
 
 		Message<?> result = channel.receive(1000);
 		assertEquals(payload, result.getPayload());
+
+		assertSame(rabbitChannel, result.getHeaders().get(AmqpHeaders.CHANNEL));
+		assertEquals(123L, result.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
 	}
 
 	@Test
-	public void testInt2809JavaTypePropertiesFromAmqp() {
+	public void testInt2809JavaTypePropertiesFromAmqp() throws Exception {
 		Connection connection = mock(Connection.class);
 		doAnswer(new Answer<Channel>() {
 			@Override
@@ -133,8 +142,8 @@ public class InboundEndpointTests {
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		org.springframework.amqp.core.Message amqpMessage = new JsonMessageConverter().toMessage(payload, amqpMessageProperties);
 
-		MessageListener listener = (MessageListener) container.getMessageListener();
-		listener.onMessage(amqpMessage);
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		listener.onMessage(amqpMessage, null);
 
 		Message<?> receive = channel.receive(1000);
 
@@ -144,7 +153,7 @@ public class InboundEndpointTests {
 	}
 
 	@Test
-	public void testMessageConverterJsonHeadersHavePrecedenceOverMessageHeaders() {
+	public void testMessageConverterJsonHeadersHavePrecedenceOverMessageHeaders() throws Exception {
 		Connection connection = mock(Connection.class);
 		doAnswer(new Answer<Channel>() {
 			@Override
@@ -156,13 +165,18 @@ public class InboundEndpointTests {
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
+		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 
 		DirectChannel channel = new DirectChannel();
+
+		final Channel rabbitChannel = mock(Channel.class);
 
 		channel.subscribe(new MessageTransformingHandler(new Transformer() {
 
 			@Override
 			public Message<?> transform(Message<?> message) {
+				assertSame(rabbitChannel, message.getHeaders().get(AmqpHeaders.CHANNEL));
+				assertEquals(123L, message.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
 				return MessageBuilder.fromMessage(message)
 						.setHeader(JsonHeaders.TYPE_ID, "foo")
 						.setHeader(JsonHeaders.CONTENT_TYPE_ID, "bar")
@@ -207,10 +221,11 @@ public class InboundEndpointTests {
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		amqpMessageProperties.setReplyTo("test");
+		amqpMessageProperties.setDeliveryTag(123L);
 		org.springframework.amqp.core.Message amqpMessage = new JsonMessageConverter().toMessage(payload, amqpMessageProperties);
 
-		MessageListener listener = (MessageListener) container.getMessageListener();
-		listener.onMessage(amqpMessage);
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		listener.onMessage(amqpMessage, rabbitChannel);
 
 	}
 
