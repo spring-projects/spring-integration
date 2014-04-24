@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,28 @@
  */
 package org.springframework.integration.jpa.outbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.hamcrest.Matchers;
+import org.hibernate.TypeMismatchException;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -39,11 +45,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * the components integrated.
  *
  * @author Amol Nayak
+ * @author Artem Bilan
  * @since 3.0
  *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class JpaOutboundGatewayIntegrationTests {
 
 	@Autowired
@@ -55,7 +63,28 @@ public class JpaOutboundGatewayIntegrationTests {
 	private SubscribableChannel responseChannel;
 
 	@Autowired
+	@Qualifier("findByEntityClass")
+	private SubscribableChannel findByEntityClassChannel;
+
+	@Autowired
+	@Qualifier("findByPayloadType")
+	private SubscribableChannel findByPayloadTypeChannel;
+
+	@Autowired
+	@Qualifier("invalidIdType")
+	private SubscribableChannel invalidIdTypeChannel;
+
+	@Autowired
 	private EntityManager entityManager;
+
+	private volatile MessageHandler handler;
+
+	@After
+	public void tearDown() {
+		if (this.handler != null) {
+			responseChannel.unsubscribe(this.handler);
+		}
+	}
 
 	/**
 	 * Sends a message with the payload as a integer representing the start number in the result
@@ -64,18 +93,70 @@ public class JpaOutboundGatewayIntegrationTests {
 	 */
 	@Test
 	public void retrieveFromSecondRecordAndMaximumOneRecord() throws Exception {
-		responseChannel.subscribe(new MessageHandler() {
-			@SuppressWarnings("rawtypes")
+		this.handler = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				assertEquals(2, ((List) message.getPayload()).size());
+				assertEquals(2, ((List<?>) message.getPayload()).size());
 				assertEquals(1, entityManager.createQuery("from Student").getResultList().size());
 			}
-		});
+		};
+		this.responseChannel.subscribe(this.handler);
+
 		Message<Integer> message = MessageBuilder
 						.withPayload(1)
 						.setHeader("maxResults", "10")
 						.build();
-		requestChannel.send(message);
+		this.requestChannel.send(message);
 	}
+
+	@Test
+	public void testFindByEntityClass() throws Exception {
+		this.handler = new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
+				StudentDomain student = (StudentDomain) message.getPayload();
+				assertEquals("First One", student.getFirstName());
+			}
+		};
+		this.responseChannel.subscribe(this.handler);
+
+		Message<Long> message = MessageBuilder.withPayload(1001L).build();
+		this.findByEntityClassChannel.send(message);
+	}
+
+	@Test
+	public void testFindByPayloadType() throws Exception {
+		this.handler = new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
+				StudentDomain student = (StudentDomain) message.getPayload();
+				assertEquals("First Two", student.getFirstName());
+			}
+		};
+		this.responseChannel.subscribe(this.handler);
+
+		StudentDomain payload = new StudentDomain();
+		payload.setRollNumber(1002L);
+		Message<StudentDomain> message = MessageBuilder.withPayload(payload).build();
+		this.findByPayloadTypeChannel.send(message);
+	}
+
+	@Test
+	public void testInvalidIdType() throws Exception {
+		Message<Integer> message = MessageBuilder.withPayload(1).build();
+		try {
+			this.invalidIdTypeChannel.send(message);
+			fail("PersistenceException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause(), Matchers.instanceOf(IllegalArgumentException.class));
+			assertThat(e.getCause().getCause(), Matchers.instanceOf(TypeMismatchException.class));
+			assertThat(e.getCause().getMessage(),
+					Matchers.containsString("Expected: class java.lang.Long, got class java.lang.Integer"));
+		}
+	}
+
 }

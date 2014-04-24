@@ -19,7 +19,7 @@
 		auto-startup="true"
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		order="1"
-		max-number-of-results="55"
+		max-results="55"
 		first-result="1"
 		first-result-expression="header['firstResult']"
 		request-channel="in"
