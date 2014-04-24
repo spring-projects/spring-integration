@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Strategy interface for post-processing annotated methods.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public interface MethodAnnotationPostProcessor<T extends Annotation> {
 
-	Object postProcess(Object bean, String beanName, Method method, T annotation);
+	Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations);
 
 }

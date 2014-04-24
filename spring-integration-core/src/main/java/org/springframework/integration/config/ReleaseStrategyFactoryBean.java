@@ -24,6 +24,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
+import org.springframework.integration.config.annotation.MessagingAnnotationUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,7 +66,8 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy> 
 				this.delegate = new MethodInvokingReleaseStrategy(target, methodName);
 			}
 			else {
-				Method method = AnnotationFinder.findAnnotatedMethod(target, org.springframework.integration.annotation.ReleaseStrategy.class);
+				Method method = MessagingAnnotationUtils.findAnnotatedMethod(target,
+						org.springframework.integration.annotation.ReleaseStrategy.class);
 				if (method != null) {
 					this.delegate = new MethodInvokingReleaseStrategy(target, method);
 				}

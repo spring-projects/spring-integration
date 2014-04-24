@@ -18,10 +18,10 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Aggregator;
@@ -64,6 +65,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
 		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware {
@@ -117,7 +119,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		final Class<?> beanClass = this.getBeanClass(bean);
-		if (!this.isStereotype(beanClass)) {
+		if (AnnotationUtils.findAnnotation(beanClass, Component.class) == null) {
 			// we only post-process stereotype components
 			return bean;
 		}
@@ -125,20 +127,27 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			@Override
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				List<Annotation> annotations = new ArrayList<Annotation>();
-				for (Class<? extends Annotation> annotation : postProcessors.keySet()) {
-					Annotation result = AnnotationUtils.getAnnotation(method, annotation);
-					if (result != null) {
-						annotations.add(result);
+				Map<Class<? extends Annotation>, List<Annotation>> annotationChains =
+						new HashMap<Class<? extends Annotation>, List<Annotation>>();
+				for (Class<? extends Annotation> annotationType : postProcessors.keySet()) {
+					if (AnnotatedElementUtils.isAnnotated(method, annotationType.getName())) {
+						List<Annotation> annotationChain = getAnnotationChain(method, annotationType);
+						if (annotationChain.size() > 0) {
+							annotationChains.put(annotationType, annotationChain);
+						}
 					}
 				}
-				for (Annotation annotation : annotations) {
-					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
-					if (postProcessor != null && shouldCreateEndpoint(annotation)) {
-						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
+
+				for (Map.Entry<Class<? extends Annotation>, List<Annotation>> entry : annotationChains.entrySet()) {
+					Class<? extends Annotation> annotationType = entry.getKey();
+					List<Annotation> annotations = entry.getValue();
+					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotationType);
+					if (postProcessor != null && shouldCreateEndpoint(annotations)) {
+						Object result = postProcessor.postProcess(bean, beanName, method, annotations);
 						if (result != null && result instanceof AbstractEndpoint) {
 							AbstractEndpoint endpoint = (AbstractEndpoint) result;
-							String autoStartup = (String) AnnotationUtils.getValue(annotation, "autoStartup");
+							String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
+									String.class);
 							if (StringUtils.hasText(autoStartup)) {
 								if (environment != null) {
 									autoStartup = environment.resolvePlaceholders(autoStartup);
@@ -148,7 +157,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								}
 							}
 
-							String phase = (String) AnnotationUtils.getValue(annotation, "phase");
+							String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 							if (StringUtils.hasText(phase)) {
 								if (environment != null) {
 									phase = environment.resolvePlaceholders(phase);
@@ -158,7 +167,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								}
 							}
 
-							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
+							String endpointBeanName = generateBeanName(beanName, method, annotationType);
 							endpoint.setBeanName(endpointBeanName);
 							beanFactory.registerSingleton(endpointBeanName, endpoint);
 							endpoint.setBeanFactory(beanFactory);
@@ -179,37 +188,68 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					}
 				}
 			}
-		});
+		}, ReflectionUtils.USER_DECLARED_METHODS);
+
 		return bean;
 	}
 
-	private boolean shouldCreateEndpoint(Annotation annotation) {
-		Object inputChannel = AnnotationUtils.getValue(annotation, "inputChannel");
-		if (inputChannel == null && annotation instanceof InboundChannelAdapter) {
-			inputChannel = AnnotationUtils.getValue(annotation);
+	/**
+	 * @param method the method.
+	 * @param annotationType the annotation type.
+	 * @return the hierarchical list of annotations in top-bottom order.
+	 */
+	private List<Annotation> getAnnotationChain(Method method, Class<? extends Annotation> annotationType) {
+		Annotation[] annotations = AnnotationUtils.getAnnotations(method);
+		List<Annotation> annotationChain = new LinkedList<Annotation>();
+		Set<Annotation> visited = new HashSet<Annotation>();
+		for (Annotation ann : annotations) {
+			this.recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
+			if (annotationChain.size() > 0) {
+				Collections.reverse(annotationChain);
+				return annotationChain;
+			}
 		}
-		return (inputChannel != null && inputChannel instanceof String
-				&& StringUtils.hasText((String) inputChannel));
+		return annotationChain;
+	}
+
+	private boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
+			List<Annotation> annotationChain, Set<Annotation> visited) {
+		if (ann.annotationType().equals(annotationType)) {
+			annotationChain.add(ann);
+			return true;
+		}
+		for (Annotation metaAnn : ann.annotationType().getAnnotations()) {
+			if (!ann.equals(metaAnn) && !visited.contains(metaAnn)
+					&& !(metaAnn.annotationType().getPackage().getName().startsWith("java.lang"))) {
+				visited.add(metaAnn); // prevent infinite recursion if the same annotation is found again
+				if (this.recursiveFindAnnotation(annotationType, metaAnn, annotationChain, visited)) {
+					annotationChain.add(ann);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean shouldCreateEndpoint(List<Annotation> annotations) {
+		for (Annotation annotation : annotations) {
+			Object inputChannel = AnnotationUtils.getValue(annotation, "inputChannel");
+			if (inputChannel == null &&
+					(annotation instanceof InboundChannelAdapter ||
+							AnnotationUtils.findAnnotation(annotation.annotationType(), InboundChannelAdapter.class) != null)) {
+				inputChannel = AnnotationUtils.getValue(annotation);
+			}
+			if (inputChannel != null && inputChannel instanceof String
+					&& StringUtils.hasText((String) inputChannel)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private Class<?> getBeanClass(Object bean) {
 		Class<?> targetClass = AopUtils.getTargetClass(bean);
 		return (targetClass != null) ? targetClass : bean.getClass();
-	}
-
-	private boolean isStereotype(Class<?> beanClass) {
-		List<Annotation> annotations = new ArrayList<Annotation>(Arrays.asList(beanClass.getAnnotations()));
-		Class<?>[] interfaces = beanClass.getInterfaces();
-		for (Class<?> iface : interfaces) {
-			annotations.addAll(Arrays.asList(iface.getAnnotations()));
-		}
-		for (Annotation annotation : annotations) {
-			Class<? extends Annotation> annotationType = annotation.annotationType();
-			if (annotationType.equals(Component.class) || annotationType.isAnnotationPresent(Component.class)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private String generateBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {

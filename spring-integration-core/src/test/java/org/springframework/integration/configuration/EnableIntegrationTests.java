@@ -16,24 +16,20 @@
 
 package org.springframework.integration.configuration;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.aopalliance.intercept.MethodInterceptor;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +49,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
+import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -76,6 +74,7 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -154,6 +153,9 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private TestGateway testGateway;
+
+	@Autowired
+	private TestGateway2 testGateway2;
 
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
@@ -297,6 +299,7 @@ public class EnableIntegrationTests {
 	public void testMessagingGateway() {
 		String payload = "bar";
 		assertEquals(payload.toUpperCase(), this.testGateway.echo(payload));
+		assertEquals(payload.toUpperCase() + "2", this.testGateway2.echo2(payload));
 	}
 
 	@Test
@@ -335,6 +338,83 @@ public class EnableIntegrationTests {
 		assertTrue(this.bytesChannel.send(new GenericMessage<Message<?>>(MutableMessageBuilder.withPayload("").build())));
 
 	}
+
+	@Test
+	public void testMetaAnnotations() {
+
+		assertEquals(2, this.context.getBeanNamesForType(GatewayProxyFactoryBean.class).length);
+
+		PollingConsumer consumer = this.context.getBean(
+				"enableIntegrationTests.AnnotationTestService.annCount.serviceActivator",
+				PollingConsumer.class);
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
+		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
+				"handler.adviceChain", List.class).get(0));
+		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
+
+		consumer = this.context.getBean(
+					"enableIntegrationTests.AnnotationTestService.annCount1.serviceActivator",
+					PollingConsumer.class);
+		consumer.stop();
+		assertTrue(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
+		assertSame(context.getBean("annInput1"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertSame(context.getBean("annAdvice1"), TestUtils.getPropertyValue(consumer,
+				"handler.adviceChain", List.class).get(0));
+		assertEquals(2000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
+
+		consumer = this.context.getBean(
+				"enableIntegrationTests.AnnotationTestService.annCount2.serviceActivator",
+				PollingConsumer.class);
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
+		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
+				"handler.adviceChain", List.class).get(0));
+		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
+
+		// Tests when the channel is in a "middle" annotation
+		consumer = this.context.getBean(
+				"enableIntegrationTests.AnnotationTestService.annCount5.serviceActivator",
+				PollingConsumer.class);
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
+		assertSame(context.getBean("annInput3"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
+				"handler.adviceChain", List.class).get(0));
+		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
+
+		consumer = this.context.getBean(
+				"enableIntegrationTests.AnnotationTestService.annAgg1.aggregator",
+				PollingConsumer.class);
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
+		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.discardChannel"));
+		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
+		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
+
+		consumer = this.context.getBean(
+				"enableIntegrationTests.AnnotationTestService.annAgg2.aggregator",
+				PollingConsumer.class);
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
+		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.discardChannel"));
+		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
+		assertEquals(75L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertTrue(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
+	}
+
 
 	@Configuration
 	@ComponentScan
@@ -433,6 +513,38 @@ public class EnableIntegrationTests {
 			};
 		}
 
+		// beans for metaAnnotation tests
+
+		@Bean
+		public MethodInterceptor annAdvice() {
+			return mock(MethodInterceptor.class);
+		}
+
+		@Bean
+		public QueueChannel annInput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel annOutput() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public MethodInterceptor annAdvice1() {
+			return mock(MethodInterceptor.class);
+		}
+
+		@Bean
+		public QueueChannel annInput1() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel annInput3() {
+			return new QueueChannel();
+		}
+
 	}
 
 	@Component
@@ -489,6 +601,11 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public PollableChannel gatewayChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel gatewayChannel2() {
 			return new QueueChannel();
 		}
 
@@ -624,8 +741,16 @@ public class EnableIntegrationTests {
 			return this.handle(message.getPayload());
 		}
 
-		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false",
-				phase = "23")
+		@Transformer(inputChannel = "gatewayChannel2")
+		public String transform2(Message<String> message) {
+			assertTrue(message.getHeaders().containsKey("foo"));
+			assertEquals("FOO", message.getHeaders().get("foo"));
+			assertTrue(message.getHeaders().containsKey("calledMethod"));
+			assertEquals("echo2", message.getHeaders().get("calledMethod"));
+			return this.handle(message.getPayload()) + "2";
+		}
+
+		@MyInboundChannelAdapter1
 		public Integer count() {
 			return this.counter.incrementAndGet();
 		}
@@ -656,6 +781,44 @@ public class EnableIntegrationTests {
 		public void error2() {
 		}*/
 
+		// metaAnnotation tests
+
+		@MyServiceActivator
+		public Integer annCount() {
+			return 0;
+		}
+
+		@MyServiceActivator1(inputChannel = "annInput1", autoStartup = "true",
+				adviceChain = { "annAdvice1" }, poller = @Poller(fixedRate = "2000") )
+		public Integer annCount1() {
+			return 0;
+		}
+
+		@MyServiceActivatorNoLocalAtts()
+		public Integer annCount2() {
+			return 0;
+		}
+
+		@MyServiceActivator5
+		public Integer annCount5() {
+			return 0;
+		}
+
+		@MyServiceActivator8
+		public Integer annCount8() {
+			return 0;
+		}
+
+		@MyAggregator
+		public Integer annAgg1(List<?> messages) {
+			return 42;
+		}
+
+		@MyAggregatorDefaultOverrideDefaults
+		public Integer annAgg2(List<?> messages) {
+			return 42;
+		}
+
 	}
 
 	@TestMessagingGateway
@@ -666,13 +829,217 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target(ElementType.TYPE)
+	@TestMessagingGateway2
+	public static interface TestGateway2 {
+
+		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
+		String echo2(String payload);
+
+	}
+
+	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public static @interface TestMessagingGateway {
+
+		String defaultRequestChannel() default "";
+
 	}
 
+	@Target(ElementType.TYPE)
+	@Retention(RetentionPolicy.RUNTIME)
+	@TestMessagingGateway(defaultRequestChannel = "gatewayChannel2")
+	public static @interface TestMessagingGateway2 {
+
+		String defaultRequestChannel() default "";
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@ServiceActivator(autoStartup = "false",
+					  phase = "23",
+					  inputChannel = "annInput",
+					  outputChannel = "annOutput",
+					  adviceChain = { "annAdvice" },
+					  poller = @Poller(fixedDelay = "1000"))
+	public static @interface MyServiceActivator {
+
+		String inputChannel() default "";
+
+		String outputChannel() default "";
+
+		String[] adviceChain() default {};
+
+		String autoStartup() default "";
+
+		String phase() default "";
+
+		Poller[] poller() default {};
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator
+	public static @interface MyServiceActivator1 {
+
+		String inputChannel() default "";
+
+		String outputChannel() default "";
+
+		String[] adviceChain() default {};
+
+		String autoStartup() default "";
+
+		String phase() default "";
+
+		Poller[] poller() default {};
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator1
+	public static @interface MyServiceActivator2 {
+
+		String inputChannel() default "";
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator2
+	public static @interface MyServiceActivator3 {
+
+		String inputChannel() default "";
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator3(inputChannel = "annInput3")
+	public static @interface MyServiceActivator4 {
+
+		String inputChannel() default "";
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator4
+	public static @interface MyServiceActivator5 {
+
+		String inputChannel() default "";
+
+	}
+
+	// Test prevent infinite recursion
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator5
+	public static @interface MyServiceActivator6 {
+
+		String inputChannel() default "";
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator8
+	public static @interface MyServiceActivator7 {
+
+		String inputChannel() default "";
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyServiceActivator7
+	public static @interface MyServiceActivator8 {
+
+		String inputChannel() default "";
+
+	}
+	// end test infinite recursion
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@ServiceActivator(autoStartup = "false",
+					  phase = "23",
+					  inputChannel = "annInput",
+					  outputChannel = "annOutput",
+					  adviceChain = { "annAdvice" },
+					  poller = @Poller(fixedDelay = "1000"))
+	public static @interface MyServiceActivatorNoLocalAtts {
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@Aggregator(autoStartup = "false",
+				phase = "23",
+				inputChannel = "annInput",
+				outputChannel = "annOutput",
+				discardChannel = "annOutput",
+				poller = @Poller(fixedDelay = "1000"))
+	public static @interface MyAggregator {
+
+		String inputChannel() default "";
+
+		String outputChannel() default "";
+
+		String discardChannel() default "";
+
+		long sendTimeout() default AbstractCorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
+
+		boolean sendPartialResultsOnExpiry() default false;
+
+		String autoStartup() default "";
+
+		String phase() default "";
+
+		Poller[] poller() default {};
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@Aggregator(autoStartup = "false",
+				phase = "23",
+				inputChannel = "annInput",
+				outputChannel = "annOutput",
+				discardChannel = "annOutput",
+				sendPartialResultsOnExpiry = false,
+				sendTimeout = 1000L,
+				poller = @Poller(fixedDelay = "1000"))
+	public static @interface MyAggregatorDefaultOverrideDefaults {
+
+		boolean sendPartialResultsOnExpiry() default true;
+
+		long sendTimeout() default 75;
+
+	}
+
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	@InboundChannelAdapter(value = "counterChannel", autoStartup = "false", phase = "23")
+	public static @interface MyInboundChannelAdapter {
+
+		String value() default "";
+
+		String autoStartup() default "";
+
+		String phase() default "";
+
+		Poller[] poller() default {};
+
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@MyInboundChannelAdapter
+	public static @interface MyInboundChannelAdapter1 {
+
+	}
 
 	// Error because the annotation is on a class; it must be on an interface
 //	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))

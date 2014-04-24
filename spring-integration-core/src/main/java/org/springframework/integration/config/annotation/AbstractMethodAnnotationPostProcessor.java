@@ -28,6 +28,7 @@ import org.aopalliance.aop.Advice;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -77,19 +78,23 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final DestinationResolver<MessageChannel> channelResolver;
 
+	protected final Class<T> annotationType;
 
+	@SuppressWarnings("unchecked")
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
 		this.environment = environment;
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
+				MethodAnnotationPostProcessor.class);
 	}
 
 
 	@Override
-	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
-		MessageHandler handler = this.createHandler(bean, method, annotation);
-		this.setAdviceChainIfPresent(beanName, annotation, handler);
+	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
+		MessageHandler handler = this.createHandler(bean, method, annotations);
+		this.setAdviceChainIfPresent(beanName, annotations, handler);
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
@@ -97,12 +102,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			String handlerBeanName = this.generateHandlerBeanName(beanName, method, annotation.annotationType());
+			String handlerBeanName = this.generateHandlerBeanName(beanName, method);
 			ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
 			listableBeanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) listableBeanFactory.initializeBean(handler, handlerBeanName);
 		}
-		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation);
+		AbstractEndpoint endpoint = this.createEndpoint(handler, annotations);
 		if (endpoint != null) {
 			return endpoint;
 		}
@@ -110,8 +115,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 
-	protected final void setAdviceChainIfPresent(String beanName, T annotation, MessageHandler handler) {
-		String[] adviceChainNames = (String[]) AnnotationUtils.getValue(annotation, ADVICE_CHAIN_ATTRIBUTE);
+	protected final void setAdviceChainIfPresent(String beanName, List<Annotation> annotations, MessageHandler handler) {
+		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
+				String[].class);
+		/*
+		 * Note: we don't merge advice chain contents; if the directAnnotation has a non-empty
+		 * attribute, it wins. You cannot "remove" an advice chain from a meta-annotation
+		 * by setting an empty array on the custom annotation.
+		 */
 		if (adviceChainNames != null && adviceChainNames.length > 0) {
 			if (!(handler instanceof AbstractReplyProducingMessageHandler)) {
 				throw new IllegalArgumentException("Cannot apply advice chain to " + handler.getClass().getName());
@@ -141,9 +152,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 	}
 
-	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation) {
+	private AbstractEndpoint createEndpoint(MessageHandler handler, List<Annotation> annotations) {
 		AbstractEndpoint endpoint = null;
-		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
+		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, INPUT_CHANNEL_ATTRIBUTE,
+				String.class);
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel;
 			try {
@@ -161,22 +173,22 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 			if (inputChannel instanceof PollableChannel) {
 				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-				this.configurePollingEndpoint(pollingConsumer, annotation);
+				this.configurePollingEndpoint(pollingConsumer, annotations);
 				endpoint = pollingConsumer;
 			}
 			else {
-				Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
-				Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for for Annotation-based endpoint, " +
-						"since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
+				Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
+				Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
+						"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 			}
 		}
 		return endpoint;
 	}
 
-	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, T annotation) {
+	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, List<Annotation> annotations) {
 		PollerMetadata pollerMetadata = null;
-		Poller[] pollers = (Poller[]) AnnotationUtils.getValue(annotation, "poller");
+		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
 		if (!ObjectUtils.isEmpty(pollers)) {
 			Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
 			Poller poller = pollers[0];
@@ -190,9 +202,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String cron = this.environment.resolvePlaceholders(poller.cron());
 
 			if (StringUtils.hasText(ref)) {
-				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) && !StringUtils.hasText(cron)
-								&& !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue)
-								&& !StringUtils.hasText(maxMessagesPerPollValue),
+				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) &&
+								!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) &&
+								!StringUtils.hasText(fixedRateValue) && !StringUtils.hasText(maxMessagesPerPollValue),
 						"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
 				pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
 			}
@@ -206,7 +218,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 				Trigger trigger = null;
 				if (StringUtils.hasText(triggerRef)) {
-					Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
+					Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue)
+									&& !StringUtils.hasText(fixedRateValue),
 							"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
 					trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
 				}
@@ -246,8 +259,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		pollingEndpoint.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
 	}
 
-	protected String generateHandlerBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
-		String baseName = originalBeanName + "." + method.getName() + "." + ClassUtils.getShortNameAsProperty(annotationType);
+	protected String generateHandlerBeanName(String originalBeanName, Method method) {
+		String baseName = originalBeanName + "." + method.getName() + "."
+				+ ClassUtils.getShortNameAsProperty(this.annotationType);
 		String name = baseName;
 		int count = 1;
 		while (this.beanFactory.containsBean(name)) {
@@ -256,14 +270,20 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 	}
 
+	protected void setOutputChannelIfPresent(List<Annotation> annotations, AbstractReplyProducingMessageHandler	handler) {
+		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
+		if (StringUtils.hasText(outputChannelName)) {
+			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
+		}
+	}
+
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
 	 *
 	 * @param bean The bean.
 	 * @param method The method.
-	 * @param annotation The annotation.
 	 * @return The MessageHandler.
 	 */
-	protected abstract MessageHandler createHandler(Object bean, Method method, T annotation);
+	protected abstract MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations);
 
 }

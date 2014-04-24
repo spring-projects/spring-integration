@@ -16,19 +16,21 @@
 
 package org.springframework.integration.config.annotation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
-import org.springframework.util.StringUtils;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * Post-processor for Methods annotated with {@link Splitter @Splitter}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Splitter> {
 
@@ -38,12 +40,9 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method, Splitter annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(bean, method);
-		String outputChannelName = annotation.outputChannel();
-		if (StringUtils.hasText(outputChannelName)) {
-			splitter.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
-		}
+		this.setOutputChannelIfPresent(annotations, splitter);
 		return splitter;
 	}
 
