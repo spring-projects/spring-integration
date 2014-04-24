@@ -46,6 +46,23 @@
 			id-expression="payload.rollNumber"
 			reply-channel="out"/>
 
+	<int:channel id="findAndDelete"/>
+
+	<int:channel id="findResultChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int-jpa:retrieving-outbound-gateway
+			entity-manager="entityManager"
+			request-channel="findAndDelete"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			id-expression="payload"
+			delete-after-poll="true"
+			requires-reply="true"
+			reply-channel="findResultChannel">
+		<int-jpa:transactional/>
+	</int-jpa:retrieving-outbound-gateway>
+
 	<int:channel id="invalidIdType"/>
 
 	<int-jpa:retrieving-outbound-gateway

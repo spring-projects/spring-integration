@@ -280,39 +280,41 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 			if (entityClass == null) {
 				entityClass = requestMessage.getPayload().getClass();
 			}
-			return this.jpaOperations.find(entityClass, id);
-		}
-
-		final List<?> result;
-		int maxNumberOfResults = this.evaluateExpressionForNumericResult(requestMessage, this.maxResultsExpression);
-		if (requestMessage == null) {
-			result = this.doPoll(this.parameterSource, 0, maxNumberOfResults);
-		}
-		else {
-			int firstResult = 0;
-			if(firstResultExpression != null) {
-				firstResult = this.getFirstResult(requestMessage);
-			}
-			ParameterSource parameterSource = this.determineParameterSource(requestMessage);
-			result = this.doPoll(parameterSource, firstResult, maxNumberOfResults);
-		}
-
-		if (result.isEmpty()) {
-			payload = null;
+			payload = this.jpaOperations.find(entityClass, id);
 		}
 		else {
 
-			if (this.expectSingleResult) {
-				if (result.size() == 1) {
-					payload = result.iterator().next();
-				}
-				else {
-					throw new MessagingException(requestMessage,
-						"The Jpa operation returned more than 1 result object but expectSingleResult was 'true'.");
-				}
+			final List<?> result;
+			int maxNumberOfResults = this.evaluateExpressionForNumericResult(requestMessage, this.maxResultsExpression);
+			if (requestMessage == null) {
+				result = this.doPoll(this.parameterSource, 0, maxNumberOfResults);
 			}
 			else {
-				payload = result;
+				int firstResult = 0;
+				if (firstResultExpression != null) {
+					firstResult = this.getFirstResult(requestMessage);
+				}
+				ParameterSource parameterSource = this.determineParameterSource(requestMessage);
+				result = this.doPoll(parameterSource, firstResult, maxNumberOfResults);
+			}
+
+			if (result.isEmpty()) {
+				payload = null;
+			}
+			else {
+
+				if (this.expectSingleResult) {
+					if (result.size() == 1) {
+						payload = result.iterator().next();
+					}
+					else {
+						throw new MessagingException(requestMessage,
+								"The Jpa operation returned more than 1 result object but expectSingleResult was 'true'.");
+					}
+				}
+				else {
+					payload = result;
+				}
 			}
 		}
 

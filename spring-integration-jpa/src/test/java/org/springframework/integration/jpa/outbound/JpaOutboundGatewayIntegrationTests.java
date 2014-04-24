@@ -29,12 +29,14 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,6 +71,14 @@ public class JpaOutboundGatewayIntegrationTests {
 	@Autowired
 	@Qualifier("findByPayloadType")
 	private SubscribableChannel findByPayloadTypeChannel;
+
+	@Autowired
+	@Qualifier("findAndDelete")
+	private SubscribableChannel findAndDeleteChannel;
+
+	@Autowired
+	@Qualifier("findResultChannel")
+	private PollableChannel findResultChannel;
 
 	@Autowired
 	@Qualifier("invalidIdType")
@@ -141,6 +151,22 @@ public class JpaOutboundGatewayIntegrationTests {
 		payload.setRollNumber(1002L);
 		Message<StudentDomain> message = MessageBuilder.withPayload(payload).build();
 		this.findByPayloadTypeChannel.send(message);
+	}
+
+	@Test
+	public void testFindAndDelete() throws Exception {
+		Message<Long> message = MessageBuilder.withPayload(1001L).build();
+		this.findAndDeleteChannel.send(message);
+
+		Message<?> receive = this.findResultChannel.receive(2000);
+		assertNotNull(receive);
+
+		try {
+			this.findAndDeleteChannel.send(message);
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(ReplyRequiredException.class));
+		}
 	}
 
 	@Test
