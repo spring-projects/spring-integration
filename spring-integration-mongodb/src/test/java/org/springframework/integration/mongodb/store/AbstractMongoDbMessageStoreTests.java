@@ -15,16 +15,13 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.mongodb.MongoClient;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -42,8 +39,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.mongodb.Mongo;
-
 /**
  *
  * @author Mark Fisher
@@ -58,7 +53,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	@Test
 	@MongoDbAvailable
 	public void testAddGetWithStringPayload() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
@@ -73,7 +68,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	@Test
 	@MongoDbAvailable
 	public void testAddThenRemoveWithStringPayload() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
@@ -88,7 +83,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	@Test
 	@MongoDbAvailable
 	public void testAddGetWithObjectDefaultConstructorPayload() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -106,7 +101,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	@Test
 	@MongoDbAvailable
 	public void testWithMessageHistory() throws Exception{
-		cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Foo foo = new Foo();
 		foo.setName("foo");
@@ -144,7 +139,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	@Test
 	@MongoDbAvailable
 	public void testInt3153SequenceDetails() throws Exception{
-		cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("test")
 				.pushSequenceDetails(UUID.randomUUID(), 1, 1)

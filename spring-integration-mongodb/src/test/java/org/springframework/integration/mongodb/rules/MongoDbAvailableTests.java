@@ -16,18 +16,18 @@
 
 package org.springframework.integration.mongodb.rules;
 
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
 import org.junit.Rule;
 
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
-
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
 
 /**
  * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
@@ -42,7 +42,7 @@ public abstract class MongoDbAvailableTests {
 
 
 	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
 		return mongoDbFactory;
 	}
@@ -144,7 +144,7 @@ public abstract class MongoDbAvailableTests {
 		public TestMongoConverter(
 				MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
-			super(mongoDbFactory, mappingContext);
+			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
 
 		@Override

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mongodb.rules;
 
+import com.mongodb.MongoClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.rules.MethodRule;
@@ -42,7 +43,7 @@ public final class MongoDbAvailableRule implements MethodRule {
 				MongoDbAvailable mongoAvailable = method.getAnnotation(MongoDbAvailable.class);
 				if (mongoAvailable != null) {
 					try {
-						Mongo mongo = new Mongo();
+						Mongo mongo = new MongoClient();
 						mongo.getDatabaseNames();
 					}
 					catch (Exception e) {

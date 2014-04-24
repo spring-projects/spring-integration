@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 import java.util.Map;
 
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -50,7 +50,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	 */
 	@Override
 	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
 		GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		testApplicationContext.refresh();
@@ -76,7 +76,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testWithCustomConverter() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
@@ -90,7 +90,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@MongoDbAvailable
 	public void testPriorityChannel() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
+		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();

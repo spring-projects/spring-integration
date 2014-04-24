@@ -21,7 +21,6 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.index.Index;
-import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
@@ -91,10 +90,10 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
 		this.mongoTemplate.indexOps(this.collectionName)
-				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Order.ASCENDING)
-						.on(MessageDocumentFields.PRIORITY, Order.DESCENDING)
-						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Order.ASCENDING)
-						.on(MessageDocumentFields.SEQUENCE, Order.ASCENDING));
+				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+						.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
+						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
+						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.ASC));
 	}
 
 	@Override
