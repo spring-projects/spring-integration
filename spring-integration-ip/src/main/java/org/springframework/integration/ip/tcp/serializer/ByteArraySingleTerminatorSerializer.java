@@ -50,24 +50,38 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 		if (logger.isDebugEnabled()) {
 			logger.debug("Available to read:" + inputStream.available());
 		}
-		while (true) {
-			bite = inputStream.read();
-			if (bite < 0 && n == 0) {
-				throw new SoftEndOfStreamException("Stream closed between payloads");
-			}
-			checkClosure(bite);
-			if (bite == terminator) {
-				break;
-			}
-			buffer[n++] = (byte) bite;
-			if (n >= this.maxMessageSize) {
-				throw new IOException("LF not found before max message length: "
-						+ this.maxMessageSize);
-			}
-		};
-		byte[] assembledData = new byte[n];
-		System.arraycopy(buffer, 0, assembledData, 0, n);
-		return assembledData;
+		try {
+			while (true) {
+				bite = inputStream.read();
+				if (bite < 0 && n == 0) {
+					throw new SoftEndOfStreamException("Stream closed between payloads");
+				}
+				checkClosure(bite);
+				if (bite == terminator) {
+					break;
+				}
+				buffer[n++] = (byte) bite;
+				if (n >= this.maxMessageSize) {
+					throw new IOException("Terminator '0x" + Integer.toHexString(terminator & 0xff)
+							+ "' not found before max message length: "
+							+ this.maxMessageSize);
+				}
+			};
+			byte[] assembledData = new byte[n];
+			System.arraycopy(buffer, 0, assembledData, 0, n);
+			return assembledData;
+		}
+		catch (SoftEndOfStreamException e) {
+			throw e;
+		}
+		catch (IOException e) {
+			publishEvent(e, buffer, n);
+			throw e;
+		}
+		catch (RuntimeException e) {
+			publishEvent(e, buffer, n);
+			throw e;
+		}
 	}
 
 	/**

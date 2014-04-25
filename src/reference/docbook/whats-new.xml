@@ -341,5 +341,14 @@
 				See <xref linkend="jpa-retrieving-outbound-gateway"/> for more information.
 			</para>
 		</section>
+		<section id="4.0-tcp-deserializer-events">
+			<title>TCP Deserialization Events</title>
+			<para>
+				When one of the standard deserializers encounters a problem decoding the input stream to
+				a message, it will now emit a <classname>TcpDeserializationExceptionEvent</classname>, allowing
+				applications to examine the data at the point the exception occurred.
+				See <xref linkend="tcp-events"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

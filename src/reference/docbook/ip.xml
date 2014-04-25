@@ -500,6 +500,14 @@
         </listitem>
       </itemizedlist>
     </para>
+    <para>
+        In addition, since <emphasis>version 4.0</emphasis> the standard deserializers discussed in
+        <xref linkend="connection-factories"/> now emit <classname>TcpDeserializationExceptionEvent</classname>s
+        when problems are encountered decoding the data stream. These events contain the exception, the
+        buffer that was in the process of being built, and an offset into the buffer (if available) at the
+        point the exception occurred. Applications can use a normal <interfacename>ApplicationListener</interfacename>,
+        or see <xref linkend="applicationevent-inbound"/>, to capture these events, allowing analysis of the problem.
+    </para>
   </section>
   <section id="tcp-adapters">
     <title>TCP Adapters</title>

@@ -89,6 +89,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 
+	private volatile boolean deserializerSet;
+
 	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
 
 	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
@@ -130,6 +132,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+		if (!this.deserializerSet && this.deserializer instanceof ApplicationEventPublisherAware) {
+			((ApplicationEventPublisherAware) this.deserializer)
+					.setApplicationEventPublisher(applicationEventPublisher);
+		}
 	}
 
 	protected ApplicationEventPublisher getApplicationEventPublisher() {
@@ -345,6 +351,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	public void setDeserializer(Deserializer<?> deserializer) {
 		this.deserializer = deserializer;
+		this.deserializerSet = true;
 	}
 
 	/**
