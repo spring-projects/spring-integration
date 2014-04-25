@@ -68,7 +68,7 @@ public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 	@Override
 	protected String getInputChannelAttribute() {
-		return "value";
+		return AnnotationUtils.VALUE;
 	}
 
 	@Override

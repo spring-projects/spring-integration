@@ -31,7 +31,6 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link InboundChannelAdapter @InboundChannelAdapter}.
@@ -48,9 +47,8 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 	}
 
 	@Override
-	public boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
-		String channel = MessagingAnnotationUtils.resolveAttribute(annotations, "value", String.class);
-		return StringUtils.hasText(channel);
+	protected String getInputChannelAttribute() {
+		return AnnotationUtils.VALUE;
 	}
 
 	@Override

@@ -93,8 +93,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
-		MessageHandler handler = this.createHandler(bean, method, annotations);
-		this.setAdviceChainIfPresent(beanName, annotations, handler);
+		MessageHandler handler = createHandler(bean, method, annotations);
+		setAdviceChainIfPresent(beanName, annotations, handler);
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
@@ -102,12 +102,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			String handlerBeanName = this.generateHandlerBeanName(beanName, method);
+			String handlerBeanName = generateHandlerBeanName(beanName, method);
 			ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
 			listableBeanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) listableBeanFactory.initializeBean(handler, handlerBeanName);
 		}
-		AbstractEndpoint endpoint = this.createEndpoint(handler, annotations);
+		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
 		if (endpoint != null) {
 			return endpoint;
 		}
@@ -116,10 +116,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	@Override
 	public boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
-		String inputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, "inputChannel", String.class);
+		String inputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(),
+				String.class);
 		return StringUtils.hasText(inputChannel);
 	}
 
+	protected String getInputChannelAttribute() {
+		return INPUT_CHANNEL_ATTRIBUTE;
+	}
 
 	protected final void setAdviceChainIfPresent(String beanName, List<Annotation> annotations, MessageHandler handler) {
 		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
@@ -158,11 +162,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 	}
 
-	protected String getInputChannelAttribute() {
-		return INPUT_CHANNEL_ATTRIBUTE;
-	}
-
-	private AbstractEndpoint createEndpoint(MessageHandler handler, List<Annotation> annotations) {
+	protected AbstractEndpoint createEndpoint(MessageHandler handler, Method method, List<Annotation> annotations) {
 		AbstractEndpoint endpoint = null;
 		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(),
 				String.class);
@@ -181,17 +181,24 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 
-			if (inputChannel instanceof PollableChannel) {
-				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-				this.configurePollingEndpoint(pollingConsumer, annotations);
-				endpoint = pollingConsumer;
-			}
-			else {
-				Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
-				Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
-						"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
-				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
-			}
+			endpoint = doCreateEndpoint(handler, inputChannel, annotations);
+		}
+		return endpoint;
+	}
+
+	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
+			List<Annotation> annotations) {
+		AbstractEndpoint endpoint;
+		if (inputChannel instanceof PollableChannel) {
+			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
+			this.configurePollingEndpoint(pollingConsumer, annotations);
+			endpoint = pollingConsumer;
+		}
+		else {
+			Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
+			Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
+					"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
+			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 		}
 		return endpoint;
 	}
