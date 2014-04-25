@@ -205,7 +205,8 @@
 		<xsd:attribute name="expression" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					Expression to be evaluated to produce a value for the payload.
+					Expression to be evaluated to produce a value for the payload. The root object of the
+					expression evaluation is the GemFire 'EntryEvent'.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
