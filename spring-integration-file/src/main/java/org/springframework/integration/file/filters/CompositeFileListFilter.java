@@ -28,11 +28,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
- * Simple {@link FileListFilter} that predicates its matches against any of many
+ * Simple {@link FileListFilter} that predicates its matches against <b>all</b> of the
  * configured {@link FileListFilter}.
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Gary Russell
  *
  * @param <F> The type that will be filtered.
  */
