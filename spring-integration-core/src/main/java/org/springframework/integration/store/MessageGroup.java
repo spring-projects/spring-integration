@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public interface MessageGroup {
 

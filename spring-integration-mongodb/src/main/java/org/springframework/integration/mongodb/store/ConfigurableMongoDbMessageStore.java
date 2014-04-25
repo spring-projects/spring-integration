@@ -23,9 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
-import com.mongodb.DB;
-import com.mongodb.MongoException;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -36,12 +33,16 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+
+import com.mongodb.DB;
+import com.mongodb.MongoException;
 
 /**
  * An alternate MongoDB {@link MessageStore} and {@link MessageGroupStore} which allows the user to
@@ -320,6 +321,16 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		return this.mongoTemplate.getCollection(this.collectionName)
 				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject())
 				.size();
+	}
+
+	@Override
+	public MessageGroupMetadata getGroupMetadata(Object groupId) {
+		throw new UnsupportedOperationException("Not yet implemented for this store");
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		throw new UnsupportedOperationException("Not yet implemented for this store");
 	}
 
 	private void expire(MessageGroup group) {
