@@ -25,9 +25,21 @@ import java.util.List;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public interface MethodAnnotationPostProcessor<T extends Annotation> {
 
 	Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations);
+
+	/**
+	 * Determine if provided {@code method} and its {@code annotations} are eligible
+	 * to create an {@link org.springframework.integration.endpoint.AbstractEndpoint}.
+	 * @param method the method to check, if it is eligible to create Endpoint
+	 * @param annotations the List of annotations to process
+	 * @return the {@code boolean} flag to determine to create or not
+	 * {@link org.springframework.integration.endpoint.AbstractEndpoint}
+	 * @since 4.0
+	 */
+	boolean shouldCreateEndpoint(Method method, List<Annotation> annotations);
 
 }

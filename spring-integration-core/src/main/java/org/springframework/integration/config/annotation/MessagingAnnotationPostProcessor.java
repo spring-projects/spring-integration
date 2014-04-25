@@ -45,6 +45,8 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.BridgeFrom;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Router;
@@ -108,6 +110,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory, this.environment));
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory, this.environment));
 		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory, this.environment));
 	}
 
 	@Override
@@ -142,7 +146,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					Class<? extends Annotation> annotationType = entry.getKey();
 					List<Annotation> annotations = entry.getValue();
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotationType);
-					if (postProcessor != null && shouldCreateEndpoint(annotations)) {
+					if (postProcessor != null && postProcessor.shouldCreateEndpoint(method, annotations)) {
 						Object result = postProcessor.postProcess(bean, beanName, method, annotations);
 						if (result != null && result instanceof AbstractEndpoint) {
 							AbstractEndpoint endpoint = (AbstractEndpoint) result;
@@ -226,22 +230,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					annotationChain.add(ann);
 					return true;
 				}
-			}
-		}
-		return false;
-	}
-
-	private boolean shouldCreateEndpoint(List<Annotation> annotations) {
-		for (Annotation annotation : annotations) {
-			Object inputChannel = AnnotationUtils.getValue(annotation, "inputChannel");
-			if (inputChannel == null &&
-					(annotation instanceof InboundChannelAdapter ||
-							AnnotationUtils.findAnnotation(annotation.annotationType(), InboundChannelAdapter.class) != null)) {
-				inputChannel = AnnotationUtils.getValue(annotation);
-			}
-			if (inputChannel != null && inputChannel instanceof String
-					&& StringUtils.hasText((String) inputChannel)) {
-				return true;
 			}
 		}
 		return false;
