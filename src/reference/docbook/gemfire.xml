@@ -46,7 +46,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	which can contain a comma separated list of event types for which a message will be produced on the input channel. By default CREATED and UPDATED are enabled.
 	Note that this adapter conforms to Spring integration conventions.
 	If no <code>channel</code> attribute is provided, the channel will be created from the <code>id</code> attribute. This adapter also supports an <code>error-channel</code>.
-	If <code>expression</code> is not provided the message payload will be a GemFire <classname>EntryEvent</classname>
+	The GemFire <ulink url=
+	"http://www.gemstone.com/docs/current/product/docs/japi/com/gemstone/gemfire/cache/EntryEvent.html">EntryEvent</ulink>
+	is the <code>#root</code> object of the <code>expression</code> evaluation.
+	Example:<programlisting><![CDATA[expression="new foo.MyEvent(key, oldValue, newValue)"]]></programlisting>
+	If the <code>expression</code> attribute is not provided, the message payload will be the GemFire
+	<classname>EntryEvent</classname> itself.
   	</para>
   </section>
    <section id="gemfire-cq">
