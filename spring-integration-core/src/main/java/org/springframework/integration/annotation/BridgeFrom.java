@@ -50,8 +50,6 @@ public @interface BridgeFrom {
 	 */
 	String value();
 
-	String[] adviceChain() default {};
-
 	/*
 	 {@code SmartLifecycle} options.
 	 Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.

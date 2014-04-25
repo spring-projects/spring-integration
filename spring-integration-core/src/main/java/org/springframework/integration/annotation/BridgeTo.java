@@ -55,8 +55,6 @@ public @interface BridgeTo {
 	 */
 	String value() default "";
 
-	String[] adviceChain() default {};
-
 	/*
 	 {@code SmartLifecycle} options.
 	 Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.

@@ -666,6 +666,14 @@ public class EnableIntegrationTests {
 			return "invalidBridgeAnnotation";
 		}*/
 
+		// Error because @Bridge* annotations are mutually exclusive.
+		/*@Bean
+		@BridgeTo
+		@BridgeFrom("foo")
+		public MessageChannel invalidBridgeAnnotation2() {
+			return new DirectChannel();
+		}*/
+
 		// beans for metaAnnotation tests
 
 		@Bean

@@ -27,6 +27,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
+import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.context.Orderable;
@@ -61,6 +62,11 @@ public class BridgeToAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 		boolean isMessageChannelBean = MessageChannel.class.isAssignableFrom(method.getReturnType());
 		Assert.isTrue(isMessageChannelBean, "'@BridgeTo' is eligible only for 'MessageChannel' '@Bean' methods");
+
+		boolean hasBridgeFrom = AnnotatedElementUtils.isAnnotated(method, BridgeFrom.class.getName());
+
+		Assert.isTrue(!hasBridgeFrom, "'@BridgeFrom' and '@BridgeTo' are mutually exclusive 'MessageChannel' " +
+				"'@Bean' method annotations");
 
 		return true;
 	}

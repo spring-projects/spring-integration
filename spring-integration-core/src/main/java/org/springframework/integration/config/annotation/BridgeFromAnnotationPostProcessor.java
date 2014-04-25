@@ -26,6 +26,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.BridgeFrom;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -43,7 +44,6 @@ public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 	public BridgeFromAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		super(beanFactory, environment);
-		this.inputChannelAttribute = "value";
 	}
 
 	@Override
@@ -57,7 +57,18 @@ public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationP
 		String channel = MessagingAnnotationUtils.resolveAttribute(annotations, "value", String.class);
 		Assert.isTrue(StringUtils.hasText(channel), "'@BridgeFrom.value()' (inputChannelName) must not be empty");
 
+		boolean hasBridgeTo = AnnotatedElementUtils.isAnnotated(method, BridgeTo.class.getName());
+
+		Assert.isTrue(!hasBridgeTo, "'@BridgeFrom' and '@BridgeTo' are mutually exclusive 'MessageChannel' " +
+				"'@Bean' method annotations");
+
+
 		return true;
+	}
+
+	@Override
+	protected String getInputChannelAttribute() {
+		return "value";
 	}
 
 	@Override
