@@ -51,4 +51,4 @@ To generate IDEA metadata (.iml and .ipr files), do the following:
 # Resources
 
 For more information, please visit the Spring Integration website at:
-[http://www.springsource.org/spring-integration](http://www.springsource.org/spring-integration)
+[http://projects.spring.io/spring-integration](http://projects.spring.io/spring-integration/)
