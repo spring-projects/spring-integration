@@ -592,7 +592,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						logger.debug("Selection key no longer valid");
 					}
 					else if (key.isReadable()) {
-						key.interestOps(key.interestOps() - key.readyOps());
+						key.interestOps(key.interestOps() - SelectionKey.OP_READ);
 						final TcpNioConnection connection;
 						connection = (TcpNioConnection) key.attachment();
 						connection.setLastRead(System.currentTimeMillis());
