@@ -102,13 +102,24 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 		if (logger.isDebugEnabled()) {
 			logger.debug("Message length is " + messageLength);
 		}
-		if (messageLength > this.maxMessageSize) {
-			throw new IOException("Message length " + messageLength +
-					" exceeds max message length: " + this.maxMessageSize);
+		byte[] messagePart = null;
+		try {
+			if (messageLength > this.maxMessageSize) {
+				throw new IOException("Message length " + messageLength +
+						" exceeds max message length: " + this.maxMessageSize);
+			}
+			messagePart = new byte[messageLength];
+			read(inputStream, messagePart, false);
+			return messagePart;
 		}
-		byte[] messagePart = new byte[messageLength];
-		read(inputStream, messagePart, false);
-		return messagePart;
+		catch (IOException e) {
+			publishEvent(e, messagePart, -1);
+			throw e;
+		}
+		catch (RuntimeException e) {
+			publishEvent(e, messagePart, -1);
+			throw e;
+		}
 	}
 
 	/**
@@ -204,29 +215,42 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 */
 	protected int readHeader(InputStream inputStream) throws IOException {
 		byte[] lengthPart = new byte[this.headerSize];
-		int status = read(inputStream, lengthPart, true);
-		if (status < 0) {
-			throw new SoftEndOfStreamException("Stream closed between payloads");
-		}
-		int messageLength;
-		switch (this.headerSize) {
-		case HEADER_SIZE_INT:
-			messageLength = ByteBuffer.wrap(lengthPart).getInt();
-			if (messageLength < 0) {
-				throw new IllegalArgumentException("Length header:"
-						+ messageLength
-						+ " is negative");
+		try {
+			int status = read(inputStream, lengthPart, true);
+			if (status < 0) {
+				throw new SoftEndOfStreamException("Stream closed between payloads");
 			}
-			break;
-		case HEADER_SIZE_UNSIGNED_BYTE:
-			messageLength = ByteBuffer.wrap(lengthPart).get() & 0xff;
-			break;
-		case HEADER_SIZE_UNSIGNED_SHORT:
-			messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
-			break;
-		default:
-			throw new IllegalArgumentException("Bad header size:" + headerSize);
+			int messageLength;
+			switch (this.headerSize) {
+			case HEADER_SIZE_INT:
+				messageLength = ByteBuffer.wrap(lengthPart).getInt();
+				if (messageLength < 0) {
+					throw new IllegalArgumentException("Length header:"
+							+ messageLength
+							+ " is negative");
+				}
+				break;
+			case HEADER_SIZE_UNSIGNED_BYTE:
+				messageLength = ByteBuffer.wrap(lengthPart).get() & 0xff;
+				break;
+			case HEADER_SIZE_UNSIGNED_SHORT:
+				messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
+				break;
+			default:
+				throw new IllegalArgumentException("Bad header size:" + headerSize);
+			}
+			return messageLength;
 		}
-		return messageLength;
+		catch (SoftEndOfStreamException e) {
+			throw e;
+		}
+		catch (IOException e) {
+			publishEvent(e, lengthPart, -1);
+			throw e;
+		}
+		catch (RuntimeException e) {
+			publishEvent(e, lengthPart, -1);
+			throw e;
+		}
 	}
 }

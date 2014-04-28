@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,47 +33,59 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	private static final byte[] CRLF = "\r\n".getBytes();
 
 	/**
-	 * Reads the data in the inputstream to a byte[]. Data must be terminated
+	 * Reads the data in the inputStream to a byte[]. Data must be terminated
 	 * by CRLF (\r\n). Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately after the \r\n (i.e. no data is in the process of
 	 * being read).
 	 */
+	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = this.fillToCrLf(inputStream, buffer);
-		byte[] assembledData = this.copyToSizedArray(buffer, n);
-		return assembledData;
+		return this.copyToSizedArray(buffer, n);
 	}
 
-	public int fillToCrLf(InputStream inputStream, byte[] buffer)
-			throws IOException, SoftEndOfStreamException {
+	public int fillToCrLf(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite;
 		if (logger.isDebugEnabled()) {
 			logger.debug("Available to read:" + inputStream.available());
 		}
-		while (true) {
-			bite = inputStream.read();
-//			logger.debug("Read:" + (char) bite);
-			if (bite < 0 && n == 0) {
-				throw new SoftEndOfStreamException("Stream closed between payloads");
+		try {
+			while (true) {
+				bite = inputStream.read();
+				if (bite < 0 && n == 0) {
+					throw new SoftEndOfStreamException("Stream closed between payloads");
+				}
+				checkClosure(bite);
+				if (n > 0 && bite == '\n' && buffer[n-1] == '\r') {
+					break;
+				}
+				buffer[n++] = (byte) bite;
+				if (n >= this.maxMessageSize) {
+					throw new IOException("CRLF not found before max message length: "
+							+ this.maxMessageSize);
+				}
 			}
-			checkClosure(bite);
-			if (n > 0 && bite == '\n' && buffer[n-1] == '\r') {
-				break;
-			}
-			buffer[n++] = (byte) bite;
-			if (n >= this.maxMessageSize) {
-				throw new IOException("CRLF not found before max message length: "
-						+ this.maxMessageSize);
-			}
-		};
-		return n-1; // trim \r
+			return n-1; // trim \r
+		}
+		catch (SoftEndOfStreamException e) {
+			throw e;
+		}
+		catch (IOException e) {
+			publishEvent(e, buffer, n);
+			throw e;
+		}
+		catch (RuntimeException e) {
+			publishEvent(e, buffer, n);
+			throw e;
+		}
 	}
 
 	/**
 	 * Writes the byte[] to the stream and appends \r\n.
 	 */
+	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
 		outputStream.write(CRLF);

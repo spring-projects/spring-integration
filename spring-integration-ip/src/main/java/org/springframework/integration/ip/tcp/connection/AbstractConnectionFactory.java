@@ -89,6 +89,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 
+	private volatile boolean deserializerSet;
+
 	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
 
 	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
@@ -103,7 +105,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean lookupHost = true;
 
-	private volatile List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
+	private final List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
 
 	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
 
@@ -130,6 +132,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+		if (!this.deserializerSet && this.deserializer instanceof ApplicationEventPublisherAware) {
+			((ApplicationEventPublisherAware) this.deserializer)
+					.setApplicationEventPublisher(applicationEventPublisher);
+		}
 	}
 
 	protected ApplicationEventPublisher getApplicationEventPublisher() {
@@ -345,6 +351,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	public void setDeserializer(Deserializer<?> deserializer) {
 		this.deserializer = deserializer;
+		this.deserializerSet = true;
 	}
 
 	/**
@@ -585,7 +592,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						logger.debug("Selection key no longer valid");
 					}
 					else if (key.isReadable()) {
-						key.interestOps(key.interestOps() - key.readyOps());
+						key.interestOps(key.interestOps() - SelectionKey.OP_READ);
 						final TcpNioConnection connection;
 						connection = (TcpNioConnection) key.attachment();
 						connection.setLastRead(System.currentTimeMillis());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,14 @@ import java.io.OutputStream;
  */
 public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 
+	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream)
 			throws IOException {
 		outputStream.write(bytes);
 		outputStream.flush();
 	}
 
+	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
@@ -48,23 +50,36 @@ public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Available to read:" + inputStream.available());
 		}
-		while (bite >= 0) {
-			bite = inputStream.read();
-			if (bite < 0) {
-				if (n == 0) {
-					throw new SoftEndOfStreamException("Stream closed between payloads");
+		try {
+			while (bite >= 0) {
+				bite = inputStream.read();
+				if (bite < 0) {
+					if (n == 0) {
+						throw new SoftEndOfStreamException("Stream closed between payloads");
+					}
+					break;
 				}
-				break;
+				buffer[n++] = (byte) bite;
+				if (n >= this.maxMessageSize) {
+					throw new IOException("Socket was not closed before max message length: "
+							+ this.maxMessageSize);
+				}
 			}
-			buffer[n++] = (byte) bite;
-			if (n >= this.maxMessageSize) {
-				throw new IOException("Socket was not closed before max message length: "
-						+ this.maxMessageSize);
-			}
-		};
-		byte[] assembledData = new byte[n];
-		System.arraycopy(buffer, 0, assembledData, 0, n);
-		return assembledData;
+			byte[] assembledData = new byte[n];
+			System.arraycopy(buffer, 0, assembledData, 0, n);
+			return assembledData;
+		}
+		catch (SoftEndOfStreamException e) {
+			throw e;
+		}
+		catch (IOException e) {
+			publishEvent(e, buffer, n);
+			throw e;
+		}
+		catch (RuntimeException e) {
+			publishEvent(e, buffer, n);
+			throw e;
+		}
 	}
 
 }
