@@ -38,7 +38,8 @@ import java.lang.annotation.Target;
  * whose elements are either
  * {@link org.springframework.messaging.MessageChannel channels} or
  * Strings. In the latter case, the endpoint hosting this router will attempt
- * to resolve each channel name with the Channel Registry.
+ * to resolve each channel name with the Channel Registry or with
+ * {@link #channelMappings()}, if provided.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -52,6 +53,23 @@ public @interface Router {
 	String inputChannel() default "";
 
 	String defaultOutputChannel() default "";
+
+	/**
+	 * The 'key=value' pairs to represent channelMapping entries
+	 * @return the channelMappings
+	 * @see org.springframework.integration.router.AbstractMappingMessageRouter#setChannelMapping(String, String)
+	 */
+	String[] channelMappings() default {};
+
+	String prefix() default "";
+
+	String suffix() default "";
+
+	String resolutionRequired() default "";
+
+	String applySequence() default "";
+
+	String ignoreSendFailures() default "";
 
 	/*
 	 {@code SmartLifecycle} options.

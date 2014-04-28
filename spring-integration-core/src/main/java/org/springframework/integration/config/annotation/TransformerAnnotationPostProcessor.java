@@ -21,8 +21,11 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.messaging.MessageHandler;
@@ -32,6 +35,7 @@ import org.springframework.messaging.MessageHandler;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Transformer> {
 
@@ -42,7 +46,21 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
+		org.springframework.integration.transformer.Transformer transformer;
+		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			transformer = this.extractTypeIfPossible(target, org.springframework.integration.transformer.Transformer.class);
+			if (transformer == null) {
+				if (this.extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class) != null) {
+					return (MessageHandler) target;
+				}
+				transformer = new MethodInvokingTransformer(target);
+			}
+		}
+		else {
+			transformer = new MethodInvokingTransformer(bean, method);
+		}
+
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		this.setOutputChannelIfPresent(annotations, handler);
 		return handler;

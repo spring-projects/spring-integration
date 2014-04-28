@@ -31,7 +31,6 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -74,15 +73,9 @@ public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationP
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		BridgeHandler handler = new BridgeHandler();
-		String outputChannelName = null;
-		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name();
-		if (!ObjectUtils.isEmpty(names)) {
-			outputChannelName = names[0];
-		}
-		if (!StringUtils.hasText(outputChannelName)) {
-			outputChannelName = method.getName();
-		}
-		handler.setOutputChannelName(outputChannelName);
+		Object outputChannel = resolveTargetBeanFromMethodWithBeanAnnotation(method);
+		Assert.isInstanceOf(MessageChannel.class, outputChannel);
+		handler.setOutputChannel((MessageChannel) outputChannel);
 		return handler;
 	}
 

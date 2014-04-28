@@ -23,7 +23,6 @@ import java.util.List;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -32,8 +31,6 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for the {@link BridgeTo @BridgeTo} annotation.
@@ -73,18 +70,9 @@ public class BridgeToAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 	@Override
 	protected AbstractEndpoint createEndpoint(MessageHandler handler, Method method, List<Annotation> annotations) {
-		String inputChannelName = null;
-		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name();
-		if (!ObjectUtils.isEmpty(names)) {
-			inputChannelName = names[0];
-		}
-		if (!StringUtils.hasText(inputChannelName)) {
-			inputChannelName = method.getName();
-		}
-
-		MessageChannel inputChannel = this.beanFactory.getBean(inputChannelName, MessageChannel.class);
-
-		return doCreateEndpoint(handler, inputChannel, annotations);
+		Object inputChannel = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+		Assert.isInstanceOf(MessageChannel.class, inputChannel);
+		return doCreateEndpoint(handler, (MessageChannel) inputChannel, annotations);
 	}
 
 }

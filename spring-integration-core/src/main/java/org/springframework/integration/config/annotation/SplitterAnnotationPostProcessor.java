@@ -21,16 +21,22 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link Splitter @Splitter}.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Splitter> {
 
@@ -41,7 +47,37 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(bean, method);
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
+
+		AbstractMessageSplitter splitter;
+		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			splitter = this.extractTypeIfPossible(target, AbstractMessageSplitter.class);
+			if (splitter == null) {
+				if (target instanceof MessageHandler) {
+					Assert.hasText(applySequence, "'applySequence' can be applied to 'AbstractMessageSplitter', but " +
+							"target handler is: " + target.getClass());
+					return (MessageHandler) target;
+				}
+				else {
+					splitter = new MethodInvokingSplitter(target);
+				}
+			}
+			else {
+				return splitter;
+			}
+		}
+		else {
+			splitter = new MethodInvokingSplitter(bean, method);
+		}
+
+		if (StringUtils.hasText(applySequence)) {
+			String applySequenceValue = this.environment.resolvePlaceholders(applySequence);
+			if (StringUtils.hasText(applySequenceValue)) {
+				splitter.setApplySequence(Boolean.parseBoolean(applySequenceValue));
+			}
+		}
+
 		this.setOutputChannelIfPresent(annotations, splitter);
 		return splitter;
 	}

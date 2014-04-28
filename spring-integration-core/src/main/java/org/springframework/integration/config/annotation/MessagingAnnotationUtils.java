@@ -48,6 +48,7 @@ public final class MessagingAnnotationUtils {
 	 * @param annotations The meta-annotations in order (closest first).
 	 * @param name The attribute name.
 	 * @param requiredType The expected type.
+	 * @param <T> The type.
 	 * @return The value.
 	 */
 	@SuppressWarnings("unchecked")
