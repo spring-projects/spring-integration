@@ -193,6 +193,27 @@
 				<xref linkend="sftp-inbound"/>.
 			</para>
 		</section>
+		<section id="4.0-bridge-annotations">
+			<title>@BridgeFrom and @BridgeTo Annotations</title>
+			<para>
+				The annotation and Java configuration has introduced <classname>@BridgeFrom</classname> and
+				<classname>@BridgeTo</classname> <classname>@Bean</classname> method level annotations to mark
+				<interfacename>MessageChannel</interfacename> beans in the
+				<interfacename>@Configuration</interfacename> classes.
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
+		<section id="4.0-meta-messaging-annotations">
+			<title>Meta Messaging Annotations</title>
+			<para>
+				Messaging Annotations (<classname>@ServiceActivator</classname>, <classname>@Router</classname>,
+				<classname>@MessagingGateway</classname> etc.) can now be configured as meta-annotations for user-defined
+				Messaging Annotations. In addition the user-defined annotations can have the same attributes
+				(<code>inputChannel</code>, <code>@Poller</code>, <code>autoStartup</code> etc.) and Framework relies
+				on those values, rather than defaults from Messaging Annotations.
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">
@@ -339,6 +360,15 @@
 				<code>&lt;int-jpa:retrieving-outbound-gateway&gt;</code> to perform
 				<code>EntityManager.find(Class entityClass, Object primaryKey)</code>.
 				See <xref linkend="jpa-retrieving-outbound-gateway"/> for more information.
+			</para>
+		</section>
+		<section id="4.0-bean-messaging-annotations">
+			<title>Messaging Annotations on @Bean method level</title>
+			<para>
+				Messaging Annotations (<classname>@ServiceActivator</classname>, <classname>@Router</classname>,
+				<classname>@InboundChannelAdapter</classname> etc.) can now be configured on <classname>@Bean</classname>
+				method level in the <interfacename>@Configuration</interfacename> classes.
+				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>
 	</section>
