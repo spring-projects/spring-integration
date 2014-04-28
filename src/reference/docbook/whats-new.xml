@@ -193,6 +193,26 @@
 				<xref linkend="sftp-inbound"/>.
 			</para>
 		</section>
+		<section id="4.0-bridge-annotations">
+			<title>@BridgeFrom and @BridgeTo Annotations</title>
+			<para>
+				Annotation and Java configuration has introduced <classname>@BridgeFrom</classname> and
+				<classname>@BridgeTo</classname> <classname>@Bean</classname> method annotations to mark
+				<interfacename>MessageChannel</interfacename> beans in
+				<interfacename>@Configuration</interfacename> classes.
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
+		<section id="4.0-meta-messaging-annotations">
+			<title>Meta Messaging Annotations</title>
+			<para>
+				Messaging Annotations (<classname>@ServiceActivator</classname>, <classname>@Router</classname>,
+				<classname>@MessagingGateway</classname> etc.) can now be configured as meta-annotations for user-defined
+				Messaging Annotations. In addition the user-defined annotations can have the same attributes
+				(<code>inputChannel</code>, <code>@Poller</code>, <code>autoStartup</code> etc.).
+				For more information, see <xref linkend="annotations"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="4.0-general">
@@ -348,6 +368,15 @@
 				a message, it will now emit a <classname>TcpDeserializationExceptionEvent</classname>, allowing
 				applications to examine the data at the point the exception occurred.
 				See <xref linkend="tcp-events"/> for more information.
+			</para>
+		</section>
+		<section id="4.0-bean-messaging-annotations">
+			<title>Messaging Annotations on @Bean Definitions</title>
+			<para>
+				Messaging Annotations (<classname>@ServiceActivator</classname>, <classname>@Router</classname>,
+				<classname>@InboundChannelAdapter</classname> etc.) can now be configured on <classname>@Bean</classname>
+				definitions in <interfacename>@Configuration</interfacename> classes.
+				For more information, see <xref linkend="annotations"/>.
 			</para>
 		</section>
 	</section>
