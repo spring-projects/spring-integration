@@ -16,7 +16,10 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +56,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.messaging.Message;

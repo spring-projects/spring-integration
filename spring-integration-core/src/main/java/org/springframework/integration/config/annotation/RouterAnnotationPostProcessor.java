@@ -27,7 +27,6 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.messaging.MessageHandler;
@@ -90,29 +89,26 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		}
 
 		if (this.routerAttributesProvided(annotations)) {
-			Assert.isInstanceOf(AbstractMappingMessageRouter.class, router, "''resolutionRequired'', 'prefix', " +
-					"suffix and 'channelMappings' can be applied to 'AbstractMessageRouter' implementations, " +
-					"but target handler is: " + router.getClass());
 
-			AbstractMappingMessageRouter mappingMessageRouter = (AbstractMappingMessageRouter) router;
+			MethodInvokingRouter methodInvokingRouter = (MethodInvokingRouter) router;
 
 			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
 					String.class);
 			if (StringUtils.hasText(resolutionRequired)) {
 				String resolutionRequiredValue = this.environment.resolvePlaceholders(resolutionRequired);
 				if (StringUtils.hasText(resolutionRequiredValue)) {
-					mappingMessageRouter.setResolutionRequired(Boolean.parseBoolean(resolutionRequiredValue));
+					methodInvokingRouter.setResolutionRequired(Boolean.parseBoolean(resolutionRequiredValue));
 				}
 			}
 
 			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
 			if (StringUtils.hasText(prefix)) {
-				mappingMessageRouter.setPrefix(this.environment.resolvePlaceholders(prefix));
+				methodInvokingRouter.setPrefix(this.environment.resolvePlaceholders(prefix));
 			}
 
 			String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
 			if (StringUtils.hasText(suffix)) {
-				mappingMessageRouter.setSuffix(this.environment.resolvePlaceholders(suffix));
+				methodInvokingRouter.setSuffix(this.environment.resolvePlaceholders(suffix));
 			}
 
 			String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
@@ -124,7 +120,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				}
 				Properties properties = (Properties) this.conversionService.convert(mappings.toString(),
 						TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Properties.class));
-				mappingMessageRouter.replaceChannelMappings(properties);
+				methodInvokingRouter.replaceChannelMappings(properties);
 			}
 
 		}

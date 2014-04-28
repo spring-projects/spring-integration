@@ -15,7 +15,11 @@
  */
 package org.springframework.integration.gemfire.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,8 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.gemstone.gemfire.cache.Cache;
 import junit.framework.AssertionFailedError;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -46,6 +50,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+
+import com.gemstone.gemfire.cache.Cache;
 
 /**
  * @author Oleg Zhurakousky
@@ -285,6 +291,7 @@ public class GemfireGroupStoreTests {
 			executor = Executors.newCachedThreadPool();
 
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store1.addMessageToGroup(1, message);
 					if (group.getMessages().size() != 1) {
@@ -294,6 +301,7 @@ public class GemfireGroupStoreTests {
 				}
 			});
 			executor.execute(new Runnable() {
+				@Override
 				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
 					if (group.getMessages().size() != 0) {
@@ -313,10 +321,10 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testWithAggregatorWithShutdown() {
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-aggregator-config.xml",
+		ClassPathXmlApplicationContext context1 = new ClassPathXmlApplicationContext("gemfire-aggregator-config.xml",
 				this.getClass());
-		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
-		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
+		MessageChannel input = context1.getBean("inputChannel", MessageChannel.class);
+		QueueChannel output = context1.getBean("outputChannel", QueueChannel.class);
 
 		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1)
 				.build();
@@ -327,14 +335,17 @@ public class GemfireGroupStoreTests {
 		input.send(m2);
 		assertNull(output.receive(1000));
 
-		context = new ClassPathXmlApplicationContext("gemfire-aggregator-config-a.xml", this.getClass());
-		MessageChannel inputA = context.getBean("inputChannel", MessageChannel.class);
-		QueueChannel outputA = context.getBean("outputChannel", QueueChannel.class);
+		ClassPathXmlApplicationContext context2 = new ClassPathXmlApplicationContext("gemfire-aggregator-config-a.xml",
+				this.getClass());
+		MessageChannel inputA = context2.getBean("inputChannel", MessageChannel.class);
+		QueueChannel outputA = context2.getBean("outputChannel", QueueChannel.class);
 
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1)
 				.build();
 		inputA.send(m3);
 		assertNotNull(outputA.receive(1000));
+		context1.close();
+		context2.close();
 	}
 
 	@Test
@@ -350,9 +361,10 @@ public class GemfireGroupStoreTests {
 			Thread.sleep(1);
 		}
 		for (int i = 0; i < 20; i++) {
-			assertNotNull(outputQueue.receive(1000));
+			assertNotNull(outputQueue.receive(5000));
 		}
 		assertNull(outputQueue.receive(1));
+		context.close();
 	}
 
 	@Before

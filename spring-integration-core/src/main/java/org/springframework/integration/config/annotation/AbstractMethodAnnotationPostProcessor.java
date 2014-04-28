@@ -144,8 +144,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		boolean createEndpoint = StringUtils.hasText(inputChannel);
 		if (!createEndpoint && beanAnnotationAware()) {
 			boolean isBean = AnnotatedElementUtils.isAnnotated(method, Bean.class.getName());
-			Assert.isTrue(!isBean, "The '" + getInputChannelAttribute() + "' is required, when " + this.annotationType +
-					" is used on '@Bean' methods level");
+			Assert.isTrue(!isBean, "A channel name in '" + getInputChannelAttribute() + "' is required when " + this.annotationType +
+					" is used on '@Bean' methods.");
 		}
 		return createEndpoint;
 	}
@@ -336,12 +336,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
+	<H> H extractTypeIfPossible(Object targetObject, Class<H> expectedType) {
 		if (targetObject == null) {
 			return null;
 		}
 		if (expectedType.isAssignableFrom(targetObject.getClass())) {
-			return (T) targetObject;
+			return (H) targetObject;
 		}
 		if (targetObject instanceof Advised) {
 			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
@@ -362,6 +362,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	 *
 	 * @param bean The bean.
 	 * @param method The method.
+	 * @param annotations The messaging annotation (or meta-annotation hierarchy) on the method.
 	 * @return The MessageHandler.
 	 */
 	protected abstract MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations);
