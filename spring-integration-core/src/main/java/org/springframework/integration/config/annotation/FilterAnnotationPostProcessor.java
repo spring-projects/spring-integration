@@ -70,6 +70,7 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 		MessageFilter filter = new MessageFilter(selector);
 
+		/* TODO will be revised in the future
 		String discardWithinAdvice = MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice",
 				String.class);
 		if (StringUtils.hasText(discardWithinAdvice)) {
@@ -77,7 +78,10 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			if (StringUtils.hasText(discardWithinAdviceValue)) {
 				filter.setDiscardWithinAdvice(Boolean.parseBoolean(discardWithinAdviceValue));
 			}
-		}
+		}*/
+
+		filter.setDiscardWithinAdvice(MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice",
+				Boolean.class));
 
 		String throwExceptionOnRejection = MessagingAnnotationUtils.resolveAttribute(annotations,
 				"throwExceptionOnRejection", String.class);

@@ -51,7 +51,7 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			transformer = this.extractTypeIfPossible(target, org.springframework.integration.transformer.Transformer.class);
 			if (transformer == null) {
-				if (target instanceof AbstractReplyProducingMessageHandler) {
+				if (this.extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class) != null) {
 					return (MessageHandler) target;
 				}
 				transformer = new MethodInvokingTransformer(target);

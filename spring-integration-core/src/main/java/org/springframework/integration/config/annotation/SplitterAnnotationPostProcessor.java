@@ -63,6 +63,9 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 					splitter = new MethodInvokingSplitter(target);
 				}
 			}
+			else {
+				return splitter;
+			}
 		}
 		else {
 			splitter = new MethodInvokingSplitter(bean, method);

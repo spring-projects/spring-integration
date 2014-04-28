@@ -54,7 +54,7 @@ public @interface Filter {
 
 	String[] adviceChain() default {};
 
-	String discardWithinAdvice() default "true";
+	boolean discardWithinAdvice() default true;
 
 	/*
 	 {@code SmartLifecycle} options.

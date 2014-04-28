@@ -139,14 +139,19 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		@Router(inputChannel = "routerChannel", channelMappings = {"true=odd", "false=filter"}, suffix = "Channel")
-		public MessageHandler router() {
-			return new ExpressionEvaluatingRouter(PARSER.parseExpression("payload % 2 == 0"));
+		public MessageSelector router() {
+			return new ExpressionEvaluatingSelector("payload % 2 == 0");
 		}
 
 		@Bean
 		@Transformer(inputChannel = "oddChannel", outputChannel = "filterChannel")
 		public ExpressionEvaluatingTransformer oddTransformer() {
 			return new ExpressionEvaluatingTransformer(PARSER.parseExpression("payload / 2"));
+		}
+
+		@Bean
+		public MessageChannel filterChannel() {
+			return new DirectChannel();
 		}
 
 		@Bean
@@ -176,9 +181,11 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
-		@Splitter(inputChannel = "splitterChannel", outputChannel = "serviceChannel")
+		@Splitter(inputChannel = "splitterChannel")
 		public MessageHandler splitter() {
-			return new DefaultMessageSplitter();
+			DefaultMessageSplitter defaultMessageSplitter = new DefaultMessageSplitter();
+			defaultMessageSplitter.setOutputChannelName("serviceChannel");
+			return defaultMessageSplitter;
 		}
 
 		@Bean
@@ -189,6 +196,11 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Bean
 		public List<Message<?>> collector() {
 			return new ArrayList<Message<?>>();
+		}
+
+		@Bean
+		public MessageChannel serviceChannel() {
+			return new DirectChannel();
 		}
 
 		@Bean

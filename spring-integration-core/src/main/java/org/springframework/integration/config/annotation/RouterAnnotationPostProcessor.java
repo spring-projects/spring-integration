@@ -57,7 +57,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			router = this.extractTypeIfPossible(target, AbstractMessageRouter.class);
 			if (router == null) {
 				if (target instanceof MessageHandler) {
-					Assert.isTrue(!this.noRouterAttributesProvided(annotations), "'defaultOutputChannel', "
+					Assert.isTrue(this.routerAttributesProvided(annotations), "'defaultOutputChannel', "
 							+ "'applySequence', 'ignoreSendFailures', 'resolutionRequired' and 'channelMappings' "
 							+ "can be applied to 'AbstractMessageRouter' implementations, but target handler is: "
 							+ target.getClass());
@@ -66,6 +66,9 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				else {
 					router = new MethodInvokingRouter(target);
 				}
+			}
+			else {
+				return router;
 			}
 		}
 		else {
@@ -86,12 +89,11 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			router.setIgnoreSendFailures(Boolean.parseBoolean(this.environment.resolvePlaceholders(ignoreSendFailures)));
 		}
 
-		if (!(router instanceof AbstractMappingMessageRouter) && !this.noRouterAttributesProvided(annotations)) {
-			throw new IllegalArgumentException("''resolutionRequired'', 'prefix', suffix and 'channelMappings' "
-					+ "can be applied to 'AbstractMessageRouter' implementations, but target handler is: "
-					+ router.getClass());
-		}
-		else {
+		if (this.routerAttributesProvided(annotations)) {
+			Assert.isInstanceOf(AbstractMappingMessageRouter.class, router, "''resolutionRequired'', 'prefix', " +
+					"suffix and 'channelMappings' can be applied to 'AbstractMessageRouter' implementations, " +
+					"but target handler is: " + router.getClass());
+
 			AbstractMappingMessageRouter mappingMessageRouter = (AbstractMappingMessageRouter) router;
 
 			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
@@ -130,14 +132,21 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		return router;
 	}
 
-	private boolean noRouterAttributesProvided(List<Annotation> annotations) {
-		return MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel", String.class) == null
-				&& MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings", String[].class) == null
-				&& MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class) == null
-				&& MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class) == null
-				&& MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired", String.class) == null
-				&& MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class) == null
-				&& MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures", String.class) == null;
+	private boolean routerAttributesProvided(List<Annotation> annotations) {
+		String defaultOutputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel",
+				String.class);
+		String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
+				String[].class);
+		String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
+		String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
+		String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
+				String.class);
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
+		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
+				String.class);
+		return StringUtils.hasText(defaultOutputChannel) || !ObjectUtils.isEmpty(channelMappings)
+				|| StringUtils.hasText(prefix) || StringUtils.hasText(suffix) || StringUtils.hasText(resolutionRequired)
+				|| StringUtils.hasText(applySequence) || StringUtils.hasText(ignoreSendFailures);
 	}
 
 }

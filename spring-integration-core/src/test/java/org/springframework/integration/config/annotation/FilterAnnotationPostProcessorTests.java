@@ -226,7 +226,7 @@ public class FilterAnnotationPostProcessorTests {
 	private static class TestFilterWithAdviceDiscardWithout {
 
 		@Filter(inputChannel="input", outputChannel="output",
-				adviceChain="adviceChain", discardWithinAdvice="false")
+				adviceChain="adviceChain", discardWithinAdvice=false)
 		public boolean filter(String s) {
 			return !s.contains("bad");
 		}

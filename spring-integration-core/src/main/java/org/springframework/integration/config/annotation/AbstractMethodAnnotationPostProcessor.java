@@ -118,9 +118,17 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 
-		String handlerBeanName = generateHandlerBeanName(beanName, method);
-		this.beanFactory.registerSingleton(handlerBeanName, handler);
-		handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+		boolean handlerExists = false;
+		if (this.beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			Object handlerBean = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			handlerExists = handlerBean != null && handler == handlerBean;
+		}
+
+		if (!handlerExists) {
+			String handlerBeanName = generateHandlerBeanName(beanName, method);
+			this.beanFactory.registerSingleton(handlerBeanName, handler);
+			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+		}
 
 		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
 		if (endpoint != null) {
