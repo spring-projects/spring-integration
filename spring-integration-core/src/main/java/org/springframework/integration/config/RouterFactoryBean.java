@@ -83,13 +83,16 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 				return (MessageHandler) targetObject;
 			}
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
-
+			this.configureRouter(router);
 		}
 		else {
 			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
 					+ "object is an implementation of AbstractMessageRouter");
+			this.configureRouter(router);
+			if (targetObject instanceof MessageHandler) {
+				return (MessageHandler) targetObject;
+			}
 		}
-		this.configureRouter(router);
 		return router;
 	}
 

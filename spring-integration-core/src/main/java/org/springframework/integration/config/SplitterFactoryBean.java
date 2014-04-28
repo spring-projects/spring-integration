@@ -32,7 +32,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
- * @author Artem Bilan
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -72,13 +71,17 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		if (splitter == null) {
 			this.checkForIllegalTarget(targetObject, targetMethodName);
 			splitter = this.createMethodInvokingSplitter(targetObject, targetMethodName);
+			this.configureSplitter(splitter);
 		}
 		else {
 			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
 					+ "object is an implementation of AbstractMessageSplitter");
-
+			this.configureSplitter(splitter);
+			if (targetObject instanceof MessageHandler) {
+				return (MessageHandler) targetObject;
+			}
 		}
-		return this.configureSplitter(splitter);
+		return splitter;
 	}
 
 	private AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, String targetMethodName) {
