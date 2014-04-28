@@ -154,6 +154,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	@Override
 	public void onInit() {
+		try {
+			super.onInit();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.channelResolver == null && beanFactory != null) {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);

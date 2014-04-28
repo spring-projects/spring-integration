@@ -19,14 +19,20 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Properties;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,6 +40,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
@@ -43,18 +50,94 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected MessageHandler createHandler(Object bean, Method method,
-			List<Annotation> annotations) {
-		MethodInvokingRouter router = new MethodInvokingRouter(bean, method);
-		router.setBeanFactory(this.beanFactory);
-		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel",
-				String.class);
-		if (StringUtils.hasText(defaultOutputChannelName)) {
-			MessageChannel defaultOutputChannel = this.channelResolver.resolveDestination(defaultOutputChannelName);
-			Assert.notNull(defaultOutputChannel, "unable to resolve defaultOutputChannel '" + defaultOutputChannelName + "'");
-			router.setDefaultOutputChannel(defaultOutputChannel);
+	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
+		AbstractMessageRouter router;
+		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			router = this.extractTypeIfPossible(target, AbstractMessageRouter.class);
+			if (router == null) {
+				if (target instanceof MessageHandler) {
+					Assert.isTrue(!this.noRouterAttributesProvided(annotations), "'defaultOutputChannel', "
+							+ "'applySequence', 'ignoreSendFailures', 'resolutionRequired' and 'channelMappings' "
+							+ "can be applied to 'AbstractMessageRouter' implementations, but target handler is: "
+							+ target.getClass());
+					return (MessageHandler) target;
+				}
+				else {
+					router = new MethodInvokingRouter(target);
+				}
+			}
 		}
+		else {
+			router = new MethodInvokingRouter(bean, method);
+		}
+		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations,
+				"defaultOutputChannel", String.class);
+		router.setDefaultOutputChannelName(defaultOutputChannelName);
+
+		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
+		if (StringUtils.hasText(applySequence)) {
+			router.setApplySequence(Boolean.parseBoolean(this.environment.resolvePlaceholders(applySequence)));
+		}
+
+		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
+				String.class);
+		if (StringUtils.hasText(ignoreSendFailures)) {
+			router.setIgnoreSendFailures(Boolean.parseBoolean(this.environment.resolvePlaceholders(ignoreSendFailures)));
+		}
+
+		if (!(router instanceof AbstractMappingMessageRouter) && !this.noRouterAttributesProvided(annotations)) {
+			throw new IllegalArgumentException("''resolutionRequired'', 'prefix', suffix and 'channelMappings' "
+					+ "can be applied to 'AbstractMessageRouter' implementations, but target handler is: "
+					+ router.getClass());
+		}
+		else {
+			AbstractMappingMessageRouter mappingMessageRouter = (AbstractMappingMessageRouter) router;
+
+			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
+					String.class);
+			if (StringUtils.hasText(resolutionRequired)) {
+				String resolutionRequiredValue = this.environment.resolvePlaceholders(resolutionRequired);
+				if (StringUtils.hasText(resolutionRequiredValue)) {
+					mappingMessageRouter.setResolutionRequired(Boolean.parseBoolean(resolutionRequiredValue));
+				}
+			}
+
+			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
+			if (StringUtils.hasText(prefix)) {
+				mappingMessageRouter.setPrefix(this.environment.resolvePlaceholders(prefix));
+			}
+
+			String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
+			if (StringUtils.hasText(suffix)) {
+				mappingMessageRouter.setSuffix(this.environment.resolvePlaceholders(suffix));
+			}
+
+			String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",
+					String[].class);
+			if (!ObjectUtils.isEmpty(channelMappings)) {
+				StringBuilder mappings = new StringBuilder();
+				for (String channelMapping : channelMappings) {
+					mappings.append(channelMapping).append("\n");
+				}
+				Properties properties = (Properties) this.conversionService.convert(mappings.toString(),
+						TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Properties.class));
+				mappingMessageRouter.replaceChannelMappings(properties);
+			}
+
+		}
+
 		return router;
+	}
+
+	private boolean noRouterAttributesProvided(List<Annotation> annotations) {
+		return MessagingAnnotationUtils.resolveAttribute(annotations, "defaultOutputChannel", String.class) == null
+				&& MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings", String[].class) == null
+				&& MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class) == null
+				&& MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class) == null
+				&& MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired", String.class) == null
+				&& MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class) == null
+				&& MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures", String.class) == null;
 	}
 
 }

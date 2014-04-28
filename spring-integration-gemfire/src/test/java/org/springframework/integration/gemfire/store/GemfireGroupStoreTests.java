@@ -15,11 +15,7 @@
  */
 package org.springframework.integration.gemfire.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,8 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.gemstone.gemfire.cache.Cache;
 import junit.framework.AssertionFailedError;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -39,19 +35,17 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.gemfire.CacheFactoryBean;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-
-import com.gemstone.gemfire.cache.Cache;
 
 /**
  * @author Oleg Zhurakousky
@@ -356,7 +350,7 @@ public class GemfireGroupStoreTests {
 			Thread.sleep(1);
 		}
 		for (int i = 0; i < 20; i++) {
-			assertNotNull(outputQueue.receive(1));
+			assertNotNull(outputQueue.receive(1000));
 		}
 		assertNull(outputQueue.receive(1));
 	}

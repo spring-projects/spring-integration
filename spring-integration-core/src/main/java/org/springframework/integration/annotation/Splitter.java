@@ -50,6 +50,8 @@ public @interface Splitter {
 
 	String outputChannel() default "";
 
+	String applySequence() default "";
+
 	String[] adviceChain() default {};
 
 	/*

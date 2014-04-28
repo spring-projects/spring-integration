@@ -48,9 +48,13 @@ public @interface Filter {
 
 	String outputChannel() default "";
 
+	String discardChannel() default "";
+
+	String throwExceptionOnRejection() default "";
+
 	String[] adviceChain() default {};
 
-	boolean discardWithinAdvice() default true;
+	String discardWithinAdvice() default "true";
 
 	/*
 	 {@code SmartLifecycle} options.

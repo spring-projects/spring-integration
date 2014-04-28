@@ -94,4 +94,8 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		return handler;
 	}
 
+	protected boolean beanAnnotationAware() {
+		return false;
+	}
+
 }

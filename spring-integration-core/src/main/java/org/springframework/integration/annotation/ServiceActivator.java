@@ -51,6 +51,8 @@ public @interface ServiceActivator {
 
 	String outputChannel() default "";
 
+	String requiresReply() default "";
+
 	String[] adviceChain() default {};
 
 	/*

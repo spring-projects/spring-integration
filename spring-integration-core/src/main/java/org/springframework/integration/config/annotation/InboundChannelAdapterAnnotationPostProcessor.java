@@ -21,11 +21,13 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.messaging.MessageChannel;
@@ -53,26 +55,12 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
-		Assert.isTrue(!Void.class.isAssignableFrom(method.getReturnType()), "The method '" + method
-				+ "' for 'SourcePollingChannelAdapter' must not have 'void' return type.");
-		Assert.isTrue(method.getParameterTypes().length == 0, "The method '" + method
-				+ "' for 'SourcePollingChannelAdapter' must not have any parameters.");
-
 		String channelName = MessagingAnnotationUtils.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
 		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
 
-		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
+		MessageSource<?> messageSource = this.createMessageSource(bean, beanName, method);
 
-		MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
-		messageSource.setObject(bean);
-		messageSource.setMethod(method);
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			String handlerBeanName = this.generateHandlerBeanName(beanName, method);
-			ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
-			listableBeanFactory.registerSingleton(handlerBeanName, messageSource);
-			messageSource = (MethodInvokingMessageSource) listableBeanFactory
-					.initializeBean(messageSource, handlerBeanName);
-		}
+		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
 
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setOutputChannel(channel);
@@ -80,6 +68,23 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		this.configurePollingEndpoint(adapter, annotations);
 
 		return adapter;
+	}
+
+	private MessageSource<?> createMessageSource(Object bean, String beanName, Method method) {
+		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			Assert.isInstanceOf(MessageSource.class, target, "The '" + this.annotationType + "' on @Bean method " +
+					"level is allowed only for: " + MessageSource.class.getName() + "beans");
+			return (MessageSource<?>) target;
+		}
+		else {
+			MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
+			messageSource.setObject(bean);
+			messageSource.setMethod(method);
+			String messageSourceBeanName = this.generateHandlerBeanName(beanName, method);
+			this.beanFactory.registerSingleton(messageSourceBeanName, messageSource);
+			return  (MessageSource<?>) this.beanFactory.initializeBean(messageSource, messageSourceBeanName);
+		}
 	}
 
 	@Override

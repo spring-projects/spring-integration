@@ -25,12 +25,17 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.aop.TargetSource;
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.annotation.Poller;
@@ -72,7 +77,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	private static final String ADVICE_CHAIN_ATTRIBUTE = "adviceChain";
 
 
-	protected final BeanFactory beanFactory;
+	protected final ConfigurableListableBeanFactory beanFactory;
+
+	protected final ConversionService conversionService;
 
 	protected final Environment environment;
 
@@ -82,8 +89,17 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	@SuppressWarnings("unchecked")
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.beanFactory = beanFactory;
+		Assert.notNull(beanFactory, "'beanFactory' must not be null");
+		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
+				"'beanFactory' must be instanceOf ConfigurableListableBeanFactory");
+		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		ConversionService conversionService = this.beanFactory.getConversionService();
+		if (conversionService != null) {
+			this.conversionService = conversionService;
+		}
+		else {
+			this.conversionService = new DefaultConversionService();
+		}
 		this.environment = environment;
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
@@ -101,12 +117,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				((Orderable) handler).setOrder(orderAnnotation.value());
 			}
 		}
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			String handlerBeanName = generateHandlerBeanName(beanName, method);
-			ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
-			listableBeanFactory.registerSingleton(handlerBeanName, handler);
-			handler = (MessageHandler) listableBeanFactory.initializeBean(handler, handlerBeanName);
-		}
+
+		String handlerBeanName = generateHandlerBeanName(beanName, method);
+		this.beanFactory.registerSingleton(handlerBeanName, handler);
+		handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+
 		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
 		if (endpoint != null) {
 			return endpoint;
@@ -118,11 +133,21 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	public boolean shouldCreateEndpoint(Method method, List<Annotation> annotations) {
 		String inputChannel = MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(),
 				String.class);
-		return StringUtils.hasText(inputChannel);
+		boolean createEndpoint = StringUtils.hasText(inputChannel);
+		if (!createEndpoint && beanAnnotationAware()) {
+			boolean isBean = AnnotatedElementUtils.isAnnotated(method, Bean.class.getName());
+			Assert.isTrue(!isBean, "The '" + getInputChannelAttribute() + "' is required, when " + this.annotationType +
+					" is used on '@Bean' methods level");
+		}
+		return createEndpoint;
 	}
 
 	protected String getInputChannelAttribute() {
 		return INPUT_CHANNEL_ATTRIBUTE;
+	}
+
+	protected boolean beanAnnotationAware() {
+		return true;
 	}
 
 	protected final void setAdviceChainIfPresent(String beanName, List<Annotation> annotations, MessageHandler handler) {
@@ -173,11 +198,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			catch (DestinationResolutionException e) {
 				inputChannel = new DirectChannel();
-				if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
-					ConfigurableListableBeanFactory listableBeanFactory = (ConfigurableListableBeanFactory) this.beanFactory;
-					listableBeanFactory.registerSingleton(inputChannelName, inputChannel);
-					inputChannel = (MessageChannel) listableBeanFactory.initializeBean(inputChannel, inputChannelName);
-				}
+				this.beanFactory.registerSingleton(inputChannelName, inputChannel);
+				inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 
@@ -186,8 +208,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
-			List<Annotation> annotations) {
+	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,List<Annotation> annotations) {
 		AbstractEndpoint endpoint;
 		if (inputChannel instanceof PollableChannel) {
 			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
@@ -292,6 +313,40 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(outputChannelName)) {
 			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
+	}
+
+	protected Object resolveTargetBeanFromMethodWithBeanAnnotation(Method method) {
+		String id = null;
+		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name();
+		if (!ObjectUtils.isEmpty(names)) {
+			id = names[0];
+		}
+		if (!StringUtils.hasText(id)) {
+			id = method.getName();
+		}
+		return this.beanFactory.getBean(id);
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
+		if (targetObject == null) {
+			return null;
+		}
+		if (expectedType.isAssignableFrom(targetObject.getClass())) {
+			return (T) targetObject;
+		}
+		if (targetObject instanceof Advised) {
+			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
+			if (targetSource == null) {
+				return null;
+			}
+			try {
+				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
+			} catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+		return null;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,12 @@ import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvi
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FilterAnnotationPostProcessorTests {
@@ -60,6 +62,7 @@ public class FilterAnnotationPostProcessorTests {
 		context.registerChannel("input", inputChannel);
 		context.registerChannel("output", outputChannel);
 		postProcessor.setBeanFactory(context.getBeanFactory());
+		postProcessor.setEnvironment(new MockEnvironment());
 		postProcessor.afterPropertiesSet();
 	}
 
@@ -223,7 +226,7 @@ public class FilterAnnotationPostProcessorTests {
 	private static class TestFilterWithAdviceDiscardWithout {
 
 		@Filter(inputChannel="input", outputChannel="output",
-				adviceChain="adviceChain", discardWithinAdvice=false)
+				adviceChain="adviceChain", discardWithinAdvice="false")
 		public boolean filter(String s) {
 			return !s.contains("bad");
 		}
