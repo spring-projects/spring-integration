@@ -231,6 +231,8 @@ public class FooService {
 		<listitem>@Splitter</listitem>
 		<listitem>@Transformer</listitem>
 		<listitem>@InboundChannelAdapter</listitem>
+		<listitem>@BridgeFrom</listitem>
+		<listitem>@BridgeTo</listitem>
       </itemizedlist>
     </para>
     <para>The behavior of each is described in its own chapter or section within
@@ -310,11 +312,6 @@ public class FooService {
     }
 
 }</programlisting>
-      That provides a pure annotation-driven alternative to the XML configuration. However, it is generally recommended
-      to use XML for the endpoints, since it is easier to keep track of the overall configuration in a single, external
-      location (and besides the namespace-based XML configuration is not very verbose). If you do prefer to provide
-      channels with the annotations however, you just need to enable a SI Annotations BeanPostProcessor. The following element should
-      be added: <programlisting language="xml"><![CDATA[<int:annotation-config/>]]></programlisting>
     </para>
 	 <para>
 		  The processing of these annotations creates the same beans (<classname>AbstractEndpoint</classname>s and
@@ -432,6 +429,111 @@ public String foo() {
 		The first example requires that the default poller has been declared elsewhere in the application
 		context.
 	</para>
+	  <para>
+		  Starting with <emphasis>version 4.0</emphasis> all Messaging Annotations can be configured as
+		  meta-annotations and all user-defined Messaging Annotations can define the same attributes
+		  to override their default values. In addition meta-annotations can be configured hierarchically:
+		  <programlisting language="java"><![CDATA[@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@ServiceActivator(inputChannel = "annInput", outputChannel = "annOutput")
+public @interface MyServiceActivator {
+
+	String[] adviceChain = { "annAdvice" };
+}
+
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@MyServiceActivator
+public @interface MyServiceActivator1 {
+
+	String inputChannel();
+
+	String outputChannel();
+}
+...
+
+@MyServiceActivator1(inputChannel = "inputChannel", outputChannel = "outputChannel")
+public Object service(Object payload) {
+   ...
+}]]></programlisting>
+	  </para>
+	  <para>
+		  Starting with <emphasis>version 4.0</emphasis> Messaging Annotations can be configured on the
+		  <classname>@Bean</classname> method level in the <interfacename>@Configuration</interfacename> classes
+		  to produce Message Endpoints based on the beans, not methods. It is useful in case of out of the box
+		  <interfacename>MessageHandler</interfacename>s (<classname>AggregatingMessageHandler</classname>,
+		  <classname>DefaultMessageSplitter</classname> etc.), <interfacename>Transformer</interfacename>s
+		  (<classname>JsonToObjectTransformer</classname>, <classname>ClaimCheckOutTransformer</classname> etc.),
+		  <interfacename>MessageSource</interfacename>s (<classname>FileReadingMessageSource</classname>,
+		  <classname>RedisStoreMessageSource</classname> etc.):
+		  <programlisting language="java"><![CDATA[@Configuration
+@EnableIntegration
+public class MyFlowConfiguration {
+
+	@Bean
+	@InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+	public MessageSource<String> consoleSource() {
+		return CharacterStreamReadingMessageSource.stdin();
+	}
+
+	@Bean
+	@Transformer(inputChannel = "inputChannel", outputChannel = "httpChannel")
+	public ObjectToMapTransformer jsonTransformer() {
+		return new ObjectToMapTransformer();
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = "httpChannel")
+	public MessageHandler httpHandler() {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://foo/service");
+		handler.setExpectedResponseType(String.class);
+		handler.setOutputChannelName("outputChannel");
+		return handler;
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = "outputChannel")
+	public LoggingHandler loggingHandler() {
+		return new LoggingHandler("info");
+	}
+
+}]]></programlisting>
+	  The meta-annotation rules work on <classname>@Bean</classname> method level as well.
+	    <note>
+			The <interfacename>MessageHandler</interfacename> properties (<code>setInputChannel()</code>,
+			<code>setApplySequence()</code> etc.) have precedence over the same attributes from annotations,
+			because they are used directly for Message Endpoint, rather then wrapping to another (method-invoking)
+			<interfacename>MessageHandler</interfacename>.
+	    </note>
+	  </para>
+	  <para>
+		  Starting with <emphasis>version 4.0</emphasis> the Messaging Annotation and Java configuration provides
+		  <classname>@BridgeFrom</classname> and <classname>@BridgeTo</classname> <classname>@Bean</classname> method
+		  level annotations to mark <interfacename>MessageChannel</interfacename> beans in the
+		  <interfacename>@Configuration</interfacename> classes. It is just for convenience to avoid a
+		  <classname>BridgeHandler</classname> and its Message Endpoint configurations:
+		  <programlisting language="java"><![CDATA[@Bean
+public PollableChannel pollableBridgeInput() {
+	return new QueueChannel();
+}
+
+@Bean
+@BridgeFrom(value = "pollableBridgeInput", poller = @Poller(fixedDelay = "1000"))
+public QueueChannel pollableBridgeOutput() {
+	return new QueueChannel();
+}
+@Bean
+public QueueChannel bridgeToOutput() {
+	return new QueueChannel();
+}
+
+@Bean
+@BridgeTo("bridgeToOutput")
+public MessageChannel bridgeToInput() {
+	return new DirectChannel();
+}]]></programlisting>
+	These annotations can be used as meta-annotations as well.
+	  </para>
     <para>
         Also see <xref linkend="advising-with-annotations"/>.
     </para>
