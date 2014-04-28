@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
@@ -267,8 +271,7 @@ public class ConnectionTimeoutTests {
 		client.setApplicationEventPublisher(new ApplicationEventPublisher() {
 			@Override
 			public void publishEvent(ApplicationEvent event) {
-				TcpConnectionEvent tcpEvent = (TcpConnectionEvent) event;
-				if (tcpEvent instanceof TcpConnectionCloseEvent) {
+				if (event instanceof TcpConnectionCloseEvent) {
 					clientClosedLatch.countDown();
 				}
 			}
