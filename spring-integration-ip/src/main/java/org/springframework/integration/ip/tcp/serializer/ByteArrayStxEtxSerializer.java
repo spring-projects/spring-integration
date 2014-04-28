@@ -37,7 +37,7 @@ public class ByteArrayStxEtxSerializer extends AbstractByteArraySerializer {
 	public static final int ETX = 0x03;
 
 	/**
-	 * Reads the data in the inputstream to a byte[]. Data must be prefixed
+	 * Reads the data in the inputStream to a byte[]. Data must be prefixed
 	 * with an ASCII STX character, and terminated with an ASCII ETX character.
 	 * Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately before the STX (i.e. no data is in the process of

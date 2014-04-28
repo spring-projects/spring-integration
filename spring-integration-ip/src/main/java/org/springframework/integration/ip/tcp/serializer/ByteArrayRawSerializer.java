@@ -64,7 +64,7 @@ public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 					throw new IOException("Socket was not closed before max message length: "
 							+ this.maxMessageSize);
 				}
-			};
+			}
 			byte[] assembledData = new byte[n];
 			System.arraycopy(buffer, 0, assembledData, 0, n);
 			return assembledData;

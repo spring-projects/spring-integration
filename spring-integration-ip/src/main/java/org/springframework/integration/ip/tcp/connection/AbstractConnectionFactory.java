@@ -105,7 +105,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean lookupHost = true;
 
-	private volatile List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
+	private final List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
 
 	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
 

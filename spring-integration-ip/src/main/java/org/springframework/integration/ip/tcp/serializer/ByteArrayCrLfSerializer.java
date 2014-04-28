@@ -33,7 +33,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	private static final byte[] CRLF = "\r\n".getBytes();
 
 	/**
-	 * Reads the data in the inputstream to a byte[]. Data must be terminated
+	 * Reads the data in the inputStream to a byte[]. Data must be terminated
 	 * by CRLF (\r\n). Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately after the \r\n (i.e. no data is in the process of
 	 * being read).
@@ -42,12 +42,10 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = this.fillToCrLf(inputStream, buffer);
-		byte[] assembledData = this.copyToSizedArray(buffer, n);
-		return assembledData;
+		return this.copyToSizedArray(buffer, n);
 	}
 
-	public int fillToCrLf(InputStream inputStream, byte[] buffer)
-			throws IOException, SoftEndOfStreamException {
+	public int fillToCrLf(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite;
 		if (logger.isDebugEnabled()) {
@@ -68,7 +66,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 					throw new IOException("CRLF not found before max message length: "
 							+ this.maxMessageSize);
 				}
-			};
+			}
 			return n-1; // trim \r
 		}
 		catch (SoftEndOfStreamException e) {

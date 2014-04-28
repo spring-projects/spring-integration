@@ -37,7 +37,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 	}
 
 	/**
-	 * Reads the data in the inputstream to a byte[]. Data must be terminated
+	 * Reads the data in the inputStream to a byte[]. Data must be terminated
 	 * by a single byte. Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately after the terminator (i.e. no data is in the process of
 	 * being read).
@@ -66,7 +66,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 							+ "' not found before max message length: "
 							+ this.maxMessageSize);
 				}
-			};
+			}
 			byte[] assembledData = new byte[n];
 			System.arraycopy(buffer, 0, assembledData, 0, n);
 			return assembledData;
