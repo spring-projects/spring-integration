@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.DefaultDeserializer;
-import org.springframework.integration.ip.tcp.connection.TcpDeserializationExceptionEvent;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.test.util.SocketUtils;
 
