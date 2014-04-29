@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,28 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
+ * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- * @since 3.0
+ * @since 1.0
  *
  */
 public class MessagingTemplate extends GenericMessagingTemplate {
+
+	/**
+	 * Create a MessagingTemplate with no default channel. Note, that one
+	 * may be provided by invoking {@link #setDefaultChannel(MessageChannel)}.
+	 */
+	public MessagingTemplate() {
+	}
+
+	/**
+	 * Create a MessagingTemplate with the given default channel.
+	 */
+	public MessagingTemplate(MessageChannel defaultChannel) {
+		this.setDefaultChannel(defaultChannel);
+	}
 
 	/**
 	 * Overridden to set the destination resolver to a {@link BeanFactoryChannelResolver}.
