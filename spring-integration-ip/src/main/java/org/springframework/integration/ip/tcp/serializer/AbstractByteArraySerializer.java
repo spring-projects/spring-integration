@@ -25,7 +25,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.ip.tcp.connection.TcpDeserializationExceptionEvent;
 
 /**
  * Base class for (de)serializers that provide a mechanism to

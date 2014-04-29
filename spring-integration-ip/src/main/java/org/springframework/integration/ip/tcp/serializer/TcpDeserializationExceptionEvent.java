@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp.connection;
+package org.springframework.integration.ip.tcp.serializer;
 
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 
