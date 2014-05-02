@@ -44,6 +44,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 
 	/**
 	 * Create a MessagingTemplate with the given default channel.
+	 * @param defaultChannel the default {@link MessageChannel} for {@code send} operations
 	 */
 	public MessagingTemplate(MessageChannel defaultChannel) {
 		this.setDefaultChannel(defaultChannel);
