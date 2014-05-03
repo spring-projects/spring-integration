@@ -5,6 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
+		maven { url 'http://repo.spring.io/plugins-release' }
 		maven { url 'http://repo.spring.io/plugins-snapshot' }
 	}
 	dependencies {
@@ -155,32 +156,6 @@ subprojects { subproject ->
 	ext.xLintArg = '-Xlint:all,-options'
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
-	tasks.withType(Test).all {
-		// suppress all console output during testing unless running `gradle -i`
-		logging.captureStandardOutput(LogLevel.INFO)
-	}
-
-	test {
-		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
-	}
-
-	task testAll() {
-		doFirst {
-			tasks.test.systemProperty 'RUN_LONG_INTEGRATION_TESTS', 'true'
-		}
-		finalizedBy test
-	}
-
-	task sourcesJar(type: Jar) {
-		classifier = 'sources'
-		from sourceSets.main.allJava
-	}
-
-	task javadocJar(type: Jar) {
-		classifier = 'javadoc'
-		from javadoc
-	}
-
 	task checkTestConfigs {
 		doLast {
 			def configFiles = []
@@ -196,12 +171,37 @@ subprojects { subproject ->
 			if (configFiles) {
 				throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
 						configFiles.collect {relativePath(it)}.join('\n') +
-						'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds on different versions of dependencies.')
+						'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds ' +
+						'on different versions of dependencies.')
 			}
 		}
 	}
 
-	test.dependsOn checkTestConfigs
+	test {
+		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
+	}
+
+	task testAll(type: Test)
+
+	tasks.withType(Test).all {
+		// suppress all console output during testing unless running `gradle -i`
+		logging.captureStandardOutput(LogLevel.INFO)
+		dependsOn checkTestConfigs
+
+		if (name ==~ /(springio.*)|(testAll)/) {
+			systemProperty 'RUN_LONG_INTEGRATION_TESTS', 'true'
+		}
+	}
+
+	task sourcesJar(type: Jar) {
+		classifier = 'sources'
+		from sourceSets.main.allJava
+	}
+
+	task javadocJar(type: Jar) {
+		classifier = 'javadoc'
+		from javadoc
+	}
 
 	artifacts {
 		archives sourcesJar
@@ -291,7 +291,7 @@ project('spring-integration-ftp') {
 
 project('spring-integration-gemfire') {
 	description = 'Spring Integration GemFire Support'
-	tasks.withType(Test).all {
+	tasks.withType(Test).matching {it.name ==~ /(springio.+)|(test)|(testAll)/}.all {
 		forkEvery = 1
 		systemProperties['gemfire.disableShutdownHook'] = 'true'
 	}
@@ -428,13 +428,8 @@ project('spring-integration-jpa') {
 	//Suppress openjpa annotation processor warnings
 	compileTestJava.options.compilerArgs = ["${xLintArg},-processing"]
 
-	tasks.withType(Test).all {
-		doFirst {
-			def javaAgents = classpath.files
-					.findAll { it.name.contains('spring-instrument') || it.name.contains('openjpa')}
-					.collect { "-javaagent:$it" }
-			jvmArgs javaAgents
-		}
+	tasks.withType(Test).matching {it.name ==~ /(springio.+)|(test)|(testAll)/}.all {
+		jvmArgs classpath.files.findAll{it.name ==~ /(spring-instrument.+)|(openjpa.+)/}.collect{"-javaagent:$it"}
 	}
 
 }
