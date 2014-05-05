@@ -62,6 +62,8 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 		container.addMessageListener(listener, Collections.<Topic>singletonList(new ChannelTopic(topic)));
 		container.start();
 
+		this.awaitContainerSubscribed(container);
+
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
 		handler.setTopicExpression(new LiteralExpression(topic));
 

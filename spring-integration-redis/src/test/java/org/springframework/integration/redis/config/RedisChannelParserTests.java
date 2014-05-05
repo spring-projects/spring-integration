@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -47,7 +48,8 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPubSubChannelConfig(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 		RedisConnectionFactory connectionFactory =
 			TestUtils.getPropertyValue(redisChannel, "connectionFactory", RedisConnectionFactory.class);
@@ -68,8 +70,12 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPubSubChannelUsage() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
+
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(redisChannel, "container",
+				RedisMessageListenerContainer.class));
 
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 

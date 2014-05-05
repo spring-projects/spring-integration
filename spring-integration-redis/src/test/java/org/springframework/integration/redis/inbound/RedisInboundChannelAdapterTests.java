@@ -26,9 +26,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
 /**
@@ -36,7 +38,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 2.1
  */
-public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
+public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -59,6 +61,9 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
+
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container",
+				RedisMessageListenerContainer.class));
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
@@ -85,6 +90,9 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.setSerializer(null);
 		adapter.afterPropertiesSet();
 		adapter.start();
+
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container",
+				RedisMessageListenerContainer.class));
 
 		RedisTemplate<?, ?> template = new RedisTemplate<Object, Object>();
 		template.setConnectionFactory(connectionFactory);

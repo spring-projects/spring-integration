@@ -83,6 +83,8 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 	@RedisAvailable
 	public void testOutboundChannelAdapterMessaging() throws Exception{
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
+				RedisMessageListenerContainer.class));
 		sendChannel.send(new GenericMessage<String>("Hello Redis"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(5000);
@@ -101,6 +103,8 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 	@RedisAvailable
 	public void testOutboundChannelAdapterWithinChain() throws Exception{
 		MessageChannel sendChannel = context.getBean("redisOutboudChain", MessageChannel.class);
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
+				RedisMessageListenerContainer.class));
 		sendChannel.send(new GenericMessage<String>("Hello Redis from chain"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(5000);
