@@ -6,7 +6,11 @@
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<beans:bean id="messageStore" class="org.springframework.integration.redis.store.RedisMessageStore">
-		<beans:constructor-arg value="#{T(org.springframework.integration.redis.store.DelayerHandlerRescheduleIntegrationTests).connectionFactory}"/>
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+				<beans:property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+			</beans:bean>
+		</beans:constructor-arg>
 	</beans:bean>
 
 	<channel id="output">

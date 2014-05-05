@@ -16,11 +16,7 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,8 +38,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.lambdaworks.redis.protocol.CommandType;
 
 /**
  * @author Artem Bilan
@@ -81,7 +75,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPingPongCommand() {
-		this.pingChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, CommandType.PING).build());
+		this.pingChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, "PING").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertTrue(Arrays.equals("PONG".getBytes(), (byte[]) receive.getPayload()));
@@ -93,14 +87,14 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		final String queueName = "si.test.testRedisOutboundGateway";
 		String payload = "testing";
 		this.leftPushRightPopChannel.send(MessageBuilder.withPayload(payload)
-				.setHeader(RedisHeaders.COMMAND, CommandType.LPUSH)
+				.setHeader(RedisHeaders.COMMAND, "LPUSH")
 				.setHeader("queue", queueName)
 				.build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 
 		this.leftPushRightPopChannel.send(MessageBuilder.withPayload(payload)
-				.setHeader(RedisHeaders.COMMAND, CommandType.RPOP)
+				.setHeader(RedisHeaders.COMMAND, "RPOP")
 				.setHeader("queue", queueName)
 				.build());
 		receive = this.replyChannel.receive(1000);
@@ -111,9 +105,10 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testIncrementAtomicCommand() {
-		// Since 'atomicInteger' is lazy-init to avoid early Redis connection, we have to initialize it before send the INCR command.
+		// Since 'atomicInteger' is lazy-init to avoid early Redis connection,
+		// we have to initialize it before send the INCR command.
 		this.beanFactory.getBean("atomicInteger");
-		this.incrementAtomicIntegerChannel.send(MessageBuilder.withPayload(CommandType.INCR).build());
+		this.incrementAtomicIntegerChannel.send(MessageBuilder.withPayload("INCR").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals(11L, receive.getPayload());
@@ -128,17 +123,18 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testGetCommand() {
-		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[]{"foo", "bar"}).setHeader(RedisHeaders.COMMAND, CommandType.SET).build());
+		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[]{"foo", "bar"})
+				.setHeader(RedisHeaders.COMMAND, "SET").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
-		assertEquals("OK", receive.getPayload());
+		assertTrue(Arrays.equals("OK".getBytes(), (byte[]) receive.getPayload()));
 
 		this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
 		receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertTrue(Arrays.equals("bar".getBytes(), (byte[]) receive.getPayload()));
 
-		this.setDelCommandChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, CommandType.DEL).build());
+		this.setDelCommandChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, "DEL").build());
 		receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals(1L, receive.getPayload());

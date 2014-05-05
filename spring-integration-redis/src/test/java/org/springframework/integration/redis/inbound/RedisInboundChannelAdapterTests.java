@@ -16,11 +16,8 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -29,11 +26,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
 /**
@@ -65,8 +60,6 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
-
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 		for (int i = 0; i < numToTest; i++) {
@@ -92,8 +85,6 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.setSerializer(null);
 		adapter.afterPropertiesSet();
 		adapter.start();
-
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
 
 		RedisTemplate<?, ?> template = new RedisTemplate<Object, Object>();
 		template.setConnectionFactory(connectionFactory);

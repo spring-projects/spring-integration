@@ -13,7 +13,7 @@
 
 	<bean id="redisLockRegistry" class="org.springframework.integration.redis.util.RedisLockRegistry">
 		<constructor-arg>
-			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+			<bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 			</bean>
 		</constructor-arg>
@@ -28,7 +28,7 @@
 
 	<bean id="redisLockRegistry2" class="org.springframework.integration.redis.util.RedisLockRegistry">
 		<constructor-arg>
-			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+			<bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 			</bean>
 		</constructor-arg>

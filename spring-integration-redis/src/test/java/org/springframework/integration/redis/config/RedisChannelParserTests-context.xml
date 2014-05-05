@@ -12,7 +12,7 @@
 	<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic"
 			serializer="redisSerializer"/>
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
 

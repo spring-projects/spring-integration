@@ -60,8 +60,6 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		channel.afterPropertiesSet();
 		channel.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container", RedisMessageListenerContainer.class));
-
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler = new MessageHandler() {
 

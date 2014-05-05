@@ -16,9 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +25,6 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -45,7 +42,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-public class RedisChannelParserTests extends RedisAvailableTests{
+public class RedisChannelParserTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -73,8 +70,6 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 	public void testPubSubChannelUsage() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
-
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(redisChannel, "container", RedisMessageListenerContainer.class));
 
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 

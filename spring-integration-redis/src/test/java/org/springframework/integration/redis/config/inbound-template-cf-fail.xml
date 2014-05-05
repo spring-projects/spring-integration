@@ -16,7 +16,7 @@
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 	</int-redis:store-inbound-channel-adapter>
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
 

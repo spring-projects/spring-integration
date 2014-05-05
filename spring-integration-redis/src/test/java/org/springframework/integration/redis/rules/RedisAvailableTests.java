@@ -15,18 +15,12 @@
  */
 package org.springframework.integration.redis.rules;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Rule;
 
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,36 +39,9 @@ public class RedisAvailableTests {
 		if (this.connectionFactory != null) {
 			return this.connectionFactory;
 		}
-		LettuceConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
+		RedisConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
 		this.connectionFactory = connectionFactory;
 		return connectionFactory;
-	}
-
-	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
-		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
-				RedisConnection.class);
-
-		int n = 0;
-		while (n++ < 100 && !connection.isSubscribed()) {
-			Thread.sleep(100);
-		}
-		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
-		// wait another second because of race condition in Lettuce
-		Thread.sleep(1000);
-	}
-
-	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
-		this.awaitContainerSubscribed(container);
-		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
-				RedisConnection.class);
-
-		int n = 0;
-		while (n++ < 100 && connection.getSubscription().getPatterns().size() == 0) {
-			Thread.sleep(100);
-		}
-		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
-		// wait another second because of race condition in Lettuce
-		Thread.sleep(1000);
 	}
 
 	protected void prepareList(RedisConnectionFactory connectionFactory){
