@@ -16,11 +16,8 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -41,7 +38,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 2.1
  */
-public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
+public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -65,7 +62,8 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container",
+				RedisMessageListenerContainer.class));
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
@@ -93,7 +91,8 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container",
+				RedisMessageListenerContainer.class));
 
 		RedisTemplate<?, ?> template = new RedisTemplate<Object, Object>();
 		template.setConnectionFactory(connectionFactory);

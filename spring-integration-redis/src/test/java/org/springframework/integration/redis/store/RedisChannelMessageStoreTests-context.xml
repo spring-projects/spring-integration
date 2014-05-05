@@ -7,7 +7,7 @@
 
 	<bean id="cms" class="org.springframework.integration.redis.store.RedisChannelMessageStore">
 		<constructor-arg>
-			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+			<bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 			</bean>
 		</constructor-arg>
@@ -23,7 +23,7 @@
 
 	<bean id="priorityCms" class="org.springframework.integration.redis.store.RedisChannelPriorityMessageStore">
 		<constructor-arg>
-			<bean class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+			<bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 			</bean>
 		</constructor-arg>

@@ -86,7 +86,8 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testInboundChannelAdapterMessaging() throws Exception {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
-		this.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
+		this.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container",
+				RedisMessageListenerContainer.class));
 
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 

@@ -21,7 +21,6 @@ import org.junit.Rule;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -45,7 +44,7 @@ public class RedisAvailableTests {
 		if (this.connectionFactory != null) {
 			return this.connectionFactory;
 		}
-		LettuceConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
+		RedisConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
 		this.connectionFactory = connectionFactory;
 		return connectionFactory;
 	}
@@ -59,7 +58,7 @@ public class RedisAvailableTests {
 			Thread.sleep(100);
 		}
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
-		// wait another second because of race condition in Lettuce
+		// wait another second because of race condition
 		Thread.sleep(1000);
 	}
 
@@ -73,7 +72,7 @@ public class RedisAvailableTests {
 			Thread.sleep(100);
 		}
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
-		// wait another second because of race condition in Lettuce
+		// wait another second because of race condition
 		Thread.sleep(1000);
 	}
 

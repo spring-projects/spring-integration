@@ -16,9 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -45,12 +43,13 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-public class RedisChannelParserTests extends RedisAvailableTests{
+public class RedisChannelParserTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
 	public void testPubSubChannelConfig(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 		RedisConnectionFactory connectionFactory =
 			TestUtils.getPropertyValue(redisChannel, "connectionFactory", RedisConnectionFactory.class);
@@ -71,10 +70,12 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testPubSubChannelUsage() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(redisChannel, "container", RedisMessageListenerContainer.class));
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(redisChannel, "container",
+				RedisMessageListenerContainer.class));
 
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 
