@@ -20,7 +20,7 @@
 			<para>
 				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>
 				is also compatible with <emphasis role="strong">Java SE 7</emphasis> as well
-				as <emphasis role="strong">Java SE 8</emphasis> (once released).
+				as <emphasis role="strong">Java SE 8</emphasis>.
 			</para>
 			<note>
 				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
