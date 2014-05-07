@@ -12,42 +12,25 @@
 		<section id="supported-java-versions">
 			<title>Compatible Java Versions</title>
 			<para>
-				For <emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>,
+				For <emphasis>Spring Integration</emphasis> <emphasis role="strong">4.0.x</emphasis>,
 				the <emphasis role="strong">minimum</emphasis> compatible Java
 				version is <emphasis role="strong">Java SE 6</emphasis>.
-				Older versions of Java will not be supported any longer.
+				Older versions of Java are not supported.
 			</para>
 			<para>
-				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>
+				<emphasis>Spring Integration</emphasis> <emphasis role="strong">4.0.x</emphasis>
 				is also compatible with <emphasis role="strong">Java SE 7</emphasis> as well
 				as <emphasis role="strong">Java SE 8</emphasis>.
 			</para>
-			<note>
-				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
-				is the last version that is compatible with <emphasis>Java 5</emphasis> (J2SE 5.0).
-			</note>
 		</section>
 		<section id="supported-spring-versions">
 			<title>Compatible Versions of the Spring Framework</title>
 			<para>
-				The default dependency used by <emphasis>Spring Integration</emphasis>
-				<emphasis role="strong">3.0.0.RELEASE</emphasis> is
-				<emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.x</emphasis>.
+				<emphasis>Spring Integration</emphasis>
+				<emphasis role="strong">4.0.x</emphasis> requires
+				<emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.3</emphasis> or
+				later.
 			</para>
-			<para>
-				Generally, <emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>
-				is compatible with the following <emphasis>Spring Framework</emphasis> releases:
-			</para>
-			<itemizedlist>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.x</emphasis></listitem>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.x</emphasis></listitem>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.x</emphasis></listitem>
-			</itemizedlist>
-			<note>
-				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
-				is the last version that is compatible with <emphasis>Spring Framework</emphasis>
-				<emphasis role="strong">3.0.x</emphasis>.
-			</note>
 		</section>
 	</section>
 	<section id="code-conventions">
