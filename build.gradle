@@ -9,7 +9,7 @@ buildscript {
 		maven { url 'http://repo.spring.io/plugins-snapshot' }
 	}
 	dependencies {
-		classpath 'org.springframework.build.gradle:springio-platform-plugin:0.0.3.BUILD-SNAPSHOT'
+		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.BUILD-SNAPSHOT'
 		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
 	}
 }
@@ -26,7 +26,7 @@ ext {
 allprojects {
 	group = 'org.springframework.integration'
 
-	apply plugin: 'springio-platform'
+	apply plugin: 'spring-io'
 
 	repositories {
 		if (version.endsWith('BUILD-SNAPSHOT')) {
@@ -150,6 +150,8 @@ subprojects { subproject ->
 			testCompile project(":spring-integration-test")
 		}
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.5.6.201201232323", classifier: "runtime"
+
+		springIoVersions 'io.spring.platform:platform-versions:1.0.0.BUILD-SNAPSHOT@properties'
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -188,7 +190,7 @@ subprojects { subproject ->
 		logging.captureStandardOutput(LogLevel.INFO)
 		dependsOn checkTestConfigs
 
-		if (name ==~ /(springio.*)|(testAll)/) {
+		if (name ==~ /(springIo.*)|(testAll)/) {
 			systemProperty 'RUN_LONG_INTEGRATION_TESTS', 'true'
 		}
 	}
@@ -291,7 +293,7 @@ project('spring-integration-ftp') {
 
 project('spring-integration-gemfire') {
 	description = 'Spring Integration GemFire Support'
-	tasks.withType(Test).matching {it.name ==~ /(springio.+)|(test)|(testAll)/}.all {
+	tasks.withType(Test).matching {it.name ==~ /(springIo.+)|(test)|(testAll)/}.all {
 		forkEvery = 1
 		systemProperties['gemfire.disableShutdownHook'] = 'true'
 	}
@@ -428,7 +430,7 @@ project('spring-integration-jpa') {
 	//Suppress openjpa annotation processor warnings
 	compileTestJava.options.compilerArgs = ["${xLintArg},-processing"]
 
-	tasks.withType(Test).matching {it.name ==~ /(springio.+)|(test)|(testAll)/}.all {
+	tasks.withType(Test).matching {it.name ==~ /(springIo.+)|(test)|(testAll)/}.all {
 		jvmArgs classpath.files.findAll{it.name ==~ /(spring-instrument.+)|(openjpa.+)/}.collect{"-javaagent:$it"}
 	}
 
