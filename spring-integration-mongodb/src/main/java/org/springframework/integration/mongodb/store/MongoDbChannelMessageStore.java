@@ -38,8 +38,8 @@ import org.springframework.util.Assert;
  * <p>As a priority document field the {@link org.springframework.integration.IntegrationMessageHeaderAccessor#PRIORITY}
  * message header is used.
  *
- * <p>The same collection can be used for {@link org.springframework.integration.channel.QueueChannel}s and
- * {@link org.springframework.integration.channel.PriorityChannel}s, but the different instances of
+ * <p>The same collection can be used for {@code org.springframework.integration.channel.QueueChannel}s and
+ * {@code org.springframework.integration.channel.PriorityChannel}s, but the different instances of
  * {@link MongoDbChannelMessageStore} should be used for those cases, and the last one with
  * {@code priorityEnabled = true} option.
  *
