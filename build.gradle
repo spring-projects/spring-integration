@@ -41,7 +41,7 @@ allprojects {
 		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
-		'http://docs.spring.io/spring-social-twitter/docs/current/api/',
+		'http://docs.spring.io/spring-social-twitter/docs/current/apidocs/',
 		'http://docs.spring.io/spring-ws/sites/2.0/apidocs/'
 	] as String[]
 
