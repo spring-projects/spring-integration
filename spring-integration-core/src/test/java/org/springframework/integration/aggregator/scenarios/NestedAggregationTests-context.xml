@@ -6,6 +6,8 @@
             http://www.springframework.org/schema/integration
             http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<beans:bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
+
 	<channel id="splitter" />
 
 	<splitter id="upstream-splitter" input-channel="splitter" output-channel="upstream-splits" />

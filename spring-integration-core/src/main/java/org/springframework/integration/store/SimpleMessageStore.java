@@ -187,6 +187,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public MessageGroupMetadata addMessageToGroupMetadata(Object groupId, Message<?> message) {
+		return new MessageGroupMetadata(addMessageToGroup(groupId, message));
+	}
+
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		Lock lock = this.lockRegistry.obtain(groupId);
 		try {

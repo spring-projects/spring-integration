@@ -4,17 +4,19 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
-	
+
+	<bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
+
 	<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="gemfireStore"/>
-	
+
 	<int:channel id="outputChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<bean id="gemfireStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
 		<constructor-arg ref="cache"/>
 	</bean>
-	
+
 	<bean id="cache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
 
 </beans>

@@ -83,15 +83,17 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler
 		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware {
 
-	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
+	protected static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
 
-	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<UUID, ScheduledFuture<?>>();
+	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	protected final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<UUID, ScheduledFuture<?>>();
+
+	protected final MessageGroupProcessor outputProcessor;
 
 	protected volatile MessageGroupStore messageStore;
-
-	private final MessageGroupProcessor outputProcessor;
 
 	private volatile CorrelationStrategy correlationStrategy;
 
@@ -100,8 +102,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private MessageChannel outputChannel;
 
 	private String outputChannelName;
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel discardChannel;
 
@@ -295,18 +295,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return "aggregator";
 	}
 
-	protected MessageGroupStore getMessageStore() {
-		return messageStore;
-	}
-
-	protected Map<UUID, ScheduledFuture<?>> getExpireGroupScheduledFutures() {
-		return expireGroupScheduledFutures;
-	}
-
-	protected MessageGroupProcessor getOutputProcessor() {
-		return outputProcessor;
-	}
-
 	protected CorrelationStrategy getCorrelationStrategy() {
 		return correlationStrategy;
 	}
@@ -323,16 +311,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return outputChannelName;
 	}
 
-	protected MessagingTemplate getMessagingTemplate() {
-		return messagingTemplate;
-	}
-
 	protected MessageChannel getDiscardChannel() {
 		return discardChannel;
-	}
-
-	protected String getDiscardChannelName() {
-		return discardChannelName;
 	}
 
 	protected boolean isSendPartialResultOnExpiry() {
@@ -452,7 +432,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 */
 	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
-	private void forceComplete(MessageGroup group) {
+	protected void forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted

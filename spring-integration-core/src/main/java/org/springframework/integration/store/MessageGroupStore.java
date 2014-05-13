@@ -39,6 +39,8 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	@ManagedAttribute
 	int getMessageCountForAllMessageGroups();
 
+	MessageGroupMetadata addMessageToGroupMetadata(Object groupId, Message<?> message);
+
 	/**
 	 * Optional attribute giving the number of  message groups. Implementations may decline
 	 * to respond by throwing an exception.

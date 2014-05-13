@@ -13,10 +13,12 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:property-placeholder location="org/springframework/integration/gemfire/inbound/cq/common.properties"/>
-    
+
     <context:component-scan base-package="org.springframework.integration.gemfire.store"/>
 
     <int:channel id="i"/>
+
+	<bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
 
     <int:aggregator  release-strategy="releaseStrategy" correlation-strategy="correlationStrategy" message-store="gemfireMessageGroupStore" input-channel="i" output-channel="o"  />
 

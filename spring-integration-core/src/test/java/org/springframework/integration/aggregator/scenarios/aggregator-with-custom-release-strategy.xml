@@ -5,6 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
 
 	<int:splitter input-channel="in" output-channel="aggregationChannelFromSplitter"/>
 

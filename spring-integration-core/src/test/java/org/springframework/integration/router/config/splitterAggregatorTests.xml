@@ -7,6 +7,8 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<beans:bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
+
 	<channel id="numbers"/>
 	<channel id="splits"/>
 	<channel id="results">
@@ -14,6 +16,7 @@
 	</channel>
 
 	<splitter ref="splitter" method="split" input-channel="numbers" output-channel="splits"/>
+
 	<aggregator ref="aggregator" method="sum" input-channel="splits" output-channel="results"/>
 
 	<beans:bean id="splitter" class="org.springframework.integration.router.config.NumberSplitter"/>
