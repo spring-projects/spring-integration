@@ -9,7 +9,7 @@ buildscript {
 		maven { url 'http://repo.spring.io/plugins-snapshot' }
 	}
 	dependencies {
-		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.BUILD-SNAPSHOT'
+		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
 		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
 	}
 }
@@ -25,8 +25,6 @@ ext {
 
 allprojects {
 	group = 'org.springframework.integration'
-
-	apply plugin: 'spring-io'
 
 	repositories {
 		if (version.endsWith('BUILD-SNAPSHOT')) {
@@ -57,6 +55,18 @@ subprojects { subproject ->
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
+
+	if (project.hasProperty('platformVersion')) {
+		apply plugin: 'spring-io'
+
+		repositories {
+			maven { url "https://repo.spring.io/libs-snapshot" }
+		}
+
+		dependencies {
+			springIoVersions "io.spring.platform:platform-versions:${platformVersion}@properties"
+		}
+	}
 
 	sourceCompatibility=1.6
 	targetCompatibility=1.6
