@@ -6,7 +6,6 @@ apply plugin: 'idea'
 buildscript {
 	repositories {
 		maven { url 'http://repo.spring.io/plugins-release' }
-		maven { url 'http://repo.spring.io/plugins-snapshot' }
 	}
 	dependencies {
 		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
@@ -160,8 +159,6 @@ subprojects { subproject ->
 			testCompile project(":spring-integration-test")
 		}
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.5.6.201201232323", classifier: "runtime"
-
-		springIoVersions 'io.spring.platform:platform-versions:1.0.0.BUILD-SNAPSHOT@properties'
 	}
 
 	// enable all compiler warnings; individual projects may customize further
