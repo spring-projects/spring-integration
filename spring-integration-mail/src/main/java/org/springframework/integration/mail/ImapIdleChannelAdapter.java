@@ -37,10 +37,12 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -56,6 +58,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ImapIdleChannelAdapter extends MessageProducerSupport implements BeanClassLoaderAware,
 		ApplicationEventPublisherAware {
@@ -118,7 +121,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	 * Specify whether the IDLE task should reconnect automatically after
 	 * catching a {@link FolderClosedException} while waiting for messages. The
 	 * default value is <code>true</code>.
-	 *
 	 * @param shouldReconnectAutomatically true to reconnect.
 	 */
 	public void setShouldReconnectAutomatically(boolean shouldReconnectAutomatically) {
@@ -250,18 +252,22 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
 					if (transactionSynchronizationFactory != null){
-						IntegrationResourceHolder holder = new IntegrationResourceHolder();
-						holder.setMessage(message);
-						TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
-						TransactionSynchronizationManager.
-							registerSynchronization(transactionSynchronizationFactory.create(ImapIdleChannelAdapter.this));
+						TransactionSynchronization synchronization =
+								transactionSynchronizationFactory.create(ImapIdleChannelAdapter.this);
+						TransactionSynchronizationManager.registerSynchronization(synchronization);
+						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+							IntegrationResourceHolder holder =
+									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
+							TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
+							holder.setMessage(message);
+						}
 					}
 				}
 				sendMessage(message);
 			}
 		};
 
-		// wrap in the TX proxy if neccessery
+		// wrap in the TX proxy if necessary
 		if (!CollectionUtils.isEmpty(adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(sendingTask);
 			if (!CollectionUtils.isEmpty(adviceChain)) {
