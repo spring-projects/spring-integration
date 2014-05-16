@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
+import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.messaging.Message;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -64,7 +70,6 @@ public class PseudoTransactionalMessageSourceTests {
 		PollableChannel queueChannel = new QueueChannel();
 		syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
 		syncProcessor.setBeforeCommitChannel(queueChannel);
-		syncProcessor.setAfterCommitChannel(queueChannel);
 		syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("#baz"));
 
 		DefaultTransactionSynchronizationFactory syncFactory =
@@ -78,11 +83,26 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
-				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
-				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("bix", "qox");
+				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
+						.addAttribute("baz", "qux");
+				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
+						.addAttribute("bix", "qox");
 				return message;
 			}
 		});
+
+		MessageChannel afterCommitChannel = TestUtils.getPropertyValue(syncProcessor, "afterCommitChannel",
+				MessageChannel.class);
+		assertThat(afterCommitChannel, Matchers.instanceOf(NullChannel.class));
+
+		Log logger = TestUtils.getPropertyValue(afterCommitChannel, "logger", Log.class);
+
+		logger = Mockito.spy(logger);
+
+		Mockito.when(logger.isDebugEnabled()).thenReturn(true);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(afterCommitChannel);
+		dfa.setPropertyValue("logger", logger);
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
@@ -92,9 +112,9 @@ public class PseudoTransactionalMessageSourceTests {
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
 		assertNotNull(beforeCommitMessage);
 		assertEquals("qox", beforeCommitMessage.getPayload());
-		Message<?> afterCommitMessage = queueChannel.receive(1000);
-		assertNotNull(afterCommitMessage);
-		assertEquals("qux", afterCommitMessage.getPayload());
+
+		Mockito.verify(logger).debug(Mockito.anyString());
+
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
@@ -121,7 +141,8 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
-				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
+				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
+						.addAttribute("baz", "qux");
 				return message;
 			}
 		});
@@ -164,8 +185,10 @@ public class PseudoTransactionalMessageSourceTests {
 
 					public Message<String> receive() {
 						GenericMessage<String> message = new GenericMessage<String>("foo");
-						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
-						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("bix", "qox");
+						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
+								.addAttribute("baz", "qux");
+						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
+								.addAttribute("bix", "qox");
 						return message;
 					}
 				});
@@ -192,13 +215,14 @@ public class PseudoTransactionalMessageSourceTests {
 				public Object doInTransaction(TransactionStatus status) {
 
 					SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-					ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+					ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+							new ExpressionEvaluatingTransactionSynchronizationProcessor();
 					syncProcessor.setBeanFactory(mock(BeanFactory.class));
 					syncProcessor.setAfterRollbackChannel(queueChannel);
 					syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
 
-					DefaultTransactionSynchronizationFactory syncFactory = new DefaultTransactionSynchronizationFactory(
-							syncProcessor);
+					DefaultTransactionSynchronizationFactory syncFactory =
+							new DefaultTransactionSynchronizationFactory(syncProcessor);
 
 					adapter.setTransactionSynchronizationFactory(syncFactory);
 
@@ -236,13 +260,14 @@ public class PseudoTransactionalMessageSourceTests {
 			public Object doInTransaction(TransactionStatus status) {
 
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+						new ExpressionEvaluatingTransactionSynchronizationProcessor();
 				syncProcessor.setBeanFactory(mock(BeanFactory.class));
 				syncProcessor.setAfterRollbackChannel(queueChannel);
 				syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
 
-				DefaultTransactionSynchronizationFactory syncFactory = new DefaultTransactionSynchronizationFactory(
-						syncProcessor);
+				DefaultTransactionSynchronizationFactory syncFactory =
+						new DefaultTransactionSynchronizationFactory(syncProcessor);
 
 				adapter.setTransactionSynchronizationFactory(syncFactory);
 
@@ -324,9 +349,12 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationManager.setActualTransactionActive(false);
 		assertEquals(1, txSyncCounter.get());
 
-		/*TODO: Failed with 'java.lang.IllegalStateException: Already value
-		TODO: [org.springframework.integration.transaction.IntegrationResourceHolder@46b8c8e6]
-		TODO: for key [org.springframework.integration.endpoint.PseudoTransactionalMessageSourceTests$8@78a1d1f4] bound to thread [main]'*/
+		/*
+		TODO: Failed with 'java.lang.IllegalStateException: Already value
+		 [org.springframework.integration.transaction.IntegrationResourceHolder@46b8c8e6]
+		for key [org.springframework.integration.endpoint.PseudoTransactionalMessageSourceTests$8@78a1d1f4]
+		bound to thread [main]'
+		*/
 		//TODO: Need new JIRA issue to fix it
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
@@ -349,8 +377,11 @@ public class PseudoTransactionalMessageSourceTests {
 	}
 
 	public class Bar {
+
 		public String getValue() {
 			return "bar";
 		}
+
 	}
+
 }
