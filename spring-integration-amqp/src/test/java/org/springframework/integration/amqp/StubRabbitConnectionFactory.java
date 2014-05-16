@@ -27,7 +27,6 @@ import org.springframework.amqp.rabbit.connection.ConnectionListener;
 
 import com.rabbitmq.client.AMQP.Basic.RecoverOk;
 import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.AMQP.Channel.FlowOk;
 import com.rabbitmq.client.AMQP.Confirm.SelectOk;
 import com.rabbitmq.client.AMQP.Exchange.BindOk;
 import com.rabbitmq.client.AMQP.Exchange.DeclareOk;
@@ -148,13 +147,8 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		}
 
 		@Override
-		public FlowOk flow(boolean active) throws IOException {
-			return null;
-		}
-
-		@Override
-		public FlowOk getFlow() {
-			return null;
+		public boolean flowBlocked() {
+			return false;
 		}
 
 		@Override
@@ -203,6 +197,10 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 
 		@Override
 		public void basicQos(int prefetchSize, int prefetchCount, boolean global) throws IOException {
+		}
+
+		@Override
+		public void basicQos(int prefetchCount, boolean global) throws IOException {
 		}
 
 		@Override
@@ -409,6 +407,12 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		@Override
 		public String basicConsume(String queue, boolean autoAck,
 				String consumerTag, Consumer callback) throws IOException {
+			return null;
+		}
+
+		@Override
+		public String basicConsume(String queue, boolean autoAck, Map<String, Object> arguments, Consumer callback)
+				throws IOException {
 			return null;
 		}
 
