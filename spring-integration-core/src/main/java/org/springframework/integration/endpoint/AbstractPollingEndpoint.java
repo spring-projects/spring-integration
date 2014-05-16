@@ -30,6 +30,7 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
@@ -38,6 +39,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -48,6 +50,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
@@ -240,19 +243,22 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	private IntegrationResourceHolder bindResourceHolderIfNecessary(String key, Object resource) {
-		IntegrationResourceHolder holder = null;
 
 		if (this.transactionSynchronizationFactory != null && resource != null) {
 			if (TransactionSynchronizationManager.isActualTransactionActive()) {
-				holder = new IntegrationResourceHolder();
-				if (key != null) {
-					holder.addAttribute(key, resource);
+				TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(resource);
+				TransactionSynchronizationManager.registerSynchronization(synchronization);
+				if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+					IntegrationResourceHolder holder =
+							((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
+					if (key != null) {
+						holder.addAttribute(key, resource);
+					}
+					return holder;
 				}
-				TransactionSynchronizationManager.bindResource(resource, holder);
-				TransactionSynchronizationManager.registerSynchronization(this.transactionSynchronizationFactory.create(resource));
 			}
 		}
-		return holder;
+		return null;
 	}
 
 	/**
@@ -292,6 +298,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				}
 			});
 		}
+
 	}
 
 }
