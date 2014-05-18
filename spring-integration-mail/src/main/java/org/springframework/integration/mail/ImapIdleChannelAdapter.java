@@ -258,7 +258,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
 							IntegrationResourceHolder holder =
 									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-							TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
 							holder.setMessage(message);
 						}
 					}

@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 /**
  * Default implementation of {@link TransactionSynchronizationFactory} which takes an instance of
@@ -40,7 +41,9 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 
 	public TransactionSynchronization create(Object key) {
 		Assert.notNull(key, "'key' must not be null");
-		return new DefaultTransactionalResourceSynchronization(key);
+		DefaultTransactionalResourceSynchronization synchronization = new DefaultTransactionalResourceSynchronization(key);
+		TransactionSynchronizationManager.bindResource(key, synchronization.getResourceHolder());
+		return synchronization;
 	}
 
 	/**

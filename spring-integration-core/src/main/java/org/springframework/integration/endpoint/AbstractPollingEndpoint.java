@@ -251,7 +251,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				if (synchronization instanceof IntegrationResourceHolderSynchronization) {
 					IntegrationResourceHolder holder =
 							((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-					TransactionSynchronizationManager.bindResource(resource, holder);
 					if (key != null) {
 						holder.addAttribute(key, resource);
 					}
