@@ -16,8 +16,10 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -30,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -52,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -68,7 +72,11 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.CallerBlocksPolicy;
+import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
@@ -551,6 +559,68 @@ public class TcpNioConnectionTests {
 		assertNotNull(inboundMessage.get());
 		assertEquals("foo", inboundMessage.get().getPayload());
 		assertEquals("baz", inboundMessage.get().getHeaders().get("bar"));
+	}
+
+	@Test
+	public void testAssemblerUsesSecondaryExecutor() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
+		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+
+		CompositeExecutor compositeExec = compositeExecutor();
+
+		factory.setSoTimeout(1000);
+		factory.setTaskExecutor(compositeExec);
+		final AtomicReference<String> threadName = new AtomicReference<String>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		factory.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				if (!(message instanceof ErrorMessage)) {
+					threadName.set(Thread.currentThread().getName());
+					latch.countDown();
+				}
+				return false;
+			}
+
+		});
+		factory.start();
+
+		Socket socket = null;
+		int n = 0;
+		while (n++ < 100) {
+			try {
+				socket = SocketFactory.getDefault().createSocket("localhost", port);
+				break;
+			}
+			catch (ConnectException e) {}
+			Thread.sleep(100);
+		}
+		assertTrue("Could not open socket to localhost:" + port, n < 100);
+		socket.getOutputStream().write("foo\r\n".getBytes());
+		socket.close();
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(threadName.get(), containsString("assembler"));
+
+		factory.stop();
+	}
+
+	private CompositeExecutor compositeExecutor() {
+		ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
+		ioExec.setCorePoolSize(2);
+		ioExec.setQueueCapacity(10);
+		ioExec.setThreadNamePrefix("io-");
+		ioExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+		ioExec.initialize();
+		ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
+		assemblerExec.setCorePoolSize(2);
+		assemblerExec.setQueueCapacity(10);
+		assemblerExec.setThreadNamePrefix("assembler-");
+		assemblerExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+		assemblerExec.initialize();
+		return new CompositeExecutor(ioExec, assemblerExec);
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {
