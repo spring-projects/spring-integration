@@ -28,6 +28,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +38,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.util.Assert;
 
 /**
@@ -58,7 +60,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private volatile boolean usingDirectBuffers;
 
-	private volatile Executor taskExecutor;
+	private volatile CompositeExecutor taskExecutor;
 
 	private volatile ByteBuffer rawBuffer;
 
@@ -301,7 +303,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.writingToPipe = true;
 		try {
 			if (this.taskExecutor == null) {
-				this.taskExecutor = Executors.newCachedThreadPool();
+				ExecutorService executor = Executors.newCachedThreadPool();
+				this.taskExecutor = new CompositeExecutor(executor, executor);
 			}
 			// If there is no assembler running, start one
 			checkForAssembler();
@@ -330,7 +333,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			 * avoid a deadlock (block on the write to the pipe).
 			 * Hence the count down latch.
 			 */
-			this.taskExecutor.execute(new Runnable() {
+			this.taskExecutor.execute2(new Runnable() {
 				public void run() {
 					try {
 						TcpNioConnection.this.sendToPipe(rawBuffer);
@@ -365,7 +368,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			if (this.executionControl.incrementAndGet() <= 1) {
 				// only execute run() if we don't already have one running
 				this.executionControl.set(1);
-				this.taskExecutor.execute(this);
+				this.taskExecutor.execute2(this);
 			} else {
 				this.executionControl.decrementAndGet();
 			}
@@ -408,7 +411,12 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * @param taskExecutor the taskExecutor to set
 	 */
 	public void setTaskExecutor(Executor taskExecutor) {
-		this.taskExecutor = taskExecutor;
+		if (taskExecutor instanceof CompositeExecutor) {
+			this.taskExecutor = (CompositeExecutor) taskExecutor;
+		}
+		else {
+			this.taskExecutor = new CompositeExecutor(taskExecutor, taskExecutor);
+		}
 	}
 
 	/**

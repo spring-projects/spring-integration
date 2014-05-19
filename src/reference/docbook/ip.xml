@@ -841,13 +841,110 @@
     detection logic has been added such that if thread starvation occurs, instead of
     deadlocking, an exception is thrown, thus releasing the deadlocked resources.
    </para>
-   <note>
+   <important>
     Now that the default task executor is unbounded, it is possible that an out of
     memory condition might occur with high rates of incoming messages, if message
     processing takes extended time. If your application exhibits this type of
     behavior, you are advised to use a pooled task executor with an appropriate
-    pool size.
-   </note>
+    pool size, but see the next section.
+   </important>
+   <section>
+     <title>Thread Pool Task Executor with CALLER_RUNS Policy</title>
+     <para>
+      There are some important considerations when using a fixed thread pool with
+      the <classname>CallerRunsPolicy</classname> (<code>CALLER_RUNS</code> when
+      using the <code>&lt;task/&gt;</code> namespace) and the queue capacity is small.
+     </para>
+     <para>
+      With NIO connections there are 3 distinct task types; the IO Selector processing
+      is performed on one dedicated thread - detecting events, accepting new connections,
+      and dispatching the IO read operations to other threads, using the task
+      executor. When an IO reader thread (to which the read operation is dispatched)
+      reads data, it hands off to another thread
+      to assemble the incoming message; large messages may take several reads to complete.
+      These "assembler" threads can block waiting for data. When a new read event
+      occurs, the reader determines if this socket already has an assembler and
+      runs a new one if not. When the assembly process is complete, the assembler
+      thread is returned to the pool.
+     </para>
+     <para>
+      This can cause a deadlock when the pool is exhausted and the CALLER_RUNS
+      rejection policy is in use, and the task queue is full.
+      When the pool is empty and there is no room in the queue, the IO selector thread
+      receives an <code>OP_READ</code> event and dispatches the read using the
+      executor; the queue is full, so the selector thread itself starts the
+      read process; now, it detects that there is not an assembler for this
+      socket and, before it does the read, fires off an assembler; again, the
+      queue is full, and the selector thread becomes the assembler. The assembler
+      is now blocked awaiting the data to be read, which will never happen.
+      The connection factory is now deadlocked because the selector thread
+      can't handle new events.
+     </para>
+     <para>
+      We must avoid the selector (or reader) threads performing the
+      assembly task to avoid this deadlock.
+     </para>
+     <para>
+      Two classes are provided by the framework to avoid this problem. The
+      <classname>CompositeExecutor</classname> allows the configuration
+      of two distinct executors; one for performing IO operations, and
+      one for message assembly. The <classname>CallerBlocksPolicy</classname>
+      (which should be configured for both task executors) will suspend
+      the IO operation until an assembler thread is available (or a timeout
+      occurs). In this environment, an IO thread can never
+      become an assembler thread, and the deadlock cannot occur.
+      Example configuration of the composite executor is shown below. The
+      <code>maxPoolSize</code> (or <code>queueCapacity</code>)
+      of the assembler executor should be slightly
+      larger than those on the IO executor.
+     </para>
+     <programlisting language="java"><![CDATA[@Bean
+private CompositeExecutor compositeExecutor() {
+    ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
+    ioExec.setCorePoolSize(4);
+    ioExec.setMaxPoolSize(8);
+    ioExec.setQueueCapacity(10);
+    ioExec.setThreadNamePrefix("io-");
+    ioExec.setRejectedExecutionHandler(new CallerRunsPolicy());
+    ioExec.initialize();
+    ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
+    assemblerExec.setCorePoolSize(2);
+    assemblerExec.setMaxPoolSize(10);
+    assemblerExec.setQueueCapacity(12);
+    assemblerExec.setThreadNamePrefix("assembler-");
+    assemblerExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+    assemblerExec.initialize();
+    return new CompositeExecutor(ioExec, assemblerExec);
+}]]></programlisting>
+<programlisting language="xml"><![CDATA[<bean id="myTaskExecutor" class="org.springframework.integration.util.CompositeExecutor">
+    <constructor-arg>
+        <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+            <property name="threadNamePrefix" value="io-" />
+            <property name="corePoolSize" value="4" />
+            <property name="maxPoolSize" value="8" />
+            <property name="queueCapacity" value="10" />
+            <property name="rejectedExecutionHandler">
+                <bean class="org.springframework.integration.util.CallerBlocksPolicy">
+                    <constructor-arg value="10000" />
+                </bean>
+            </property>
+        </bean>
+    </constructor-arg>
+    <constructor-arg>
+        <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+            <property name="threadNamePrefix" value="assembler-" />
+            <property name="corePoolSize" value="4" />
+            <property name="maxPoolSize" value="10" />
+            <property name="queueCapacity" value="10" />
+            <property name="rejectedExecutionHandler">
+                <bean class="org.springframework.integration.util.CallerBlocksPolicy">
+                    <constructor-arg value="10000" />
+                </bean>
+            </property>
+        </bean>
+    </constructor-arg>
+</bean>]]></programlisting>
+   </section>
   </section>
   <section id="ssl-tls">
     <title>SSL/TLS Support</title>
