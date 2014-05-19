@@ -28,6 +28,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -59,7 +61,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private volatile boolean usingDirectBuffers;
 
-	private volatile Executor taskExecutor;
+	private volatile CompositeExecutor taskExecutor;
 
 	private volatile ByteBuffer rawBuffer;
 
@@ -327,7 +329,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		this.writingToPipe = true;
 		try {
 			if (this.taskExecutor == null) {
-				this.taskExecutor = Executors.newCachedThreadPool();
+				ExecutorService executor = Executors.newCachedThreadPool();
+				this.taskExecutor = new CompositeExecutor(executor, executor);
 			}
 			// If there is no assembler running, start one
 			checkForAssembler();
@@ -356,7 +359,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			 * avoid a deadlock (block on the write to the pipe).
 			 * Hence the count down latch.
 			 */
-			this.taskExecutor.execute(new Runnable() {
+			this.taskExecutor.execute2(new Runnable() {
 				@Override
 				public void run() {
 					try {
@@ -400,7 +403,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				if (logger.isDebugEnabled()) {
 					logger.debug(this.getConnectionId() + " Running an assembler");
 				}
-				this.taskExecutor.execute(this);
+				this.taskExecutor.execute2(this);
 			} else {
 				this.executionControl.decrementAndGet();
 			}
@@ -443,7 +446,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @param taskExecutor the taskExecutor to set
 	 */
 	public void setTaskExecutor(Executor taskExecutor) {
-		this.taskExecutor = taskExecutor;
+		if (taskExecutor instanceof CompositeExecutor) {
+			this.taskExecutor = (CompositeExecutor) taskExecutor;
+		}
+		else {
+			this.taskExecutor = new CompositeExecutor(taskExecutor, taskExecutor);
+		}
 	}
 
 	/**
