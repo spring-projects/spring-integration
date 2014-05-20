@@ -142,7 +142,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor) {
-		this(processor, new SimpleMessageStore(0), null, null);
+		this(processor, SimpleMessageStore.fastMessageStore(0), null, null);
 	}
 
 	public void setLockRegistry(LockRegistry lockRegistry) {

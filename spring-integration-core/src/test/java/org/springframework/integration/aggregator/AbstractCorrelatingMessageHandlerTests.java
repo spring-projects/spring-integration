@@ -36,15 +36,16 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -349,7 +350,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
 		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
-		MessageGroup group = mgs.getMessageGroup("foo");
+		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
@@ -383,7 +384,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
 		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
-		MessageGroup group = mgs.getMessageGroup("foo");
+		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
 		Method forceComplete = AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);

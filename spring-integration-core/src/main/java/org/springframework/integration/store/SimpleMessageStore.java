@@ -57,6 +57,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private volatile boolean isUsed;
 
+	private volatile boolean copyOnGet = true; // TODO: default false in 4.1
+
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
 	 * capacity is less than 1. The capacities are applied independently to messages stored via
@@ -103,6 +105,28 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 */
 	public SimpleMessageStore() {
 		this(0);
+	}
+
+	/**
+	 * Factory method to return a simple message store that does not
+	 * copy the group in {@link #getMessageGroup(Object)}.
+	 * @param capacity the capacity (0 for unlimited).
+	 * @return the store.
+	 * @since 4.0.1
+	 */
+	public static SimpleMessageStore fastMessageStore(int capacity) {
+		SimpleMessageStore store = new SimpleMessageStore(capacity);
+		store.setCopyOnGet(false);
+		return store;
+	}
+
+	/**
+	 * Set to false to disable copying the group in {@link #getMessageGroup(Object)}.
+	 * @param copyOnGet True to copy, false to not.
+	 * @since 4.0.1
+	 */
+	public void setCopyOnGet(boolean copyOnGet) {
+		this.copyOnGet = copyOnGet;
 	}
 
 	public void setLockRegistry(LockRegistry lockRegistry) {
@@ -152,6 +176,16 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		if (group == null) {
 			return new SimpleMessageGroup(groupId);
 		}
+		if (this.copyOnGet) {
+			return copy(group);
+		}
+		else {
+			return group;
+		}
+	}
+
+	@Override
+	protected MessageGroup copy(MessageGroup group) {
 		SimpleMessageGroup simpleMessageGroup = new SimpleMessageGroup(group);
 		simpleMessageGroup.setLastModified(group.getLastModified());
 		return simpleMessageGroup;

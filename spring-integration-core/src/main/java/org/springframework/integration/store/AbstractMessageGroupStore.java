@@ -110,10 +110,24 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 			if (timestamp <= threshold) {
 				count++;
-				expire(group);
+				expire(copy(group));
 			}
 		}
 		return count;
+	}
+
+	/**
+	 * Used by expireMessageGroups. We need to return a snapshot of the group
+	 * at the time the reaper runs, so we can properly detect if the
+	 * group changed between now and the attempt to expire the group.
+	 * Not necessary for persistent stores, so the default behavior is
+	 * to just return the group.
+	 * @param group The group.
+	 * @return The group, or a copy.
+	 * @since 4.0.1
+	 */
+	protected MessageGroup copy(MessageGroup group) {
+		return group;
 	}
 
 	@Override
