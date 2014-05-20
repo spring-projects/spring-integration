@@ -38,11 +38,36 @@
 	</bean>
 
 	<int-jms:inbound-gateway request-channel="requestInB"
-	    request-destination="explicitCorrelationJmsOutB"
-	    correlation-key="JMSCorrelationID"
-		connection-factory="connectionFactory"/>
+							 request-destination="explicitCorrelationJmsOutB"
+							 correlation-key="JMSCorrelationID"
+							 connection-factory="connectionFactory"/>
 
 	<int:transformer input-channel="requestInB" expression="payload"/>
+
+	<!--  -->
+
+	<int:gateway id="existingCorrelationKeyGatewayB" default-request-channel="existingCorrelationInB"/>
+
+	<int-jms:outbound-gateway request-channel="existingCorrelationInB"
+	    connection-factory="connectionFactory"
+		request-destination="existingCorrelationJmsOutB"
+		correlation-key="JMSCorrelationID*"/>
+
+	<bean id="existingCorrelationJmsOutB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="existingCorrelationJmsOutB"/>
+	</bean>
+
+	<int-jms:inbound-gateway request-channel="requestExistingCorrelationInB"
+							 request-destination="existingCorrelationJmsOutB"
+							 correlation-key="JMSCorrelationID"
+							 connection-factory="connectionFactory"/>
+
+	<int:chain input-channel="requestExistingCorrelationInB" >
+		<int:header-enricher>
+			<int:header name="receivedCorrelationId" expression="headers['jms_correlationId']"/>
+		</int:header-enricher>
+		<int:transformer expression="payload"/>
+	</int:chain>
 
 	<!--  -->
 

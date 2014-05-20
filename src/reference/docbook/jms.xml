@@ -374,6 +374,19 @@
          </code> is used, the correlation-key MUST be specified if an explicit <code>reply-destination</code>
          is provided.
         </para>
+		<para>
+			Starting with <emphasis>version 4.0.1</emphasis> this attribute also supports the value
+			<code>JMSCorrelationID*</code>, which means that if the outbound message already has a
+			<code>JMSCorrelationID</code> (mapped from the <code>jms_correlationId</code>) header,
+			it will be used, instead of generating a new one.
+			Note, the <code>JMSCorrelationID*</code> key is not allowed when using a
+			<code>&lt;reply-container/&gt;</code> because the container needs to set up a
+			message selector during initialization.
+			<important>
+				You should understand that the gateway has no means to ensure uniqueness and
+				unexpected side effects can occur if the provided correlation id is not unique.
+			</important>
+		</para>
        </callout>
        <callout arearefs="jog030">
         <para>
