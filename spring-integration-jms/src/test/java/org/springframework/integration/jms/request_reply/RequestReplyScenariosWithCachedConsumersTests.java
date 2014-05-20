@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import javax.jms.ConnectionFactory;
@@ -35,9 +36,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.JmsHeaders;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -46,6 +48,7 @@ import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -157,6 +160,43 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				}
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
+			assertEquals("bar", siReplyMessage.getPayload());
+		}
+		finally {
+			context.destroy();
+		}
+	}
+
+	@Test
+	public void existingCorrelation() throws Exception {
+		ActiveMqTestUtils.prepare();
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
+		try {
+			RequestReplyExchanger gateway = context.getBean("existingCorrelationPropagating", RequestReplyExchanger.class);
+			CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
+
+			final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+
+			final Destination requestDestination = context.getBean("existingCorrelationOut", Destination.class);
+			final Destination replyDestination = context.getBean("existingCorrelationIn", Destination.class);
+			new Thread(new Runnable() {
+
+				public void run() {
+					final Message requestMessage = jmsTemplate.receive(requestDestination);
+					jmsTemplate.send(replyDestination, new MessageCreator() {
+
+						public Message createMessage(Session session) throws JMSException {
+							TextMessage message = session.createTextMessage();
+							message.setText("bar");
+							message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
+							return message;
+						}
+					});
+				}
+			}).start();
+			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(MessageBuilder.withPayload("foo")
+							.setHeader(JmsHeaders.CORRELATION_ID, UUID.randomUUID().toString().replaceAll("'", "''"))
+							.build());
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {

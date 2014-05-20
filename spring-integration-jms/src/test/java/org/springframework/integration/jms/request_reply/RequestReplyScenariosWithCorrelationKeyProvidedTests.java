@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+
+import java.util.UUID;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +26,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.JmsHeaders;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.support.MessageBuilder;
@@ -31,6 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends ActiveMQMultiContextTests {
 
@@ -56,6 +61,19 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGatewayB", RequestReplyExchanger.class);
 
 		gateway.exchange(MessageBuilder.withPayload("foo").build());
+		context.close();
+	}
+
+	@Test
+	public void messageCorrelationBasedOnProvidedJMSCorrelationID() throws Exception{
+		ActiveMqTestUtils.prepare();
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
+		RequestReplyExchanger gateway = context.getBean("existingCorrelationKeyGatewayB", RequestReplyExchanger.class);
+
+		gateway.exchange(MessageBuilder.withPayload("foo")
+				.setHeader(JmsHeaders.CORRELATION_ID, UUID.randomUUID().toString().replaceAll("'", "''"))
+				.build());
 		context.close();
 	}
 
