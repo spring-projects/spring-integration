@@ -532,6 +532,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				this.useReplyContainer = false;
 			}
 			if (this.useReplyContainer) {
+				Assert.state(!"JMSCorrelationID*".equals(this.correlationKey),
+						"The existing 'JMSCorrelationID' from 'requestMessage' ('JMSCorrelationID*') " +
+								"can't be used together with 'reply-container'");
 				GatewayReplyListenerContainer container = new GatewayReplyListenerContainer();
 				setContainerProperties(container);
 				container.afterPropertiesSet();
@@ -554,11 +557,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		container.setPubSubDomain(this.replyPubSubDomain);
 		if (this.correlationKey != null) {
-			String correlationKey = this.correlationKey;
-			if (correlationKey.equals("JMSCorrelationID*")) {
-				correlationKey = "JMSCorrelationID";
-			}
-			String messageSelector = correlationKey + " LIKE '" + this.gatewayCorrelation + "%'";
+			String messageSelector = this.correlationKey + " LIKE '" + this.gatewayCorrelation + "%'";
 			container.setMessageSelector(messageSelector);
 		}
 		container.setMessageListener(this);
@@ -882,21 +881,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		MessageProducer messageProducer = null;
 		try {
 			messageProducer = session.createProducer(requestDestination);
-			if (!this.correlationKey.equals("JMSCorrelationID*") || jmsRequest.getJMSCorrelationID() == null) {
-				correlationId = this.gatewayCorrelation + "_" + Long.toString(this.correlationId.incrementAndGet());
-				if (this.correlationKey.equals("JMSCorrelationID")) {
-					jmsRequest.setJMSCorrelationID(correlationId);
-				}
-				else {
-					jmsRequest.setStringProperty(this.correlationKey, correlationId);
-					jmsRequest.setJMSCorrelationID(null);
-				}
-			}
-			else {
-				correlationId = this.gatewayCorrelation + "_" + jmsRequest.getJMSCorrelationID();
+			correlationId = this.gatewayCorrelation + "_" + Long.toString(this.correlationId.incrementAndGet());
+			if (this.correlationKey.equals("JMSCorrelationID")) {
 				jmsRequest.setJMSCorrelationID(correlationId);
 			}
-
+			else {
+				jmsRequest.setStringProperty(this.correlationKey, correlationId);
+				jmsRequest.setJMSCorrelationID(null);
+			}
 			LinkedBlockingQueue<javax.jms.Message> replyQueue = new LinkedBlockingQueue<javax.jms.Message>(1);
 			if (logger.isDebugEnabled()) {
 				logger.debug(this.getComponentName() + " Sending message with correlationId " + correlationId);

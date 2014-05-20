@@ -68,27 +68,6 @@
 
 	<!--  -->
 
-	<int:gateway id="existingCorrelationPropagating" default-request-channel="existingCorrelationChannel"/>
-
-	<int-jms:outbound-gateway request-channel="existingCorrelationChannel"
-							  connection-factory="connectionFactory"
-							  request-destination="existingCorrelationOut"
-							  reply-destination="existingCorrelationIn"
-							  correlation-key="JMSCorrelationID*">
-		<int-jms:reply-listener />
-	</int-jms:outbound-gateway>
-
-	<bean id="existingCorrelationOut" class="org.apache.activemq.command.ActiveMQQueue">
-		<constructor-arg value="existingCorrelationOut"/>
-	</bean>
-
-	<bean id="existingCorrelationIn" class="org.apache.activemq.command.ActiveMQQueue">
-		<constructor-arg value="existingCorrelationIn"/>
-	</bean>
-
-	<!--  -->
-
-
 	<int:gateway id="correlationPropagatingConsumerWithoutOptimization" default-request-channel="jmsInNonOptimizedD"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedD"
