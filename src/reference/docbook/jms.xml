@@ -374,6 +374,12 @@
          </code> is used, the correlation-key MUST be specified if an explicit <code>reply-destination</code>
          is provided.
         </para>
+		<para>
+			Starting with <emphasis>version 4.0.1</emphasis> this attribute also supports
+			<code>JMSCorrelationID*</code>, which is treated as reusing existing <code>JMSCorrelationID</code> value
+			from request message. Note, <code>JMSCorrelationID*</code> key is disallowed together with
+			<code>&lt;reply-container/&gt;</code>.
+		</para>
        </callout>
        <callout arearefs="jog030">
         <para>

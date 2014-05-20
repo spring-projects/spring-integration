@@ -318,12 +318,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * the receiver of the JMS Message would expect to represent the CorrelationID.
 	 * When waiting for the reply Message, a MessageSelector will be configured
 	 * to match this property name and the UUID value that was sent in the request.
-	 * If this value is NULL (the default) then the reply consumer's MessageSelector
+	 * <p>If this value is NULL (the default) then the reply consumer's MessageSelector
 	 * will be expecting the JMSCorrelationID to equal the Message ID of the request.
-	 * If you want to store the outbound correlation UUID value in the actual
+	 * <p>If you want to store the outbound correlation UUID value in the actual
 	 * JMSCorrelationID property, then set this value to "JMSCorrelationID".
-	 * However, any other value will be treated as a JMS String Property.
-	 *
+	 * <p>If you want to reuse existing "JMSCorrelationID" from inbound message,
+	 * you can use this property as "JMSCorrelationID*" with asterisk. However be sure
+	 * to take care about some side effects with that reusing.
+	 * <p>However, any other value will be treated as a JMS String Property.
 	 * @param correlationKey The correlation key.
 	 */
 	public void setCorrelationKey(String correlationKey) {
@@ -530,6 +532,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				this.useReplyContainer = false;
 			}
 			if (this.useReplyContainer) {
+				Assert.state(!"JMSCorrelationID*".equals(this.correlationKey),
+						"The existing 'JMSCorrelationID' from 'requestMessage' ('JMSCorrelationID*') " +
+								"can't be used together with 'reply-container'");
 				GatewayReplyListenerContainer container = new GatewayReplyListenerContainer();
 				setContainerProperties(container);
 				container.afterPropertiesSet();
@@ -719,9 +724,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			 * Remove any existing correlation id that was mapped from the inbound message
 			 * (it will be restored by normal ARPMH header processing).
 			 */
-			jmsRequest.setJMSCorrelationID(null);
 			javax.jms.Message reply = null;
 			if (this.correlationKey == null) {
+				jmsRequest.setJMSCorrelationID(null);
 				reply = doSendAndReceiveAsyncDefaultCorrelation(requestDestination, jmsRequest, session, priority);
 			}
 			else {
@@ -796,17 +801,24 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		MessageConsumer messageConsumer = null;
 		try {
 			messageProducer = session.createProducer(requestDestination);
-			String correlationId = UUID.randomUUID().toString().replaceAll("'", "''");
 			Assert.state(this.correlationKey != null, "correlationKey must not be null");
 			String messageSelector = null;
-			if (this.correlationKey.equals("JMSCorrelationID")) {
-				jmsRequest.setJMSCorrelationID(correlationId);
-				messageSelector = "JMSCorrelationID = '" + correlationId + "'";
+			if (!this.correlationKey.equals("JMSCorrelationID*") || jmsRequest.getJMSCorrelationID() == null) {
+				String correlationId = UUID.randomUUID().toString().replaceAll("'", "''");
+				if (this.correlationKey.equals("JMSCorrelationID")) {
+					jmsRequest.setJMSCorrelationID(correlationId);
+					messageSelector = "JMSCorrelationID = '" + correlationId + "'";
+				}
+				else {
+					jmsRequest.setStringProperty(this.correlationKey, correlationId);
+					jmsRequest.setJMSCorrelationID(null);
+					messageSelector = this.correlationKey + " = '" + correlationId + "'";
+				}
 			}
 			else {
-				jmsRequest.setStringProperty(this.correlationKey, correlationId);
-				messageSelector = this.correlationKey + " = '" + correlationId + "'";
+				messageSelector = "JMSCorrelationID = '" + jmsRequest.getJMSCorrelationID() + "'";
 			}
+
 			messageConsumer = session.createConsumer(replyTo, messageSelector);
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 			return this.receiveReplyMessage(messageConsumer);
@@ -875,6 +887,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			else {
 				jmsRequest.setStringProperty(this.correlationKey, correlationId);
+				jmsRequest.setJMSCorrelationID(null);
 			}
 			LinkedBlockingQueue<javax.jms.Message> replyQueue = new LinkedBlockingQueue<javax.jms.Message>(1);
 			if (logger.isDebugEnabled()) {
@@ -1018,7 +1031,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (logger.isTraceEnabled()) {
 				logger.trace(this.getComponentName() + " Received " + message);
 			}
-			if (this.correlationKey == null || this.correlationKey.equals("JMSCorrelationID")) {
+			if (this.correlationKey == null ||
+					this.correlationKey.equals("JMSCorrelationID") ||
+					this.correlationKey.equals("JMSCorrelationID*")) {
 				correlationId = message.getJMSCorrelationID();
 			}
 			else {

@@ -15,8 +15,7 @@
  */
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -28,7 +27,6 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -37,7 +35,6 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -46,6 +43,7 @@ import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -54,7 +52,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 	private final SimpleMessageConverter converter = new SimpleMessageConverter();
 
-	@Rule
+//	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test(expected=MessageTimeoutException.class)
