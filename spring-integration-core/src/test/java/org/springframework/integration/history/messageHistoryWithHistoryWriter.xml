@@ -30,6 +30,8 @@
 
 	<int:splitter id="testSplitter" input-channel="splitterChannel" output-channel="aggregatorChannel"/>
 
+	<bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
+
 	<int:aggregator id="testAggregator" input-channel="aggregatorChannel" output-channel="endOfThePipeChannel"/>
 
 	<int:channel id="endOfThePipeChannel"/>

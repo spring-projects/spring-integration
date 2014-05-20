@@ -26,7 +26,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.messaging.Message;
 
 /**
  * @author Dave Syer
@@ -134,16 +133,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 			count ++;
 		}
 		return count;
-	}
-
-	@Override
-	public MessageGroupMetadata getGroupMetadata(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
-	}
-
-	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
 	}
 
 	private void expire(MessageGroup group) {

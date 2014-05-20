@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -68,6 +69,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -278,6 +280,44 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public MessageGroupMetadata getGroupMetadata(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+
+		Query query = whereGroupIdOrder(groupId);
+		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
+
+		if (messageDocument == null) {
+			return new MessageGroupMetadata(new SimpleMessageGroup(groupId), false, null);
+		}
+
+		long createdTime = messageDocument.get_Group_timestamp();
+		long lastModifiedTime = messageDocument.get_Group_update_timestamp();
+		boolean complete = messageDocument.get_Group_complete();
+		int lastReleasedSequence = messageDocument.get_LastReleasedSequenceNumber();
+
+
+		SimpleMessageGroup group =
+				new SimpleMessageGroup(Collections.<Message<?>>emptyList(), groupId, createdTime, complete);
+		group.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+		group.setLastModified(lastModifiedTime);
+
+		return new MessageGroupMetadata(group, true, messageDocument.getMessage().getHeaders().getId());
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = whereGroupIdOrder(groupId);
+		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, collectionName);
+		if (messageDocument != null) {
+			return messageDocument.getMessage();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
 	public MessageGroup addMessageToGroup(final Object groupId, final Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
@@ -309,6 +349,43 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 				addMessageDocument(wrapper);
 				return getMessageGroup(groupId);
+			}
+		});
+	}
+
+	@Override
+	public MessageGroupMetadata addMessageToGroupMetadata(final Object groupId, final Message<?> message) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(message, "'message' must not be null");
+
+		return this.template.executeInSession(new DbCallback<MessageGroupMetadata>() {
+
+			@Override
+			public MessageGroupMetadata doInDB(DB db) throws MongoException, DataAccessException {
+				Query query = whereGroupIdOrder(groupId);
+				MessageWrapper messageDocument = template.findOne(query, MessageWrapper.class, collectionName);
+
+				long createdTime = 0;
+				int lastReleasedSequence = 0;
+				boolean complete = false;
+
+				if (messageDocument != null) {
+					createdTime = messageDocument.get_Group_timestamp();
+					lastReleasedSequence = messageDocument.get_LastReleasedSequenceNumber();
+					complete = messageDocument.get_Group_complete();
+				}
+
+				MessageWrapper document = new MessageWrapper(message);
+				document.set_GroupId(groupId);
+				document.set_Group_complete(complete);
+				document.set_LastReleasedSequenceNumber(lastReleasedSequence);
+				document.set_Group_timestamp(createdTime == 0 ? System.currentTimeMillis() : createdTime);
+				document.set_Group_update_timestamp(System.currentTimeMillis());
+				document.setSequence(getNextId());
+
+				addMessageDocument(document);
+
+				return getGroupMetadata(groupId);
 			}
 		});
 	}

@@ -22,6 +22,8 @@
 
 	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore"/>
 
+	<bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
+
 	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
 					message-store="sms"
 					expire-groups-upon-completion="true" lock-registry="lockRegistry"/>

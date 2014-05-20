@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -24,9 +26,11 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGroupProcessor;
+import org.springframework.integration.aggregator.GroupMetadataAggregatingMessageHandler;
+import org.springframework.integration.aggregator.MessageGroupExpressionReleaseStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the <em>aggregator</em> element of the integration namespace. Registers the annotation-driven
@@ -37,8 +41,11 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Stefan Ferstl
+ * @author Artem Bilan
  */
 public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
+
+	public static final String GROUP_METADATA_AGGREGATOR_ID = "$useGroupMetadataAggregatorHandler$";
 
 	private static final String EXPIRE_GROUPS_UPON_COMPLETION = "expire-groups-upon-completion";
 
@@ -49,7 +56,13 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		BeanDefinitionBuilder builder;
 
-		builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatingMessageHandler.class);
+		boolean useGroupMetadataAggregatorHandler = parserContext.getRegistry()
+				.containsBeanDefinition(GROUP_METADATA_AGGREGATOR_ID);
+
+		builder = BeanDefinitionBuilder.genericBeanDefinition(useGroupMetadataAggregatorHandler
+				? GroupMetadataAggregatingMessageHandler.class
+				: AggregatingMessageHandler.class);
+
 		BeanDefinitionBuilder processorBuilder = null;
 		BeanMetadataElement processor = null;
 
@@ -67,12 +80,14 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		else {
 			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
 				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
+				BeanDefinitionBuilder adapterBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
 				adapterBuilder.addConstructorArgValue(expression);
 				builder.addConstructorArgValue(adapterBuilder.getBeanDefinition());
 			}
 			else {
-				builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class)
+				builder.addConstructorArgValue(
+						BeanDefinitionBuilder.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class)
 						.getBeanDefinition());
 			}
 		}
@@ -84,6 +99,16 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		}
 
 		this.doParse(builder, element, processor, parserContext);
+
+		if (useGroupMetadataAggregatorHandler &&
+				StringUtils.hasText(element.getAttribute("release-strategy-expression"))) {
+			BeanDefinitionBuilder adapterBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(MessageGroupExpressionReleaseStrategy.class);
+			BeanDefinitionBuilder expression = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+					.addConstructorArgValue(element.getAttribute("release-strategy-expression"));
+			adapterBuilder.addConstructorArgValue(expression.getBeanDefinition());
+			builder.addPropertyValue("releaseStrategy", adapterBuilder.getBeanDefinition());
+		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
 

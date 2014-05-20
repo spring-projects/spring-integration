@@ -7,6 +7,8 @@
             http://www.springframework.org/schema/integration
             http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<beans:bean id="$useGroupMetadataAggregatorHandler$" class="java.lang.Object"/>
+
 	<channel id="input_for_aggregator_with_explicit_timeout"/>
 	<channel id="input_for_aggregator_without_explicit_timeout"/>
 	<channel id="aggregator_with_explicit_timeout_channel"/>

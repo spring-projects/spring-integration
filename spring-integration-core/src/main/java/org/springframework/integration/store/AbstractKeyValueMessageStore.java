@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors
+ * Copyright 2002-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -31,12 +31,14 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
- * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}
+ * Base class for implementations of Key/Value style {@link MessageGroupStore}
+ * and {@link MessageStore}
  *
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.1
  */
-public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore{
+public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
@@ -95,6 +97,30 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return this.buildMessageGroup(groupId, false);
 	}
 
+	@Override
+	public MessageGroupMetadata getGroupMetadata(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			return (MessageGroupMetadata) mgm;
+		}
+		return new MessageGroupMetadata(new SimpleMessageGroup(groupId), false, null);
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+			if (messageGroupMetadata.firstId() != null) {
+				return this.getMessage(messageGroupMetadata.firstId());
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Add a Message to the group with the provided group ID.
@@ -103,11 +129,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-
-		// add message as is to the MG accessible by the caller
-		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
-
-		messageGroup.add(message);
 
 		// enrich Message with additional headers and add it to MS
 		Message<?> enrichedMessage = this.enrichMessage(message);
@@ -124,6 +145,26 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		// return clean MG
 		return this.getMessageGroup(groupId);
+	}
+
+	@Override
+	public MessageGroupMetadata addMessageToGroupMetadata(Object groupId, Message<?> message) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(message, "'message' must not be null");
+
+		// enrich Message with additional headers and add it to MS
+		Message<?> enrichedMessage = this.enrichMessage(message);
+		this.addMessage(enrichedMessage);
+
+		// build raw MessageGroup and add enriched Message to it
+		SimpleMessageGroup rawGroup = this.buildMessageGroup(groupId, true);
+		rawGroup.setLastModified(System.currentTimeMillis());
+		rawGroup.add(enrichedMessage);
+
+		// store MessageGroupMetadata built from enriched MG
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
+
+		return getGroupMetadata(groupId);
 	}
 
 	/**
