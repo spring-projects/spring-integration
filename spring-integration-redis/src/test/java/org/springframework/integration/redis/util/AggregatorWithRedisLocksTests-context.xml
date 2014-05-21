@@ -14,9 +14,8 @@
 
 	<bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
-		<!--TODO until SD-Redis will fix the TX support issue-->
-		<property name="usePool" value="false"/>
 	</bean>
+
 	<bean id="redisLockRegistry" class="org.springframework.integration.redis.util.RedisLockRegistry">
 		<constructor-arg ref="connectionFactory"/>
 		<constructor-arg value="aggregatorWithRedisLocksTests" />
