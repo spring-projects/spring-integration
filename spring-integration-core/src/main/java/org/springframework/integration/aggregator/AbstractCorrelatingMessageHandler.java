@@ -31,6 +31,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -81,7 +83,8 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware {
+		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware,
+		ApplicationEventPublisherAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
@@ -122,6 +125,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private volatile Expression groupTimeoutExpression;
 
 	private EvaluationContext evaluationContext;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -195,6 +200,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -571,6 +581,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			for (Message<?> message : group.getMessages()) {
 				discardChannel.send(message);
 			}
+		}
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new MessageGroupExpiredEvent(this, correlationKey, group
+					.size(), new Date(group.getLastModified()) , new Date(), !sendPartialResultOnExpiry));
 		}
 	}
 

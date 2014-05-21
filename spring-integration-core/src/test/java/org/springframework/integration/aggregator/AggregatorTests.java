@@ -17,14 +17,20 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -46,12 +52,22 @@ public class AggregatorTests {
 
 	private final SimpleMessageStore store = new SimpleMessageStore(50);
 
+	List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<MessageGroupExpiredEvent>();
 
 	@Before
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
 		this.aggregator.setBeanFactory(mock(BeanFactory.class));
+		this.aggregator.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				expiryEvents.add((MessageGroupExpiredEvent) event);
+			}
+		});
+		this.aggregator.setBeanName("testAggregator");
 		this.aggregator.afterPropertiesSet();
+		expiryEvents.clear();
 	}
 
 
@@ -84,6 +100,11 @@ public class AggregatorTests {
 		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(1, this.expiryEvents.get(0).getMessageCount());
+		assertEquals(true, this.expiryEvents.get(0).isDiscarded());
 	}
 
 	@Test
@@ -98,6 +119,11 @@ public class AggregatorTests {
 		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
+		assertEquals(false, this.expiryEvents.get(0).isDiscarded());
 	}
 
 	@Test
