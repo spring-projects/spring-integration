@@ -760,7 +760,7 @@ task schemaZip(type: Zip) {
 
 		for (def key : schemas.keySet()) {
 			File xsdFile = subproject.sourceSets.main.resources.find {
-				it.path.endsWith(schemas.get(key).replaceAll(/\//, '\\\\'))
+				it.path.replaceAll('\\\\', '/').endsWith(schemas.get(key))
 			}
 			assert xsdFile != null
 			into ("integration/${shortName}") {
