@@ -13,12 +13,9 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +29,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -61,12 +60,22 @@ public class AggregatorTests {
 
 	private final SimpleMessageStore store = new SimpleMessageStore(50);
 
+	List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<MessageGroupExpiredEvent>();
 
 	@Before
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
 		this.aggregator.setBeanFactory(mock(BeanFactory.class));
+		this.aggregator.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				expiryEvents.add((MessageGroupExpiredEvent) event);
+			}
+		});
+		this.aggregator.setBeanName("testAggregator");
 		this.aggregator.afterPropertiesSet();
+		expiryEvents.clear();
 	}
 
 	@Test
@@ -98,13 +107,15 @@ public class AggregatorTests {
 		for (int i=0; i < 120000; i++) {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
-				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() + " (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
+						" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 				stopwatch.start();
 			}
 			handler.handleMessage(message);
 		}
 		stopwatch.stop();
-		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() + " (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
+				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 	}
 
 	@Test
@@ -144,7 +155,7 @@ public class AggregatorTests {
 				}
 			}
 
-		};
+		}
 
 		DirectChannel outputChannel = new DirectChannel();
 		CustomHandler handler = new CustomHandler(outputChannel);
@@ -162,13 +173,15 @@ public class AggregatorTests {
 		for (int i=0; i < 120000; i++) {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
-				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() + " (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
+						" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 				stopwatch.start();
 			}
 			handler.handleMessage(message);
 		}
 		stopwatch.stop();
-		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() + " (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
+				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 	}
 
 	@Test
@@ -200,6 +213,11 @@ public class AggregatorTests {
 		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(1, this.expiryEvents.get(0).getMessageCount());
+		assertEquals(true, this.expiryEvents.get(0).isDiscarded());
 	}
 
 	@Test
@@ -214,6 +232,11 @@ public class AggregatorTests {
 		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
+		assertEquals(false, this.expiryEvents.get(0).isDiscarded());
 	}
 
 	@Test
