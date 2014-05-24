@@ -12,13 +12,13 @@
 		<section id="supported-java-versions">
 			<title>Compatible Java Versions</title>
 			<para>
-				For <emphasis>Spring Integration</emphasis> <emphasis role="strong">4.0.x</emphasis>,
+				For <emphasis>Spring Integration</emphasis> <emphasis role="strong">4.1.x</emphasis>,
 				the <emphasis role="strong">minimum</emphasis> compatible Java
 				version is <emphasis role="strong">Java SE 6</emphasis>.
 				Older versions of Java are not supported.
 			</para>
 			<para>
-				<emphasis>Spring Integration</emphasis> <emphasis role="strong">4.0.x</emphasis>
+				<emphasis>Spring Integration</emphasis> <emphasis role="strong">4.1.x</emphasis>
 				is also compatible with <emphasis role="strong">Java SE 7</emphasis> as well
 				as <emphasis role="strong">Java SE 8</emphasis>.
 			</para>
@@ -27,8 +27,8 @@
 			<title>Compatible Versions of the Spring Framework</title>
 			<para>
 				<emphasis>Spring Integration</emphasis>
-				<emphasis role="strong">4.0.x</emphasis> requires
-				<emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.3</emphasis> or
+				<emphasis role="strong">4.1.x</emphasis> requires
+				<emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.5</emphasis> or
 				later.
 			</para>
 		</section>

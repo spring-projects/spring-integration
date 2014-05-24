@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="migration-4.0-4.1"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Changes between 4.0 and 4.1</title>
+    <para>
+        For an overview of the changes in Spring Integration 4.1 since version 4.0,
+        please see <xref linkend="whats-new"/>.
+    </para>
+</section>
