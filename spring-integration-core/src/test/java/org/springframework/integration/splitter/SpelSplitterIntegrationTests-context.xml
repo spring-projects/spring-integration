@@ -13,6 +13,8 @@
 
 	<splitter input-channel="simpleInput" expression="payload.numbers.?[#this&lt;5]" output-channel="output"/>
 
+	<splitter input-channel="dups" expression="payload.split(' ')" output-channel="output"/>
+
 	<splitter input-channel="beanResolvingInput" expression="@testBean.split(payload)" output-channel="output"/>
 
 	<beans:bean id="testBean" class="org.springframework.integration.splitter.SpelSplitterIntegrationTests$TestBean"/>
