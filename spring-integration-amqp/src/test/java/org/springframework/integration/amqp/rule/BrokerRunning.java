@@ -99,6 +99,7 @@ public class BrokerRunning extends TestWatcher {
 	@Override
 	public Statement apply(Statement base, Description description) {
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+		connectionFactory.setHost("localhost");
 
 		try {
 

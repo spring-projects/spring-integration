@@ -128,7 +128,9 @@ public class ManualAckTests {
 
 		@Bean
 		public CachingConnectionFactory connectionFactory() {
-			return new CachingConnectionFactory();
+			CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+			connectionFactory.setHost("localhost");
+			return connectionFactory;
 		}
 
 		@Bean
