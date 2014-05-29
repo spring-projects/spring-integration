@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -26,15 +26,16 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  * expression. The result of evaluation will typically be a Collection or
  * Array. If the result is not a Collection or Array, then the single Object
  * will be returned as the payload of a single reply Message.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingSplitter extends AbstractMessageProcessingSplitter {
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public ExpressionEvaluatingSplitter(Expression expression) {
-		super(new ExpressionEvaluatingMessageProcessor(expression, Collection.class));
+		super(new ExpressionEvaluatingMessageProcessor(expression, List.class));
 	}
 
 }

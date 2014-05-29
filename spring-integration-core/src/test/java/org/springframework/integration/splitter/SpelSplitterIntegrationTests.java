@@ -17,6 +17,7 @@
 package org.springframework.integration.splitter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
@@ -26,10 +27,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -44,11 +45,25 @@ public class SpelSplitterIntegrationTests {
 	private MessageChannel simpleInput;
 
 	@Autowired
+	private MessageChannel dups;
+
+	@Autowired
 	private MessageChannel beanResolvingInput;
 
 	@Autowired
 	private PollableChannel output;
 
+	@Test
+	public void dups() {
+		Message<?> message = MessageBuilder.withPayload("one one").build();
+		this.dups.send(message);
+		Message<?> one = output.receive(0);
+		Message<?> two = output.receive(0);
+		assertNotNull(one);
+		assertNotNull(two);
+		assertEquals("one", one.getPayload());
+		assertEquals("one", two.getPayload());
+	}
 
 	@Test
 	public void simple() {
