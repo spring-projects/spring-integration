@@ -11,6 +11,6 @@
 
 	<int-amqp:publish-subscribe-channel id="foo" />
 
-	<rabbit:connection-factory id="rabbitConnectionFactory" />
+	<rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" />
 
 </beans>

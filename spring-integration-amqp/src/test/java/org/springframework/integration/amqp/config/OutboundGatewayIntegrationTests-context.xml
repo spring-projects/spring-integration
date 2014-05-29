@@ -40,6 +40,6 @@
 
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 
-	<rabbit:connection-factory id="connectionFactory"/>
+	<rabbit:connection-factory id="connectionFactory" host="localhost" />
 
 </beans:beans>
