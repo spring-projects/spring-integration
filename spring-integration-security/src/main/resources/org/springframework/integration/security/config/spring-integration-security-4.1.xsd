@@ -23,7 +23,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.security.AuthenticationManager"/>
+							<tool:expected-type type="org.springframework.security.authentication.AuthenticationManager"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -32,7 +32,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.security.AccessDecisionManager"/>
+							<tool:expected-type type="org.springframework.security.access.AccessDecisionManager"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

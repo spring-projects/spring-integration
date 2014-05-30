@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -43,7 +43,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -57,7 +57,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -215,7 +215,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -224,9 +224,22 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a (synchronous) downstream exception is thrown and an error-channel is specified,
+						the MessagingException will be sent to this channel. 
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="marshaller" type="xsd:string">
@@ -248,7 +261,89 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="extract-payload" type="xsd:boolean"/>
+			<xsd:attribute name="header-mapper">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
+						that this gateway will use to map between Spring Integration
+						MessageHeaders and the SoapHeader. This strategy can only be
+						applied when a 'marshaller' is not being configured.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="header-enricher">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Transformer for adding a SOAP Action value.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:choice minOccurs="1" maxOccurs="1">
+						<xsd:element name="soap-action" type="headerType"/>
+					</xsd:choice>
+					<xsd:attribute name="default-overwrite">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
+	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
+	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType> 
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="headerType">
+		<xsd:attribute name="value" type="xsd:string" />
+		<xsd:attribute name="ref" type="xsd:string" />
+		<xsd:attribute name="expression" type="xsd:string" />
+		<xsd:attribute name="overwrite">
+			<xsd:annotation>
+				<xsd:documentation>
+	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
 
 </xsd:schema>

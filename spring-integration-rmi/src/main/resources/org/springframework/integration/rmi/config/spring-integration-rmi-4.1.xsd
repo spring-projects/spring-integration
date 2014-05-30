@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -60,6 +60,14 @@
 					<xsd:attribute name="host" type="xsd:string" use="required"/>
 					<xsd:attribute name="port" type="xsd:string"/>
 					<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -77,7 +85,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -86,7 +94,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
