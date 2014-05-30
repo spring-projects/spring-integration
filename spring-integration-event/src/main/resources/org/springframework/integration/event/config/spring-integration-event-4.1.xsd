@@ -8,7 +8,7 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -24,7 +24,7 @@
             </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID" use="optional" />
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -84,7 +84,7 @@
 			<xsd:all>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
-			<xsd:attribute name="id" type="xsd:ID" />
+			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

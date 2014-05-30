@@ -10,7 +10,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation>
@@ -247,7 +247,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Header Enricher Message Transformer that evaluates XPath expressions against the
-	message payload and inserts the result of the evaluation into a messsage header.
+	message payload and inserts the result of the evaluation into a message header.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -262,7 +262,7 @@
 	Specify the default boolean value for whether to overwrite existing header values. This will
 	only take effect for sub-elements that do not provide their own 'overwrite' attribute. If the
 	'default-overwrite' attribute is not provided, then the specified header values will NOT
-	overwrite any existing ones with the same header names. 
+	overwrite any existing ones with the same header names.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
@@ -274,7 +274,7 @@
 							<xsd:documentation>
 	Specify whether null values, such as might be returned from an expression evaluation, should be
 	skipped. The default value is true. Set this to false if a null value should trigger removal of
-	the corresponding header instead. 
+	the corresponding header instead.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
@@ -347,127 +347,207 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="xpath-router">
+    <!-- XPath Router definition -->
+
+    <xsd:complexType name="commonXPathRouterType" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="integration:abstractRouterType">
+	            <xsd:attribute name="evaluate-as-string" default="false">
+	                <xsd:annotation>
+	                    <xsd:documentation><![CDATA[
+	                    By default XPath expressions are evaluated as NODESET type and then converted
+	                    to a List of channel names, thus handling single channel scenarios as well as multiple.
+	                    However certain XPath expressions may evaluate to String type results from the very
+	                    beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in
+	                    an exception if the default evaluation type (NODESET) is used.
+
+	                    This flag will allow you to manage the
+	                    evaluation type. It is 'false' by default, however if
+	                    set to 'true', then the String evaluation type will be used.
+	                    ]]></xsd:documentation>
+	                </xsd:annotation>
+		            <xsd:simpleType>
+		                <xsd:union memberTypes="xsd:boolean xsd:string" />
+		            </xsd:simpleType>
+	            </xsd:attribute>
+	            <xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+                            Reference to the XPathExpression instance to be
+                            evaluated against the input Message's payload. Either
+                            this or 'xpath-expression' must be provided, but not
+                            both.
+                        </xsd:documentation>
+	                    <xsd:appinfo>
+	                        <tool:annotation kind="ref">
+	                            <tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
+	                        </tool:annotation>
+	                    </xsd:appinfo>
+	                </xsd:annotation>
+	            </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="XPathRouterType">
+        <xsd:complexContent>
+            <xsd:extension base="commonXPathRouterType">
+                <xsd:sequence>
+                    <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element ref="xpath-expression"   minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+                                If the values returned by the XPath Expression
+                                do not represent the channel names themselves, additional
+                                mappings can be specified using the "mapping" sub-element.
+
+                                For example if the '/request/responders' expression
+                                results in two values: 'responderA' and 'responderB',
+                                but you don't want to couple the responder names
+                                to channel names you may provide additional mappings
+                                such as:
+
+                                <int-xml:mapping value="responderA" channel="channelA"/>
+                                <int-xml:mapping value="responderB" channel="channelB"/>
+                                ]]>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+                <xsd:attributeGroup ref="integration:topLevelRouterAttributeGroup"/>
+                <xsd:attribute name="converter" type="xsd:string">
+                	<xsd:annotation>
+                		<xsd:documentation>
+                			Specify the Converter to use when converting payloads prior to XPath evaluation.
+                			The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+                			should be sufficient in most cases since it can convert from Node, Document, Source,
+                			File, and String typed payloads. If you need to extend beyond the capabilities of
+                			that default implementation, then an upstream Transformer is probably a better option
+                			than providing a reference to a custom implementation of this strategy here.
+                		</xsd:documentation>
+                		<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter"/>
+							</tool:annotation>
+						</xsd:appinfo>
+                	</xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="XPathRouterTypeChain">
+        <xsd:complexContent>
+            <xsd:extension base="commonXPathRouterType">
+                <xsd:sequence>
+                    <xsd:element ref="xpath-expression"                                    minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+			            <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+                                If the values returned by the XPath Expression
+                                do not represent the channel names themselves, additional
+                                mappings can be specified using the "mapping" sub-element.
+
+                                For example if the '/request/responders' expression
+                                results in two values: 'responderA' and 'responderB',
+                                but you don't want to couple the responder names
+                                to channel names you may provide additional mappings
+                                such as:
+
+                                <int-xml:mapping value="responderA" channel="channelA"/>
+                                <int-xml:mapping value="responderB" channel="channelB"/>
+                                ]]>
+                            </xsd:documentation>
+			            </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+	<xsd:element name="xpath-router" type="XPathRouterType"/>
+
+	<xsd:element name="xpath-filter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an XPath-based Message Filter. If the XPath expression will evaluate to a boolean,
+	no configuration attributes are required. If the XPath expression will evaluate to a String,
+	a "match-value" should be provided against which the evaluation result will be matched.
+	There are three options for the "match-type": exact, case-insensitive, and regex. These
+	correspond to the equals, equals-ignore-case, and matches operations on java.lang.String,
+	respectively. When providing a 'match-type' value of 'regex', the value provided in
+	'match-value' must be a valid Regular Expression.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XPath router.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1"/>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-				<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
-					<xsd:complexType>
-						<xsd:attribute name="value" type="xsd:string" />
-						<xsd:attribute name="channel" type="xsd:string">
+			<xsd:complexContent>
+				<xsd:extension base="baseFilterType">
+					<xsd:sequence>
+						<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1">
 							<xsd:annotation>
-								<xsd:appinfo>
-									<tool:annotation kind="ref">
-										<tool:expected-type
-											type="org.springframework.integration.MessageChannel" />
-									</tool:annotation>
-								</xsd:appinfo>
+								<xsd:documentation>
+									The XPath expression to evaluate.
+								</xsd:documentation>
 							</xsd:annotation>
-						</xsd:attribute>
-					</xsd:complexType>
-				</xsd:element>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="evaluate-as-string" type="xsd:boolean" default="false">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-					By default XPath expressions are evaluated as NODESET type and then converted 
-					to a List of channel names, thus handling single channel scenarios as well as multiple.
-					However certain XPath expressions may evaluate as String type from the very 
-					beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in 
-					the exception if default evaluation type (NODESET) is used. This flag will allow you to manage the 
-					evaluation type. It is TRUE by default, however if set to FALSE, the String evaluation type will be used.
-						]]></xsd:documentation>
-				</xsd:annotation>	
-			</xsd:attribute>
-			<xsd:attribute name="input-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="converter" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specify the Converter to use when converting payloads prior to XPath evaluation.
-                		The DefaultXmlPayloadConverter is used if this reference is not provided, and it
-                		should be sufficient in most cases since it can convert from Node, Document, Source,
-                		File, and String typed payloads. If you need to extend beyond the capabilities of
-                		that default implementation, then an upstream Transformer is probably a better option
-                		than providing a reference to a custom implementation of this strategy here.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel-resolver" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.support.channel.ChannelResolver"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="resolution-required" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Specify whether this router should always be required to return at least one channel or name.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Specify whether a failure to resolve a channel name returned by this router should be ignored.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="default-output-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.integration.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+						</xsd:element>
+					</xsd:sequence>
+					<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to an XPath expression instance to evaluate.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="match-value" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								String value to be matched against the XPath evaluation result. If this is not provided,
+								then the XPath evaluation MUST produce a boolean result directly.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="match-type" default="exact">
+						<xsd:annotation>
+							<xsd:documentation>
+								Type of match to apply between the XPath evaluation result and the 'match-value'.
+								Default is "exact".
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="matchTypeEnumeration xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="matchTypeEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="exact"/>
+			<xsd:enumeration value="case-insensitive"/>
+			<xsd:enumeration value="regex"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="xpath-selector">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
 	Defines an XPath selector.
+	NOTE: this element is deprecated as of 2.1. Please use &lt;xpath-filter&gt; instead.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -490,17 +570,31 @@
 	</xsd:element>
 
 	<xsd:element name="xpath-expression">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+                Defines an XPath expression.
+
+                Internally XPath expressions will be evaluated as
+                NODESET type and converted to a List<String>
+                representing channel names. Typically such a list
+                will contain a single channel name. However, based
+                on the result of an XPath Expression the XPath router
+                can also take on the characteristics of the
+                Recipient List Router if the XPath Expression
+                returns more than one value, thus resulting in
+                the List<String> containing more than one channel
+                name.
+
+                In that case the Message will be sent to all channels
+                in the list.
+            ]]></xsd:documentation>
+        </xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XPath expression.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" use="optional"/>
-			<xsd:attribute name="expression" type="xsd:string" use="optional"/>
+			<xsd:attribute name="id" type="xsd:string" use="optional"/>
+			<xsd:attribute name="expression" type="xsd:string" use="required"/>
 			<xsd:attribute name="ns-prefix" type="xsd:string" use="optional"/>
 			<xsd:attribute name="ns-uri" type="xsd:string" use="optional"/>
 			<xsd:attribute name="namespace-map" type="xsd:string" use="optional"/>
@@ -542,70 +636,93 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="validating-filter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines an XML validating filter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="input-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="xml-validator" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Allows you to plug-in custom 'org.springframework.xml.validation.XmlValidator' strategy
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.xml.validation.XmlValidator" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="output-channel" type="xsd:string" use="required" />
-			<xsd:attribute name="discard-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Allows you to point to a Message Channel where you want discarded messages to be sent.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="schema-location"/>
-			<xsd:attribute name="schema-type" default="xml-schema">
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="xml-schema"/>
-						<xsd:enumeration value="relax-ng"/>
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-			<xsd:attribute name="throw-exception-on-rejection" type="xsd:boolean" default="false"/>	
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="baseFilterType">
+					<xsd:attribute name="xml-validator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a custom 'org.springframework.xml.validation.XmlValidator' strategy
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.xml.validation.XmlValidator" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="schema-location"/>
+					<xsd:attribute name="schema-type" default="xml-schema">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="xml-schema"/>
+								<xsd:enumeration value="relax-ng"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="baseFilterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for XML filters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Message Channel where you want accepted messages to be sent.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="discard-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Message Channel where you want rejected messages to be sent.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="throw-exception-on-rejection" type="xsd:boolean" default="false"/>
+	</xsd:complexType>
 
 	<xsd:complexType name="inputOutputEndpoint">
 		<xsd:sequence>
 			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="input-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -625,7 +742,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="paramType">
 			<xsd:attribute name="name" type="xsd:string" use="required"/>
 			<xsd:attribute name="expression" type="xsd:string" use="optional"/>

@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd"/>
 
 	<!--
 		INBOUND
@@ -73,7 +73,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures an inbound channel adapter that consumes direct messages from Twitter
-				and sends Messages whose payloads are Tweet objects.
+				and sends Messages whose payloads are DirectMessage objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -128,13 +128,11 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
+						<tool:expected-type type="org.springframework.social.twitter.api.Twitter"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-					Reference to a [org.springframework.integration.twitter.core.TwitterOperations] bean. Spring 
-					Integration provides [Twitter4jTemplate] template for your convenience.
-					NOTE: in future releases TwitterOperations usage will be migrated to using Spring Social's TwitterOperations
+					Reference to a TwitterTemplate bean provided by the Spring Social project. 
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -166,13 +164,11 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
+							<tool:expected-type type="org.springframework.social.twitter.api.Twitter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-						Reference to a [org.springframework.integration.twitter.core.TwitterOperations] bean. Spring 
-						Integration provides [Twitter4jTemplate] template for your convenience.
-						NOTE: in future releases TwitterOperations usage will be migrated to using Spring Social's TwitterOperations
+						Reference to a TwitterTemplate bean provided by the Spring Social project. 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
