@@ -10,7 +10,7 @@
 		schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.1.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
 	Defines the core configuration elements for Spring Integration GemFire Support.
@@ -132,7 +132,7 @@
 					writes Message to a Gemfire cache
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element name="cache-entries" type="beans:mapType"
 					minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
@@ -142,7 +142,8 @@
 					</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-			</xsd:sequence>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 
 

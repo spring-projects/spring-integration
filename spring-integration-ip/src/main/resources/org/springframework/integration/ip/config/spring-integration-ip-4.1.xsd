@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -84,6 +84,9 @@ message headers (ip_hostName). Default "true".
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="udpAdapterType">
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="host" type="xsd:string" />
 					<xsd:attribute name="acknowledge" type="xsd:string" />
 					<xsd:attribute name="ack-host" type="xsd:string" />
@@ -162,7 +165,7 @@ task executors such as a WorkManagerTaskExecutor.
 							 If set to true, causes the adapter to act as a client with respect to
 							 establishing the connection, rather than listening for incoming connections.
 							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to true.
+							 Defaults to false.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -176,6 +179,9 @@ task executors such as a WorkManagerTaskExecutor.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="smartLifeCycleType">
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="id" type="xsd:string"/>
 					<xsd:attribute name="connection-factory" type="xsd:string">
 						<xsd:annotation>
@@ -215,7 +221,7 @@ task executors such as a WorkManagerTaskExecutor.
 							 If set to true, causes the adapter to establish a connection when started,
 							 rather than when the first message is sent.
 							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to true.
+							 Defaults to false.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -284,7 +290,7 @@ task executors such as a WorkManagerTaskExecutor.
 							 If set to true, causes the gateway to act as a client with respect to
 							 establishing the connection, rather than listening for incoming connections.
 							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to true.
+							 Defaults to false.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -298,6 +304,9 @@ task executors such as a WorkManagerTaskExecutor.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="smartLifeCycleType">
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="id" type="xsd:string"/>
 					<xsd:attribute name="connection-factory" type="xsd:string">
 						<xsd:annotation>
@@ -311,7 +320,7 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -329,7 +338,14 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-timeout" type="xsd:string"/>
+					<xsd:attribute name="request-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								When using a shared socket, specifies the time the gateway will wait
+								to get access to the socket to send the request.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="reply-timeout" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -350,7 +366,22 @@ task executors such as a WorkManagerTaskExecutor.
 								The attribute will default, if not specified, to '-1', meaning that
 								by default, the Gateway will wait indefinitely. The value is
 								specified in milliseconds.
+
+								Prior to 2.2, this attribute served the function of
+								the remote-timeout attribute; it has been changed
+								to make it consistent with other endpoints.
 							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="remote-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the time the gateway will wait for a reply
+								from the remote system. Prior to 2.2, this was specified
+								with the reply-timeout attribute. To provide easier migration,
+								this attribute defaults to the same value of the reply-timeout,
+								if supplied, or 10 seconds otherwise.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="order">
@@ -478,13 +509,29 @@ apply to TCP outbound adapters and gateways.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="task-executor" type="xsd:string" />
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A task executor for managing connections; if not specified a
+cached thread pool task executor is used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="pool-size" type="xsd:string" >
 				<xsd:annotation>
 					<xsd:documentation>
-The number of threads that will be used for socket/channel handling. Only applies
-if an external task-executor is NOT being used. When using an external task executor,
-its configuration specifies the number of threads.
+Deprecated since 2.2; previously it specified the thread pool size if
+an external task executor was not provided; it was also used to set
+the connection backlog for server factories. That setting is now
+specified by the backlog attribute.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="backlog" type="xsd:string" >
+				<xsd:annotation>
+					<xsd:documentation>
+Specifies the connection backlog for server sockets. Does not
+apply to client factories.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -511,6 +558,52 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 When set to "true", adds sequenceNumber and correlationId headers to messages originating from
 connections created by this factory. Facilitates resequencing if necessary. Default "false".
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="ssl-context-support" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A reference to a TcpSSLContextSupport strategy implementation. Providing this reference
+enables SSL on connections created by this factory. A DefaultTcpSSLContextSupport implementation
+is provided that takes keystore and trustore names and passwords. The SSLContext created by
+this implementation is used to obtain socket factories (when using-nio="false") or SSLEngine
+instances (when using-nio="true"). When this attribute is omitted, normal plain text
+sockets are used.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="socket-support" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A reference to a TcpSocketSupport strategy implementation. Allows post-processing Socket
+and ServerSocket instances after creation and after configured attributes are applied.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSocketSupport"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="socket-factory-support" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A reference to a TcpSocketFactorySupport strategy implementation. Allows customization
+of the factories used to create sockets. The default implementation returns default.
+ServerSocketFactory and SocketFactory instances, unless an 'ssl-context-support'
+attribute has been supplied, in which case the SSLContext obtained therefrom is
+used to create SSLServerSocketFactory and SSLSocketFactory instances.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport"/>
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>

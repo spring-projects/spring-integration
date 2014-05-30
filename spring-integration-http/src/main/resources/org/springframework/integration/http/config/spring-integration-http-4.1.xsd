@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/http" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	targetNamespace="http://www.springframework.org/schema/integration/http" elementFormDefault="qualified"
 	attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -65,6 +67,22 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						View name to be resolved when rendering a response.
+						This attribute is not allowed if there is a 'view-expression' attribute.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="view-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression that resolves to a view to be resolved when rendering a response.
+						The expression can resolve to a view name or View object.
+						However, because there is no reply message, the
+						'evaluationContext' for this expression is rather lightweight; it has a
+						'BeanResolver' but no variables,
+						so the usage of this attribute is somewhat limited.
+						An example might be to resolve, at runtime, some scoped Bean that returns a
+						view name or View object.
+						This attribute is not allowed if there is a 'view-name' attribute.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -163,6 +181,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				    <xsd:sequence>
 						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -188,6 +215,17 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						<xsd:annotation>
 							<xsd:documentation>
 								View name to be resolved when rendering a response.
+								This attribute is not allowed if there is a 'view-expression' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="view-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression that resolves to a view to be resolved when rendering a response.
+								The expression can resolve to a view name or View object.
+								The root object of the evaluation context is the reply message.
+								This attribute is not allowed if there is a 'view-name' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -329,27 +367,47 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					Defines an outbound HTTP-based Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
-			</xsd:sequence>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" />
-			<xsd:attribute name="url" type="xsd:string" use="required">
+			<xsd:attribute name="url" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
 						<![CDATA[
-	URL to which the requests should be sent. It may include {placeholders}.
+	URL to which the requests should be sent. It may include {placeholders} for
+	evaluation against uri-variables.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="http-method" default="POST">
+			<xsd:attribute name="url-expression" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
-						The HTTP method to use when executing requests with this adapter.
+						<![CDATA[
+	SpEL Expression resolving to a URL to which the requests should be sent. The resolved
+	value may include {placeholders} for further evaluation against uri-variables.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="http-method">
+				<xsd:annotation>
+					<xsd:documentation>
+						The HTTP method to use when executing requests with this adapter Default is POST.
+						This attribute cannot be provided if http-method-expression has a value.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="http-method-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The SpEL expression to determine HTTP method, use when executing requests with this adapter,
+						dynamically. This attribute cannot be provided if http-method has a value.
+					</xsd:documentation>
+				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
@@ -375,12 +433,24 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				<xsd:annotation>
 					<xsd:documentation>
 						The expected type to which the response body should be converted.
+						Default is 'org.springframework.http.ResponseEntity'.
+						This attribute cannot be provided if expected-response-type-expression has a value
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
 							<tool:expected-type type="java.lang.Class" />
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="expected-response-type-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression to determine the type for the expected response to which the response body should be converted
+	                    The returned value of the expression could be an instance of java.lang.Class or
+	                    java.lang.String representing a fully qualified class name.
+						This attribute cannot be provided if expected-response-type has a value
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="message-converters" type="xsd:string">
@@ -460,25 +530,54 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:sequence>
+					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
-					</xsd:sequence>
-					<xsd:attribute name="url" type="xsd:string" use="required">
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="url" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
-								URL to be used as a fallback for any request Message does not contain the request URL Message header.
+			URL to which the requests should be sent. It may include {placeholders} for
+			evaluation against uri-variables.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="http-method" default="POST">
+					<xsd:attribute name="url-expression" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
-								The HTTP method to use when executing requests with this adapter.
+								<![CDATA[
+			SpEL Expression resolving to a URL to which the requests should be sent. The resolved
+			value may include {placeholders} for further evaluation against uri-variables.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="http-method">
+						<xsd:annotation>
+							<xsd:documentation>
+								The HTTP method to use when executing requests with this adapter. Default is POST.
+								This attribute cannot be provided if http-method-expression has a value.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="http-method-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The SpEL expression to determine HTTP method, use when executing requests with this gateway,
+								dynamically. This attribute cannot be provided if http-method has a value.
+							</xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="message-converters" type="xsd:string">
 						<xsd:annotation>
@@ -531,12 +630,24 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						<xsd:annotation>
 							<xsd:documentation>
 								The expected type to which the response body should be converted.
+								Default is 'org.springframework.http.ResponseEntity'.
+								This attribute cannot be provided if expected-response-type-expression has a value
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="direct">
 									<tool:expected-type type="java.lang.Class" />
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expected-response-type-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression to determine the type for the expected response to which the response body should be converted
+	                            The returned value of the expression could be an instance of java.lang.Class or
+	                            java.lang.String representing a fully qualified class name.
+						        This attribute cannot be provided if expected-response-type has a value
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="charset" type="xsd:string" />
@@ -582,17 +693,25 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="reply-timeout" type="xsd:string">
-					<xsd:annotation>
+						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-	The "reply-timeout" attribute maps to the "sendTimeout" property of the
-	unerlying "MessagingTemplate" instance (org.springframework.integration.core.MessagingTemplate).
-	The attribute will default, if not specified, to "-1"; it is used when
-	sending the reply message (HTTP Response) to the reply channel.
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
 
-	This means, that depending on the implementation, the Message Channel's "send"
-	method may block indefinitely, by default. Note, though, that the "reply-timeout" attribute is
-	only used, when the actual MessageChannel implementation has a blocking send,
-	such as when a bounded QueueChannel is "full".
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -667,15 +786,6 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:string" />
-		<xsd:attribute name="request-channel" type="xsd:string" use="required">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="reply-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

@@ -9,7 +9,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
 
 
 	<xsd:element name="outbound-channel-adapter">
@@ -21,7 +21,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="base-sftp-adapter-type">
-
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="remote-directory-expression"
 						type="xsd:string">
 						<xsd:annotation>
@@ -235,7 +237,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="base-adapter-type">
-
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="command" use="required" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -268,8 +272,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-channel" use="required"
-						type="xsd:string">
+					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -295,6 +298,29 @@
 								Identifies the reply channel attached to this
 								gateway.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
+
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
+							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="filter" type="xsd:string">
