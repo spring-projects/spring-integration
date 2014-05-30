@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -325,23 +325,6 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Boolean value indicating whether this channel's listener container should start automatically.
-				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="phase" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	The lifecycle phase within which this channel's listener container should start and stop.
-	The lower the value the earlier this container will start and the later it will stop. The
-	default is Integer.MAX_VALUE meaning the container will start as late as possible
-	and stop as soon as possible.
-				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="delivery-persistent" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -377,6 +360,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 	</xsd:complexType>
 
 	<xsd:element name="message-driven-channel-adapter">
@@ -441,11 +425,24 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for running the listener threads.
+	Default for the message listener container is a SimpleAsyncTaskExecutor.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.util.concurrent.Executor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -465,7 +462,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -528,7 +525,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -639,7 +636,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -649,7 +646,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -659,7 +656,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -782,7 +779,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -791,7 +788,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -864,7 +861,8 @@
 			<xsd:attribute name="request-pub-sub-domain" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	When resolving a request destination name (rather than having a 'request-destination' reference),
+	When resolving a request destination name (rather than a 'request-destination' reference or
+	a 'request-destination-expression' that evaluates to a destination),
 	a true value here specifies that the DestinationResolver should resolve Topics rather than Queues.
 	Default is false.
 					</xsd:documentation>
@@ -872,11 +870,13 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-destination" type="xsd:string">
 				<xsd:annotation>
-							<xsd:documentation>
+					<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'reply-destination-name' and 'reply-pub-sub-domain' which will rely
 	upon the DestinationResolver strategy (DynamicDestinationResolver by default).
-							</xsd:documentation>
+	This attribute is mutually exclusive with
+	'reply-destination-name' and 'reply-destination-expression'.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="javax.jms.Destination"/>
@@ -884,8 +884,36 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="reply-destination-name" type="xsd:string"/>
-			<xsd:attribute name="reply-pub-sub-domain" type="xsd:string"/>
+			<xsd:attribute name="reply-destination-name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Name of a destination which will be used for the replyTo header. This name will be handled
+	by this gateway's DestinationResolver. This attribute is mutually exclusive with
+	'reply-destination' and 'reply-destination-expression'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-destination-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	A SpEL expression to be evaluated at runtime against each Spring Integration request Message as
+	the root object. The result should be either a Destination instance or a String representing
+	the destination name. In the latter case, it will be passed to this adapter's DestinationResolver
+	together with the reply-pub-sub-domain attribute.
+	This attribute is mutually exclusive with 'reply-destination' and 'reply-destination-name'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-pub-sub-domain" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	When resolving a reply destination name (rather than a 'reply-destination' reference or
+	a 'reply-destination-expression' that evaluates to a destination),
+	a true value here specifies that the DestinationResolver should resolve Topics rather than Queues.
+	Default is false.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="correlation-key" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -898,11 +926,20 @@
 						of the request. If you want to store the outbound correlation UUID value in the
 						actual "JMSCorrelationID" property, then set this value to "JMSCorrelationID".
 						However, any other value will be treated as a JMS String Property.
+						Note: when using a <reply-container/> the correlation data includes a UUID
+						representing the gateway as well as a message identifier. For this reason, the use of a
+						<reply-container/> requires the specification of a 'correlation-key' if an
+						explicit reply-destination is provided.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="destination-resolver" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A reference to the DestinationResolver strategy for resolving Destination names
+	to Destination objects. Used when a reqest/reply destination name is provided, or
+	an expression that resolves to a name. Default is a DynamicDestinationResolver.
+				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.jms.support.destination.DestinationResolver"/>
@@ -912,6 +949,9 @@
 			</xsd:attribute>
 			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	The name of a ConnectionFactory bean. Default is 'connectionFactory'.
+				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="javax.jms.ConnectionFactory"/>
@@ -939,20 +979,31 @@
 							<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
 						</tool:annotation>
 						<xsd:documentation>
-						Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message.
+	A reference to an implementation of JmsHeaderMapper to map Message Headers to JMS Message. Default
+	is a 'DefaultJmsHeaderMapper'.
 						</xsd:documentation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="delivery-mode" type="xsd:string">
+			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	[DEPRECATED - use delivery-persistent attribute instead]
-	A reference to the MessageConverter strategy for converting between JMS Messages
-	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
-					]]></xsd:documentation>
+					<xsd:documentation>
+	When 'true' (default), this attribute indicates that the JMS Message body will be created
+	(by the MessageConverter) from the Spring Integration Message's payload.
+	When 'false', the entire Spring Integration Message will be converted to the JMS Message body.
+	In both cases, the message headers will be mapped to JMS headers/properties by the HeaderMapper.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+	When 'true' (default), this attribute indicates that the payload of the Spring Integration
+	reply message will be created from the 'JMS Message' body (by the MessageConverter).
+	When 'false', the Spring Integration Message payload will be the entire JMS Message.
+	In both cases, the JMS Message headers/properties will be mapped to message headers
+	by the HeaderMapper.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="delivery-persistent" type="xsd:string">
@@ -989,7 +1040,6 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="order" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -998,6 +1048,16 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						'true' by default, and a ReplyRequiredException will be thrown when
+						the underlying service returns a null value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -1060,7 +1120,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -1141,9 +1201,30 @@
 			<xsd:extension base="jmsInboundAdapterType">
 				<xsd:attribute name="container" type="xsd:string">
 					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+			A reference to a custom listener container implementation.
+			Note that a custom container class will typically be a subclass of DefaultMessageListenerContainer.
+			This attribute is mutually exclusive with 'container-class'.
+						]]></xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
 								<tool:expected-type type="org.springframework.jms.listener.AbstractMessageListenerContainer"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="container-class" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+			A custom listener container implementation class as fully qualified class name.
+			Default is Spring's standard DefaultMessageListenerContainer.
+			Note that a custom container class will typically be a subclass of this
+			standard container class. This attribute is mutually exclusive with 'container'.
+						]]></xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation>
+								<tool:expected-type type="java.lang.Class"/>
+								<tool:assignable-to type="org.springframework.jms.listener.AbstractMessageListenerContainer"/>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -1290,7 +1371,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
@@ -1299,7 +1380,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -1308,7 +1389,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

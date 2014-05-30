@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd"/>
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
 
 	<xsd:element name="xmpp-connection">
 		<xsd:annotation>
@@ -25,14 +25,6 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						The user name (e.g., someuser@gmail.com) that will be used by this connection object
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-						Lifecycle attribute signaling if this component should be started during Application Context startup.
-						Default is TRUE
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -60,7 +52,7 @@
 			<xsd:attribute name="resource" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-					The resource field specifies the XMPP resource you are using. The use of unique resources allows 
+					The resource field specifies the XMPP resource you are using. The use of unique resources allows
 					you to connect to your XMPP server from multiple locations simultaneously. Resources might
 					</xsd:documentation>
 				</xsd:annotation>
@@ -87,6 +79,13 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+                     Note, the default 'phase' value for XmppConnectionFactoryBean is Integer.MIN_VALUE
+				]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attributeGroup>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -102,7 +101,7 @@
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true">
 						<xsd:annotation>
 							<xsd:documentation>
-							Specifies if generated Message payload should consist of only 
+							Specifies if generated Message payload should consist of only
 							the text of the XMPP message or the entire XMPP (Smack API specific) message. Default is true.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -150,36 +149,15 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
-	
+
+
 	<xsd:complexType name="xmppInboundAdapterType">
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-						Lifecycle attribute signaling if this component should be started during Application Context startup.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>		
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-					Identifies channel attached to this adapter. Depending on the type of the adapter 
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
-					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						Identifies channel that error messages will be sent to if a failure occurs in this
-						adapter's invocation. 
+						adapter's invocation.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -212,27 +190,13 @@
 				</xsd:annotation>
 			</xsd:attribute>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="xmppOutboundAdapterType">
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel"  type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-					Identifies channel attached to this adapter. Depending on the type of the adapter 
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
-					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="xmpp-connection" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -291,7 +255,7 @@
 						<xsd:element name="chat-thread-id" type="headerType">
 							<xsd:annotation>
 								<xsd:documentation>
-									The conversation thread id used to corelate XMPP packets as 
+									The conversation thread id used to corelate XMPP packets as
 									belonging to a particular conversation
 								</xsd:documentation>
 							</xsd:annotation>
@@ -354,7 +318,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
@@ -366,7 +330,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>

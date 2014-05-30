@@ -8,7 +8,7 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -92,7 +92,12 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="mongodbAdapterType" />
+				<xsd:extension base="mongodbAdapterType">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
@@ -103,17 +108,7 @@
 				Common configuration for mongodb adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:string" />
-		<xsd:attribute name="channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Reference to a Message Channel that will be used
-					by this adapter to
-					'receiveFrom' or 'sendTo' Messages depending on the adapter type (e.g.,
-					inbound/outbound)
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="mongodb-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -178,7 +173,5 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string"
-			default="true" />
 	</xsd:complexType>
 </xsd:schema>

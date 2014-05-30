@@ -8,9 +8,9 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
 
-	
+
 	<xsd:complexType name="ScriptType" mixed="true" abstract="true">
 		<xsd:sequence>
 			<xsd:element name="variable" minOccurs="0" maxOccurs="unbounded">
@@ -61,7 +61,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to the ScriptVariableGenerator bean. This attribute is mutually
-					exclusive with any 'variable' sub-elements.
+					exclusive with any 'variable' sub-elements and 'variables' attribute.
 					</xsd:documentation>
 				<xsd:appinfo>
 					<tool:expected-type
@@ -76,6 +76,18 @@
 					Refresh delay for the script contents if specified as a resource
 					location (defaults to -1, never refresh).
 					</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="variables">
+			<xsd:annotation>
+				<xsd:documentation>
+					Comma-delimited pairs of variables and their values.
+					the variable name can applies '-ref' suffix, which mean to determine
+					a variable value as a bean reference.
+					This attribute isn't mutually exclusive with 'variable' sub-elements
+					and all variables will be merged to one Map.
+					This attribute is mutually exclusive with 'script-variable-generator' attribute.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

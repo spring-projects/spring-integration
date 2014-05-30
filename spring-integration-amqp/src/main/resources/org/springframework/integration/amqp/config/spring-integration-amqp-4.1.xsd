@@ -9,7 +9,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
@@ -38,7 +38,7 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-										type="org.springframework.integration.MessageChannel" />
+										type="org.springframework.messaging.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -65,7 +65,7 @@
 							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -81,7 +81,7 @@
 							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -109,7 +109,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -144,7 +144,7 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-										type="org.springframework.integration.MessageChannel"/>
+										type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -157,7 +157,7 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-										type="org.springframework.integration.MessageChannel"/>
+										type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -193,7 +193,19 @@
 			which itself is a Map.
 			This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 			this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+			A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+			it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+			standard headers to also be mapped.
 								]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify whether this outbound gateway must return a non-null value. This value is
+								'true' by default, and a ReplyRequiredException will be thrown when
+								the underlying service returns a null value.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -218,7 +230,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -230,7 +242,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -243,6 +255,9 @@
 	which itself is a Map.
 	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+	it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+	standard headers to also be mapped.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -351,14 +366,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Flag to indicate whether this Message Channel should start automatically.
-	This only applies to a message-driven channel. Default is true.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
 		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>
@@ -418,9 +425,15 @@ The order for this consumer when multiple consumers are registered thereby enabl
 		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Reference to a bean implementing 'AmqpHeaderMapper' that maps Spring Integration MessageHeaders to/from
+AMQP Message properties.
+This is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'.
+Default: DefaultAmqpHeaderMapper.
+						]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -431,6 +444,9 @@ The order for this consumer when multiple consumers are registered thereby enabl
 Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
 This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+A special token 'STANDARD_REQUEST_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+standard headers to also be mapped.
 						]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -443,7 +459,7 @@ property set to TRUE.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -471,16 +487,22 @@ property set to TRUE.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Reference to a bean implementing 'AmqpHeaderMapper' that maps Spring Integration MessageHeaders to/from
+AMQP Message properties.
+This is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'.
+Default: DefaultAmqpHeaderMapper.
+						]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -491,6 +513,9 @@ property set to TRUE.
 Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
 This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+A special token 'STANDARD_REQUEST_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+standard headers to also be mapped.
 						]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -531,13 +556,6 @@ this list can also be simple patterns to be matched against the header names (e.
 				<xsd:documentation>
 	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
 				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Boolean value indicating whether this endpoint should start automatically.
-				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -689,15 +707,6 @@ this list can also be simple patterns to be matched against the header names (e.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="phase" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-	The lifeycle phase determining the start/stop order of the underlying listener container.
-					</xsd:documentation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="prefetch-count" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -782,6 +791,7 @@ this list can also be simple patterns to be matched against the header names (e.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
 </xsd:schema>

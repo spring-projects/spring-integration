@@ -9,7 +9,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -148,7 +148,7 @@
 								to be executed.
 							</xsd:documentation>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.MessageChannel" />
+								<tool:expected-type type="org.springframework.messaging.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -222,6 +222,29 @@
 				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
+			<xsd:attribute name="first-result" type="xsd:integer">
+				<xsd:annotation>
+					<xsd:documentation>
+						The attribute that is used to set the first result marker while executing the
+						results. A negative value will retrieve from first record in the result set.
+						It is a way for the application to use the gateway to paginate the results in
+						combination with the max-results attribute. This attribute is mutually
+						exclusive to first-result-expression attribute
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="first-result-expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						The attribute that is used to set the first result expression that would
+						be evaluated to get the first record while executing the JPA query for result
+						A negative value will retrieve from first record in the result set.
+						It is a way for the application to use the gateway to paginate the results in
+						combination with the max-results attribute. This attribute is mutually
+						exclusive to first-result attribute
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="coreJpaComponentAttributes" />
 			<xsd:attributeGroup ref="commonJpaOutboundGatewayAttributes"/>
 			<xsd:attributeGroup ref="commonRetrievingJpaAttributes" />
@@ -363,6 +386,15 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether this outbound gateway must return a non-null value. This value is
+					'true' by default, and a ReplyRequiredException will be thrown when
+					the underlying service returns a null value.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="commonUpdatingJpaAttributes">
@@ -379,17 +411,68 @@
 				<xsd:union memberTypes="persistMode xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
+		<xsd:attribute name="flush" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.flush() should be called after performing persistence operations.
+					If 'flush-size' is configured to a value greater than '0' this attribute will be ignored.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="flush-size" type="xsd:string" default="0">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the number of entities after which to call EntityManager.flush()
+					when performing persistence operations.
+					This attribute is applicable for payload instances of "java.lang.Iterable".
+					Defaults to '0' - 'flush' won't be called.
+					This attribute has precedence over the 'flush' attribute,
+					if it is configured to a value greater than '0'.
+					If the entity to persist is not an instance of "java.lang.Iterable"
+					and 'flush-size' is greater than '0',
+					then the entity will be flushed as if the 'flush' attribute was set to 'true'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="clear-on-flush" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.clear() should be called after EntityManager.flush().
+					Applies only if 'flush-size > 0' or 'flush = true'.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="commonRetrievingJpaAttributes">
 		<xsd:attribute name="max-number-of-results">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specifies the maximum number of entities that shall be returned
-					by a JPA Operation. Using this attribute you basically set
-					the 'maxResults' property of the JPA Query object.
+					[DEPRECATED] Use 'max-results' instead.
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-results">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the maximum number of entities that shall be returned
+					by a JPA Operation. Using this attribute sets
+					the 'maxResults' property of the JPA Query object. This attribute is mutually
+					exclusive with 'max-results-expression' (and the deprecated 'max-number-of-results') attributes.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-results-expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the expression for the maximum number of entities that shall be returned
+						by a JPA Operation. Using this attribute sets
+						the 'maxResults' property of the JPA Query object. This attribute is mutually
+						exclusive with the 'max-results' attribute.
+					</xsd:documentation>
+				</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="expect-single-result" default="false">
 			<xsd:annotation>
@@ -444,6 +527,15 @@
 			<xsd:simpleType>
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="flush-after-delete" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.flush() should be called after performing 'deletes' for retrieved entities.
+					Applies only if 'delete-after-poll = true'.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 
@@ -555,17 +647,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" default="true" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					Flag to indicate that the component should start automatically
-					on startup (default true).
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:union memberTypes="xsd:boolean xsd:string" />
-			</xsd:simpleType>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
 	<xsd:simpleType name="persistMode">
