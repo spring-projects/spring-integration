@@ -101,7 +101,7 @@ subprojects { subproject ->
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
-		reactorVersion = '1.1.0.RELEASE'
+		reactorVersion = '1.1.2.RELEASE'
 		romeVersion = '1.0.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
