@@ -8,7 +8,7 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -278,43 +278,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="LIST">
-									<xsd:annotation>
-										<xsd:documentation>
-											[DEFAULT] Redis List
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="SET">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Set
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="ZSET">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Sorted Set
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="MAP">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Map
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-								<xsd:enumeration value="PROPERTIES">
-									<xsd:annotation>
-										<xsd:documentation>
-											Redis Properties
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:enumeration>
-							</xsd:restriction>
+							<xsd:union memberTypes="redisTypeEnumeration xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
@@ -499,6 +463,163 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Redis Command Sending Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a RedisConnectionFactory. If none is provided, the default
+						bean name for the reference will be "redisConnectionFactory".
+						Mutually exclusive with 'redis-template' attribute.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="redis-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						RedisTemplate to be used with this gateway.
+						Mutually exclusive with 'connection-factory' attribute.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.core.RedisTemplate"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						'false' by default, otherwise a ReplyRequiredException will be thrown when
+						the underlying service returns a null value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Allows you to specify how long this gateway will wait for
+					the reply message to be sent successfully to the reply channel
+					before throwing an exception. This attribute only applies when the
+					channel might block, for example when using a bounded queue channel that
+					is currently full.
+
+					Also, keep in mind that when sending to a DirectChannel, the
+					invocation will occur in the sender's thread. Therefore,
+					the failing of the send operation may be caused by other
+					components further downstream.
+
+					The "reply-timeout" attribute maps to the "sendTimeout" property of the
+					underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+					The attribute will default, if not specified, to '-1', meaning that
+					by default, the Gateway will wait indefinitely. The value is
+					specified in milliseconds.
+				]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the order for invocation when this adapter is connected as a
+								subscriber to a SubscribableChannel.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="arguments-serializer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer.
+							Used to serialize each command argument to byte[] if necessary.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="command-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression that returns the command key. Default is the 'redis_command' message header.
+						The command must not be evaluated to 'null'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="argument-expressions" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma-separated SpEL expressions that will be evaluated as command arguments.
+						Mutually exclusive with the 'arguments-strategy' attribute. If 'use-command-variable' is
+						specified to 'true', the '#cmd' variable will be presented within evaluation context.
+						Argument expressions may evaluate to 'null', to support a variable number of arguments.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="use-command-variable" type="xsd:string" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies, if the evaluated Redis command string will be made available
+						as the '#cmd' variable in the SpEL evaluation context in the
+						org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy
+						when 'argument-expressions' is
+						configured, otherwise this attribute is ignored.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="arguments-strategy" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to an instance of org.springframework.integration.redis.outbound.ArgumentsStrategy.
+							Mutually exclusive with the 'argument-expressions' attribute. By default the 'payload' is used
+							as the command argument(s). To disable any strategy (no arguments) this attribute should be
+							configured as an empty string.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.redis.outbound.ArgumentsStrategy"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="redisAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -671,44 +792,49 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="LIST">
-						<xsd:annotation>
-							<xsd:documentation>
-								[DEFAULT] Redis List
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="SET">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Set
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="ZSET">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Sorted Set
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="MAP">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Map
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="PROPERTIES">
-						<xsd:annotation>
-							<xsd:documentation>
-								Redis Properties
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-				</xsd:restriction>
+				<xsd:union memberTypes="redisTypeEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:attributeGroup>
+
+	<xsd:simpleType name="redisTypeEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="LIST">
+				<xsd:annotation>
+					<xsd:documentation>
+						[DEFAULT] Redis List
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="SET">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Set
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="ZSET">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Sorted Set
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="MAP">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Map
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="PROPERTIES">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis Properties
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 </xsd:schema>

@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -548,6 +548,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="session-transacted" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Setting this attribute to true enables transactions. Cannot be specified if
+	a jms-template is specified. Default false.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="jms-template" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -730,7 +738,7 @@
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="3">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="reply-listener" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
@@ -1072,7 +1080,7 @@
 				<xsd:extension base="jmsAdapterType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>
@@ -1178,6 +1186,16 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="session-transacted" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Setting this attribute to true enables transactions for the message send. If there is already
+	a JMS transaction in process, perhaps from a message-driven-channel-adapter upstream, the
+	same transaction is used; otherwise a new transaction is started. Cannot be specified if
+	a jms-template is specified. Default false.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="order" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -1245,7 +1263,9 @@
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
 	The native JMS acknowledge mode: "auto", "client", "dups-ok" or "transacted".
-	The latter effectively activates a locally transacted Session.
+	The latter effectively activates a locally transacted Session. 'transacted'
+	is not allowed on the inbound-channel-adapter; use 'session-transacted' instead.
+	acknowlege="transacted" is used on the message-driven-channel-adapter.
 						]]></xsd:documentation>
 					</xsd:annotation>
 					<xsd:simpleType>

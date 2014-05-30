@@ -181,6 +181,17 @@
 							</xsd:annotation>
 						</xsd:element>
 					</xsd:sequence>
+					<xsd:attribute name="fixed-subscriber" default="false" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	When true, only one subscriber is allowed; the subscriber must be available at context initialization time,
+	and will be subscribed during bean initialization rather than when being started; 'auto-startup="false"' will
+	take no effect on a subscriber to this channel, the subscriber will always be "started".
+	The subscriber cannot be stopped. When true, no sub elements are allowed; 'datatype' is not allowed;
+	'message-converter' is not allowed. Default: false.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -263,10 +274,25 @@
 				<xsd:documentation>
 					<![CDATA[
 	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
-	interface and provides logic based on which Messages will be prioritized.
+	interface and provides logic based on which Messages will be prioritized. Not allowed if `message-store` is set.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-store" type="xsd:string">
+				<xsd:annotation>
+						<xsd:appinfo>
+								<tool:annotation kind="ref">
+										<tool:expected-type type="org.springframework.integration.store.PriorityCapableChannelMessageStore" />
+								</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+						A reference to a bean that implements 'org.springframework.integration.store.PriorityCapableChannelMessageStore'.
+						A message store that supports priority in a manner defined by the store. When set, the underlying
+						channel will be a 'QueueChannel` that delegates to a `MessageGroupQueue' backed by the store.
+						Not allowed if 'comparator' is set.
+						</xsd:documentation>
+				</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 
@@ -308,28 +334,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="round-robin">
-						<xsd:annotation>
-							<xsd:documentation>
-								[DEFAULT] Defines a Round Robin dispatching strategy which allows
-								load balancing of messages
-								between multiple Message Handlers. Which
-								message
-								handler receives the message first is determined by the 'order'
-								attribute
-								of such Message Handler.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="none">
-						<xsd:annotation>
-							<xsd:documentation>
-								No LoadBalancingStrategy will be used.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-				</xsd:restriction>
+				<xsd:union memberTypes="loadBalancerEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="failover" type="xsd:string">
@@ -377,6 +382,31 @@
 		</xsd:attribute>
 		<xsd:attributeGroup ref="subscribersAttributeGroup" />
 	</xsd:complexType>
+
+	<xsd:simpleType name="loadBalancerEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="round-robin">
+				<xsd:annotation>
+					<xsd:documentation>
+						[DEFAULT] Defines a Round Robin dispatching strategy which allows
+						load balancing of messages
+						between multiple Message Handlers. Which
+						message
+						handler receives the message first is determined by the 'order'
+						attribute
+						of such Message Handler.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						No LoadBalancingStrategy will be used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
@@ -496,6 +526,29 @@
 						payloads of a certain type.
 					]]>
 				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+						Used with 'datatype' to convert the message payload, if necessary,
+						to one of the datatypes (in order).
+						Note: only the MessageConverter.fromMessage(Message, Class) method is used.
+						If the returned object is not a Message, the inbound headers will be copied;
+						if the returned object is a Message, it is expected that the converter wil
+						have fully populated the headers; no further action is performed by the channel.
+						If null is returned, conversion to the next datatype (if any) will be attempted.
+						Default is a 'DefaultDatatypeChannelMessageConverter'
+						which, in turn, delegates to the 'integrationConversionService'
+						(if present).
+					]]>
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -628,7 +681,7 @@
 					<xsd:documentation>
 										<![CDATA[
 				An expression that will be used to generate the payload for all methods in the service interface
-				unless explicitly overriden by a method declaration. Variables include #args, #methodName, #methodString
+				unless explicitly overridden by a method declaration. Variables include #args, #methodName, #methodString
 				and #methodObject; a bean resolver is also available, enabling expressions like "@someBean(#args)".
 										]]>
 					</xsd:documentation>
@@ -969,14 +1022,7 @@
 							]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="FATAL" />
-					<xsd:enumeration value="ERROR" />
-					<xsd:enumeration value="WARN" />
-					<xsd:enumeration value="INFO" />
-					<xsd:enumeration value="DEBUG" />
-					<xsd:enumeration value="TRACE" />
-				</xsd:restriction>
+				<xsd:union memberTypes="loggingLevel xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="logger-name" type="xsd:string">
@@ -1283,18 +1329,11 @@
 									<xsd:union memberTypes="xsd:boolean xsd:string" />
 								</xsd:simpleType>
 							</xsd:attribute>
-							<xsd:attribute name="type" type="xsd:string">
-								<xsd:annotation>
-									<xsd:documentation source="java:java.lang.Class">
-										The fully qualified class name of the header value's expected type.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:attribute>
 						</xsd:extension>
 					</xsd:complexContent>
 				</xsd:complexType>
 			</xsd:element>
-			<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
 			<xsd:annotation>
@@ -1442,6 +1481,14 @@
 					Expression to be evaluated to produce a value for the property.
 					Either this or 'value' must be provided.
 				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[
+					The fully qualified class name of the header value's expected type.
+					Allowed only in case of 'value' attribute.
+					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -1708,10 +1755,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="MILLISECONDS" />
-					<xsd:enumeration value="SECONDS" />
-				</xsd:restriction>
+				<xsd:union memberTypes="timeUnitEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="cron" type="xsd:string">
@@ -1750,6 +1794,13 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:simpleType name="timeUnitEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="MILLISECONDS" />
+			<xsd:enumeration value="SECONDS" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:element name="selector-chain">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -1769,16 +1820,20 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="ALL" />
-						<xsd:enumeration value="ANY" />
-						<xsd:enumeration value="MAJORITY" />
-						<xsd:enumeration value="MAJORITY_OR_TIE" />
-					</xsd:restriction>
+					<xsd:union memberTypes="votingStrategyEnumeration xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="votingStrategyEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ALL" />
+			<xsd:enumeration value="ANY" />
+			<xsd:enumeration value="MAJORITY" />
+			<xsd:enumeration value="MAJORITY_OR_TIE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="selector">
 		<xsd:complexType>
@@ -1873,38 +1928,16 @@
 			<xsd:element name="expiration-date" type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
-					Shortcut to specify value for 'expirationDate' header (java.lang.Long)
+					Shortcut to specify a value for the 'expirationDate' header (java.lang.Long).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="priority">
+			<xsd:element name="priority"  type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
-						Shortcut to specify value for 'priority' header when using PriorityChannel
+						Shortcut to specify a value for the 'priority' header.
 					</xsd:documentation>
 				</xsd:annotation>
-				<xsd:complexType>
-					<xsd:attribute name="value">
-						<xsd:annotation>
-							<xsd:documentation>
-								Integer value identifying the value of the 'priority' header.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="overwrite">
-						<xsd:annotation>
-							<xsd:documentation>
-								Boolean value to indicate whether this header value should overwrite
-								an existing header
-								value
-								for the same name.
-							</xsd:documentation>
-						</xsd:annotation>
-						<xsd:simpleType>
-							<xsd:union memberTypes="xsd:boolean xsd:string" />
-						</xsd:simpleType>
-					</xsd:attribute>
-				</xsd:complexType>
 			</xsd:element>
 			<xsd:element name="header" type="userDefinedHeaderType">
 				<xsd:annotation>
@@ -2270,16 +2303,36 @@
 					This Jackson 1 ObjectMapper backward compatibility is deprecated
 					and will be removed in the Spring Integration 3.1 or above.
 				</xsd:documentation>
-				<!-- TODO: Revert in the Spring Integration 3.1 or above after removing Jackson 1 backward compatibility
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.integration.support.json.JsonObjectMapper" />
 					</tool:annotation>
-				</xsd:appinfo>-->
+				</xsd:appinfo>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="result-type" default="STRING">
+			<xsd:annotation>
+				<xsd:documentation>
+					The type of the JSON transformation result. 'STRING' and 'NODE' values are allowed.
+					If 'NODE', the JSON result tree depends on the provided implementation of
+					'org.springframework.integration.support.json.JsonObjectMapper' (e.g. JsonNode for
+					Jackson). The default value is 'STRING'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="jsonResultTypeEnumeration xsd:string" />
+			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
+
+	<xsd:simpleType name="jsonResultTypeEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="STRING" />
+			<xsd:enumeration value="NODE" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
 
 	<xsd:element name="json-to-object-transformer">
 		<xsd:annotation>
@@ -2317,12 +2370,11 @@
 					This Jackson 1 ObjectMapper backward compatibility is deprecated
 					and will be removed in the Spring Integration 3.1 or above.
 				</xsd:documentation>
-				<!-- TODO: Revert in the Spring Integration 3.1 or above after removing Jackson 1 backward compatibility
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.integration.support.json.JsonObjectMapper" />
 					</tool:annotation>
-				</xsd:appinfo>-->
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="id" type="xsd:string" />
@@ -2553,7 +2605,7 @@
 					<xsd:element name="request-handler-advice-chain" minOccurs="0" maxOccurs="1">
 						<xsd:complexType>
 							<xsd:complexContent>
-								<xsd:extension base="adviceChainType">
+								<xsd:extension base="handlerAdviceChainType">
 									<xsd:attribute name="discard-within-advice" type="xsd:string" default="true">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
@@ -3394,6 +3446,66 @@
 						<xsd:documentation>A SpEL expression to evaluate against a root object that is the Collection of messages within the message group (e.g, size() > 6)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="group-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							A timeout in milliseconds to force the MessageGroup complete,
+							when the 'ReleaseStrategy' does not 'release' the group when the current Message arrives.
+							If 'group-timeout' is not provided or is less than '0' the MessageGroup won't be scheduled
+							to be forced complete.
+							The action taken when the group is forced complete depends on the
+							'send-partial-result-on-expiry' attribute.
+							Mutually exclusive with the 'group-timeout-expression' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="group-timeout-expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							A SpEL expression to evaluate a 'group-timeout' with the MessageGroup as the #root evaluation
+							context object for scheduling the MessageGroup forced completion,
+							when the 'ReleaseStrategy' does not 'release' the group when the current Message arrives.
+							If 'group-timeout-expression' evaluates to 'null' or less than '0',
+							the MessageGroup won't be scheduled to be forced complete.
+							The action taken when the group is forced complete depends on the
+							'send-partial-result-on-expiry' attribute.
+							Mutually exclusive with the 'group-timeout' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="scheduler" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.scheduling.TaskScheduler" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							Provide a reference to the TaskScheduler instance to schedule 'forceComplete' on
+							the MessageGroup
+							when no new message arrives for the MessageGroup within the
+							'group-timeout' or 'group-timeout-expression'. If it isn't
+							provided, the default scheduler 'taskScheduler',
+							registered in the ApplicationContext {ThreadPoolTaskScheduler} will be
+							used. This attribute only applies if 'group-timeout' or
+							'group-timeout-expression' is specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="lock-registry" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.support.locks.LockRegistry" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to a 'org.springframework.integration.support.locks.LockRegistry' bean
+							to obtain 'java.util.concurrent.locks.Lock' by 'groupId'. Used for concurrent operations on
+							MessageGroups. By default an internal 'DefaultLockRegistry' is used.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -3474,20 +3586,6 @@
 	<xsd:complexType name="resequencer-type">
 		<xsd:complexContent>
 			<xsd:extension base="correlating-message-handler-type">
-				<xsd:attribute name="comparator" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>
-							Comparator for messages used to sort the sequence when released. Defaults to comparing
-							the
-							sequence number header.
-						</xsd:documentation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="java.util.Comparator" />
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
 				<xsd:attribute name="release-partial-sequences" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -3601,15 +3699,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="REQUIRED" />
-					<xsd:enumeration value="SUPPORTS" />
-					<xsd:enumeration value="MANDATORY" />
-					<xsd:enumeration value="REQUIRES_NEW" />
-					<xsd:enumeration value="NOT_SUPPORTED" />
-					<xsd:enumeration value="NEVER" />
-					<xsd:enumeration value="NESTED" />
-				</xsd:restriction>
+				<xsd:union memberTypes="propagationEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="isolation" default="DEFAULT">
@@ -3619,13 +3709,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="DEFAULT" />
-					<xsd:enumeration value="READ_UNCOMMITTED" />
-					<xsd:enumeration value="READ_COMMITTED" />
-					<xsd:enumeration value="REPEATABLE_READ" />
-					<xsd:enumeration value="SERIALIZABLE" />
-				</xsd:restriction>
+				<xsd:union memberTypes="isolationEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="timeout" type="xsd:string" default="-1">
@@ -3656,6 +3740,28 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:simpleType name="propagationEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="REQUIRED" />
+			<xsd:enumeration value="SUPPORTS" />
+			<xsd:enumeration value="MANDATORY" />
+			<xsd:enumeration value="REQUIRES_NEW" />
+			<xsd:enumeration value="NOT_SUPPORTED" />
+			<xsd:enumeration value="NEVER" />
+			<xsd:enumeration value="NESTED" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="isolationEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="DEFAULT" />
+			<xsd:enumeration value="READ_UNCOMMITTED" />
+			<xsd:enumeration value="READ_COMMITTED" />
+			<xsd:enumeration value="REPEATABLE_READ" />
+			<xsd:enumeration value="SERIALIZABLE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="pseudoTransactionalType">
 		<xsd:attributeGroup ref="transactionSyncAttributeGroup" />
@@ -3696,13 +3802,35 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:complexType name="handlerAdviceChainType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="bean" type="xsd:string" use="required">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="java.lang.Object" />
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:element name="retry-advice" type="retryAdviceType" />
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
 				<xsd:choice minOccurs="0" maxOccurs="3">
 					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
-					<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="expression" type="xsd:string">
@@ -3876,7 +4004,7 @@
 						[OPTIONAL] Specifies the order in which this interceptor will be
 						added to the existing channel
 						interceptors (if any).
-						Negative value (e.g., -2) will signify BEFORE existing iinterceptors (if any). Positive
+						Negative value (e.g., -2) will signify BEFORE existing interceptors (if any). Positive
 						value (e.g., 2)
 						will signify AFTER existing interceptors (if any)
 					</xsd:documentation>
@@ -4008,6 +4136,16 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="handler-retry-advice">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="retryAdviceType">
+					<xsd:attribute name="id" type="xsd:string" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
@@ -4021,6 +4159,91 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:string" />
+	</xsd:complexType>
+
+	<xsd:complexType name="retryAdviceType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				A convenient way of defining a MessageHandlerRetryAdvice. Uses a SimpleRetryPolicy
+				and an optional Exponential or Fixed BackOffPolicy. Default is no back off.
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice minOccurs="0" maxOccurs="1">
+			<xsd:element name="fixed-back-off">
+				<xsd:complexType>
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+							Defines a fixed back off policy.
+						]]></xsd:documentation>
+					</xsd:annotation>
+					<xsd:attribute name="interval" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								The interval in milliseconds between attempts.
+								Default 1000.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="exponential-back-off">
+				<xsd:complexType>
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+							Defines an exponential back off policy.
+						]]></xsd:documentation>
+					</xsd:annotation>
+					<xsd:attribute name="initial" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								The interval in milliseconds between the first and second attempts.
+								Default 100.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="multiplier" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								The previous interval is multiplied by this to determine the next interval,
+								but also see 'maximum'. Default 2.0.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="maximum" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								The maxumum interval in milliseconds between attempts; caps an interval
+								calculated using the multiplier. Default 30000.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:choice>
+		<xsd:attribute name="max-attempts" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					The maximum number of attempts to invoke the handler.
+					Default 3.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="recovery-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					A MessageChannel to receive the message after retries are exhausted. Default
+					is to not recover and throw the exception.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="send-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					A timeout applied when sending to the 'recovery-channel'. Only applies if
+					the recovery channel can block (such as a bounded QueueChannel that is full).
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="inputOutputChannelGroup">
@@ -4168,5 +4391,16 @@ default is 0. Values can be negative. See SmartLifeCycle.
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
+
+	<xsd:simpleType name="loggingLevel">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="FATAL" />
+			<xsd:enumeration value="ERROR" />
+			<xsd:enumeration value="WARN" />
+			<xsd:enumeration value="INFO" />
+			<xsd:enumeration value="DEBUG" />
+			<xsd:enumeration value="TRACE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

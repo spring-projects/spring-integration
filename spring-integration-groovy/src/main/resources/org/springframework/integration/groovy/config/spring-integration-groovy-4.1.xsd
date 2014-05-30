@@ -7,10 +7,10 @@
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:include
-		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-3.0.xsd"
+		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-4.0.xsd"
 		/>
 
-	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd" />
 
 	<xsd:element name="script" type="GroovyScript">
 		<xsd:annotation>
@@ -52,7 +52,7 @@
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0"
 					maxOccurs="1" />
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
 			<xsd:attribute name="customizer" type="xsd:string">

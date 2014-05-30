@@ -10,7 +10,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation>
@@ -440,6 +440,13 @@
 			<xsd:simpleType>
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="header-type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[
+	The fully qualified class name of the header value's expected type.
+						]]></xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 

@@ -110,12 +110,15 @@
 				]]></xsd:documentation>
 				</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="durable" use="optional" type="xsd:boolean" default="false">
+					<xsd:attribute name="durable" use="optional" default="false">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 							Indicates if the query is a durable subscription
 							]]></xsd:documentation>
-							</xsd:annotation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:string xsd:boolean"/>
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 		</xsd:complexContent>
@@ -141,7 +144,7 @@
 					</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 
@@ -202,7 +205,8 @@
 		<xsd:attribute name="expression" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					Expression to be evaluated to produce a value for the payload.
+					Expression to be evaluated to produce a value for the payload. The root object of the
+					expression evaluation is the GemFire 'EntryEvent'.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
