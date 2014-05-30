@@ -10,9 +10,9 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration/ip"
-		schemaLocation="http://www.springframework.org/schema/integration/ip/spring-integration-ip-4.0.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
