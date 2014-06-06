@@ -134,8 +134,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
+	protected final void onInit() {
+		doInit();
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
 			if (StringUtils.hasText(this.defaultOutputChannelName)) {
@@ -150,6 +150,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 	}
+
+	protected abstract void doInit();
 
 	/**
 	 * Subclasses must implement this method to return a Collection of zero or more
