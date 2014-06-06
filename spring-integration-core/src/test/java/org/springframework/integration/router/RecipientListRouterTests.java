@@ -16,23 +16,24 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -41,6 +42,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RecipientListRouterTests {
 
@@ -408,6 +410,26 @@ public class RecipientListRouterTests {
 		Message<?> result2 = channel.receive(5);
 		assertNull(result2);
 	}
+
+	@Test
+	public void testDefaultChannelResolutionFromName() {
+		QueueChannel defaultChannel = new QueueChannel();
+		List<Recipient> recipients = new ArrayList<Recipient>();
+		recipients.add(new Recipient(new DirectChannel(), new AlwaysFalseSelector()));
+		RecipientListRouter router = new RecipientListRouter();
+		router.setRecipients(recipients);
+		router.setDefaultOutputChannelName("defaultChannel");
+
+		BeanFactory beanFactory = Mockito.mock(BeanFactory.class);
+		when(beanFactory.getBean(Mockito.eq("defaultChannel"), Mockito.eq(MessageChannel.class)))
+				.thenReturn(defaultChannel);
+		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
+
+		assertSame(defaultChannel, TestUtils.getPropertyValue(router, "defaultOutputChannel"));
+		Mockito.verify(beanFactory).getBean(Mockito.eq("defaultChannel"), Mockito.eq(MessageChannel.class));
+	}
+
 
 	private static class AlwaysTrueSelector implements MessageSelector {
 
