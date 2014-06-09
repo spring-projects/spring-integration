@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
@@ -64,7 +65,6 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	 * Set the channels for this router. Either call this method or
 	 * {@link #setRecipients(List)} but not both. If MessageSelectors should be
 	 * considered, then use {@link #setRecipients(List)}.
-	 *
 	 * @param channels The channels.
 	 */
 	public void setChannels(List<MessageChannel> channels) {
@@ -78,7 +78,6 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
 	/**
 	 * Set the recipients for this router.
-	 *
 	 * @param recipients The recipients.
 	 */
 	public void setRecipients(List<Recipient> recipients) {
@@ -92,7 +91,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	}
 
 	@Override
-	public void onInit() {
+	protected void doInit() {
 		Assert.notEmpty(this.recipients, "recipient list must not be empty");
 	}
 
@@ -131,7 +130,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 		}
 
 		public boolean accept(Message<?> message) {
-			return (this.selector != null ? this.selector.accept(message) : true);
+			return (this.selector == null || this.selector.accept(message));
 		}
 	}
 
