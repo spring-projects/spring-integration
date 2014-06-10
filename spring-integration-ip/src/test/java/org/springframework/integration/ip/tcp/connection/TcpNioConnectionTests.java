@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,9 +335,7 @@ public class TcpNioConnectionTests {
 			fail("Expected exception, got " + o);
 		}
 		catch (ExecutionException e) {
-			assertEquals("Timed out writing to ChannelInputStream, probably due to insufficient threads in " +
-					"a fixed thread pool; consider increasing this task executor pool size", e.getCause()
-					.getMessage());
+			assertEquals("Timed out waiting for buffer space", e.getCause().getMessage());
 		}
 	}
 
