@@ -15,13 +15,13 @@
  */
 package org.springframework.integration.kafka.support;
 
-import kafka.consumer.ConsumerConfig;
+import java.util.Properties;
 
+import kafka.consumer.ConsumerConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.FactoryBean;
 
-import java.util.Properties;
+import org.springframework.beans.factory.FactoryBean;
 
 /**
  * @author Soby Chacko
@@ -43,7 +43,8 @@ public class ConsumerConfigFactoryBean<K,V> implements FactoryBean<ConsumerConfi
 		}
 	}
 
-    public ConsumerConfigFactoryBean(final ConsumerMetadata consumerMetadata, final ZookeeperConnect zookeeperConnect) {
+    public ConsumerConfigFactoryBean(final ConsumerMetadata<K, V> consumerMetadata,
+			final ZookeeperConnect zookeeperConnect) {
         this(consumerMetadata, zookeeperConnect, null);
     }
 

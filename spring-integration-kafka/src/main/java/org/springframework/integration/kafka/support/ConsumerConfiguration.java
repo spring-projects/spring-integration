@@ -18,7 +18,7 @@ import kafka.message.MessageAndMetadata;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Soby Chacko
