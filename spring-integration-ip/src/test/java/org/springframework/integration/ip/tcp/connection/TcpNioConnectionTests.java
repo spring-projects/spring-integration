@@ -51,6 +51,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -605,18 +606,74 @@ public class TcpNioConnectionTests {
 		factory.stop();
 	}
 
+	@Test
+	public void testAllMessagesDelivered() throws Exception {
+		final int numberOfSockets = 25;
+		final int port = SocketUtils.findAvailableServerSocket();
+		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
+		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+
+		CompositeExecutor compositeExec = compositeExecutor();
+
+		factory.setTaskExecutor(compositeExec);
+		final CountDownLatch latch = new CountDownLatch(numberOfSockets);
+		factory.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				if (!(message instanceof ErrorMessage)) {
+					latch.countDown();
+				}
+				return false;
+			}
+
+		});
+		factory.start();
+		
+		Socket[] sockets = new Socket[numberOfSockets];
+		for (int i = 0; i < numberOfSockets; i++) {
+			Socket socket = null;
+			int n = 0;
+			while (n++ < 100) {
+				try {
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					break;
+				}
+				catch (ConnectException e) {}
+				Thread.sleep(100);
+			}
+			assertTrue("Could not open socket to localhost:" + port, n < 100);
+			sockets[i] = socket;
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write("foo1 and...".getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		Thread.sleep(100);
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...foo2\r\n").getBytes());
+			sockets[i].close();
+		}
+		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
+		factory.stop();
+	}
+
 	private CompositeExecutor compositeExecutor() {
 		ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
 		ioExec.setCorePoolSize(2);
-		ioExec.setQueueCapacity(10);
+		ioExec.setMaxPoolSize(4);
+		ioExec.setQueueCapacity(0);
 		ioExec.setThreadNamePrefix("io-");
-		ioExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+		ioExec.setRejectedExecutionHandler(new CallerBlocksPolicy(5000));
 		ioExec.initialize();
 		ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
 		assemblerExec.setCorePoolSize(2);
-		assemblerExec.setQueueCapacity(10);
+		assemblerExec.setMaxPoolSize(5);
+		assemblerExec.setQueueCapacity(0);
 		assemblerExec.setThreadNamePrefix("assembler-");
-		assemblerExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+		assemblerExec.setRejectedExecutionHandler(new AbortPolicy());
 		assemblerExec.initialize();
 		return new CompositeExecutor(ioExec, assemblerExec);
 	}
