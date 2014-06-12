@@ -23,13 +23,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.springframework.integration.Message;
 import org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder;
 import org.springframework.integration.kafka.test.utils.NonSerializableTestKey;
 import org.springframework.integration.kafka.test.utils.NonSerializableTestPayload;
 import org.springframework.integration.kafka.test.utils.TestKey;
 import org.springframework.integration.kafka.test.utils.TestPayload;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 import java.io.ByteArrayInputStream;
 import java.io.NotSerializableException;

@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 import java.util.ArrayList;
 import java.util.HashMap;

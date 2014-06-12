@@ -19,11 +19,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.*;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * @author Soby Chacko
@@ -52,7 +53,7 @@ public class KafkaProducerContext<K,V> implements BeanFactoryAware {
 				return producerConfiguration;
 			}
 		}
-		LOGGER.error("No is producer-configuration defined for topic " + topic + ". cannot send message");
+		LOGGER.error("No producer-configuration defined for topic " + topic + ". cannot send message");
 		return null;
 	}
 

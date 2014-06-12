@@ -15,9 +15,9 @@
  */
 package org.springframework.integration.kafka.outbound;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
+import org.springframework.messaging.Message;
 
 /**
  * @author Soby Chacko

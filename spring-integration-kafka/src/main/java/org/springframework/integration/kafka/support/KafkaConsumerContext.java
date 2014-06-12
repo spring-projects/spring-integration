@@ -19,9 +19,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.integration.Message;
 import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 import java.util.Collection;
 import java.util.HashMap;

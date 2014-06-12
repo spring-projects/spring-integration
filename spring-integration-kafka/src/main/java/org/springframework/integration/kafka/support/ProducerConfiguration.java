@@ -16,7 +16,7 @@ import kafka.serializer.DefaultEncoder;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * @author Soby Chacko

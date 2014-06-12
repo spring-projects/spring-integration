@@ -15,10 +15,10 @@
  */
 package org.springframework.integration.kafka.inbound;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
+import org.springframework.messaging.Message;
 
 import java.util.List;
 import java.util.Map;
