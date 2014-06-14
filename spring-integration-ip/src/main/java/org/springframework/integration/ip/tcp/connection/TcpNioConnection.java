@@ -208,8 +208,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 							catch (RejectedExecutionException e) {
 								this.executionControl.decrementAndGet();
 								if (logger.isInfoEnabled()) {
-									logger.info("Insufficient threads in the assembler fixed thread pool; consider " +
-											"increasing this task executor pool size");
+									logger.info(getConnectionId() + " Insufficient threads in the assembler fixed thread pool; consider " +
+											"increasing this task executor pool size; data avail: " + this.channelInputStream.available());
 								}
 							}
 						}
@@ -252,14 +252,15 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				// timing was such that we were the last assembler and
 				// a new one wasn't run
 				try {
-					if (this.isOpen() && dataAvailable()) {
+					if (dataAvailable()) {
 						synchronized(this.executionControl) {
 							if (this.executionControl.incrementAndGet() <= 1) {
 								// only continue if we don't already have another assembler running
 								this.executionControl.set(1);
 								moreDataAvailable = true;
-								
-							} else {
+
+							}
+							else {
 								this.executionControl.decrementAndGet();
 							}
 						}
@@ -272,7 +273,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					}
 					else {
 						if (logger.isTraceEnabled()) {
-							logger.trace(this.getConnectionId() + " Nio message assembler exiting...");
+							logger.trace(this.getConnectionId() + " Nio message assembler exiting... avail: " + this.channelInputStream.available());
 						}
 					}
 				}
@@ -384,6 +385,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				this.sendToPipe(rawBuffer);
 			}
 		}
+		catch (RejectedExecutionException e) {
+			throw e;
+		}
 		catch (Exception e) {
 			this.publishConnectionExceptionEvent(e);
 			throw e;
@@ -419,9 +423,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 						logger.info("Insufficient threads in the assembler fixed thread pool; consider increasing " +
 								"this task executor pool size");
 					}
-					return false;
+					throw e;
 				}
-			} else {
+			}
+			else {
 				this.executionControl.decrementAndGet();
 			}
 		}
@@ -443,6 +448,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				logger.debug(this.getConnectionId() + " Channel is closed");
 			}
 			this.closeConnection(true);
+		}
+		catch (RejectedExecutionException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			logger.error("Exception on Read " +

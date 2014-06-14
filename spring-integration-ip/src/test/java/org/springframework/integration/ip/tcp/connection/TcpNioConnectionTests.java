@@ -73,7 +73,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.CallerBlocksPolicy;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
@@ -608,7 +607,7 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testAllMessagesDelivered() throws Exception {
-		final int numberOfSockets = 25;
+		final int numberOfSockets = 100;
 		final int port = SocketUtils.findAvailableServerSocket();
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
 		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
@@ -616,7 +615,7 @@ public class TcpNioConnectionTests {
 		CompositeExecutor compositeExec = compositeExecutor();
 
 		factory.setTaskExecutor(compositeExec);
-		final CountDownLatch latch = new CountDownLatch(numberOfSockets);
+		final CountDownLatch latch = new CountDownLatch(numberOfSockets * 4);
 		factory.registerListener(new TcpListener() {
 
 			@Override
@@ -629,7 +628,7 @@ public class TcpNioConnectionTests {
 
 		});
 		factory.start();
-		
+
 		Socket[] sockets = new Socket[numberOfSockets];
 		for (int i = 0; i < numberOfSockets; i++) {
 			Socket socket = null;
@@ -651,11 +650,28 @@ public class TcpNioConnectionTests {
 		}
 		Thread.sleep(100);
 		for (int i = 0; i < numberOfSockets; i++) {
-			sockets[i].getOutputStream().write(("...foo2\r\n").getBytes());
+			sockets[i].getOutputStream().write(("...foo2\r\nbar1 and...").getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...bar2\r\n").getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write("foo3 and...".getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		Thread.sleep(100);
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...foo4\r\nbar3 and...").getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...bar4\r\n").getBytes());
 			sockets[i].close();
 		}
-		
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
+		assertTrue("latch is still " + latch.getCount(), latch.await(60, TimeUnit.SECONDS));
 
 		factory.stop();
 	}
@@ -666,7 +682,7 @@ public class TcpNioConnectionTests {
 		ioExec.setMaxPoolSize(4);
 		ioExec.setQueueCapacity(0);
 		ioExec.setThreadNamePrefix("io-");
-		ioExec.setRejectedExecutionHandler(new CallerBlocksPolicy(5000));
+		ioExec.setRejectedExecutionHandler(new AbortPolicy());
 		ioExec.initialize();
 		ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
 		assemblerExec.setCorePoolSize(2);
