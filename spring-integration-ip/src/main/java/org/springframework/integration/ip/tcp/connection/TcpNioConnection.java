@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * A TcpConnection that uses and underlying {@link SocketChannel}.
  *
  * @author Gary Russell
+ * @author John Anderson
  * @since 2.0
  *
  */
@@ -209,8 +210,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 							catch (RejectedExecutionException e) {
 								this.executionControl.decrementAndGet();
 								if (logger.isInfoEnabled()) {
-									logger.info("Insufficient threads in the assembler fixed thread pool; consider " +
-											"increasing this task executor pool size");
+									logger.info(getConnectionId() + " Insufficient threads in the assembler fixed thread pool; consider " +
+											"increasing this task executor pool size; data avail: " + this.channelInputStream.available());
 								}
 							}
 						}
@@ -253,27 +254,27 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				// timing was such that we were the last assembler and
 				// a new one wasn't run
 				try {
-					if (this.isOpen() && dataAvailable()) {
+					if (dataAvailable()) {
 						synchronized(this.executionControl) {
 							if (this.executionControl.incrementAndGet() <= 1) {
 								// only continue if we don't already have another assembler running
 								this.executionControl.set(1);
 								moreDataAvailable = true;
-								
-							} else {
+
+							}
+							else {
 								this.executionControl.decrementAndGet();
 							}
 						}
 					}
 					if (moreDataAvailable) {
-						Thread.yield();
 						if (logger.isTraceEnabled()) {
 							logger.trace(this.getConnectionId() + " Nio message assembler continuing...");
 						}
 					}
 					else {
 						if (logger.isTraceEnabled()) {
-							logger.trace(this.getConnectionId() + " Nio message assembler exiting...");
+							logger.trace(this.getConnectionId() + " Nio message assembler exiting... avail: " + this.channelInputStream.available());
 						}
 					}
 				}
@@ -363,26 +364,30 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				this.taskExecutor = new CompositeExecutor(executor, executor);
 			}
 			// If there is no assembler running, start one
-if (checkForAssembler()) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Before read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());				}
-				int len = this.socketChannel.read(this.rawBuffer);
-				if (len < 0) {
-					this.writingToPipe = false;
-					this.closeConnection(true);
-				}
-				if (logger.isTraceEnabled()) {
-					logger.trace("After read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
-				}
-				this.rawBuffer.flip();
-				if (logger.isTraceEnabled()) {
-					logger.trace("After flip:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
-				}
-				this.sendToPipe(rawBuffer);
+			checkForAssembler();
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("Before read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
 			}
+			int len = this.socketChannel.read(this.rawBuffer);
+			if (len < 0) {
+				this.writingToPipe = false;
+				this.closeConnection(true);
+			}
+			if (logger.isTraceEnabled()) {
+				logger.trace("After read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
+			this.rawBuffer.flip();
+			if (logger.isTraceEnabled()) {
+				logger.trace("After flip:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
+			}
+			this.sendToPipe(rawBuffer);
+		}
+		catch (RejectedExecutionException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			this.publishConnectionExceptionEvent(e);
@@ -402,7 +407,7 @@ if (checkForAssembler()) {
 		rawBuffer.clear();
 	}
 
-	private boolean checkForAssembler() {
+	private void checkForAssembler() {
 		synchronized(this.executionControl) {
 			if (this.executionControl.incrementAndGet() <= 1) {
 				// only execute run() if we don't already have one running
@@ -419,13 +424,13 @@ if (checkForAssembler()) {
 						logger.info("Insufficient threads in the assembler fixed thread pool; consider increasing " +
 								"this task executor pool size");
 					}
-					return false;
+					throw e;
 				}
-			} else {
+			}
+			else {
 				this.executionControl.decrementAndGet();
 			}
 		}
-		return true;
 	}
 
 	/**
@@ -443,6 +448,9 @@ if (checkForAssembler()) {
 				logger.debug(this.getConnectionId() + " Channel is closed");
 			}
 			this.closeConnection(true);
+		}
+		catch (RejectedExecutionException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			logger.error("Exception on Read " +

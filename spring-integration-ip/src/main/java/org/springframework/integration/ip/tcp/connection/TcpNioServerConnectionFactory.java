@@ -130,7 +130,14 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			int soTimeout = this.getSoTimeout();
 			int selectionCount = 0;
 			try {
-				selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
+				long timeout = soTimeout < 0 ? 0 : soTimeout;
+				if (getDelayedReads().size() > 0 && (timeout == 0 || getReadDelay() < timeout)) {
+					timeout = getReadDelay();
+				}
+				if (logger.isTraceEnabled()) {
+					logger.trace("Delayed reads:" + getDelayedReads().size() + " timeout " + timeout);
+				}
+				selectionCount = selector.select(timeout);
 				this.processNioSelections(selectionCount, selector, server, this.channelMap);
 			}
 			catch (CancelledKeyException cke) {

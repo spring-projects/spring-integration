@@ -148,7 +148,11 @@ public class TcpNioClientConnectionFactory extends
 				int soTimeout = this.getSoTimeout();
 				int selectionCount = 0;
 				try {
-					selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
+					long timeout = soTimeout < 0 ? 0 : soTimeout;
+					if (getDelayedReads().size() > 0 && (timeout == 0 || getReadDelay() < timeout)) {
+						timeout = getReadDelay();
+					}
+					selectionCount = selector.select(timeout);
 				}
 				catch (CancelledKeyException cke) {
 					if (logger.isDebugEnabled()) {
