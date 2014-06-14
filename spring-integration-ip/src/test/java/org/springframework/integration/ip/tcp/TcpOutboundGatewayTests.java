@@ -219,7 +219,7 @@ public class TcpOutboundGatewayTests {
 		QueueChannel replyChannel = new QueueChannel();
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		Future<Integer>[] results = new Future[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
