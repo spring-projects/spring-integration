@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.SmartLifecycle;
@@ -24,14 +25,14 @@ import org.springframework.scheduling.TaskScheduler;
 
 /**
  * The base class for Message Endpoint implementations.
- * 
+ *
  * <p>This class implements Lifecycle and provides an {@link #autoStartup}
  * property. If <code>true</code>, the endpoint will start automatically upon
  * initialization. Otherwise, it will require an explicit invocation of its
  * {@link #start()} method. The default value is <code>true</code>.
  * To require explicit startup, provide a value of <code>false</code>
  * to the {@link #setAutoStartup(boolean)} method.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle {
@@ -42,7 +43,9 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 
 	private volatile boolean running;
 
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
+	protected final ReentrantLock lifecycleLock = new ReentrantLock();
+
+	protected final Condition lifecycleCondition = this.lifecycleLock.newCondition();
 
 
 	public void setAutoStartup(boolean autoStartup) {
