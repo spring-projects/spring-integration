@@ -153,7 +153,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		}
 		if (this.taskExecutor == null) {
 			String beanName = this.getComponentName();
-			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-") + this.getComponentType());
+			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-")
+					+ this.getComponentType());
 		}
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && this.getBeanFactory() != null) {
 			MessagePublishingErrorHandler errorHandler =
@@ -179,7 +180,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		catch (Exception e) {
 			this.listening = false;
 			if (this.active) {
-				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval + " milliseconds.", e);
+				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
+						+ " milliseconds.", e);
 				this.publishException(e);
 				this.sleepBeforeRecoveryAttempt();
 			}
@@ -231,6 +233,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			}
 			catch (InterruptedException e) {
 				logger.debug("Thread interrupted while sleeping the recovery interval");
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
@@ -252,7 +255,15 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	@Override
 	protected void doStop() {
-		this.active = false;
+		try {
+			this.active = false;
+			this.lifecycleCondition.await();
+			this.listening = false;
+		}
+		catch (InterruptedException e) {
+			logger.debug("Thread interrupted while stopping the endpoint");
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	public boolean isListening() {
@@ -284,10 +295,25 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 		@Override
 		public void run() {
-			RedisQueueMessageDrivenEndpoint.this.listening = true;
 			try {
 				while (RedisQueueMessageDrivenEndpoint.this.active) {
-					RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
+					RedisQueueMessageDrivenEndpoint.this.lifecycleLock.lock();
+					try {
+						if (RedisQueueMessageDrivenEndpoint.this.active) {
+							RedisQueueMessageDrivenEndpoint.this.listening = true;
+							RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
+						}
+					}
+					finally {
+						RedisQueueMessageDrivenEndpoint.this.lifecycleCondition.signalAll();
+						RedisQueueMessageDrivenEndpoint.this.lifecycleLock.unlock();
+					}
+					try {
+						Thread.sleep(1);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				}
 			}
 			finally {
@@ -295,7 +321,13 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 					RedisQueueMessageDrivenEndpoint.this.restart();
 				}
 				else {
-					RedisQueueMessageDrivenEndpoint.this.listening = false;
+					RedisQueueMessageDrivenEndpoint.this.lifecycleLock.lock();
+					try {
+						RedisQueueMessageDrivenEndpoint.this.lifecycleCondition.signalAll();
+					}
+					finally {
+						RedisQueueMessageDrivenEndpoint.this.lifecycleLock.unlock();
+					}
 				}
 			}
 		}

@@ -16,11 +16,7 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
@@ -59,6 +56,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -207,6 +205,47 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
 	}
+
+	@Test
+	@RedisAvailable
+	@SuppressWarnings("unchecked")
+	public void testInt3442ProperlyStop() throws Exception {
+		String queueName = "si.test.testInt3442ProperlyStopTest";
+
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.setEnableDefaultSerializer(false);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.afterPropertiesSet();
+
+		for (int i = 0; i < 3; i++) {
+			redisTemplate.boundListOps(queueName).leftPush(i);
+		}
+
+		QueueChannel channel = new QueueChannel();
+		final AtomicInteger sendCount = new AtomicInteger();
+		channel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				sendCount.incrementAndGet();
+				return message;
+			}
+		});
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,
+				this.connectionFactory);
+		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setOutputChannel(channel);
+		endpoint.setReceiveTimeout(100);
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+		Thread.sleep(1);
+		endpoint.stop();
+
+		assertThat(sendCount.get(), Matchers.allOf(Matchers.greaterThan(0), Matchers.lessThanOrEqualTo(2)));
+	}
+
 
 	@Test
 	@RedisAvailable
