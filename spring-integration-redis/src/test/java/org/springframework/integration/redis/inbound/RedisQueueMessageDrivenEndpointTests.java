@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -42,16 +45,19 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.event.IntegrationEvent;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -210,40 +216,39 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	public void testInt3442ProperlyStop() throws Exception {
-		String queueName = "si.test.testInt3442ProperlyStopTest";
+		final String queueName = "si.test.testInt3442ProperlyStopTest";
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		final RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
 
-		for (int i = 0; i < 3; i++) {
-			redisTemplate.boundListOps(queueName).leftPush(i);
-		}
-
-		QueueChannel channel = new QueueChannel();
-		final AtomicInteger sendCount = new AtomicInteger();
-		channel.addInterceptor(new ChannelInterceptorAdapter() {
-
-			@Override
-			public Message<?> preSend(Message<?> message, MessageChannel channel) {
-				sendCount.incrementAndGet();
-				return message;
-			}
-		});
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,
 				this.connectionFactory);
+		BoundListOperations<String, byte[]> boundListOperations =
+				TestUtils.getPropertyValue(endpoint, "boundListOperations", BoundListOperations.class);
+		boundListOperations = Mockito.spy(boundListOperations);
+		new DirectFieldAccessor(endpoint).setPropertyValue("boundListOperations", boundListOperations);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
-		endpoint.setOutputChannel(channel);
-		endpoint.setReceiveTimeout(100);
+		endpoint.setOutputChannel(new DirectChannel());
+		endpoint.setReceiveTimeout(1000);
+		endpoint.setStopTimeout(100);
+
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		endpoint.setTaskExecutor(executorService);
+
 		endpoint.afterPropertiesSet();
 		endpoint.start();
-		Thread.sleep(1);
+
+		redisTemplate.boundListOps(queueName).leftPush("foo");
 		endpoint.stop();
 
-		assertThat(sendCount.get(), Matchers.allOf(Matchers.greaterThan(0), Matchers.lessThanOrEqualTo(2)));
+		executorService.shutdown();
+		assertTrue(executorService.awaitTermination(1, TimeUnit.SECONDS));
+
+		Mockito.verify(boundListOperations).rightPush(Mockito.any(byte[].class));
 	}
 
 
