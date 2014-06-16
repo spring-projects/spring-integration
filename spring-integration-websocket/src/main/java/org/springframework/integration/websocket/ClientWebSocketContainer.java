@@ -1,0 +1,222 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.websocket;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.Assert;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.WebSocketHttpHeaders;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.client.ConnectionManagerSupport;
+import org.springframework.web.socket.client.WebSocketClient;
+
+/**
+ * The {@link IntegrationWebSocketContainer} implementation for the {@code client}
+ * Web-Socket connection.
+ * <p>
+ * Represent the composition over an internal {@link ConnectionManagerSupport}
+ * implementation.
+ * <p>
+ * Accepts the {@link #clientSession} {@link WebSocketSession} on
+ * {@link ClientWebSocketContainer.IntegrationWebSocketConnectionManager#openConnection()}
+ * event, which can be accessed from this container using {@link #getSession(String)}.
+ *
+ * @author Artem Bilan
+ * @since 4.1
+ */
+public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements SmartLifecycle {
+
+	private final WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+
+	private final ConnectionManagerSupport connectionManager;
+
+	private volatile CountDownLatch connectionLatch;
+
+	private WebSocketSession clientSession;
+
+	private volatile Throwable openConnectionException;
+
+	public ClientWebSocketContainer(WebSocketClient client, String uriTemplate, Object... uriVariables) {
+		Assert.notNull(client, "'client' must not be null");
+		this.connectionManager = new IntegrationWebSocketConnectionManager(client, uriTemplate, uriVariables);
+	}
+
+	public void setOrigin(String origin) {
+		this.headers.setOrigin(origin);
+	}
+
+	public void setHeaders(HttpHeaders headers) {
+		this.headers.clear();
+		this.headers.putAll(headers);
+	}
+
+	/**
+	 * Return the {@link #clientSession} {@link WebSocketSession}.
+	 * Independently of provided argument, this method always returns only the
+	 * established {@link #clientSession}
+	 * @param sessionId the {@code sessionId}. Can be {@code null}.
+	 * @return the {@link #clientSession}, if established.
+	 */
+	@Override
+	public WebSocketSession getSession(String sessionId) throws Exception {
+		if (this.isRunning()) {
+			try {
+				this.connectionLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				logger.error("'clientSession' has not been established during 'openConnection'");
+			}
+		}
+		if (this.openConnectionException != null) {
+			throw new IllegalStateException(this.openConnectionException);
+		}
+		Assert.state(this.clientSession != null,
+				"'clientSession' has not been established. Consider to 'start' this container.");
+		return this.clientSession;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.connectionManager.setAutoStartup(autoStartup);
+	}
+
+	public void setPhase(int phase) {
+		this.connectionManager.setPhase(phase);
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.connectionManager.isAutoStartup();
+	}
+
+	@Override
+	public int getPhase() {
+		return this.connectionManager.getPhase();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.connectionManager.isRunning();
+	}
+
+	@Override
+	public void start() {
+		this.connectionManager.start();
+		this.connectionLatch = new CountDownLatch(1);
+	}
+
+	@Override
+	public void stop() {
+		this.connectionManager.stop();
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		this.connectionManager.stop(callback);
+	}
+
+	/**
+	 * The {@link ConnectionManagerSupport} implementation to provide open/close operations
+	 * for an external Web-Socket service, based on provided {@link WebSocketClient} and {@code uriTemplate}.
+	 * <p>
+	 * Opened {@link WebSocketSession} is populated to the wrapping {@link ClientWebSocketContainer}.
+	 * <p>
+	 * The {@link #webSocketHandler} is used to handle {@link WebSocketSession} events.
+	 */
+	private class IntegrationWebSocketConnectionManager extends ConnectionManagerSupport {
+
+		private final WebSocketClient client;
+
+		private final boolean syncClientLifecycle;
+
+		public IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate, Object... uriVariables) {
+			super(uriTemplate, uriVariables);
+			this.client = client;
+			this.syncClientLifecycle = ((client instanceof Lifecycle) && !((Lifecycle) client).isRunning());
+		}
+
+		@Override
+		public void startInternal() {
+			if (this.syncClientLifecycle) {
+				((Lifecycle) this.client).start();
+			}
+			super.startInternal();
+		}
+
+		@Override
+		public void stopInternal() throws Exception {
+			if (this.syncClientLifecycle) {
+				((Lifecycle) this.client).stop();
+			}
+			try {
+				super.stopInternal();
+			}
+			finally {
+				ClientWebSocketContainer.this.clientSession = null;
+			}
+		}
+
+		@Override
+		protected void openConnection() {
+
+			logger.info("Connecting to WebSocket at " + getUri());
+			ClientWebSocketContainer.this.headers.setSecWebSocketProtocol(ClientWebSocketContainer.this.getSubProtocols());
+			ListenableFuture<WebSocketSession> future =
+					this.client.doHandshake(ClientWebSocketContainer.this.webSocketHandler,
+							ClientWebSocketContainer.this.headers, getUri());
+
+			future.addCallback(new ListenableFutureCallback<WebSocketSession>() {
+
+				@Override
+				public void onSuccess(WebSocketSession session) {
+					ClientWebSocketContainer.this.clientSession = session;
+					logger.info("Successfully connected");
+					ClientWebSocketContainer.this.connectionLatch.countDown();
+				}
+
+				@Override
+				public void onFailure(Throwable t) {
+					logger.error("Failed to connect", t);
+					ClientWebSocketContainer.this.openConnectionException = t;
+					ClientWebSocketContainer.this.connectionLatch.countDown();
+				}
+			});
+		}
+
+		@Override
+		protected void closeConnection() throws Exception {
+			if (ClientWebSocketContainer.this.clientSession != null) {
+				ClientWebSocketContainer.this.closeSession(ClientWebSocketContainer.this.clientSession,
+						CloseStatus.NORMAL);
+			}
+		}
+
+		@Override
+		protected boolean isConnected() {
+			return ((ClientWebSocketContainer.this.clientSession != null)
+					&& (ClientWebSocketContainer.this.clientSession.isOpen()));
+		}
+
+	}
+
+}
