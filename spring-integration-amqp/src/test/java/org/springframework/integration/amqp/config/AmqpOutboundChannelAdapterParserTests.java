@@ -17,12 +17,18 @@
 package org.springframework.integration.amqp.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -32,8 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -47,10 +55,12 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannel;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
@@ -108,6 +118,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals("amqp:outbound-channel-adapter", ((NamedComponent) handler).getComponentType());
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+		assertTrue(TestUtils.getPropertyValue(handler, "lazyConnect", Boolean.class));
 	}
 
 	@Test
@@ -116,6 +127,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler", AmqpOutboundEndpoint.class);
 		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
+		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -333,6 +345,27 @@ public class AmqpOutboundChannelAdapterParserTests {
 	public void testInt2971AmqpOutboundChannelAdapterWithCustomHeaderMapper() {
 		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper, "headerMapper", AmqpHeaderMapper.class);
 		assertSame(this.context.getBean("customHeaderMapper"), headerMapper);
+	}
+
+	@Test
+	public void testInt3430FailForNotLazyConnect() {
+		RabbitTemplate amqpTemplate = mock(RabbitTemplate.class);
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		RuntimeException toBeThrown = new RuntimeException("Test Connection Exception");
+		doThrow(toBeThrown).when(connectionFactory).createConnection();
+		when(amqpTemplate.getConnectionFactory()).thenReturn(connectionFactory);
+		AmqpOutboundEndpoint handler = new AmqpOutboundEndpoint(amqpTemplate);
+		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		ApplicationContext context = mock(ApplicationContext.class);
+		handler.setApplicationContext(context);
+		handler.afterPropertiesSet();
+		ContextRefreshedEvent event = new ContextRefreshedEvent(context);
+		handler.onApplicationEvent(event);
+		verify(logger, never()).error(Matchers.anyString(), any(RuntimeException.class));
+		handler.setLazyConnect(false);
+		handler.onApplicationEvent(event);
+		verify(logger).error("Failed to eagerly establish the connection.", toBeThrown);
 	}
 
 

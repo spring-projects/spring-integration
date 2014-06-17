@@ -418,7 +418,8 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                                confirm-correlation-expression=""]]><co id="amqp-outbound-channel-adapter-xml-8-co" linkends="amqp-outbound-channel-adapter-xml-8" /><![CDATA[
                                confirm-ack-channel=""]]><co         id="amqp-outbound-channel-adapter-xml-9-co" linkends="amqp-outbound-channel-adapter-xml-9" /><![CDATA[
                                confirm-nack-channel=""]]><co        id="amqp-outbound-channel-adapter-xml-10-co" linkends="amqp-outbound-channel-adapter-xml-10" /><![CDATA[
-                               return-channel=""]]><co              id="amqp-outbound-channel-adapter-xml-11-co" linkends="amqp-outbound-channel-adapter-xml-11" /><![CDATA[/>]]>
+                               return-channel=""]]><co              id="amqp-outbound-channel-adapter-xml-11-co" linkends="amqp-outbound-channel-adapter-xml-11" /><![CDATA[
+                               lazy-connect="true"]]><co            id="amqp-outbound-channel-adapter-xml-12-co" linkends="amqp-outbound-channel-adapter-xml-12" /><![CDATA[/>]]>
     </programlisting>
     <para>
         <calloutlist>
@@ -505,6 +506,13 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                   for each endpoint.
                 </important>
             </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-12-co" id="amqp-outbound-channel-adapter-xml-12">
+                <para>When set to <code>false</code>, the endpoint will attempt to connect to the
+                broker during application context initialization. This allows "fail fast" detection of
+                bad configuration, but will also cause initialization to fail if the broker is down.
+                When true (default), the connection is established (if it doesn't already exist because
+                some other component established it) when the first message is sent.</para>
+            </callout>
         </calloutlist>
     </para>
   </section>
@@ -521,8 +529,9 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                            reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6-co" linkends="amqp-outbound-gateway-adapter-xml-6" /><![CDATA[
                            routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[
                            routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[
-                           default-delivery-mode""]]><co            id="amqp-outbound-gateway-adapter-xml-8a-co" linkends="amqp-outbound-channel-adapter-xml-8a" /><![CDATA[
-                           return-channel=""]]><co                  id="amqp-outbound-gateway-adapter-xml-9-co" linkends="amqp-outbound-gateway-adapter-xml-9" /><![CDATA[/>]]>
+                           default-delivery-mode""]]><co            id="amqp-outbound-gateway-adapter-xml-8a-co" linkends="amqp-outbound-gateway-adapter-xml-8a" /><![CDATA[
+                           return-channel=""]]><co                  id="amqp-outbound-gateway-adapter-xml-9-co" linkends="amqp-outbound-gateway-adapter-xml-9" /><![CDATA[
+                           lazy-connect="true"]]><co               id="amqp-outbound-gateway-adapter-xml-10-co" linkends="amqp-outbound-gateway-adapter-xml-10" /><![CDATA[/>]]>
       </programlisting>
       <para>
           <calloutlist>
@@ -593,6 +602,13 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                   for each endpoint.
                 </important>
               </callout>
+            <callout arearefs="amqp-outbound-gateway-adapter-xml-10-co" id="amqp-outbound-gateway-adapter-xml-10">
+                <para>When set to <code>false</code>, the endpoint will attempt to connect to the
+                broker during application context initialization. This allows "fail fast" detection of
+                bad configuration, but will also cause initialization to fail if the broker is down.
+                When true (default), the connection is established (if it doesn't already exist because
+                some other component established it) when the first message is sent.</para>
+            </callout>
           </calloutlist>
       </para>
       <note>

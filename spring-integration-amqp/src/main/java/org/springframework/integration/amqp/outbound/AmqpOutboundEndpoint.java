@@ -20,11 +20,15 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -50,9 +54,10 @@ import org.springframework.util.Assert;
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
-	implements RabbitTemplate.ConfirmCallback, ReturnCallback {
+	implements RabbitTemplate.ConfirmCallback, ReturnCallback, ApplicationListener<ContextRefreshedEvent> {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser expressionParser =
+			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 
 	private final AmqpTemplate amqpTemplate;
@@ -84,6 +89,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	private volatile MessageChannel returnChannel;
 
 	private volatile MessageDeliveryMode defaultDeliveryMode;
+
+	private volatile boolean lazyConnect = true;
 
 	public AmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
 		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
@@ -135,6 +142,17 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	public void setDefaultDeliveryMode(MessageDeliveryMode defaultDeliveryMode) {
 		this.defaultDeliveryMode = defaultDeliveryMode;
+	}
+
+	/**
+	 * Set to {@code false} to attempt to connect during endpoint start;
+	 * default {@code true}, meaning the connection will be attempted
+	 * to be established on the arrival of the first message.
+	 * @param lazyConnect the lazyConnect to set
+	 * @since 4.1
+	 */
+	public void setLazyConnect(boolean lazyConnect) {
+		this.lazyConnect = lazyConnect;
 	}
 
 	@Override
@@ -189,6 +207,25 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (!this.lazyConnect && event.getApplicationContext().equals(getApplicationContext())
+				&& this.amqpTemplate instanceof RabbitTemplate) {
+			ConnectionFactory connectionFactory = ((RabbitTemplate) this.amqpTemplate).getConnectionFactory();
+			if (connectionFactory != null) {
+				try {
+					Connection connection = connectionFactory.createConnection();
+					if (connection != null) {
+						connection.close();
+					}
+				}
+				catch (RuntimeException e) {
+					logger.error("Failed to eagerly establish the connection.", e);
+				}
+			}
+		}
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String exchangeName = this.exchangeName;
 		String routingKey = this.routingKey;
@@ -228,7 +265,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 						@Override
 						public org.springframework.amqp.core.Message postProcessMessage(
 								org.springframework.amqp.core.Message message) throws AmqpException {
-							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), message.getMessageProperties());
+							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(),
+									message.getMessageProperties());
 							checkDeliveryMode(requestMessage, message.getMessageProperties());
 							return message;
 						}
@@ -241,7 +279,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 						@Override
 						public org.springframework.amqp.core.Message postProcessMessage(
 								org.springframework.amqp.core.Message message) throws AmqpException {
-							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), message.getMessageProperties());
+							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(),
+									message.getMessageProperties());
 							return message;
 						}
 					});
@@ -253,10 +292,12 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 				"RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		MessageProperties amqpMessageProperties = new MessageProperties();
-		org.springframework.amqp.core.Message amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+		org.springframework.amqp.core.Message amqpMessage =
+				converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
 		this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
 		checkDeliveryMode(requestMessage, amqpMessageProperties);
-		org.springframework.amqp.core.Message amqpReplyMessage = this.amqpTemplate.sendAndReceive(exchangeName, routingKey, amqpMessage);
+		org.springframework.amqp.core.Message amqpReplyMessage =
+				this.amqpTemplate.sendAndReceive(exchangeName, routingKey, amqpMessage);
 		if (amqpReplyMessage == null) {
 			return null;
 		}
