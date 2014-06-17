@@ -76,6 +76,8 @@ public class AmqpOutboundGatewayParserTests {
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 
 		assertEquals(Long.valueOf(777), sendTimeout);
+		assertTrue(TestUtils.getPropertyValue(gateway, "lazyConnect", Boolean.class));
+
 		context.close();
 	}
 
@@ -88,6 +90,7 @@ public class AmqpOutboundGatewayParserTests {
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler", AmqpOutboundEndpoint.class);
 		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
+		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
 
 		assertFalse(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class));
 

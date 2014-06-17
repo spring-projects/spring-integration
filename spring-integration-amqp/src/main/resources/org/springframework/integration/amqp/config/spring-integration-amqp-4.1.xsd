@@ -489,6 +489,18 @@ property set to TRUE.
 				<xsd:union memberTypes="deliveryModeEnumeration xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
+		<xsd:attribute name="lazy-connect" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+	By default, the connection is established lazily, when the first message is sent. If you wish to detect
+	connection configuration problems during application initialization, set this to 'false'.
+	If the eager connection fails, an ERROR log will be created.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:simpleType name="deliveryModeEnumeration">
