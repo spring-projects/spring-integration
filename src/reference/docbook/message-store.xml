@@ -107,4 +107,22 @@
 		</itemizedlist>
 	</para>
 
+	<caution id="sms-caution">
+		<title>Caution with SimpleMessageStore</title>
+		<para>
+			Starting with <emphasis>version 4.1</emphasis>, the <classname>SimpleMessageStore</classname> no longer copies
+			the message group when calling <code>getMessageGroup()</code>. For large message groups, this was a significant
+			performance problem. 4.0.1 introduced a boolean <code>copyOnGet</code> allowing this to be controlled. When
+			used internally by the aggregator, this was set to false to improve performance. It is now false by default.
+		</para>
+		<para>
+			Users accessing the group store outside of components such as aggregators, will now get a direct reference
+			to the group being used by the aggregator, instead of a copy. Manipulation of the group outside of the aggregator may
+			cause unpredictable results.
+		</para>
+		<para>
+			For this reason, users should not perform such manipulation, or set the <code>copyOnGet</code>
+			property to <code>true</code>.
+		</para>
+	</caution>
 </section>
