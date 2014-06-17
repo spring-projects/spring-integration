@@ -193,6 +193,13 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	/**
+	 * @return the applicationContext
+	 */
+	protected ApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
+
+	/**
 	 * @see IntegrationContextUtils#getIntegrationProperties(BeanFactory)
 	 * @return The global integration properties.
 	 */

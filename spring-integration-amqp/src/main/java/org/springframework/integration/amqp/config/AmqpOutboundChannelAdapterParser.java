@@ -50,6 +50,7 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-delivery-mode");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "lazy-connect");
 
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class, null);
 
