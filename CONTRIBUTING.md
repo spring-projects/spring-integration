@@ -50,7 +50,7 @@ _you should see branches on origin as well as upstream, including 'master' and '
 * _Always_ work on topic branches (Typically use the Jira ticket ID as the branch name).
   - For example, to create and switch to a new branch for issue INT-123: `git checkout -b INT-123`
 * You might be working on several different topic branches at any given time, but when at a stopping point for one of those branches, commit (a local operation).
-* Please follow the "Commit Guidelines" described in this chapter of Pro Git: [http://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project#Commit-Guidelines](http://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project#Commit-Guidelines)
+* Please follow the "Commit Guidelines" described in this chapter of Pro Git: [http://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project](http://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project)
 * Then to begin working on another issue (say INT-101): `git checkout INT-101`. The _-b_ flag is not needed if that branch already exists in your local repository.
 * When ready to resolve an issue or to collaborate with others, you can push your branch to origin (your fork), e.g.: `git push origin INT-123`
 * If you want to collaborate with another contributor, have them fork your repository (add it as a remote) and `git fetch <your-username>` to grab your branch. Alternatively, they can use `git fetch --all` to sync their local state with all of their remotes.
