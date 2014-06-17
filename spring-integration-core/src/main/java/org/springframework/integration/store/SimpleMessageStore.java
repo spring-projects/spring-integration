@@ -57,7 +57,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private volatile boolean isUsed;
 
-	private volatile boolean copyOnGet = true; // TODO: default false in 4.1
+	private volatile boolean copyOnGet = false;
 
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
@@ -113,7 +113,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @param capacity the capacity (0 for unlimited).
 	 * @return the store.
 	 * @since 4.0.1
+	 * @deprecated in 4.1 - copyOnGet is now false by default.
 	 */
+	@Deprecated
 	public static SimpleMessageStore fastMessageStore(int capacity) {
 		SimpleMessageStore store = new SimpleMessageStore(capacity);
 		store.setCopyOnGet(false);
@@ -122,6 +124,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	/**
 	 * Set to false to disable copying the group in {@link #getMessageGroup(Object)}.
+	 * Starting with 4.1, this is false by default.
 	 * @param copyOnGet True to copy, false to not.
 	 * @since 4.0.1
 	 */
