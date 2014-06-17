@@ -32,6 +32,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -173,6 +174,12 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			if (beanFactory != null) {
 				this.correlationDataGenerator.setBeanFactory(beanFactory);
 			}
+		}
+		else {
+			Assert.state(this.confirmAckChannel == null || this.confirmAckChannel instanceof NullChannel,
+					"A 'confirmCorrelationExpression' is required when specifying a 'confirmAckChannel'");
+			Assert.state(this.confirmNackChannel == null || this.confirmNackChannel instanceof NullChannel,
+					"A 'confirmCorrelationExpression' is required when specifying a 'confirmNackChannel'");
 		}
 		if (this.returnChannel != null) {
 			Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
