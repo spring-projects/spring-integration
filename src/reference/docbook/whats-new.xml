@@ -22,5 +22,13 @@
 				See <xref linkend="amqp"/> for more information.
 			</para>
 		</section>
+		<section>
+			<title>SimpleMessageStore</title>
+			<para>
+				The <classname>SimpleMessageStore</classname> no longer makes a copy of the group
+				when calling <code>getMessageGroup()</code>.
+				See <xref linkend="sms-caution"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
