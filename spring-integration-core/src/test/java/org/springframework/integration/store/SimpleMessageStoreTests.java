@@ -110,6 +110,7 @@ public class SimpleMessageStoreTests {
 	@Test
 	public void shouldCopyMessageGroup() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
+		store.setCopyOnGet(true);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
 		assertNotSame(store.getMessageGroup("bar"), store.getMessageGroup("bar"));
