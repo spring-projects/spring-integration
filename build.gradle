@@ -107,7 +107,7 @@ subprojects { subproject ->
 		saajImplVersion = '1.3.23'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.6"
-		smackVersion = '3.2.1'
+		smackVersion = '4.0.0'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.3.4.RELEASE'
 		springDataMongoVersion = '1.5.0.RELEASE'
 		springDataRedisVersion = '1.3.0.RELEASE'
@@ -636,8 +636,8 @@ project('spring-integration-ws') {
 			exclude group: 'org.springframework'
 		}
 		testCompile "javax.jms:jms-api:$jmsApiVersion"
-		testCompile "org.igniterealtime.smack:smack:$smackVersion"
-		testCompile "org.igniterealtime.smack:smackx:$smackVersion"
+		testCompile "org.igniterealtime.smack:smack-tcp:$smackVersion"
+		testCompile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		testCompile "javax.mail:javax.mail-api:$javaxMailVersion"
 		testRuntime "com.sun.mail:mailapi:$javaxMailVersion"
 	}
@@ -667,14 +667,12 @@ project('spring-integration-xmpp') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
-		compile "org.igniterealtime.smack:smack:$smackVersion"
-		compile "org.igniterealtime.smack:smackx:$smackVersion"
+		compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
+		compile "org.igniterealtime.smack:smack-resolver-javax:$smackVersion"
+		compile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
 		testCompile project(":spring-integration-stream")
 	}
-
-	// suppress smack path warnings
-	[compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
 project("spring-integration-bom") {

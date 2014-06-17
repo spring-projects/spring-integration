@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import java.util.List;
 
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -117,7 +118,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		          Object[] args = invocation.getArguments();
 		          org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
 		          assertEquals("oleg", xmppMessage.getTo());
-		          assertEquals("foobar", xmppMessage.getProperty("foobar"));
+		          assertEquals("foobar", JivePropertiesManager.getProperty(xmppMessage, "foobar"));
 		          return null;
 		      }})
 		  .when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));

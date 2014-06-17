@@ -23,9 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
-
+import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
-
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.xmpp.XmppHeaders;
 
@@ -58,12 +57,12 @@ public class DefaultXmppHeaderMapperTests {
 		assertEquals(Message.Type.headline, target.getType());
 
 		// user-defined headers not included by default
-		assertNull(target.getProperty("userDefined1"));
-		assertNull(target.getProperty("userDefined2"));
+		assertNull(JivePropertiesManager.getProperty(target, "userDefined1"));
+		assertNull(JivePropertiesManager.getProperty(target, "userDefined2"));
 
 		// transient headers should not be copied
-		assertNull(target.getProperty("id"));
-		assertNull(target.getProperty("timestamp"));
+		assertNull(JivePropertiesManager.getProperty(target, "id"));
+		assertNull(JivePropertiesManager.getProperty(target, "timestamp"));
 	}
 
 	@Test
@@ -91,15 +90,15 @@ public class DefaultXmppHeaderMapperTests {
 		assertEquals(Message.Type.normal, target.getType());
 
 		// user-defined headers are included if in the list
-		assertEquals("foo", target.getProperty("userDefined1"));
-		assertEquals("bar", target.getProperty("userDefined2"));
+		assertEquals("foo", JivePropertiesManager.getProperty(target, "userDefined1"));
+		assertEquals("bar", JivePropertiesManager.getProperty(target, "userDefined2"));
 
 		// user-defined headers are not included if not in the list
-		assertNull(target.getProperty("userDefined3"));
+		assertNull(JivePropertiesManager.getProperty(target, "userDefined3"));
 
 		// transient headers should not be copied
-		assertNull(target.getProperty("id"));
-		assertNull(target.getProperty("timestamp"));
+		assertNull(JivePropertiesManager.getProperty(target, "id"));
+		assertNull(JivePropertiesManager.getProperty(target, "timestamp"));
 	}
 
 	@Test
@@ -109,8 +108,8 @@ public class DefaultXmppHeaderMapperTests {
 		source.setFrom("test.from");
 		source.setSubject("test.subject");
 		source.setThread("test.thread");
-		source.setProperty("userDefined1", "foo");
-		source.setProperty("userDefined2", "bar");
+		JivePropertiesManager.addProperty(source, "userDefined1", "foo");
+		JivePropertiesManager.addProperty(source, "userDefined2", "bar");
 		Map<String, Object> headers = mapper.toHeadersFromRequest(source);
 		assertEquals("test.to", headers.get(XmppHeaders.TO));
 		assertEquals("test.from", headers.get(XmppHeaders.FROM));
@@ -129,8 +128,8 @@ public class DefaultXmppHeaderMapperTests {
 		source.setFrom("test.from");
 		source.setSubject("test.subject");
 		source.setThread("test.thread");
-		source.setProperty("userDefined1", "foo");
-		source.setProperty("userDefined2", "bar");
+		JivePropertiesManager.addProperty(source, "userDefined1", "foo");
+		JivePropertiesManager.addProperty(source, "userDefined2", "bar");
 		Map<String, Object> headers = mapper.toHeadersFromReply(source);
 		assertNull(headers.get(XmppHeaders.TO));
 		assertNull(headers.get(XmppHeaders.FROM));

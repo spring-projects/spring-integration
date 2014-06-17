@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import org.hamcrest.Matchers;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.junit.Test;
@@ -207,7 +208,7 @@ public class UriVariableTests {
 	}
 
 	@Test
-	public void testInt2720XmppUriVariables() {
+	public void testInt2720XmppUriVariables() throws NotConnectedException {
 
 		Mockito.doThrow(new WebServiceIOException("intentional")).when(this.xmppConnection).sendPacket(Mockito.any(Packet.class));
 

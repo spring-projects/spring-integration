@@ -25,8 +25,6 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -137,11 +135,6 @@ public class PresenceListeningEndpointTests {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
-
-		ChatManager cm = mock(ChatManager.class);
-		when(connection.getChatManager()).thenReturn(cm);
-		Chat chat = mock(Chat.class);
-		when(cm.getThreadChat(Mockito.anyString())).thenReturn(chat);
 
 		PresenceListeningEndpoint endpoint = new PresenceListeningEndpoint();
 
