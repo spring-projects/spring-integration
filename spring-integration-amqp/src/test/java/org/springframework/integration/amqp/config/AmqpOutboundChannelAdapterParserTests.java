@@ -359,6 +359,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
 		ApplicationContext context = mock(ApplicationContext.class);
 		handler.setApplicationContext(context);
+		handler.setBeanFactory(context);
 		handler.afterPropertiesSet();
 		ContextRefreshedEvent event = new ContextRefreshedEvent(context);
 		handler.onApplicationEvent(event);
