@@ -9,6 +9,8 @@
 
 	<annotation-config/>
 
+	<annotation-config/>	<!-- Second declaration should not be a problem - see INT-3445 -->
+
 	<channel id="input"/>
 
 	<channel id="output">
