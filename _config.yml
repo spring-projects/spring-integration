@@ -29,6 +29,10 @@ forum: http://forum.spring.io/forum/spring-projects/integration
 custom_pom_template: true
 custom_gradle_template: true
 
+# If you want to include a custom pom.xml or gradle template set these value to true and add _include files
+custom_pom_template: false
+custom_gradle_template: false
+
 
 ### The following properties are constant for most projects
 
