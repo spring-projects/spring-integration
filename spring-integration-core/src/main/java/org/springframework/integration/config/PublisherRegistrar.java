@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -64,15 +65,15 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 		else {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME);
 			MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
-			RuntimeBeanReference defaultChannel = (RuntimeBeanReference) propertyValues.getPropertyValue("defaultChannel").getValue();
+			PropertyValue defaultChannelPropertyValue = propertyValues.getPropertyValue("defaultChannel");
 			if (StringUtils.hasText(value)) {
-				if (defaultChannel == null) {
+				if (defaultChannelPropertyValue == null) {
 					propertyValues.addPropertyValue("defaultChannel", new RuntimeBeanReference(value));
 					if (logger.isInfoEnabled()) {
 						logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
 					}
 				}
-				else if (!value.equals(defaultChannel.getBeanName())) {
+				else if (!value.equals(((RuntimeBeanReference) defaultChannelPropertyValue.getValue()).getBeanName())) {
 					throw new BeanDefinitionStoreException("When more than one enable publisher definition " +
 							"(@EnablePublisher or <annotation-config>)" +
 							" is found in the context, they all must have the same 'default-publisher-channel' value.");
