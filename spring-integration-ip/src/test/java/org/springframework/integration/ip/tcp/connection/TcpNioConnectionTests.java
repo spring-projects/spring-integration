@@ -84,6 +84,7 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 
 /**
  * @author Gary Russell
+ * @author John Anderson
  * @since 2.0
  *
  */

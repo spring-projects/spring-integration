@@ -696,7 +696,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			if (logger.isDebugEnabled()) {
 				logger.debug("No threads available, delaying read for " + connection.getConnectionId());
 			}
-			// wake the selector; he might we waiting on a long (or infinite) select().
+			// wake the selector in case it is currently blocked, and waiting for longer than readDelay
 			selector.wakeup();
 		}
 	}

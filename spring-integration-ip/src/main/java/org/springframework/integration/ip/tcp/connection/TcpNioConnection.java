@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * A TcpConnection that uses and underlying {@link SocketChannel}.
  *
  * @author Gary Russell
+ * @author John Anderson
  * @since 2.0
  *
  */
@@ -266,7 +267,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 						}
 					}
 					if (moreDataAvailable) {
-						Thread.yield();
 						if (logger.isTraceEnabled()) {
 							logger.trace(this.getConnectionId() + " Nio message assembler continuing...");
 						}
