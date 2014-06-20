@@ -65,7 +65,6 @@
                                   expose-listener-channel=""]]><co      id="amqp-inbound-channel-adapter-xml-10-co" linkends="amqp-inbound-channel-adapter-xml-10" /><![CDATA[
                                   header-mapper=""]]><co                id="amqp-inbound-channel-adapter-xml-11-co" linkends="amqp-inbound-channel-adapter-xml-11" /><![CDATA[
                                   mapped-request-headers=""]]><co       id="amqp-inbound-channel-adapter-xml-12-co" linkends="amqp-inbound-channel-adapter-xml-12" /><![CDATA[
-                                  mapped-reply-headers=""]]><co         id="amqp-inbound-channel-adapter-xml-13-co" linkends="amqp-inbound-channel-adapter-xml-13" /><![CDATA[
                                   listener-container=""]]><co           id="amqp-inbound-channel-adapter-xml-14-co" linkends="amqp-inbound-channel-adapter-xml-14" /><![CDATA[
                                   message-converter=""]]><co            id="amqp-inbound-channel-adapter-xml-15-co" linkends="amqp-inbound-channel-adapter-xml-15" /><![CDATA[
                                   message-properties-converter=""]]><co id="amqp-inbound-channel-adapter-xml-16-co" linkends="amqp-inbound-channel-adapter-xml-16" /><![CDATA[
@@ -140,26 +139,19 @@
                 <emphasis>Optional (Defaults to true)</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-11-co" id="amqp-inbound-channel-adapter-xml-11">
-                <para><interfacename>AmqpHeaderMapper</interfacename> to use when receiving AMQP Messages.
+                <para>A reference to an <interfacename>AmqpHeaderMapper</interfacename> to use when receiving AMQP Messages.
                 <emphasis>Optional</emphasis>.
-                By default only standard AMQP properties (e.g. contentType) will be copied to and from
+                By default only standard AMQP properties (e.g. contentType) will be copied to
  			    Spring Integration MessageHeaders. Any user-defined headers within the AMQP
-                MessageProperties will NOT be copied to or from an AMQP Message unless
-                explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames' properties of this <classname>DefaultAmqpHeaderMapper</classname>.
-				If you need to copy all user-defined headers simply use wild-card character '*'.
+                MessageProperties will NOT be copied to the Message by the default
+                <classname>DefaultAmqpHeaderMapper</classname>.
+                Not allowed if 'request-header-names' is provided.
                 </para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-12-co" id="amqp-inbound-channel-adapter-xml-12">
                 <para>Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
-This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
-            </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-13-co" id="amqp-inbound-channel-adapter-xml-13">
-                <para>Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
-	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property
-	which itself is a Map.
-	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-	this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
+                This can only be provided if the 'header-mapper' reference is not provided. The values in
+                this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-14-co" id="amqp-inbound-channel-adapter-xml-14">
                 <para>Reference to the <interfacename>SimpleMessageListenerContainer</interfacename>
@@ -291,17 +283,16 @@ this list can also be simple patterns to be matched against the header names (e.
 
   <section id="amqp-inbound-gateway">
       <title>Inbound Gateway</title>
-      <para>A configuration sample for an AMQP Inbound Gateway is shown
-            below.</para>
+      <para>The inbound gateway supports all the attributes on the inbound channel adapter (except 'channel'
+      is replaced by 'request-channel'), plus some additional attributes:</para>
       <programlisting language="xml"><![CDATA[<int-amqp:inbound-gateway
                           id="inboundGateway"]]><co                   id="amqp-inbound-gateway-adapter-xml-1-co" linkends="amqp-inbound-gateway-adapter-xml-1" /><![CDATA[
                           request-channel="myRequestChannel"]]><co     id="amqp-inbound-gateway-adapter-xml-2-co" linkends="amqp-inbound-gateway-adapter-xml-2" /><![CDATA[
-                          queue-names="si.test.queue"]]><co            id="amqp-inbound-gateway-adapter-xml-3-co" linkends="amqp-inbound-gateway-adapter-xml-3" /><![CDATA[
-                          advice-chain=""]]><co                        id="amqp-inbound-gateway-adapter-xml-4-co" linkends="amqp-inbound-gateway-adapter-xml-4" /><![CDATA[
-                          concurrent-consumers="1"]]><co               id="amqp-inbound-gateway-adapter-xml-5-co" linkends="amqp-inbound-gateway-adapter-xml-5" /><![CDATA[
-                          connection-factory="connectionFactory"]]><co id="amqp-inbound-gateway-adapter-xml-6-co" linkends="amqp-inbound-gateway-adapter-xml-6" /><![CDATA[
-                          acknowledge-mode="AUTO"]]><co                id="amqp-inbound-gateway-adapter-xml-6a-co" linkends="amqp-inbound-gateway-adapter-xml-6a" /><![CDATA[
-                          reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-7-co" linkends="amqp-inbound-gateway-adapter-xml-7" /><![CDATA[/>]]>
+                          header-mapper=""]]><co                       id="amqp-inbound-gateway-adapter-xml-8-co" linkends="amqp-inbound-gateway-adapter-xml-8" /><![CDATA[
+                          mapped-request-headers=""]]><co              id="amqp-inbound-gateway-adapter-xml-9-co" linkends="amqp-inbound-gateway-adapter-xml-9" /><![CDATA[
+                          mapped-reply-headers=""]]><co                id="amqp-inbound-gateway-adapter-xml-10-co" linkends="amqp-inbound-gateway-adapter-xml-10" /><![CDATA[
+                          reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-11-co" linkends="amqp-inbound-gateway-adapter-xml-11" /><![CDATA[
+                          reply-timeout="1000"]]><co                   id="amqp-inbound-gateway-adapter-xml-12-co" linkends="amqp-inbound-gateway-adapter-xml-12" /><![CDATA[/>]]>
       </programlisting>
       <para>
           <calloutlist>
@@ -313,41 +304,38 @@ this list can also be simple patterns to be matched against the header names (e.
                   <para>Message Channel to which converted Messages should be sent.
                         <emphasis>Required</emphasis>.</para>
               </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-3-co" id="amqp-inbound-gateway-adapter-xml-3">
-                  <para>Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
-                  <emphasis>Required</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-4-co" id="amqp-inbound-gateway-adapter-xml-4">
-                  <para>Extra AOP Advice(s) to handle cross cutting behavior associated with this Inbound Gateway.
-                  <emphasis>Optional</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-5-co" id="amqp-inbound-gateway-adapter-xml-5">
-                  <para>Specify the number of concurrent consumers to
-						create. Default is 1. Raising the number of concurrent
-						consumers is recommended in order to scale the
-						consumption of messages coming in from a queue.
-						However, note that any ordering guarantees are lost
-						once multiple consumers are registered. In general,
-						stick with 1 consumer for low-volume queues.
-                  <emphasis>Optional (Defaults to 1)</emphasis>.</para>
-              </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-6-co" id="amqp-inbound-gateway-adapter-xml-6">
-                  <para>Bean reference to the RabbitMQ ConnectionFactory.
-                  <emphasis>Optional (Defaults to 'connectionFactory')</emphasis>.</para>
-              </callout>
-            <callout arearefs="amqp-inbound-gateway-adapter-xml-6a-co" id="amqp-inbound-gateway-adapter-xml-6a">
-                <para>Acknowledge Mode for the <interface>MessageListenerContainer</interface>.
-                When set to MANUAL, the delivery tag and channel are provided in
-                message headers <code>amqp_deliveryTag</code> and
-                <code>amqp_channel</code> respectively; the user application is
-                responsible for acknowledgement. NONE means no acknowledgements
-                (autoAck); AUTO means the adapter's container will acknowledge
-                when the downstream flow completes.
-                <emphasis>Optional (Defaults to AUTO) see <xref linkend="amqp-inbound-ack"/></emphasis>.</para>
+            <callout arearefs="amqp-inbound-gateway-adapter-xml-8-co" id="amqp-inbound-gateway-adapter-xml-8">
+                <para>A reference to an <interfacename>AmqpHeaderMapper</interfacename> to use when receiving AMQP Messages.
+                <emphasis>Optional</emphasis>.
+                By default only standard AMQP properties (e.g. contentType) will be copied to and from
+ 			    Spring Integration MessageHeaders. Any user-defined headers within the AMQP
+                MessageProperties will NOT be copied to or from an AMQP Message by the default
+                <classname>DefaultAmqpHeaderMapper</classname>.
+                Not allowed if 'request-header-names' or 'reply-header-names' is provided.
+                </para>
             </callout>
-              <callout arearefs="amqp-inbound-gateway-adapter-xml-7-co" id="amqp-inbound-gateway-adapter-xml-7">
+            <callout arearefs="amqp-inbound-gateway-adapter-xml-9-co" id="amqp-inbound-gateway-adapter-xml-9">
+                <para>Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
+                This can only be provided if the 'header-mapper' reference is not provided. The values in
+                this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
+            </callout>
+            <callout arearefs="amqp-inbound-gateway-adapter-xml-10-co" id="amqp-inbound-gateway-adapter-xml-10">
+                <para>Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
+	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to
+	the 'headers' property.
+	This can only be provided if the 'header-mapper' reference is not provided. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
+            </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-11-co" id="amqp-inbound-gateway-adapter-xml-11">
                   <para>Message Channel where reply Messages will be expected.
                   <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-12-co" id="amqp-inbound-gateway-adapter-xml-12">
+				<para>Used to set the receiveTimeout on the underlying MessagingTemplate instance
+				(org.springframework.integration.core.MessagingTemplate) for receiving messages
+				from the reply channel. If not specified this property will default to "1000"
+				(1 second). Only applies if the container thread hands off to another thread
+				before the reply is sent.</para>
               </callout>
           </calloutlist>
       </para>
@@ -411,6 +399,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                                channel="outboundChannel"]]><co      id="amqp-outbound-channel-adapter-xml-2-co" linkends="amqp-outbound-channel-adapter-xml-2" /><![CDATA[
                                amqp-template="myAmqpTemplate"]]><co id="amqp-outbound-channel-adapter-xml-3-co" linkends="amqp-outbound-channel-adapter-xml-3" /><![CDATA[
                                exchange-name=""]]><co               id="amqp-outbound-channel-adapter-xml-4-co" linkends="amqp-outbound-channel-adapter-xml-4" /><![CDATA[
+                               exchange-name-expression=""]]><co    id="amqp-outbound-channel-adapter-xml-4d-co" linkends="amqp-outbound-channel-adapter-xml-4d" /><![CDATA[
                                order="1"]]><co                      id="amqp-outbound-channel-adapter-xml-5-co" linkends="amqp-outbound-channel-adapter-xml-5" /><![CDATA[
                                routing-key=""]]><co                 id="amqp-outbound-channel-adapter-xml-6-co" linkends="amqp-outbound-channel-adapter-xml-6" /><![CDATA[
                                routing-key-expression=""]]><co      id="amqp-outbound-channel-adapter-xml-7-co" linkends="amqp-outbound-channel-adapter-xml-7" /><![CDATA[
@@ -419,7 +408,9 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                                confirm-ack-channel=""]]><co         id="amqp-outbound-channel-adapter-xml-9-co" linkends="amqp-outbound-channel-adapter-xml-9" /><![CDATA[
                                confirm-nack-channel=""]]><co        id="amqp-outbound-channel-adapter-xml-10-co" linkends="amqp-outbound-channel-adapter-xml-10" /><![CDATA[
                                return-channel=""]]><co              id="amqp-outbound-channel-adapter-xml-11-co" linkends="amqp-outbound-channel-adapter-xml-11" /><![CDATA[
-                               lazy-connect="true"]]><co            id="amqp-outbound-channel-adapter-xml-12-co" linkends="amqp-outbound-channel-adapter-xml-12" /><![CDATA[/>]]>
+                               header-mapper=""]]><co               id="amqp-outbound-channel-adapter-xml-12-co" linkends="amqp-outbound-channel-adapter-xml-12" /><![CDATA[
+                               mapped-request-headers=""]]><co      id="amqp-outbound-channel-adapter-xml-13-co" linkends="amqp-outbound-channel-adapter-xml-13" /><![CDATA[
+                               lazy-connect="true"]]><co            id="amqp-outbound-channel-adapter-xml-14-co" linkends="amqp-outbound-channel-adapter-xml-14" /><![CDATA[/>]]>
     </programlisting>
     <para>
         <calloutlist>
@@ -440,7 +431,13 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
             <callout arearefs="amqp-outbound-channel-adapter-xml-4-co" id="amqp-outbound-channel-adapter-xml-4">
                 <para>The name of the AMQP Exchange to which Messages
 					  should be sent. If not provided, Messages will be sent
-					  to the default, no-name Exchange.
+					  to the default, no-name Exchange. Mutually exclusive with 'exchange-name-expression'.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-4d-co" id="amqp-outbound-channel-adapter-xml-4d">
+                <para>A SpEL expression that is evaluated to determine the name of the AMQP Exchange to which Messages
+					  should be sent, with the message as the root object. If not provided, Messages will be sent
+					  to the default, no-name Exchange. Mutually exclusive with 'exchange-name'.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-5-co" id="amqp-outbound-channel-adapter-xml-5">
@@ -451,13 +448,14 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-6-co" id="amqp-outbound-channel-adapter-xml-6">
                 <para>The fixed routing-key to use when sending Messages. By
-                      default, this will be an empty String.
+                      default, this will be an empty String. Mutually exclusive with 'routing-key-expression'.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-7-co" id="amqp-outbound-channel-adapter-xml-7">
-                <para>The routing-key to use when sending Messages
-					  evaluated as an expression on the message (e.g.
-					  'payload.key'). By default, this will be an empty String.
+                <para>A SpEL expression that is evaluated to determine the routing-key to use when sending Messages,
+					  with the message as the root object (e.g.
+					  'payload.key'). By default, this will be an empty String. Mutually exclusive with
+					  'routing-key'.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
 			<callout arearefs="amqp-outbound-channel-adapter-xml-7a-co" id="amqp-outbound-channel-adapter-xml-7a">
@@ -507,6 +505,21 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                 </important>
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-12-co" id="amqp-outbound-channel-adapter-xml-12">
+                <para>A reference to an <interfacename>AmqpHeaderMapper</interfacename> to use when sending AMQP Messages.
+                <emphasis>Optional</emphasis>.
+                By default only standard AMQP properties (e.g. contentType) will be copied to the message.
+ 			    Spring Integration MessageHeaders. Any user-defined headers will NOT be copied to the Message by the default
+                <classname>DefaultAmqpHeaderMapper</classname>.
+                Not allowed if 'request-header-names' is provided.
+                </para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-13-co" id="amqp-outbound-channel-adapter-xml-13">
+                <para>Comma-separated list of names of AMQP Headers to be mapped from the MessageHeaders to the
+                AMQP Message.
+                Not allowed if the 'header-mapper' reference is provided. The values in
+                this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-14-co" id="amqp-outbound-channel-adapter-xml-14">
                 <para>When set to <code>false</code>, the endpoint will attempt to connect to the
                 broker during application context initialization. This allows "fail fast" detection of
                 bad configuration, but will also cause initialization to fail if the broker is down.
@@ -525,8 +538,11 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                            request-channel="myRequestChannel"]]><co id="amqp-outbound-gateway-adapter-xml-2-co" linkends="amqp-outbound-gateway-adapter-xml-2" /><![CDATA[
                            amqp-template=""]]><co                   id="amqp-outbound-gateway-adapter-xml-3-co" linkends="amqp-outbound-gateway-adapter-xml-3" /><![CDATA[
                            exchange-name=""]]><co                   id="amqp-outbound-gateway-adapter-xml-4-co" linkends="amqp-outbound-gateway-adapter-xml-4" /><![CDATA[
+                           exchange-name-expression=""]]><co        id="amqp-outbound-gateway-adapter-xml-4d-co" linkends="amqp-outbound-gateway-adapter-xml-4d" /><![CDATA[
                            order="1"]]><co                          id="amqp-outbound-gateway-adapter-xml-5-co" linkends="amqp-outbound-gateway-adapter-xml-5" /><![CDATA[
                            reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6-co" linkends="amqp-outbound-gateway-adapter-xml-6" /><![CDATA[
+                           reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6a-co" linkends="amqp-outbound-gateway-adapter-xml-6a" /><![CDATA[
+                           requires-reply=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6b-co" linkends="amqp-outbound-gateway-adapter-xml-6b" /><![CDATA[
                            routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[
                            routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[
                            default-delivery-mode""]]><co            id="amqp-outbound-gateway-adapter-xml-8a-co" linkends="amqp-outbound-gateway-adapter-xml-8a" /><![CDATA[
@@ -552,8 +568,14 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
               <callout arearefs="amqp-outbound-gateway-adapter-xml-4-co" id="amqp-outbound-gateway-adapter-xml-4">
                   <para>The name of the AMQP Exchange to which Messages should
                         be sent. If not provided, Messages will be sent to the
-                        default, no-name Exchange.
+                        default, no-name Exchange. Mutually exclusive with 'exchange-name-expression'.
                   <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-4d-co" id="amqp-outbound-gateway-adapter-xml-4d">
+                <para>A SpEL expression that is evaluated to determine the name of the AMQP Exchange to which Messages
+					  should be sent, with the message as the root object. If not provided, Messages will be sent
+					  to the default, no-name Exchange. Mutually exclusive with 'exchange-name'.
+                <emphasis>Optional</emphasis>.</para>
               </callout>
               <callout arearefs="amqp-outbound-gateway-adapter-xml-5-co" id="amqp-outbound-gateway-adapter-xml-5">
                   <para>The order for this consumer when multiple
@@ -566,15 +588,25 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                         being received from an AQMP Queue and converted.
                   <emphasis>Optional</emphasis>.</para>
               </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-6a-co" id="amqp-outbound-gateway-adapter-xml-6a">
+                  <para>The time the gateway will wait when sending the reply message to the <code>reply-channel</code>.
+                  This only applies if the <code>reply-channel</code> can block - such as a
+                  <classname>QueueChannel</classname> with a capacity limit that is currently full. Default: infinity.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-6b-co" id="amqp-outbound-gateway-adapter-xml-6b">
+                  <para>When true, the gateway will throw an exception if no reply message is received within
+                  the <classname>AmqpTemplate</classname>'s <code>replyTimeout</code> property. Default: <code>true</code>.</para>
+              </callout>
               <callout arearefs="amqp-outbound-gateway-adapter-xml-7-co" id="amqp-outbound-gateway-adapter-xml-7">
                   <para>The routing-key to use when sending Messages. By default,
-                        this will be an empty String.
+                        this will be an empty String. Mutually exclusive with 'routing-key-expression'
                   <emphasis>Optional</emphasis>.</para>
               </callout>
               <callout arearefs="amqp-outbound-gateway-adapter-xml-8-co" id="amqp-outbound-gateway-adapter-xml-8">
-                  <para>The routing-key to use when sending Messages evealuated
-                        as an expression on the message (e.g. 'payload.key').
-                        By default, this will be an empty String.
+                <para>A SpEL expression that is evaluated to determine the routing-key to use when sending Messages,
+					  with the message as the root object (e.g.
+					  'payload.key'). By default, this will be an empty String. Mutually exclusive with
+					  'routing-key'.
                   <emphasis>Optional</emphasis>.</para>
               </callout>
               <callout arearefs="amqp-outbound-gateway-adapter-xml-8a-co" id="amqp-outbound-gateway-adapter-xml-7a">
@@ -621,7 +653,10 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
         automatically, including the case where that application might send a request/reply to a third
         application using an outbound gateway.</para>
       </note>
-
+      <important>
+        The underlying <classname>AmqpTemplate</classname> has a default <code>replyTimeout</code> of
+        5 seconds. If you require a longer timeout, it must be configured on the template.
+      </important>
   </section>
 
   <section>
