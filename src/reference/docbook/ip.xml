@@ -1035,7 +1035,7 @@
       <classname>CompositeExecutor</classname> allows the configuration
       of two distinct executors; one for performing IO operations, and
       one for message assembly. The <classname>CallerBlocksPolicy</classname>
-      (which should be configured for both task executors) will suspend
+      (which should be configured for the first task executors) will suspend
       the IO operation until an assembler thread is available (or a timeout
       occurs). In this environment, an IO thread can never
       become an assembler thread, and the deadlock cannot occur.
@@ -1049,16 +1049,16 @@ private CompositeExecutor compositeExecutor() {
     ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
     ioExec.setCorePoolSize(4);
     ioExec.setMaxPoolSize(8);
-    ioExec.setQueueCapacity(10);
+    ioExec.setQueueCapacity(0);
     ioExec.setThreadNamePrefix("io-");
     ioExec.setRejectedExecutionHandler(new CallerRunsPolicy());
     ioExec.initialize();
     ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
-    assemblerExec.setCorePoolSize(2);
+    assemblerExec.setCorePoolSize(4);
     assemblerExec.setMaxPoolSize(10);
-    assemblerExec.setQueueCapacity(12);
+    assemblerExec.setQueueCapacity(0);
     assemblerExec.setThreadNamePrefix("assembler-");
-    assemblerExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+    assemblerExec.setRejectedExecutionHandler(new AbortPolicy());
     assemblerExec.initialize();
     return new CompositeExecutor(ioExec, assemblerExec);
 }]]></programlisting>
@@ -1068,7 +1068,7 @@ private CompositeExecutor compositeExecutor() {
             <property name="threadNamePrefix" value="io-" />
             <property name="corePoolSize" value="4" />
             <property name="maxPoolSize" value="8" />
-            <property name="queueCapacity" value="10" />
+            <property name="queueCapacity" value="0" />
             <property name="rejectedExecutionHandler">
                 <bean class="org.springframework.integration.util.CallerBlocksPolicy">
                     <constructor-arg value="10000" />
@@ -1081,11 +1081,9 @@ private CompositeExecutor compositeExecutor() {
             <property name="threadNamePrefix" value="assembler-" />
             <property name="corePoolSize" value="4" />
             <property name="maxPoolSize" value="10" />
-            <property name="queueCapacity" value="10" />
+            <property name="queueCapacity" value="0" />
             <property name="rejectedExecutionHandler">
-                <bean class="org.springframework.integration.util.CallerBlocksPolicy">
-                    <constructor-arg value="10000" />
-                </bean>
+                <bean class="java.util.concurrent.ThreadPoolExecutor.AbortPolicy" />
             </property>
         </bean>
     </constructor-arg>
