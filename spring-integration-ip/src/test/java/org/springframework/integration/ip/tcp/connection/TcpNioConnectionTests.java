@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -72,7 +73,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.CallerBlocksPolicy;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
@@ -84,6 +84,7 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 
 /**
  * @author Gary Russell
+ * @author John Anderson
  * @since 2.0
  *
  */
@@ -335,9 +336,7 @@ public class TcpNioConnectionTests {
 			fail("Expected exception, got " + o);
 		}
 		catch (ExecutionException e) {
-			assertEquals("Timed out writing to ChannelInputStream, probably due to insufficient threads in " +
-					"a fixed thread pool; consider increasing this task executor pool size", e.getCause()
-					.getMessage());
+			assertEquals("Timed out waiting for buffer space", e.getCause().getMessage());
 		}
 	}
 
@@ -607,18 +606,91 @@ public class TcpNioConnectionTests {
 		factory.stop();
 	}
 
+	@Test
+	public void testAllMessagesDelivered() throws Exception {
+		final int numberOfSockets = 100;
+		final int port = SocketUtils.findAvailableServerSocket();
+		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
+		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+
+		CompositeExecutor compositeExec = compositeExecutor();
+
+		factory.setTaskExecutor(compositeExec);
+		final CountDownLatch latch = new CountDownLatch(numberOfSockets * 4);
+		factory.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				if (!(message instanceof ErrorMessage)) {
+					latch.countDown();
+				}
+				return false;
+			}
+
+		});
+		factory.start();
+
+		Socket[] sockets = new Socket[numberOfSockets];
+		for (int i = 0; i < numberOfSockets; i++) {
+			Socket socket = null;
+			int n = 0;
+			while (n++ < 100) {
+				try {
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					break;
+				}
+				catch (ConnectException e) {}
+				Thread.sleep(100);
+			}
+			assertTrue("Could not open socket to localhost:" + port, n < 100);
+			sockets[i] = socket;
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write("foo1 and...".getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		Thread.sleep(100);
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...foo2\r\nbar1 and...").getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...bar2\r\n").getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write("foo3 and...".getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		Thread.sleep(100);
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...foo4\r\nbar3 and...").getBytes());
+			sockets[i].getOutputStream().flush();
+		}
+		for (int i = 0; i < numberOfSockets; i++) {
+			sockets[i].getOutputStream().write(("...bar4\r\n").getBytes());
+			sockets[i].close();
+		}
+
+		assertTrue("latch is still " + latch.getCount(), latch.await(60, TimeUnit.SECONDS));
+
+		factory.stop();
+	}
+
 	private CompositeExecutor compositeExecutor() {
 		ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
 		ioExec.setCorePoolSize(2);
-		ioExec.setQueueCapacity(10);
+		ioExec.setMaxPoolSize(4);
+		ioExec.setQueueCapacity(0);
 		ioExec.setThreadNamePrefix("io-");
-		ioExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+		ioExec.setRejectedExecutionHandler(new AbortPolicy());
 		ioExec.initialize();
 		ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
 		assemblerExec.setCorePoolSize(2);
-		assemblerExec.setQueueCapacity(10);
+		assemblerExec.setMaxPoolSize(5);
+		assemblerExec.setQueueCapacity(0);
 		assemblerExec.setThreadNamePrefix("assembler-");
-		assemblerExec.setRejectedExecutionHandler(new CallerBlocksPolicy(10000));
+		assemblerExec.setRejectedExecutionHandler(new AbortPolicy());
 		assemblerExec.initialize();
 		return new CompositeExecutor(ioExec, assemblerExec);
 	}
