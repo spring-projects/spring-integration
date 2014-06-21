@@ -22,6 +22,7 @@
 
 	<si-amqp:inbound-gateway id="autoStartFalseGateway" request-channel="requests" queue-names="test"
 			connection-factory="rabbitConnectionFactory" message-converter="testConverter"
+			missing-queues-fatal="false"
 			auto-startup="false" phase="123"/>
 			
 	<si-amqp:inbound-gateway id="withHeaderMapper" request-channel="requestChannel" queue-names="inboundchanneladapter.test.2"

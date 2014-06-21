@@ -72,6 +72,7 @@
                                   prefetch-count=""]]><co               id="amqp-inbound-channel-adapter-xml-18-co" linkends="amqp-inbound-channel-adapter-xml-18" /><![CDATA[
                                   receive-timeout=""]]><co              id="amqp-inbound-channel-adapter-xml-19-co" linkends="amqp-inbound-channel-adapter-xml-19" /><![CDATA[
                                   recovery-interval=""]]><co            id="amqp-inbound-channel-adapter-xml-20-co" linkends="amqp-inbound-channel-adapter-xml-20" /><![CDATA[
+                                  missing-queues-fatal=""]]><co         id="amqp-inbound-channel-adapter-xml-20d-co" linkends="amqp-inbound-channel-adapter-xml-20d" /><![CDATA[
                                   shutdown-timeout=""]]><co             id="amqp-inbound-channel-adapter-xml-21-co" linkends="amqp-inbound-channel-adapter-xml-21" /><![CDATA[
                                   task-executor=""]]><co                id="amqp-inbound-channel-adapter-xml-22-co" linkends="amqp-inbound-channel-adapter-xml-22" /><![CDATA[
                                   transaction-attribute=""]]><co        id="amqp-inbound-channel-adapter-xml-23-co" linkends="amqp-inbound-channel-adapter-xml-23" /><![CDATA[
@@ -212,6 +213,14 @@
                       <interface>SimpleMessageListenerContainer</interface> (in
                       milliseconds).
                 <emphasis>Optional (Defaults to 5000)</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-20d-co" id="amqp-inbound-channel-adapter-xml-20d">
+                <para>	If 'true', and none of the queues are available on the broker, the container
+                will throw a fatal exception during startup and will stop if the queues are deleted when
+                the container is running (after making 3 attempts to passively declare the queues). If false,
+                the container will not throw an exception and go into recovery mode, attempting to restart according
+                to the <code>revcovery-interval</code>.
+                <emphasis>Optional (Defaults to <code>true</code>)</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-21-co" id="amqp-inbound-channel-adapter-xml-21">
                 <para>The time to wait for workers in milliseconds after the

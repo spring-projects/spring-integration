@@ -17,7 +17,9 @@
 package org.springframework.integration.amqp.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -57,6 +59,7 @@ public class AmqpChannelParserTests {
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		assertSame(mbf, TestUtils.getPropertyValue(channel, "dispatcher.messageBuilderFactory"));
 		assertSame(mbf, TestUtils.getPropertyValue(channel, "container.messageListener.messageBuilderFactory"));
+		assertTrue(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class));
 	}
 
 	@Test
@@ -64,6 +67,7 @@ public class AmqpChannelParserTests {
 		MessageChannel channel = context.getBean("channelWithSubscriberLimit", MessageChannel.class);
 		assertEquals(1, TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
+		assertFalse(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class));
 	}
 
 

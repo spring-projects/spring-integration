@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -62,6 +63,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		assertEquals(AmqpInboundChannelAdapter.class, adapter.getClass());
 		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		assertEquals(0, TestUtils.getPropertyValue(adapter, "phase"));
+		assertTrue(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 	}
 
 	@Test
@@ -70,6 +72,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(adapter, "phase"));
 		assertEquals(AcknowledgeMode.NONE, TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"));
+		assertFalse(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 	}
 
 	@Test

@@ -53,7 +53,8 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		"recovery-interval",
 		"receive-timeout",
 		"shutdown-timeout",
-		"tx-size"
+		"tx-size",
+		"missing-queues-fatal"
 	};
 
 	private static final String[] CONTAINER_REFERENCE_ATTRIBUTES = {

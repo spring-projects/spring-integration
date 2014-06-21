@@ -22,7 +22,7 @@
 	<amqp:inbound-channel-adapter id="rabbitInbound" queue-names="inboundchanneladapter.test.1"/>
 
 	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123" acknowledge-mode="${ackMode}"/>
+		auto-startup="false" phase="123" acknowledge-mode="${ackMode}" missing-queues-fatal="false" />
 		
 	<amqp:inbound-channel-adapter id="withHeaderMapperStandardAndCustomHeaders" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ public class AmqpChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "missing-queues-fatal");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "shutdown-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-attribute");

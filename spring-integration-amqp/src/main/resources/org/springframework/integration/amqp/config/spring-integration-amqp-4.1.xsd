@@ -833,6 +833,21 @@ standard headers to also be mapped.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="missing-queues-fatal">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+	If 'true', and none of the queues are available on the broker, the container will throw a fatal exception during
+	startup and will stop if the queues are deleted when the container is running (after making 3 attempts to
+	passively declare the queues). If false, the container will not throw an exception and go into recovery mode,
+	attempting to restart according to the 'revcovery-interval'. Default 'true'.
+					</xsd:documentation>
+				</xsd:appinfo>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
