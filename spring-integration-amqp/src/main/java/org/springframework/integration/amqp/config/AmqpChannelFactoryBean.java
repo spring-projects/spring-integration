@@ -124,6 +124,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private volatile Integer maxSubscribers;
 
+	private volatile Boolean missingQueuesFatal;
+
 
 	public AmqpChannelFactoryBean() {
 		this(true);
@@ -297,6 +299,10 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.maxSubscribers = maxSubscribers;
 	}
 
+	public void setMissingQueuesFatal(Boolean missingQueuesFatal) {
+		this.missingQueuesFatal = missingQueuesFatal;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return (this.channel != null) ? this.channel.getClass() : AbstractAmqpChannel.class;
@@ -405,6 +411,9 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		}
 		if (this.txSize != null) {
 			container.setTxSize(this.txSize);
+		}
+		if (this.missingQueuesFatal != null) {
+			container.setMissingQueuesFatal(this.missingQueuesFatal);
 		}
 		return container;
 	}

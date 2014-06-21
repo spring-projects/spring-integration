@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -78,6 +79,7 @@ public class AmqpInboundGatewayParserTests {
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "phase"));
 		assertEquals(Long.valueOf(1234L), TestUtils.getPropertyValue(gateway, "replyTimeout", Long.class));
 		assertEquals(Long.valueOf(1234L), TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout", Long.class));
+		assertTrue(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 	}
 
 	@Test
@@ -85,6 +87,7 @@ public class AmqpInboundGatewayParserTests {
 		Object gateway = context.getBean("autoStartFalseGateway");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
+		assertFalse(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 	}
 
 	@SuppressWarnings("rawtypes")
