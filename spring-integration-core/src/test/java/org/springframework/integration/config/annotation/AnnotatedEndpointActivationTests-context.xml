@@ -9,6 +9,8 @@
 
 	<annotation-config/>
 
+	<annotation-config/>
+
 	<channel id="input"/>
 
 	<channel id="output">
