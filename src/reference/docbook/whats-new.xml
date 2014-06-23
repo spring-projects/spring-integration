@@ -19,6 +19,7 @@
 				See <xref linkend="amqp"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-amqp-outbound-lazy-connect">
 			<title>AMQP Outbound Endpoints</title>
 			<para>
 				The AMQP outbound endpoints support a new property <code>lazy-connect</code>
