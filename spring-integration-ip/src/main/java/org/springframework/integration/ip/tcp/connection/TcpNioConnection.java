@@ -33,12 +33,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -72,8 +74,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	private volatile long lastSend;
 
 	private final AtomicInteger executionControl = new AtomicInteger();
-
-	private volatile boolean writingToPipe;
 
 	private volatile long pipeTimeout = DEFAULT_PIPE_TIMEOUT;
 
@@ -285,7 +285,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	private boolean dataAvailable() throws IOException {
-		return this.channelInputStream.available() > 0 || writingToPipe;
+		if (logger.isTraceEnabled()) {
+			logger.trace(getConnectionId() + " checking data avail: " + this.channelInputStream.available() +
+					" pending: " + this.channelInputStream.pendingData);
+		}
+		return this.channelInputStream.hasPendingData();
 	}
 
 	/**
@@ -356,7 +360,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			this.rawBuffer = allocate(maxMessageSize);
 		}
 
-		this.writingToPipe = true;
+		this.channelInputStream.setPendingData(true);
 		try {
 			if (this.taskExecutor == null) {
 				ExecutorService executor = Executors.newCachedThreadPool();
@@ -370,7 +374,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			}
 			int len = this.socketChannel.read(this.rawBuffer);
 			if (len < 0) {
-				this.writingToPipe = false;
 				this.closeConnection(true);
 			}
 			if (logger.isTraceEnabled()) {
@@ -393,7 +396,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			throw e;
 		}
 		finally {
-			this.writingToPipe = false;
+			this.channelInputStream.setPendingData(false);
 		}
 	}
 
@@ -606,6 +609,30 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		private volatile boolean isClosed;
 
+		private volatile boolean pendingData;
+
+		private final ReentrantLock pendingDataLock = new ReentrantLock();
+
+		public boolean hasPendingData() {
+			try {
+				this.pendingDataLock.lockInterruptibly();
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new MessagingException("Interrupted while acquiring the pending data lock");
+			}
+			try {
+				return this.available.get() > 0 || this.pendingData;
+			}
+			finally {
+				this.pendingDataLock.unlock();
+			}
+		}
+
+		public void setPendingData(boolean pendingData) {
+			this.pendingData = pendingData;
+		}
+
 		@Override
 		public int read(byte[] b, int off, int len) throws IOException {
 			Assert.notNull(b, "byte[] cannot be null");
@@ -681,7 +708,20 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			if (bytesToWrite > 0) {
 				byte[] buffer = new byte[bytesToWrite];
 				System.arraycopy(array, 0, buffer, 0, bytesToWrite);
-				this.available.addAndGet(bytesToWrite);
+				try {
+					this.pendingDataLock.lockInterruptibly();
+				}
+				catch (InterruptedException e1) {
+					Thread.currentThread().interrupt();
+					throw new IOException("Interrupted while acquiring the pending data lock");
+				}
+				try {
+					this.available.addAndGet(bytesToWrite);
+					this.pendingData = false;
+				}
+				finally {
+					this.pendingDataLock.unlock();
+				}
 				try {
 					if (!this.buffers.offer(buffer, pipeTimeout, TimeUnit.MILLISECONDS)) {
 						throw new IOException("Timed out waiting for buffer space");
@@ -691,6 +731,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					Thread.currentThread().interrupt();
 					throw new IOException("Interrupted while waiting for buffer space", e);
 				}
+			}
+			else {
+				this.pendingData = false;
 			}
 		}
 
@@ -706,4 +749,5 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 
 	}
+
 }
