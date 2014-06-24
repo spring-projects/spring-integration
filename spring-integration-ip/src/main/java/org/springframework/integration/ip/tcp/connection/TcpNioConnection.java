@@ -295,8 +295,16 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @throws IOException
 	 */
 	private synchronized Message<?> convert() throws Exception {
-		if (!dataAvailable()) {
-			return null;
+		if (this.channelInputStream.available() <= 0) {
+			if (!writingToPipe) {
+				return null;
+			}
+			else {
+				Thread.sleep(5);
+				if (this.channelInputStream.available() <= 0) {
+					return null;
+				}
+			}
 		}
 		Message<?> message = null;
 		try {
