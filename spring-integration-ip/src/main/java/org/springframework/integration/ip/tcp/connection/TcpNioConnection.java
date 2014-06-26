@@ -288,6 +288,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	private boolean dataAvailable() throws IOException {
+		if (logger.isTraceEnabled()) {
+			logger.trace(getConnectionId() + " checking data avail: " + this.channelInputStream.available() +
+					" pending: " + (this.writingToPipe));
+		}
 		return writingToPipe || this.channelInputStream.available() > 0;
 	}
 
@@ -298,6 +302,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @throws IOException
 	 */
 	private synchronized Message<?> convert() throws Exception {
+		if (logger.isTraceEnabled()) {
+			logger.trace(getConnectionId() + " checking data avail (convert): " + this.channelInputStream.available() +
+					" pending: " + (this.writingToPipe));
+		}
 		if (this.channelInputStream.available() <= 0) {
 			try {
 				if (this.writingLatch.await(60, TimeUnit.SECONDS)) {
@@ -306,8 +314,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					}
 				}
 				else { // should never happen
-					logger.error(this.getConnectionId() + " timed out waiting for IO");
-					return null;
+					throw new IOException("Timed out waiting for IO");
 				}
 			}
 			catch (InterruptedException e) {
