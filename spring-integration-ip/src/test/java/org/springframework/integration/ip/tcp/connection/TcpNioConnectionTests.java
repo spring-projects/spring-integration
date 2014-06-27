@@ -18,8 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +35,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,7 +53,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -65,6 +68,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioConnection.Channe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.SocketUtils;
@@ -687,6 +691,98 @@ public class TcpNioConnectionTests {
 		assemblerExec.setRejectedExecutionHandler(new AbortPolicy());
 		assemblerExec.initialize();
 		return new CompositeExecutor(ioExec, assemblerExec);
+	}
+
+	@Test
+	public void int3453RaceTest() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
+		final CountDownLatch connectionLatch = new CountDownLatch(1);
+		factory.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				connectionLatch.countDown();
+			}
+		});
+		final CountDownLatch assemblerLatch = new CountDownLatch(1);
+		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();
+		factory.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				if (!(message instanceof ErrorMessage)) {
+					assemblerLatch.countDown();
+					assembler.set(Thread.currentThread());
+				}
+				return false;
+			}
+
+		});
+		ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();
+		te.setCorePoolSize(3); // selector, reader, assembler
+		te.setMaxPoolSize(3);
+		te.setQueueCapacity(0);
+		te.initialize();
+		factory.setTaskExecutor(te);
+		factory.start();
+		TestingUtilities.waitListening(factory, 10000L);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		assertTrue(connectionLatch.await(10,  TimeUnit.SECONDS));
+
+		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", List.class).get(0);
+		Log logger = spy(TestUtils.getPropertyValue(connection, "logger", Log.class));
+		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
+		dfa.setPropertyValue("logger", logger);
+
+		ChannelInputStream cis = spy(TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
+		dfa.setPropertyValue("channelInputStream", cis);
+
+		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
+		final CountDownLatch readerFinishedLatch = new CountDownLatch(1);
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				invocation.callRealMethod();
+				// delay the reader thread resetting writingToPipe
+				readerLatch.await(10, TimeUnit.SECONDS);
+				Thread.sleep(100);
+				readerFinishedLatch.countDown();
+				return null;
+			}
+		}).when(cis).write(any(byte[].class), Matchers.anyInt());
+
+		doReturn(true).when(logger).isTraceEnabled();
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				invocation.callRealMethod();
+				readerLatch.countDown();
+				return null;
+			}
+		}).when(logger).trace(Matchers.contains("checking data avail"));
+
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				invocation.callRealMethod();
+				readerLatch.countDown();
+				return null;
+			}
+		}).when(logger).trace(Matchers.contains("Nio assembler continuing"));
+
+		socket.getOutputStream().write("foo\r\n".getBytes());
+
+		assertTrue(assemblerLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(readerFinishedLatch.await(10, TimeUnit.SECONDS));
+
+		StackTraceElement[] stackTrace = assembler.get().getStackTrace();
+		assertThat(Arrays.asList(stackTrace).toString(), not(containsString("ChannelInputStream.getNextBuffer")));
+		socket.close();
+		factory.stop();
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {

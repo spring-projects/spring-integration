@@ -26,6 +26,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,6 +76,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	private final AtomicInteger executionControl = new AtomicInteger();
 
 	private volatile boolean writingToPipe;
+
+	private volatile CountDownLatch writingLatch;
 
 	private volatile long pipeTimeout = DEFAULT_PIPE_TIMEOUT;
 
@@ -286,7 +289,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	private boolean dataAvailable() throws IOException {
-		return this.channelInputStream.available() > 0 || writingToPipe;
+		if (logger.isTraceEnabled()) {
+			logger.trace(getConnectionId() + " checking data avail: " + this.channelInputStream.available() +
+					" pending: " + (this.writingToPipe));
+		}
+		return writingToPipe || this.channelInputStream.available() > 0;
 	}
 
 	/**
@@ -296,8 +303,25 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @throws IOException
 	 */
 	private synchronized Message<?> convert() throws Exception {
-		if (!dataAvailable()) {
-			return null;
+		if (logger.isTraceEnabled()) {
+			logger.trace(getConnectionId() + " checking data avail (convert): " + this.channelInputStream.available() +
+					" pending: " + (this.writingToPipe));
+		}
+		if (this.channelInputStream.available() <= 0) {
+			try {
+				if (this.writingLatch.await(60, TimeUnit.SECONDS)) {
+					if (this.channelInputStream.available() <= 0) {
+						return null;
+					}
+				}
+				else { // should never happen
+					throw new IOException("Timed out waiting for IO");
+				}
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IOException("Interrupted waiting for IO");
+			}
 		}
 		Message<?> message = null;
 		try {
@@ -357,6 +381,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			this.rawBuffer = allocate(maxMessageSize);
 		}
 
+		this.writingLatch = new CountDownLatch(1);
 		this.writingToPipe = true;
 		try {
 			if (this.taskExecutor == null) {
@@ -395,6 +420,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		finally {
 			this.writingToPipe = false;
+			this.writingLatch.countDown();
 		}
 	}
 
@@ -683,6 +709,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				byte[] buffer = new byte[bytesToWrite];
 				System.arraycopy(array, 0, buffer, 0, bytesToWrite);
 				this.available.addAndGet(bytesToWrite);
+				if (TcpNioConnection.this.writingLatch != null) {
+					TcpNioConnection.this.writingLatch.countDown();
+				}
 				try {
 					if (!this.buffers.offer(buffer, pipeTimeout, TimeUnit.MILLISECONDS)) {
 						throw new IOException("Timed out waiting for buffer space");
@@ -692,6 +721,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					Thread.currentThread().interrupt();
 					throw new IOException("Interrupted while waiting for buffer space", e);
 				}
+				TcpNioConnection.this.writingLatch = new CountDownLatch(1);
 			}
 		}
 
