@@ -36,31 +36,37 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 /**
  * The {@link org.springframework.web.servlet.HandlerMapping} implementation that
- * detects and registers {@link RequestMappingInfo}s for {@link HttpRequestHandlingEndpointSupport}
- * from a Spring Integration HTTP configuration of
- * {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
+ * detects and registers {@link RequestMappingInfo}s for
+ * {@link HttpRequestHandlingEndpointSupport} from a Spring Integration HTTP configuration
+ * of {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
  * <p>
- * This class is automatically configured as a bean in the application context during the parsing phase of
- * the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements, if there is none registered, yet.
- * However it can be configured as a regular bean with appropriate configuration for
- * {@link RequestMappingHandlerMapping}. It is recommended to have only one similar bean in the application context
- * using the 'id' {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
+ * This class is automatically configured as a bean in the application context during the
+ * parsing phase of the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>}
+ * elements, if there is none registered, yet. However it can be configured as a regular
+ * bean with appropriate configuration for {@link RequestMappingHandlerMapping}.
+ * It is recommended to have only one similar bean in the application context using the 'id'
+ * {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
  * <p>
- * In most cases, Spring MVC offers to configure Request Mapping via {@code org.springframework.stereotype.Controller}
- * and {@link org.springframework.web.bind.annotation.RequestMapping}.
- * That's why Spring MVC's Handler Mapping infrastructure relies on {@link org.springframework.web.method.HandlerMethod},
- * as different methods at the same {@code org.springframework.stereotype.Controller} user-class may have their own
- * {@link org.springframework.web.bind.annotation.RequestMapping}. On the other side, all Spring Integration HTTP Inbound
- * Endpoints are configured on the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
- * single {@link RequestMappingInfo} configuration without {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
- * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a {@link org.springframework.web.servlet.HandlerMapping}
- * compromise implementation between method-level annotations and component-level (e.g. Spring Integration XML) configurations.
+ * In most cases, Spring MVC offers to configure Request Mapping via
+ * {@code org.springframework.stereotype.Controller} and
+ * {@link org.springframework.web.bind.annotation.RequestMapping}.
+ * That's why Spring MVC's Handler Mapping infrastructure relies on
+ * {@link org.springframework.web.method.HandlerMethod}, as different methods at the same
+ * {@code org.springframework.stereotype.Controller} user-class may have their own
+ * {@link org.springframework.web.bind.annotation.RequestMapping}.
+ * On the other side, all Spring Integration HTTP Inbound Endpoints are configured on
+ * the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
+ * single {@link RequestMappingInfo} configuration without
+ * {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
+ * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a
+ * {@link org.springframework.web.servlet.HandlerMapping}
+ * compromise implementation between method-level annotations and component-level
+ * (e.g. Spring Integration XML) configurations.
  *
  * @author Artem Bilan
+ * @since 3.0
  * @see RequestMapping
  * @see RequestMappingHandlerMapping
- *
- * @since 3.0
  */
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
 		implements ApplicationListener<ContextRefreshedEvent> {
@@ -96,8 +102,8 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	}
 
 	/**
-	 * Created a {@link RequestMappingInfo} from a 'Spring Integration HTTP Inbound Endpoint' {@link RequestMapping}.
-	 *
+	 * Created a {@link RequestMappingInfo} from a
+	 * 'Spring Integration HTTP Inbound Endpoint' {@link RequestMapping}.
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
 	private RequestMappingInfo getMappingForEndpoint(HttpRequestHandlingEndpointSupport endpoint) {
@@ -109,6 +115,12 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 
 		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
 				new org.springframework.web.bind.annotation.RequestMapping() {
+
+					//TODO consider add 'name' support when SF 4.1 will be minimal
+					public String name() {
+						return null;
+					}
+
 					@Override
 					public String[] value() {
 						return requestMapping.getPathPatterns();
@@ -157,7 +169,6 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 * {@link HttpRequestHandlingEndpointSupport}s may depend on auto-created
 	 * {@code requestChannel}s, so MVC Handlers detection should be postponed
 	 * as late as possible.
-	 *
 	 * @see RequestMappingHandlerMapping#afterPropertiesSet()
 	 */
 	@Override

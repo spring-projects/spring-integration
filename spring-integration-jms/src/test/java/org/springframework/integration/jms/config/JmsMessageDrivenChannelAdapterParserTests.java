@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 import java.util.Properties;
 
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
@@ -121,7 +120,14 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
-		assertEquals(2222L, new DirectFieldAccessor(container).getPropertyValue("recoveryInterval"));
+		Object recoveryInterval;
+		try {
+			recoveryInterval = TestUtils.getPropertyValue(container, "recoveryInterval");
+		}
+		catch (NotReadablePropertyException e) {
+			recoveryInterval = TestUtils.getPropertyValue(container, "backOff.interval");
+		}
+		assertEquals(2222L, recoveryInterval);
 		adapter.stop();
 		context.close();
 	}

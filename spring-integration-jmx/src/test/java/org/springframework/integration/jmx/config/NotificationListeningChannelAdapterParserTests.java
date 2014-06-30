@@ -66,8 +66,12 @@ public class NotificationListeningChannelAdapterParserTests {
 	@Autowired @Qualifier("autoChannel.adapter")
 	private NotificationListeningMessageProducer autoChannelAdapter;
 
+	@Autowired @Qualifier("multiAdapter")
+	private NotificationListeningMessageProducer multiAdapter;
+
 	@Test
 	public void receiveNotification() throws Exception {
+		this.multiAdapter.start();
 		assertNull(channel.receive(0));
 		testPublisher.send("ABC");
 		verifyReceipt(channel, "testPublisher");

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
@@ -35,6 +36,8 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -47,11 +50,15 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
-public class NotificationListeningMessageProducer extends MessageProducerSupport implements NotificationListener {
+public class NotificationListeningMessageProducer extends MessageProducerSupport
+		implements NotificationListener, ApplicationListener<ContextRefreshedEvent> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private final AtomicBoolean listenerRegisteredOnStartup = new AtomicBoolean();
 
 	private volatile MBeanServerConnection server;
 
@@ -129,10 +136,25 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	/**
+	 * The {@link NotificationListener} might not be registered on {@link #start()}
+	 * because the {@code MBeanExporter} might not been started yet.
+	 * @param event the ContextRefreshedEvent event
+	 */
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (!this.listenerRegisteredOnStartup.getAndSet(true) && isAutoStartup()) {
+			 doStart();
+		}
+	}
+
+	/**
 	 * Registers the notification listener with the specified ObjectNames.
 	 */
 	@Override
 	protected void doStart() {
+		if (!this.listenerRegisteredOnStartup.get()) {
+			return;
+		}
 		logger.debug("Registering to receive notifications");
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
@@ -201,4 +223,5 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		}
 		return objectNames;
 	}
+
 }
