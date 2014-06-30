@@ -20,6 +20,9 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link ApplicationEvent} implementation to represent the
+ * {@link org.springframework.web.socket.WebSocketSession} errors.
+ *
  * @author Artem Bilan
  * @since 4.1
  */

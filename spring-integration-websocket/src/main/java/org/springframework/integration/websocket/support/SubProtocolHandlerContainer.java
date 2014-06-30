@@ -31,8 +31,15 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 
 /**
+ * The utility class to encapsulate search algorithms for a set of provided {@link SubProtocolHandler}s.
+ * <p>
+ * For internal use only.
+ *
+ * @author Andy Wilkinson
  * @author Artem Bilan
  * @since 4.1
+ * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
+ * @see org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler
  */
 public final class SubProtocolHandlerContainer {
 
@@ -104,6 +111,13 @@ public final class SubProtocolHandlerContainer {
 		return handler;
 	}
 
+	/**
+	 * Resolves the {@code sessionId} for the given {@code message} using
+	 * the {@link SubProtocolHandler#resolveSessionId} algorithm.
+	 * @param message The message to resolve the {@code sessionId} from.
+	 * @return The sessionId or {@code null}, if no one {@link SubProtocolHandler}
+	 * can't resolve it against provided {@code message}.
+	 */
 	public String resolveSessionId(Message<?> message) {
 		for (SubProtocolHandler handler : this.protocolHandlers.values()) {
 			String sessionId = handler.resolveSessionId(message);
@@ -120,6 +134,10 @@ public final class SubProtocolHandlerContainer {
 		return null;
 	}
 
+	/**
+	 * Return the {@link List} of sub-protocols from provided {@link SubProtocolHandler}.
+	 * @return The the {@link List} of supported sub-protocols.
+	 */
 	public List<String> getSubProtocols() {
 		return new ArrayList<String>(this.protocolHandlers.keySet());
 	}

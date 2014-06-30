@@ -39,8 +39,25 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 /**
+ * The high-level 'connection factory pattern' contract over low-level Web-Socket
+ * configuration.
+ * <p>
+ * Provides the composition for the internal {@link WebSocketHandler}
+ * implementation, which is used with native Web-Socket containers.
+ * <p>
+ * Collects established {@link WebSocketSession}s, which can be accessed using
+ * {@link #getSession(String)}.
+ * <p>
+ * Can accept the {@link WebSocketListener} to delegate {@link WebSocketSession} events
+ * from the internal {@link IntegrationWebSocketContainer.IntegrationWebSocketHandler}.
+ * <p>
+ * Supported sub-protocols can be configured, but {@link WebSocketListener#getSubProtocols()}
+ * have a precedent.
+ *
  * @author Artem Bilan
  * @since 4.1
+ * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
+ * @see org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler
  */
 public abstract class IntegrationWebSocketContainer implements ApplicationEventPublisherAware, DisposableBean {
 
@@ -134,7 +151,13 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 		}
 	}
 
-
+	/**
+	 * An internal {@link WebSocketHandler} implementation to be used with native
+	 * Web-Socket containers.
+	 * <p>
+	 * Delegates all operations to the wrapping {@link IntegrationWebSocketContainer}
+	 * and its {@link WebSocketListener}.
+	 */
 	private class IntegrationWebSocketHandler implements WebSocketHandler, SubProtocolCapable {
 
 		@Override

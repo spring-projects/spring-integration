@@ -28,6 +28,16 @@ import org.springframework.web.socket.client.ConnectionManagerSupport;
 import org.springframework.web.socket.client.WebSocketClient;
 
 /**
+ * The {@link IntegrationWebSocketContainer} implementation for the {@code client}
+ * Web-Socket connection.
+ * <p>
+ * Represent the composition over an internal {@link ConnectionManagerSupport}
+ * implementation.
+ * <p>
+ * Accepts the {@link #clientSession} {@link WebSocketSession} on
+ * {@link ClientWebSocketContainer.IntegrationWebSocketConnectionManager#openConnection()}
+ * event, which can be accessed from this container using {@link #getSession(String)}.
+ *
  * @author Artem Bilan
  * @since 4.1
  */
@@ -54,6 +64,13 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		this.headers.putAll(headers);
 	}
 
+	/**
+	 * Return the {@link #clientSession} {@link WebSocketSession}.
+	 * Independently of provided argument, this method always returns only the
+	 * established {@link #clientSession}
+	 * @param sessionId the {@code sessionId}. Can be {@code null}.
+	 * @return the {@link #clientSession}, if established.
+	 */
 	@Override
 	public WebSocketSession getSession(String sessionId) {
 		Assert.state(this.clientSession != null,
@@ -99,7 +116,14 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		this.connectionManager.stop(callback);
 	}
 
-
+	/**
+	 * The {@link ConnectionManagerSupport} implementation to provide open/close operations
+	 * for an external Web-Socket service, based on provided {@link WebSocketClient} and {@code uriTemplate}.
+	 * <p>
+	 * Opened {@link WebSocketSession} is populated to the wrapping {@link ClientWebSocketContainer}.
+	 * <p>
+	 * The {@link #webSocketHandler} is used to handle {@link WebSocketSession} events.
+	 */
 	private class IntegrationWebSocketConnectionManager extends ConnectionManagerSupport {
 
 		private final WebSocketClient client;

@@ -35,6 +35,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.transformer.HeaderFilter;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
@@ -49,6 +50,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.NativeMessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -83,7 +85,7 @@ public class WebSocketClientTests {
 		headers.setMessageId("mess0");
 		headers.setSubscriptionId("sub0");
 		headers.setDestination("/dest0");
-		byte[] payload = "hello".getBytes();
+		byte[] payload = "Bob".getBytes();
 		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
 
 		this.webSocketOutputChannel.send(message);
@@ -95,7 +97,7 @@ public class WebSocketClientTests {
 
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload, instanceOf(byte[].class));
-		assertEquals("HELLO", new String((byte[]) receivedPayload));
+		assertEquals("Hello Bob", new String((byte[]) receivedPayload));
 	}
 
 	@Configuration
@@ -150,10 +152,24 @@ public class WebSocketClientTests {
 	static class ServerFlowConfig extends TestServerConfig {
 
 		@Bean
-		@Transformer(inputChannel = "clientInboundChannel", outputChannel = "serviceChannel",
+		@Transformer(inputChannel = "clientInboundChannel", outputChannel = "filterNativeHeadersChannel",
 				poller = @Poller(fixedDelay = "100", maxMessagesPerPoll = "1"))
 		public org.springframework.integration.transformer.Transformer objectToStringTransformer() {
 			return new ObjectToStringTransformer();
+		}
+
+		@Bean
+		public DirectChannel filterNativeHeadersChannel() {
+			return new DirectChannel();
+		}
+
+		/*TODO StompEncoder doesn't override the 'nativeHeaders', hence we end up with two values for 'content-type'
+		and with an exception:
+		org.springframework.messaging.simp.stomp.StompConversionException: Frame must be terminated with a null octet*/
+		@Bean
+		@Transformer(inputChannel = "filterNativeHeadersChannel", outputChannel = "serviceChannel")
+		public org.springframework.integration.transformer.Transformer headerFilterTransformer() {
+			return new HeaderFilter(NativeMessageHeaderAccessor.NATIVE_HEADERS);
 		}
 
 		@Bean
@@ -171,7 +187,7 @@ public class WebSocketClientTests {
 
 			@ServiceActivator(inputChannel = "serviceChannel", outputChannel = "clientOutboundChannel")
 			public byte[] handle(String payload) {
-				   return payload.toUpperCase().getBytes();
+				return ("Hello " + payload).getBytes();
 			}
 
 		}
