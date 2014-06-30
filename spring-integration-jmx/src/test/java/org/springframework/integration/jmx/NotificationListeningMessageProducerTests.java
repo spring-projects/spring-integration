@@ -32,8 +32,11 @@ import javax.management.ObjectName;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.notification.NotificationPublisher;
@@ -44,6 +47,7 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class NotificationListeningMessageProducerTests {
@@ -83,6 +87,7 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
+		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
 		this.numberHolder.publish("foo");
 		Message<?> message = outputChannel.receive(0);
 		assertNotNull(message);
@@ -100,11 +105,12 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setServer(this.server);
 		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
-		Integer handback = new Integer(123);
+		Integer handback = 123;
 		adapter.setHandback(handback);
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
+		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
 		this.numberHolder.publish("foo");
 		Message<?> message = outputChannel.receive(0);
 		assertNotNull(message);
@@ -132,6 +138,7 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
+		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
 		this.numberHolder.publish("bad");
 		Message<?> message = outputChannel.receive(0);
 		assertNull(message);

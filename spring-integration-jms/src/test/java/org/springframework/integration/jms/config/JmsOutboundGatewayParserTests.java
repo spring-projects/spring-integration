@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,8 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.Properties;
@@ -38,10 +29,13 @@ import javax.jms.Session;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -49,7 +43,6 @@ import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvi
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -59,7 +52,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Jonas Partner
@@ -87,7 +80,15 @@ public class JmsOutboundGatewayParserTests {
 		assertEquals(5, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
 		assertEquals(10, TestUtils.getPropertyValue(container, "maxMessagesPerTask"));
 		assertEquals(2000L, TestUtils.getPropertyValue(container, "receiveTimeout"));
-		assertEquals(10000L, TestUtils.getPropertyValue(container, "recoveryInterval"));
+		Object recoveryInterval;
+		try {
+			recoveryInterval = TestUtils.getPropertyValue(container, "recoveryInterval");
+		}
+		catch (NotReadablePropertyException e) {
+			recoveryInterval = TestUtils.getPropertyValue(container, "backOff.interval");
+		}
+		assertEquals(10000L, recoveryInterval);
+
 		assertEquals(7, TestUtils.getPropertyValue(container, "idleConsumerLimit"));
 		assertEquals(2, TestUtils.getPropertyValue(container, "idleTaskExecutionLimit"));
 		assertEquals(3, TestUtils.getPropertyValue(container, "cacheLevel"));
