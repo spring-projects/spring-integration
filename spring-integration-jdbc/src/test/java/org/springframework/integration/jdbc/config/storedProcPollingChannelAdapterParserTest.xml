@@ -29,8 +29,7 @@
 			<int-jdbc:returning-resultset name="out2" row-mapper="longSingleColumnRowMapper"/>
 	</int-jdbc:stored-proc-inbound-channel-adapter>
 
-	<bean id="longSingleColumnRowMapper" class="org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper"
-		  factory-method="newInstance">
+	<bean id="longSingleColumnRowMapper" class="org.springframework.jdbc.core.SingleColumnRowMapper">
 		<constructor-arg value="java.lang.Long"/>
 	</bean>
 

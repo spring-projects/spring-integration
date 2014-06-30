@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -259,7 +259,8 @@ public class JmsInboundGatewayParserTests {
 		gateway.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
-		assertEquals(2222L, new DirectFieldAccessor(container).getPropertyValue("recoveryInterval"));
+		// TODO SF 4.1 removed 'recoveryInterval' property in favor of 'backOff'
+//		assertEquals(2222L, new DirectFieldAccessor(container).getPropertyValue("recoveryInterval"));
 		gateway.stop();
 	}
 

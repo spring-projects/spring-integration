@@ -35,6 +35,8 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -47,9 +49,11 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
-public class NotificationListeningMessageProducer extends MessageProducerSupport implements NotificationListener {
+public class NotificationListeningMessageProducer extends MessageProducerSupport
+		implements NotificationListener, ApplicationListener<ContextRefreshedEvent> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -60,6 +64,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	private volatile NotificationFilter filter;
 
 	private volatile Object handback;
+
+	private volatile boolean listenerRegistered;
 
 
 	/**
@@ -129,6 +135,18 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	/**
+	 * The {@link NotificationListener} might not be registered on {@link #start()}
+	 * because the {@code MBeanExporter} might not been started yet.
+	 * @param event the ContextRefreshedEvent event
+	 */
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (!this.listenerRegistered && isAutoStartup()) {
+			 doStart();
+		}
+	}
+
+	/**
 	 * Registers the notification listener with the specified ObjectNames.
 	 */
 	@Override
@@ -144,6 +162,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
+				this.listenerRegistered = true;
 			}
 		}
 		catch (InstanceNotFoundException e) {
@@ -201,4 +220,5 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		}
 		return objectNames;
 	}
+
 }

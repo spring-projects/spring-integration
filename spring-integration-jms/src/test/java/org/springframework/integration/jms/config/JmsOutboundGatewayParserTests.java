@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,8 @@ public class JmsOutboundGatewayParserTests {
 		assertEquals(5, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
 		assertEquals(10, TestUtils.getPropertyValue(container, "maxMessagesPerTask"));
 		assertEquals(2000L, TestUtils.getPropertyValue(container, "receiveTimeout"));
-		assertEquals(10000L, TestUtils.getPropertyValue(container, "recoveryInterval"));
+		// TODO SF 4.1 removed 'recoveryInterval' property in favor of 'backOff'
+//		assertEquals(10000L, TestUtils.getPropertyValue(container, "recoveryInterval"));
 		assertEquals(7, TestUtils.getPropertyValue(container, "idleConsumerLimit"));
 		assertEquals(2, TestUtils.getPropertyValue(container, "idleTaskExecutionLimit"));
 		assertEquals(3, TestUtils.getPropertyValue(container, "cacheLevel"));

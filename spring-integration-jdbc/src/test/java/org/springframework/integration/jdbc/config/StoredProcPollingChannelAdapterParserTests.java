@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,12 +13,7 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.sql.Types;
 import java.util.Iterator;
@@ -33,24 +28,22 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 2.1
- *
  */
 public class StoredProcPollingChannelAdapterParserTests {
 
@@ -216,7 +209,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 
 		mapEntry = iterator.next();
 		assertEquals("out2", mapEntry.getKey());
-		assertTrue(mapEntry.getValue() instanceof ParameterizedSingleColumnRowMapper);
+		assertTrue(mapEntry.getValue() instanceof SingleColumnRowMapper);
 
 	}
 
