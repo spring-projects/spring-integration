@@ -15,6 +15,11 @@
  */
 package org.springframework.integration.kafka.support;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -22,11 +27,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Soby Chacko
@@ -54,11 +55,11 @@ public class KafkaConsumerContext<K,V>  implements BeanFactoryAware {
 		for (final ConsumerConfiguration<K,V> consumerConfiguration : getConsumerConfigurations()) {
 			final Map<String, Map<Integer, List<Object>>> messages = consumerConfiguration.receive();
 
-			if (messages != null){
+			if (!CollectionUtils.isEmpty(messages)){
 				consumedData.putAll(messages);
 			}
 		}
-		return MessageBuilder.withPayload(consumedData).build();
+		return consumedData.isEmpty() ?  null :  MessageBuilder.withPayload(consumedData).build();
 	}
 
 	public String getConsumerTimeout() {
