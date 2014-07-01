@@ -45,7 +45,8 @@
 
 	<jmx:notification-listening-channel-adapter id="multiAdapter"
 			channel="multiChannel"
-			object-name="#{patterns}"/>
+			object-name="#{patterns}"
+			auto-startup="false"/>
 
 	<util:list id="patterns">
 		<value>org.springframework.integration.jmx.config:type=*,name=testPublisher</value>

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
@@ -57,6 +58,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	private final AtomicBoolean listenerRegisteredOnStartup = new AtomicBoolean();
+
 	private volatile MBeanServerConnection server;
 
 	private volatile ObjectName[] objectNames;
@@ -64,8 +67,6 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	private volatile NotificationFilter filter;
 
 	private volatile Object handback;
-
-	private volatile boolean listenerRegistered;
 
 
 	/**
@@ -141,7 +142,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (!this.listenerRegistered && isAutoStartup()) {
+		if (!this.listenerRegisteredOnStartup.getAndSet(true) && isAutoStartup()) {
 			 doStart();
 		}
 	}
@@ -151,7 +152,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	protected void doStart() {
-		if (this.listenerRegistered) {
+		if (!this.listenerRegisteredOnStartup.get()) {
 			return;
 		}
 		logger.debug("Registering to receive notifications");
@@ -165,7 +166,6 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
-				this.listenerRegistered = true;
 			}
 		}
 		catch (InstanceNotFoundException e) {
@@ -199,7 +199,6 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 				}
 			}
 		}
-		this.listenerRegistered = false;
 	}
 
 	protected Collection<ObjectName> retrieveMBeanNames() {
