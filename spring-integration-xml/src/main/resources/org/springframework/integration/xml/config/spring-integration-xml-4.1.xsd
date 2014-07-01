@@ -742,7 +742,29 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="create-documents" type="xsd:string" use="optional"/>
+					<xsd:attribute name="create-documents" use="optional" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set this flag to 'true' to convert each Node from splitting	result to the Document
+								before sending replies from this splitter. Default is 'false'
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="apply-sequence" use="optional" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set this flag to false to prevent adding sequence related headers in this splitter.
+								This can be convenient in cases where the set sequence numbers conflict with downstream
+								custom aggregations.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

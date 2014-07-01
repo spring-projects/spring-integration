@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 
@@ -53,6 +54,7 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "doc-builder-factory", "documentBuilder");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "create-documents");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		return builder;
 	}
 
