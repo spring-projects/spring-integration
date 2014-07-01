@@ -3322,7 +3322,9 @@
 						<xsd:documentation>
 							Set this flag to false to prevent adding sequence related headers in this splitter.
 							This can be convenient in cases where the set sequence numbers conflict with downstream
-							custom aggregations.
+							custom aggregations. When true, existing correlation and sequence related headers
+							are pushed onto a stack; downstream components, such as aggregators may pop
+							the stack to revert the existing headers after aggregation. Default is 'true'.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
