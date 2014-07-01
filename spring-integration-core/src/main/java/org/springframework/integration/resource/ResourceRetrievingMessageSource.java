@@ -41,7 +41,8 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  * @since 2.1
  */
-public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
+public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resource[]>
+		implements ApplicationContextAware, InitializingBean {
 
 	private final String pattern;
 
@@ -78,11 +79,10 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 
 
 	@Override
-	public void afterPropertiesSet() {
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
 		if (this.patternResolver == null) {
-			if (this.applicationContext instanceof ResourcePatternResolver) {
-				this.patternResolver = this.applicationContext;
-			}
+			this.patternResolver = this.applicationContext;
 		}
 		Assert.notNull(this.patternResolver, "no 'patternResolver' available");
 	}
