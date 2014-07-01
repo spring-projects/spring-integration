@@ -65,7 +65,8 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 	}
 
 	@Override
-	public void afterPropertiesSet() {
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;

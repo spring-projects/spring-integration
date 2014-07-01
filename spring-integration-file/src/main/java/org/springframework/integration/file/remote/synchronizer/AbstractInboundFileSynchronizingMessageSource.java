@@ -22,8 +22,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -55,8 +54,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport
-	implements MessageSource<File> {
+public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends AbstractMessageSource<File> {
 
 	/**
 	 * Should the endpoint attempt to create the local directory? True by default.
@@ -86,7 +84,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		this(synchronizer, null);
 	}
 
-	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer, Comparator<File> comparator) {
+	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer,
+			Comparator<File> comparator) {
 		Assert.notNull(synchronizer, "synchronizer must not be null");
 		this.synchronizer = synchronizer;
 		if (comparator == null){
@@ -122,7 +121,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	}
 
 	@Override
-	protected void onInit() {
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
 		Assert.notNull(this.localDirectory, "localDirectory must not be null");
 		try {
 			if (!this.localDirectory.exists()) {
@@ -149,7 +149,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		}
 		catch (Exception e) {
 			throw new MessagingException(
-					"Failure during initialization of MessageSource for: " + this.getComponentType(), e);
+					"Failure during initialization of MessageSource for: " + this.getClass(), e);
 		}
 	}
 
@@ -159,7 +159,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	 * Then, it polls the file source again and returns the result, whether or not it is null.
 	 */
 	@Override
-	public final Message<File> receive() {
+	public final Message<File> doReceive() {
 		Assert.state(this.fileSource != null, "fileSource must not be null");
 		Assert.state(this.synchronizer != null, "synchronizer must not be null");
 		Message<File> message = this.fileSource.receive();
