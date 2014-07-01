@@ -151,6 +151,9 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	protected void doStart() {
+		if (this.listenerRegistered) {
+			return;
+		}
 		logger.debug("Registering to receive notifications");
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
@@ -196,6 +199,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 				}
 			}
 		}
+		this.listenerRegistered = false;
 	}
 
 	protected Collection<ObjectName> retrieveMBeanNames() {

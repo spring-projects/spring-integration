@@ -26,7 +26,7 @@
 		<int:header-enricher>
 			<int:error-channel ref="errorChannel" overwrite="true"/>
 		</int:header-enricher>
-		<int:delayer id="delayer" default-delay="10"/>
+		<int:delayer id="delayer" default-delay="100"/>
 	</int:chain>
 
 

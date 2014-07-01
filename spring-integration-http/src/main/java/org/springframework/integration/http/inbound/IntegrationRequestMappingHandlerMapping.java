@@ -64,8 +64,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * (e.g. Spring Integration XML) configurations.
  *
  * @author Artem Bilan
- * @see RequestMapping
  * @since 3.0
+ * @see RequestMapping
  * @see RequestMappingHandlerMapping
  */
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping

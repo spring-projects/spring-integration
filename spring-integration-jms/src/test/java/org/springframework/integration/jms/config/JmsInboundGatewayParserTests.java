@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Properties;
 
@@ -27,11 +24,11 @@ import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.integration.test.util.TestUtils;
@@ -40,6 +37,8 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Mark Fisher
@@ -259,8 +258,14 @@ public class JmsInboundGatewayParserTests {
 		gateway.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
-		// TODO SF 4.1 removed 'recoveryInterval' property in favor of 'backOff'
-//		assertEquals(2222L, new DirectFieldAccessor(container).getPropertyValue("recoveryInterval"));
+		Object recoveryInterval;
+		try {
+			recoveryInterval = TestUtils.getPropertyValue(container, "recoveryInterval");
+		}
+		catch (NotReadablePropertyException e) {
+			recoveryInterval = TestUtils.getPropertyValue(container, "backOff.interval");
+		}
+		assertEquals(2222L, recoveryInterval);
 		gateway.stop();
 	}
 
