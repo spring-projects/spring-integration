@@ -428,14 +428,14 @@
     <para>
         All <classname>TcpConnection</classname> methods are intercepted.
         Interceptor instances are created for each connection by an interceptor factory.
-        If an interceptor is stateful, the factory should create a new instance for each connection.
-        Interceptor
+        If an interceptor is stateful, the factory should create a new instance for each connection;
+        if there is no state, the same interceptor can wrap each connection. Interceptor
         factories are added to the configuration of an interceptor factory chain, which is provided
         to a connection factory using the <classname>interceptor-factory</classname> attribute.
-        Interceptors must implement the <classname>TcpConnectionInterceptor</classname> interface;
+        Interceptors must extend <classname>TcpConnectionInterceptorSupport</classname>;
         factories
-        must implement the <classname>TcpConnectionInterceptorFactory</classname> interface. A
-        convenience class <classname>AbstractTcpConnectionInterceptor</classname> is provided
+        must implement the <classname>TcpConnectionInterceptorFactory</classname> interface.
+        <classname>TcpConnectionInterceptorSupport</classname> is provided
         with passthrough methods; by extending this class, you only need to implement those
         methods you wish to intercept.
     </para>
