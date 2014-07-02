@@ -12,6 +12,7 @@
  */
 
 package org.springframework.integration.jdbc;
+
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +23,16 @@ import java.util.Map.Entry;
 
 import javax.sql.DataSource;
 
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cache.annotation.AnnotationCacheOperationSource;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.cache.interceptor.CacheInterceptor;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -41,17 +49,9 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedMetric;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheStats;
-import com.google.common.cache.LoadingCache;
-
 
 
 /**
@@ -64,19 +64,13 @@ import com.google.common.cache.LoadingCache;
  * @since 2.1
  *
  */
-@ManagedResource
-public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
+public class StoredProcExecutor implements BeanFactoryAware, BeanClassLoaderAware, InitializingBean {
 
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile BeanFactory beanFactory = null;
 
-	private volatile int jdbcCallOperationsCacheSize = 10;
-
-	/**
-	 * Uses the {@link SimpleJdbcCall} implementation for executing Stored Procedures.
-	 */
-	private volatile LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache = null;
+	private StoredProcedureLoader storedProcedureLoader;
 
 	private volatile Expression storedProcedureNameExpression;
 
@@ -87,7 +81,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * not support meta data lookups or if you like to provide customized
 	 * parameter definitions, this flag can be set to 'true'. It defaults to 'false'.
 	 */
-	private volatile boolean   ignoreColumnMetaData = false;
+	private volatile boolean ignoreColumnMetaData = false;
 
 	/**
 	 * If this variable is set to true then all results from a stored procedure call
@@ -97,7 +91,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 *
 	 * Value defaults to <code>true</code>.
 	 */
-	private volatile boolean  skipUndeclaredResults = true;
+	private volatile boolean skipUndeclaredResults = true;
 
 	/**
 	 * If your database system is not fully supported by Spring and thus obtaining
@@ -129,13 +123,17 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
 	 */
-	private volatile List<ProcedureParameter>procedureParameters;
+	private volatile List<ProcedureParameter> procedureParameters;
 
 	private volatile boolean isFunction = false;
+
 	private volatile boolean returnValueRequired = false;
+
 	private volatile Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<String, RowMapper<?>>(0);
 
 	private final DataSource dataSource;
+
+	private ClassLoader classLoader;
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -164,14 +162,14 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		if (this.storedProcedureNameExpression == null) {
 			throw new IllegalArgumentException("You must either provide a "
-				+ "Stored Procedure Name or a Stored Procedure Name Expression.");
+					+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 		}
 
-		if (this.procedureParameters != null ) {
+		if (this.procedureParameters != null) {
 
 			if (this.sqlParameterSourceFactory == null) {
 				ExpressionEvaluatingSqlParameterSourceFactory expressionSourceFactory =
-											  new ExpressionEvaluatingSqlParameterSourceFactory();
+						new ExpressionEvaluatingSqlParameterSourceFactory();
 
 				expressionSourceFactory.setBeanFactory(this.beanFactory);
 				expressionSourceFactory.setStaticParameters(ProcedureParameter.convertStaticParameters(procedureParameters));
@@ -184,9 +182,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 				if (!(this.sqlParameterSourceFactory instanceof ExpressionEvaluatingSqlParameterSourceFactory)) {
 					throw new IllegalStateException("You are providing 'ProcedureParameters'. "
-						+ "Was expecting the the provided sqlParameterSourceFactory "
-						+ "to be an instance of 'ExpressionEvaluatingSqlParameterSourceFactory', "
-						+ "however the provided one is of type '" + this.sqlParameterSourceFactory.getClass().getName() + "'");
+							+ "Was expecting the the provided sqlParameterSourceFactory "
+							+ "to be an instance of 'ExpressionEvaluatingSqlParameterSourceFactory', "
+							+ "however the provided one is of type '" + this.sqlParameterSourceFactory.getClass().getName() + "'");
 				}
 
 			}
@@ -208,24 +206,25 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		}
 
-		jdbcCallOperationsCache = CacheBuilder.newBuilder()
-				.maximumSize(jdbcCallOperationsCacheSize)
-				.recordStats()
-				.build(new CacheLoader<String, SimpleJdbcCallOperations>() {
-					@Override
-					public SimpleJdbcCall load(String storedProcedureName) {
-						return createSimpleJdbcCall(storedProcedureName);
-					}
-				});
-
-		if (this.storedProcedureNameExpression instanceof LiteralExpression) {
-			String storedProcedureName = this.storedProcedureNameExpression.getValue(String.class);
-			final SimpleJdbcCall simpleJdbcCall = createSimpleJdbcCall(storedProcedureName);
-			this.jdbcCallOperationsCache.put(storedProcedureName, simpleJdbcCall);
-		}
-
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 
+		initStoredProcedureCache();
+	}
+
+	private void initStoredProcedureCache() {
+		SimpleCacheManager cacheManager = new SimpleCacheManager();
+		cacheManager.setCaches(Collections.singletonList(new ConcurrentMapCache("storedProcedures")));
+		cacheManager.afterPropertiesSet();
+
+		CacheInterceptor cacheInterceptor = new CacheInterceptor();
+		cacheInterceptor.setCacheManager(cacheManager);
+		cacheInterceptor.setCacheOperationSources(new AnnotationCacheOperationSource());
+		cacheInterceptor.afterPropertiesSet();
+
+		ProxyFactory proxyFactory = new ProxyFactory(new StoredProcedureLoader());
+		proxyFactory.addAdvice(cacheInterceptor);
+		proxyFactory.setProxyTargetClass(true);
+		this.storedProcedureLoader = (StoredProcedureLoader) proxyFactory.getProxy(this.classLoader);
 	}
 
 	private SimpleJdbcCall createSimpleJdbcCall(String storedProcedureName) {
@@ -283,7 +282,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		Assert.notNull(message, "The message parameter must not be null.");
 		Assert.notNull(usePayloadAsParameterSource, "Property usePayloadAsParameterSource "
-												  + "was Null. Did you call afterPropertiesSet()?");
+				+ "was Null. Did you call afterPropertiesSet()?");
 
 		final Object input;
 
@@ -311,19 +310,19 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * Execute the Stored Procedure using the passed in {@link Message} as a source
 	 * for parameters.
-	 *
-	 * @param message The message is used to extract parameters for the stored procedure.
+	 * @param input The object is used to extract parameters for the stored procedure.
+	 * @param storedProcedureName The stored procedure name to be executed.
 	 * @return A map containing the return values from the Stored Procedure call if any.
 	 */
 	private Map<String, Object> executeStoredProcedureInternal(Object input, String storedProcedureName) {
 
 		Assert.notNull(sqlParameterSourceFactory, "Property sqlParameterSourceFactory "
-												+ "was Null. Did you call afterPropertiesSet()?");
+				+ "was Null. Did you call afterPropertiesSet()?");
 
-		SimpleJdbcCallOperations localSimpleJdbcCall = this.jdbcCallOperationsCache.getUnchecked(storedProcedureName);
+		SimpleJdbcCallOperations localSimpleJdbcCall = this.storedProcedureLoader.getStoreProcedure(storedProcedureName);
 
 		SqlParameterSource storedProcedureParameterSource =
-			sqlParameterSourceFactory.createParameterSource(input);
+				sqlParameterSourceFactory.createParameterSource(input);
 
 		return localSimpleJdbcCall.execute(storedProcedureParameterSource);
 
@@ -398,7 +397,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * @return the name of the Stored Procedure or Function if set. Null otherwise.
 	 * */
-	@ManagedAttribute(defaultValue="Null if not Set.")
+	@ManagedAttribute(defaultValue = "Null if not Set.")
 	public String getStoredProcedureName() {
 		return this.storedProcedureNameExpression instanceof LiteralExpression ?
 				storedProcedureNameExpression.getValue(String.class) : null;
@@ -407,7 +406,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * @return the Stored Procedure Name Expression as a String if set. Null otherwise.
 	 * */
-	@ManagedAttribute(defaultValue="Null if not Set.")
+	@ManagedAttribute(defaultValue = "Null if not Set.")
 	public String getStoredProcedureNameExpressionAsString() {
 		return this.storedProcedureNameExpression != null ? this.storedProcedureNameExpression.getExpressionString() : null;
 	}
@@ -546,61 +545,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	/**
-	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}, which is used to store
-	 * instances of {@link SimpleJdbcCallOperations}.
-	 *
-	 * @return Cache statistics for {@link StoredProcExecutor#jdbcCallOperationsCache}
-	 */
-	public CacheStats getJdbcCallOperationsCacheStatistics() {
-		return this.jdbcCallOperationsCache.stats();
-	}
-
-	/**
-	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
-	 *
-	 * Provides the properties of {@link CacheStats} as a {@link Map}. This allows
-	 * for exposing the those properties easily via JMX.
-	 *
-	 * @return Map containing metrics of the JdbcCallOperationsCache
-	 *
-	 * @see StoredProcExecutor#getJdbcCallOperationsCacheStatistics()
-	 */
-	@ManagedMetric
-	public Map<String, Object> getJdbcCallOperationsCacheStatisticsAsMap() {
-		final CacheStats cacheStats = this.getJdbcCallOperationsCacheStatistics();
-		final Map<String, Object> cacheStatistics  = new HashMap<String, Object>(11);
-		cacheStatistics.put("averageLoadPenalty", cacheStats.averageLoadPenalty());
-		cacheStatistics.put("evictionCount", cacheStats.evictionCount());
-		cacheStatistics.put("hitCount", cacheStats.hitCount());
-		cacheStatistics.put("hitRate", cacheStats.hitRate());
-		cacheStatistics.put("loadCount", cacheStats.loadCount());
-		cacheStatistics.put("loadExceptionCount", cacheStats.loadExceptionCount());
-		cacheStatistics.put("loadExceptionRate", cacheStats.loadExceptionRate());
-		cacheStatistics.put("loadSuccessCount", cacheStats.loadSuccessCount());
-		cacheStatistics.put("missCount", cacheStats.missCount());
-		cacheStatistics.put("missRate", cacheStats.missRate());
-		cacheStatistics.put("totalLoadTime", cacheStats.totalLoadTime());
-		return Collections.unmodifiableMap(cacheStatistics);
-	}
-
-	/**
-	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
-	 * ({@link SimpleJdbcCall}) instances to be held by
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
-	 *
-	 * A value of zero will disable the cache. The default is 10.
-	 *
-	 * @see CacheBuilder#maximumSize(long)
-	 * @param jdbcCallOperationsCacheSize Must not be negative.
-	 */
-	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
-		Assert.isTrue(jdbcCallOperationsCacheSize >= 0, "jdbcCallOperationsCacheSize must not be negative.");
-		this.jdbcCallOperationsCacheSize = jdbcCallOperationsCacheSize;
-	}
-
-	/**
 	 * Allows to set the optional {@link BeanFactory} which is used to add a
 	 * {@link BeanResolver} to the {@link StandardEvaluationContext}. If not set
 	 * this property defaults to null.
@@ -611,6 +555,20 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(returningResultSetRowMappers, "returningResultSetRowMappers must not be null.");
 		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	private class StoredProcedureLoader {
+
+		@Cacheable("storedProcedures")
+		public SimpleJdbcCallOperations getStoreProcedure(String storedProcedureName) {
+			return StoredProcExecutor.this.createSimpleJdbcCall(storedProcedureName);
+		}
+
 	}
 
 }
