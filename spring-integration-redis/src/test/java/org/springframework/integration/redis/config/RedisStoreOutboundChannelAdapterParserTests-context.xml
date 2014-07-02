@@ -22,7 +22,11 @@
 	<int-redis:store-outbound-channel-adapter id="withStringTemplate"
 											  collection-type="${collection.type}"
 											  key="pepboys"
-											  auto-startup="false"/>
+											  auto-startup="false">
+		<int-redis:request-handler-advice-chain>
+			<int:retry-advice/>
+		</int-redis:request-handler-advice-chain>
+	</int-redis:store-outbound-channel-adapter>
 
 	<int-redis:store-outbound-channel-adapter id="withStringObjectTemplate"
 											  collection-type="PROPERTIES"
@@ -40,9 +44,9 @@
 		<property name="keySerializer" ref="keySerializer"/>
 		<property name="valueSerializer" ref="valueSerializer"/>
 		<property name="hashKeySerializer" ref="hashKeySerializer"/>
-		<property name="hashValueSerializer" ref="hashValueSerializer"/>						
+		<property name="hashValueSerializer" ref="hashValueSerializer"/>
 	</bean>
-	
+
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
 	</bean>

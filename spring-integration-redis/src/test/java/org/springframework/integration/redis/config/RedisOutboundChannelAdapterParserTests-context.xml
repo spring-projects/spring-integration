@@ -10,10 +10,14 @@
 	<int:channel id="sendChannel"/>
 
 	<int-redis:outbound-channel-adapter id="outboundAdapter"
-			channel="sendChannel"
-			topic-expression="headers['topic'] ?: 'foo'"
-			message-converter="testConverter"
-			serializer="serializer"/>
+										channel="sendChannel"
+										topic-expression="headers['topic'] ?: 'foo'"
+										message-converter="testConverter"
+										serializer="serializer">
+		<int-redis:request-handler-advice-chain>
+			<int:retry-advice/>
+		</int-redis:request-handler-advice-chain>
+	</int-redis:outbound-channel-adapter>
 
 	<int-redis:inbound-channel-adapter id="fooInbound" channel="receiveChannel" topics="foo"/>
 

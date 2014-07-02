@@ -13,37 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mqtt.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
- *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MqttOutboundChannelAdapterParserTests {
 
+	@Autowired @Qualifier("withConverter")
+	private EventDrivenConsumer withConverterEndpoint;
+
 	@Autowired @Qualifier("withConverter.handler")
-	private MqttPahoMessageHandler withConverterHandler;
+	private MessageHandler withConverterHandler;
 
 	@Autowired @Qualifier("withDefaultConverter.handler")
 	private MqttPahoMessageHandler withDefaultConverterHandler;
@@ -55,7 +62,7 @@ public class MqttOutboundChannelAdapterParserTests {
 	private DefaultMqttPahoClientFactory clientFactory;
 
 	@Test
-	public void testWithConverter() {
+	public void testWithConverter() throws Exception {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withConverterHandler, "url"));
 		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "autoStartup", Boolean.class));
 		assertEquals(25, TestUtils.getPropertyValue(withConverterHandler, "phase"));
@@ -63,6 +70,15 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertEquals("bar", TestUtils.getPropertyValue(withConverterHandler, "defaultTopic"));
 		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withConverterHandler, "clientFactory"));
+
+		Object handler = TestUtils.getPropertyValue(this.withConverterEndpoint, "handler");
+
+		assertTrue(AopUtils.isAopProxy(handler));
+
+		assertSame(((Advised) handler).getTargetSource().getTarget(), this.withConverterHandler);
+
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
 	@Test

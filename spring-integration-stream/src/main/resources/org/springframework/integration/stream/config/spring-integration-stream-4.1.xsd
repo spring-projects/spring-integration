@@ -45,6 +45,11 @@
 	or to stderr (System.err) depending on the element name.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:all>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+						 minOccurs="0" maxOccurs="1" />
+		</xsd:all>
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="charset" type="xsd:string"/>
 		<xsd:attribute name="append-newline" type="xsd:string" default="false"/>

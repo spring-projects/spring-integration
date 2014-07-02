@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="channel"/>
-	
+
 	<channel id="channelB">
 		<queue capacity="2"/>
 	</channel>
@@ -22,10 +22,13 @@
 
 	<outbound-channel-adapter id="adapterB" channel="channelB" method="out" order="99" auto-startup="false">
 		<beans:bean class="org.springframework.integration.config.xml.DefaultOutboundChannelAdapterParserTests$TestBean"/>
-		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" /> 
+		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" />
+		<request-handler-advice-chain>
+			<retry-advice/>
+		</request-handler-advice-chain>
 	</outbound-channel-adapter>
 
-	<task:executor id="executor" pool-size="5" /> 
+	<task:executor id="executor" pool-size="5" />
 
 	<outbound-channel-adapter id="adapterC" channel="channelC" order="99">
 		<beans:bean class="org.springframework.integration.config.TestConsumer"/>

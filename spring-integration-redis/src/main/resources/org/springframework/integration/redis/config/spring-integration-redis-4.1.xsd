@@ -203,9 +203,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="redisAdapterType">
-					<xsd:sequence>
+					<xsd:all>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-					</xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="topic" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -296,6 +298,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="redisAdapterType">
+					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attributeGroup ref="storeAdapterAttributeGroup"/>
 					<xsd:attribute name="redis-template" type="xsd:string">
 						<xsd:annotation>
@@ -410,9 +417,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="redisAdapterType">
-					<xsd:sequence>
-						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-					</xsd:sequence>
+					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="queue" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -472,7 +481,8 @@
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 			<xsd:attribute name="connection-factory" type="xsd:string">

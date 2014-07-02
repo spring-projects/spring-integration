@@ -41,9 +41,9 @@
 				remote-directory-expression="'foo' + '/' + 'bar'"
 				remote-filename-generator-expression="payload.getName() + '-foo'"
 				order="12"/>
-							
-	<int-sftp:outbound-channel-adapter 
-				session-factory="sftpSessionFactory" 
+
+	<int-sftp:outbound-channel-adapter
+				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory="foo/bar"/>
@@ -55,17 +55,22 @@
 				use-temporary-file-name="false"
 				remote-directory="foo/bar"/>
 
+	<int:channel id="queueChannel">
+		<int:queue/>
+	</int:channel>
+
 	<int-sftp:outbound-channel-adapter id="advised"
 				session-factory="sftpSessionFactory"
-				channel="inputChannel"
+				channel="queueChannel"
 				charset="UTF-8"
 				use-temporary-file-name="false"
 				remote-directory="foo/bar">
+		<int:poller fixed-delay="1000"/>
 		<int-sftp:request-handler-advice-chain>
 			<bean class="org.springframework.integration.sftp.config.OutboundChannelAdapterParserTests$FooAdvice" />
 		</int-sftp:request-handler-advice-chain>
 	</int-sftp:outbound-channel-adapter>
-				
+
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>

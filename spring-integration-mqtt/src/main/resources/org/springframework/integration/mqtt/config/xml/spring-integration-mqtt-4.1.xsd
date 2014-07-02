@@ -80,9 +80,11 @@
 					</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexType>
-				<xsd:sequence>
+				<xsd:all>
 					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-				</xsd:sequence>
+					<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+								 minOccurs="0" maxOccurs="1" />
+				</xsd:all>
 				<xsd:attributeGroup ref="coreMqttComponentAttributes"/>
 				<xsd:attribute name="channel" type="xsd:string">
 					<xsd:annotation>

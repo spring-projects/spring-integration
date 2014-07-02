@@ -11,15 +11,19 @@
 	<int:channel id="target"/>
 
 	<int-mqtt:outbound-channel-adapter id="withConverter"
-			client-id="foo"
-			url="tcp://localhost:1883"
-			auto-startup="false"
-			converter="myConverter"
-			client-factory="clientFactory"
-			default-topic="bar"
-			phase="25"
-			order="1"
-			channel="target" />
+									   client-id="foo"
+									   url="tcp://localhost:1883"
+									   auto-startup="false"
+									   converter="myConverter"
+									   client-factory="clientFactory"
+									   default-topic="bar"
+									   phase="25"
+									   order="1"
+									   channel="target">
+		<int-mqtt:request-handler-advice-chain>
+			<int:retry-advice/>
+		</int-mqtt:request-handler-advice-chain>
+	</int-mqtt:outbound-channel-adapter>
 
 	<int-mqtt:outbound-channel-adapter id="withDefaultConverter"
 			client-id="foo"

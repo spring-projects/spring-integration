@@ -16,19 +16,21 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.expression.Expression;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,6 +53,10 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 	private RedisConnectionFactory customRedisConnectionFactory;
 
 	@Autowired
+	@Qualifier("defaultAdapter")
+	private EventDrivenConsumer defaultEndpoint;
+
+	@Autowired
 	@Qualifier("defaultAdapter.handler")
 	private RedisQueueOutboundChannelAdapter defaultAdapter;
 
@@ -62,11 +68,20 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 	private RedisSerializer<?> serializer;
 
 	@Test
-	public void testInt3017DefaultConfig() {
+	public void testInt3017DefaultConfig() throws Exception {
 		assertSame(this.connectionFactory, TestUtils.getPropertyValue(this.defaultAdapter, "template.connectionFactory"));
 		assertEquals("foo", TestUtils.getPropertyValue(this.defaultAdapter, "queueNameExpression", Expression.class).getExpressionString());
 		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "extractPayload", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "serializerExplicitlySet", Boolean.class));
+
+		Object handler = TestUtils.getPropertyValue(this.defaultEndpoint, "handler");
+
+		assertTrue(AopUtils.isAopProxy(handler));
+
+		assertSame(((Advised) handler).getTargetSource().getTarget(), this.defaultAdapter);
+
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
 	@Test

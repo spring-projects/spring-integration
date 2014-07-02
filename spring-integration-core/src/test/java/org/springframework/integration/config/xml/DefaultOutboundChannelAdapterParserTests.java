@@ -16,15 +16,19 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.config.TestConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
+import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -59,14 +63,15 @@ public class DefaultOutboundChannelAdapterParserTests {
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
 		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
 	}
-	
+
 	@Test
 	public void checkConfigWithInnerBeanAndPoller() {
 		Object adapter = context.getBean("adapterB");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
-		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
-		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
+		assertTrue(AopUtils.isAopProxy(handler));
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
 	@Test
