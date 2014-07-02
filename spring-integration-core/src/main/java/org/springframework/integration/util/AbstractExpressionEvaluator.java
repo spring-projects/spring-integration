@@ -44,7 +44,7 @@ import org.springframework.messaging.MessageHandlingException;
  */
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, InitializingBean {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile StandardEvaluationContext evaluationContext;
 
@@ -69,6 +69,10 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			}
 			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 		}
+	}
+
+	protected BeanFactory getBeanFactory() {
+		return beanFactory;
 	}
 
 	public void setConversionService(ConversionService conversionService) {
@@ -136,15 +140,16 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	protected Object evaluateExpression(String expression, Object input) {
-		return this.evaluateExpression(expression, input, (Class<?>) null);
+		return this.evaluateExpression(expression, input, null);
 	}
 
 	protected <T> T evaluateExpression(String expression, Object input, Class<T> expectedType) {
-		return this.expressionParser.parseExpression(expression).getValue(this.getEvaluationContext(), input, expectedType);
+		return this.expressionParser.parseExpression(expression)
+				.getValue(this.getEvaluationContext(), input, expectedType);
 	}
 
 	protected Object evaluateExpression(Expression expression, Object input) {
-		return this.evaluateExpression(expression, input, (Class<?>) null);
+		return this.evaluateExpression(expression, input, null);
 	}
 
 	protected <T> T evaluateExpression(Expression expression, Class<T> expectedType) {
