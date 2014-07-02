@@ -78,33 +78,6 @@ public class StoredProcPollingChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testDefaultJdbcCallOperationsCacheSizeIsSet() {
-		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
-
-		Integer cacheSize =
-			TestUtils.getPropertyValue(this.pollingAdapter,
-					"source.executor.jdbcCallOperationsCacheSize",
-					Integer.class);
-
-		assertEquals("Wrong Default JdbcCallOperations Cache Size", Integer.valueOf(10),
-				cacheSize);
-	}
-
-
-	@Test
-	public void testJdbcCallOperationsCacheSizeIsSet() {
-		setUp("storedProcPollingChannelAdapterParserTest2.xml", getClass());
-
-		Integer cacheSize =
-			TestUtils.getPropertyValue(this.pollingAdapter,
-					"source.executor.jdbcCallOperationsCacheSize",
-					Integer.class);
-
-		assertEquals("Wrong JdbcCallOperations Cache Size", Integer.valueOf(77),
-				cacheSize);
-	}
-
-	@Test
 	public void testSkipUndeclaredResultsAttributeSet() throws Exception {
 		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 

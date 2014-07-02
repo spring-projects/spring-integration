@@ -751,29 +751,6 @@
 				this attribute specifies a Stored Function. Either this property
 				or <emphasis>stored-procedure-name</emphasis> must be specified.
 			</para>
-			<para><emphasis role="bold">jdbc-call-operations-cache-size</emphasis></para>
-			<para>
-				Defines the maximum number of cached
-				<interfacename>SimpleJdbcCallOperations</interfacename> instances.
-				Basically, for each Stored Procedure Name a new
-				<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCallOperations.html"><interfacename>SimpleJdbcCallOperations</interfacename></ulink>
-				instance is created that in return is being cached.
-			</para>
-			<note>
-				The <emphasis>stored-procedure-name-expression</emphasis> attribute
-				and the <emphasis>jdbc-call-operations-cache-size</emphasis>
-				were added with Spring Integration 2.2.
-			</note>
-			<para>
-				The default cache size is <emphasis>10</emphasis>.
-				A value of <emphasis>0</emphasis> disables caching.
-				Negative values are not permitted.
-			</para>
-			<para>
-				If you enable JMX, statistical information about the <emphasis>
-				jdbc-call-operations-cache</emphasis> is exposed as MBean. Please
-				see <xref linkend="jmx-mbean-exporter"/> for more information.
-			</para>
             <para><emphasis role="bold">sql-parameter-source-factory</emphasis>
             (Not available for the Stored Procedure Inbound Channel Adapter.)</para>
 

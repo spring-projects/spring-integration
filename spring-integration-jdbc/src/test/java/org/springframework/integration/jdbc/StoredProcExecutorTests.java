@@ -16,9 +16,8 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,15 +34,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
-import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
-
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheStats;
 
 /**
  * @author Gunnar Hillert
@@ -312,124 +305,30 @@ public class StoredProcExecutorTests {
 	}
 
 	@Test
-	public void testStoredProcExecutorWithNonResolvingExpression() throws Exception {
-
-		final DataSource datasource = mock(DataSource.class);
-
-		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-
-		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
-		efb.afterPropertiesSet();
-		final Expression expression = efb.getObject();
-
-		storedProcExecutor.setStoredProcedureNameExpression(expression);
+	@SuppressWarnings("unchecked")
+	public void testStoredProcedureLoader() {
+		DataSource datasource = mock(DataSource.class);
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+		storedProcExecutor.setStoredProcedureName("123");
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+
+		List<SqlParameter> sqlParameters = TestUtils.getPropertyValue(storedProcExecutor, "sqlParameters", List.class);
+		sqlParameters = spy(sqlParameters);
+		DirectFieldAccessor dfa = new DirectFieldAccessor(storedProcExecutor);
+		dfa.setPropertyValue("sqlParameters", sqlParameters);
 
 		storedProcExecutor.afterPropertiesSet();
 
-		this.mockTheOperationsCache(storedProcExecutor);
-
-		//This should work
-
-		storedProcExecutor.executeStoredProcedure(
-			MessageBuilder.withPayload("test")
-				.setHeader("stored_procedure_name", "123")
-				.build());
-
-		//This should cause an exception
-
-		try {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-						.setHeader("some_other_header", "123")
-						.build());
-		}
-		catch (IllegalArgumentException e) {
-			assertEquals("Unable to resolve Stored Procedure/Function name for the provided Expression 'headers['stored_procedure_name']'.", e.getMessage());
-			return;
+		for (int i = 0; i < 3; i++) {
+			try {
+				storedProcExecutor.executeStoredProcedure();
+			}
+			catch (Exception e) {
+				//Ignore the exception. We aren't interested in the real call.
+			}
 		}
 
-		fail("IllegalArgumentException expected.");
-
-	}
-
-	@Test
-	public void testStoredProcExecutorJdbcCallOperationsCache() throws Exception {
-
-		final DataSource datasource = mock(DataSource.class);
-
-		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-
-		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
-		efb.afterPropertiesSet();
-		final Expression expression = efb.getObject();
-
-		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
-
-		storedProcExecutor.afterPropertiesSet();
-
-		this.mockTheOperationsCache(storedProcExecutor);
-
-		for (int i = 1; i <= 3; i++) {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-						.setHeader("stored_procedure_name", "123")
-						.build());
-		}
-
-		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
-		LOGGER.info(stats);
-		LOGGER.info(stats.totalLoadTime() / 1000 / 1000);
-
-		assertEquals(stats.hitCount(), 2);
-		assertEquals(stats.missCount(), 1);
-		assertEquals(stats.loadCount(), 1);
-
-	}
-
-	@Test
-	public void testSetJdbcCallOperationsCacheSize() throws Exception {
-
-		final DataSource datasource = mock(DataSource.class);
-
-		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-
-		storedProcExecutor.setJdbcCallOperationsCacheSize(0);
-
-		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
-		efb.afterPropertiesSet();
-		final Expression expression = efb.getObject();
-
-		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
-
-		storedProcExecutor.afterPropertiesSet();
-
-		this.mockTheOperationsCache(storedProcExecutor);
-
-		for (int i = 1; i <= 10; i++) {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-						.setHeader("stored_procedure_name", "123")
-						.build());
-		}
-
-		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
-		LOGGER.info(stats);
-		assertEquals("Expected a cache misscount of 10", 10, stats.missCount());
-
-	}
-
-	private void mockTheOperationsCache(final StoredProcExecutor storedProcExecutor) {
-		Object cache = TestUtils.getPropertyValue(storedProcExecutor, "jdbcCallOperationsCache.localCache");
-		new DirectFieldAccessor(cache)
-				.setPropertyValue("defaultLoader", new CacheLoader<String, SimpleJdbcCallOperations>() {
-					@Override
-					public SimpleJdbcCall load(String storedProcedureName) {
-						return mock(SimpleJdbcCall.class);
-					}
-				});
+		verify(sqlParameters).toArray(any(SqlParameter[].class));
 	}
 
 }

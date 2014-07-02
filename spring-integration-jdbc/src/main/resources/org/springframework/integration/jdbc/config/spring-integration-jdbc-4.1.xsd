@@ -1131,20 +1131,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="jdbc-call-operations-cache-size" default="10" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines the maximum number of cached SimpleJdbcCallOperations
-					instances. Basically, for each Stored Procedure Name a new
-					SimpleJdbcCallOperations instance is created that in return
-					is being cached. The default cache size is '10'. A value of
-					'0' disables caching. Negative values are not permitted.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:union memberTypes="xsd:integer" />
-			</xsd:simpleType>
-		</xsd:attribute>
 		<xsd:attribute name="data-source" type="xsd:string" use="required" >
 			<xsd:annotation>
 				<xsd:documentation>
