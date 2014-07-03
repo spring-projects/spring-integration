@@ -65,9 +65,9 @@
 		  In the first case, the expression will evaluate to <code>null</code>; the second will result in
 		  something like:
 		  <programlisting language="java"><![CDATA[ org.springframework.expression.spel.SpelEvaluationException: EL1008E:(pos 8):
-		   Field or property 'delay' cannot be found on object of type 'org.springframework.integration.MessageHeaders']]></programlisting>
+		   Field or property 'delay' cannot be found on object of type 'org.springframework.messaging.MessageHeaders']]></programlisting>
 		  So, if there is a possibility of the header being omitted, and you want to fall back to the default
-		  delay, it is generally more efficient (and recommended) to use the 
+		  delay, it is generally more efficient (and recommended) to use the
 		  <emphasis>Indexer</emphasis> syntax instead of <emphasis>dot property accessor</emphasis> syntax, because detecting
 		  the null is faster than catching an exception.
 	  </tip>

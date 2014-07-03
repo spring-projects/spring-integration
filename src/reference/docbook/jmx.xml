@@ -221,7 +221,7 @@
 		<para>
 			If the <emphasis>reply-channel</emphasis> attribute is not provided,
 			the reply message will be sent to the channel that is identified
-			by the <interfacename>MessageHeaders.REPLY_CHANNEL</interfacename>
+			by the <interfacename>IntegrationMessageHeaderAccessor.REPLY_CHANNEL</interfacename>
 			header. That header is typically auto-created by the entry point
 			into a message flow, such as any <emphasis>Gateway</emphasis> component.
 			However, if the message flow was started by manually creating a

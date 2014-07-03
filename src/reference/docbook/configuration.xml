@@ -162,7 +162,7 @@
       Specifically, the Exception will become the payload of a Spring Integration Message. That Message will
       then be sent to a Message Channel that is resolved in a way that is similar to the 'replyChannel'
       resolution. First, if the request Message being handled at the time the Exception occurred contains
-      an 'errorChannel' header (the header name is defined in the constant: MessageHeaders.ERROR_CHANNEL),
+      an 'errorChannel' header (the header name is defined in the constant: IntegrationMessageHeaderAccessor.ERROR_CHANNEL),
       the ErrorMessage will be sent to that channel. Otherwise, the error handler will send to a "global"
       channel whose bean name is "errorChannel" (this is also defined as a constant:
       IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME).
