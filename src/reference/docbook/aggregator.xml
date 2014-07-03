@@ -32,8 +32,8 @@
 
     <para>Correlation determines how messages are grouped for aggregation.
     In Spring Integration correlation is done by default based on the
-    <code>MessageHeaders.CORRELATION_ID</code> message
-    header. Messages with the same <code>MessageHeaders.CORRELATION_ID</code> will be grouped
+    <code>IntegrationMessageHeaderAccessor.CORRELATION_ID</code> message
+    header. Messages with the same <code>IntegrationMessageHeaderAccessor.CORRELATION_ID</code> will be grouped
     together. However, the correlation strategy may be customized to allow
     other ways of specifying how the messages should be grouped together by
     implementing a <interfacename>CorrelationStrategy</interfacename> (see below).</para>
@@ -42,7 +42,7 @@
     <interfacename>ReleaseStrategy</interfacename> is consulted.
     The default release strategy for the Aggregator will release a group when all
     messages included in a sequence are present, based on the
-    <code>MessageHeaders.SEQUENCE_SIZE</code> header.
+    <code>IntegrationMessageHeaderAccessor.SEQUENCE_SIZE</code> header.
     This default strategy may be overridden by providing a reference to a
     custom <interfacename>ReleaseStrategy</interfacename> implementation.</para>
   </section>
@@ -125,13 +125,13 @@
 
       <classname>AbstractCorrelatingMessageHandler</classname>
 
-       and it has a default value based on the <code>MessageHeaders.CORRELATION_ID</code> message header:
+       and it has a default value based on the <code>IntegrationMessageHeaderAccessor.CORRELATION_ID</code> message header:
 
       <programlisting language="java"><![CDATA[public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
         CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
     ...
     this.correlationStrategy = correlationStrategy == null ?
-        new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID) : correlationStrategy;
+        new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
     this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
     ...
 }]]></programlisting>
@@ -454,7 +454,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename>
         interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
         as well. <emphasis>Optional (by default, the aggregator will use
-        the <code>MessageHeaders.CORRELATION_ID</code> header) </emphasis>.</para>
+        the <code>IntegrationMessageHeaderAccessor.CORRELATION_ID</code> header) </emphasis>.</para>
       </callout>
 
       <callout arearefs="aggxml11">
@@ -488,7 +488,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
         or a POJO. In the latter case the release-strategy-method
         attribute must be defined as well. <emphasis>Optional (by default, the
-        aggregator will use the <code>MessageHeaders.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
+        aggregator will use the <code>IntegrationMessageHeaderAccessor.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
       </callout>
 
       <callout arearefs="aggxml16">
