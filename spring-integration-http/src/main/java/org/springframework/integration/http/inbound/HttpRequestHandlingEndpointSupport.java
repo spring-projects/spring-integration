@@ -110,12 +110,16 @@ import org.springframework.web.servlet.HandlerMapping;
 public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
 		implements OrderlyShutdownCapable {
 
+	private static final boolean spring41Present = ClassUtils.isPresent("org.springframework.http.RequestEntity",
+			HttpRequestHandlingEndpointSupport.class.getClassLoader());
+
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
-	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
-					HttpRequestHandlingEndpointSupport.class.getClassLoader()) ||
-					ClassUtils.isPresent("com.rometools.rome.feed.WireFeed",
+	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.atom.Feed",
+					HttpRequestHandlingEndpointSupport.class.getClassLoader());
+
+	private static boolean romeToolsPresent = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
 							HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 	private static final List<HttpMethod> nonReadableBodyHttpMethods =
@@ -175,7 +179,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
 			}
 		}
-		if (romePresent) {
+		//The 'rometools' has been introduced since Spring Framework 4.1, hence we should check the version
+		// of Spring Framework using the class 'org.springframework.http.RequestEntity' from that version.
+		if ((spring41Present && romeToolsPresent) || romePresent) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
