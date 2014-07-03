@@ -36,6 +36,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @SuppressWarnings("serial")
@@ -43,6 +44,8 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		implements BeanPostProcessor, BeanClassLoaderAware, BeanFactoryAware, InitializingBean, Ordered {
 
 	private volatile MessageChannel defaultChannel;
+
+	private volatile String defaultChannelName;
 
 	private volatile PublisherAnnotationAdvisor advisor;
 
@@ -56,11 +59,21 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
 	 * itself does not provide a channel.
-	 *
 	 * @param defaultChannel The default channel.
+	 * @deprecated Use {@link #setDefaultChannelName(String)}
 	 */
+	@Deprecated
 	public void setDefaultChannel(MessageChannel defaultChannel){
 		this.defaultChannel = defaultChannel;
+	}
+
+	/**
+	 * Set the default channel where Messages should be sent if the annotation
+	 * itself does not provide a channel.
+	 * @since 4.0.3
+	 */
+	public void setDefaultChannelName(String defaultChannelName) {
+		this.defaultChannelName = defaultChannelName;
 	}
 
 	@Override
@@ -82,11 +95,17 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		return this.order;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void afterPropertiesSet(){
-		advisor = new PublisherAnnotationAdvisor();
-		advisor.setBeanFactory(beanFactory);
-		advisor.setDefaultChannel(defaultChannel);
+		this.advisor = new PublisherAnnotationAdvisor();
+		this.advisor.setBeanFactory(this.beanFactory);
+		if (this.defaultChannel != null) {
+			this.advisor.setDefaultChannel(this.defaultChannel);
+		}
+		else {
+			this.advisor.setDefaultChannelName(this.defaultChannelName);
+		}
 	}
 
 	@Override

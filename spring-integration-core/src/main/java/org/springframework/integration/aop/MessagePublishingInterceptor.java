@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class MessagePublishingInterceptor implements MethodInterceptor, BeanFactoryAware {
@@ -74,6 +75,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile String defaultChannelName;
+
 	public MessagePublishingInterceptor(PublisherMetadataSource metadataSource) {
 		Assert.notNull(metadataSource, "metadataSource must not be null");
 		this.metadataSource = metadataSource;
@@ -85,8 +88,22 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		this.metadataSource = metadataSource;
 	}
 
+	/**
+	 * @deprecated Use {@link #setDefaultChannelName(String)}.
+	 * @param defaultChannel the default channel.
+	 */
+	@Deprecated
 	public void setDefaultChannel(MessageChannel defaultChannel) {
 		this.messagingTemplate.setDefaultDestination(defaultChannel);
+		this.defaultChannelName = null;
+	}
+
+	/**
+	 * @param defaultChannelName the default channel name.
+	 * @since 4.0.3
+	 */
+	public void setDefaultChannelName(String defaultChannelName) {
+		this.defaultChannelName = defaultChannelName;
 	}
 
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
@@ -100,6 +117,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 	}
 
+	@Override
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
 		Assert.notNull(this.metadataSource, "PublisherMetadataSource is required.");
 		final StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
@@ -163,6 +181,17 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 				this.messagingTemplate.send(channel, message);
 			}
 			else {
+				if (this.defaultChannelName != null) {
+					synchronized(this) {
+						if (this.defaultChannelName != null && this.messagingTemplate.getDefaultDestination() == null) {
+							Assert.state(this.channelResolver != null,
+									"ChannelResolver is required to resolve channel names.");
+							this.messagingTemplate.setDefaultChannel(
+									this.channelResolver.resolveDestination(this.defaultChannelName));
+						}
+						this.defaultChannelName = null;
+					}
+				}
 				this.messagingTemplate.send(message);
 			}
 		}
