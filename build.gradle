@@ -101,6 +101,7 @@ subprojects { subproject ->
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
+		romeToolsVersion = '1.5.0'
 		romeVersion = '1.0.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
@@ -336,6 +337,8 @@ project('spring-integration-http') {
 			optional
 			exclude group: 'junit', module: 'junit'
 		}
+
+		compile("com.rometools:rome:$romeToolsVersion", optional) //For spring-web-4.1
 
 		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 
