@@ -703,9 +703,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 		<para>
 			The Spring Integration AMPQ Adapters will map standard AMQP  properties
 			automatically. These properties will be copied by default to and from
-			Spring Integration
-			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/MessageHeaders.html">MessageHeaders</ulink></classname>
-			using the
+			Spring Integration <classname>MessageHeaders</classname> using the
 			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink></classname>.
 		</para>
 		<para>

@@ -111,7 +111,7 @@
           algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename>
           interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
           as well. <emphasis>Optional (by default, the aggregator will use
-          the <code>MessageHeaders.CORRELATION_ID</code> header) </emphasis>.</para>
+          the <code>IntegrationMessageHeaderAccessor.CORRELATION_ID</code> header) </emphasis>.</para>
         </callout>
 
         <callout arearefs="resxml12-co" id="resxml12">
@@ -133,7 +133,7 @@
           The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
           or a POJO. In the latter case the release-strategy-method
           attribute must be defined as well. <emphasis>Optional (by default, the
-          aggregator will use the <code>MessageHeaders.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
+          aggregator will use the <code>IntegrationMessageHeaderAccessor.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
         </callout>
 
         <callout arearefs="resxml15-co" id="resxml15">

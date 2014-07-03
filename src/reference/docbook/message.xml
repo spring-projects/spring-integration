@@ -81,32 +81,12 @@
               <entry>java.lang.Long</entry>
             </row>
             <row>
-              <entry>CORRELATION_ID</entry>
-              <entry>java.lang.Object</entry>
-            </row>
-            <row>
               <entry>REPLY_CHANNEL</entry>
               <entry>java.lang.Object (can be a String or MessageChannel)</entry>
             </row>
             <row>
               <entry>ERROR_CHANNEL</entry>
               <entry>java.lang.Object (can be a String or MessageChannel)</entry>
-            </row>
-            <row>
-              <entry>SEQUENCE_NUMBER</entry>
-              <entry>java.lang.Integer</entry>
-            </row>
-            <row>
-              <entry>SEQUENCE_SIZE</entry>
-              <entry>java.lang.Integer</entry>
-            </row>
-            <row>
-              <entry>EXPIRATION_DATE</entry>
-              <entry>java.lang.Long</entry>
-            </row>
-            <row>
-              <entry>PRIORITY</entry>
-              <entry>java.lang.Integer</entry>
             </row>
           </tbody>
        </tgroup>
@@ -116,6 +96,58 @@
       Many inbound and outbound adapter implementations will also provide and/or expect certain headers, and additional
       user-defined headers can also be configured.
     </para>
+	  <section id="message-header-accessor">
+		  <title>MessageHeaderAccessor API</title>
+		  <para>
+			  Since Spring Framework 4.0 and Spring Integration 4.0, the core Messaging abstraction has been moved to
+			  the <emphasis>spring-messaging</emphasis> module and the new <classname>MessageHeaderAccessor</classname> API
+			  has been introduced to provide additional abstraction over Messaging implementations. All Spring
+			  Integration specific Message Headers constants are now declared in the
+			  <classname>IntegrationMessageHeaderAccessor</classname>:
+			  <table id="integration-message-headers-table">
+				  <title>Pre-defined Message Headers</title>
+				  <tgroup cols="2">
+					  <colspec align="left" />
+					  <thead>
+						  <row>
+							  <entry align="center">Header Name</entry>
+							  <entry align="center">Header Type</entry>
+						  </row>
+					  </thead>
+					  <tbody>
+						  <row>
+							  <entry>CORRELATION_ID</entry>
+							  <entry>java.lang.Object</entry>
+						  </row>
+						  <row>
+							  <entry>SEQUENCE_NUMBER</entry>
+							  <entry>java.lang.Integer</entry>
+						  </row>
+						  <row>
+							  <entry>SEQUENCE_SIZE</entry>
+							  <entry>java.lang.Integer</entry>
+						  </row>
+						  <row>
+							  <entry>EXPIRATION_DATE</entry>
+							  <entry>java.lang.Long</entry>
+						  </row>
+						  <row>
+							  <entry>PRIORITY</entry>
+							  <entry>java.lang.Integer</entry>
+						  </row>
+					  </tbody>
+				  </tgroup>
+			  </table>
+		  </para>
+		  <para>
+			Convenient typed getters for these headers are provided on the
+			<classname>IntegrationMessageHeaderAccessor</classname> class:
+			<programlisting language="java"><![CDATA[IntegrationMessageHeaderAccessor accessor = new IntegrationMessageHeaderAccessor(message);
+int sequenceNumber = accessor.getSequenceNumber();
+Object correlationId = accessor.getCorrelationId();
+...]]></programlisting>
+		  </para>
+	  </section>
     <section id="message-id-generation">
         <title>Message ID Generation</title>
         <para>
@@ -129,22 +161,23 @@
         </para>
         <para>
           A different UUID generation strategy can be selected by declaring a bean that implements
-          <interfacename>MessageHeaders.IdGenerator</interfacename> in the application context.
+          <interfacename>org.springframework.util.IdGenerator</interfacename> in the application context.
         </para>
         <important>
           Only one UUID generation strategy can be used in a classloader. This means that if
           two or more application contexts are running in the same classloader, they will share
           the same strategy. If one of the contexts changes the strategy, it will be used by
           all contexts. If two or more contexts in the same classloader declare a bean of type
-          <interfacename>MessageHeaders.IdGenerator</interfacename>, they must all be an instance
+          <interfacename>org.springframework.util.IdGenerator</interfacename>, they must all be an instance
           of the same class, otherwise the context attempting to replace a custom strategy will
           fail to initialize. If the strategy is the same, but parameterized, the strategy in the
           first context to initialize will be used.
         </important>
         <para>
           In addition to the default strategy, two additional <interfacename>IdGenerators</interfacename>
-          are provided; <classname>MessageHeaders.JdkIdGenerator</classname> uses the previous
-          <code>UUID.randomUUID()</code> mechanism; <classname>MessageHeaders.SimpleIncrementingIdGenerator</classname>
+          are provided; <classname>org.springframework.util.JdkIdGenerator</classname> uses the previous
+          <code>UUID.randomUUID()</code> mechanism;
+          <classname>org.springframework.integration.support.IdGenerators.SimpleIncrementingIdGenerator</classname>
           can be used in cases where a UUID is not really needed and a simple incrementing
           value is sufficient.
         </para>
@@ -163,7 +196,7 @@ new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</progr
       will copy the provided headers to the newly created Message.
     </para>
     <para>
-    There is also a convenient implementation of <interfacename>Message</interfacename> designed to communicate 
+    There is also a convenient implementation of <interfacename>Message</interfacename> designed to communicate
     error conditions. This implementation takes <classname>Throwable</classname> object as its payload:
       <programlisting language="java">ErrorMessage message = new ErrorMessage(someThrowable);
 
@@ -229,7 +262,7 @@ assertEquals(123, message4.getHeaders().get("foo"));</programlisting>
 assertEquals(5, importantMessage.getHeaders().getPriority());
 
 Message&lt;Integer&gt; lessImportantMessage = MessageBuilder.fromMessage(importantMessage)
-        .setHeaderIfAbsent(MessageHeaders.PRIORITY, 2)
+        .setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 2)
         .build();
 
 assertEquals(2, lessImportantMessage.getHeaders().getPriority());
