@@ -17,14 +17,7 @@
 package org.springframework.integration.configuration;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import java.lang.annotation.ElementType;
@@ -33,8 +26,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.hamcrest.Matchers;
@@ -94,12 +90,16 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
@@ -112,7 +112,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  * @author Artem Bilan
  * @since 4.0
  */
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class, classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class,
+		classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class EnableIntegrationTests {
@@ -164,6 +165,12 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private TestGateway testGateway;
+
+	@Autowired
+	private CountDownLatch asyncAnnotationProcessLatch;
+
+	@Autowired
+	private AtomicReference<Thread> asyncAnnotationProcessThread;
 
 	@Autowired
 	private TestGateway2 testGateway2;
@@ -338,10 +345,13 @@ public class EnableIntegrationTests {
 	}
 
 	@Test
-	public void testMessagingGateway() {
+	public void testMessagingGateway() throws InterruptedException {
 		String payload = "bar";
 		assertEquals(payload.toUpperCase(), this.testGateway.echo(payload));
 		assertEquals(payload.toUpperCase() + "2", this.testGateway2.echo2(payload));
+		this.testGateway.sendAsync("foo");
+		assertTrue(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS));
+		assertNotSame(Thread.currentThread(), this.asyncAnnotationProcessThread.get());
 	}
 
 	@Test
@@ -756,11 +766,39 @@ public class EnableIntegrationTests {
 	@ImportResource("classpath:org/springframework/integration/configuration/EnableIntegrationTests-context.xml")
 	@EnableMessageHistory("${message.history.tracked.components}")
 	@EnablePublisher("publishedChannel")
+	@EnableAsync
 	public static class ContextConfiguration2 {
 
 		@Bean
 		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 			return new PropertySourcesPlaceholderConfigurer();
+		}
+
+		@Bean
+		public MessageChannel sendAsyncChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public CountDownLatch asyncAnnotationProcessLatch() {
+			return new CountDownLatch(1);
+		}
+
+		@Bean
+		public AtomicReference<Thread> asyncAnnotationProcessThread() {
+			return new AtomicReference<Thread>();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "sendAsyncChannel")
+		public MessageHandler sendAsyncHandler() {
+			return new MessageHandler() {
+				@Override
+				public void handleMessage(Message<?> message) throws MessagingException {
+						asyncAnnotationProcessLatch().countDown();
+						asyncAnnotationProcessThread().set(Thread.currentThread());
+				}
+			};
 		}
 
 		@Bean
@@ -999,6 +1037,10 @@ public class EnableIntegrationTests {
 
 		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
 		String echo(String payload);
+
+		@Gateway(requestChannel = "sendAsyncChannel")
+		@Async
+		void sendAsync(String payload);
 
 	}
 

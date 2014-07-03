@@ -25,7 +25,6 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -36,6 +35,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
@@ -44,36 +44,40 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
+		Map<String, Object> annotationAttributes =
+				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
 		if (annotationAttributes == null) {
 			return;
 		}
 		String value = (String) annotationAttributes.get("value");
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)
-					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			if (StringUtils.hasText(value)) {
-				builder.addPropertyReference("defaultChannel", value);
+				builder.addPropertyValue("defaultChannelName", value);
 				if (logger.isInfoEnabled()) {
 					logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
 				}
 			}
 
-			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
+			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME,
+					builder.getBeanDefinition());
 		}
 		else {
-			BeanDefinition beanDefinition = registry.getBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME);
+			BeanDefinition beanDefinition =
+					registry.getBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME);
 			MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
-			PropertyValue defaultChannelPropertyValue = propertyValues.getPropertyValue("defaultChannel");
+			PropertyValue defaultChannelPropertyValue = propertyValues.getPropertyValue("defaultChannelName");
 			if (StringUtils.hasText(value)) {
 				if (defaultChannelPropertyValue == null) {
-					propertyValues.addPropertyValue("defaultChannel", new RuntimeBeanReference(value));
+					propertyValues.addPropertyValue("defaultChannelName", value);
 					if (logger.isInfoEnabled()) {
 						logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
 					}
 				}
-				else if (!value.equals(((RuntimeBeanReference) defaultChannelPropertyValue.getValue()).getBeanName())) {
+				else if (!value.equals(defaultChannelPropertyValue.getValue())) {
 					throw new BeanDefinitionStoreException("When more than one enable publisher definition " +
 							"(@EnablePublisher or <annotation-config>)" +
 							" is found in the context, they all must have the same 'default-publisher-channel' value.");

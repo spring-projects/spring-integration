@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * the default will be {@link Publisher @Publisher}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @SuppressWarnings("serial")
@@ -68,19 +69,35 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 	}
 
 
+	/**
+	 * @deprecated Use {@link #setDefaultChannelName(String)}.
+	 * @param defaultChannel the default channel.
+	 */
+	@Deprecated
 	public void setDefaultChannel(MessageChannel defaultChannel) {
 		this.interceptor.setDefaultChannel(defaultChannel);
 	}
 
+	/**
+	 * @param defaultChannelName the default channel name.
+	 * @since 4.0.3
+	 */
+	public void setDefaultChannelName(String defaultChannelName) {
+		this.interceptor.setDefaultChannelName(defaultChannelName);
+	}
+
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.interceptor.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
 		this.interceptor.setBeanFactory(beanFactory);
 	}
 
+	@Override
 	public Advice getAdvice() {
 		return this.interceptor;
 	}
 
+	@Override
 	public Pointcut getPointcut() {
 		return this.buildPointcut();
 	}
@@ -149,10 +166,12 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		}
 
 
+		@Override
 		public ClassFilter getClassFilter() {
 			return this.classFilter;
 		}
 
+		@Override
 		public MethodMatcher getMethodMatcher() {
 			return this.methodMatcher;
 		}
