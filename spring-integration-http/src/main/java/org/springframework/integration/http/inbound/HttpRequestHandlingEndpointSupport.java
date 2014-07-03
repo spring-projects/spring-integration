@@ -114,7 +114,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
-			HttpRequestHandlingEndpointSupport.class.getClassLoader());
+					HttpRequestHandlingEndpointSupport.class.getClassLoader()) ||
+					ClassUtils.isPresent("com.rometools.rome.feed.WireFeed",
+							HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 	private static final List<HttpMethod> nonReadableBodyHttpMethods =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
