@@ -16,11 +16,9 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
-import java.net.URI;
 import java.util.List;
 
 import org.junit.Assert;
@@ -30,25 +28,26 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.web.util.UriTemplate;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceMessageExtractor;
+import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
@@ -368,7 +367,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals("Wrong DestinationProvider", stubProvider, accessor.getPropertyValue("destinationProvider"));
-		assertNull(accessor.getPropertyValue("uriTemplate"));
+		assertNull(accessor.getPropertyValue("uri"));
 		Object destinationProviderObject = new DirectFieldAccessor(
 				accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
 		assertEquals("Wrong DestinationProvider", stubProvider,destinationProviderObject);
@@ -404,8 +403,23 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		assertNull(TestUtils.getPropertyValue(handler, "destinationProvider"));
-		UriTemplate uriTemplate = TestUtils.getPropertyValue(handler, "uriTemplate", UriTemplate.class);
-		assertEquals(URI.create("jms:wsQueue"), uriTemplate.expand());
+		assertFalse(TestUtils.getPropertyValue(handler, "encodeUri", Boolean.class));
+
+		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(handler, "webServiceTemplate",
+				WebServiceTemplate.class);
+		webServiceTemplate = spy(webServiceTemplate);
+
+		doReturn(null).when(webServiceTemplate).sendAndReceive(anyString(),
+				any(WebServiceMessageCallback.class),
+				any(WebServiceMessageExtractor.class));
+
+		new DirectFieldAccessor(handler).setPropertyValue("webServiceTemplate", webServiceTemplate);
+
+		handler.handleMessage(new GenericMessage<String>("foo"));
+
+		verify(webServiceTemplate).sendAndReceive(eq("jms:wsQueue"),
+				any(WebServiceMessageCallback.class),
+				any(WebServiceMessageExtractor.class));
 	}
 
     @Test(expected = BeanDefinitionParsingException.class)

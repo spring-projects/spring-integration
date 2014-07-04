@@ -18,6 +18,7 @@ package org.springframework.integration.ws;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ import javax.xml.transform.TransformerException;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
@@ -33,7 +35,8 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
@@ -59,7 +62,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private final WebServiceTemplate webServiceTemplate;
 
-	private final UriTemplate uriTemplate;
+	private final String uri;
 
 	private final DestinationProvider destinationProvider;
 
@@ -71,23 +74,26 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile boolean ignoreEmptyResponses = true;
 
+	private volatile boolean encodeUri = true;
+
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
 		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
 		this.destinationProvider = null;
-		this.uriTemplate = new UriTemplate(uri);
+		this.uri = uri;
 	}
 
-	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
+	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider,
+			WebServiceMessageFactory messageFactory) {
 		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
 		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
 		this.destinationProvider = destinationProvider;
 		// we always call WebServiceTemplate methods with an explicit URI argument,
 		// but in case the WebServiceTemplate is accessed directly we'll set this:
 		this.webServiceTemplate.setDestinationProvider(destinationProvider);
-		this.uriTemplate = null;
+		this.uri = null;
 	}
 
 	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
@@ -97,7 +103,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
-	 *
 	 * @param uriVariableExpressions The URI variable expressions.
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
@@ -105,6 +110,16 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			this.uriVariableExpressions.clear();
 			this.uriVariableExpressions.putAll(uriVariableExpressions);
 		}
+	}
+
+	/**
+	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
+	 * expanding and before send request. The default value is <code>true</code>.
+	 * @param encodeUri true if the URI should be encoded.
+	 * @see org.springframework.web.util.UriComponentsBuilder
+	 */
+	public void setEncodeUri(boolean encodeUri) {
+		this.encodeUri = encodeUri;
 	}
 
 	public void setReplyChannel(MessageChannel replyChannel) {
@@ -115,7 +130,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 * Specify whether empty String response payloads should be ignored.
 	 * The default is <code>true</code>. Set this to <code>false</code> if
 	 * you want to send empty String responses in reply Messages.
-	 *
 	 * @param ignoreEmptyResponses true if empty responses should be ignored.
 	 */
 	public void setIgnoreEmptyResponses(boolean ignoreEmptyResponses) {
@@ -159,7 +173,13 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	@Override
 	public final Object handleRequestMessage(Message<?> requestMessage) {
-		URI uri = this.prepareUri(requestMessage);
+		URI uri = null;
+		try {
+			uri = this.prepareUri(requestMessage);
+		}
+		catch (URISyntaxException e) {
+			throw new IllegalArgumentException(e);
+		}
 		if (uri == null) {
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
@@ -175,22 +195,26 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		return null;
 	}
 
-	protected abstract Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback);
-
-
-	private URI prepareUri(Message<?> requestMessage) {
+	private URI prepareUri(Message<?> requestMessage) throws URISyntaxException {
 		if (this.destinationProvider != null) {
 			return this.destinationProvider.getDestination();
 		}
-		Map<String, Object> uriVariables = new HashMap<String, Object>();
-		for (Map.Entry<String, Expression> entry : this.uriVariableExpressions.entrySet()) {
-			Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
-			uriVariables.put(entry.getKey(), value);
-		}
-		return this.uriTemplate.expand(uriVariables);
+
+		Map<String, Object> uriVariables = ExpressionEvalMap.from(this.uriVariableExpressions)
+				.usingEvaluationContext(this.evaluationContext)
+				.withRoot(requestMessage)
+				.build();
+
+		UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
+		return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 	}
 
-	protected abstract class RequestMessageCallback extends TransformerObjectSupport implements WebServiceMessageCallback {
+
+	protected abstract Object doHandle(String uri, Message<?> requestMessage,
+			WebServiceMessageCallback requestCallback);
+
+	protected abstract class RequestMessageCallback extends TransformerObjectSupport
+			implements WebServiceMessageCallback {
 
 		private final WebServiceMessageCallback requestCallback;
 
@@ -206,8 +230,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			Object payload = this.requestMessage.getPayload();
 			if (message instanceof SoapMessage){
 				this.doWithMessageInternal(message, payload);
-				AbstractWebServiceOutboundGateway.this.headerMapper.fromHeadersToRequest(this.requestMessage.getHeaders(),
-						(SoapMessage) message);
+				AbstractWebServiceOutboundGateway.this.headerMapper
+						.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage) message);
 				if (this.requestCallback != null) {
 					this.requestCallback.doWithMessage(message);
 				}
@@ -215,11 +239,13 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 		}
 
-		public abstract void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException;
+		public abstract void doWithMessageInternal(WebServiceMessage message, Object payload)
+				throws IOException, TransformerException;
 
 	}
 
-	protected abstract class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
+	protected abstract class ResponseMessageExtractor extends TransformerObjectSupport
+			implements WebServiceMessageExtractor<Object> {
 
 		@Override
 		public Object extractData(WebServiceMessage message)
@@ -230,7 +256,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			if (resultObject != null && message instanceof SoapMessage){
 				Map<String, Object> mappedMessageHeaders =
 						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
-				return AbstractWebServiceOutboundGateway.this.getMessageBuilderFactory().withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
+				return AbstractWebServiceOutboundGateway.this.getMessageBuilderFactory()
+						.withPayload(resultObject)
+						.copyHeaders(mappedMessageHeaders)
+						.build();
 			}
 			else {
 				return resultObject;

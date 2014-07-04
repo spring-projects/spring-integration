@@ -137,7 +137,7 @@ public class UriVariableTests {
 			// expected
 			assertThat(e.getCause(), Matchers.is(Matchers.instanceOf(WebServiceIOException.class))); // offline
 		}
-		assertEquals("http://localhost/spring-integration?param=test1%20%26%20test2", uri.get());
+		assertEquals("http://localhost/spring-integration?param=test1%20&%20test2", uri.get());
 	}
 
 	@Test

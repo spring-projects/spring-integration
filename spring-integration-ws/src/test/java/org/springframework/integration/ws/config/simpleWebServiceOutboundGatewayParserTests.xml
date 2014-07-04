@@ -123,6 +123,7 @@
 
 	<ws:outbound-gateway id="gatewayWithJmsUri"
 	                     request-channel="inputChannel"
+						 encode-uri="false"
 	                     uri="jms:wsQueue" />
 
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>

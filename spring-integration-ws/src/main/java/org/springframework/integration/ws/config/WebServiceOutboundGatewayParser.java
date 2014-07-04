@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		this.postProcessGateway(builder, element, parserContext);
 
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
