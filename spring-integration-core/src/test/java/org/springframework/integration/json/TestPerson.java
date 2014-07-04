@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.springframework.integration.json;
  * @author Mark Fisher
  * @since 2.0
 */
-class TestPerson {
+public class TestPerson {
 
 	private volatile String firstName;
 
@@ -30,7 +30,7 @@ class TestPerson {
 
 	private volatile TestAddress address;
 
-	TestPerson() {
+	public TestPerson() {
 	}
 
 	public TestPerson(String firstName, String lastName, int age) {

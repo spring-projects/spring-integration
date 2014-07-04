@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.expression;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -42,10 +37,12 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.json.JsonPathUtils;
+import org.springframework.integration.json.TestPerson;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -66,6 +63,9 @@ public class ParentContextTests {
 	 * and the parent's ones are last in the propertyAccessors list of EvaluationContext.
 	 * Verifies that SpEL functions are inherited from parent context and overridden with the same 'id'.
 	 * Verifies that child and parent contexts can have different message builders.
+	 * <p>
+	 * Only single test method is allowed for 'ParentContext-context.xml',
+	 * since it relies on static 'evalContexts' variable.
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
@@ -161,6 +161,37 @@ public class ParentContextTests {
 		assertEquals("org.springframework.integration.support.MutableMessage", out.getClass().getName());
 		assertEquals("FOO", out.getPayload());
 
+		assertTrue(parent
+				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+
+		assertTrue(child
+				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+
+		Object converterRegistrar = parent.getBean(IntegrationContextUtils.CONVERTER_REGISTRAR_BEAN_NAME);
+		assertNotNull(converterRegistrar);
+		Set<?> converters = TestUtils.getPropertyValue(converterRegistrar, "converters", Set.class);
+		boolean toStringFriendlyJsonNodeToStringConverterPresent = false;
+		for (Object converter : converters) {
+			if ("ToStringFriendlyJsonNodeToStringConverter".equals(converter.getClass().getSimpleName())) {
+				toStringFriendlyJsonNodeToStringConverterPresent = true;
+				break;
+			}
+		}
+
+		assertTrue(toStringFriendlyJsonNodeToStringConverterPresent);
+
+		MessageChannel input = parent.getBean("testJsonNodeToStringConverterInputChannel", MessageChannel.class);
+		PollableChannel output = parent.getBean("testJsonNodeToStringConverterOutputChannel", PollableChannel.class);
+
+		TestPerson person = new TestPerson();
+		person.setFirstName("John");
+
+		input.send(new GenericMessage<Object>(person));
+
+		Message<?> result = output.receive(1000);
+		assertNotNull(result);
+		assertEquals("JOHN", result.getPayload());
+
 		child.close();
 		parent.close();
 	}
@@ -178,6 +209,10 @@ public class ParentContextTests {
 
 		public static Object bar(Object o) {
 			return o;
+		}
+
+		public String testJsonNodeToStringConverter(String payload) {
+			return payload.toUpperCase();
 		}
 
 	}

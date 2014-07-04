@@ -31,6 +31,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -62,6 +63,9 @@ import org.springframework.util.ClassUtils;
 public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
 
 	private static final Log logger = LogFactory.getLog(IntegrationRegistrar.class);
+
+	private final static IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
+			new IntegrationConverterInitializer();
 
 	private static final Set<Integer> registriesProcessed = new HashSet<Integer>();
 
@@ -237,6 +241,25 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			}
 		}
 
+		alreadyRegistered = false;
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered =
+					registry.isBeanNameInUse(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME);
+		}
+
+		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
+			registry.registerBeanDefinition(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME,
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE +
+							".json.ToStringFriendlyJsonNodeToStringConverter")
+							.getBeanDefinition());
+			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(registry,
+					new RuntimeBeanReference(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+		}
+
 		registriesProcessed.add(registryId);
 	}
 
@@ -313,7 +336,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
+			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,
+					builder.getBeanDefinition());
 		}
 
 		new PublisherRegistrar().registerBeanDefinitions(meta, registry);
@@ -327,7 +351,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class)
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME, postProcessorBuilder.getBeanDefinition());
+			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME,
+					postProcessorBuilder.getBeanDefinition());
 		}
 	}
 
