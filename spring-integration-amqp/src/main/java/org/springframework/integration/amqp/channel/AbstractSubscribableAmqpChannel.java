@@ -22,7 +22,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -49,7 +48,8 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 2.1
  */
-abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
+abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
+		implements SubscribableChannel, SmartLifecycle, DisposableBean {
 
 	private final String channelName;
 
@@ -65,7 +65,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	private final ConnectionFactory connectionFactory;
 
-	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
+	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+			AmqpTemplate amqpTemplate) {
 		this(channelName, container, amqpTemplate, false);
 	}
 
@@ -123,8 +124,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 					Integer.class);
 		}
 		this.setMaxSubscribers(this.maxSubscribers);
-		Queue queue = this.initializeQueue(this.admin, this.channelName);
-		this.container.setQueues(queue);
+		String queue = this.obtainQueueName(this.admin, this.channelName);
+		this.container.setQueueNames(queue);
 		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
 				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()
 				: new SimpleMessageConverter();
@@ -139,7 +140,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	protected abstract AbstractDispatcher createDispatcher();
 
-	protected abstract Queue initializeQueue(AmqpAdmin admin, String channelName);
+	protected abstract String obtainQueueName(AmqpAdmin admin, String channelName);
 
 
 	private static class DispatchingMessageListener implements MessageListener {
@@ -198,7 +199,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 				}
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failure occured in AMQP listener while attempting to convert and dispatch Message.", e);
+				throw new MessagingException("Failure occured in AMQP listener " +
+						"while attempting to convert and dispatch Message.", e);
 			}
 		}
 	}
@@ -210,7 +212,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.container != null) ? this.container.isAutoStartup() : false;
+		return (this.container != null) && this.container.isAutoStartup();
 	}
 
 	@Override
@@ -220,7 +222,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	@Override
 	public boolean isRunning() {
-		return (this.container != null) ? this.container.isRunning() : false;
+		return (this.container != null) && this.container.isRunning();
 	}
 
 	@Override

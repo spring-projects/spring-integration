@@ -16,6 +16,8 @@
 package org.springframework.integration.amqp.channel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
 import java.util.concurrent.CyclicBarrier;
@@ -25,7 +27,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.amqp.rule.BrokerRunning;
@@ -80,6 +87,34 @@ public class ChannelTests {
 		latch.await(10, TimeUnit.SECONDS);
 		context.close();
 		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
+	}
+
+	/*
+	 * Verify queue is declared if not present and not declared if it is already present.
+	 */
+	@Test
+	public void channelDeclarationTests() {
+		RabbitAdmin admin = new RabbitAdmin(this.factory);
+		admin.deleteQueue("implicit");
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(this.factory);
+		AmqpTemplate amqpTemplate = mock(AmqpTemplate.class);
+		PointToPointSubscribableAmqpChannel channel = new PointToPointSubscribableAmqpChannel("implicit", container,
+				amqpTemplate);
+		channel.setBeanFactory(mock(BeanFactory.class));
+		channel.afterPropertiesSet();
+		assertNotNull(admin.getQueueProperties("implicit"));
+		admin.deleteQueue("implicit");
+
+		admin.deleteQueue("explicit");
+		channel.setQueueName("explicit");
+		channel.afterPropertiesSet();
+		assertNotNull(admin.getQueueProperties("explicit"));
+
+		admin.deleteQueue("explicit");
+		admin.declareQueue(new Queue("explicit", false)); // verify no declaration if exists with non-standard props
+		channel.afterPropertiesSet();
+		assertNotNull(admin.getQueueProperties("explicit"));
+		admin.deleteQueue("explicit");
 	}
 
 }
