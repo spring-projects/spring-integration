@@ -74,6 +74,9 @@ public abstract class IntegrationContextUtils {
 
 	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
+	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
+			"toStringFriendlyJsonNodeToStringConverter";
+
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".

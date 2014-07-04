@@ -34,4 +34,17 @@
 
 	<bean id="parentJsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
 
+	<bean id="barService" class="org.springframework.integration.expression.ParentContextTests$Bar" />
+
+	<int:chain input-channel="testJsonNodeToStringConverterInputChannel"
+			output-channel="testJsonNodeToStringConverterOutputChannel">
+		<int:object-to-json-transformer result-type="NODE"/>
+		<int:transformer expression="payload.firstName"/>
+		<int:service-activator ref="barService" method="testJsonNodeToStringConverter"/>
+	</int:chain>
+
+	<int:channel id="testJsonNodeToStringConverterOutputChannel">
+		<int:queue/>
+	</int:channel>
+
 </beans>

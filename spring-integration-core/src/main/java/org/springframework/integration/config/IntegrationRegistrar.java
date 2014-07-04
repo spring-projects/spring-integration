@@ -31,6 +31,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -63,13 +64,20 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	private static final Log logger = LogFactory.getLog(IntegrationRegistrar.class);
 
+	private final static IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
+			new IntegrationConverterInitializer();
+
 	private static final Set<Integer> registriesProcessed = new HashSet<Integer>();
 
 	private ClassLoader classLoader;
 
+	private volatile boolean jackson2Present;
+
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
+		this.jackson2Present = ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
+				ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
 	}
 
 	/**
@@ -99,13 +107,14 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 * This method will auto-register a ChannelInitializer which could also be overridden by the user
 	 * by simply registering a ChannelInitializer {@code <bean>} with its {@code autoCreate} property
 	 * set to false to suppress channel creation.
-	 * It will also register a ChannelInitializer$AutoCreateCandidatesCollector which simply collects candidate channel names.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * It will also register a ChannelInitializer$AutoCreateCandidatesCollector
+	 * which simply collects candidate channel names.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerImplicitChannelCreator(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.CHANNEL_INITIALIZER_BEAN_NAME)) {
-			String channelsAutoCreateExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.CHANNELS_AUTOCREATE);
+			String channelsAutoCreateExpression =
+					IntegrationProperties.getExpressionFor(IntegrationProperties.CHANNELS_AUTOCREATE);
 			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelInitializer.class)
 					.addPropertyValue("autoCreate", channelsAutoCreateExpression);
 			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(),
@@ -117,16 +126,16 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			BeanDefinitionBuilder channelRegistryBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(ChannelInitializer.AutoCreateCandidatesCollector.class);
 			channelRegistryBuilder.addConstructorArgValue(new ManagedSet<String>());
-			BeanDefinitionHolder channelRegistryHolder = new BeanDefinitionHolder(channelRegistryBuilder.getBeanDefinition(),
-					IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+			BeanDefinitionHolder channelRegistryHolder =
+					new BeanDefinitionHolder(channelRegistryBuilder.getBeanDefinition(),
+							IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(channelRegistryHolder, registry);
 		}
 	}
 
 	/**
 	 * Register {@code integrationGlobalProperties} bean if necessary.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerIntegrationProperties(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
@@ -135,13 +144,16 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 					.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME);
+			alreadyRegistered =
+					registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(this.classLoader);
 			try {
-				Resource[] defaultResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
-				Resource[] userResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
+				Resource[] defaultResources =
+						resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
+				Resource[] userResources =
+						resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
 
 				List<Resource> resources = new LinkedList<Resource>(Arrays.asList(defaultResources));
 				resources.addAll(Arrays.asList(userResources));
@@ -162,8 +174,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	/**
 	 * Register {@link IntegrationEvaluationContextFactoryBean} bean
 	 * and {@link IntegrationEvaluationContextAwareBeanPostProcessor}, if necessary.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerIntegrationEvaluationContext(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
@@ -178,15 +189,15 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder,
 					registry);
 
-			RootBeanDefinition integrationEvalContextBPP = new RootBeanDefinition(IntegrationEvaluationContextAwareBeanPostProcessor.class);
+			RootBeanDefinition integrationEvalContextBPP =
+					new RootBeanDefinition(IntegrationEvaluationContextAwareBeanPostProcessor.class);
 			BeanDefinitionReaderUtils.registerWithGeneratedName(integrationEvalContextBPP, registry);
 		}
 	}
 
 	/**
 	 * Register {@code jsonPath} and {@code xpath} SpEL-function beans, if necessary.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerBuiltInBeans(BeanDefinitionRegistry registry) {
 		int registryId = System.identityHashCode(registry);
@@ -205,7 +216,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", this.classLoader);
 			}
 			catch (ClassNotFoundException e) {
-				logger.debug("SpEL function '#jsonPath' isn't registered: there is no jayway json-path.jar on the classpath.");
+				logger.debug("SpEL function '#jsonPath' isn't registered: " +
+						"there is no jayway json-path.jar on the classpath.");
 			}
 
 			if (jsonPathClass != null) {
@@ -225,10 +237,12 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		if (!alreadyRegistered && !registriesProcessed.contains(registryId)) {
 			Class<?> xpathClass = null;
 			try {
-				xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", this.classLoader);
+				xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
+						this.classLoader);
 			}
 			catch (ClassNotFoundException e) {
-				logger.debug("SpEL function '#xpath' isn't registered: there is no spring-integration-xml.jar on the classpath.");
+				logger.debug("SpEL function '#xpath' isn't registered: " +
+						"there is no spring-integration-xml.jar on the classpath.");
 			}
 
 			if (xpathClass != null) {
@@ -237,49 +251,73 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			}
 		}
 
+		alreadyRegistered = false;
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = registry
+					.isBeanNameInUse(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME);
+		}
+
+		if (!alreadyRegistered && !registriesProcessed.contains(registryId) && this.jackson2Present) {
+			registry.registerBeanDefinition(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME,
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE +
+							".json.ToStringFriendlyJsonNodeToStringConverter")
+							.getBeanDefinition());
+			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(registry,
+					new RuntimeBeanReference(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+		}
+
 		registriesProcessed.add(registryId);
 	}
 
 	/**
 	 * Register {@code DefaultConfiguringBeanFactoryPostProcessor}, if necessary.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerDefaultConfiguringBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
 		if (registry instanceof ListableBeanFactory) {
-			alreadyRegistered = ((ListableBeanFactory) registry).containsBean(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
 		}
 		else {
 			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
-			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class);
+			BeanDefinitionBuilder postProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class);
 			BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
-					postProcessorBuilder.getBeanDefinition(), IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
+					postProcessorBuilder.getBeanDefinition(),
+					IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, registry);
 		}
 	}
 
 	/**
 	 * Register a {@link DefaultHeaderChannelRegistry} in the given {@link BeanDefinitionRegistry}, if necessary.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerHeaderChannelRegistry(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;
 		if (registry instanceof ListableBeanFactory) {
-			alreadyRegistered = ((ListableBeanFactory) registry).containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
+			alreadyRegistered =
+					registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			if (logger.isInfoEnabled()) {
 				logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
-						"' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.");
+						"' has been explicitly defined. " +
+						"Therefore, a default DefaultHeaderChannelRegistry will be created.");
 			}
-			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultHeaderChannelRegistry.class);
+			BeanDefinitionBuilder schedulerBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultHeaderChannelRegistry.class);
 			BeanDefinitionHolder replyChannelRegistryComponent = new BeanDefinitionHolder(
 					schedulerBuilder.getBeanDefinition(),
 					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
@@ -289,51 +327,54 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	/**
 	 * Register a {@link GlobalChannelInterceptorProcessor} in the given {@link BeanDefinitionRegistry}, if necessary.
-	 *
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerGlobalChannelInterceptorProcessor(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class)
-					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-			registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
+			registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME,
+					builder.getBeanDefinition());
 		}
 	}
 
 	/**
 	 * Register {@link MessagingAnnotationPostProcessor} and {@link PublisherAnnotationBeanPostProcessor}, if necessary.
 	 * Inject {@code defaultPublishedChannel} from provided {@link AnnotationMetadata}, if any.
-	 *
-	 * @param meta The {@link AnnotationMetadata} to get additional properties for {@link org.springframework.beans.factory.config.BeanDefinition}s.
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link org.springframework.beans.factory.config.BeanDefinition}s.
+	 * @param meta The {@link AnnotationMetadata} to get additional properties for {@link BeanDefinition}s.
+	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
 	 */
 	private void registerMessagingAnnotationPostProcessors(AnnotationMetadata meta, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
-					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME, builder.getBeanDefinition());
+			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,
+					builder.getBeanDefinition());
 		}
 
 		new PublisherRegistrar().registerBeanDefinitions(meta, registry);
 	}
 
 	/**
-	 * Register {@link IntegrationConfigurationBeanFactoryPostProcessor} to process the external Integration infrastructure.
+	 * Register {@link IntegrationConfigurationBeanFactoryPostProcessor}
+	 * to process the external Integration infrastructure.
 	 */
 	private void registerIntegrationConfigurationBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME)) {
 			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class)
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME, postProcessorBuilder.getBeanDefinition());
+			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME,
+					postProcessorBuilder.getBeanDefinition());
 		}
 	}
 
 	/**
 	 * Register the default datatype channel MessageConverter.
-	 *
 	 * @param registry the registry.
 	 */
 	private void registerDefaultDatatypeChannelMessageConverter(BeanDefinitionRegistry registry) {
