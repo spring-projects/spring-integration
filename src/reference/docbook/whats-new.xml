@@ -46,5 +46,13 @@
 				before sending the request.
 			</para>
 		</section>
+		<section id="4.1-http-status-code">
+			<title>Http Inbound Channel Adapter and StatusCode</title>
+			<para>
+				The <code>&lt;http:inbound-channel-adapter&gt;</code> can now be configured with a
+				<code>status-code-expression</code> to override the default <code>200 OK</code> status.
+				See <xref linkend="http-namespace"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

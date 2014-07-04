@@ -52,6 +52,23 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="status-code-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A SpEL expression that resolves to an 'HttpStatus' code when rendering a response.
+						The expression must return the object which can be converted to a
+						'org.springframework.http.HttpStatus' enum value.
+						The 'evaluationContext' has a 'BeanResolver' but no variables, so the usage of this attribute
+						is somewhat limited.
+						An example might be to resolve, at runtime, some scoped Bean that returns an
+						'HttpStatus' value.
+						By default 'status-code-expression' is null, meaning that the default '200 OK' response status
+						will be returned.
+						The 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the reply
+						Message.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="inboundCommonAttributes" />
 		</xsd:complexType>
 	</xsd:element>
@@ -211,7 +228,7 @@
 					The expression can resolve to a view name or View object.
 					In the case of 'inbound-gateway' the root object of the evaluation context is the reply message.
 					In the case of 'inbound-channel-adapter' the 'evaluationContext' for this expression
-					is rather lightweight, because there is no reply message, ; it has a
+					is rather lightweight, because there is no reply message, it has a
 					'BeanResolver' but no variables,
 					so the usage of this attribute is somewhat limited.
 					An example might be to resolve, at runtime, some scoped Bean that returns a

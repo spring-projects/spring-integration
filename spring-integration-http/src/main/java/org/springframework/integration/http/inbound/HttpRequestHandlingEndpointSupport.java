@@ -31,6 +31,7 @@ import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
@@ -150,6 +151,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private volatile Map<String, Expression> headerExpressions;
 
 	private volatile boolean shuttingDown;
+
+	private volatile Expression statusCodeExpression;
+
+	private volatile EvaluationContext evaluationContext;
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
@@ -315,6 +320,19 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this.multipartResolver = multipartResolver;
 	}
 
+	/**
+	 * Specify the {@link Expression} to resolve a status code for Response
+	 * to override the default '200 OK'.
+	 * <p> The {@link #statusCodeExpression} is applied only for the one-way {@code <http:inbound-channel-adapter/>}.
+	 * The {@code <http:inbound-gateway/>} resolves an {@link HttpStatus} from the
+	 * {@link org.springframework.integration.http.HttpHeaders#STATUS_CODE} reply {@link Message} header.
+	 * @param statusCodeExpression The status code Expression.
+	 * @since 4.1
+	 */
+	public void setStatusCodeExpression(Expression statusCodeExpression) {
+		this.statusCodeExpression = statusCodeExpression;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter";
@@ -351,6 +369,15 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			this.messageConverters.addAll(this.defaultMessageConverters);
 		}
 		this.validateSupportedMethods();
+
+		if (this.expectReply && this.statusCodeExpression != null) {
+			logger.warn("The 'statusCodeExpression' is ignored when " +
+					"this component is configured as request/reply gateway");
+		}
+
+		if (this.statusCodeExpression != null) {
+			this.evaluationContext = createEvaluationContext();
+		}
 	}
 
 	/**
@@ -515,6 +542,19 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	}
 
+	protected void setStatusCodeIfNeeded(ServletServerHttpResponse response) {
+		if (this.statusCodeExpression != null) {
+			if (this.evaluationContext == null) {
+				this.evaluationContext = createEvaluationContext();
+			}
+			Object value = this.statusCodeExpression.getValue(this.evaluationContext);
+			HttpStatus httpStatus = buildHttpStatus(value);
+			if (httpStatus != null) {
+				response.setStatusCode(httpStatus);
+			}
+		}
+	}
+
 	/**
 	 * Prepares an instance of {@link ServletServerHttpRequest} from the raw
 	 * {@link HttpServletRequest}. Also converts the request into a multipart request to
@@ -586,15 +626,19 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers) {
 		Object httpStatusFromHeader = headers.get(org.springframework.integration.http.HttpHeaders.STATUS_CODE);
+		return buildHttpStatus(httpStatusFromHeader);
+	}
+
+	private HttpStatus buildHttpStatus(Object httpStatusValue) {
 		HttpStatus httpStatus = null;
-		if (httpStatusFromHeader instanceof HttpStatus) {
-			httpStatus = (HttpStatus) httpStatusFromHeader;
+		if (httpStatusValue instanceof HttpStatus) {
+			httpStatus = (HttpStatus) httpStatusValue;
 		}
-		else if (httpStatusFromHeader instanceof Integer) {
-			httpStatus = HttpStatus.valueOf((Integer) httpStatusFromHeader);
+		else if (httpStatusValue instanceof Integer) {
+			httpStatus = HttpStatus.valueOf((Integer) httpStatusValue);
 		}
-		else if (httpStatusFromHeader instanceof String) {
-			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusFromHeader));
+		else if (httpStatusValue instanceof String) {
+			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusValue));
 		}
 		return httpStatus;
 	}
