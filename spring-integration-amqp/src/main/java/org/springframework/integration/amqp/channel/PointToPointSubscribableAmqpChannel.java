@@ -26,6 +26,7 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmqpChannel {
@@ -33,7 +34,8 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	private volatile String queueName;
 
 
-	public PointToPointSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
+	public PointToPointSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+			AmqpTemplate amqpTemplate) {
 		super(channelName, container, amqpTemplate);
 	}
 
@@ -41,7 +43,6 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	/**
 	 * Provide a Queue name to be used. If this is not provided,
 	 * the Queue's name will be the same as the channel name.
-	 *
 	 * @param queueName The queue name.
 	 */
 	public void setQueueName(String queueName) {
@@ -49,13 +50,12 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	}
 
 	@Override
-	protected Queue initializeQueue(AmqpAdmin admin, String channelName) {
+	protected String obtainQueueName(AmqpAdmin admin, String channelName) {
 		if (this.queueName == null) {
 			this.queueName = channelName;
+			admin.declareQueue(new Queue(this.queueName));
 		}
-		Queue queue = new Queue(this.queueName);
-		admin.declareQueue(queue);
-		return queue;
+		return this.queueName;
 	}
 
 	@Override

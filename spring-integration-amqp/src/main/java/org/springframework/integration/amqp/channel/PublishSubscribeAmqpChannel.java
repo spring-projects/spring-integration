@@ -46,7 +46,8 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 
 	private volatile boolean initialized;
 
-	public PublishSubscribeAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
+	public PublishSubscribeAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+			AmqpTemplate amqpTemplate) {
 		super(channelName, container, amqpTemplate, true);
 	}
 
@@ -56,7 +57,6 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 * FanoutExchange will be declared implicitly, and its name will be the same
 	 * as the channel name prefixed by "si.fanout.". In either case, an effectively
 	 * anonymous Queue will be declared automatically.
-	 *
 	 * @param exchange The fanout exchange.
 	 */
 	public void setExchange(FanoutExchange exchange) {
@@ -64,7 +64,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	}
 
 	@Override
-	protected Queue initializeQueue(AmqpAdmin admin, String channelName) {
+	protected String obtainQueueName(AmqpAdmin admin, String channelName) {
 		if (this.exchange == null) {
 			String exchangeName = "si.fanout." + channelName;
 			this.exchange = new FanoutExchange(exchangeName);
@@ -80,7 +80,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 			}
 		}
 		this.initialized = true;
-		return this.queue;
+		return this.queue.getName();
 	}
 
 	private void doDeclares() {
