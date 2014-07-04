@@ -20,7 +20,8 @@
 		<si:queue capacity="1"/>
 	</si:channel>
 
-	<inbound-channel-adapter id="defaultAdapter" channel="requests" error-channel="errorChannel"/>
+	<inbound-channel-adapter id="defaultAdapter" channel="requests" error-channel="errorChannel"
+			status-code-expression="'101'"/>
 
 	<inbound-channel-adapter id="postOnlyAdapter" path="/postOnly" channel="requests" supported-methods="POST"/>
 
@@ -38,7 +39,8 @@
 
 	<inbound-channel-adapter id="putOrDeleteAdapter" channel="requests" supported-methods="PUT, delete"/>
 
-	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops">
+	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops"
+			status-code-expression="T(org.springframework.http.HttpStatus).ACCEPTED">
 		<request-mapping headers="BAR"/>
 	</inbound-channel-adapter>
 

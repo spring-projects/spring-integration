@@ -176,6 +176,12 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		builder.addPropertyValue("requestMapping", requestMappingDef);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type", "requestPayloadType");
+
+		BeanDefinition statusCodeExpressionDef =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("status-code-expression", element);
+		if (statusCodeExpressionDef != null) {
+			builder.addPropertyValue("statusCodeExpression", statusCodeExpressionDef);
+		}
 	}
 
 	private String getInputChannelAttributeName() {
