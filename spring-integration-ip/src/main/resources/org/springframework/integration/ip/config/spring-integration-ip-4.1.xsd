@@ -675,6 +675,14 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="read-delay" type="xsd:string" default="100">
+				<xsd:annotation>
+					<xsd:documentation>
+						The delay (in milliseconds) before retrying a read after the previous attempt
+						failed due to insufficient threads. Default 100.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

@@ -1482,6 +1482,13 @@ private CompositeExecutor compositeExecutor() {
               <entry></entry>
               <entry>See <xref linkend="ssl-tls"/> </entry>
             </row>
+			  <row>
+              <entry>read-delay</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry>long &gt; 0</entry>
+              <entry>The delay (in milliseconds) before retrying a read after the previous attempt</entry>
+            </row>
           </tbody>
         </tgroup>
       </table>

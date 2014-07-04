@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.integration.ip.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
@@ -90,6 +91,7 @@ public class TcpConnectionFactoryParser extends AbstractBeanDefinitionParser {
 				IpAdapterParserUtils.SOCKET_SUPPORT);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.MAPPER);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "read-delay");
 
 		return builder.getBeanDefinition();
 	}
