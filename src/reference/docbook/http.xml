@@ -317,6 +317,25 @@ By default the HTTP request will be generated using an instance of <classname>Si
 		</listitem>
 	</itemizedlist>
 
+	<para><emphasis>Response StatusCode</emphasis></para>
+	  <para>
+		  Starting with <emphasis>version 4.1</emphasis> the <code>&lt;http:inbound-channel-adapter&gt;</code>
+		  can be configured with <code>status-code-expression</code> to override the default <code>200 OK</code> status.
+		  The expression must return the object which can be converted to the
+		  <classname>org.springframework.http.HttpStatus</classname> enum value.
+		  The <code>evaluationContext</code> has a <classname>BeanResolver</classname> but no variables,
+		  so the usage of this attribute is somewhat limited.
+		  An example might be to resolve, at runtime, some scoped Bean that returns a status code value.
+		  By default <code>status-code-expression</code> is null meaning the normal '200 OK' response status.
+		  The <code>&lt;http:inbound-gateway&gt;</code> resolves 'status code' from <code>http_statusCode</code>
+		  header of the reply Message:
+		  <programlisting language="xml"><![CDATA[<http:inbound-channel-adapter id="inboundController"
+       channel="requests" view-name="foo" error-code="oops"
+       status-code-expression="T(org.springframework.http.HttpStatus).ACCEPTED">
+   <request-mapping headers="BAR"/>
+</http:inbound-channel-adapter>]]></programlisting>
+	  </para>
+
 	<para><emphasis>URI Template Variables and Expressions</emphasis></para>
 	<para>
 		By Using the <emphasis>path</emphasis> attribute in conjunction with the

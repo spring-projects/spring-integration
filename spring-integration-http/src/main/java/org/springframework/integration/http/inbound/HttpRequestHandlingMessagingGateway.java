@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,11 @@ import org.springframework.web.HttpRequestHandler;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements HttpRequestHandler {
+public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport
+		implements HttpRequestHandler {
 
 	private volatile boolean convertExceptions;
 
@@ -115,6 +117,9 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 				this.writeResponse(responseContent, response, request.getHeaders().getAccept());
 			}
 		}
+		else {
+			setStatusCodeIfNeeded(response);
+		}
 	}
 
 	private Object handleExceptionInternal(Exception e) throws IOException {
@@ -135,7 +140,8 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes) throws IOException {
+	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes)
+			throws IOException {
 		if (CollectionUtils.isEmpty(acceptTypes)) {
 			acceptTypes = Collections.singletonList(MediaType.ALL);
 		}

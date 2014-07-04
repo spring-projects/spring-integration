@@ -51,6 +51,7 @@ import org.springframework.web.servlet.mvc.Controller;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSupport implements Controller {
@@ -148,12 +149,16 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 		ModelAndView modelAndView = new ModelAndView();
 		try {
 			Message<?> replyMessage = super.doHandleRequest(servletRequest, servletResponse);
+			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 			if (replyMessage != null) {
-				ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 				Object reply = setupResponseAndConvertReply(response, replyMessage);
 				response.close();
 				modelAndView.addObject(this.replyKey, reply);
 			}
+			else {
+				setStatusCodeIfNeeded(response);
+			}
+
 			if (this.viewExpression != null) {
 				Object view;
 				if (replyMessage != null) {
@@ -184,4 +189,5 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 		}
 		return modelAndView;
 	}
+
 }
