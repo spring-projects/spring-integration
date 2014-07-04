@@ -451,6 +451,7 @@ public class ParserUnitTests {
 		assertEquals(125, tcpOutEndpoint.getPhase());
 		assertFalse((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence"));
+		assertEquals(10000L, TestUtils.getPropertyValue(cfC1, "readDelay"));
 	}
 
 	@Test
@@ -466,6 +467,7 @@ public class ParserUnitTests {
 		assertEquals(126, tcpInboundGateway1.getPhase());
 		assertFalse((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfS2, "mapper"), "applySequence"));
+		assertEquals(100L, TestUtils.getPropertyValue(cfS2, "readDelay"));
 	}
 
 	@Test

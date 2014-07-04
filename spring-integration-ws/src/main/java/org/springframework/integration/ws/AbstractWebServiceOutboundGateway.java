@@ -116,7 +116,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 * Specify whether the URI should be encoded after any <code>uriVariables</code>
 	 * are expanded and before sending the request. The default value is <code>true</code>.
 	 * @param encodeUri true if the URI should be encoded.
-	 * @see org.springframework.web.util.UriComponentsBuilder.
+	 * @see org.springframework.web.util.UriComponentsBuilder
 	 * @since 4.1
 	 */
 	public void setEncodeUri(boolean encodeUri) {

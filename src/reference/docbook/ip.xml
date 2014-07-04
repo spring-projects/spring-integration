@@ -1035,7 +1035,7 @@
       pools for the IO and assembly operations.
      </para>
      <para>
-      The framework providers a
+      The framework provides a
       <classname>CompositeExecutor</classname>, which allows the configuration
       of two distinct executors; one for performing IO operations, and
       one for message assembly. In this environment, an IO thread can never
@@ -1046,7 +1046,9 @@
       <classname>AbortPolicy</classname> (ABORT when using <code>&lt;task&gt;</code>).
       When an IO cannot be completed, it is deferred for a short time and
       retried continually until it can be completed and an assembler
-      allocated.
+      allocated. By default, the delay is 100ms but it can be changed using the
+      <code>readDelay</code> property on the connection factory (<code>read-delay</code>
+      when configuring with the XML namespace).
      </para>
      <para>
       Example configuration of the composite executor is shown below.
@@ -1481,6 +1483,15 @@ private CompositeExecutor compositeExecutor() {
               <entry>Y</entry>
               <entry></entry>
               <entry>See <xref linkend="ssl-tls"/> </entry>
+            </row>
+            <row>
+              <entry>read-delay</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry>long &gt; 0</entry>
+              <entry>The delay (in milliseconds) before retrying a read after the previous attempt
+              failed due to insufficient threads. Default 100.
+              Only applies if <code>using-nio</code> is <code>true</code>.</entry>
             </row>
           </tbody>
         </tgroup>

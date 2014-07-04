@@ -158,6 +158,7 @@
 		host="localhost"
 		lookup-host="false"
 		apply-sequence="false"
+		read-delay="10000"
 		/>
 
 	<ip:tcp-outbound-channel-adapter id="testOutTcpNio"
