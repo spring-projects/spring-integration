@@ -108,6 +108,18 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="encode-uri" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						When set to "false", the URI won't be encoded before the request is sent. This may be useful
+						in some scenarios as it allows user control over the encoding, if needed. Default is "true".
+						This attribute is ignored, if 'destination-provider' is specified.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
             <xsd:attribute name="destination-provider" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
