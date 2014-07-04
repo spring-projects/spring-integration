@@ -154,5 +154,26 @@ as per standard Spring Web Services configuration.
       If a <classname>DestinationProvider</classname> is supplied, variable substitution is not supported
       and a configuration error will result if variables are provided.
     </para>
+	  <para>
+		  <emphasis>Controlling URI Encoding</emphasis>
+	  </para>
+	  <para>
+		  By default, the URL string is encoded (see
+		  <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html">UriComponentsBuilder</ulink>)
+		  to the URI object before sending the request. In some scenarios with a non-standard URI it is
+		  undesirable to perform the encoding. Since <emphasis>version 4.1 </emphasis> the
+		  <code>&lt;ws:outbound-gateway/&gt;</code> provides an <code>encode-uri</code> attribute.
+		  To disable encoding the URL, this attribute should be set to <code>false</code> (by default it is <code>true</code>).
+		  If you wish to partially encode some of the URL, this can be achieved using an <code>expression</code> within a
+		  <code>&lt;uri-variable/&gt;</code>:
+	  <programlisting
+			  language="xml"><![CDATA[<ws:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+          <http:uri-variable name="param"
+            expression="T(org.apache.commons.httpclient.util.URIUtil)
+                                             .encodeWithinQuery('Hellow World!')"/>
+</ws:outbound-gateway>]]></programlisting>
+		Note, <code>encode-uri</code> is ignored, if <classname>DestinationProvider</classname> is supplied.
+	  </para>
+
   </section>
 </chapter>

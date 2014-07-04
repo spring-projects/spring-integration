@@ -38,5 +38,13 @@
 				See <xref linkend="sms-caution"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-ws-encode-uri">
+			<title>Web Service Outbound Gateway: encode-uri</title>
+			<para>
+				The <code>&lt;ws:outbound-gateway/&gt;</code> now
+				provides an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
+				before sending the request.
+			</para>
+		</section>
 	</section>
 </chapter>
