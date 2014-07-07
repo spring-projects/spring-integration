@@ -436,7 +436,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		return readDelay;
 	}
 
-	// TODO: Expose on the namespace in 4.1 ?
 	/**
 	 * The delay (in milliseconds) before retrying a read after the previous attempt
 	 * failed due to insufficient threads. Default 100.
