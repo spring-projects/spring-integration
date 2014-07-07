@@ -798,7 +798,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
 		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		evaluationContext.setVariable("remoteDirectory", remoteDirectory);
-		File localDir = this.localDirectoryExpression.getValue(evaluationContext, message, File.class);
+		//TODO see org.springframework.integration.context.CustomConversionServiceFactoryBean
+//		File localDir = this.localDirectoryExpression.getValue(evaluationContext, message, File.class);
+		String localDirPath = this.localDirectoryExpression.getValue(evaluationContext, message, String.class);
+		File localDir = new File(localDirPath);
 		if (!localDir.exists()) {
 			Assert.isTrue(localDir.mkdirs(), "Failed to make local directory: " + localDir);
 		}

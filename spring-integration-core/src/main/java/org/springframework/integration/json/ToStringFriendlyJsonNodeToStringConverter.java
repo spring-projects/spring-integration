@@ -17,13 +17,11 @@
 package org.springframework.integration.json;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.integration.config.IntegrationConverter;
 
 /**
  * @author Artem Bilan
  * @since 4.1
  */
-@IntegrationConverter
 class ToStringFriendlyJsonNodeToStringConverter
 		implements Converter<JsonPropertyAccessor.ToStringFriendlyJsonNode, String> {
 	@Override
