@@ -26,6 +26,19 @@
 					<xsd:all>
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Identifies channel attached to this adapter. This channel could be the receiving
+								channel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="order" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -65,6 +78,19 @@
 						<xsd:element ref="integration:poller" minOccurs="0"
 							maxOccurs="1" />
 					</xsd:sequence>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Identifies channel attached to this adapter. This channel where messages will be sent
+								to by this adapter.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="filename-pattern" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -204,7 +230,9 @@
 			<xsd:complexContent>
 				<xsd:extension base="base-ftp-adapter-type">
 					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="command" use="required">
 						<xsd:annotation>
@@ -485,20 +513,6 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Identifies the remote temporary directory path (e.g., "/remote/temp/mytransfers")
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="channel" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							Identifies channel attached to this adapter. Depending on the type of the adapter
-							this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where
-							messages will be sent to by this adapter (e.g., inbound-channel-adapter).
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
