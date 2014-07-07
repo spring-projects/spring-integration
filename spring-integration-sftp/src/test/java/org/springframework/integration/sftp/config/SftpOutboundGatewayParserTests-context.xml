@@ -15,6 +15,12 @@
 		<constructor-arg ref="sf"/>
 	</bean>
 
+	<int:channel id="inbound1">
+		<int:queue/>
+	</int:channel>
+
+	<int:poller fixed-delay="1000" default="true"/>
+
 	<int-sftp:outbound-gateway id="gateway1"
 		local-directory="local-test-dir"
 		session-factory="sf"

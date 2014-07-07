@@ -15,22 +15,27 @@
 		<constructor-arg ref="sf"/>
 	</bean>
 
+	<int:channel id="inbound1">
+		<int:queue/>
+	</int:channel>
+
 	<int-ftp:outbound-gateway id="gateway1"
-		local-directory="local-test-dir"
-		session-factory="sf"
-		request-channel="inbound1"
-		reply-channel="outbound"
-		reply-timeout="777"
-		auto-create-local-directory="false"
-		auto-startup="false"
-		filename-pattern="*"
-		remote-file-separator="X"
-		command="ls"
-		command-options="-1 -f"
-		expression="payload"
-		order="1"
-		mput-regex=".*"
-		/>
+							  local-directory="local-test-dir"
+							  session-factory="sf"
+							  request-channel="inbound1"
+							  reply-channel="outbound"
+							  reply-timeout="777"
+							  auto-create-local-directory="false"
+							  auto-startup="false"
+							  filename-pattern="*"
+							  remote-file-separator="X"
+							  command="ls"
+							  command-options="-1 -f"
+							  expression="payload"
+							  order="1"
+							  mput-regex=".*">
+		<int:poller fixed-delay="1000"/>
+	</int-ftp:outbound-gateway>
 
 	<bean id="fooString" class="java.lang.String">
 		<constructor-arg value="foo" />
@@ -58,31 +63,33 @@
 	</int-ftp:outbound-gateway>
 
 	<int-ftp:outbound-gateway id="gateway3"
-		session-factory="sf"
-		request-channel="inbound1"
-		reply-channel="outbound"
-		auto-startup="false"
-		command="mv"
-		expression="payload"
-		rename-expression="'foo'"
-		order="1"
-		/>
+							  session-factory="sf"
+							  request-channel="inbound1"
+							  reply-channel="outbound"
+							  auto-startup="false"
+							  command="mv"
+							  expression="payload"
+							  rename-expression="'foo'"
+							  order="1">
+		<int:poller fixed-delay="1000"/>
+	</int-ftp:outbound-gateway>
 
 	<int-ftp:outbound-gateway id="gateway4"
-		session-factory="csf"
-		request-channel="inbound1"
-		reply-channel="outbound"
-		command="mput"
-		expression="payload"
-		remote-directory="/foo"
-		remote-file-separator="X"
-		auto-create-directory="true"
-		remote-filename-generator="fileNameGenerator"
-		temporary-remote-directory="/bar"
-		rename-expression="'foo'"
-		order="1"
-		mput-regex=".*"
-		/>
+							  session-factory="csf"
+							  request-channel="inbound1"
+							  reply-channel="outbound"
+							  command="mput"
+							  expression="payload"
+							  remote-directory="/foo"
+							  remote-file-separator="X"
+							  auto-create-directory="true"
+							  remote-filename-generator="fileNameGenerator"
+							  temporary-remote-directory="/bar"
+							  rename-expression="'foo'"
+							  order="1"
+							  mput-regex=".*">
+		<int:poller fixed-delay="1000"/>
+	</int-ftp:outbound-gateway>
 
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
