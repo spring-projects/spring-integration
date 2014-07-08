@@ -17,6 +17,8 @@
 
 	<splitter input-channel="beanResolvingInput" expression="@testBean.split(payload)" output-channel="output"/>
 
+	<splitter input-channel="iteratorInput" ref="testBean" method="splitIterator" output-channel="output"/>
+
 	<beans:bean id="testBean" class="org.springframework.integration.splitter.SpelSplitterIntegrationTests$TestBean"/>
 
 </beans:beans>

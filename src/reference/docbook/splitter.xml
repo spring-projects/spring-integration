@@ -44,8 +44,9 @@
 
     <itemizedlist>
       <listitem>
-        <para>a <interfacename>Collection</interfacename> (or subclass thereof) or an array of
-        <interfacename>Message</interfacename> objects -
+        <para>A <interfacename>Collection</interfacename> or an array of Messages,
+		or an <interfacename>Iterable</interfacename> (or <interfacename>Iterator</interfacename>)
+		that iterates over Messages -
         in this case the messages will be sent as such (after the
         CORRELATION_ID, SEQUENCE_SIZE and SEQUENCE_NUMBER are populated).
         Using this approach gives more control to the developer, for example
@@ -54,8 +55,9 @@
       </listitem>
 
       <listitem>
-        <para>a <interfacename>Collection</interfacename> (or subclass thereof) or an array of
-        non-Message objects - works like the prior case, except that each collection
+		<para>A <interfacename>Collection</interfacename> or an array of non-Message objects,
+		or an <interfacename>Iterable</interfacename> (or <interfacename>Iterator</interfacename>)
+		that iterates over non-Message objects - works like the prior case, except that each collection
         element will be used as a Message payload. Using this approach allows
         developers to focus on the domain objects without having to consider
         the Messaging system and produces code that is easier to test.</para>
@@ -76,6 +78,27 @@
     In the latter case, the splitter will receive the payload of the incoming message.
     Since this decouples the code from the Spring Integration API and will typically be easier
     to test, it is the recommended approach.</para>
+	  <para>
+		  <emphasis role="bold">Splitter and Iterators</emphasis>
+	  </para>
+	  <para>
+		  Starting with <emphasis>version 4.1</emphasis>, the <classname>AbstractMessageSplitter</classname>
+		  supports the <interfacename>Iterator</interfacename> type for the <code>value</code> to split.
+		  Note, in the case of an <interfacename>Iterator</interfacename>
+		  (or <interfacename>Iterable</interfacename>), we don't have access to the number of underlying items and the
+		  <code>SEQUENCE_SIZE</code> header is set to <code>0</code>. This means that the default
+		  <classname>SequenceSizeReleaseStrategy</classname> of an <code>&lt;aggregator&gt;</code> won't work and the
+		  group for the <code>CORRELATION_ID</code> from the <code>splitter</code> won't be released; it will remain
+		  as <code>incomplete</code>. In this case you should use an appropriate custom
+		  <interfacename>ReleaseStrategy</interfacename> or rely on <code>send-partial-result-on-expiry</code>
+		  together with <code>group-timeout</code> or a <classname>MessageGroupStoreReaper</classname>.
+	  </para>
+	  <para>
+		  An <interfacename>Iterator</interfacename> object is useful to avoid the need for building an entire
+		  collection in the memory before splitting. For example, when underlying items are populated from some external system
+		  (e.g. DataBase or FTP <code>MGET</code>) using iterations or streams.
+	  </para>
+
   </section>
 
 

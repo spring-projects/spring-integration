@@ -74,5 +74,13 @@
 				See <xref linkend="mqtt-inbound"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-splitter-iterator">
+			<title>Splitter and Iterator</title>
+			<para>
+				<code>Splitter</code> components now support an <classname>Iterator</classname> as the result object
+				for producing output messages.
+				See <xref linkend="splitter"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
