@@ -44,7 +44,8 @@
 
     <itemizedlist>
       <listitem>
-        <para>a <interfacename>Collection</interfacename> (or subclass thereof) or an array of
+        <para>an <interfacename>Iterable</interfacename> (or subclass thereof), or an array
+        or an <interfacename>Iterator</interfacename>(since <emphasis>version 4.1</emphasis>) of
         <interfacename>Message</interfacename> objects -
         in this case the messages will be sent as such (after the
         CORRELATION_ID, SEQUENCE_SIZE and SEQUENCE_NUMBER are populated).
@@ -54,7 +55,8 @@
       </listitem>
 
       <listitem>
-        <para>a <interfacename>Collection</interfacename> (or subclass thereof) or an array of
+        <para>an <interfacename>Iterable</interfacename> (or subclass thereof), or an array
+        or an <interfacename>Iterator</interfacename>(since <emphasis>version 4.1</emphasis>) of
         non-Message objects - works like the prior case, except that each collection
         element will be used as a Message payload. Using this approach allows
         developers to focus on the domain objects without having to consider
