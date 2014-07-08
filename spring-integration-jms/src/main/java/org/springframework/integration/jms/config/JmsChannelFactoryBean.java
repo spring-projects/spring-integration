@@ -287,7 +287,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	}
 
 	public void setMessageSelector(String messageSelector) {
-		Assert.isTrue(this.messageDriven, "'messageSelector' is allowed only in case of 'messageDriven = true'");
 		this.messageSelector = messageSelector;
 	}
 

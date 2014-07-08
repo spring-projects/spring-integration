@@ -162,7 +162,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="container-type" default="default">
+		<xsd:attribute name="container-type">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	The type of this listener container: "default" or "simple", choosing
@@ -253,7 +253,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="cache" default="auto">
+		<xsd:attribute name="cache">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	The cache level for JMS resources: "none", "connection", "session", "consumer"

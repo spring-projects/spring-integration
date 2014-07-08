@@ -68,7 +68,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 
 		String containerType = element.getAttribute(CONTAINER_TYPE_ATTRIBUTE);
 		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
-		if (!StringUtils.hasText(containerClass)) {
+		if (!StringUtils.hasText(containerClass) && StringUtils.hasText(containerType)) {
 			if ("default".equals(containerType)) {
 				containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
 			}
@@ -84,7 +84,9 @@ public class JmsChannelParser extends AbstractChannelParser {
 		 *
 		 * We cannot reliably infer it here.
 		 */
-		builder.addPropertyValue("containerType", containerClass);
+		if (StringUtils.hasText(containerClass)) {
+			builder.addPropertyValue("containerType", containerClass);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
