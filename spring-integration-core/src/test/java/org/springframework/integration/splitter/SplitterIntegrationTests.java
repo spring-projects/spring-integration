@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Before;
@@ -95,8 +96,8 @@ public class SplitterIntegrationTests {
 	public static class TestSplitter {
 
 		@Splitter(inputChannel = "inAnnotated", outputChannel = "out")
-		public List<String> split(String sentence) {
-			return Arrays.asList(sentence.split("\\s"));
+		public Iterator<String> split(String sentence) {
+			return Arrays.asList(sentence.split("\\s")).iterator();
 		}
 	}
 

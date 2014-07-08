@@ -200,7 +200,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
-	private void produceReply(Object reply, MessageHeaders requestHeaders) {
+	protected void produceReply(Object reply, MessageHeaders requestHeaders) {
 		Message<?> replyMessage = this.createReplyMessage(reply, requestHeaders);
 		this.sendReplyMessage(replyMessage, requestHeaders.getReplyChannel());
 	}

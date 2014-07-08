@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,29 @@
 
 package org.springframework.integration.splitter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -49,6 +52,9 @@ public class SpelSplitterIntegrationTests {
 
 	@Autowired
 	private MessageChannel beanResolvingInput;
+
+	@Autowired
+	private MessageChannel iteratorInput;
 
 	@Autowired
 	private PollableChannel output;
@@ -99,6 +105,28 @@ public class SpelSplitterIntegrationTests {
 		assertNull(output.receive(0));
 	}
 
+	@Test
+	public void iteratorSplitter() {
+		this.iteratorInput.send(new GenericMessage<String>("a,b,c,d"));
+		Message<?> a = output.receive(0);
+		Message<?> b = output.receive(0);
+		Message<?> c = output.receive(0);
+		Message<?> d = output.receive(0);
+		assertEquals("a", a.getPayload());
+		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(a).getSequenceSize());
+		assertEquals("b", b.getPayload());
+		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(b).getSequenceSize());
+		assertEquals("c", c.getPayload());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(c).getSequenceSize());
+		assertEquals("d", d.getPayload());
+		assertEquals(new Integer(4), new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(d).getSequenceSize());
+		assertNull(output.receive(0));
+	}
+
 
 	static class TestBean {
 
@@ -116,6 +144,10 @@ public class SpelSplitterIntegrationTests {
 
 		public String[] split(String s) {
 			return s.split(",");
+		}
+
+		public Iterator<String> splitIterator(String s) {
+			return Arrays.asList(s.split(",")).iterator();
 		}
 	}
 
