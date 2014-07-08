@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
+import com.rabbitmq.client.Channel;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -48,9 +46,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
 
-import com.rabbitmq.client.AMQP.Queue.DeclareOk;
-import com.rabbitmq.client.Channel;
-
 
 /**
  * @author Gary Russell
@@ -65,7 +60,8 @@ public class DispatcherHasNoSubscribersTests {
 		final Channel channel = mock(Channel.class);
 		DeclareOk declareOk = mock(DeclareOk.class);
 		when(declareOk.getQueue()).thenReturn("noSubscribersChannel");
-		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), any(Map.class))).thenReturn(declareOk);
+		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), any(Map.class)))
+				.thenReturn(declareOk);
 		Connection connection = mock(Connection.class);
 		doAnswer(new Answer<Channel>() {
 			@Override
@@ -78,8 +74,8 @@ public class DispatcherHasNoSubscribersTests {
 		container.setConnectionFactory(connectionFactory);
 		AmqpTemplate amqpTemplate = mock(AmqpTemplate.class);
 
-		PointToPointSubscribableAmqpChannel amqpChannel = new PointToPointSubscribableAmqpChannel("noSubscribersChannel",
-				container, amqpTemplate);
+		PointToPointSubscribableAmqpChannel amqpChannel =
+				new PointToPointSubscribableAmqpChannel("noSubscribersChannel", container, amqpTemplate);
 		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
@@ -112,9 +108,9 @@ public class DispatcherHasNoSubscribersTests {
 		PublishSubscribeAmqpChannel amqpChannel = new PublishSubscribeAmqpChannel("noSubscribersChannel",
 				container, amqpTemplate) {
 					@Override
-					protected Queue initializeQueue(AmqpAdmin admin,
+					protected String obtainQueueName(AmqpAdmin admin,
 							String channelName) {
-						return queue;
+						return queue.getName();
 					}};
 		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
