@@ -97,6 +97,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private void connectAndSubscribe() throws MqttException {
 		this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
+		this.client.setCallback(this);
 		this.client.connect(this.clientFactory.getConnectionOptions());
 		try {
 			this.client.subscribe(this.getTopic());
@@ -106,7 +107,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			throw e;
 		}
 		if (this.client.isConnected()) {
-			this.client.setCallback(this);
 			this.connected = true;
 			if (this.reconnectFuture != null) {
 				this.cancelReconnect();
