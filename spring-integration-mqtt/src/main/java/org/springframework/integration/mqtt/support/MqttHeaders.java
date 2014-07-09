@@ -33,6 +33,9 @@ public class MqttHeaders {
 	public static final String RETAINED = prefix + "retained";
 
 	public static final String TOPIC = prefix + "topic";
+
+	public static final String MESSAGE_ID = prefix + "messageId";
+
 	private MqttHeaders() {
 		throw new AssertionError();
 	}

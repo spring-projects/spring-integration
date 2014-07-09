@@ -59,6 +59,9 @@ public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-qos");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-retained");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "delivery-complete-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-complete-send-timeout", "sendTimeout");
 
 		return builder.getBeanDefinition();
 

@@ -47,6 +47,9 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 	private MqttPahoMessageDrivenChannelAdapter twoTopicsAdapter;
 
 	@Autowired
+	private MqttPahoMessageDrivenChannelAdapter twoTopicsSingleQosAdapter;
+
+	@Autowired
 	private MessageChannel out;
 
 	@Autowired
@@ -65,6 +68,7 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertEquals(25, TestUtils.getPropertyValue(oneTopicAdapter, "phase"));
 		assertEquals("foo", TestUtils.getPropertyValue(oneTopicAdapter, "clientId"));
 		assertEquals("bar", TestUtils.getPropertyValue(oneTopicAdapter, "topic", String[].class)[0]);
+		assertEquals(1, TestUtils.getPropertyValue(oneTopicAdapter, "qos", int[].class)[0]);
 		assertSame(converter, TestUtils.getPropertyValue(oneTopicAdapter, "converter"));
 		assertEquals(123L, TestUtils.getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout"));
 		assertSame(out, TestUtils.getPropertyValue(oneTopicAdapter, "outputChannel"));
@@ -74,16 +78,26 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 
 	@Test
 	public void testTwoTopics() {
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(oneTopicAdapter, "url"));
+		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(twoTopicsAdapter, "url"));
 		assertFalse(TestUtils.getPropertyValue(twoTopicsAdapter, "autoStartup", Boolean.class));
 		assertEquals(25, TestUtils.getPropertyValue(twoTopicsAdapter, "phase"));
 		assertEquals("foo", TestUtils.getPropertyValue(twoTopicsAdapter, "clientId"));
 		assertEquals("bar", TestUtils.getPropertyValue(twoTopicsAdapter, "topic", String[].class)[0]);
 		assertEquals("baz", TestUtils.getPropertyValue(twoTopicsAdapter, "topic", String[].class)[1]);
+		assertEquals(0, TestUtils.getPropertyValue(twoTopicsAdapter, "qos", int[].class)[0]);
+		assertEquals(2, TestUtils.getPropertyValue(twoTopicsAdapter, "qos", int[].class)[1]);
 		assertSame(converter, TestUtils.getPropertyValue(twoTopicsAdapter, "converter"));
 		assertEquals(123L, TestUtils.getPropertyValue(twoTopicsAdapter, "messagingTemplate.sendTimeout"));
 		assertSame(out, TestUtils.getPropertyValue(twoTopicsAdapter, "outputChannel"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(twoTopicsAdapter, "clientFactory"));
+	}
+
+	@Test
+	public void testTwoTopicsSingleQos() {
+		assertEquals("bar", TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topic", String[].class)[0]);
+		assertEquals("baz", TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topic", String[].class)[1]);
+		assertEquals(0, TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "qos", int[].class)[0]);
+		assertEquals(0, TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "qos", int[].class)[1]);
 	}
 
 }

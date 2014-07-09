@@ -16,15 +16,13 @@
 
 package org.springframework.integration.mqtt.outbound;
 
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
-import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -46,7 +44,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private volatile boolean defaultRetained = false;
 
-	private volatile MqttMessageConverter converter;
+	private volatile MessageConverter converter;
 
 	private boolean running;
 
@@ -72,9 +70,13 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.defaultRetained = defaultRetain;
 	}
 
-	public void setConverter(MqttMessageConverter converter) {
+	public void setConverter(MessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
+	}
+
+	protected MessageConverter getConverter() {
+		return converter;
 	}
 
 	protected String getUrl() {
@@ -145,16 +147,16 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		this.connectIfNeeded();
 		String topic = (String) message.getHeaders().get(MqttHeaders.TOPIC);
-		MqttMessage mqttMessage = (MqttMessage) this.converter.fromMessage(message, MqttMessage.class);
+		Object mqttMessage = this.converter.fromMessage(message, Object.class);
 		if (topic == null && this.defaultTopic == null) {
 			throw new MessageHandlingException(message,
 					"No '" + MqttHeaders.TOPIC + "' header and no default topic defined");
 		}
-		this.publish(topic == null ? this.defaultTopic : topic, mqttMessage);
+		this.publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
 	}
 
 	protected abstract void connectIfNeeded();
 
-	protected abstract void publish(String topic, Object mqttMessage) throws Exception;
+	protected abstract void publish(String topic, Object mqttMessage, Message<?> message) throws Exception;
 
 }

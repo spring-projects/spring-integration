@@ -16,14 +16,19 @@
 package org.springframework.integration.mqtt.outbound;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.support.MqttHeaders;
+import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -37,9 +42,19 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		implements MqttCallback {
 
+	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
+
+	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile MqttClient client;
+	private volatile MqttAsyncClient client;
+
+	private volatile boolean async;
+
+	private final MessagingTemplate deliveryCompleteTemplate = new MessagingTemplate();
+
+	private volatile MessageChannel deliveryCompleteChannel;
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden
@@ -75,6 +90,43 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		this(url, clientId, new DefaultMqttPahoClientFactory());
 	}
 
+	/**
+	 * Set to true if you don't want to block when sending messages. Default false.
+	 * When true, delivery complete messages will be sent to the delivery complete
+	 * channel (if specified).
+	 * @param async true for async.
+	 * @since 4.1
+	 */
+	public void setAsync(boolean async) {
+		this.async = async;
+	}
+
+	/**
+	 * Set the completion timeout for async operations. Not settable using the namespace.
+	 * Default 30000 milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 4.1
+	 */
+	public void setCompletionTimeout(int completionTimeout) {
+		this.completionTimeout = completionTimeout;
+	}
+
+	public void setDeliveryCompleteChannel(MessageChannel deliveryCompleteChannel) {
+		Assert.notNull(deliveryCompleteChannel, "'deliveryCompleteChannel' cannot be null");
+		this.deliveryCompleteChannel = deliveryCompleteChannel;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.deliveryCompleteTemplate.setSendTimeout(sendTimeout);
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.state(getConverter() instanceof MqttMessageConverter,
+				"MessageConverter must be an MqttMessageConverter");
+	}
+
 	@Override
 	protected void doStart() {
 	}
@@ -83,7 +135,8 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	protected void doStop() {
 		try {
 			if (this.client != null) {
-				this.client.disconnect();
+				this.client.disconnect()
+						.waitForCompletion(this.completionTimeout);
 				this.client.close();
 				this.client = null;
 			}
@@ -102,9 +155,10 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 			Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-			this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
-			this.client.connect(connectionOptions);
+			this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 			this.client.setCallback(this);
+			this.client.connect(connectionOptions)
+			.waitForCompletion(this.completionTimeout);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Client connected");
 			}
@@ -124,9 +178,42 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	@Override
-	protected void publish(String topic, Object mqttMessage) throws Exception {
+	protected void publish(String topic, Object mqttMessage, Message<?> message) throws Exception {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
-		this.client.publish(topic, (MqttMessage) mqttMessage);
+		IMqttDeliveryToken token = this.client.publish(topic, (MqttMessage) mqttMessage);
+		if (!this.async) {
+			token.waitForCompletion(this.completionTimeout);
+		}
+		else if (this.deliveryCompleteChannel != null) {
+			Message<?> pendingMessage = getMessageBuilderFactory().fromMessage(message)
+					.setHeader(MqttHeaders.MESSAGE_ID, token.getMessageId())
+					.setHeader(MqttHeaders.TOPIC, topic)
+					.build();
+			try {
+				this.deliveryCompleteTemplate.send(this.deliveryCompleteChannel, pendingMessage);
+			}
+			catch (MessagingException e) {
+				logger.error("Failed to send pending delivery message " + message, e);
+			}
+		}
+	}
+
+	private void sendDeliveryComplete(IMqttDeliveryToken token) {
+		if (this.deliveryCompleteChannel != null) {
+			Message<?> message = null;
+			try {
+				String[] topics = token.getTopics();
+				String topic = topics != null && topics.length > 0 ? topics[0] : "unknown";
+				this.deliveryCompleteTemplate.send(this.deliveryCompleteChannel,
+						getMessageBuilderFactory().withPayload(token.getMessageId())
+							.setHeader(MqttHeaders.MESSAGE_ID, token.getMessageId())
+							.setHeader(MqttHeaders.TOPIC, topic)
+							.build());
+			}
+			catch (MessagingException e) {
+				logger.error("Failed to send delivery complete message " + message, e);
+			}
+		}
 	}
 
 	@Override
@@ -142,7 +229,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken token) {
-
+		sendDeliveryComplete(token);
 	}
 
 }

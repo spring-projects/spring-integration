@@ -16,7 +16,11 @@
 
 package org.springframework.integration.mqtt.config.xml;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -33,6 +37,7 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -61,6 +66,9 @@ public class MqttOutboundChannelAdapterParserTests {
 	@Autowired
 	private DefaultMqttPahoClientFactory clientFactory;
 
+	@Autowired
+	private MessageChannel deliveries;
+
 	@Test
 	public void testWithConverter() throws Exception {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withConverterHandler, "url"));
@@ -70,6 +78,7 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertEquals("bar", TestUtils.getPropertyValue(withConverterHandler, "defaultTopic"));
 		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withConverterHandler, "clientFactory"));
+		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class));
 
 		Object handler = TestUtils.getPropertyValue(this.withConverterEndpoint, "handler");
 
@@ -96,6 +105,9 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertEquals(1, TestUtils.getPropertyValue(defaultConverter, "defaultQos"));
 		assertTrue(TestUtils.getPropertyValue(defaultConverter, "defaultRetained", Boolean.class));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
+		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
+		assertSame(this.deliveries, TestUtils.getPropertyValue(withDefaultConverterHandler, "deliveryCompleteChannel"));
+		assertEquals(123L, TestUtils.getPropertyValue(withDefaultConverterHandler, "deliveryCompleteTemplate.sendTimeout"));
 	}
 
 }

@@ -43,6 +43,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="qos">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the QoS to use when subscribing to topics; default '1'. This can be single
+						value (applying to all topics); otherwise it must be a comma-delimited list corresponding
+						to the provided topics (the name number of elements must be provided).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="send-timeout" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -128,6 +137,45 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specifies the default value of the 'retained' flag. Default false.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="async">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies that sends should not block, with the thread returning
+							immediately the message is sent. When 'true' (default 'false'), delivery
+							confirmations (containing the sent message) will be sent to the
+							'delivery-complete-channel', if specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="delivery-complete-channel">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<xsd:documentation>
+								When 'async' is 'true', and this channel is specified, the inbound message
+								is sent to this channel
+								with the mqtt message id in the 'mqtt_messageId' header. When the client 
+								reports the delivery complete, a second message with the message id
+								in the payload
+								will be sent to this channel, allowing application code to determine which
+								messages were delivered.
+							</xsd:documentation>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.MessageChannel" />
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="delivery-complete-send-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+							When 'async' is true and 'delivery-complete-channel' is specified, this
+							specifies the time to wait when sending to the channel. Default infinity.
+							This only applies when the channel might block (such as a bounded QueueChannel
+							that is full).
+						]]>
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

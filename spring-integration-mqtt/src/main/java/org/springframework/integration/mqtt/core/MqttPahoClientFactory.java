@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.mqtt.core;
 
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -35,6 +36,17 @@ public interface MqttPahoClientFactory {
 	 * @throws MqttException Any.
 	 */
 	MqttClient getClientInstance(String url, String clientId) throws MqttException;
+
+	/**
+	 * Retrieve an async client instance.
+	 *
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 * @return The client instance.
+	 * @throws MqttException Any.
+	 * @since 4.1
+	 */
+	MqttAsyncClient getAsyncClientInstance(String url, String clientId) throws MqttException;
 
 	/**
 	 * Retrieve the connection options.

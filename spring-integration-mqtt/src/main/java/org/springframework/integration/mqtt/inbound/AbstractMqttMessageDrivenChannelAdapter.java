@@ -35,6 +35,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	private final String[] topic;
 
+	private volatile int[] qos;
+
 	private volatile MqttMessageConverter converter;
 
 	public AbstractMqttMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
@@ -45,11 +47,42 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		this.url = url;
 		this.clientId = clientId;
 		this.topic = topic;
+		// set the topic qos to 1 by default
+		this.qos = buildQosArray(1);
+	}
+
+	private int[] buildQosArray(int value) {
+		int[] qos = new int[this.topic.length];
+		for (int i = 0; i < qos.length; i++) {
+			qos[i] = value;
+		}
+		return qos;
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
+	}
+
+	/**
+	 * Set the QoS for each topic; a single value will apply to all topics otherwise
+	 * the correct number of qos values must be provided.
+	 * @param qos The qos value(s).
+	 * @since 4.1
+	 */
+	public void setQos(int... qos) {
+		Assert.notNull(qos, "'qos' cannot be null");
+		if (qos.length == 1) {
+			this.qos = buildQosArray(qos[0]);
+		}
+		else {
+			Assert.isTrue(qos.length == this.topic.length);
+			this.qos = qos;
+		}
+	}
+
+	protected int[] getQos() {
+		return qos;
 	}
 
 	protected String getUrl() {

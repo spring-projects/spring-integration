@@ -19,8 +19,8 @@ import java.util.Arrays;
 import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -40,13 +40,17 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
 		implements MqttCallback {
 
+	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
+
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile MqttClient client;
+	private volatile MqttAsyncClient client;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
 
 	private volatile boolean connected;
+
+	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 
 	/**
@@ -88,6 +92,16 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
 	}
 
+	/**
+	 * Set the completion timeout for async operations. Not settable using the namespace.
+	 * Default 30000 milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 4.1
+	 */
+	public void setCompletionTimeout(int completionTimeout) {
+		this.completionTimeout = completionTimeout;
+	}
+
 	@Override
 	protected void doStart() {
 		super.doStart();
@@ -105,13 +119,15 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.cancelReconnect();
 		super.doStop();
 		try {
-			this.client.unsubscribe(this.getTopic());
+			this.client.unsubscribe(this.getTopic())
+					.waitForCompletion(this.completionTimeout);
 		}
 		catch (MqttException e) {
 			logger.error("Exception while unsubscribing", e);
 		}
 		try {
-			this.client.disconnect();
+			this.client.disconnect()
+					.waitForCompletion(this.completionTimeout);
 		}
 		catch (MqttException e) {
 			logger.error("Exception while disconnecting", e);
@@ -127,18 +143,21 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	private void connectAndSubscribe() throws MqttException {
-		this.client.setCallback(this);
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-		this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
-		this.client.connect(connectionOptions);
-
+		this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+		this.client.setCallback(this);
+		this.client.connect(connectionOptions)
+				.waitForCompletion(this.completionTimeout);
 		try {
-			this.client.subscribe(this.getTopic());
+			this.client.subscribe(this.getTopic(), this.getQos())
+					.waitForCompletion(this.completionTimeout);
 		}
 		catch (MqttException e) {
-			this.client.disconnect();
+			logger.error("Error subscribing to " + Arrays.asList(this.getTopic()), e);
+			this.client.disconnect()
+					.waitForCompletion(this.completionTimeout);
 			throw e;
 		}
 		if (this.client.isConnected()) {

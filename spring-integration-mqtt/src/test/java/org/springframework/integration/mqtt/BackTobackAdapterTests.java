@@ -17,9 +17,13 @@ package org.springframework.integration.mqtt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Ignore;
+import java.io.File;
+
+import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
+import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
@@ -45,7 +50,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.0
  *
  */
-@Ignore //TODO transiently
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
@@ -83,7 +87,6 @@ public class BackTobackAdapterTests {
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
-		adapter.stop();
 	}
 
 	@Test
@@ -116,7 +119,101 @@ public class BackTobackAdapterTests {
 		inbound.stop();
 		assertEquals("bar", out.getPayload());
 		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+	}
+
+	@Test
+	public void testAsync() {
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setAsync(true);
+		QueueChannel deliveryCompleteChannel = new QueueChannel();
+		adapter.setDeliveryCompleteChannel(deliveryCompleteChannel);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		MqttPahoMessageDrivenChannelAdapter inbound =
+				new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo");
+		QueueChannel outputChannel = new QueueChannel();
+		inbound.setOutputChannel(outputChannel);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
+		inbound.afterPropertiesSet();
+		inbound.start();
+		adapter.handleMessage(new GenericMessage<String>("foo"));
+		Message<?> delivery1 = deliveryCompleteChannel.receive(10000);
+		assertNotNull(delivery1);
+		Message<?> delivery2 = deliveryCompleteChannel.receive(10000);
+		assertNotNull(delivery2);
+		if (delivery1.getPayload().equals("foo")) {
+			assertEquals(delivery1.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery2.getPayload());
+		}
+		else if (delivery2.getPayload().equals("foo")) {
+			assertEquals(delivery2.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery1.getPayload());
+		}
+		else {
+			fail("Unexpected delivery messages " + delivery1 + " " + delivery2);
+		}
+		assertEquals("mqtt-foo", delivery1.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-foo", delivery2.getHeaders().get(MqttHeaders.TOPIC));
 		adapter.stop();
+		Message<?> out = outputChannel.receive(10000);
+		assertNotNull(out);
+		inbound.stop();
+		assertEquals("foo", out.getPayload());
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+	}
+
+	@Test
+	public void testAsyncPersisted() {
+		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
+		String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "mqtt_persist";
+		new File(tmpDir).mkdirs();
+		MqttClientPersistence persistence = new MqttDefaultFilePersistence(tmpDir);
+		factory.setPersistence(persistence);
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out", factory);
+		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setAsync(true);
+		QueueChannel deliveryCompleteChannel = new QueueChannel();
+		adapter.setDeliveryCompleteChannel(deliveryCompleteChannel);
+		adapter.setDefaultQos(1);
+		adapter.afterPropertiesSet();
+		adapter.start();
+
+		MqttPahoMessageDrivenChannelAdapter inbound =
+				new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo");
+		QueueChannel outputChannel = new QueueChannel();
+		inbound.setOutputChannel(outputChannel);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
+		inbound.afterPropertiesSet();
+		inbound.start();
+		adapter.handleMessage(new GenericMessage<String>("foo"));
+		Message<?> delivery1 = deliveryCompleteChannel.receive(10000);
+		assertNotNull(delivery1);
+		Message<?> delivery2 = deliveryCompleteChannel.receive(10000);
+		assertNotNull(delivery2);
+		if (delivery1.getPayload().equals("foo")) {
+			assertEquals(delivery1.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery2.getPayload());
+		}
+		else if (delivery2.getPayload().equals("foo")) {
+			assertEquals(delivery2.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery1.getPayload());
+		}
+		else {
+			fail("Unexpected delivery messages " + delivery1 + " " + delivery2);
+		}
+		assertEquals("mqtt-foo", delivery1.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-foo", delivery2.getHeaders().get(MqttHeaders.TOPIC));
+		adapter.stop();
+		Message<?> out = outputChannel.receive(10000);
+		assertNotNull(out);
+		inbound.stop();
+		assertEquals("foo", out.getPayload());
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
 	}
 
 	@Test
