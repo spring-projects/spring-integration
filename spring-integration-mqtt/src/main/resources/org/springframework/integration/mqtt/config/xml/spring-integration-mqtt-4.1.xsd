@@ -167,7 +167,7 @@
 				<xsd:union memberTypes="xsd:integer xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="url" use="required" type="xsd:string">
+		<xsd:attribute name="url" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					MQTT broker URL.

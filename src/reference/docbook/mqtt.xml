@@ -55,7 +55,15 @@
 				The client id.
 			</callout>
 			<callout arearefs="mqtt-i-02">
-				The broker URL.
+				<para>
+					The broker URL.
+				</para>
+				<note>
+					Starting with <emphasis>version 4.1</emphasis> the url can be omitted and, instead,
+					the server URIs can be provided in the <code>serverURIs</code> property of the
+					<classname>DefaultMqttPahoClientFactory</classname>. This enables, for example,
+					connection to a highly available (HA) cluster.
+				</note>
 			</callout>
 			<callout arearefs="mqtt-i-03">
 				A comma delimited list of topics from which this adapter will receive messages.
@@ -112,7 +120,15 @@
 				The client id.
 			</callout>
 			<callout arearefs="mqtt-o-02">
-				The broker URL.
+				<para>
+					The broker URL.
+				</para>
+				<note>
+					Starting with <emphasis>version 4.1</emphasis> the url can be omitted and, instead,
+					the server URIs can be provided in the <code>serverURIs</code> property of the
+					<classname>DefaultMqttPahoClientFactory</classname>. This enables, for example,
+					connection to a highly available (HA) cluster.
+				</note>
 			</callout>
 			<callout arearefs="mqtt-o-03">
 				An <interfacename>MqttMessageConverter</interfacename> (optional). The default

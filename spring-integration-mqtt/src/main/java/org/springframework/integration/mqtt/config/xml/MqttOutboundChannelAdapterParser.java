@@ -49,7 +49,7 @@ public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MqttPahoMessageHandler.class);
 
-		MqttParserUtils.parseCommon(element, builder);
+		MqttParserUtils.parseCommon(element, builder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-topic");
 		if (StringUtils.hasText(element.getAttribute("converter")) &&
 				(StringUtils.hasText(element.getAttribute("default-qos")) ||
