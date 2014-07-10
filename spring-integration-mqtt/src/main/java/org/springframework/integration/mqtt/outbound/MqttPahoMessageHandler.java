@@ -99,10 +99,10 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			this.client = null;
 		}
 		if (this.client == null) {
-			this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
 			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 			Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+			this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
 			this.client.connect(connectionOptions);
 			this.client.setCallback(this);
 			if (logger.isDebugEnabled()) {
