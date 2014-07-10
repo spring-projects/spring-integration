@@ -22,13 +22,12 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
-import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -40,7 +39,7 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
-		implements MqttCallback {
+		implements MqttCallback, ApplicationEventPublisherAware {
 
 	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
 
@@ -52,9 +51,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private volatile boolean async;
 
-	private final MessagingTemplate deliveryCompleteTemplate = new MessagingTemplate();
-
-	private volatile MessageChannel deliveryCompleteChannel;
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden
@@ -111,13 +108,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		this.completionTimeout = completionTimeout;
 	}
 
-	public void setDeliveryCompleteChannel(MessageChannel deliveryCompleteChannel) {
-		Assert.notNull(deliveryCompleteChannel, "'deliveryCompleteChannel' cannot be null");
-		this.deliveryCompleteChannel = deliveryCompleteChannel;
-	}
-
-	public void setSendTimeout(long sendTimeout) {
-		this.deliveryCompleteTemplate.setSendTimeout(sendTimeout);
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -184,35 +177,16 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		if (!this.async) {
 			token.waitForCompletion(this.completionTimeout);
 		}
-		else if (this.deliveryCompleteChannel != null) {
-			Message<?> pendingMessage = getMessageBuilderFactory().fromMessage(message)
-					.setHeader(MqttHeaders.MESSAGE_ID, token.getMessageId())
-					.setHeader(MqttHeaders.TOPIC, topic)
-					.build();
-			try {
-				this.deliveryCompleteTemplate.send(this.deliveryCompleteChannel, pendingMessage);
-			}
-			catch (MessagingException e) {
-				logger.error("Failed to send pending delivery message " + message, e);
-			}
+		else if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(
+					new MqttMessageSentEvent(this, message, topic, token.getMessageId()));
 		}
 	}
 
 	private void sendDeliveryComplete(IMqttDeliveryToken token) {
-		if (this.deliveryCompleteChannel != null) {
-			Message<?> message = null;
-			try {
-				String[] topics = token.getTopics();
-				String topic = topics != null && topics.length > 0 ? topics[0] : "unknown";
-				this.deliveryCompleteTemplate.send(this.deliveryCompleteChannel,
-						getMessageBuilderFactory().withPayload(token.getMessageId())
-							.setHeader(MqttHeaders.MESSAGE_ID, token.getMessageId())
-							.setHeader(MqttHeaders.TOPIC, topic)
-							.build());
-			}
-			catch (MessagingException e) {
-				logger.error("Failed to send delivery complete message " + message, e);
-			}
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(
+					new MqttMessageDeliveredEvent(MqttPahoMessageHandler.this, token.getMessageId()));
 		}
 	}
 

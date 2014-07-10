@@ -37,7 +37,6 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -65,9 +64,6 @@ public class MqttOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private DefaultMqttPahoClientFactory clientFactory;
-
-	@Autowired
-	private MessageChannel deliveries;
 
 	@Test
 	public void testWithConverter() throws Exception {
@@ -106,8 +102,6 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertTrue(TestUtils.getPropertyValue(defaultConverter, "defaultRetained", Boolean.class));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
-		assertSame(this.deliveries, TestUtils.getPropertyValue(withDefaultConverterHandler, "deliveryCompleteChannel"));
-		assertEquals(123L, TestUtils.getPropertyValue(withDefaultConverterHandler, "deliveryCompleteTemplate.sendTimeout"));
 	}
 
 }

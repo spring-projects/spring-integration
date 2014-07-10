@@ -17,10 +17,13 @@ package org.springframework.integration.mqtt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
@@ -30,9 +33,13 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
+import org.springframework.integration.mqtt.outbound.MqttMessageDeliveredEvent;
+import org.springframework.integration.mqtt.outbound.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -122,13 +129,13 @@ public class BackTobackAdapterTests {
 	}
 
 	@Test
-	public void testAsync() {
+	public void testAsync() throws Exception {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
-		QueueChannel deliveryCompleteChannel = new QueueChannel();
-		adapter.setDeliveryCompleteChannel(deliveryCompleteChannel);
+		EventPublisher publisher = new EventPublisher();
+		adapter.setApplicationEventPublisher(publisher);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		MqttPahoMessageDrivenChannelAdapter inbound =
@@ -141,22 +148,13 @@ public class BackTobackAdapterTests {
 		inbound.setBeanFactory(mock(BeanFactory.class));
 		inbound.afterPropertiesSet();
 		inbound.start();
-		adapter.handleMessage(new GenericMessage<String>("foo"));
-		Message<?> delivery1 = deliveryCompleteChannel.receive(10000);
-		assertNotNull(delivery1);
-		Message<?> delivery2 = deliveryCompleteChannel.receive(10000);
-		assertNotNull(delivery2);
-		if (delivery1.getPayload().equals("foo")) {
-			assertEquals(delivery1.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery2.getPayload());
-		}
-		else if (delivery2.getPayload().equals("foo")) {
-			assertEquals(delivery2.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery1.getPayload());
-		}
-		else {
-			fail("Unexpected delivery messages " + delivery1 + " " + delivery2);
-		}
-		assertEquals("mqtt-foo", delivery1.getHeaders().get(MqttHeaders.TOPIC));
-		assertEquals("mqtt-foo", delivery2.getHeaders().get(MqttHeaders.TOPIC));
+		GenericMessage<String> message = new GenericMessage<String>("foo");
+		adapter.handleMessage(message);
+		assertTrue(publisher.latch.await(10, TimeUnit.SECONDS));
+		assertNotNull(publisher.sent);
+		assertNotNull(publisher.delivered);
+		assertEquals(publisher.sent.getMessageId(), publisher.delivered.getMessageId());
+		assertSame(message, publisher.sent.getMessage());
 		adapter.stop();
 		Message<?> out = outputChannel.receive(10000);
 		assertNotNull(out);
@@ -166,7 +164,7 @@ public class BackTobackAdapterTests {
 	}
 
 	@Test
-	public void testAsyncPersisted() {
+	public void testAsyncPersisted() throws Exception {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
 		String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "mqtt_persist";
 		new File(tmpDir).mkdirs();
@@ -176,9 +174,9 @@ public class BackTobackAdapterTests {
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
-		QueueChannel deliveryCompleteChannel = new QueueChannel();
-		adapter.setDeliveryCompleteChannel(deliveryCompleteChannel);
 		adapter.setDefaultQos(1);
+		EventPublisher publisher = new EventPublisher();
+		adapter.setApplicationEventPublisher(publisher);
 		adapter.afterPropertiesSet();
 		adapter.start();
 
@@ -192,22 +190,13 @@ public class BackTobackAdapterTests {
 		inbound.setBeanFactory(mock(BeanFactory.class));
 		inbound.afterPropertiesSet();
 		inbound.start();
-		adapter.handleMessage(new GenericMessage<String>("foo"));
-		Message<?> delivery1 = deliveryCompleteChannel.receive(10000);
-		assertNotNull(delivery1);
-		Message<?> delivery2 = deliveryCompleteChannel.receive(10000);
-		assertNotNull(delivery2);
-		if (delivery1.getPayload().equals("foo")) {
-			assertEquals(delivery1.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery2.getPayload());
-		}
-		else if (delivery2.getPayload().equals("foo")) {
-			assertEquals(delivery2.getHeaders().get(MqttHeaders.MESSAGE_ID), delivery1.getPayload());
-		}
-		else {
-			fail("Unexpected delivery messages " + delivery1 + " " + delivery2);
-		}
-		assertEquals("mqtt-foo", delivery1.getHeaders().get(MqttHeaders.TOPIC));
-		assertEquals("mqtt-foo", delivery2.getHeaders().get(MqttHeaders.TOPIC));
+		GenericMessage<String> message = new GenericMessage<String>("foo");
+		adapter.handleMessage(message);
+		assertTrue(publisher.latch.await(10, TimeUnit.SECONDS));
+		assertNotNull(publisher.sent);
+		assertNotNull(publisher.delivered);
+		assertEquals(publisher.sent.getMessageId(), publisher.delivered.getMessageId());
+		assertSame(message, publisher.sent.getMessage());
 		adapter.stop();
 		Message<?> out = outputChannel.receive(10000);
 		assertNotNull(out);
@@ -223,4 +212,26 @@ public class BackTobackAdapterTests {
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
 	}
+
+	private class EventPublisher implements ApplicationEventPublisher {
+
+		private volatile MqttMessageDeliveredEvent delivered;
+
+		private MqttMessageSentEvent sent;
+
+		private final CountDownLatch latch = new CountDownLatch(2);
+
+		@Override
+		public void publishEvent(ApplicationEvent event) {
+			if (event instanceof MqttMessageSentEvent) {
+				this.sent = (MqttMessageSentEvent) event;
+			}
+			else if (event instanceof MqttMessageDeliveredEvent){
+				this.delivered = (MqttMessageDeliveredEvent) event;
+			}
+			latch.countDown();
+		}
+
+	}
+
 }

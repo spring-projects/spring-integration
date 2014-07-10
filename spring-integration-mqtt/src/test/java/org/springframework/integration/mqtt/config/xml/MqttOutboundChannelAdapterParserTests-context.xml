@@ -36,11 +36,7 @@
 			phase="25"
 			order="1"
 			async="true"
-			delivery-complete-channel="deliveries"
-			delivery-complete-send-timeout="123"
 			channel="target" />
-
-	<int:channel id="deliveries" />
 
 	<bean id="myConverter" class="org.springframework.integration.mqtt.support.DefaultPahoMessageConverter" />
 
