@@ -99,6 +99,25 @@
 				containing the failed message and cause.
 			</callout>
 		</calloutlist>
+		<section>
+			<title>Adding/Removing Topics at Runtime</title>
+			<para>
+				Starting with <emphasis>version 4.1</emphasis>, it is possible to programmatically change the topics
+				to which the adapter is subscribed. Methods <code>addTopic()</code> and <code>removeTopic()</code> are
+				provided. When adding topics, you can optionally specify the <code>QoS</code> (default: 1). You can
+				also modify the topics by sending an appropriate message to a <code>&lt;control-bus/&gt;</code> with
+				an appropriate payload: <code>"myMqttAdapter.addTopic('foo', 1)"</code>.
+			</para>
+			<para>
+				Stopping/starting the adapter has no effect on the topic list (it does <emphasis role="bold">not</emphasis>
+				revert to the original settings in the configuration). The changes are not retained beyond the
+				life cycle of the application context; a new application context will revert to the configured settings.
+			</para>
+			<para>
+				Changing the topics while the adapter is stopped (or disconnected from the broker) will take effect
+				the next time a connection is established.
+			</para>
+		</section>
 	</section>
 
 	<section id="mqtt-outbound">

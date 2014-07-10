@@ -63,11 +63,15 @@
 			</para>
 			<para>
 				The MQTT message-driven channel adapter now supports specifying the QoS setting for each
-				subscription. See <xref linkend="mqtt"/> for more information.
+				subscription. See <xref linkend="mqtt-inbound"/> for more information.
 			</para>
 			<para>
 				The MQTT outbound channel adapter now supports asynchronous sends, avoiding blocking
-				until delivery is confirmed. See <xref linkend="mqtt"/> for more information.
+				until delivery is confirmed. See <xref linkend="mqtt-outbound"/> for more information.
+			</para>
+			<para>
+				It is now possible to programmatically subscribe to and unsubscribe from topics at runtime.
+				See <xref linkend="mqtt-inbound"/> for more information.
 			</para>
 		</section>
 	</section>
