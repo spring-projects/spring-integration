@@ -144,9 +144,10 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specifies that sends should not block, with the thread returning
-							immediately the message is sent. When 'true' (default 'false'), delivery
-							confirmations (containing the sent message) will be sent to the
-							'delivery-complete-channel', if specified.
+							immediately the message is sent. When 'true' (default 'false'), message
+							sent and message delivery events will be published for reception
+							by a suitably configured 'ApplicationListener' or an event
+							inbound-channel-adapter.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

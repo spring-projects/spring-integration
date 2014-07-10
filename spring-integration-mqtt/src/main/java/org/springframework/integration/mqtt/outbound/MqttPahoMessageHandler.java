@@ -89,8 +89,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	/**
 	 * Set to true if you don't want to block when sending messages. Default false.
-	 * When true, delivery complete messages will be sent to the delivery complete
-	 * channel (if specified).
+	 * When true, message sent/delivered events will be published for reception
+	 * by a suitably configured 'ApplicationListener' or an event
+	 * inbound-channel-adapter.
 	 * @param async true for async.
 	 * @since 4.1
 	 */
