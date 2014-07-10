@@ -19,6 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,6 +42,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MqttMessageDrivenChannelAdapterParserTests {
+
+	@Autowired
+	private MqttPahoMessageDrivenChannelAdapter noTopicsAdapter;
 
 	@Autowired
 	private MqttPahoMessageDrivenChannelAdapter oneTopicAdapter;
@@ -62,13 +68,23 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 	private MessageChannel errors;
 
 	@Test
+	public void testNoTopics() { // INT-3467 no longer required to have topics
+		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(noTopicsAdapter, "url"));
+		assertFalse(TestUtils.getPropertyValue(noTopicsAdapter, "autoStartup", Boolean.class));
+		assertEquals("foo", TestUtils.getPropertyValue(noTopicsAdapter, "clientId"));
+		assertEquals(0, TestUtils.getPropertyValue(noTopicsAdapter, "topics", Collection.class).size());
+		assertSame(out, TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel"));
+		assertSame(clientFactory, TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory"));
+	}
+
+	@Test
 	public void testOneTopic() {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(oneTopicAdapter, "url"));
 		assertFalse(TestUtils.getPropertyValue(oneTopicAdapter, "autoStartup", Boolean.class));
 		assertEquals(25, TestUtils.getPropertyValue(oneTopicAdapter, "phase"));
 		assertEquals("foo", TestUtils.getPropertyValue(oneTopicAdapter, "clientId"));
-		assertEquals("bar", TestUtils.getPropertyValue(oneTopicAdapter, "topic", String[].class)[0]);
-		assertEquals(1, TestUtils.getPropertyValue(oneTopicAdapter, "qos", int[].class)[0]);
+		assertEquals("Topic [topic=bar, qos=1]",
+				TestUtils.getPropertyValue(oneTopicAdapter, "topics", Collection.class).iterator().next().toString());
 		assertSame(converter, TestUtils.getPropertyValue(oneTopicAdapter, "converter"));
 		assertEquals(123L, TestUtils.getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout"));
 		assertSame(out, TestUtils.getPropertyValue(oneTopicAdapter, "outputChannel"));
@@ -82,10 +98,9 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertFalse(TestUtils.getPropertyValue(twoTopicsAdapter, "autoStartup", Boolean.class));
 		assertEquals(25, TestUtils.getPropertyValue(twoTopicsAdapter, "phase"));
 		assertEquals("foo", TestUtils.getPropertyValue(twoTopicsAdapter, "clientId"));
-		assertEquals("bar", TestUtils.getPropertyValue(twoTopicsAdapter, "topic", String[].class)[0]);
-		assertEquals("baz", TestUtils.getPropertyValue(twoTopicsAdapter, "topic", String[].class)[1]);
-		assertEquals(0, TestUtils.getPropertyValue(twoTopicsAdapter, "qos", int[].class)[0]);
-		assertEquals(2, TestUtils.getPropertyValue(twoTopicsAdapter, "qos", int[].class)[1]);
+		Iterator<?> iterator = TestUtils.getPropertyValue(twoTopicsAdapter, "topics", Collection.class).iterator();
+		assertEquals("Topic [topic=bar, qos=0]", iterator.next().toString());
+		assertEquals("Topic [topic=baz, qos=2]", iterator.next().toString());
 		assertSame(converter, TestUtils.getPropertyValue(twoTopicsAdapter, "converter"));
 		assertEquals(123L, TestUtils.getPropertyValue(twoTopicsAdapter, "messagingTemplate.sendTimeout"));
 		assertSame(out, TestUtils.getPropertyValue(twoTopicsAdapter, "outputChannel"));
@@ -94,10 +109,9 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 
 	@Test
 	public void testTwoTopicsSingleQos() {
-		assertEquals("bar", TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topic", String[].class)[0]);
-		assertEquals("baz", TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topic", String[].class)[1]);
-		assertEquals(0, TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "qos", int[].class)[0]);
-		assertEquals(0, TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "qos", int[].class)[1]);
+		Iterator<?> iterator = TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topics", Collection.class).iterator();
+		assertEquals("Topic [topic=bar, qos=0]", iterator.next().toString());
+		assertEquals("Topic [topic=baz, qos=0]", iterator.next().toString());
 	}
 
 }
