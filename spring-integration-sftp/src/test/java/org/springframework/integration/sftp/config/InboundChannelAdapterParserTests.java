@@ -23,7 +23,6 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
 
 import java.io.File;
-import java.util.Comparator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -73,8 +72,6 @@ public class InboundChannelAdapterParserTests {
 		SftpInboundFileSynchronizingMessageSource source =
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
-		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
-		assertNotNull(comparator);
 		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
 		assertNotNull(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression"));
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");

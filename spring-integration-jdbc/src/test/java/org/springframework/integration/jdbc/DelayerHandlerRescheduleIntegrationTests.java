@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
@@ -51,6 +52,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Artem Bilan
  * @author Gary Russell
  */
+@Ignore
 public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static final String DELAYER_ID = "delayerWithJdbcMS";
