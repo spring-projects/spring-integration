@@ -32,6 +32,7 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -511,8 +512,17 @@ public class TcpNioConnectionTests {
 	@Test
 	public void int3453RaceTest() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
-		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
+		TcpNioServerConnectionFactory factory = Mockito.spy(new TcpNioServerConnectionFactory(port));
 		final CountDownLatch connectionLatch = new CountDownLatch(1);
+		doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				invocation.callRealMethod();
+				connectionLatch.countDown();
+				return null;
+			}
+		}).when(factory).doAccept(Mockito.any(Selector.class), Mockito.any(ServerSocketChannel.class),
+				Mockito.any(Long.class));
 		final CountDownLatch assemblerLatch = new CountDownLatch(1);
 		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();
 		factory.registerListener(new TcpListener() {

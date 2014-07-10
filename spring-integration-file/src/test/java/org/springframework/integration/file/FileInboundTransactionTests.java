@@ -35,6 +35,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.TransactionDefinition;
@@ -49,6 +50,7 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileInboundTransactionTests {
 
 	@Autowired

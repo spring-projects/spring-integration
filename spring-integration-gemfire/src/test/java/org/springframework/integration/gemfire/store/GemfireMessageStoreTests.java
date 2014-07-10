@@ -16,15 +16,15 @@
 
 package org.springframework.integration.gemfire.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 import java.util.Properties;
 
+import com.gemstone.gemfire.cache.Cache;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
@@ -33,9 +33,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.util.Assert;
-
-import com.gemstone.gemfire.cache.Cache;
 
 /**
  * @author Mark Fisher
@@ -45,18 +42,18 @@ import com.gemstone.gemfire.cache.Cache;
 public class GemfireMessageStoreTests {
 
 	private Cache cache;
-	
+
 	@Test
 	public void addAndGetMessage() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());
 		assertEquals(message, retrieved);
 	}
-	
+
 	@Test
 	public void testRegionConstructor() throws Exception {
 		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>();
@@ -68,18 +65,18 @@ public class GemfireMessageStoreTests {
 		store.afterPropertiesSet();
 		assertSame(region.getObject(),TestUtils.getPropertyValue(store, "messageStoreRegion"));
 	}
-	
+
 	@Test
-	public void testWithMessageHistory() throws Exception{	
+	public void testWithMessageHistory() throws Exception{
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
 		barChannel.setBeanName("barChannel");
-		
+
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
 		store.addMessage(message);
@@ -96,12 +93,12 @@ public class GemfireMessageStoreTests {
 	public void init() throws Exception{
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		this.cache = (Cache)cacheFactoryBean.getObject();
+		this.cache = (Cache) cacheFactoryBean.getObject();
 	}
-	
+
 	@After
 	public void cleanup(){
-		this.cache.close();
-		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+//		this.cache.close();
+//		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
 	}
 }

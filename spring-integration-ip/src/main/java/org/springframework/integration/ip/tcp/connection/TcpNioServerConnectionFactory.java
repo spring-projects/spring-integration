@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -134,12 +135,19 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 					logger.trace("Delayed reads:" + getDelayedReads().size() + " timeout " + timeout);
 				}
 				selectionCount = selector.select(timeout);
-			} catch (CancelledKeyException cke) {
+				this.processNioSelections(selectionCount, selector, server, this.channelMap);
+			}
+			catch (CancelledKeyException cke) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("CancelledKeyException during Selector.select()");
 				}
 			}
-			this.processNioSelections(selectionCount, selector, server, this.channelMap);
+			catch (ClosedSelectorException cse) {
+				if (this.isActive()) {
+					logger.error("Selector closed", cse);
+					break;
+				}
+			}
 		}
 	}
 

@@ -17,7 +17,6 @@
 package org.springframework.integration.gateway;
 
 import junit.framework.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,6 +28,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -38,20 +38,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GatewayInvokingMessageHandlerTests {
 
 	@Autowired
 	@Qualifier("inputA")
 	SubscribableChannel channel;
-	
+
 	@Autowired
 	@Qualifier("simpleGateway")
 	SimpleGateway gateway;
-	
+
 	@Autowired
 	@Qualifier("gatewayWithError")
 	SimpleGateway gatewayWithError;
-	
+
 	@Autowired
 	@Qualifier("gatewayWithErrorAsync")
 	SimpleGateway gatewayWithErrorAsync;
@@ -77,7 +78,7 @@ public class GatewayInvokingMessageHandlerTests {
 	}
 
 	@Test
-	public void validateGatewayInTheChainViaAnotherGateway() {	
+	public void validateGatewayInTheChainViaAnotherGateway() {
 		output.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
@@ -88,9 +89,9 @@ public class GatewayInvokingMessageHandlerTests {
 		String result = gateway.process("hello");
 		Assert.assertEquals("echo:echo:echo:hello", result);
 	}
-	
+
 	@Test
-	public void validateGatewayWithErrorMessageReturned() {	
+	public void validateGatewayWithErrorMessageReturned() {
 		try {
 			String result = gatewayWithErrorChannelAndTransformer.process("echoWithRuntimeExceptionChannel");
 			Assert.assertNotNull(result);
@@ -99,7 +100,7 @@ public class GatewayInvokingMessageHandlerTests {
 		catch (Exception e) {
 			Assert.fail();
 		}
-		
+
 		try {
 			gatewayWithError.process("echoWithRuntimeExceptionChannel");
 			Assert.fail();
@@ -107,7 +108,7 @@ public class GatewayInvokingMessageHandlerTests {
 		catch (SampleRuntimeException e) {
 			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getMessage());
 		}
-		
+
 		try {
 			gatewayWithError.process("echoWithMessagingExceptionChannel");
 			Assert.fail();
@@ -115,7 +116,7 @@ public class GatewayInvokingMessageHandlerTests {
 		catch (MessageHandlingException e) {
 			Assert.assertEquals("echoWithMessagingExceptionChannel", e.getFailedMessage().getPayload());
 		}
-		
+
 		try {
 			String result = gatewayWithErrorChannelAndTransformer.process("echoWithMessagingExceptionChannel");
 			Assert.assertNotNull(result);
@@ -125,9 +126,9 @@ public class GatewayInvokingMessageHandlerTests {
 			Assert.fail();
 		}
 	}
-	
+
 	@Test
-	public void validateGatewayWithErrorAsync() {	
+	public void validateGatewayWithErrorAsync() {
 		try {
 			gatewayWithErrorAsync.process("echoWithErrorAsyncChannel");
 			Assert.fail();
@@ -136,9 +137,9 @@ public class GatewayInvokingMessageHandlerTests {
 			Assert.assertEquals(SampleRuntimeException.class, e.getClass());
 		}
 	}
-	
+
 	@Test
-	public void validateGatewayWithErrorFlowReturningMessage() {	
+	public void validateGatewayWithErrorFlowReturningMessage() {
 		try {
 			Object result = gatewayWithErrorChannelAndTransformer.process("echoWithErrorAsyncChannel");
 			Assert.assertEquals("Error happened in message: echoWithErrorAsyncChannel", result);
@@ -151,10 +152,10 @@ public class GatewayInvokingMessageHandlerTests {
 
 	public static class SampleErrorTransformer {
 		public Message<?> toMessage(Throwable object) throws Exception {
-			MessageHandlingException ex = (MessageHandlingException) object;		
+			MessageHandlingException ex = (MessageHandlingException) object;
 			return MessageBuilder.withPayload("Error happened in message: " + ex.getFailedMessage().getPayload()).build();
 		}
-		
+
 	}
 
 
@@ -195,7 +196,7 @@ public class GatewayInvokingMessageHandlerTests {
 	public static class SampleRuntimeException extends RuntimeException {
 		public SampleRuntimeException(String message) {
 			super(message);
-		}		
+		}
 	}
 
 }
