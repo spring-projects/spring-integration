@@ -194,7 +194,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 *  a MessageBuilder to be returned.
 	 */
 	@Override
-	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, int sequenceSize) {
+	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, Integer sequenceSize) {
 		super.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
 		return this;
 	}
