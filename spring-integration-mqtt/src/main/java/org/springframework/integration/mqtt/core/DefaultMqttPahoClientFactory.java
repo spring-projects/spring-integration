@@ -52,6 +52,8 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	private volatile Will will;
 
+	private volatile String[] serverURIs;
+
 	public void setCleanSession(Boolean cleanSession) {
 		this.cleanSession = cleanSession;
 	}
@@ -94,9 +96,20 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		this.persistence = persistence;
 	}
 
+	/**
+	 * Use this when using multiple server instances, for example when using HA.
+	 * @param serverURIs The URIs.
+	 * @see MqttConnectOptions#setServerURIs(String[])
+	 * @since 4.1
+	 */
+	public void setServerURIs(String[] serverURIs) {
+		this.serverURIs = serverURIs;
+	}
+
 	@Override
-	public MqttClient getClientInstance(String url, String clientId) throws MqttException {
-		return new MqttClient(url, clientId, this.persistence);
+	public MqttClient getClientInstance(String uri, String clientId) throws MqttException {
+		// Client validates URI even if overridden by options
+		return new MqttClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
 
 	@Override
@@ -125,6 +138,9 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		}
 		if (this.will != null) {
 			options.setWill(this.will.getTopic(), this.will.getPayload(), this.will.getQos(), this.will.isRetained());
+		}
+		if (this.serverURIs != null) {
+			options.setServerURIs(this.serverURIs);
 		}
 		return options;
 	}

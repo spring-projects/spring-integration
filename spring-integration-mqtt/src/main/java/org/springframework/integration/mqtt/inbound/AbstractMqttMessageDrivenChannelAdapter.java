@@ -38,7 +38,6 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	private volatile MqttMessageConverter converter;
 
 	public AbstractMqttMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
-		Assert.hasText(url, "'url' cannot be null or empty");
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		Assert.notNull(topic, "'topics' cannot be null");
 		Assert.isTrue(topic.length > 0, "'topics' cannot be empty");

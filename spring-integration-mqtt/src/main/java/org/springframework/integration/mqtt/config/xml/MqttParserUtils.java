@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
@@ -38,12 +39,22 @@ public final class MqttParserUtils {
 		throw new AssertionError();
 	}
 
-	public static void parseCommon(Element element, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgValue(element.getAttribute("url"));
+	public static void parseCommon(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
+
+		String url = element.getAttribute("url");
+		if (StringUtils.hasText(url)) {
+			builder.addConstructorArgValue(url);
+		}
 		builder.addConstructorArgValue(element.getAttribute("client-id"));
 		String clientFactory = element.getAttribute("client-factory");
 		if (StringUtils.hasText(clientFactory)) {
 			builder.addConstructorArgReference(clientFactory);
+		}
+		else {
+			if (!StringUtils.hasText(url)) {
+				parserContext.getReaderContext().error("If no 'url' attribute is provided, a 'client-factory' " +
+						"(with serverURIs) is required", element);
+			}
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "converter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");

@@ -55,7 +55,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	private volatile boolean autoStartup;
 
 	public AbstractMqttMessageHandler(String url, String clientId) {
-		Assert.hasText(url, "'url' cannot be null or empty");
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
 		this.clientId = clientId;

@@ -21,12 +21,14 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Eclipse Paho Implementation.
@@ -47,12 +49,41 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private volatile boolean connected;
 
 
+	/**
+	 * Use this constructor for a single url (although it may be overridden
+	 * if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
+	 * provided by the {@link MqttPahoClientFactory}).
+	 * @param url the URL.
+	 * @param clientId The client id.
+	 * @param clientFactory The client factory.
+	 * @param topic The topic(s).
+	 */
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, MqttPahoClientFactory clientFactory,
 			String... topic) {
 		super(url, clientId, topic);
 		this.clientFactory = clientFactory;
 	}
 
+	/**
+	 * Use this constructor if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
+	 * provided by the {@link MqttPahoClientFactory}.
+	 * @param clientId The client id.
+	 * @param clientFactory The client factory.
+	 * @param topic The topic(s).
+	 * @since 4.1
+	 */
+	public MqttPahoMessageDrivenChannelAdapter(String clientId, MqttPahoClientFactory clientFactory,
+			String... topic) {
+		super(null, clientId, topic);
+		this.clientFactory = clientFactory;
+	}
+
+	/**
+	 * Use this URL when you don't need additional {@link MqttConnectOptions}.
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 * @param topic The topic(s).
+	 */
 	public MqttPahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		this(url, clientId, new DefaultMqttPahoClientFactory(), topic);
 	}
@@ -96,9 +127,13 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	private void connectAndSubscribe() throws MqttException {
-		this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
 		this.client.setCallback(this);
-		this.client.connect(this.clientFactory.getConnectionOptions());
+		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+		Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
+				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+		this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
+		this.client.connect(connectionOptions);
+
 		try {
 			this.client.subscribe(this.getTopic());
 		}

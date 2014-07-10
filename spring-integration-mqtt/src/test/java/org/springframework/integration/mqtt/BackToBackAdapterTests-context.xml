@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/mqtt http://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
+
+	<int-mqtt:outbound-channel-adapter id="out" client-id="multiOut" 
+		client-factory="multiUriClientFactory"
+		default-topic="multiServerTests" />
+
+	<int-mqtt:message-driven-channel-adapter id="inbound"
+		client-factory="multiUriClientFactory"
+		client-id="multiIn" channel="in" topics="multiServerTests" />
+
+	<int:channel id="in">
+		<int:queue />
+	</int:channel>
+
+	<bean id="multiUriClientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+		<property name="serverURIs" value="tcp://localhost:1883,tcp://localhost:1883"/>
+	</bean>
+
+</beans>

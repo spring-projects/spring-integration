@@ -18,6 +18,7 @@ package org.springframework.integration.mqtt.outbound;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -40,11 +41,36 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private volatile MqttClient client;
 
-	public MqttPahoMessageHandler(String url, String clientId, MqttPahoClientFactory factory) {
+	/**
+	 * Use this constructor for a single url (although it may be overridden
+	 * if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
+	 * provided by the {@link MqttPahoClientFactory}).
+	 * @param url the URL.
+	 * @param clientId The client id.
+	 * @param clientFactory The client factory.
+	 */
+	public MqttPahoMessageHandler(String url, String clientId, MqttPahoClientFactory clientFactory) {
 		super(url, clientId);
-		this.clientFactory = factory;
+		this.clientFactory = clientFactory;
 	}
 
+	/**
+	 * Use this constructor if the server URI(s) are provided by the {@link MqttConnectOptions#getServerURIs()}
+	 * provided by the {@link MqttPahoClientFactory}.
+	 * @param clientId The client id.
+	 * @param clientFactory The client factory.
+	 * @since 4.1
+	 */
+	public MqttPahoMessageHandler(String clientId, MqttPahoClientFactory clientFactory) {
+		super(null, clientId);
+		this.clientFactory = clientFactory;
+	}
+
+	/**
+	 * Use this URL when you don't need additional {@link MqttConnectOptions}.
+	 * @param url The URL.
+	 * @param clientId The client id.
+	 */
 	public MqttPahoMessageHandler(String url, String clientId) {
 		this(url, clientId, new DefaultMqttPahoClientFactory());
 	}
@@ -73,8 +99,11 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			this.client = null;
 		}
 		if (this.client == null) {
+			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+			Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
+					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 			this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
-			this.client.connect(this.clientFactory.getConnectionOptions());
+			this.client.connect(connectionOptions);
 			this.client.setCallback(this);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Client connected");

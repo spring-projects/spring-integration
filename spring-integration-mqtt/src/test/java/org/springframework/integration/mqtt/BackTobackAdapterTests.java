@@ -22,16 +22,23 @@ import static org.mockito.Mockito.mock;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
@@ -39,10 +46,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  */
 @Ignore //TODO transiently
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class BackTobackAdapterTests {
 
 	@Rule
 	public final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+
+	@Autowired
+	public MessageChannel out;
+
+	@Autowired
+	public PollableChannel in;
 
 	@Test
 	public void testSingleTopic() {
@@ -103,4 +119,11 @@ public class BackTobackAdapterTests {
 		adapter.stop();
 	}
 
+	@Test
+	public void testMultiURIs() {
+		out.send(new GenericMessage<String>("foo"));
+		Message<?> message = in.receive(10000);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
 }
