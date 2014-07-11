@@ -37,6 +37,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
@@ -50,7 +51,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,17 +61,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
-public class BackTobackAdapterTests {
+public class BackToBackAdapterTests {
 
 	@Rule
 	public final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
 
 	@Autowired
-	public MessageChannel out;
+	private MessageChannel out;
 
 	@Autowired
-	public PollableChannel in;
+	private PollableChannel in;
+
+	@Autowired
+	private ConfigurableApplicationContext context;
 
 	@Test
 	public void testSingleTopic() {
@@ -259,10 +261,16 @@ public class BackTobackAdapterTests {
 
 	@Test
 	public void testMultiURIs() {
-		out.send(new GenericMessage<String>("foo"));
-		Message<?> message = in.receive(10000);
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		this.context.start();
+		try{
+			out.send(new GenericMessage<String>("foo"));
+			Message<?> message = in.receive(10000);
+			assertNotNull(message);
+			assertEquals("foo", message.getPayload());
+		}
+		finally {
+			this.context.stop();
+		}
 	}
 
 	private class EventPublisher implements ApplicationEventPublisher {
