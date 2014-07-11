@@ -15,32 +15,27 @@
  */
 package org.springframework.integration.mqtt.outbound;
 
-import org.springframework.integration.mqtt.core.MqttIntegrationEvent;
 import org.springframework.messaging.Message;
 
 /**
  * An event emitted (when using aysnc) when the client indicates that a message
- * has been sent; contains the message id for later correlation with the
- * MqttMessageDeliveredEvent.
+ * has been sent.
  *
  * @author Gary Russell
  * @since 4.1
  *
  */
 @SuppressWarnings("serial")
-public class MqttMessageSentEvent extends MqttIntegrationEvent {
+public class MqttMessageSentEvent extends MqttMessageDeliveryEvent {
 
 	private final Message<?> message;
 
 	private final String topic;
 
-	private final int messageId;
-
-	public MqttMessageSentEvent(Object source, Message<?> message, String topic, int messageId) {
-		super(source);
+	public MqttMessageSentEvent(MqttPahoMessageHandler source, Message<?> message, String topic, int messageId) {
+		super(source, messageId);
 		this.message = message;
 		this.topic = topic;
-		this.messageId = messageId;
 	}
 
 	public Message<?> getMessage() {
@@ -51,13 +46,14 @@ public class MqttMessageSentEvent extends MqttIntegrationEvent {
 		return topic;
 	}
 
-	public int getMessageId() {
-		return messageId;
-	}
-
 	@Override
 	public String toString() {
-		return "MqttMessageSentEvent [message=" + message + ", topic=" + topic + ", messageId=" + messageId + "]";
+		return "MqttMessageSentEvent [message=" + message
+				+ ", topic=" + topic
+				+ ", clientId=" + getClientId()
+				+ ", clientInstance=" + getClientInstance()
+				+ ", messageId=" + getMessageId()
+				+ "]";
 	}
 
 }

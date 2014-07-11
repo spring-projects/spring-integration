@@ -83,7 +83,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		return url;
 	}
 
-	protected String getClientId() {
+	public String getClientId() {
 		return clientId;
 	}
 

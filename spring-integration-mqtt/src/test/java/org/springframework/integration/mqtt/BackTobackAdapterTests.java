@@ -154,6 +154,10 @@ public class BackTobackAdapterTests {
 		assertNotNull(publisher.sent);
 		assertNotNull(publisher.delivered);
 		assertEquals(publisher.sent.getMessageId(), publisher.delivered.getMessageId());
+		assertEquals(adapter.getClientId(), publisher.sent.getClientId());
+		assertEquals(adapter.getClientId(), publisher.delivered.getClientId());
+		assertEquals(adapter.getClientInstance(), publisher.sent.getClientInstance());
+		assertEquals(adapter.getClientInstance(), publisher.delivered.getClientInstance());
 		assertSame(message, publisher.sent.getMessage());
 		adapter.stop();
 		Message<?> out = outputChannel.receive(10000);
@@ -196,6 +200,10 @@ public class BackTobackAdapterTests {
 		assertNotNull(publisher.sent);
 		assertNotNull(publisher.delivered);
 		assertEquals(publisher.sent.getMessageId(), publisher.delivered.getMessageId());
+		assertEquals(adapter.getClientId(), publisher.sent.getClientId());
+		assertEquals(adapter.getClientId(), publisher.delivered.getClientId());
+		assertEquals(adapter.getClientInstance(), publisher.sent.getClientInstance());
+		assertEquals(adapter.getClientInstance(), publisher.delivered.getClientInstance());
 		assertSame(message, publisher.sent.getMessage());
 		adapter.stop();
 		Message<?> out = outputChannel.receive(10000);

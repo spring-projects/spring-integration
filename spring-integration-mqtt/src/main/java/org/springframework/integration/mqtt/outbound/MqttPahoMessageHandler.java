@@ -49,6 +49,8 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private volatile MqttAsyncClient client;
 
+	private volatile int clientInstance;
+
 	private volatile boolean async;
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
@@ -114,6 +116,15 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	/**
+	 * Incremented each time the client is connected.
+	 * @return The instance;
+	 * @since 4.1
+	 */
+	public int getClientInstance() {
+		return clientInstance;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
@@ -150,6 +161,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 			this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+			this.clientInstance++;
 			this.client.setCallback(this);
 			this.client.connect(connectionOptions)
 			.waitForCompletion(this.completionTimeout);
@@ -185,7 +197,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	private void sendDeliveryComplete(IMqttDeliveryToken token) {
-		if (this.applicationEventPublisher != null) {
+		if (this.async && this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
 					new MqttMessageDeliveredEvent(MqttPahoMessageHandler.this, token.getMessageId()));
 		}
