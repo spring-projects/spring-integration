@@ -34,7 +34,7 @@ public abstract class MqttMessageDeliveryEvent extends MqttIntegrationEvent {
 
 	private final int clientInstance;
 
-	public MqttMessageDeliveryEvent(MqttPahoMessageHandler source, int messageId) {
+	public MqttMessageDeliveryEvent(AbstractMqttMessageHandler source, int messageId) {
 		super(source);
 		this.messageId = messageId;
 		this.clientId = source.getClientId();

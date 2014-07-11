@@ -52,6 +52,8 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private volatile boolean autoStartup;
 
+	private volatile int clientInstance;
+
 	public AbstractMqttMessageHandler(String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		this.url = url;
@@ -90,6 +92,19 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	@Override
 	public String getComponentType() {
 		return "mqtt:outbound-channel-adapter";
+	}
+
+	/**
+	 * Incremented each time the client is connected.
+	 * @return The instance;
+	 * @since 4.1
+	 */
+	public int getClientInstance() {
+		return clientInstance;
+	}
+
+	protected void incrementClientInstance() {
+		this.clientInstance++;
 	}
 
 	@Override

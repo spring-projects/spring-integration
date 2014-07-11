@@ -16,9 +16,11 @@
 package org.springframework.integration.mqtt;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -150,15 +152,7 @@ public class BackTobackAdapterTests {
 		inbound.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		adapter.handleMessage(message);
-		assertTrue(publisher.latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(publisher.sent);
-		assertNotNull(publisher.delivered);
-		assertEquals(publisher.sent.getMessageId(), publisher.delivered.getMessageId());
-		assertEquals(adapter.getClientId(), publisher.sent.getClientId());
-		assertEquals(adapter.getClientId(), publisher.delivered.getClientId());
-		assertEquals(adapter.getClientInstance(), publisher.sent.getClientInstance());
-		assertEquals(adapter.getClientInstance(), publisher.delivered.getClientInstance());
-		assertSame(message, publisher.sent.getMessage());
+		verifyEvents(adapter, publisher, message);
 		adapter.stop();
 		Message<?> out = outputChannel.receive(10000);
 		assertNotNull(out);
@@ -179,13 +173,13 @@ public class BackTobackAdapterTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
 		adapter.setDefaultQos(1);
-		EventPublisher publisher = new EventPublisher();
-		adapter.setApplicationEventPublisher(publisher);
+		EventPublisher publisher1 = new EventPublisher();
+		adapter.setApplicationEventPublisher(publisher1);
 		adapter.afterPropertiesSet();
 		adapter.start();
 
 		MqttPahoMessageDrivenChannelAdapter inbound =
-				new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo");
+				new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo", "mqtt-bar");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -194,23 +188,73 @@ public class BackTobackAdapterTests {
 		inbound.setBeanFactory(mock(BeanFactory.class));
 		inbound.afterPropertiesSet();
 		inbound.start();
-		GenericMessage<String> message = new GenericMessage<String>("foo");
-		adapter.handleMessage(message);
-		assertTrue(publisher.latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(publisher.sent);
-		assertNotNull(publisher.delivered);
-		assertEquals(publisher.sent.getMessageId(), publisher.delivered.getMessageId());
-		assertEquals(adapter.getClientId(), publisher.sent.getClientId());
-		assertEquals(adapter.getClientId(), publisher.delivered.getClientId());
-		assertEquals(adapter.getClientInstance(), publisher.sent.getClientInstance());
-		assertEquals(adapter.getClientInstance(), publisher.delivered.getClientInstance());
-		assertSame(message, publisher.sent.getMessage());
+		Message<String> message1 = new GenericMessage<String>("foo");
+		adapter.handleMessage(message1);
+		verifyEvents(adapter, publisher1, message1);
+
+		Message<String> message2 = MessageBuilder.withPayload("bar")
+				.setHeader(MqttHeaders.TOPIC, "mqtt-bar")
+				.build();
+		EventPublisher publisher2 = new EventPublisher();
+		adapter.setApplicationEventPublisher(publisher2);
+		adapter.handleMessage(message2);
+		verifyEvents(adapter, publisher2, message2);
+
+		verifyMessageIds(publisher1, publisher2);
+		int clientInstance = publisher1.delivered.getClientInstance();
+
 		adapter.stop();
-		Message<?> out = outputChannel.receive(10000);
-		assertNotNull(out);
+		adapter.start(); // new client instance
+
+		publisher1 = new EventPublisher();
+		adapter.setApplicationEventPublisher(publisher1);
+		adapter.handleMessage(message1);
+		verifyEvents(adapter, publisher1, message1);
+
+		publisher2 = new EventPublisher();
+		adapter.setApplicationEventPublisher(publisher2);
+		adapter.handleMessage(message2);
+		verifyEvents(adapter, publisher2, message2);
+
+		verifyMessageIds(publisher1, publisher2);
+
+		assertNotEquals(clientInstance, publisher1.delivered.getClientInstance());
+		adapter.stop();
+
+		Message<?> out = null;
+		for (int i = 0; i < 4; i++) {
+			out = outputChannel.receive(10000);
+			assertNotNull(out);
+			if ("foo".equals(out.getPayload())) {
+				assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+			}
+			else if ("bar".equals(out.getPayload())) {
+				assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+			}
+			else {
+				fail("unexpected payload " + out.getPayload());
+			}
+		}
 		inbound.stop();
-		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+	}
+
+	private void verifyEvents(MqttPahoMessageHandler adapter, EventPublisher publisher1, Message<String> message1)
+			throws InterruptedException {
+		assertTrue(publisher1.latch.await(10, TimeUnit.SECONDS));
+		assertNotNull(publisher1.sent);
+		assertNotNull(publisher1.delivered);
+		assertEquals(publisher1.sent.getMessageId(), publisher1.delivered.getMessageId());
+		assertEquals(adapter.getClientId(), publisher1.sent.getClientId());
+		assertEquals(adapter.getClientId(), publisher1.delivered.getClientId());
+		assertEquals(adapter.getClientInstance(), publisher1.sent.getClientInstance());
+		assertEquals(adapter.getClientInstance(), publisher1.delivered.getClientInstance());
+		assertSame(message1, publisher1.sent.getMessage());
+	}
+
+	private void verifyMessageIds(EventPublisher publisher1, EventPublisher publisher2) {
+		assertNotEquals(publisher1.delivered.getMessageId(), publisher2.delivered.getMessageId());
+		assertEquals(publisher1.delivered.getClientId(), publisher2.delivered.getClientId());
+		assertEquals(publisher1.delivered.getClientInstance(), publisher2.delivered.getClientInstance());
 	}
 
 	@Test

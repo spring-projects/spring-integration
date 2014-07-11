@@ -32,7 +32,7 @@ public class MqttMessageSentEvent extends MqttMessageDeliveryEvent {
 
 	private final String topic;
 
-	public MqttMessageSentEvent(MqttPahoMessageHandler source, Message<?> message, String topic, int messageId) {
+	public MqttMessageSentEvent(AbstractMqttMessageHandler source, Message<?> message, String topic, int messageId) {
 		super(source, messageId);
 		this.message = message;
 		this.topic = topic;

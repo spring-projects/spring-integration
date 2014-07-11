@@ -28,7 +28,7 @@ package org.springframework.integration.mqtt.outbound;
 @SuppressWarnings("serial")
 public class MqttMessageDeliveredEvent extends MqttMessageDeliveryEvent {
 
-	public MqttMessageDeliveredEvent(MqttPahoMessageHandler source, int messageId) {
+	public MqttMessageDeliveredEvent(AbstractMqttMessageHandler source, int messageId) {
 		super(source, messageId);
 	}
 
