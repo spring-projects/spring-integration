@@ -4,5 +4,8 @@ services:
   - mongodb
   - rabbitmq
   - redis-server
+install:
+  - sudo rabbitmq-plugins enable rabbitmq_mqtt
+  - sudo service rabbitmq-server restart
 env:
   - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true GRADLE_OPTS='-XX:MaxPermSize=512M -Xmx1024M'
