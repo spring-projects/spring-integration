@@ -109,7 +109,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	}
 
 	public AbstractIntegrationMessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber,
-			Integer sequenceSize) {
+			int sequenceSize) {
 		Object incomingCorrelationId = this.getCorrelationId();
 		List<List<Object>> incomingSequenceDetails = this.getSequenceDetails();
 		if (incomingCorrelationId != null) {

@@ -26,7 +26,7 @@ import reactor.function.Function;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.util.CollectIterator;
+import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -59,7 +59,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		}
 
 		Iterator<Object> iterator;
-		final Integer sequenceSize;
+		final int sequenceSize;
 		if (result instanceof Collection) {
 			Collection<Object> items = (Collection<Object>) result;
 			sequenceSize = items.size();
@@ -71,11 +71,11 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			iterator = Arrays.asList(items).iterator();
 		}
 		else if (result instanceof Iterable<?>) {
-			sequenceSize = null;
+			sequenceSize = 0;
 			iterator = ((Iterable<Object>) result).iterator();
 		}
 		else if (result instanceof Iterator<?>) {
-			sequenceSize = null;
+			sequenceSize = 0;
 			iterator = (Iterator<Object>) result;
 		}
 		else {
@@ -91,7 +91,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		final Object correlationId = headers.getId();
 		final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-		return new CollectIterator<Object, AbstractIntegrationMessageBuilder<?>>(iterator,
+		return new FunctionIterator<Object, AbstractIntegrationMessageBuilder<?>>(iterator,
 				new Function<Object, AbstractIntegrationMessageBuilder<?>>() {
 					@Override
 					public AbstractIntegrationMessageBuilder<?> apply(Object object) {
@@ -103,7 +103,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	@SuppressWarnings( { "unchecked", "rawtypes" })
 	private AbstractIntegrationMessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId,
-			int sequenceNumber, Integer sequenceSize) {
+			int sequenceNumber, int sequenceSize) {
 		AbstractIntegrationMessageBuilder builder;
 		if (item instanceof Message) {
 			builder = this.getMessageBuilderFactory().fromMessage((Message) item);

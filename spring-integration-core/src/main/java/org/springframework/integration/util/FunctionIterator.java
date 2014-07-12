@@ -28,17 +28,17 @@ import reactor.function.Function;
  * @author Artem Bilan
  * @since 4.1
  */
-public final class CollectIterator<T, V> implements Iterator<V> {
+public final class FunctionIterator<T, V> implements Iterator<V> {
 
 	private final Iterator<T> iterator;
 
 	private final Function<? super T, ? extends V> function;
 
-	public CollectIterator(Iterable<T> iterable, Function<? super T, ? extends V> function) {
+	public FunctionIterator(Iterable<T> iterable, Function<? super T, ? extends V> function) {
 		this(iterable.iterator(), function);
 	}
 
-	public CollectIterator(Iterator<T> newIterator, Function<? super T, ? extends V> function) {
+	public FunctionIterator(Iterator<T> newIterator, Function<? super T, ? extends V> function) {
 		this.iterator = newIterator;
 		this.function = function;
 	}
