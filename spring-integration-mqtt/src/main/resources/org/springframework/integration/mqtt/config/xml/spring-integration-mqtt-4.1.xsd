@@ -144,10 +144,20 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specifies that sends should not block, with the thread returning
-							immediately the message is sent. When 'true' (default 'false'), message
+							immediately the message is sent. When 'true', message
+							sent and message delivery events can be published; see 'async-events'.
+							Default: 'false'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="async-events">
+					<xsd:annotation>
+						<xsd:documentation>
+							When 'async' is true, specifies that message
 							sent and message delivery events will be published for reception
 							by a suitably configured 'ApplicationListener' or an event
 							inbound-channel-adapter.
+							Default: 'false'.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

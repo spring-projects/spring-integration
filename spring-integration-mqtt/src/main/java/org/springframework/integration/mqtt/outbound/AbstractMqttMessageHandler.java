@@ -89,11 +89,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		return clientId;
 	}
 
-	@Override
-	public String getComponentType() {
-		return "mqtt:outbound-channel-adapter";
-	}
-
 	/**
 	 * Incremented each time the client is connected.
 	 * @return The instance;
@@ -101,6 +96,11 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 */
 	public int getClientInstance() {
 		return clientInstance;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "mqtt:outbound-channel-adapter";
 	}
 
 	protected void incrementClientInstance() {

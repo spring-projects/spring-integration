@@ -75,6 +75,7 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withConverterHandler, "clientFactory"));
 		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "asyncEvents", Boolean.class));
 
 		Object handler = TestUtils.getPropertyValue(this.withConverterEndpoint, "handler");
 
@@ -102,6 +103,7 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertTrue(TestUtils.getPropertyValue(defaultConverter, "defaultRetained", Boolean.class));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class));
 	}
 
 }

@@ -16,7 +16,6 @@
 package org.springframework.integration.mqtt.event;
 
 
-import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 
 /**
  * An event emitted (when using aysnc) when the client indicates the message
@@ -29,8 +28,9 @@ import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 @SuppressWarnings("serial")
 public class MqttMessageDeliveredEvent extends MqttMessageDeliveryEvent {
 
-	public MqttMessageDeliveredEvent(AbstractMqttMessageHandler source, int messageId) {
-		super(source, messageId);
+	public MqttMessageDeliveredEvent(Object source, int messageId, String clientId,
+			int clientInstance) {
+		super(source, messageId, clientId, clientInstance);
 	}
 
 	@Override

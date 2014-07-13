@@ -15,8 +15,13 @@
  */
 package org.springframework.integration.mqtt;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -32,7 +37,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
@@ -61,7 +65,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class BackToBackAdapterTests {
 
 	@ClassRule
-	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1882);
+	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
 
 	@Autowired
 	private MessageChannel out;
@@ -134,6 +138,7 @@ public class BackToBackAdapterTests {
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
+		adapter.setAsyncEvents(true);
 		EventPublisher publisher = new EventPublisher();
 		adapter.setApplicationEventPublisher(publisher);
 		adapter.afterPropertiesSet();
@@ -170,6 +175,7 @@ public class BackToBackAdapterTests {
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
+		adapter.setAsyncEvents(true);
 		adapter.setDefaultQos(1);
 		EventPublisher publisher1 = new EventPublisher();
 		adapter.setApplicationEventPublisher(publisher1);

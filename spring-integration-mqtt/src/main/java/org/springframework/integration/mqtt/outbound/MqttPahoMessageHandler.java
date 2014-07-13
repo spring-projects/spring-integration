@@ -53,6 +53,8 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private volatile boolean async;
 
+	private volatile boolean asyncEvents;
+
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	/**
@@ -99,6 +101,17 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	 */
 	public void setAsync(boolean async) {
 		this.async = async;
+	}
+
+	/**
+	 * When {@link #setAsync(boolean)} is true, setting this to true enables
+	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
+	 * to be emitted. Default false.
+	 * @param asyncEvents the asyncEvents.
+	 * @since 4.1
+	 */
+	public void setAsyncEvents(boolean asyncEvents) {
+		this.asyncEvents = asyncEvents;
 	}
 
 	/**
@@ -179,16 +192,18 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		if (!this.async) {
 			token.waitForCompletion(this.completionTimeout);
 		}
-		else if (this.applicationEventPublisher != null) {
+		else if (this.asyncEvents && this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
-					new MqttMessageSentEvent(this, message, topic, token.getMessageId()));
+					new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
+							getClientInstance()));
 		}
 	}
 
 	private void sendDeliveryComplete(IMqttDeliveryToken token) {
-		if (this.async && this.applicationEventPublisher != null) {
+		if (this.async && this.asyncEvents && this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
-					new MqttMessageDeliveredEvent(this, token.getMessageId()));
+					new MqttMessageDeliveredEvent(this, token.getMessageId(), getClientId(),
+							getClientInstance()));
 		}
 	}
 

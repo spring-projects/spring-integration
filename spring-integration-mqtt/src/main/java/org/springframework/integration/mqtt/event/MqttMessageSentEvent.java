@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.mqtt.event;
 
-import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
@@ -33,8 +32,9 @@ public class MqttMessageSentEvent extends MqttMessageDeliveryEvent {
 
 	private final String topic;
 
-	public MqttMessageSentEvent(AbstractMqttMessageHandler source, Message<?> message, String topic, int messageId) {
-		super(source, messageId);
+	public MqttMessageSentEvent(Object source, Message<?> message, String topic, int messageId,
+			String clientId, int clientInstance) {
+		super(source, messageId, clientId, clientInstance);
 		this.message = message;
 		this.topic = topic;
 	}

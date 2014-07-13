@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.mqtt.event;
 
-import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 
 /**
  * Base class for events related to message delivery. Properties {@link #messageId},
@@ -34,11 +33,11 @@ public abstract class MqttMessageDeliveryEvent extends MqttIntegrationEvent {
 
 	private final int clientInstance;
 
-	public MqttMessageDeliveryEvent(AbstractMqttMessageHandler source, int messageId) {
+	public MqttMessageDeliveryEvent(Object source, int messageId, String clientId, int clientInstance) {
 		super(source);
 		this.messageId = messageId;
-		this.clientId = source.getClientId();
-		this.clientInstance = source.getClientInstance();
+		this.clientId = clientId;
+		this.clientInstance = clientInstance;
 	}
 
 	public int getMessageId() {
