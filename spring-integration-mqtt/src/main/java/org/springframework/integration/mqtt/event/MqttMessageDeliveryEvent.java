@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mqtt.outbound;
+package org.springframework.integration.mqtt.event;
 
-import org.springframework.integration.mqtt.core.MqttIntegrationEvent;
+import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 
 /**
- * Base class for events related to message delivery. Properties messageId, clientId and
- * clientInstance can be used to correlate events.
+ * Base class for events related to message delivery. Properties {@link #messageId},
+ * {@link #clientId} and {@link #clientInstance} can be used to correlate events.
  *
  * @author Gary Russell
  * @since 4.1

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mqtt.outbound;
+package org.springframework.integration.mqtt.event;
 
+
+import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 
 /**
  * An event emitted (when using aysnc) when the client indicates the message
- * was delivered; contains the message id for correlation with the
- * {@link MqttMessageSentEvent}.
+ * was delivered.
  *
  * @author Gary Russell
  * @since 4.1

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mqtt.outbound;
+package org.springframework.integration.mqtt.event;
 
+import org.springframework.integration.mqtt.outbound.AbstractMqttMessageHandler;
 import org.springframework.messaging.Message;
 
 /**

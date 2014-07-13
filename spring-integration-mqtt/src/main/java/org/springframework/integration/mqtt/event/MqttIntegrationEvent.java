@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mqtt.core;
+package org.springframework.integration.mqtt.event;
 
 import org.springframework.integration.event.IntegrationEvent;
 
 /**
  * Base class for Mqtt Events.
  * @author Gary Russell
- * @since 4.1
  *
+ * @since 4.1
  */
 @SuppressWarnings("serial")
 public abstract class MqttIntegrationEvent extends IntegrationEvent {

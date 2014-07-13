@@ -26,6 +26,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
+import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -129,8 +131,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	protected void doStop() {
 		try {
 			if (this.client != null) {
-				this.client.disconnect()
-						.waitForCompletion(this.completionTimeout);
+				this.client.disconnect().waitForCompletion(this.completionTimeout);
 				this.client.close();
 				this.client = null;
 			}
@@ -152,8 +153,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 			incrementClientInstance();
 			this.client.setCallback(this);
-			this.client.connect(connectionOptions)
-			.waitForCompletion(this.completionTimeout);
+			this.client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Client connected");
 			}
@@ -188,7 +188,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	private void sendDeliveryComplete(IMqttDeliveryToken token) {
 		if (this.async && this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
-					new MqttMessageDeliveredEvent(MqttPahoMessageHandler.this, token.getMessageId()));
+					new MqttMessageDeliveredEvent(this, token.getMessageId()));
 		}
 	}
 

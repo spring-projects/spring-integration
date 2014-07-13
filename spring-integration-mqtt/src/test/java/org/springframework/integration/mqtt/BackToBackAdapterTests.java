@@ -15,13 +15,8 @@
  */
 package org.springframework.integration.mqtt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -29,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,9 +35,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
+import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
+import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
-import org.springframework.integration.mqtt.outbound.MqttMessageDeliveredEvent;
-import org.springframework.integration.mqtt.outbound.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -51,6 +46,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,19 +57,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class BackToBackAdapterTests {
 
-	@Rule
-	public final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+	@ClassRule
+	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1882);
 
 	@Autowired
 	private MessageChannel out;
 
 	@Autowired
 	private PollableChannel in;
-
-	@Autowired
-	private ConfigurableApplicationContext context;
 
 	@Test
 	public void testSingleTopic() {
@@ -82,7 +76,8 @@ public class BackToBackAdapterTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo");
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+				"si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -107,7 +102,8 @@ public class BackToBackAdapterTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
-		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in", "mqtt-foo", "mqtt-bar");
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+				"si-test-in", "mqtt-foo", "mqtt-bar");
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -261,16 +257,10 @@ public class BackToBackAdapterTests {
 
 	@Test
 	public void testMultiURIs() {
-		this.context.start();
-		try{
-			out.send(new GenericMessage<String>("foo"));
-			Message<?> message = in.receive(10000);
-			assertNotNull(message);
-			assertEquals("foo", message.getPayload());
-		}
-		finally {
-			this.context.stop();
-		}
+		out.send(new GenericMessage<String>("foo"));
+		Message<?> message = in.receive(10000);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
 	}
 
 	private class EventPublisher implements ApplicationEventPublisher {
