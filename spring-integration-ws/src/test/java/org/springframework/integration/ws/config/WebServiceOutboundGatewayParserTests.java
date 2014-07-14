@@ -266,7 +266,6 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(PeriodicTrigger.class, triggerObject.getClass());
 		PeriodicTrigger trigger = (PeriodicTrigger) triggerObject;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		accessor = new DirectFieldAccessor(trigger);
 		assertEquals("PeriodicTrigger had wrong period",
 				5000, ((Long)accessor.getPropertyValue("period")).longValue());
 	}
@@ -397,6 +396,7 @@ public class WebServiceOutboundGatewayParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void jmsUri() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());

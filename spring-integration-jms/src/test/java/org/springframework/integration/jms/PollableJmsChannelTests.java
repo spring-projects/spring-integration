@@ -52,6 +52,7 @@ import org.springframework.jms.core.MessageCreator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -266,8 +267,10 @@ public class PollableJmsChannelTests {
 		assertEquals("bar", result2.getPayload());
 	}
 
-	public static class SampleInterceptor implements ChannelInterceptor {
+	public static class SampleInterceptor extends ChannelInterceptorAdapter {
+
 		private final boolean preReceiveFlag;
+
 		public SampleInterceptor(boolean preReceiveFlag){
 			this.preReceiveFlag = preReceiveFlag;
 		}

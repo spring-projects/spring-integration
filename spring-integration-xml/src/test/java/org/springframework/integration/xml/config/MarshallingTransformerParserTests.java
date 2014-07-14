@@ -113,9 +113,9 @@ public class MarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		String expected = "[Payload String content=hello]";
 		String actual = doc.getDocumentElement().getTextContent();
-		assertThat(actual, Matchers.containsString(expected));
+		assertThat(actual, Matchers.containsString("[Payload"));
+		assertThat(actual, Matchers.containsString("=hello]"));
 		assertThat(actual, Matchers.containsString("[Headers="));
 	}
 
