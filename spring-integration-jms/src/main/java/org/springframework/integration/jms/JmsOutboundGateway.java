@@ -62,6 +62,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * An outbound Messaging Gateway for request/reply JMS.
@@ -594,7 +595,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
 			}
 			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
-				container.setSessionAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+				String a=this.replyContainerProperties.getSessionAcknowledgeMode();
+				container.setSessionAcknowledgeMode(1);
 			}
 			if (this.replyContainerProperties.getTaskExecutor() != null) {
 				container.setTaskExecutor(this.replyContainerProperties.getTaskExecutor());
@@ -1210,9 +1212,19 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	public static class ReplyContainerProperties {
 
+		private volatile String acknowledgeMode;
+		
+		public String getAcknowledgeMode() {
+			return acknowledgeMode;
+		}
+
+		public void setAcknowledgeMode(String acknowledgeMode) {
+			this.acknowledgeMode = acknowledgeMode;
+		}
+
 		private volatile Boolean sessionTransacted;
 
-		private volatile Integer sessionAcknowledgeMode;
+		private volatile String sessionAcknowledgeMode;
 
 		private volatile Long receiveTimeout;
 
@@ -1240,11 +1252,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			this.sessionTransacted = sessionTransacted;
 		}
 
-		public Integer getSessionAcknowledgeMode() {
+		public String getSessionAcknowledgeMode() {
 			return sessionAcknowledgeMode;
 		}
 
-		public void setSessionAcknowledgeMode(Integer sessionAcknowledgeMode) {
+		public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
 			this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 		}
 

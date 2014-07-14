@@ -146,8 +146,10 @@ abstract class JmsAdapterParserUtils {
 			}
 			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 		}
+		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
-
+//		String acknowledgeMode = element.getAttribute("acknowledgeMode");
+//		builder.addPropertyValue("sessionAcknowledgeModeName", acknowledgeMode);
 		return builder.getBeanDefinition();
 	}
 
