@@ -28,6 +28,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -142,23 +143,65 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.client = null;
 	}
 
+	@Override
+	public void addTopic(String topic, int qos) {
+		this.topicLock.lock();
+		try {
+			super.addTopic(topic, qos);
+			if (this.client != null && this.client.isConnected()) {
+				this.client.subscribe(topic, qos)
+						.waitForCompletion(this.completionTimeout);
+			}
+		}
+		catch (MqttException e) {
+			super.removeTopic(topic);
+			throw new MessagingException("Failed to subscribe to topic " + topic, e);
+		}
+		finally {
+			this.topicLock.unlock();
+		}
+	}
+
+	@Override
+	public void removeTopic(String... topic) {
+		this.topicLock.lock();
+		try {
+			if (this.client != null && this.client.isConnected()) {
+				this.client.unsubscribe(topic)
+						.waitForCompletion(this.completionTimeout);
+			}
+			super.removeTopic(topic);
+		}
+		catch (MqttException e) {
+			throw new MessagingException("Failed to unsubscribe from topic " + topic, e);
+		}
+		finally {
+			this.topicLock.unlock();
+		}
+	}
+
 	private void connectAndSubscribe() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 		this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 		this.client.setCallback(this);
-		this.client.connect(connectionOptions)
-				.waitForCompletion(this.completionTimeout);
+
+		this.topicLock.lock();
 		try {
+			this.client.connect(connectionOptions)
+					.waitForCompletion(this.completionTimeout);
 			this.client.subscribe(this.getTopic(), this.getQos())
 					.waitForCompletion(this.completionTimeout);
 		}
 		catch (MqttException e) {
-			logger.error("Error subscribing to " + Arrays.asList(this.getTopic()), e);
+			logger.error("Error connecting or subscribing to " + Arrays.asList(this.getTopic()), e);
 			this.client.disconnect()
 					.waitForCompletion(this.completionTimeout);
 			throw e;
+		}
+		finally {
+			this.topicLock.unlock();
 		}
 		if (this.client.isConnected()) {
 			this.connected = true;

@@ -15,9 +15,18 @@
  */
 package org.springframework.integration.mqtt.inbound;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -27,36 +36,29 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
+@ManagedResource
 public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessageProducerSupport {
 
 	private final String url;
 
 	private final String clientId;
 
-	private final String[] topic;
-
-	private volatile int[] qos;
+	private final Set<Topic>topics;
 
 	private volatile MqttMessageConverter converter;
+
+	protected final Lock topicLock = new ReentrantLock();
 
 	public AbstractMqttMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
 		Assert.notNull(topic, "'topics' cannot be null");
-		Assert.isTrue(topic.length > 0, "'topics' cannot be empty");
 		Assert.noNullElements(topic, "'topics' cannot have null elements");
 		this.url = url;
 		this.clientId = clientId;
-		this.topic = topic;
-		// set the topic qos to 1 by default
-		this.qos = buildQosArray(1);
-	}
-
-	private int[] buildQosArray(int value) {
-		int[] qos = new int[this.topic.length];
-		for (int i = 0; i < qos.length; i++) {
-			qos[i] = value;
+		this.topics = new LinkedHashSet<Topic>();
+		for (String topik : topic) {
+			this.topics.add(new Topic(topik, 1));
 		}
-		return qos;
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
@@ -73,16 +75,34 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	public void setQos(int... qos) {
 		Assert.notNull(qos, "'qos' cannot be null");
 		if (qos.length == 1) {
-			this.qos = buildQosArray(qos[0]);
+			for (Topic topic : this.topics) {
+				topic.setQos(qos[0]);
+			}
 		}
 		else {
-			Assert.isTrue(qos.length == this.topic.length);
-			this.qos = qos;
+			Assert.isTrue(qos.length == this.topics.size(),
+					"When setting qos, the array must be the same length as the topics");
+			int n = 0;
+			for (Topic topic : this.topics) {
+				topic.setQos(qos[n++]);
+			}
 		}
 	}
 
-	protected int[] getQos() {
-		return qos;
+	@ManagedAttribute
+	public int[] getQos() {
+		this.topicLock.lock();
+		try {
+			int[] topicQos = new int[this.topics.size()];
+			int n = 0;
+			for (Topic topic : this.topics) {
+				topicQos[n++] = topic.getQos();
+			}
+			return topicQos;
+		}
+		finally {
+			this.topicLock.unlock();
+		}
 	}
 
 	protected String getUrl() {
@@ -97,13 +117,121 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		return converter;
 	}
 
-	protected String[] getTopic() {
-		return topic;
+	@ManagedAttribute
+	public String[] getTopic() {
+		this.topicLock.lock();
+		try {
+			String[] topicNames = new String[this.topics.size()];
+			int n = 0;
+			for (Topic topic : this.topics) {
+				topicNames[n++] = topic.getTopic();
+			}
+			return topicNames;
+		}
+		finally {
+			this.topicLock.unlock();
+		}
 	}
 
 	@Override
 	public String getComponentType(){
 		return "mqtt:inbound-channel-adapter";
+	}
+
+	/**
+	 * Add a topic to the subscribed list.
+	 * @param topic The topic.
+	 * @param qos The qos.
+	 * @throws MessagingException if the topic is already in the list.
+	 * @since 4.1
+	 */
+	@ManagedOperation
+	public void addTopic(String topic, int qos) {
+		this.topicLock.lock();
+		try {
+			Topic topik = new Topic(topic, qos);
+			if (this.topics.contains(topik)) {
+				throw new MessagingException("Topic '" + topic + "' is already subscribed.");
+			}
+			this.topics.add(topik);
+			if (this.logger.isDebugEnabled()) {
+				logger.debug("Added '" + topic + "' to subscriptions.");
+			}
+		}
+		finally {
+			this.topicLock.unlock();
+		}
+	}
+
+	/**
+	 * Add a topic (or topics) to the subscribed list (qos=1).
+	 * @param topic The topics.
+	 * @throws MessagingException if the topic is already in the list.
+	 * @since 4.1
+	 */
+	@ManagedOperation
+	public void addTopic(String... topic) {
+		Assert.notNull(topic, "'topic' cannot be null");
+		this.topicLock.lock();
+		try {
+			for (String topik : topic) {
+				addTopic(topik, 1);
+			}
+		}
+		finally {
+			this.topicLock.unlock();
+		}
+	}
+
+	/**
+	 * Add topics to the subscribed list.
+	 * @param topics The topics.
+	 * @param qos The qos for each topic.
+	 * @throws MessagingException if a topic is already in the list.
+	 * @since 4.1
+	 */
+	@ManagedOperation
+	public void addTopics(String[] topic, int[] qos) {
+		Assert.notNull(topic, "'topic' cannot be null.");
+		Assert.noNullElements(topic, "'topic' cannot contain any null elements.");
+		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
+		this.topicLock.lock();
+		try {
+			for (String topik : topic) {
+				if (this.topics.contains(new Topic(topik, 0))) {
+					throw new MessagingException("Topic '" + topik + "' is already subscribed.");
+				}
+			}
+			for (int i = 0; i < topic.length; i++) {
+				addTopic(topic[i], qos[i]);
+			}
+		}
+		finally {
+			this.topicLock.unlock();
+		}
+	}
+
+	/**
+	 * Remove a topic (or topics) from the subscribed list.
+	 * @param topic The topic.
+	 * @throws MessagingException if the topic is not in the list.
+	 * @since 4.1
+	 */
+	@ManagedOperation
+	public void removeTopic(String... topic) {
+		this.topicLock.lock();
+		try {
+			for (String topik : topic) {
+				if (this.topics.remove(new Topic(topik, 0))) {
+					if (this.logger.isDebugEnabled()) {
+						logger.debug("Removed '" + topik + "' from subscriptions.");
+					}
+				}
+			}
+		}
+		finally {
+			this.topicLock.unlock();
+		}
 	}
 
 	@Override
@@ -112,6 +240,68 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		if (this.converter == null) {
 			this.converter = new DefaultPahoMessageConverter();
 		}
+	}
+
+
+	/**
+	 * @since 4.1
+	 */
+	private static class Topic {
+
+		private final String topic;
+
+		private volatile int qos;
+
+		public Topic(String topic, int qos) {
+			this.topic = topic;
+			this.qos = qos;
+		}
+
+		public int getQos() {
+			return qos;
+		}
+
+		public void setQos(int qos) {
+			this.qos = qos;
+		}
+
+		public String getTopic() {
+			return topic;
+		}
+
+		@Override
+		public int hashCode() {
+			return topic.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Topic other = (Topic) obj;
+			if (topic == null) {
+				if (other.topic != null) {
+					return false;
+				}
+			}
+			else if (!topic.equals(other.topic)) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "Topic [topic=" + topic + ", qos=" + qos + "]";
+		}
+
 	}
 
 }

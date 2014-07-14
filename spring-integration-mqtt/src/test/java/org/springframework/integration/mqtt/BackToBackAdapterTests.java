@@ -18,6 +18,7 @@ package org.springframework.integration.mqtt;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -47,6 +48,7 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -97,6 +99,58 @@ public class BackToBackAdapterTests {
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+	}
+
+	@Test
+	public void testAddRemoveTopic() {
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
+		adapter.start();
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "si-test-in");
+		QueueChannel outputChannel = new QueueChannel();
+		inbound.setOutputChannel(outputChannel);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
+		inbound.afterPropertiesSet();
+		inbound.start();
+		inbound.addTopic("mqtt-foo");
+		adapter.handleMessage(new GenericMessage<String>("foo"));
+		Message<?> out = outputChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("foo", out.getPayload());
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+
+		inbound.addTopic("mqtt-bar");
+		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
+		out = outputChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("bar", out.getPayload());
+		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+
+		inbound.removeTopic("mqtt-bar");
+		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
+		out = outputChannel.receive(1000);
+		assertNull(out);
+
+		try {
+			inbound.addTopic("mqtt-foo");
+			fail("Expected exception");
+		}
+		catch (MessagingException e) {
+			assertEquals("Topic 'mqtt-foo' is already subscribed.", e.getMessage());
+		}
+
+		inbound.addTopic("mqqt-bar", "mqqt-baz");
+		inbound.removeTopic("mqqt-bar", "mqqt-baz");
+		inbound.addTopics(new String[] { "mqqt-bar", "mqqt-baz" }, new int[] { 0, 0 });
+		inbound.removeTopic("mqqt-bar", "mqqt-baz");
+
+		adapter.stop();
+		inbound.stop();
 	}
 
 	@Test
