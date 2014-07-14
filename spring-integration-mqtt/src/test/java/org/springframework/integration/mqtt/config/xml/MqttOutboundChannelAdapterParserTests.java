@@ -16,7 +16,11 @@
 
 package org.springframework.integration.mqtt.config.xml;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -70,6 +74,8 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertEquals("bar", TestUtils.getPropertyValue(withConverterHandler, "defaultTopic"));
 		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withConverterHandler, "clientFactory"));
+		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "asyncEvents", Boolean.class));
 
 		Object handler = TestUtils.getPropertyValue(this.withConverterEndpoint, "handler");
 
@@ -96,6 +102,8 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertEquals(1, TestUtils.getPropertyValue(defaultConverter, "defaultQos"));
 		assertTrue(TestUtils.getPropertyValue(defaultConverter, "defaultRetained", Boolean.class));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
+		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class));
 	}
 
 }

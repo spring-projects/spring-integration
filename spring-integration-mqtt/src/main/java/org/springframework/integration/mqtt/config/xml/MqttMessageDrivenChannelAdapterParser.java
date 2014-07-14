@@ -44,6 +44,7 @@ public class MqttMessageDrivenChannelAdapterParser extends AbstractChannelAdapte
 		builder.addConstructorArgValue(element.getAttribute("topics"));
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "qos");
 
 		return builder.getBeanDefinition();
 	}

@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/mqtt http://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
 
-	<int-mqtt:outbound-channel-adapter id="out" client-id="multiOut" 
+	<int-mqtt:outbound-channel-adapter id="out" client-id="multiOut"
 		client-factory="multiUriClientFactory"
 		default-topic="multiServerTests" />
 

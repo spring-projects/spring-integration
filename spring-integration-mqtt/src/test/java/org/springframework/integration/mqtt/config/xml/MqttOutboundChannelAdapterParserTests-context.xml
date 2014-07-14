@@ -35,6 +35,8 @@
 			client-factory="clientFactory"
 			phase="25"
 			order="1"
+			async="true"
+			async-events="true"
 			channel="target" />
 
 	<bean id="myConverter" class="org.springframework.integration.mqtt.support.DefaultPahoMessageConverter" />

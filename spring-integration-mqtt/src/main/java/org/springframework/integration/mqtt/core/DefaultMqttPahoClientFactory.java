@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import javax.net.SocketFactory;
 
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -110,6 +111,12 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	public MqttClient getClientInstance(String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
+	}
+
+	@Override
+	public MqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
+		// Client validates URI even if overridden by options
+		return new MqttAsyncClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
 
 	@Override

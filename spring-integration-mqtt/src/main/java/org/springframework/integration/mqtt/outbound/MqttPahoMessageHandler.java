@@ -16,14 +16,20 @@
 package org.springframework.integration.mqtt.outbound;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
+import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
+import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -35,11 +41,21 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
-		implements MqttCallback {
+		implements MqttCallback, ApplicationEventPublisherAware {
+
+	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
+
+	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile MqttClient client;
+	private volatile MqttAsyncClient client;
+
+	private volatile boolean async;
+
+	private volatile boolean asyncEvents;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden
@@ -75,6 +91,51 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		this(url, clientId, new DefaultMqttPahoClientFactory());
 	}
 
+	/**
+	 * Set to true if you don't want to block when sending messages. Default false.
+	 * When true, message sent/delivered events will be published for reception
+	 * by a suitably configured 'ApplicationListener' or an event
+	 * inbound-channel-adapter.
+	 * @param async true for async.
+	 * @since 4.1
+	 */
+	public void setAsync(boolean async) {
+		this.async = async;
+	}
+
+	/**
+	 * When {@link #setAsync(boolean)} is true, setting this to true enables
+	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
+	 * to be emitted. Default false.
+	 * @param asyncEvents the asyncEvents.
+	 * @since 4.1
+	 */
+	public void setAsyncEvents(boolean asyncEvents) {
+		this.asyncEvents = asyncEvents;
+	}
+
+	/**
+	 * Set the completion timeout for async operations. Not settable using the namespace.
+	 * Default 30000 milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 4.1
+	 */
+	public void setCompletionTimeout(int completionTimeout) {
+		this.completionTimeout = completionTimeout;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.state(getConverter() instanceof MqttMessageConverter,
+				"MessageConverter must be an MqttMessageConverter");
+	}
+
 	@Override
 	protected void doStart() {
 	}
@@ -83,7 +144,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	protected void doStop() {
 		try {
 			if (this.client != null) {
-				this.client.disconnect();
+				this.client.disconnect().waitForCompletion(this.completionTimeout);
 				this.client.close();
 				this.client = null;
 			}
@@ -102,9 +163,10 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 			Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-			this.client = this.clientFactory.getClientInstance(this.getUrl(), this.getClientId());
-			this.client.connect(connectionOptions);
+			this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+			incrementClientInstance();
 			this.client.setCallback(this);
+			this.client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Client connected");
 			}
@@ -124,9 +186,25 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	@Override
-	protected void publish(String topic, Object mqttMessage) throws Exception {
+	protected void publish(String topic, Object mqttMessage, Message<?> message) throws Exception {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
-		this.client.publish(topic, (MqttMessage) mqttMessage);
+		IMqttDeliveryToken token = this.client.publish(topic, (MqttMessage) mqttMessage);
+		if (!this.async) {
+			token.waitForCompletion(this.completionTimeout);
+		}
+		else if (this.asyncEvents && this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(
+					new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
+							getClientInstance()));
+		}
+	}
+
+	private void sendDeliveryComplete(IMqttDeliveryToken token) {
+		if (this.async && this.asyncEvents && this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(
+					new MqttMessageDeliveredEvent(this, token.getMessageId(), getClientId(),
+							getClientInstance()));
+		}
 	}
 
 	@Override
@@ -142,7 +220,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken token) {
-
+		sendDeliveryComplete(token);
 	}
 
 }

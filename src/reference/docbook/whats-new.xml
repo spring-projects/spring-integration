@@ -54,12 +54,20 @@
 				See <xref linkend="http-namespace"/> for more information.
 			</para>
 		</section>
-		<section id="4.1-mqtt-cluster">
+		<section id="4.1-mqtt">
 			<title>MQTT Adapter Changes</title>
 			<para>
 				The MQTT channel adapters can now be configured to connect to multiple servers,
 				for example, to support High Availability (HA).
 				See <xref linkend="mqtt"/> for more information.
+			</para>
+			<para>
+				The MQTT message-driven channel adapter now supports specifying the QoS setting for each
+				subscription. See <xref linkend="mqtt"/> for more information.
+			</para>
+			<para>
+				The MQTT outbound channel adapter now supports asynchronous sends, avoiding blocking
+				until delivery is confirmed. See <xref linkend="mqtt"/> for more information.
 			</para>
 		</section>
 	</section>

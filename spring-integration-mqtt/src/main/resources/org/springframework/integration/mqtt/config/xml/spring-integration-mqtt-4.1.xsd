@@ -43,6 +43,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="qos">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the QoS to use when subscribing to topics; default '1'. This can be single
+						value (applying to all topics); otherwise it must be a comma-delimited list corresponding
+						to the provided topics (the name number of elements must be provided).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="send-timeout" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -128,6 +137,27 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specifies the default value of the 'retained' flag. Default false.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="async">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies that sends should not block, with the thread returning
+							immediately the message is sent. When 'true', message
+							sent and message delivery events can be published; see 'async-events'.
+							Default: 'false'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="async-events">
+					<xsd:annotation>
+						<xsd:documentation>
+							When 'async' is true, specifies that message
+							sent and message delivery events will be published for reception
+							by a suitably configured 'ApplicationListener' or an event
+							inbound-channel-adapter.
+							Default: 'false'.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
