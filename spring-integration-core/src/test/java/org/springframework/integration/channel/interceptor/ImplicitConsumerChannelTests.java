@@ -15,10 +15,8 @@
  */
 package org.springframework.integration.channel.interceptor;
 
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -31,6 +29,7 @@ import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -69,7 +68,7 @@ public class ImplicitConsumerChannelTests {
 		assertThat(bazInterceptors.get(1), anyOf(instanceOf(WireTap.class), instanceOf(Interceptor1.class)));
 	}
 
-	public static class Interceptor1 implements ChannelInterceptor, VetoCapableInterceptor {
+	public static class Interceptor1 extends ChannelInterceptorAdapter implements VetoCapableInterceptor {
 
 		private MessageChannel channel;
 
@@ -107,7 +106,7 @@ public class ImplicitConsumerChannelTests {
 
 	}
 
-	public static class Interceptor2 implements ChannelInterceptor, VetoCapableInterceptor {
+	public static class Interceptor2 extends ChannelInterceptorAdapter implements VetoCapableInterceptor {
 
 		private MessageChannel channel;
 
