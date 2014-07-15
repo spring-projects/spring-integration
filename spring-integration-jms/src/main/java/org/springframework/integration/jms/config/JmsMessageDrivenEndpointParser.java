@@ -161,15 +161,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			builder.addPropertyValue("destinationName", destinationName);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
-//		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
-//		if (acknowledgeMode != null) {
-//			if (acknowledgeMode.intValue() == JmsAdapterParserUtils.SESSION_TRANSACTED) {
-//				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
-//			}
-//			else {
-//				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-//			}
-//		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "sessionAcknowledgeModeName");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");

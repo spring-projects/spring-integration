@@ -95,7 +95,7 @@ public class JmsOutboundGatewayParserTests {
 		assertSame(context.getBean("exec"), TestUtils.getPropertyValue(container, "taskExecutor"));
 	}
 
-	//@Test
+	@Test
 	public void testAdvised(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());

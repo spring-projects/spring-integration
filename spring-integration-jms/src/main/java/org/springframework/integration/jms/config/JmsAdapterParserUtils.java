@@ -135,20 +135,6 @@ public abstract class JmsAdapterParserUtils {
 		else {
 			builder.addPropertyValue("receiveTimeout", JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT);
 		}
-		
-
-//		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
-//		if (acknowledgeMode != null) {
-//			if (acknowledgeMode == SESSION_TRANSACTED) {
-//				parserContext.getReaderContext().error(
-//						"'transacted' is not a valid 'acknowledge-mode' here, use 'session-transacted'" +
-//						" to enable transactions", element);
-//			}
-//			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-//		}
-//		
-//		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
-//		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge","sessionAcknowledgeModeName");
 		return builder.getBeanDefinition();
 	}
 

@@ -141,7 +141,7 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	
 	@Override
 	protected void onInit() {
-		if (this.getSessionAcknowledgeModeName()!= null) {
+		if (this.getSessionAcknowledgeMode()!= null) {
 			Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(this.getSessionAcknowledgeMode());
 			if (acknowledgeMode != null) {
 				if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
@@ -152,12 +152,6 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 				jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
 			}
 		}
-	}
-
-
-	private Object getSessionAcknowledgeModeName() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

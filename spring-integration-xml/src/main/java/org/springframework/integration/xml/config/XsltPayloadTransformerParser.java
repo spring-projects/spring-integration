@@ -37,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Mike Bazos
+ * @author liujiong
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
@@ -51,8 +52,6 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		String xslTemplates = element.getAttribute("xsl-templates");
 		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
-//		String resultType = element.getAttribute("result-type");
-//		builder.addPropertyValue("resultType", resultType);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type","resultType"); 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory","resultFactoryName");
 		String transformerFactoryClass = element.getAttribute("transformer-factory-class");
@@ -65,11 +64,6 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		else if (StringUtils.hasText(xslTemplates)) {
 			builder.addConstructorArgReference(xslTemplates);
 		}
-//		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
-//		boolean resultFactorySpecified = StringUtils.hasText(resultFactory) || StringUtils.hasText(resultType);
-//		if(resultFactorySpecified){
-//			builder.addPropertyValue("alwaysUseResultFactory", true);
-//		}
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}

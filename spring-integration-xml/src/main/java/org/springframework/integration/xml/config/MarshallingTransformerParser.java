@@ -38,8 +38,6 @@ public class MarshallingTransformerParser extends AbstractTransformerParser {
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultTransformer = element.getAttribute("result-transformer");
-//		String resultFactory = element.getAttribute("result-factory");
-//		String resultType = element.getAttribute("result-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type","resultType"); 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory","resultFactoryName"); 
 		String marshaller = element.getAttribute("marshaller");
@@ -52,7 +50,6 @@ public class MarshallingTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(extractPayload)) {
 			builder.addPropertyValue("extractPayload", extractPayload);
 		}
-//		XmlNamespaceUtils.configureResultFactory(builder, resultFactory);
 	}
 
 }
