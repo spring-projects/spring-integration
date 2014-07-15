@@ -33,10 +33,10 @@ import org.junit.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractJsonInboundMessageMapperTests {
 
-	private final JsonObjectMapper<?, ?> mapper = JacksonJsonObjectMapperProvider.newInstance();
+	private final JsonObjectMapper<?, ?> mapper = JsonObjectMapperProvider.newInstance();
 
 	@Factory
     public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> operand) {

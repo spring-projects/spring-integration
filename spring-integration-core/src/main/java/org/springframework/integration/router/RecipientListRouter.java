@@ -104,7 +104,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 
 	/**
 	 * Set the recipients for this router.
-	 * @param recipientMappings, map contains channelName and expression
+	 * @param recipientMappings map contains channelName and expression
 	 */
 	@Override
 	@ManagedAttribute

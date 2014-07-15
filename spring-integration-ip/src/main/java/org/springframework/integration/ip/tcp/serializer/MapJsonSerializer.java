@@ -26,13 +26,13 @@ import java.util.Map;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.util.Assert;
 
 /**
  * Serializes a {@link Map} as JSON. Deserializes JSON to
- * a {@link Map}. The default {@link JacksonJsonObjectMapperProvider#newInstance()} can be
+ * a {@link Map}. The default {@link org.springframework.integration.support.json.JsonObjectMapperProvider#newInstance()} can be
  * overridden using {@link #setJsonObjectMapper(JsonObjectMapper)}.
  * <p>
  * The JSON deserializer can't delimit multiple JSON
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  */
 public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Map<?, ?>> {
 
-	private volatile JsonObjectMapper<?, ?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+	private volatile JsonObjectMapper<?, ?> jsonObjectMapper = JsonObjectMapperProvider.newInstance();
 
 	private volatile Deserializer<byte[]> packetDeserializer = new ByteArrayLfSerializer();
 

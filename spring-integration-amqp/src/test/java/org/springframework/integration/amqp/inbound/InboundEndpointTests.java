@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
+import com.rabbitmq.client.Channel;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -41,7 +42,7 @@ import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.CorrelationData;
-import org.springframework.amqp.support.converter.JsonMessageConverter;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -59,8 +60,6 @@ import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * @author Artem Bilan
@@ -85,7 +84,7 @@ public class InboundEndpointTests {
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
-		adapter.setMessageConverter(new JsonMessageConverter());
+		adapter.setMessageConverter(new Jackson2JsonMessageConverter());
 
 		PollableChannel channel = new QueueChannel();
 
@@ -140,7 +139,8 @@ public class InboundEndpointTests {
 		Object payload = new Foo("bar1");
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
-		org.springframework.amqp.core.Message amqpMessage = new JsonMessageConverter().toMessage(payload, amqpMessageProperties);
+		org.springframework.amqp.core.Message amqpMessage =
+				new Jackson2JsonMessageConverter().toMessage(payload, amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, null);
@@ -186,20 +186,22 @@ public class InboundEndpointTests {
 		}));
 
 		AmqpInboundGateway gateway = new AmqpInboundGateway(container);
-		gateway.setMessageConverter(new JsonMessageConverter());
+		gateway.setMessageConverter(new Jackson2JsonMessageConverter());
 
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 
-		RabbitTemplate rabbitTemplate = Mockito.spy(TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class));
+		RabbitTemplate rabbitTemplate = Mockito.spy(TestUtils.getPropertyValue(gateway, "amqpTemplate",
+				RabbitTemplate.class));
 
 		Mockito.doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				org.springframework.amqp.core.Message message = (org.springframework.amqp.core.Message) invocation.getArguments()[2];
-				Map<String,Object> headers = message.getMessageProperties().getHeaders();
+				org.springframework.amqp.core.Message message =
+						(org.springframework.amqp.core.Message) invocation.getArguments()[2];
+				Map<String, Object> headers = message.getMessageProperties().getHeaders();
 				assertTrue(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
 				assertNotEquals("foo", headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
 				assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
@@ -209,9 +211,7 @@ public class InboundEndpointTests {
 				assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID));
 				return null;
 			}
-		}
-
-		).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
+		}).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
 				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(gateway);
@@ -222,13 +222,13 @@ public class InboundEndpointTests {
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		amqpMessageProperties.setReplyTo("test");
 		amqpMessageProperties.setDeliveryTag(123L);
-		org.springframework.amqp.core.Message amqpMessage = new JsonMessageConverter().toMessage(payload, amqpMessageProperties);
+		org.springframework.amqp.core.Message amqpMessage =
+				new Jackson2JsonMessageConverter().toMessage(payload, amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, rabbitChannel);
 
 	}
-
 
 
 	public static class Foo {
@@ -257,11 +257,8 @@ public class InboundEndpointTests {
 
 			Foo foo = (Foo) o;
 
-			if (bar != null ? !bar.equals(foo.bar) : foo.bar != null) {
-				return false;
-			}
+			return !(bar != null ? !bar.equals(foo.bar) : foo.bar != null);
 
-			return true;
 		}
 
 		@Override

@@ -16,15 +16,13 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +33,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperAdapter;
@@ -44,8 +43,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Mark Fisher
@@ -69,6 +66,9 @@ public class ObjectToJsonTransformerParserTests {
 
 	@Autowired
 	private volatile MessageChannel jsonNodeInput;
+
+	@Autowired
+	private volatile MessageChannel boonJsonNodeInput;
 
 	@Test
 	public void testContentType(){
@@ -163,6 +163,25 @@ public class ObjectToJsonTransformerParserTests {
 		Expression expression = new SpelExpressionParser().parseExpression("firstName.toString() == 'John' and age.toString() == '42'");
 
 		assertTrue(expression.getValue(evaluationContext, payload, Boolean.class));
+	}
+
+	@Test
+	public void testBoonNodeResultType() {
+		TestPerson person = new TestPerson();
+		person.setFirstName("John");
+		person.setLastName("Doe");
+		person.setAge(42);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
+		this.boonJsonNodeInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+		assertNotNull(reply);
+		Object payload = reply.getPayload();
+		assertThat(payload, Matchers.instanceOf(Map.class));
+		assertEquals(TestPerson.class, reply.getHeaders().get(JsonHeaders.TYPE_ID));
+
+		Expression expression = new SpelExpressionParser().parseExpression("[firstName] == 'John' and [age] == 42");
+		assertTrue(expression.getValue(new StandardEvaluationContext(), payload, Boolean.class));
 	}
 
 	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object, Object> {

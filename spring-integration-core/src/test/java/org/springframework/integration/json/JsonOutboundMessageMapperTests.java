@@ -16,16 +16,14 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import org.springframework.integration.history.MessageHistory;
@@ -112,8 +110,8 @@ public class JsonOutboundMessageMapperTests {
 		assertEquals(payload, parsedPayload);
 	}
 
-	private TestBean extractJsonPayloadToTestBean(String json) throws JsonParseException, IOException {
-		JsonParser parser = jsonFactory.createJsonParser(json);
+	private TestBean extractJsonPayloadToTestBean(String json) throws IOException {
+		JsonParser parser = jsonFactory.createParser(json);
 		do {
 			parser.nextToken();
 		} while(parser.getCurrentToken() != JsonToken.FIELD_NAME || !parser.getCurrentName().equals("payload"));

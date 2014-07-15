@@ -240,9 +240,9 @@ public class Child {
     type="foo.MyDomainObject"/>]]></programlisting>
     </para>
     <para>
-        These use a vanilla Jackson ObjectMapper by default. If you wish to customize the ObjectMapper (for example,
-        to configure the 'ALLOW_COMMENTS' feature when parsing JSON), you can supply a reference to your custom ObjectMapper bean using
-        the object-mapper attribute.
+        These use a vanilla <interfacename>JsonObjectMapper</interfacename> by default based on implementation from
+		classpath. You can provide your own custom <interfacename>JsonObjectMapper</interfacename> implementation
+		with appropriate options or based on required library (e.g. GSON).
     </para>
     <para>
         <programlisting language="xml"><![CDATA[<int:json-to-object-transformer input-channel="objectMapperInput"
@@ -253,29 +253,33 @@ public class Child {
         Beginning with version 3.0, the <code>object-mapper</code> attribute references an instance of a new
         strategy interface <interfacename>JsonObjectMapper</interfacename>. This abstraction allows multiple
         implementations of json mappers to be used. Implementations that wrap
-        <ulink url="http://jackson.codehaus.org">Jackson 1.x</ulink>  and
+        <ulink url="https://github.com/RichardHightower/boon">Boon</ulink>  and
         <ulink url="https://github.com/FasterXML">Jackson 2</ulink>  are
         provided, with the version being detected on the classpath. These classes are
-        <classname>JacksonJsonObjectMapper</classname> and <classname>Jackson2JsonObjectMapper</classname>.
+        <classname>BoonJsonObjectMapper</classname> and <classname>Jackson2JsonObjectMapper</classname>.
       </para>
       <para>
-        For backward compatibility, a simple Jackson 1.x <classname>ObjectMapper</classname> can be provided
-        instead of a <interfacename>JsonObjectMapper</interfacename>. This will be removed in a future release.
+        Note, <classname>BoonJsonObjectMapper</classname> is provided since <emphasis>version 4.1</emphasis>.
       </para>
     </note>
     <para>
 		<important>
-			If there are requirements to use both Jackson libraries in the same application, keep in mind that
-			before version 3.0, the JSON transformers used only Jackson 1.x and, from 3.0 on, the framework will
-			select Jackson 2 by default, if both are on the classpath.
-			So, to avoid unexpected issues with Jackson's mapping features, when using annotations, there may be
-			a need to apply annotations from both Jacksons on domain classes:
+			If there are requirements to use both Jackson libraries and/or Boon in the same application,
+			keep in mind that before version 3.0, the JSON transformers used only Jackson 1.x.
+			From <emphasis>4.1</emphasis> on, the framework will select Jackson 2 by default ahead of the
+			Boon implementation if both are on the classpath.
+			Jackson 1.x is no longer supported by the framework internally but, of course, you can still use it
+			within your code.
+			To avoid unexpected issues with JSON mapping features, when using annotations, there may be
+			a need to apply annotations from both Jacksons and/or Boon on domain classes:
 			<programlisting language="java"><![CDATA[@org.codehaus.jackson.annotate.JsonIgnoreProperties(ignoreUnknown=true)
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)
+@org.boon.json.annotations.JsonIgnoreProperties("foo")
 public class Foo {
 
         @org.codehaus.jackson.annotate.JsonProperty("fooBar")
         @com.fasterxml.jackson.annotation.JsonProperty("fooBar")
+        @org.boon.json.annotations.JsonProperty("fooBar")
         public Object bar;
 
 }]]></programlisting>
@@ -377,6 +381,7 @@ public class Foo {
 		The node JSON representation provides efficiency for using the <classname>JsonPropertyAccessor</classname>, when the
 		downstream message flow uses SpEL expressions with access to the properties of the JSON data. See
 		<xref linkend="spel-property-accessors"/>.
+		When using Boon, the <code>NODE</code> representation is a <interfacename>Map&lt;String, Object&gt;</interfacename>
 	</para>
   </section>
 
