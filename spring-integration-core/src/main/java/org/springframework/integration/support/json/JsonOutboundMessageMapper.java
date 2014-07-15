@@ -35,7 +35,7 @@ public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> 
 	private volatile JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	public JsonOutboundMessageMapper() {
-		this(JacksonJsonObjectMapperProvider.newInstance());
+		this(JsonObjectMapperProvider.newInstance());
 	}
 
 	public JsonOutboundMessageMapper(JsonObjectMapper<?, ?> jsonObjectMapper) {

@@ -18,7 +18,10 @@ package org.springframework.integration.support.json;
 
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.Map;
+
+import org.springframework.integration.mapping.support.JsonHeaders;
 
 /**
  * Simple {@linkplain JsonObjectMapper} adapter implementation, if there is no need
@@ -59,7 +62,15 @@ public abstract class JsonObjectMapperAdapter<N, P> implements JsonObjectMapper<
 	}
 
 	@Override
-	public void populateJavaTypes(Map<String, Object> map, Class<?> sourceClass) {
+	public void populateJavaTypes(Map<String, Object> map, Object object) {
+		map.put(JsonHeaders.TYPE_ID, object.getClass());
+		if (object instanceof Collection && !((Collection) object).isEmpty()) {
+			map.put(JsonHeaders.CONTENT_TYPE_ID, ((Collection) object).iterator().next().getClass());
+		}
+		if (object instanceof Map && !((Map) object).isEmpty()) {
+			map.put(JsonHeaders.CONTENT_TYPE_ID, ((Map) object).values().iterator().next().getClass());
+			map.put(JsonHeaders.KEY_TYPE_ID, ((Map) object).keySet().iterator().next().getClass());
+		}
 	}
 
 }

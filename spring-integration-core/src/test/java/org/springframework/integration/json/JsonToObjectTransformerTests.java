@@ -16,16 +16,16 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
+import static org.junit.Assert.*;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Test;
+
+import org.springframework.integration.support.json.BoonJsonObjectMapper;
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -54,6 +54,19 @@ public class JsonToObjectTransformerTests {
 		JsonToObjectTransformer transformer =
 				new JsonToObjectTransformer(TestPerson.class, new Jackson2JsonObjectMapper(customMapper));
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
+		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
+		TestPerson person = (TestPerson) message.getPayload();
+		assertEquals("John", person.getFirstName());
+		assertEquals("Doe", person.getLastName());
+		assertEquals(42, person.getAge());
+		assertEquals("123 Main Street", person.getAddress().toString());
+	}
+
+
+	@Test
+	public void testBoonJsonObjectMapper() throws Exception {
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer(TestPerson.class, new BoonJsonObjectMapper());
+		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42,\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
 		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
 		assertEquals("John", person.getFirstName());

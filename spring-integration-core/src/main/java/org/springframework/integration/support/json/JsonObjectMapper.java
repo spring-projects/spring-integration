@@ -44,5 +44,5 @@ public interface JsonObjectMapper<N, P> {
 
 	<T> T fromJson(P parser, Type valueType) throws Exception;
 
-	void populateJavaTypes(Map<String, Object> map, Class<?> sourceClass);
+	void populateJavaTypes(Map<String, Object> map, Object object);
 }

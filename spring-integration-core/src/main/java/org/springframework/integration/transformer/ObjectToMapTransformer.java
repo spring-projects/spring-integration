@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?,?>> {
 
-	private final JsonObjectMapper<?, ?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+	private final JsonObjectMapper<?, ?> jsonObjectMapper = JsonObjectMapperProvider.newInstance();
 
 	private volatile boolean shouldFlattenKeys = true;
 

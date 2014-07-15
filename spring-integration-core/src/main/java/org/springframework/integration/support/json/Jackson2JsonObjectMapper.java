@@ -25,13 +25,13 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.integration.mapping.support.JsonHeaders;
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.util.Assert;
 
 /**
  * Jackson 2 JSON-processor (@link https://github.com/FasterXML) {@linkplain JsonObjectMapper} implementation.
@@ -90,27 +90,14 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 			return this.objectMapper.readValue((Reader) json, type);
 		}
 		else {
-			throw new IllegalArgumentException("'json' argument must be an instance of: " + supportedJsonTypes);
+			throw new IllegalArgumentException("'json' argument must be an instance of: " + supportedJsonTypes
+					+ " , but gotten: " + json.getClass());
 		}
 	}
 
 	@Override
 	public <T> T fromJson(JsonParser parser, Type valueType) throws Exception {
 		return this.objectMapper.readValue(parser, this.constructType(valueType));
-	}
-
-	@Override
-	public void populateJavaTypes(Map<String, Object> map, Class<?> sourceClass) {
-		JavaType javaType = this.objectMapper.constructType(sourceClass);
-		map.put(JsonHeaders.TYPE_ID, javaType.getRawClass());
-
-		if (javaType.isContainerType() && !javaType.isArrayType()) {
-			map.put(JsonHeaders.CONTENT_TYPE_ID, javaType.getContentType().getRawClass());
-		}
-
-		if (javaType.getKeyType() != null) {
-			map.put(JsonHeaders.KEY_TYPE_ID, javaType.getKeyType().getRawClass());
-		}
 	}
 
 	@Override
