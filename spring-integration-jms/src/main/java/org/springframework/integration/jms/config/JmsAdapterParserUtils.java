@@ -17,7 +17,6 @@
 package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -32,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  */
-abstract class JmsAdapterParserUtils {
+public abstract class JmsAdapterParserUtils {
 
 	static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
 
@@ -74,13 +73,13 @@ abstract class JmsAdapterParserUtils {
 	 * They are duplicated here to avoid a dependency in tooling.
 	 */
 
-	static final int SESSION_TRANSACTED = 0;
+	public static final int SESSION_TRANSACTED = 0;
 
-	private static final int AUTO_ACKNOWLEDGE = 1;
+	public static final int AUTO_ACKNOWLEDGE = 1;
 
-	private static final int CLIENT_ACKNOWLEDGE = 2;
+	public static final int CLIENT_ACKNOWLEDGE = 2;
 
-	private static final int DUPS_OK_ACKNOWLEDGE = 3;
+	public static final int DUPS_OK_ACKNOWLEDGE = 3;
 
 
 	static String determineConnectionFactoryBeanName(Element element, ParserContext parserContext) {
@@ -95,8 +94,7 @@ abstract class JmsAdapterParserUtils {
 		return connectionFactoryBeanName;
 	}
 
-	static Integer parseAcknowledgeMode(Element element, ParserContext parserContext) {
-		String acknowledge = element.getAttribute("acknowledge");
+	public static Integer parseAcknowledgeMode(String acknowledge) {
 		if (StringUtils.hasText(acknowledge)) {
 			int acknowledgeMode = AUTO_ACKNOWLEDGE;
 			if ("transacted".equals(acknowledge)) {
@@ -109,8 +107,8 @@ abstract class JmsAdapterParserUtils {
 				acknowledgeMode = CLIENT_ACKNOWLEDGE;
 			}
 			else if (!"auto".equals(acknowledge)) {
-				parserContext.getReaderContext().error("Invalid JMS 'acknowledge' setting: " +
-						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.", element);
+				throw new IllegalStateException("Invalid JMS 'acknowledge' setting: " +
+						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.");
 			}
 			return acknowledgeMode;
 		}
@@ -137,19 +135,20 @@ abstract class JmsAdapterParserUtils {
 		else {
 			builder.addPropertyValue("receiveTimeout", JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT);
 		}
-		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
-		if (acknowledgeMode != null) {
-			if (acknowledgeMode == SESSION_TRANSACTED) {
-				parserContext.getReaderContext().error(
-						"'transacted' is not a valid 'acknowledge-mode' here, use 'session-transacted'" +
-						" to enable transactions", element);
-			}
-			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-		}
 		
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
-//		String acknowledgeMode = element.getAttribute("acknowledgeMode");
-//		builder.addPropertyValue("sessionAcknowledgeModeName", acknowledgeMode);
+
+//		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
+//		if (acknowledgeMode != null) {
+//			if (acknowledgeMode == SESSION_TRANSACTED) {
+//				parserContext.getReaderContext().error(
+//						"'transacted' is not a valid 'acknowledge-mode' here, use 'session-transacted'" +
+//						" to enable transactions", element);
+//			}
+//			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
+//		}
+//		
+//		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
+//		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge","sessionAcknowledgeModeName");
 		return builder.getBeanDefinition();
 	}
 

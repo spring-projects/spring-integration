@@ -22,12 +22,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
 import org.springframework.integration.transformer.AbstractTransformer;
+import org.springframework.integration.xml.config.XmlNamespaceUtils;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
+import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Marshaller;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * An implementation of {@link AbstractTransformer} that delegates to an OXM {@link Marshaller}.
@@ -36,6 +39,30 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  */
 public class MarshallingTransformer extends AbstractTransformer {
+	
+	private static final String DOM_RESULT = "DOMResult";
+
+	private static final String STRING_RESULT = "StringResult";
+
+	private volatile String resultFactoryName;
+	
+	public String getResultFactoryName() {
+		return resultFactoryName;
+	}
+
+	public void setResultFactoryName(String resultFactoryName) {
+		this.resultFactoryName = resultFactoryName;
+	}
+
+	private volatile String resultType;
+
+	public String getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(String resultType) {
+		this.resultType = resultType;
+	}
 
 	private final Marshaller marshaller;
 
@@ -78,10 +105,16 @@ public class MarshallingTransformer extends AbstractTransformer {
 	public String getComponentType() {
 		return "xml:marshalling-transformer";
 	}
+	
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		resultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName,this.getBeanFactory());
+	}
 
 	@Override
 	public Object doTransform(Message<?> message) {
-		Object source = (this.extractPayload) ? message.getPayload() : message;
+Object source = (this.extractPayload) ? message.getPayload() : message;
 		Object transformedPayload = null;
 		Result result = this.resultFactory.createResult(source);
 		if (result == null) {

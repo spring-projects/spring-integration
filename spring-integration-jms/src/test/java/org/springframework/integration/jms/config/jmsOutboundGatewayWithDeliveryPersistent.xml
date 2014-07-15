@@ -16,10 +16,10 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
-
+	<context:property-placeholder properties-ref="props"/>
 	<util:properties id="props">
-		<prop key="jsmAcknowledgeModeTransacted">transacted</prop>
-		<prop key="jsmAcknowledgeModeDupsOk">dups-ok</prop>
+		<prop key="jmsAcknowledgeModeTransacted">transacted</prop>
+		<prop key="jmsAcknowledgeModeDupsOk">dups-ok</prop>
  	</util:properties>
 	
 	
@@ -31,7 +31,7 @@
 						  delivery-persistent="true"
 						  auto-startup="false">
 		<jms:reply-listener
-			acknowledge="${jsmAcknowledgeModeTransacted}"
+			acknowledge="${jmsAcknowledgeModeTransacted}"
 			concurrent-consumers="4"
 			max-concurrent-consumers="5"
 			max-messages-per-task="10"
@@ -63,7 +63,7 @@
 			<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$FooAdvice" />
 		</jms:request-handler-advice-chain>
 		<jms:reply-listener
-			acknowledge="dups-ok"
+			acknowledge="${jmsAcknowledgeModeDupsOk}"
 			concurrent-consumers="3"
 			max-concurrent-consumers="5"
 			max-messages-per-task="10"

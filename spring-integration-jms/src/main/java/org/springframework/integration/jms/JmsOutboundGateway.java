@@ -48,6 +48,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.jms.config.JmsAdapterParserUtils;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
@@ -62,7 +63,6 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * An outbound Messaging Gateway for request/reply JMS.
@@ -595,8 +595,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
 			}
 			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
-				String a=this.replyContainerProperties.getSessionAcknowledgeMode();
-				container.setSessionAcknowledgeMode(1);
+				Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+				if (acknowledgeMode != null) {
+					if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
+						container.setSessionTransacted(true);
+					}
+				}
+				else {
+					container.setSessionAcknowledgeMode(acknowledgeMode);
+				}
 			}
 			if (this.replyContainerProperties.getTaskExecutor() != null) {
 				container.setTaskExecutor(this.replyContainerProperties.getTaskExecutor());
@@ -611,6 +618,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 		}
 	}
+	
 
 	@Override
 	public void start() {
@@ -1211,17 +1219,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	public static class ReplyContainerProperties {
-
-		private volatile String acknowledgeMode;
-		
-		public String getAcknowledgeMode() {
-			return acknowledgeMode;
-		}
-
-		public void setAcknowledgeMode(String acknowledgeMode) {
-			this.acknowledgeMode = acknowledgeMode;
-		}
-
 		private volatile Boolean sessionTransacted;
 
 		private volatile String sessionAcknowledgeMode;

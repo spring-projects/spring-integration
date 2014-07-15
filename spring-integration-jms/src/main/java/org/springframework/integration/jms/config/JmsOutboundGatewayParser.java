@@ -119,18 +119,6 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	private void parseReplyContainer(BeanDefinitionBuilder gatewayBuilder, ParserContext parserContext, Element element) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.ReplyContainerProperties.class);
-//		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
-//		if (acknowledgeMode != null) {
-//			if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
-//				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
-//			}
-//			else {
-//				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-//			}
-//		}
-//		String acknowledge = element.getAttribute("acknowledge");
-//		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge");
-//		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "acknowledge","sessionAcknowledgeMode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge","sessionAcknowledgeMode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");

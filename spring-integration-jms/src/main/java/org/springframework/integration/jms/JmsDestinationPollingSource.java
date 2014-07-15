@@ -22,6 +22,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.jms.config.JmsAdapterParserUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -39,6 +40,17 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public class JmsDestinationPollingSource extends IntegrationObjectSupport implements MessageSource<Object> {
+	
+	private volatile String sessionAcknowledgeMode;
+
+	public String getSessionAcknowledgeMode() {
+		return sessionAcknowledgeMode;
+	}
+
+
+	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
+		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+	}
 
 	private final JmsTemplate jmsTemplate;
 
@@ -125,6 +137,27 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 			jmsMessage = this.jmsTemplate.receiveSelected(this.messageSelector);
 		}
 		return jmsMessage;
+	}
+	
+	@Override
+	protected void onInit() {
+		if (this.getSessionAcknowledgeModeName()!= null) {
+			Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(this.getSessionAcknowledgeMode());
+			if (acknowledgeMode != null) {
+				if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
+					jmsTemplate.setSessionTransacted(true);
+				}
+			}
+			else {
+				jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
+			}
+		}
+	}
+
+
+	private Object getSessionAcknowledgeModeName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

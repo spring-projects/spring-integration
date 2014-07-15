@@ -30,13 +30,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.transformer.AbstractTransformer;
+import org.springframework.integration.xml.config.XmlNamespaceUtils;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
@@ -47,6 +47,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 
@@ -78,6 +79,26 @@ import org.springframework.xml.transform.StringSource;
  * @author Gary Russell
  */
 public class XsltPayloadTransformer extends AbstractTransformer implements BeanClassLoaderAware {
+	
+	private volatile String resultType;
+	
+	private volatile String resultFactoryName;
+
+	public String getResultFactoryName() {
+		return resultFactoryName;
+	}
+
+	public void setResultFactoryName(String resultFactoryName) {
+		this.resultFactoryName = resultFactoryName;
+	}
+
+	public String getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(String resultType) {
+		this.resultType = resultType;
+	}
 
 	private final ResultTransformer resultTransformer;
 
@@ -201,6 +222,14 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
+		ResultFactory generatedResultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName,this.getBeanFactory());
+		if(generatedResultFactory != null){
+			resultFactory=generatedResultFactory;
+		}
+		boolean resultFactorySpecified = StringUtils.hasText(resultFactoryName) || StringUtils.hasText(resultType);
+		if(resultFactorySpecified){
+			alwaysUseResultFactory=true;
+		}
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.templates == null) {
 			TransformerFactory transformerFactory;
