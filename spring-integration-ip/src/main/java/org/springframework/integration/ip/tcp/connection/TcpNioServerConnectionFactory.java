@@ -20,9 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 import java.nio.channels.CancelledKeyException;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -116,14 +114,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * When a socket is ready for reading, unregisters the read interest and
 	 * schedules a call to doRead which reads all available data. When the read
 	 * is complete, the socket is again registered for read interest.
-	 * @param server
-	 * @param selector
+	 * @param server the ServerSocketChannel to select
+	 * @param selector the Selector multiplexor
 	 * @throws IOException
-	 * @throws ClosedChannelException
-	 * @throws SocketException
 	 */
-	private void doSelect(ServerSocketChannel server, final Selector selector)
-			throws IOException, SocketException {
+	private void doSelect(ServerSocketChannel server, final Selector selector) throws IOException {
 		while (this.isActive()) {
 			int soTimeout = this.getSoTimeout();
 			int selectionCount = 0;
@@ -208,6 +203,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	@Override
 	public void stop() {
+		this.setActive(false);
 		if (this.selector != null) {
 			try {
 				this.selector.close();
