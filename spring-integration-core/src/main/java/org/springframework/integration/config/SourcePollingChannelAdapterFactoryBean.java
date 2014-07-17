@@ -53,7 +53,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private volatile boolean autoStartup = true;
 
-	private volatile int phase = 0;
+	private volatile int phase = Integer.MAX_VALUE / 2;
 
 	private volatile Long sendTimeout;
 
@@ -187,7 +187,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	 */
 
 	public boolean isAutoStartup() {
-		return (this.adapter != null) ? this.adapter.isAutoStartup() : true;
+		return (this.adapter == null) || this.adapter.isAutoStartup();
 	}
 
 	public int getPhase() {
@@ -195,7 +195,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	}
 
 	public boolean isRunning() {
-		return (this.adapter != null) ? this.adapter.isRunning() : false;
+		return (this.adapter != null) && this.adapter.isRunning();
 	}
 
 	public void start() {
@@ -215,4 +215,5 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			this.adapter.stop(callback);
 		}
 	}
+
 }

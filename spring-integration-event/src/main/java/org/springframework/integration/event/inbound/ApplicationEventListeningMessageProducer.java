@@ -45,7 +45,8 @@ import org.springframework.util.Assert;
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
-public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport implements SmartApplicationListener {
+public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport
+		implements SmartApplicationListener {
 
 	private volatile Set<Class<? extends ApplicationEvent>> eventTypes;
 
@@ -54,8 +55,6 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	private volatile boolean active;
 
 	private volatile long stoppedAt;
-
-	private volatile boolean phaseSet;
 
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
@@ -82,12 +81,6 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	@Override
-	public void setPhase(int phase) {
-		super.setPhase(phase);
-		this.phaseSet = true;
-	}
-
-	@Override
 	public String getComponentType() {
 		return "event:inbound-channel-adapter";
 	}
@@ -96,12 +89,11 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	protected void onInit() {
 		super.onInit();
 		this.applicationEventMulticaster = this.getBeanFactory()
-				.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+				.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+						ApplicationEventMulticaster.class);
 		Assert.notNull(this.applicationEventMulticaster,
-				"To use ApplicationListeners the 'applicationEventMulticaster' bean must be supplied within ApplicationContext.");
-		if (!this.phaseSet) {
-			super.setPhase(Integer.MIN_VALUE + 1000);
-		}
+				"To use ApplicationListeners the 'applicationEventMulticaster' " +
+						"bean must be supplied within ApplicationContext.");
 	}
 
 	@Override

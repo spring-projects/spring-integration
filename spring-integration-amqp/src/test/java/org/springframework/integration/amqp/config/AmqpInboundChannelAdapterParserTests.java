@@ -62,7 +62,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		assertEquals(DirectChannel.class, channel.getClass());
 		assertEquals(AmqpInboundChannelAdapter.class, adapter.getClass());
 		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(adapter, "autoStartup"));
-		assertEquals(0, TestUtils.getPropertyValue(adapter, "phase"));
+		assertEquals(Integer.MAX_VALUE / 2, TestUtils.getPropertyValue(adapter, "phase"));
 		assertTrue(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 	}
 

@@ -54,9 +54,11 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Josh Long
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ConsumerEndpointFactoryBean
-		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
+		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware,
+		InitializingBean, SmartLifecycle {
 
 	private volatile MessageHandler handler;
 
@@ -69,6 +71,8 @@ public class ConsumerEndpointFactoryBean
 	private volatile boolean autoStartup = true;
 
 	private volatile int phase = 0;
+
+	private volatile boolean isPhaseSet;
 
 	private volatile MessageChannel inputChannel;
 
@@ -119,6 +123,7 @@ public class ConsumerEndpointFactoryBean
 
 	public void setPhase(int phase) {
 		this.phase = phase;
+		this.isPhaseSet = true;
 	}
 
 	@Override
@@ -246,7 +251,8 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setErrorHandler(this.pollerMetadata.getErrorHandler());
 
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
-				pollingConsumer.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());
+				pollingConsumer.setTransactionSynchronizationFactory(
+						this.pollerMetadata.getTransactionSynchronizationFactory());
 				pollingConsumer.setBeanClassLoader(beanClassLoader);
 				pollingConsumer.setBeanFactory(beanFactory);
 				this.endpoint = pollingConsumer;
@@ -257,7 +263,11 @@ public class ConsumerEndpointFactoryBean
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
 			this.endpoint.setAutoStartup(this.autoStartup);
-			this.endpoint.setPhase(this.phase);
+			int phase = this.phase;
+			if (!this.isPhaseSet && this.endpoint instanceof PollingConsumer) {
+				phase = Integer.MAX_VALUE / 2;
+			}
+			this.endpoint.setPhase(phase);
 			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
 		}
@@ -270,7 +280,7 @@ public class ConsumerEndpointFactoryBean
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.endpoint != null) ? this.endpoint.isAutoStartup() : true;
+		return (this.endpoint == null) || this.endpoint.isAutoStartup();
 	}
 
 	@Override
@@ -280,7 +290,7 @@ public class ConsumerEndpointFactoryBean
 
 	@Override
 	public boolean isRunning() {
-		return (this.endpoint != null) ? this.endpoint.isRunning() : false;
+		return (this.endpoint != null) && this.endpoint.isRunning();
 	}
 
 	@Override
@@ -303,4 +313,5 @@ public class ConsumerEndpointFactoryBean
 			this.endpoint.stop(callback);
 		}
 	}
+
 }
