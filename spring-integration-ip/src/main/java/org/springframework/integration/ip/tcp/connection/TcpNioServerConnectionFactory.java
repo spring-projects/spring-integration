@@ -212,14 +212,16 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				logger.error("Error closing selector", e);
 			}
 		}
-		if (this.serverChannel == null) {
-			return;
+		if (this.serverChannel != null) {
+			try {
+				this.serverChannel.close();
+			}
+			catch (IOException e) {}
+			finally {
+				this.serverChannel = null;
+			}
 		}
-		try {
-			this.serverChannel.close();
-		}
-		catch (IOException e) {}
-		this.serverChannel = null;
+
 		super.stop();
 	}
 
