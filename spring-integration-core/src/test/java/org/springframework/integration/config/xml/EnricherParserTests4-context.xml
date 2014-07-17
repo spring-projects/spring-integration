@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<channel id="input"/>
+	
+	<channel id="output">
+		<queue />
+	</channel>
+
+	<header-enricher input-channel="requests1" output-channel="requests">
+		<header-channels-to-string />
+	</header-enricher>
+
+	<channel id="requests"/>
+
+	<channel id="replies"/>
+
+	<enricher id="enricher" input-channel="input"
+	                        request-channel="requests1" request-timeout="1234"
+	                        reply-timeout="9876" reply-channel="replies"
+	                        order="99" should-clone-payload="true" output-channel="output">
+		<property name="name" expression="payload.sourceName" null-result-expression="'Could not determine the name'"/>
+		<property name="age" value="42" null-result-expression="'11'"/>
+		<property name="married" value="1" type="java.lang.Boolean" null-result-expression="'1'"/>
+
+		<header name="foo" value="bar" null-result-expression="'Could not determine the foo'"/>
+		<header name="testBean" expression="@testBean" null-result-expression="'Could not determine the testBean'"/>
+		<header name="sourceName" expression="payload.sourceName" null-result-expression="'Could not determine the sourceName'"/>
+		<header name="notOverwrite" expression="payload.sourceName" overwrite="false" null-result-expression="'Could not determine the notOverwrite'"/>
+
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</enricher>
+
+	<enricher input-channel="input2" output-channel="output">
+		<header name="foo" expression="new java.util.Date()" type="int"/>
+	</enricher>
+
+	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParserTests$Gender.MALE"/>
+
+</beans:beans>

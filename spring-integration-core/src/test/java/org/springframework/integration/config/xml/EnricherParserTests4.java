@@ -34,9 +34,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
+<<<<<<< HEAD
  * @author liujiong
  *
  * @since 4.1
+=======
+ * @author Mark Fisher
+ * @author Gunnar Hillert
+ * @author Gary Russell
+ * @author Artem Bilan
+ *
+ * @since 2.1
+>>>>>>> 1233dc6... INT-3465:Content Enricher Improvements
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -46,7 +55,11 @@ public class EnricherParserTests4 {
 	private ApplicationContext context;
 
 	@Test
+<<<<<<< HEAD
 	public void nullResultActionTest() {
+=======
+	public void integrationTest() {
+>>>>>>> 1233dc6... INT-3465:Content Enricher Improvements
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
 
 		class Foo extends AbstractReplyProducingMessageHandler {
@@ -77,6 +90,23 @@ public class EnricherParserTests4 {
 	}
 	
 
+<<<<<<< HEAD
+=======
+	private static class Source {
+
+		private final String sourceName;
+
+		Source(String sourceName) {
+			this.sourceName = sourceName;
+		}
+
+		@SuppressWarnings("unused")
+		public String getSourceName() {
+			return sourceName;
+		}
+	}
+
+>>>>>>> 1233dc6... INT-3465:Content Enricher Improvements
 	public static class Target implements Cloneable {
 
 		private volatile String name;
