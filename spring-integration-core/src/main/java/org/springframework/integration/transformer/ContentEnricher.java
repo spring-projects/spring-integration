@@ -40,46 +40,26 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Content Enricher is a Message Transformer that can augment a message's payload
- * with either static values or by optionally invoking a downstream message flow
- * via its request channel and then applying values from the reply Message to the
- * original payload.
+ * Content Enricher is a Message Transformer that can augment a message's payload with either static values or by
+ * optionally invoking a downstream message flow via its request channel and then applying values from the reply Message
+ * to the original payload.
  *
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Liujiong
  * @since 2.1
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle, IntegrationEvaluationContextAware {
 
 	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<Expression, Expression>();
 
-	private volatile Map<Expression, Expression> nullResultHeaderExpressions = new HashMap<Expression, Expression>();
+	private volatile Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>();
 
 	private volatile Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
 
 	private volatile Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>();
-
-	public void setNullResultPropertyExpressions(Map<String, Expression> nullResultPropertyExpressions) {
-		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(nullResultPropertyExpressions.size());
-		for (Map.Entry<String, Expression> entry : nullResultPropertyExpressions.entrySet()) {
-			String key = entry.getKey();
-			Expression value = entry.getValue();
-			localMap.put(parser.parseExpression(key), value);
-		}
-		this.nullResultPropertyExpressions = localMap;
-	}
-
-	public void setNullResultHeaderExpressions(Map<String, Expression> nullResultHeaderExpressions) {
-		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(nullResultHeaderExpressions.size());
-		for (Map.Entry<String, Expression> entry : nullResultHeaderExpressions.entrySet()) {
-			String key = entry.getKey();
-			Expression value = entry.getValue();
-			localMap.put(parser.parseExpression(key), value);
-		}
-		this.nullResultHeaderExpressions = localMap;
-	}
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -105,14 +85,19 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private volatile Long replyTimeout;
 	
-	private volatile String nullResultAction;
-
-	public String getNullResultAction() {
-		return nullResultAction;
+	public void setNullResultPropertyExpressions(Map<String, Expression> nullResultPropertyExpressions) {
+		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(nullResultPropertyExpressions.size());
+		for (Map.Entry<String, Expression> entry : nullResultPropertyExpressions.entrySet()) {
+			String key = entry.getKey();
+			Expression value = entry.getValue();
+			localMap.put(parser.parseExpression(key), value);
+		}
+		this.nullResultPropertyExpressions = localMap;
 	}
 
-	public void setNullResultAction(String nullResultAction) {
-		this.nullResultAction = nullResultAction;
+	public void setNullResultHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions) {
+		this.nullResultHeaderExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>(
+				nullResultHeaderExpressions);
 	}
 
 	/**
@@ -343,24 +328,33 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		final Message<?> replyMessage;
 		if (this.gateway == null) {
 			replyMessage = actualRequestMessage;
-		} else {
+		}
+		else {
 			replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
 			if (replyMessage == null) {
 				for (Map.Entry<Expression, Expression> entry : this.nullResultPropertyExpressions.entrySet()) {
 					Expression propertyExpression = entry.getKey();
 					Expression valueExpression = entry.getValue();
-					Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
+					Object value = valueExpression.getValue(this.sourceEvaluationContext, requestMessage);
 					propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
 				}
-				if (this.headerExpressions.isEmpty()) {
+				if (this.nullResultPropertyExpressions.isEmpty()) {
+					return null;
+				}
+				else if (this.headerExpressions.isEmpty()) {
 					return targetPayload;
-				} else {
-			Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
-					for (Map.Entry<Expression, Expression> entry : this.nullResultHeaderExpressions.entrySet()) {
-						Expression propertyExpression = entry.getKey();
-						Expression valueExpression = entry.getValue();
-						Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
-				targetHeaders.put(propertyExpression.getExpressionString(), value);
+				} 
+				else {
+					Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
+					for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions.entrySet()) {
+						String header = entry.getKey();
+						HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
+						Boolean overwrite = valueProcessor.isOverwrite();
+						overwrite = overwrite != null ? overwrite : true;
+						if (overwrite || !requestMessage.getHeaders().containsKey(header)) {
+							Object value = valueProcessor.processMessage(requestMessage);
+							targetHeaders.put(header, value);
+						}
 					}
 			return this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders).build();
 		}
@@ -375,7 +369,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 		if (this.headerExpressions.isEmpty()) {
 			return targetPayload;
-		} else {
+		} 
+		else {
 			Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
 			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
 				String header = entry.getKey();

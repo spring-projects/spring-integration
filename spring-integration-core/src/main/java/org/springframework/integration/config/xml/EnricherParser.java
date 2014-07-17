@@ -18,6 +18,8 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -30,13 +32,13 @@ import org.springframework.integration.transformer.support.ExpressionEvaluatingH
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'enricher' element.
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Liujiong
  * @since 2.1
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {
@@ -128,9 +130,14 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 						.addConstructorArgValue(expressionDefinition)
 						.addConstructorArgValue(subElement.getAttribute("type"));
 				if (StringUtils.hasText(nullResultHeaderExpression)) {
-					BeanDefinition nullResultExpressionExpressionDef = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
-						.addConstructorArgValue(nullResultHeaderExpression).getBeanDefinition();
-					nullResultHeaderExpressions.put(name, nullResultExpressionExpressionDef);
+					BeanDefinition nullResultExpressionDefinition = IntegrationNamespaceUtils
+							.createExpressionDefIfAttributeDefined("null-result-expression", subElement);
+					BeanDefinitionBuilder nullResultValueProcessorBuilder = BeanDefinitionBuilder
+							.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(nullResultExpressionDefinition)
+							.addConstructorArgValue(subElement.getAttribute("type"));
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(nullResultValueProcessorBuilder, subElement, "overwrite");
+					nullResultHeaderExpressions.put(name, nullResultValueProcessorBuilder.getBeanDefinition());
 				}
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
 				expressions.put(name, valueProcessorBuilder.getBeanDefinition());

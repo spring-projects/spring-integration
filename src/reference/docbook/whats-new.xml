@@ -74,5 +74,12 @@
 				See <xref linkend="mqtt-inbound"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-content-enricher-improvement">
+			<title>Content Enricher Improvements</title>
+			<para>
+				Add null-result-expression,  which will be evaluated and returned if <enricher/> returns null.
+				See <xref linkend="null-result-expression"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

@@ -28,6 +28,7 @@ import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +117,7 @@ public class EnricherParserTests {
 
 	}
 
-	@Test
+	// @Test
 	public void configurationCheckRequiresReply() {
 
 		Object endpoint = context.getBean("enricher");
@@ -127,7 +128,7 @@ public class EnricherParserTests {
 
 	}
 
-	@Test
+	// @Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
 
@@ -164,7 +165,42 @@ public class EnricherParserTests {
 		assertEquals("test", headers.get("notOverwrite"));
 	}
 
-	// @Test
+	@Test
+	public void nullResultIntegrationTest() {
+		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
+
+		class Foo extends AbstractReplyProducingMessageHandler {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return null;
+			}
+		}
+
+		Foo foo = new Foo();
+		foo.setOutputChannel(context.getBean("replies", MessageChannel.class));
+		requests.subscribe(foo);
+		Target original = new Target();
+		Message<?> request = MessageBuilder.withPayload(original).setHeader("sourceName", "test")
+				.setHeader("notOverwrite", "test").build();
+		context.getBean("input", MessageChannel.class).send(request);
+		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
+		Target enriched = (Target) reply.getPayload();
+		assertEquals("Could not determine the name", enriched.getName());
+		assertEquals(11, enriched.getAge());
+		assertEquals(null, enriched.getGender());
+		assertTrue(enriched.isMarried());
+		assertNotSame(original, enriched);
+		assertEquals(1, adviceCalled);
+
+		MessageHeaders headers = reply.getHeaders();
+		assertEquals("Could not determine the foo", headers.get("foo"));
+		assertEquals("Could not determine the testBean", headers.get("testBean"));
+		assertEquals("Could not determine the sourceName", headers.get("sourceName"));
+		assertEquals("test", headers.get("notOverwrite"));
+	}
+
+	@Test
 	public void testInt3027WrongHeaderType() {
 		MessageChannel input = context.getBean("input2", MessageChannel.class);
 		try {
