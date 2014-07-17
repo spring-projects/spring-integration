@@ -67,7 +67,7 @@ public class EnricherParserTests {
 
 	private static volatile int adviceCalled;
 
-	// @Test
+	@Test
 	@SuppressWarnings("unchecked")
 	public void configurationCheck() {
 		Object endpoint = context.getBean("enricher");
@@ -104,7 +104,7 @@ public class EnricherParserTests {
 
 	}
 
-	// @Test
+	@Test
 	public void configurationCheckTimeoutParameters() {
 
 		Object endpoint = context.getBean("enricher");
@@ -117,7 +117,7 @@ public class EnricherParserTests {
 
 	}
 
-	// @Test
+	@Test
 	public void configurationCheckRequiresReply() {
 
 		Object endpoint = context.getBean("enricher");
@@ -128,7 +128,7 @@ public class EnricherParserTests {
 
 	}
 
-	// @Test
+	@Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
 
