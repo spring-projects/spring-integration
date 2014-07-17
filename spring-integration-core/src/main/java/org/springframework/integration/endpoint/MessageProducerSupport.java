@@ -44,6 +44,9 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
+	protected MessageProducerSupport() {
+		this.setPhase(Integer.MAX_VALUE / 2);
+	}
 
 	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {

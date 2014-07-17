@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,15 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
-		DisposableBean, OrderlyShutdownCapable {
+public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements DisposableBean, OrderlyShutdownCapable {
 
 	private final AbstractMessageListenerContainer listenerContainer;
 
 	private final ChannelPublishingJmsMessageListener listener;
 
 
-	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer, ChannelPublishingJmsMessageListener listener) {
+	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
+			ChannelPublishingJmsMessageListener listener) {
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
 		if (logger.isWarnEnabled() && listenerContainer.getMessageListener() != null) {
@@ -48,6 +48,7 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 		listenerContainer.setMessageListener(listener);
 		this.listener = listener;
 		this.listenerContainer = listenerContainer;
+		setPhase(Integer.MAX_VALUE / 2);
 	}
 
 

@@ -77,7 +77,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	public AbstractPollingEndpoint() {
-		this.setPhase(Integer.MAX_VALUE);
+		this.setPhase(Integer.MAX_VALUE / 2);
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {

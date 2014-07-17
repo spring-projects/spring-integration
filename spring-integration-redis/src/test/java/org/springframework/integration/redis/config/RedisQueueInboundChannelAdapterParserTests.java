@@ -86,30 +86,35 @@ public class RedisQueueInboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt3017DefaultConfig() {
-		assertSame(this.connectionFactory, TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.ops.template.connectionFactory"));
+		assertSame(this.connectionFactory,
+				TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.ops.template.connectionFactory"));
 		assertEquals("si.test.Int3017.Inbound1", TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.key"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "expectMessage", Boolean.class));
-		assertEquals(new Long(1000), TestUtils.getPropertyValue(this.defaultAdapter, "receiveTimeout", Long.class));
-		assertEquals(new Long(5000), TestUtils.getPropertyValue(this.defaultAdapter, "recoveryInterval", Long.class));
+		assertEquals(1000L, TestUtils.getPropertyValue(this.defaultAdapter, "receiveTimeout"));
+		assertEquals(5000L, TestUtils.getPropertyValue(this.defaultAdapter, "recoveryInterval"));
 		assertNull(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel"));
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "taskExecutor"), Matchers.instanceOf(ErrorHandlingTaskExecutor.class));
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "serializer"), Matchers.instanceOf(JdkSerializationRedisSerializer.class));
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "taskExecutor"),
+				Matchers.instanceOf(ErrorHandlingTaskExecutor.class));
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "serializer"),
+				Matchers.instanceOf(JdkSerializationRedisSerializer.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class));
+		assertEquals(Integer.MAX_VALUE / 2, TestUtils.getPropertyValue(this.defaultAdapter, "phase"));
 		assertSame(this.defaultAdapterChannel, TestUtils.getPropertyValue(this.defaultAdapter, "outputChannel"));
 	}
 
 	@Test
 	public void testInt3017CustomConfig() {
-		assertSame(this.customRedisConnectionFactory, TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.ops.template.connectionFactory"));
+		assertSame(this.customRedisConnectionFactory,
+				TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.ops.template.connectionFactory"));
 		assertEquals("si.test.Int3017.Inbound2", TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.key"));
 		assertTrue(TestUtils.getPropertyValue(this.customAdapter, "expectMessage", Boolean.class));
-		assertEquals(new Long(2000), TestUtils.getPropertyValue(this.customAdapter, "receiveTimeout", Long.class));
-		assertEquals(new Long(3000), TestUtils.getPropertyValue(this.customAdapter, "recoveryInterval", Long.class));
+		assertEquals(2000L, TestUtils.getPropertyValue(this.customAdapter, "receiveTimeout"));
+		assertEquals(3000L, TestUtils.getPropertyValue(this.customAdapter, "recoveryInterval"));
 		assertSame(this.errorChannel, TestUtils.getPropertyValue(this.customAdapter, "errorChannel"));
 		assertSame(this.taskExecutor, TestUtils.getPropertyValue(this.customAdapter, "taskExecutor"));
 		assertSame(this.serializer, TestUtils.getPropertyValue(this.customAdapter, "serializer"));
 		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "autoStartup", Boolean.class));
-		assertEquals(new Integer(100), TestUtils.getPropertyValue(this.customAdapter, "phase", Integer.class));
+		assertEquals(100, TestUtils.getPropertyValue(this.customAdapter, "phase"));
 		assertSame(this.sendChannel, TestUtils.getPropertyValue(this.customAdapter, "outputChannel"));
 	}
 
