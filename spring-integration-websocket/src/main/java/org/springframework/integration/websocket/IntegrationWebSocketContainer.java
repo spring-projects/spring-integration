@@ -116,7 +116,7 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 		return Collections.unmodifiableList(protocols);
 	}
 
-	public WebSocketSession getSession(String sessionId) {
+	public WebSocketSession getSession(String sessionId) throws Exception {
 		WebSocketSession session = this.sessions.get(sessionId);
 		Assert.notNull(session, "Session not found for id '" + sessionId + "'");
 		return session;

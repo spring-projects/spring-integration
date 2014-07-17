@@ -16,19 +16,33 @@
 
 package org.springframework.integration.websocket.inbound;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.WebSocketListener;
-import org.springframework.integration.websocket.support.SubProtocolHandlerContainer;
+import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.ByteArrayMessageConverter;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -39,34 +53,103 @@ import org.springframework.web.socket.WebSocketSession;
  */
 public class WebSocketInboundChannelAdapter extends MessageProducerSupport implements WebSocketListener {
 
+	private final List<MessageConverter> defaultConverters = new ArrayList<MessageConverter>(3);
+
+	{
+		this.defaultConverters.add(new StringMessageConverter());
+		this.defaultConverters.add(new ByteArrayMessageConverter());
+		if (JacksonJsonUtils.isJackson2Present()) {
+			DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
+			resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
+			MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+			converter.setContentTypeResolver(resolver);
+			this.defaultConverters.add(converter);
+		}
+	}
+
+	private final CompositeMessageConverter messageConverter = new CompositeMessageConverter(this.defaultConverters);
+
 	private final IntegrationWebSocketContainer webSocketContainer;
 
-	private final SubProtocolHandlerContainer protocolHandlerContainer;
+	private final SubProtocolHandlerRegistry protocolHandlerContainer;
 
 	private final MessageChannel subProtocolHandlerChannel;
+
+	private final AtomicReference<Class<?>> payloadType = new AtomicReference<Class<?>>(String.class);
+
+	private volatile List<MessageConverter> messageConverters;
+
+	private volatile boolean mergeWithDefaultConverters = false;
 
 	private volatile boolean active;
 
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer,
-			SubProtocolHandlerContainer protocolHandlerContainer) {
+			SubProtocolHandlerRegistry protocolHandlerRegistry) {
 		Assert.notNull(webSocketContainer, "'webSocketContainer' must not be null");
-		Assert.notNull(protocolHandlerContainer, "'protocolHandlerContainer' must not be null");
+		Assert.notNull(protocolHandlerRegistry, "'protocolHandlerRegistry' must not be null");
 		this.webSocketContainer = webSocketContainer;
-		this.protocolHandlerContainer = protocolHandlerContainer;
+		this.protocolHandlerContainer = protocolHandlerRegistry;
 		this.subProtocolHandlerChannel = new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				sendMessage(message);
+				Object payload = WebSocketInboundChannelAdapter.this.messageConverter.fromMessage(message,
+						WebSocketInboundChannelAdapter.this.payloadType.get());
+				SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
+				headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
+				sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
 			}
 
 		});
+	}
+
+	/**
+	 * Set the message converters to use. These converters are used to convert the message to send for appropriate
+	 * internal subProtocols type.
+	 * @param messageConverters The message converters.
+	 */
+	public void setMessageConverters(List<MessageConverter> messageConverters) {
+		Assert.noNullElements(messageConverters.toArray(), "'messageConverters' must not contain null entries");
+		this.messageConverters = new ArrayList<MessageConverter>(messageConverters);
+	}
+
+
+	/**
+	 * Flag which determines if the default converters should be available after
+	 * custom converters.
+	 * @param mergeWithDefaultConverters true to merge, false to replace.
+	 */
+	public void setMergeWithDefaultConverters(boolean mergeWithDefaultConverters) {
+		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
+	}
+
+	/**
+	 * Set the type for target message payload to convert the WebSocket message body to.
+	 * @param payloadType to convert inbound WebSocket message body
+	 * @see CompositeMessageConverter
+	 */
+	public void setPayloadType(Class<?> payloadType) {
+		Assert.notNull(payloadType, "'payloadType' must not be null");
+		this.payloadType.set(payloadType);
 	}
 
 	@Override
 	protected void onInit() {
 		super.onInit();
 		this.webSocketContainer.setMessageListener(this);
+		if (!CollectionUtils.isEmpty(this.messageConverters)) {
+			List<MessageConverter> converters = this.messageConverter.getConverters();
+			if (this.mergeWithDefaultConverters) {
+				for (ListIterator<MessageConverter> iterator = this.messageConverters.listIterator(); iterator.hasPrevious(); ) {
+					MessageConverter converter = iterator.previous();
+					converters.add(0, converter);
+				}
+			}
+			else {
+				converters.clear();
+				converters.addAll(this.messageConverters);
+			}
+		}
 	}
 
 	@Override

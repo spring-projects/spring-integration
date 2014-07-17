@@ -41,24 +41,24 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
  * @see org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler
  */
-public final class SubProtocolHandlerContainer {
+public final class SubProtocolHandlerRegistry {
 
-	private final static Log logger = LogFactory.getLog(SubProtocolHandlerContainer.class);
+	private final static Log logger = LogFactory.getLog(SubProtocolHandlerRegistry.class);
 
 	private final Map<String, SubProtocolHandler> protocolHandlers =
 			new TreeMap<String, SubProtocolHandler>(String.CASE_INSENSITIVE_ORDER);
 
 	private final SubProtocolHandler defaultProtocolHandler;
 
-	public SubProtocolHandlerContainer(List<SubProtocolHandler> protocolHandlers) {
+	public SubProtocolHandlerRegistry(List<SubProtocolHandler> protocolHandlers) {
 		this(protocolHandlers, null);
 	}
 
-	public SubProtocolHandlerContainer(SubProtocolHandler defaultProtocolHandler) {
+	public SubProtocolHandlerRegistry(SubProtocolHandler defaultProtocolHandler) {
 		this(null, defaultProtocolHandler);
 	}
 
-	public SubProtocolHandlerContainer(List<SubProtocolHandler> protocolHandlers,
+	public SubProtocolHandlerRegistry(List<SubProtocolHandler> protocolHandlers,
 			SubProtocolHandler defaultProtocolHandler) {
 		Assert.state(!CollectionUtils.isEmpty(protocolHandlers) || defaultProtocolHandler != null,
 				"One of 'protocolHandlers' or 'defaultProtocolHandler' must be provided");

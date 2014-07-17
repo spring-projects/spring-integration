@@ -21,7 +21,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -45,7 +49,16 @@ public class TestServerConfig implements WebSocketConfigurer {
 
 	@Bean
 	public AbstractSubscribableChannel clientOutboundChannel() {
-		return new DirectChannel();
+		DirectChannel directChannel = new DirectChannel();
+		directChannel.addInterceptor(new ChannelInterceptorAdapter() {
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(message);
+				headers.setLeaveMutable(true);
+				return MessageBuilder.createMessage(message.getPayload(), headers.getMessageHeaders());
+			}
+		});
+		return directChannel;
 	}
 
 	@Bean

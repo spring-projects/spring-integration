@@ -16,6 +16,10 @@
 
 package org.springframework.integration.websocket;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
@@ -47,8 +51,11 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private final ConnectionManagerSupport connectionManager;
 
+	private volatile CountDownLatch connectionLatch = new CountDownLatch(1);
+
 	private WebSocketSession clientSession;
 
+	private volatile Throwable openConnectionException;
 
 	public ClientWebSocketContainer(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 		Assert.notNull(client, "'client' must not be null");
@@ -72,7 +79,18 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	 * @return the {@link #clientSession}, if established.
 	 */
 	@Override
-	public WebSocketSession getSession(String sessionId) {
+	public WebSocketSession getSession(String sessionId) throws Exception {
+		if (this.isRunning()) {
+			try {
+				this.connectionLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				logger.error("'clientSession' has not been established during 'openConnection'");
+			}
+		}
+		if (this.openConnectionException != null) {
+			throw new IllegalStateException(this.openConnectionException);
+		}
 		Assert.state(this.clientSession != null,
 				"'clientSession' has not been established. Consider to 'start' this container.");
 		return this.clientSession;
@@ -108,12 +126,22 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	@Override
 	public void stop() {
-		this.connectionManager.stop();
+		try {
+			this.connectionManager.stop();
+		}
+		finally {
+			this.connectionLatch = new CountDownLatch(1);
+		}
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		this.connectionManager.stop(callback);
+		try {
+			this.connectionManager.stop(callback);
+		}
+		finally {
+			this.connectionLatch = new CountDownLatch(1);
+		}
 	}
 
 	/**
@@ -133,13 +161,13 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		public IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 			super(uriTemplate, uriVariables);
 			this.client = client;
-			this.syncClientLifecycle = ((client instanceof SmartLifecycle) && !((SmartLifecycle) client).isRunning());
+			this.syncClientLifecycle = ((client instanceof Lifecycle) && !((Lifecycle) client).isRunning());
 		}
 
 		@Override
 		public void startInternal() {
 			if (this.syncClientLifecycle) {
-				((SmartLifecycle) this.client).start();
+				((Lifecycle) this.client).start();
 			}
 			super.startInternal();
 		}
@@ -147,7 +175,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		@Override
 		public void stopInternal() throws Exception {
 			if (this.syncClientLifecycle) {
-				((SmartLifecycle) this.client).stop();
+				((Lifecycle) this.client).stop();
 			}
 			try {
 				super.stopInternal();
@@ -172,11 +200,14 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 				public void onSuccess(WebSocketSession session) {
 					ClientWebSocketContainer.this.clientSession = session;
 					logger.info("Successfully connected");
+					ClientWebSocketContainer.this.connectionLatch.countDown();
 				}
 
 				@Override
 				public void onFailure(Throwable t) {
 					logger.error("Failed to connect", t);
+					ClientWebSocketContainer.this.openConnectionException = t;
+					ClientWebSocketContainer.this.connectionLatch.countDown();
 				}
 			});
 		}

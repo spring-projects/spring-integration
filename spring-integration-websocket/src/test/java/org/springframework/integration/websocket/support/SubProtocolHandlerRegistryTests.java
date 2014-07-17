@@ -35,40 +35,40 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  * @author Artem Bilan
  * @since 4.1
  */
-public class SubProtocolHandlerContainerTests {
+public class SubProtocolHandlerRegistryTests {
 
 	@Test
 	public void testProtocolHandlers() {
 		SubProtocolHandler defaultProtocolHandler = mock(SubProtocolHandler.class);
-		SubProtocolHandlerContainer subProtocolHandlerContainer =
-				new SubProtocolHandlerContainer(
+		SubProtocolHandlerRegistry subProtocolHandlerRegistry =
+				new SubProtocolHandlerRegistry(
 						Collections.<SubProtocolHandler>singletonList(new StompSubProtocolHandler()),
 						defaultProtocolHandler);
 		WebSocketSession session = mock(WebSocketSession.class);
 		when(session.getAcceptedProtocol()).thenReturn("v10.stomp", (String) null);
-		SubProtocolHandler protocolHandler = subProtocolHandlerContainer.findProtocolHandler(session);
+		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
 		assertNotNull(protocolHandler);
 		assertThat(protocolHandler, instanceOf(StompSubProtocolHandler.class));
-		protocolHandler = subProtocolHandlerContainer.findProtocolHandler(session);
+		protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
 		assertNotNull(protocolHandler);
 		assertSame(protocolHandler, defaultProtocolHandler);
 
-		assertEquals(subProtocolHandlerContainer.getSubProtocols(), new StompSubProtocolHandler().getSupportedProtocols());
+		assertEquals(subProtocolHandlerRegistry.getSubProtocols(), new StompSubProtocolHandler().getSupportedProtocols());
 	}
 
 	@Test
 	public void testSingleHandler() {
 		SubProtocolHandler testProtocolHandler = spy(new StompSubProtocolHandler());
 		when(testProtocolHandler.getSupportedProtocols()).thenReturn(Collections.singletonList("foo"));
-		SubProtocolHandlerContainer subProtocolHandlerContainer =
-				new SubProtocolHandlerContainer(Collections.<SubProtocolHandler>singletonList(testProtocolHandler));
+		SubProtocolHandlerRegistry subProtocolHandlerRegistry =
+				new SubProtocolHandlerRegistry(Collections.<SubProtocolHandler>singletonList(testProtocolHandler));
 		WebSocketSession session = mock(WebSocketSession.class);
 		when(session.getAcceptedProtocol()).thenReturn("foo", (String) null);
-		SubProtocolHandler protocolHandler = subProtocolHandlerContainer.findProtocolHandler(session);
+		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
 		assertNotNull(protocolHandler);
 		assertSame(protocolHandler, testProtocolHandler);
 
-		protocolHandler = subProtocolHandlerContainer.findProtocolHandler(session);
+		protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
 		assertNotNull(protocolHandler);
 		assertSame(protocolHandler, testProtocolHandler);
 	}
@@ -76,13 +76,13 @@ public class SubProtocolHandlerContainerTests {
 	@Test
 	public void testDefaultHandler() {
 		SubProtocolHandler testProtocolHandler = new StompSubProtocolHandler();
-		SubProtocolHandlerContainer subProtocolHandlerContainer =
-				new SubProtocolHandlerContainer(testProtocolHandler);
+		SubProtocolHandlerRegistry subProtocolHandlerRegistry =
+				new SubProtocolHandlerRegistry(testProtocolHandler);
 		WebSocketSession session = mock(WebSocketSession.class);
 		when(session.getAcceptedProtocol()).thenReturn("foo", (String) null);
 
 		try {
-			subProtocolHandlerContainer.findProtocolHandler(session);
+			subProtocolHandlerRegistry.findProtocolHandler(session);
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
@@ -90,28 +90,28 @@ public class SubProtocolHandlerContainerTests {
 			assertThat(e.getMessage(), containsString("No handler for sub-protocol 'foo', handlers = {}"));
 		}
 
-		SubProtocolHandler protocolHandler = subProtocolHandlerContainer.findProtocolHandler(session);
+		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
 		assertNotNull(protocolHandler);
 		assertSame(protocolHandler, testProtocolHandler);
 	}
 
 	@Test
 	public void testResolveSessionId() {
-		SubProtocolHandlerContainer subProtocolHandlerContainer =
-				new SubProtocolHandlerContainer(new StompSubProtocolHandler());
+		SubProtocolHandlerRegistry subProtocolHandlerRegistry =
+				new SubProtocolHandlerRegistry(new StompSubProtocolHandler());
 
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader(SimpMessageHeaderAccessor.SESSION_ID_HEADER, "TEST_SESSION")
 				.build();
 
-		String sessionId = subProtocolHandlerContainer.resolveSessionId(message);
+		String sessionId = subProtocolHandlerRegistry.resolveSessionId(message);
 		assertEquals(sessionId, "TEST_SESSION");
 
 		message = MessageBuilder.withPayload("foo")
 				.setHeader("MY_SESSION_ID", "TEST_SESSION")
 				.build();
 
-		sessionId = subProtocolHandlerContainer.resolveSessionId(message);
+		sessionId = subProtocolHandlerRegistry.resolveSessionId(message);
 		assertNull(sessionId);
 	}
 

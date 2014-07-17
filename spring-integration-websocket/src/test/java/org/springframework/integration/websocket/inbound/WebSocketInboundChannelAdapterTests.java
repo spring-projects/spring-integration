@@ -39,7 +39,7 @@ import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.JettyWebSocketTestServer;
 import org.springframework.integration.websocket.TestServerConfig;
-import org.springframework.integration.websocket.support.SubProtocolHandlerContainer;
+import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -84,8 +84,9 @@ public class WebSocketInboundChannelAdapterTests {
 		String sessionId = sessions.keySet().iterator().next();
 
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECTED);
+		headers.setLeaveMutable(true);
 		headers.setSessionId(sessionId);
-		Message<byte[]> message = MessageBuilder.withPayload(ByteBuffer.allocate(0).array()).setHeaders(headers).build();
+		Message<byte[]> message = MessageBuilder.createMessage(ByteBuffer.allocate(0).array(), headers.getMessageHeaders());
 
 		this.clientOutboundChannel.send(message);
 
@@ -96,8 +97,8 @@ public class WebSocketInboundChannelAdapterTests {
 		assertEquals(StompCommand.CONNECTED, receivedHeaders.getCommand());
 
 		Object receivedPayload = received.getPayload();
-		assertThat(receivedPayload, instanceOf(byte[].class));
-		assertEquals(0, ((byte[]) receivedPayload).length);
+		assertThat(receivedPayload, instanceOf(String.class));
+		assertEquals("", receivedPayload);
 
 	}
 
@@ -129,7 +130,7 @@ public class WebSocketInboundChannelAdapterTests {
 		public MessageProducer webSocketInboundChannelAdapter() {
 			WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
 					new WebSocketInboundChannelAdapter(clientWebSocketContainer(),
-					new SubProtocolHandlerContainer(stompSubProtocolHandler()));
+					new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 			webSocketInboundChannelAdapter.setOutputChannel(webSocketChannel());
 			return webSocketInboundChannelAdapter;
 		}

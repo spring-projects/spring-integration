@@ -27,14 +27,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.JettyWebSocketTestServer;
 import org.springframework.integration.websocket.TestServerConfig;
-import org.springframework.integration.websocket.support.SubProtocolHandlerContainer;
+import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -69,8 +69,8 @@ public class WebSocketOutboundMessageHandlerTests {
 		headers.setMessageId("mess0");
 		headers.setSubscriptionId("sub0");
 		headers.setDestination("/foo");
-		byte[] payload = "Hello World".getBytes();
-		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
+		String payload = "Hello World";
+		Message<String> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
 
 		this.messageHandler.handleMessage(message);
 
@@ -84,7 +84,7 @@ public class WebSocketOutboundMessageHandlerTests {
 
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload, instanceOf(byte[].class));
-		assertArrayEquals((byte[]) receivedPayload, payload);
+		assertArrayEquals((byte[]) receivedPayload, payload.getBytes());
 	}
 
 
@@ -113,7 +113,7 @@ public class WebSocketOutboundMessageHandlerTests {
 		@Bean
 		public MessageHandler webSocketOutboundMessageHandler() {
 			 return new WebSocketOutboundMessageHandler(clientWebSocketContainer(),
-					 new SubProtocolHandlerContainer(stompSubProtocolHandler()));
+					 new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 		}
 
 	}
