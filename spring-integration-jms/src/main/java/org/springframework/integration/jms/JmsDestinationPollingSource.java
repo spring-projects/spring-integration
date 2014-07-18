@@ -22,7 +22,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.jms.config.JmsAdapterParserUtils;
+import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -142,9 +142,9 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	@Override
 	protected void onInit() {
 		if (this.getSessionAcknowledgeMode()!= null) {
-			Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(this.getSessionAcknowledgeMode());
+			Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.getSessionAcknowledgeMode());
 			if (acknowledgeMode != null) {
-				if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
+				if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 					jmsTemplate.setSessionTransacted(true);
 				}
 			}

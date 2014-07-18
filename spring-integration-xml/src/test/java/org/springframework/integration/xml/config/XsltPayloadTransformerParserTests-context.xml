@@ -13,6 +13,7 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+			
 	<context:property-placeholder properties-ref="props"/>
 
 	<util:properties id="props">
@@ -25,18 +26,21 @@
     </si:channel>
 
     <si:channel id="withResourceIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithResource"
                              input-channel="withResourceIn"
                              output-channel="output"
                              xsl-resource="org/springframework/integration/xml/config/test.xsl"/>
 
     <si:channel id="withTemplatesIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplates"
                              input-channel="withTemplatesIn"
                              output-channel="output"
                              xsl-templates="templates"/>
 
     <si:channel id="withTemplatesAndResultTransformerIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
                              input-channel="withTemplatesAndResultTransformerIn"
                              output-channel="output"
@@ -44,6 +48,7 @@
                              result-transformer="resultTransformer"/>
 
     <si:channel id="withTemplatesAndResultFactoryIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultFactory"
                              input-channel="withTemplatesAndResultFactoryIn"
                              output-channel="output"
@@ -51,6 +56,7 @@
                              result-factory="stubResultFactory"/>
 
     <si:channel id="withTemplatesAndStringResultTypeIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndStringResultType"
                              input-channel="withTemplatesAndStringResultTypeIn"
                              output-channel="output"
@@ -89,6 +95,5 @@
     </bean>
 
     <bean id="stubResultFactory" class="org.springframework.integration.xml.config.StubResultFactory"/>
-
 
 </beans>

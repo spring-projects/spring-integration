@@ -12,6 +12,7 @@
 		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
 	<context:property-placeholder properties-ref="props"/>
+	
 	<util:properties id="props">
 		<prop key="xmlSchema">xml-schema</prop>
  	</util:properties>
@@ -48,4 +49,5 @@
 	<int:channel id="invalidOutputChannel">
 		<int:queue/>
 	</int:channel>
+	
 </beans>

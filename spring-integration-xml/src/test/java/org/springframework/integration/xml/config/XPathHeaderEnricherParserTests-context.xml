@@ -13,7 +13,9 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+			
 	<context:property-placeholder properties-ref="props"/>
+	
 	<util:properties id="props">
 		<beans:prop key="booleanResult">BOOLEAN_RESULT</beans:prop>
 		<beans:prop key="stringResult">STRING_RESULT</beans:prop>

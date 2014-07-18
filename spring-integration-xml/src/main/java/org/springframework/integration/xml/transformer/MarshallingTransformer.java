@@ -46,23 +46,7 @@ public class MarshallingTransformer extends AbstractTransformer {
 
 	private volatile String resultFactoryName;
 	
-	public String getResultFactoryName() {
-		return resultFactoryName;
-	}
-
-	public void setResultFactoryName(String resultFactoryName) {
-		this.resultFactoryName = resultFactoryName;
-	}
-
 	private volatile String resultType;
-
-	public String getResultType() {
-		return resultType;
-	}
-
-	public void setResultType(String resultType) {
-		this.resultType = resultType;
-	}
 
 	private final Marshaller marshaller;
 
@@ -83,7 +67,18 @@ public class MarshallingTransformer extends AbstractTransformer {
 	public MarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
 		this(marshaller, null);
 	}
+	
+	public void setResultFactoryName(String resultFactoryName) {
+		this.resultFactoryName = resultFactoryName;
+	}
 
+	public String getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(String resultType) {
+		this.resultType = resultType;
+	}
 
 	public void setResultFactory(ResultFactory resultFactory) {
 		Assert.notNull(resultFactory, "ResultFactory must not be null");
@@ -114,7 +109,7 @@ public class MarshallingTransformer extends AbstractTransformer {
 
 	@Override
 	public Object doTransform(Message<?> message) {
-Object source = (this.extractPayload) ? message.getPayload() : message;
+		Object source = (this.extractPayload) ? message.getPayload() : message;
 		Object transformedPayload = null;
 		Result result = this.resultFactory.createResult(source);
 		if (result == null) {

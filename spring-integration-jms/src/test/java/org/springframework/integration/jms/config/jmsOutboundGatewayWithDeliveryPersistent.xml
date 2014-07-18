@@ -16,12 +16,13 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+			
 	<context:property-placeholder properties-ref="props"/>
+	
 	<util:properties id="props">
 		<prop key="jmsAcknowledgeModeTransacted">transacted</prop>
 		<prop key="jmsAcknowledgeModeDupsOk">dups-ok</prop>
  	</util:properties>
-	
 	
 	<si:channel id="requestChannel"/>
 

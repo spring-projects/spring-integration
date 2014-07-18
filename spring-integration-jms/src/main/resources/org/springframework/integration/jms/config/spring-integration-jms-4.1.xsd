@@ -1488,12 +1488,14 @@
 			<xsd:enumeration value="auto"/>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
 	<xsd:simpleType name="listenerContainerEnumeration"> 
 		<xsd:restriction base="xsd:NMTOKEN">
 			 <xsd:enumeration value="default"/>
 			 <xsd:enumeration value="simple"/>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
 	<xsd:simpleType  name="jsmAcknowledgeModeEnumeration">
  		<xsd:restriction base="xsd:NMTOKEN">
 			<xsd:enumeration value="auto"/>
@@ -1502,4 +1504,5 @@
 			<xsd:enumeration value="transacted"/>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
 </xsd:schema>

@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
- * @author liujiong
+ * @author Liujiong
  */
 public abstract class XmlNamespaceUtils {
 

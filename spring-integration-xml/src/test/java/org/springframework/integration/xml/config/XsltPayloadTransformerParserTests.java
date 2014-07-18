@@ -60,7 +60,7 @@ public class XsltPayloadTransformerParserTests {
     }
 
 
-   @Test
+	@Test
     public void testWithResourceProvided() throws Exception {
         MessageChannel input = (MessageChannel) applicationContext.getBean("withResourceIn");
         GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
@@ -73,7 +73,7 @@ public class XsltPayloadTransformerParserTests {
         		"transformer.evaluationContext.beanResolver"));
     }
 
-   @Test
+	@Test
     public void testWithTemplatesProvided() throws Exception {
         MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesIn");
         GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
@@ -84,7 +84,7 @@ public class XsltPayloadTransformerParserTests {
         assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
     }
 
-   @Test
+	@Test
     public void testWithTemplatesAndResultTransformer() throws Exception {
         MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultTransformerIn");
         GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
@@ -95,7 +95,7 @@ public class XsltPayloadTransformerParserTests {
         assertEquals("Wrong payload", "testReturn", strResult);
     }
 
-   @Test
+	@Test
     public void testWithResourceProvidedAndStubResultFactory() throws Exception {
         MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultFactoryIn");
         GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
@@ -104,7 +104,7 @@ public class XsltPayloadTransformerParserTests {
         assertTrue("Payload was not a StubStringResult", result.getPayload() instanceof StubStringResult);
     }
 
-   @Test
+	@Test
     public void testWithResourceAndStringResultType() throws Exception {
         MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndStringResultTypeIn");
         GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
@@ -114,7 +114,7 @@ public class XsltPayloadTransformerParserTests {
     }
 
 
-   @Test
+	@Test
     public void docInStringResultOut() throws Exception {
         MessageChannel input = applicationContext.getBean("docinStringResultOutTransformerChannel", MessageChannel.class);
         Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).
@@ -126,7 +126,7 @@ public class XsltPayloadTransformerParserTests {
         Assert.assertTrue(payload.contains("<bob>test</bob>"));
     }
 
-   @Test
+	@Test
     public void stringInDocResultOut() throws Exception {
         MessageChannel input = applicationContext.getBean("stringResultOutTransformerChannel", MessageChannel.class);
         Message<?> message = MessageBuilder.withPayload(this.doc).
@@ -139,7 +139,7 @@ public class XsltPayloadTransformerParserTests {
     }
 
 
-    @Test
+	@Test
     public void stringInAndCustomResultFactory() throws Exception {
         MessageChannel input = applicationContext.getBean("stringInCustomResultFactoryChannel", MessageChannel.class);
         Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).

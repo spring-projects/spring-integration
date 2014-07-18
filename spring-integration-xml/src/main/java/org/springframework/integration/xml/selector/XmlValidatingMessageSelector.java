@@ -56,10 +56,14 @@ public class XmlValidatingMessageSelector implements MessageSelector,Initializin
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-	/** Constant that defines a W3C XML Schema. */
+	/** 
+	 * Constant that defines a W3C XML Schema. 
+	 **/
 	public static final String SCHEMA_W3C_XML = "http://www.w3.org/2001/XMLSchema";
 
-	/** Constant that defines a RELAX NG Schema. */
+	/**
+	 *  Constant that defines a RELAX NG Schema. 
+	 **/
 	public static final String SCHEMA_RELAX_NG = "http://relaxng.org/ns/structure/1.0";
 	
 	public XmlValidatingMessageSelector(XmlValidator xmlValidator) {

@@ -222,9 +222,9 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		ResultFactory generatedResultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName,this.getBeanFactory());
-		if(generatedResultFactory != null){
-			resultFactory=generatedResultFactory;
+		ResultFactory generatedResultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
+		if (generatedResultFactory != null) {
+			resultFactory = generatedResultFactory;
 		}
 		boolean resultFactorySpecified = StringUtils.hasText(resultFactoryName) || StringUtils.hasText(resultType);
 		if(resultFactorySpecified){
