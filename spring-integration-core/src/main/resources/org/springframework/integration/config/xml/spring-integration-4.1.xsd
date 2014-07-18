@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-		<xsd:schema xmlns="http://www.springframework.org/schema/integration" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
 	targetNamespace="http://www.springframework.org/schema/integration" elementFormDefault="qualified"
 	attributeFormDefault="unqualified">
@@ -1843,7 +1843,7 @@
 			<xsd:enumeration value="MAJORITY_OR_TIE" />
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:element name="selector">
 		<xsd:complexType>
 			<xsd:complexContent>

@@ -28,11 +28,12 @@
 	                        request-channel="requests1" request-timeout="1234"
 	                        reply-timeout="9876" reply-channel="replies"
 	                        order="99" should-clone-payload="true" output-channel="output">
-	    <property name="name" expression="payload.sourceName" null-result-expression="'Could not determine the name'"/>
+		<property name="name" expression="payload.sourceName" null-result-expression="'Could not determine the name'"/>
 		<property name="age" value="42" null-result-expression="'11'"/>
 		<property name="gender" value="#{testBean}"/>
 		<property name="married" value="1" type="java.lang.Boolean" null-result-expression="'1'"/>
 
+		<header name="error" null-result-expression="'Could not determine the error'"/>
 		<header name="foo" value="bar" null-result-expression="'Could not determine the foo'"/>
 		<header name="testBean" expression="@testBean" null-result-expression="'Could not determine the testBean'"/>
 		<header name="sourceName" expression="payload.sourceName" null-result-expression="'Could not determine the sourceName'"/>
