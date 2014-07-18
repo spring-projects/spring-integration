@@ -204,10 +204,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * For instance the following SpEL expressions (among others) are possible:
 	 *
 	 * <ul>
-	 * <li>payload.foo</li>
-	 * <li>headers.foobar</li>
-	 * <li>new java.util.Date()</li>
-	 * <li>'foo' + 'bar'</li>
+	 *   <li>payload.foo</li>
+	 *   <li>headers.foobar</li>
+	 *   <li>new java.util.Date()</li>
+	 *   <li>'foo' + 'bar'</li>
 	 * </ul>
 	 *
 	 * If more sophisticated logic is required (e.g. changing the message headers etc.)

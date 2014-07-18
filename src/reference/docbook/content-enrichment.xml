@@ -447,11 +447,11 @@
                             to be consistent with <code>&lt;enricher&gt;</code>'s
                             <code>&lt;property&gt;</code> sub-element.
 	                    </para>
-	                    <para>
-                            Starting with <emphasis>4.1</emphasis>, you can also specify an optional
-                            <code>null-result-expression</code> attribute. When the <code>enricher</code>
-                            returns null, it will be evaluated and returned instead.
-                            </para>
+						<para>
+							Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+							<code>null-result-expression</code> attribute. When the <code>enricher</code>
+							returns null, it will be evaluated and returned instead.
+						</para>
 	                </callout>
 	            </calloutlist>
 	        </para>
