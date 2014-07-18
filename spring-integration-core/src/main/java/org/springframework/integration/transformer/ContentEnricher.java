@@ -40,9 +40,10 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Content Enricher is a Message Transformer that can augment a message's payload with either static values or by
- * optionally invoking a downstream message flow via its request channel and then applying values from the reply Message
- * to the original payload.
+ * Content Enricher is a Message Transformer that can augment a message's payload with
+ * either static values or by optionally invoking a downstream message flow via its
+ * request channel and then applying values from the reply Message to the original
+ * payload.
  *
  * @author Mark Fisher
  * @author Gunnar Hillert
@@ -51,7 +52,8 @@ import org.springframework.util.StringUtils;
  * @author Liujiong
  * @since 2.1
  */
-public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle, IntegrationEvaluationContextAware {
+public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle,
+		IntegrationEvaluationContextAware {
 
 	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<Expression, Expression>();
 
@@ -84,7 +86,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	private volatile Long requestTimeout;
 
 	private volatile Long replyTimeout;
-	
+
 	public void setNullResultPropertyExpressions(Map<String, Expression> nullResultPropertyExpressions) {
 		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(nullResultPropertyExpressions.size());
 		for (Map.Entry<String, Expression> entry : nullResultPropertyExpressions.entrySet()) {
@@ -101,9 +103,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Provide the map of expressions to evaluate when enriching the target payload.
-	 * The keys should simply be property names, and the values should be Expressions
-	 * that will evaluate against the reply Message as the root object.
+	 * Provide the map of expressions to evaluate when enriching the target payload. The
+	 * keys should simply be property names, and the values should be Expressions that
+	 * will evaluate against the reply Message as the root object.
 	 *
 	 * @param propertyExpressions The property expressions.
 	 */
@@ -122,9 +124,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	/**
 	 * Provide the map of {@link HeaderValueMessageProcessor} to evaluate when enriching
-	 * the target MessageHeaders.
-	 * The keys should simply be header names, and the values should be Expressions
-	 * that will evaluate against the reply Message as the root object.
+	 * the target MessageHeaders. The keys should simply be header names, and the values
+	 * should be Expressions that will evaluate against the reply Message as the root
+	 * object.
 	 *
 	 * @param headerExpressions The header expressions.
 	 */
@@ -136,10 +138,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Sets the content enricher's request channel. If specified, then an internal
-	 * Gateway will be initialized. Setting a request channel is optional.
-	 * Not setting a request channel is useful in situations where
-	 * message payloads shall be enriched with static values only.
+	 * Sets the content enricher's request channel. If specified, then an internal Gateway
+	 * will be initialized. Setting a request channel is optional. Not setting a request
+	 * channel is useful in situations where message payloads shall be enriched with
+	 * static values only.
 	 *
 	 * @param requestChannel The request channel.
 	 */
@@ -153,8 +155,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	/**
 	 * Sets the content enricher's reply channel. If not specified, yet the request
-	 * channel is set, an anonymous reply channel will automatically created
-	 * for each request.
+	 * channel is set, an anonymous reply channel will automatically created for each
+	 * request.
 	 *
 	 * @param replyChannel The reply channel.
 	 */
@@ -167,8 +169,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Set the timeout value for sending request messages. If not explicitly
-	 * configured, the default is one second.
+	 * Set the timeout value for sending request messages. If not explicitly configured,
+	 * the default is one second.
 	 *
 	 * @param requestTimeout the timeout value in milliseconds. Must not be null.
 	 */
@@ -178,8 +180,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Set the timeout value for receiving reply messages. If not explicitly
-	 * configured, the default is one second.
+	 * Set the timeout value for receiving reply messages. If not explicitly configured,
+	 * the default is one second.
 	 *
 	 * @param replyTimeout the timeout value in milliseconds. Must not be null.
 	 */
@@ -189,27 +191,27 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * By default the original message's payload will be used as the actual payload
-	 * that will be send to the request-channel.
+	 * By default the original message's payload will be used as the actual payload that
+	 * will be send to the request-channel.
 	 *
-	 * By providing a SpEL expression as value for this setter, a subset of the
-	 * original payload, a header value or any other resolvable SpEL expression
-	 * can be used as the basis for the payload, that will be send to the
-	 * request-channel.
+	 * By providing a SpEL expression as value for this setter, a subset of the original
+	 * payload, a header value or any other resolvable SpEL expression can be used as the
+	 * basis for the payload, that will be send to the request-channel.
 	 *
-	 * For the Expression evaluation the full message is available as the <b>root object</b>.
+	 * For the Expression evaluation the full message is available as the <b>root
+	 * object</b>.
 	 *
 	 * For instance the following SpEL expressions (among others) are possible:
 	 *
 	 * <ul>
-	 *    <li>payload.foo</li>
-	 *    <li>headers.foobar</li>
-	 *    <li>new java.util.Date()</li>
-	 *    <li>'foo' + 'bar'</li>
+	 * <li>payload.foo</li>
+	 * <li>headers.foobar</li>
+	 * <li>new java.util.Date()</li>
+	 * <li>'foo' + 'bar'</li>
 	 * </ul>
 	 *
-	 * If more sophisticated logic is required (e.g. changing the message
-	 * headers etc.) please use additional downstream transformers.
+	 * If more sophisticated logic is required (e.g. changing the message headers etc.)
+	 * please use additional downstream transformers.
 	 *
 	 * @param requestPayloadExpression The request payload expression.
 	 *
@@ -219,8 +221,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Specify whether to clone payload objects to create the target object.
-	 * This is only applicable for payload types that implement Cloneable.
+	 * Specify whether to clone payload objects to create the target object. This is only
+	 * applicable for payload types that implement Cloneable.
 	 *
 	 * @param shouldClonePayload true if the payload should be cloned.
 	 */
@@ -239,8 +241,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Initializes the Content Enricher. Will instantiate an internal Gateway if
-	 * the requestChannel is set.
+	 * Initializes the Content Enricher. Will instantiate an internal Gateway if the
+	 * requestChannel is set.
 	 */
 	@Override
 	protected void doInit() {
@@ -258,16 +260,16 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			Assert.notNull(this.requestChannel, "If the replyChannel is set, then the requestChannel must not be null");
 		}
 		if (this.requestChannel != null) {
-		    this.gateway = new Gateway();
-		    this.gateway.setRequestChannel(requestChannel);
+			this.gateway = new Gateway();
+			this.gateway.setRequestChannel(requestChannel);
 
-		    if (this.requestTimeout != null) {
-		    	this.gateway.setRequestTimeout(this.requestTimeout);
-		    }
+			if (this.requestTimeout != null) {
+				this.gateway.setRequestTimeout(this.requestTimeout);
+			}
 
-		    if (this.replyTimeout != null) {
-		    	this.gateway.setReplyTimeout(this.replyTimeout);
-		    }
+			if (this.replyTimeout != null) {
+				this.gateway.setReplyTimeout(this.replyTimeout);
+			}
 
 			if (replyChannel != null) {
 				this.gateway.setReplyChannel(replyChannel);
@@ -284,21 +286,21 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		}
 
-		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		StandardEvaluationContext targetContext = ExpressionUtils
+				.createStandardEvaluationContext(this.getBeanFactory());
 		// bean resolution is NOT allowed for the target of the enrichment
 		targetContext.setBeanResolver(null);
 		this.targetEvaluationContext = targetContext;
 
 		if (this.getBeanFactory() != null) {
 			for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : headerExpressions.values()) {
-				 if (headerValueMessageProcessor instanceof BeanFactoryAware) {
-					 ((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(this.getBeanFactory());
-				 }
+				if (headerValueMessageProcessor instanceof BeanFactoryAware) {
+					((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(this.getBeanFactory());
+				}
 			}
 		}
 
 	}
-
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
@@ -321,7 +323,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			actualRequestMessage = requestMessage;
 		}
 		else {
-			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.sourceEvaluationContext, requestMessage);
+			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.sourceEvaluationContext,
+					requestMessage);
 			actualRequestMessage = this.getMessageBuilderFactory().withPayload(requestMessagePayload)
 					.copyHeaders(requestMessage.getHeaders()).build();
 		}
@@ -332,21 +335,23 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		else {
 			replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
 			if (replyMessage == null) {
+				if (this.nullResultPropertyExpressions.isEmpty() && this.nullResultHeaderExpressions.isEmpty()) {
+					return null;
+				}
 				for (Map.Entry<Expression, Expression> entry : this.nullResultPropertyExpressions.entrySet()) {
 					Expression propertyExpression = entry.getKey();
 					Expression valueExpression = entry.getValue();
 					Object value = valueExpression.getValue(this.sourceEvaluationContext, requestMessage);
 					propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
 				}
-				if (this.nullResultPropertyExpressions.isEmpty()) {
-					return null;
-				}
-				else if (this.headerExpressions.isEmpty()) {
+				if (this.nullResultHeaderExpressions.isEmpty()) {
 					return targetPayload;
-				} 
+				}
 				else {
-					Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
-					for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions.entrySet()) {
+					Map<String, Object> targetHeaders = new HashMap<String, Object>(
+							this.nullResultHeaderExpressions.size());
+					for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions
+							.entrySet()) {
 						String header = entry.getKey();
 						HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
 						Boolean overwrite = valueProcessor.isOverwrite();
@@ -356,9 +361,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 							targetHeaders.put(header, value);
 						}
 					}
-			return this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders).build();
-		}
-		 }
+					return this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders)
+							.build();
+				}
+			}
 		}
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
@@ -369,7 +375,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 		if (this.headerExpressions.isEmpty()) {
 			return targetPayload;
-		} 
+		}
 		else {
 			Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
 			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
@@ -381,15 +387,14 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 					Object value = valueProcessor.processMessage(replyMessage);
 					targetHeaders.put(header, value);
 				}
-		 }
-		 return
-		 this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders).build();
-		 }
+			}
+			return this.getMessageBuilderFactory().withPayload(targetPayload).copyHeaders(targetHeaders).build();
+		}
 	}
 
 	/**
-	 * Lifecycle implementation. If no requestChannel is defined, this method
-	 * has no effect as in that case no Gateway is initialized.
+	 * Lifecycle implementation. If no requestChannel is defined, this method has no
+	 * effect as in that case no Gateway is initialized.
 	 */
 	@Override
 	public void start() {
@@ -399,8 +404,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Lifecycle implementation. If no requestChannel is defined, this method
-	 * has no effect as in that case no Gateway is initialized.
+	 * Lifecycle implementation. If no requestChannel is defined, this method has no
+	 * effect as in that case no Gateway is initialized.
 	 */
 	@Override
 	public void stop() {
@@ -410,8 +415,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Lifecycle implementation. If no requestChannel is defined, this method
-	 * will return always return true as no Gateway is initialized.
+	 * Lifecycle implementation. If no requestChannel is defined, this method will return
+	 * always return true as no Gateway is initialized.
 	 */
 	@Override
 	public boolean isRunning() {
@@ -424,8 +429,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Internal gateway implementation for request/reply handling.
-	 * Simply exposes the sendAndReceiveMessage method.
+	 * Internal gateway implementation for request/reply handling. Simply exposes the
+	 * sendAndReceiveMessage method.
 	 */
 	private static final class Gateway extends MessagingGatewaySupport {
 

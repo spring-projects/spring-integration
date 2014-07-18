@@ -97,13 +97,12 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 							.addConstructorArgValue(expression)
 							.getBeanDefinition();
 				}
-
+				expressions.put(name, expressionDef);
 				if (StringUtils.hasText(nullResultExpression)) {
 					nullResultExpressionExpressionDef = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
 							.addConstructorArgValue(nullResultExpression).getBeanDefinition();
 					nullResultExpressions.put(name, nullResultExpressionExpressionDef);
 				}
-				expressions.put(name, expressionDef);
 			}
 			builder.addPropertyValue("propertyExpressions", expressions);
 			builder.addPropertyValue("nullResultPropertyExpressions", nullResultExpressions);
@@ -129,6 +128,8 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 						.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
 						.addConstructorArgValue(expressionDefinition)
 						.addConstructorArgValue(subElement.getAttribute("type"));
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
+				expressions.put(name, valueProcessorBuilder.getBeanDefinition());
 				if (StringUtils.hasText(nullResultHeaderExpression)) {
 					BeanDefinition nullResultExpressionDefinition = IntegrationNamespaceUtils
 							.createExpressionDefIfAttributeDefined("null-result-expression", subElement);
@@ -139,9 +140,6 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(nullResultValueProcessorBuilder, subElement, "overwrite");
 					nullResultHeaderExpressions.put(name, nullResultValueProcessorBuilder.getBeanDefinition());
 				}
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
-				expressions.put(name, valueProcessorBuilder.getBeanDefinition());
-
 			}
 			builder.addPropertyValue("headerExpressions", expressions);
 			builder.addPropertyValue("nullResultHeaderExpressions", nullResultHeaderExpressions);

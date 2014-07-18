@@ -163,13 +163,15 @@ public class EnricherParserTests {
 		assertEquals(Gender.MALE, headers.get("testBean"));
 		assertEquals("foo", headers.get("sourceName"));
 		assertEquals("test", headers.get("notOverwrite"));
+		adviceCalled--;
+		requests.unsubscribe(foo);
 	}
 
 	@Test
 	public void nullResultIntegrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
 
-		class Foo extends AbstractReplyProducingMessageHandler {
+		class NullFoo extends AbstractReplyProducingMessageHandler {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
@@ -177,7 +179,7 @@ public class EnricherParserTests {
 			}
 		}
 
-		Foo foo = new Foo();
+		NullFoo foo = new NullFoo();
 		foo.setOutputChannel(context.getBean("replies", MessageChannel.class));
 		requests.subscribe(foo);
 		Target original = new Target();
@@ -198,6 +200,8 @@ public class EnricherParserTests {
 		assertEquals("Could not determine the testBean", headers.get("testBean"));
 		assertEquals("Could not determine the sourceName", headers.get("sourceName"));
 		assertEquals("test", headers.get("notOverwrite"));
+		adviceCalled--;
+		requests.unsubscribe(foo);
 	}
 
 	@Test

@@ -273,10 +273,10 @@
               send-timeout=""                             ]]><co id="payload-enricher08-co" linkends="payload-enricher08" /><![CDATA[
               should-clone-payload="false">               ]]><co id="payload-enricher09-co" linkends="payload-enricher09" /><![CDATA[
     <int:poller></int:poller>                             ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
-    <int:property name="" expression=""/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
-    <int:property name="" value="23" type="java.lang.Integer"/>
-    <int:header name="" expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
-    <int:header name="" value="" overwrite="" type=""/>
+    <int:property name="" expression="" null-result-expression="'Could not determine the name'"/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
+    <int:property name="" value="23" type="java.lang.Integer" null-result-expression="'0'"/>
+    <int:header name="" expression="" null-result-expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
+    <int:header name="" value="" overwrite="" type="" null-result-expression=""/>
 </int:enricher>]]></programlisting>
 
 	        <para>
@@ -421,6 +421,11 @@
 							a String containing a number to an <classname>Integer</classname>
 							value in the target payload.
 						</para>
+						<para>
+							Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+							<code>null-result-expression</code> attribute. When the <code>enricher</code>
+						    returns null, it will be evaluated and returned instead.
+						</para>
 	                </callout>
 					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
 	                    <para>
@@ -442,6 +447,11 @@
 							to be consistent with <code>&lt;enricher&gt;</code>'s
 							<code>&lt;property&gt;</code> sub-element.
 	                    </para>
+	                    <para>
+							Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+							<code>null-result-expression</code> attribute. When the <code>enricher</code>
+						    returns null, it will be evaluated and returned instead.
+						</para>
 	                </callout>
 	            </calloutlist>
 	        </para>
