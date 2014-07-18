@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.util.Function;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -36,6 +35,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Dave Syer
  * @author Artem Bilan
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
 	private boolean applySequence = true;
@@ -49,7 +49,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked", "deprecation" })
+	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		// return null if 'null'
@@ -91,7 +91,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
 		return new FunctionIterator<Object, AbstractIntegrationMessageBuilder<?>>(iterator,
-				new Function<Object, AbstractIntegrationMessageBuilder<?>>() {
+				new org.springframework.integration.util.Function<Object, AbstractIntegrationMessageBuilder<?>>() {
 					@Override
 					public AbstractIntegrationMessageBuilder<?> apply(Object object) {
 						return createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(),

@@ -30,13 +30,14 @@ public final class FunctionIterator<T, V> implements Iterator<V> {
 
 	private final Iterator<T> iterator;
 
+	@SuppressWarnings("deprecation")
 	private final Function<? super T, ? extends V> function;
 
-	public FunctionIterator(Iterable<T> iterable, Function<? super T, ? extends V> function) {
+	public FunctionIterator(Iterable<T> iterable, @SuppressWarnings("deprecation") Function<? super T, ? extends V> function) {
 		this(iterable.iterator(), function);
 	}
 
-	public FunctionIterator(Iterator<T> newIterator, Function<? super T, ? extends V> function) {
+	public FunctionIterator(Iterator<T> newIterator, @SuppressWarnings("deprecation") Function<? super T, ? extends V> function) {
 		this.iterator = newIterator;
 		this.function = function;
 	}
@@ -51,6 +52,7 @@ public final class FunctionIterator<T, V> implements Iterator<V> {
 		return this.iterator.hasNext();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public V next() {
 		if (this.hasNext()) {
