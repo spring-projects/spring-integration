@@ -44,7 +44,7 @@ public abstract class XmlNamespaceUtils {
 	 * a bean definition for a {@link ResultFactory} based on either the
 	 * 'result-factory' or 'result-type' attributes.
 	 */
-	public static ResultFactory configureResultFactory(String resultType, String resultFactoryName,BeanFactory beanFactory) {
+	public static ResultFactory configureResultFactory(String resultType, String resultFactoryName, BeanFactory beanFactory) {
 		boolean bothHaveText = StringUtils.hasText(resultFactoryName) && StringUtils.hasText(resultType);
 		ResultFactory resultFactory=null;
 		Assert.state(!bothHaveText, "Only one of 'result-factory' or 'result-type' should be specified.");

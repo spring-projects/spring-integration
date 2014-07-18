@@ -52,8 +52,8 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		String xslTemplates = element.getAttribute("xsl-templates");
 		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type","resultType"); 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory","resultFactoryName");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type", "resultType"); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory", "resultFactoryName");
 		String transformerFactoryClass = element.getAttribute("transformer-factory-class");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "xslt-param-headers");
 		Assert.isTrue(StringUtils.hasText(xslResource) ^ StringUtils.hasText(xslTemplates),

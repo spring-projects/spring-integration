@@ -24,7 +24,6 @@ import org.springframework.util.StringUtils;
  */
 public class JmsAdapterUtils {
 	
-
 	public static final int SESSION_TRANSACTED = 0;
 
 	public static final int AUTO_ACKNOWLEDGE = 1;
@@ -55,6 +54,4 @@ public class JmsAdapterUtils {
 			return null;
 		}
 	}
-	
-	
 }

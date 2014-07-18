@@ -104,7 +104,7 @@ public class MarshallingTransformer extends AbstractTransformer {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		resultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName,this.getBeanFactory());
+		resultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
 	}
 
 	@Override

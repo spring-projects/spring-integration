@@ -38,8 +38,8 @@ public class MarshallingTransformerParser extends AbstractTransformerParser {
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultTransformer = element.getAttribute("result-transformer");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type","resultType"); 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory","resultFactoryName"); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type", "resultType"); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory", "resultFactoryName"); 
 		String marshaller = element.getAttribute("marshaller");
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
 		builder.addConstructorArgReference(marshaller);
