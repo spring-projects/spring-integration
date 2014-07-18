@@ -232,9 +232,6 @@ project('spring-integration-amqp') {
 		testCompile project(":spring-integration-stream")
 		testCompile project(":spring-integration-http") // need to test INT-2713
 	}
-
-	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
-	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 }
 
 project('spring-integration-core') {
@@ -347,10 +344,6 @@ project('spring-integration-http') {
 
 		testCompile "commons-httpclient:commons-httpclient:$httpClientVersion"
 	}
-
-	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
-	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
-
 }
 
 project('spring-integration-ip') {
@@ -360,10 +353,6 @@ project('spring-integration-ip') {
 		compile "org.springframework:spring-context:$springVersion"
 		testCompile project(":spring-integration-stream")
 	}
-
-	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
-	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
-
 }
 
 project('spring-integration-jdbc') {
@@ -507,9 +496,6 @@ project('spring-integration-rmi') {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
 	}
-
-	// suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
-	compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 }
 
 project('spring-integration-scripting') {
