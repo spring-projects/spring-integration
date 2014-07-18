@@ -424,7 +424,7 @@
 						<para>
 							Starting with <emphasis>4.1</emphasis>, you can also specify an optional
 							<code>null-result-expression</code> attribute. When the <code>enricher</code>
-						    returns null, it will be evaluated and returned instead.
+							returns null, it will be evaluated and returned instead.
 						</para>
 	                </callout>
 					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
@@ -441,11 +441,11 @@
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
                             Note, similar to the <code>&lt;header-enricher&gt;</code>, the <code>&lt;enricher&gt;</code>'s
-							<code>header</code> element has <code>type</code> and <code>overwrite</code> attributes.
-							However, a difference is that, with the <code>&lt;enricher&gt;</code>,
-							the <code>overwrite</code> attribute is <code>true</code> by default,
-							to be consistent with <code>&lt;enricher&gt;</code>'s
-							<code>&lt;property&gt;</code> sub-element.
+                            <code>header</code> element has <code>type</code> and <code>overwrite</code> attributes.
+                            However, a difference is that, with the <code>&lt;enricher&gt;</code>,
+                            the <code>overwrite</code> attribute is <code>true</code> by default,
+                            to be consistent with <code>&lt;enricher&gt;</code>'s
+                            <code>&lt;property&gt;</code> sub-element.
 	                    </para>
 	                    <para>
                             Starting with <emphasis>4.1</emphasis>, you can also specify an optional
