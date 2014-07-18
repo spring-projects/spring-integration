@@ -19,8 +19,6 @@ package org.springframework.integration.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import reactor.function.Function;
-
 /**
  * An {@link Iterator} implementation to convert each item from the target
  * {@link #iterator} to a new object applying the {@link #function} on {@link #next()}.

@@ -22,10 +22,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import reactor.function.Function;
-
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.util.Function;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -50,7 +49,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		// return null if 'null'
