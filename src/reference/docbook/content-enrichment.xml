@@ -408,7 +408,7 @@
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
 	                    </para>
-						<para>
+	                    <para>
 							Starting with <emphasis>4.0</emphasis>, when specifying
 							a <code>value</code> attribute, you can also specify an optional
 							<code>type</code> attribute. When the destination is a
@@ -420,12 +420,12 @@
 							<code>type</code> attribute allows you to, say, convert
 							a String containing a number to an <classname>Integer</classname>
 							value in the target payload.
-						</para>
-						<para>
-							Starting with <emphasis>4.1</emphasis>, you can also specify an optional
-							<code>null-result-expression</code> attribute. When the <code>enricher</code>
-							returns null, it will be evaluated and returned instead.
-						</para>
+	                    </para>
+	                    <para>
+                            Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+                            <code>null-result-expression</code> attribute. When the <code>enricher</code>
+                            returns null, it will be evaluated and returned instead.
+	                    </para>
 	                </callout>
 					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
 	                    <para>
@@ -447,11 +447,11 @@
                             to be consistent with <code>&lt;enricher&gt;</code>'s
                             <code>&lt;property&gt;</code> sub-element.
 	                    </para>
-						<para>
-							Starting with <emphasis>4.1</emphasis>, you can also specify an optional
-							<code>null-result-expression</code> attribute. When the <code>enricher</code>
-							returns null, it will be evaluated and returned instead.
-						</para>
+	                    <para>
+                            Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+                            <code>null-result-expression</code> attribute. When the <code>enricher</code>
+                            returns null, it will be evaluated and returned instead.
+	                    </para>
 	                </callout>
 	            </calloutlist>
 	        </para>
