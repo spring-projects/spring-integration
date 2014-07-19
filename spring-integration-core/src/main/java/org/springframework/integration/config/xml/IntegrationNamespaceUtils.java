@@ -480,7 +480,7 @@ public abstract class IntegrationNamespaceUtils {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
 		}
-		else if(hasAttributeExpression) {
+		else if (hasAttributeExpression) {
 			expressionDef = createExpressionDefIfAttributeDefined(expressionElementName, element);
 		}
 		return expressionDef;
