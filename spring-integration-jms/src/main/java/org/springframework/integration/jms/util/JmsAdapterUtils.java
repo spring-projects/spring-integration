@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
  * @since 4.1
  *
  */
-public class JmsAdapterUtils {
+public abstract class JmsAdapterUtils {
 	
 	public static final int SESSION_TRANSACTED = 0;
 

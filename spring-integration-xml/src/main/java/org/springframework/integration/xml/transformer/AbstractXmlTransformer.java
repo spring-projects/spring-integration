@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.config;
+package org.springframework.integration.xml.transformer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
@@ -25,14 +26,14 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Utility methods for the XML namespace.
+ * super class for XmlTransformer
  *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Liujiong
  */
-public abstract class XmlNamespaceUtils {
+public abstract class AbstractXmlTransformer extends AbstractTransformer{
 
 	public static final String DOM_RESULT = "DOMResult";
 
@@ -44,7 +45,7 @@ public abstract class XmlNamespaceUtils {
 	 * a bean definition for a {@link ResultFactory} based on either the
 	 * 'result-factory' or 'result-type' attributes.
 	 */
-	public static ResultFactory configureResultFactory(String resultType, String resultFactoryName, BeanFactory beanFactory) {
+	public static ResultFactory configureResultFactory(String resultType, String resultFactoryName,BeanFactory beanFactory) {
 		boolean bothHaveText = StringUtils.hasText(resultFactoryName) && StringUtils.hasText(resultType);
 		ResultFactory resultFactory=null;
 		Assert.state(!bothHaveText, "Only one of 'result-factory' or 'result-type' should be specified.");

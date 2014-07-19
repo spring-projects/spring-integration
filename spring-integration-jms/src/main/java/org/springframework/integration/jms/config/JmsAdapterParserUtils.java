@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public abstract class JmsAdapterParserUtils {
+abstract class JmsAdapterParserUtils {
 
 	static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
 

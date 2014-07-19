@@ -22,7 +22,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
 import org.springframework.integration.transformer.AbstractTransformer;
-import org.springframework.integration.xml.config.XmlNamespaceUtils;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
@@ -38,7 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class MarshallingTransformer extends AbstractTransformer {
+public class MarshallingTransformer extends AbstractXmlTransformer {
 	
 	private static final String DOM_RESULT = "DOMResult";
 
@@ -104,7 +103,7 @@ public class MarshallingTransformer extends AbstractTransformer {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		resultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
+		resultFactory = super.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
 	}
 
 	@Override

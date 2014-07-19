@@ -30,13 +30,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.transformer.AbstractTransformer;
-import org.springframework.integration.xml.config.XmlNamespaceUtils;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
@@ -78,7 +78,7 @@ import org.springframework.xml.transform.StringSource;
  * @author Mike Bazos
  * @author Gary Russell
  */
-public class XsltPayloadTransformer extends AbstractTransformer implements BeanClassLoaderAware {
+public class XsltPayloadTransformer extends AbstractXmlTransformer implements BeanClassLoaderAware {
 	
 	private volatile String resultType;
 	
@@ -222,7 +222,7 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		ResultFactory generatedResultFactory = XmlNamespaceUtils.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
+		ResultFactory generatedResultFactory = super.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
 		if (generatedResultFactory != null) {
 			resultFactory = generatedResultFactory;
 		}
