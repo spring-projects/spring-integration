@@ -65,16 +65,17 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				String nullResultExpression = subElement.getAttribute("null-result-expression");
 				boolean hasAttributeValue = StringUtils.hasText(value);
 				boolean hasAttributeExpression = StringUtils.hasText(expression);
+				boolean hasAttributeRullResultExpression = StringUtils.hasText(nullResultExpression);
 
 				if (hasAttributeValue && hasAttributeExpression){
 					parserContext.getReaderContext().error("Only one of 'value' or 'expression' is allowed", element);
 				}
 
-				if (!hasAttributeValue && !hasAttributeExpression){
-					parserContext.getReaderContext().error("One of 'value' or 'expression' is required", element);
+				if (!hasAttributeValue && !hasAttributeExpression && !hasAttributeRullResultExpression){
+					parserContext.getReaderContext().error("One of 'value' or 'expression' or 'null-result-expression' is required", element);
 				}
 
-				BeanDefinition expressionDef;
+				BeanDefinition expressionDef = null;
 				BeanDefinition nullResultExpressionExpressionDef;
 
 				if (hasAttributeValue) {
@@ -87,7 +88,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					}
 					expressionDef = expressionBuilder.getBeanDefinition();
 				}
-				else {
+				else if(hasAttributeExpression) {
 					if (StringUtils.hasText(type)) {
 						parserContext.getReaderContext().error("The 'type' attribute for '<property>' of '<enricher>' " +
 										"is not allowed with an 'expression' attribute.", element);
@@ -97,7 +98,9 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 							.addConstructorArgValue(expression)
 							.getBeanDefinition();
 				}
-				expressions.put(name, expressionDef);
+				if(expressionDef != null){
+					expressions.put(name, expressionDef);
+				}
 				if (StringUtils.hasText(nullResultExpression)) {
 					nullResultExpressionExpressionDef = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
 							.addConstructorArgValue(nullResultExpression).getBeanDefinition();
@@ -116,7 +119,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				String name = subElement.getAttribute("name");
 				String nullResultHeaderExpression = subElement.getAttribute("null-result-expression");
 				BeanDefinition expressionDefinition = IntegrationNamespaceUtils
-						.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
+						.createExpressionDefinitionFromValueOrExpression("value", "expression", "null-result-expression", parserContext,
 								subElement, true);
 				if (StringUtils.hasText(subElement.getAttribute("expression"))
 						&& StringUtils.hasText(subElement.getAttribute("type"))) {
@@ -124,12 +127,14 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 							.warning("The use of a 'type' attribute is deprecated since 4.0 "
 									+ "when using 'expression'", element);
 				}
-				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
-						.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
-						.addConstructorArgValue(expressionDefinition)
-						.addConstructorArgValue(subElement.getAttribute("type"));
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
-				expressions.put(name, valueProcessorBuilder.getBeanDefinition());
+				if (expressionDefinition != null) {
+					BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
+							.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(expressionDefinition)
+							.addConstructorArgValue(subElement.getAttribute("type"));
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
+					expressions.put(name, valueProcessorBuilder.getBeanDefinition());
+				}
 				if (StringUtils.hasText(nullResultHeaderExpression)) {
 					BeanDefinition nullResultExpressionDefinition = IntegrationNamespaceUtils
 							.createExpressionDefIfAttributeDefined("null-result-expression", subElement);
