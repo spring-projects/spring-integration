@@ -15,12 +15,11 @@
  */
 package org.springframework.integration.router;
 
-import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
- * @author Gary Russell
+ * @author Liujiong
  * @since 4.1
  *
  */

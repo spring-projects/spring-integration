@@ -61,7 +61,6 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Liujiong
  */
-@ManagedResource
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean, RecipientHandler {
 
 	private volatile List<Recipient> recipients;
