@@ -81,10 +81,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private volatile MessageBuilderFactory messageBuilderFactory;
 
-	public String getBeanName() {
-		return beanName;
-	}
-	
 	@Override
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
