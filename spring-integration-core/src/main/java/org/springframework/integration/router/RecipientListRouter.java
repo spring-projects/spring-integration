@@ -21,7 +21,11 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -55,8 +59,10 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Liujiong
  */
-public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
+@ManagedResource
+public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean, RecipientHandler {
 
 	private volatile List<Recipient> recipients;
 
@@ -135,4 +141,35 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 		}
 	}
 
+
+	@Override
+	@ManagedOperation
+	public void addRecipient(String channelName, String selector) {
+		Assert.notNull(channelName, "channelName can't be null.");
+		MessageChannel channel = (MessageChannel) this.getBeanFactory().getBean(channelName);
+		ExpressionEvaluatingSelector expressionEvaluatingSelector = new ExpressionEvaluatingSelector(selector);
+		expressionEvaluatingSelector.setBeanFactory(this.getBeanFactory());
+		recipients.add(new Recipient(channel,expressionEvaluatingSelector));
+	}
+
+	@Override
+	@ManagedOperation
+	public void addRecipient(String channelName) {
+		Assert.notNull(channelName, "channelName can't be null.");
+		MessageChannel channel = (MessageChannel) this.getBeanFactory().getBean(channelName);
+		recipients.add(new Recipient(channel));
+	}
+
+	@Override
+	@ManagedOperation
+	public void removeRecipient(String channelName) {
+		List<Recipient> removeList = new ArrayList<Recipient>();
+		for (Recipient recipient : recipients) {
+			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
+			if (channel.getBeanName().equals(channelName)) {
+				removeList.add(recipient);//另外建立list
+			}
+		}
+		recipients.removeAll(removeList);
+	}
 }
