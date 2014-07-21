@@ -346,37 +346,37 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
     <programlisting language="xml"><![CDATA[<channel id="inputChannel"/>
 
-<int:aggregator id="myAggregator" ]]><co id="aggxml01" /><![CDATA[
-		auto-startup="true" ]]><co id="aggxml02" /><![CDATA[
-		input-channel="inputChannel" ]]><co id="aggxml03" /><![CDATA[
-		output-channel="outputChannel" ]]><co id="aggxml04" /><![CDATA[
-		discard-channel="throwAwayChannel" ]]><co id="aggxml05" /><![CDATA[
-		message-store="persistentMessageStore" ]]><co id="aggxml06" /><![CDATA[
-		order="1" ]]><co id="aggxml07" /><![CDATA[
-		send-partial-result-on-expiry="false" ]]><co id="aggxml08" /><![CDATA[
-		send-timeout="1000" ]]><co id="aggxml09" /><![CDATA[
+<int:aggregator id=""myAggregator" ]]><co id="aggxml01" linkends="aggxml01-txt" /><![CDATA[
+		auto-startup="true" ]]><co id="aggxml02" linkends="aggxml02-txt" /><![CDATA[
+		input-channel="inputChannel" ]]><co id="aggxml03" linkends="aggxml03-txt" /><![CDATA[
+		output-channel="outputChannel" ]]><co id="aggxml04" linkends="aggxml04-txt" /><![CDATA[
+		discard-channel="throwAwayChannel" ]]><co id="aggxml05" linkends="aggxml05-txt" /><![CDATA[
+		message-store="persistentMessageStore" ]]><co id="aggxml06" linkends="aggxml06-txt" /><![CDATA[
+		order="1" ]]><co id="aggxml07" linkends="aggxml07-txt" /><![CDATA[
+		send-partial-result-on-expiry="false" ]]><co id="aggxml08" linkends="aggxml08-txt" /><![CDATA[
+		send-timeout="1000" ]]><co id="aggxml09" linkends="aggxml09-txt" /><![CDATA[
 
-		correlation-strategy="correlationStrategyBean" ]]><co id="aggxml10" /><![CDATA[
-		correlation-strategy-method="correlate" ]]><co id="aggxml11" /><![CDATA[
-		correlation-strategy-expression="headers['foo']" ]]><co id="aggxml12" /><![CDATA[
+		correlation-strategy="correlationStrategyBean" ]]><co id="aggxml10" linkends="aggxml10-txt" /><![CDATA[
+		correlation-strategy-method="correlate" ]]><co id="aggxml11" linkends="aggxml11-txt" /><![CDATA[
+		correlation-strategy-expression="headers['foo']" ]]><co id="aggxml12" linkends="aggxml12-txt" /><![CDATA[
 
-		ref="aggregatorBean" ]]><co id="aggxml13" /><![CDATA[
-		method="aggregate" ]]><co id="aggxml14" /><![CDATA[
+		ref="aggregatorBean" ]]><co id="aggxml13" linkends="aggxml13-txt" /><![CDATA[
+		method="aggregate" ]]><co id="aggxml14" linkends="aggxml14-txt" /><![CDATA[
 
-		release-strategy="releaseStrategyBean" ]]><co id="aggxml15" /><![CDATA[
-		release-strategy-method="release" ]]><co id="aggxml16" /><![CDATA[
-		release-strategy-expression="size() == 5" ]]><co id="aggxml17" /><![CDATA[
+		release-strategy="releaseStrategyBean" ]]><co id="aggxml15" linkends="aggxml15-txt" /><![CDATA[
+		release-strategy-method="release" ]]><co id="aggxml16" linkends="aggxml16-txt" /><![CDATA[
+		release-strategy-expression="size() == 5" ]]><co id="aggxml17" linkends="aggxml17-txt" /><![CDATA[
 
-		expire-groups-upon-completion="false" ]]><co id="aggxml18" /><![CDATA[
-		empty-group-min-timeout="60000" ]]><co id="aggxml19" /><![CDATA[
+		expire-groups-upon-completion="false" ]]><co id="aggxml18" linkends="aggxml18-txt" /><![CDATA[
+		empty-group-min-timeout="60000" ]]><co id="aggxml19" linkends="aggxml19-txt" /><![CDATA[
 
-		lock-registry="lockRegistry" ]]><co id="aggxml191" /><![CDATA[
+		lock-registry="lockRegistry" ]]><co id="aggxml191" linkends="aggxml191-txt" /><![CDATA[
 
-		group-timeout="60000" ]]><co id="aggxml20" /><![CDATA[
-		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" /><![CDATA[
-		expire-groups-on-timeout="true" ]]><co id="aggxml22" /><![CDATA[
+		group-timeout="60000" ]]><co id="aggxml20" linkends="aggxml20-txt" /><![CDATA[
+		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" linkends="aggxml21-txt" /><![CDATA[
+		expire-groups-on-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
 
-		scheduler="taskScheduler" /> ]]><co id="aggxml23" /><![CDATA[
+		scheduler="taskScheduler" /> ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
 
 <int:channel id="outputChannel"/>
 
@@ -393,47 +393,47 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 <bean id="correlationStrategyBean" class="sample.PojoCorrelationStrategy"/>]]></programlisting>
 
     <calloutlist>
-      <callout arearefs="aggxml01">
+      <callout arearefs="aggxml01" id="aggxml01-txt">
         <para>The id of the aggregator is
         <emphasis>0ptional</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml02">
+      <callout arearefs="aggxml02" id="aggxml02-txt">
         <para>Lifecycle attribute signaling if aggregator should be started during Application Context startup.
         <emphasis>Optional (default is 'true')</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml03">
+      <callout arearefs="aggxml03" id="aggxml03-txt">
         <para>The channel from which where aggregator will receive messages.
         <emphasis>Required</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml04">
+      <callout arearefs="aggxml04" id="aggxml04-txt">
         <para>The channel to which the aggregator will send the aggregation
         results. <emphasis>Optional (because incoming messages can specify a
         reply channel themselves via 'replyChannel' Message Header)</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml05">
+      <callout arearefs="aggxml05" id="aggxml05-txt">
         <para>The channel to which the aggregator will send the messages that
         timed out (if <code>send-partial-result-on-expiry</code> is
         <emphasis>false</emphasis>). <emphasis>Optional</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml06">
+      <callout arearefs="aggxml06" id="aggxml06-txt">
         <para>A reference to a <code>MessageGroupStore</code> used
         to store groups of messages under their correlation key until they are
         complete. <emphasis>Optional</emphasis>, by default a volatile
         in-memory store.</para>
       </callout>
 
-       <callout arearefs="aggxml07">
+       <callout arearefs="aggxml07" id="aggxml07-txt">
         <para>Order of this aggregator when more than one handle is subscribed to the same DirectChannel
         (use for load balancing purposes).
         <emphasis>Optional</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml08">
+      <callout arearefs="aggxml08" id="aggxml08-txt">
         <para>
         Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel'
 		once their containing <classname>MessageGroup</classname> is expired (see <code>MessageGroupStore.expireMessageGroups(long)</code>).
@@ -446,12 +446,12 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         <emphasis>Optional</emphasis>. <emphasis>Default - 'false'</emphasis>.</para>
       </callout>
 
-       <callout arearefs="aggxml09">
+       <callout arearefs="aggxml09" id="aggxml09-txt">
         <para>The timeout interval for sending the aggregated messages to the output or
         reply channel. <emphasis>Optional</emphasis>.</para>
       </callout>
 
-       <callout arearefs="aggxml10">
+       <callout arearefs="aggxml10" id="aggxml10-txt">
         <para>A reference to a bean that implements the message correlation (grouping)
         algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename>
         interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
@@ -459,7 +459,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         the <code>IntegrationMessageHeaderAccessor.CORRELATION_ID</code> header) </emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml11">
+      <callout arearefs="aggxml11" id="aggxml11-txt">
         <para>A method defined on the bean referenced by
         <code>correlation-strategy</code>, that implements the
         correlation decision algorithm. <emphasis>Optional, with
@@ -467,25 +467,25 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         present).</emphasis></para>
       </callout>
 
-      <callout arearefs="aggxml12">
+      <callout arearefs="aggxml12" id="aggxml12-txt">
         <para>A SpEL expression representing the correlation strategy.
         Example: <code>"headers['foo']"</code>. Only one of
         <code>correlation-strategy</code>
         or <code>correlation-strategy-expression</code> is allowed.</para>
       </callout>
 
-      <callout arearefs="aggxml13">
+      <callout arearefs="aggxml13" id="aggxml13-txt">
         <para>A reference to a bean defined in the application context. The bean must implement the aggregation logic
     as described above. <emphasis>Optional (by default the list of aggregated Messages will become a
     payload of the output message).</emphasis></para>
       </callout>
-      <callout arearefs="aggxml14">
+      <callout arearefs="aggxml14" id="aggxml14-txt">
         <para>A method defined on the bean referenced by <code>ref</code>,
         that implements the message aggregation
         algorithm. <emphasis>Optional, depends on <code>ref</code> attribute being defined.</emphasis></para>
       </callout>
 
-      <callout arearefs="aggxml15">
+      <callout arearefs="aggxml15" id="aggxml15-txt">
         <para>A reference to a bean that implements the release strategy.
         The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
         or a POJO. In the latter case the release-strategy-method
@@ -493,7 +493,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         aggregator will use the <code>IntegrationMessageHeaderAccessor.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml16">
+      <callout arearefs="aggxml16" id="aggxml16-txt">
         <para>A method defined on the bean referenced by
         <code>release-strategy</code>, that implements the
         completion decision algorithm. <emphasis>Optional, with
@@ -501,7 +501,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         present).</emphasis></para>
       </callout>
 
-      <callout arearefs="aggxml17">
+      <callout arearefs="aggxml17" id="aggxml17-txt">
         <para>A SpEL expression representing the release strategy; the root object for the
         expression is a <code>Collection</code> of <code>Message</code>s.
         Example: <code>"size() == 5"</code>. Only one of
@@ -509,7 +509,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         or <code>release-strategy-expression</code> is allowed.</para>
       </callout>
 
-      <callout arearefs="aggxml18">
+      <callout arearefs="aggxml18" id="aggxml18-txt">
         <para>When set to true (default false), completed groups are
         removed from the message store, allowing subsequent messages with
         the same correlation to form a new group. The default behavior
@@ -517,7 +517,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         group to the <emphasis>discard-channel</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml19">
+      <callout arearefs="aggxml19" id="aggxml19-txt">
         <para>Only applies if a <classname>MessageGroupStoreReaper</classname> is configured
         for the <code>&lt;aggregator&gt;</code>'s <classname>MessageStore</classname>.
         By default, when a <classname>MessageGroupStoreReaper</classname> is configured to expire partial
@@ -531,7 +531,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         property and it could be as much as this value plus the timeout.</para>
       </callout>
 
-	  <callout arearefs="aggxml191">
+	  <callout arearefs="aggxml191" id="aggxml191-txt">
         <para>
 			A reference to a <interfacename>org.springframework.integration.util.LockRegistry</interfacename> bean;
 			used to obtain a <interfacename>Lock</interfacename> based on the <code>groupId</code> for
@@ -543,7 +543,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         </para>
       </callout>
 
-	  <callout arearefs="aggxml20">
+	  <callout arearefs="aggxml20" id="aggxml20-txt">
         <para>
 			A timeout in milliseconds to force the <code>MessageGroup</code> complete,
 			when the <interfacename>ReleaseStrategy</interfacename> doesn't <emphasis>release</emphasis>
@@ -565,7 +565,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 			Mutually exclusive with 'group-timeout-expression' attribute.
         </para>
       </callout>
-	  <callout arearefs="aggxml21">
+	  <callout arearefs="aggxml21" id="aggxml21-txt">
 			<para>
 				The SpEL expression that evaluates to a <code>groupTimeout</code> with the <code>MessageGroup</code>
 				as the <code>#root</code> evaluation context object. Used for scheduling the <code>MessageGroup</code> to
@@ -576,7 +576,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				Mutually exclusive with 'group-timeout' attribute.
 			</para>
 	  </callout>
-	  <callout arearefs="aggxml22">
+	  <callout arearefs="aggxml22" id="aggxml22-txt">
 			<para>
 				When a group is completed due to a timeout (or by a <classname>MessageGroupStoreReaper</classname>), the group
 				is expired (completely removed) by default. Late arriving messages will start a new group. Set this
@@ -586,7 +586,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				attribute. Default: 'false'.
 			</para>
 	  </callout>
-	  <callout arearefs="aggxml23">
+	  <callout arearefs="aggxml23" id="aggxml23-txt">
 			<para>
 				A <interfacename>TaskScheduler</interfacename> bean reference to schedule
 				the <code>MessageGroup</code> to be forced complete
