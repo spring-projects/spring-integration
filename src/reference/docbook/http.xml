@@ -162,7 +162,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
          HTTP is a request/response protocol. However the response may not have a body, just headers.
          In this case, the <classname>HttpRequestExecutingMessageHandler</classname> produces
          a reply <code>Message</code> with the payload being
-         an <classname>org.springframework.http.HttpEntity</classname>, regardless of any
+         an <classname>org.springframework.http.ResponseEntity</classname>, regardless of any
          provided <code>expected-response-type</code>. According to the
          <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP RFC Status Code Definitions</ulink>,
          there are many statuses which identify that a response MUST NOT contain a message-body (e.g. 204 No Content).
@@ -170,8 +170,21 @@ By default the HTTP request will be generated using an instance of <classname>Si
          the first request to an HTTP resource returns content, but the second does not (e.g. 304 Not Modified).
          In all cases, however, the <code>http_statusCode</code> message header is populated. This can be used in some
          routing logic after the Http Outbound Gateway. You could also use a
-         <code>&lt;payload-type-router/&gt;</code> to route messages with an <classname>HttpEntity</classname>
+         <code>&lt;payload-type-router/&gt;</code> to route messages with an <classname>ResponseEntity</classname>
          to a different flow than that used for responses with a body.
+    </note>
+    <note>
+         <title>Note: expected-response-type</title>
+         <para>
+           Further to the note above regarding <emphasis role="bold">empty response bodies</emphasis>, if a response
+           <emphasis role="bold">does</emphasis> contain a body, you must provide an appropriate
+           <code>expected-response-type</code> attribute or, again, you will simply receive a
+           <classname>ResponseEntity</classname> with no body. The <code>expected-response-type</code>
+           must be compatible with the (configured or default) <classname>HttpMessageConverter</classname>s
+           and the <code>Content-Type</code> header in the response. Of course, this can be an abstract
+           class, or even an interface (such as <interfacename>java.io.Serializable</interfacename> when
+           using java serialization and <code>Content-Type: application/x-java-serialized-object</code>).
+         </para>
     </note>
   </section>
 
