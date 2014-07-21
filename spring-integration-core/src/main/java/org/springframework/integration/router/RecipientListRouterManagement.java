@@ -19,12 +19,15 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
+ * Exposes adding/removing individual recipients operations for 
+ * RecipientListRouter. This can be used with a control-bus and JMX.
+ * 
  * @author Liujiong
  * @since 4.1
  *
  */
 @ManagedResource
-public interface RecipientHandler {
+public interface RecipientListRouterManagement {
 
 	@ManagedOperation
 	void addRecipient(String channelName, String expression);

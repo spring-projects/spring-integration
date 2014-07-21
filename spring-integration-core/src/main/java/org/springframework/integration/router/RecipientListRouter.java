@@ -19,13 +19,13 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -61,10 +61,9 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Liujiong
  */
-public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean, RecipientHandler {
+public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean, RecipientListRouterManagement {
 
-	private volatile List<Recipient> recipients;
-
+	private volatile ConcurrentLinkedQueue<Recipient> recipients;
 
 	/**
 	 * Set the channels for this router. Either call this method or
@@ -87,7 +86,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	 */
 	public void setRecipients(List<Recipient> recipients) {
 		Assert.notEmpty(recipients, "recipients must not be empty");
-		this.recipients = recipients;
+		this.recipients = new ConcurrentLinkedQueue<Recipient>(recipients);
 	}
 
 	@Override
@@ -104,7 +103,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-		List<Recipient> recipientList = this.recipients;
+		ConcurrentLinkedQueue<Recipient> recipientList = this.recipients;
 		for (Recipient recipient : recipientList) {
 			if (recipient.accept(message)) {
 				channels.add(recipient.getChannel());
@@ -165,7 +164,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	@Override
 	@ManagedOperation
 	public void removeRecipient(String channelName) {
-		List<Recipient> removeList = new ArrayList<Recipient>();
+		ConcurrentLinkedQueue<Recipient> removeList = new ConcurrentLinkedQueue<Recipient>();
 		for (Recipient recipient : recipients) {
 			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
 			if (channel.getBeanName().equals(channelName)) {
@@ -178,7 +177,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	@Override
 	@ManagedOperation
 	public void removeRecipient(String channelName, String selector) {
-		List<Recipient> removeList = new ArrayList<Recipient>();
+		ConcurrentLinkedQueue<Recipient> removeList = new ConcurrentLinkedQueue<Recipient>();
 		for (Recipient recipient : recipients) {
 			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
 			if (channel.getBeanName().equals(channelName)) {
