@@ -28,19 +28,41 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  * The evaluation result of the expression must be a boolean value.
  * 
  * @author Mark Fisher
+ * @author Liujiong
  * @since 2.0
  */
 public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
+	private String expressionString;
 
 	public ExpressionEvaluatingSelector(String expressionString) {
 		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expressionParser.parseExpression(expressionString), Boolean.class));
+		this.expressionString = expressionString;
 	}
 
 	public ExpressionEvaluatingSelector(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expression, Boolean.class));
+		this.expressionString = expression.getExpressionString();
 	}
 
+	public String getExpressionString() {
+		return expressionString;
+	}
+
+	public boolean equals(ExpressionEvaluatingSelector o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		if (this != null ? !this.expressionString.equals(o.expressionString) : o.expressionString != null) {
+			return false;
+		}
+
+		return true;
+	}
+	
 }

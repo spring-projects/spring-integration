@@ -34,5 +34,8 @@ public interface RecipientHandler {
 	
 	@ManagedOperation
 	void removeRecipient(String channelName);
+
+	@ManagedOperation
+	void removeRecipient(String channelName, String selector);
 	
 }

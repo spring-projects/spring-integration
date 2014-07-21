@@ -130,7 +130,10 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			this.selector = selector;
 		}
 
-
+		public MessageSelector getSelector() {
+			return selector;
+		}
+		
 		public MessageChannel getChannel() {
 			return this.channel;
 		}
@@ -166,7 +169,24 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 		for (Recipient recipient : recipients) {
 			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
 			if (channel.getBeanName().equals(channelName)) {
-				removeList.add(recipient);//另外建立list
+				removeList.add(recipient);
+			}
+		}
+		recipients.removeAll(removeList);
+	}
+	
+	@Override
+	@ManagedOperation
+	public void removeRecipient(String channelName, String selector) {
+		List<Recipient> removeList = new ArrayList<Recipient>();
+		for (Recipient recipient : recipients) {
+			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
+			if (channel.getBeanName().equals(channelName)) {
+				ExpressionEvaluatingSelector sourceExpressionEvaluatingSelector = (ExpressionEvaluatingSelector) recipient.getSelector();
+				ExpressionEvaluatingSelector targetExpressionEvaluatingSelector = new ExpressionEvaluatingSelector(selector);
+				if (targetExpressionEvaluatingSelector.equals(sourceExpressionEvaluatingSelector)){
+					removeList.add(recipient);
+				}
 			}
 		}
 		recipients.removeAll(removeList);

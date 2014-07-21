@@ -18,8 +18,11 @@ package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -69,14 +72,14 @@ public class ControlBusRecipientListRouterTests {
 		context.start();
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel2')");
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel3')");
 
 		Message<?>  message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
-		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
+		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
 		assertTrue(chanel1.receive(0).getPayload().equals(1));
-		assertTrue(chanel2.receive(0).getPayload().equals(1));
+		assertTrue(chanel3.receive(0).getPayload().equals(1));
 	}
 	
 	@Test
@@ -84,13 +87,30 @@ public class ControlBusRecipientListRouterTests {
 		context.start();
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel2')");
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel4')");
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel4')");
 
 		Message<?>  message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
-		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
+		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
 		assertTrue(chanel1.receive(0).getPayload().equals(1));
-		assertNull(chanel2.receive(0));
+		assertNull(chanel4.receive(0));
+	}
+	
+	@Test
+	public void testRemoveRecipientWithNullExpression() {
+		context.start();
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setReceiveTimeout(1000);
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel5','true')");
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel5','true')");
+
+		Message<?>  message = new GenericMessage<Integer>(1);
+		channel.send(message);
+		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel chanel5 = (PollableChannel) context.getBean("channel5");
+		assertTrue(chanel1.receive(0).getPayload().equals(1));
+		assertNull(chanel5.receive(0));
 	}
 }

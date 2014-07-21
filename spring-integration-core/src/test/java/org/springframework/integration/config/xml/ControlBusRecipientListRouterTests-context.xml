@@ -24,4 +24,16 @@
 		<queue capacity="1" />
 	</channel>
 	
+	<channel id="channel3">
+		<queue capacity="1" />
+	</channel>
+	
+	<channel id="channel4">
+		<queue capacity="1" />
+	</channel>
+	
+	<channel id="channel5">
+		<queue capacity="1" />
+	</channel>
+	
 </beans:beans>
