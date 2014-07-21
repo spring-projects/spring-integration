@@ -128,6 +128,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
+	private volatile boolean expireGroupsUponTimeout = true;
+
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
@@ -300,6 +302,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
+	/**
+	 * Expire (completely remove) a group if it is completed due to timeout.
+	 * Subclasses setting this to false MUST handle null in the messages
+	 * argument to {@link #afterRelease(MessageGroup, Collection)}.
+	 * Default true.
+	 * @param expireGroupsUponTimeout the expireGroupsOnTimeout to set
+	 * @since 4.1
+	 */
+	protected void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
+		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "aggregator";
@@ -462,7 +476,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 */
 	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
-	private void forceComplete(MessageGroup group) {
+	protected void forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
@@ -505,10 +519,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						&& group.getTimestamp() == groupNow.getTimestamp()) {
 					if (groupSize > 0) {
 						if (releaseStrategy.canRelease(groupNow)) {
-							this.completeGroup(correlationKey, groupNow);
+							completeGroup(correlationKey, groupNow);
 						}
 						else {
-							this.expireGroup(correlationKey, groupNow);
+							expireGroup(correlationKey, groupNow);
+						}
+						if (!this.expireGroupsUponTimeout) {
+							afterRelease(groupNow, null);
+							removeGroup = false;
 						}
 					}
 					else {

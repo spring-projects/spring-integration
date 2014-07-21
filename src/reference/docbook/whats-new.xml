@@ -82,5 +82,12 @@
 				See <xref linkend="splitter"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-aggregator">
+			<title>Aggregator</title>
+			<para>
+				<code>Aggregator</code>s now support a new attribute <code>expire-groups-on-timeout</code>.
+				See <xref linkend="aggregator-config"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

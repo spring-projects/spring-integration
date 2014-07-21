@@ -374,7 +374,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
 		group-timeout="60000" ]]><co id="aggxml20" /><![CDATA[
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" /><![CDATA[
-		scheduler="taskScheduler" /> ]]><co id="aggxml22" /><![CDATA[
+		expire-groups-on-timeout="true" ]]><co id="aggxml22" /><![CDATA[
+
+		scheduler="taskScheduler" /> ]]><co id="aggxml23" /><![CDATA[
 
 <int:channel id="outputChannel"/>
 
@@ -575,6 +577,16 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 			</para>
 	  </callout>
 	  <callout arearefs="aggxml22">
+			<para>
+				When a group is completed due to a timeout (or by a <classname>MessageGroupStoreReaper</classname>), the group
+				is expired (completely removed) by default. Late arriving messages will start a new group. Set this
+				to <code>false</code> to complete the group but have its metadata remain so that late
+				arriving messages will be discarded. Empty groups can be expired later using a
+				<classname>MessageGroupStoreReaper</classname> together with the <code>empty-group-min-timeout</code>
+				attribute. Default: 'false'.
+			</para>
+	  </callout>
+	  <callout arearefs="aggxml23">
 			<para>
 				A <interfacename>TaskScheduler</interfacename> bean reference to schedule
 				the <code>MessageGroup</code> to be forced complete

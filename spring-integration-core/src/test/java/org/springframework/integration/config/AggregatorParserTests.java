@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -121,6 +122,7 @@ public class AggregatorParserTests {
 		Object handler = context.getBean("aggregatorWithExpressions.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
+		assertTrue(TestUtils.getPropertyValue(handler, "expireGroupsUponTimeout", Boolean.class));
 	}
 
 	@Test
@@ -145,15 +147,16 @@ public class AggregatorParserTests {
 				releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
 				correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
-		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
+		assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
 				outputChannel, accessor.getPropertyValue("outputChannel"));
-		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
+		assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
 				discardChannel, accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value", 86420000l,
+		assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value", 86420000l,
 				TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"));
-		Assert.assertEquals(
+		assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, accessor.getPropertyValue("sendPartialResultOnExpiry"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "expireGroupsUponTimeout", Boolean.class));
 	}
 
 	@Test

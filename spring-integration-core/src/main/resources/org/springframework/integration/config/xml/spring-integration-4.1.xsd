@@ -3376,6 +3376,16 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="expire-groups-upon-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Boolean flag specifying, if a group is completed due to timeout (reaper or
+							'group-timeout(-expression)'), whether the group should be removed.
+							When true, late arriving messages will form a new group. When false, they
+							will be discarded. Default is 'true'
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

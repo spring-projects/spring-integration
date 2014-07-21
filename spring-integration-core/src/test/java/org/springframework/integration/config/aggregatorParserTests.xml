@@ -27,7 +27,8 @@
 		release-strategy="releaseStrategy"
 		correlation-strategy="correlationStrategy"
 		send-timeout="86420000"
-		send-partial-result-on-expiry="true"/>
+		send-partial-result-on-expiry="true"
+		expire-groups-upon-timeout="false"/>
 
 	<channel id="aggregatorWithExpressionsInput"/>
 	<channel id="aggregatorWithExpressionsOutput"/>
