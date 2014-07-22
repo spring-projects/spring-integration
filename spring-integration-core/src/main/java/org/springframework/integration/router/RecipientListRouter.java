@@ -182,8 +182,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
 			if (channel.getBeanName().equals(channelName)) {
 				ExpressionEvaluatingSelector sourceExpressionEvaluatingSelector = (ExpressionEvaluatingSelector) recipient.getSelector();
-				ExpressionEvaluatingSelector targetExpressionEvaluatingSelector = new ExpressionEvaluatingSelector(selector);
-				if (targetExpressionEvaluatingSelector.equals(sourceExpressionEvaluatingSelector)){
+				if (sourceExpressionEvaluatingSelector.getExpressionString().equals(selector)){
 					removeList.add(recipient);
 				}
 			}
