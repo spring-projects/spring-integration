@@ -35,7 +35,7 @@ public class ProducerMetadata<K,V> implements InitializingBean {
 	private Class<V> valueClassType;
 	private final String topic;
 	private String compressionCodec = "default";
-	private Partitioner<K> partitioner;
+	private Partitioner partitioner;
 	private boolean async = false;
 	private String batchNumMessages;
 
@@ -94,11 +94,11 @@ public class ProducerMetadata<K,V> implements InitializingBean {
 		this.compressionCodec = compressionCodec;
 	}
 
-	public Partitioner<K> getPartitioner() {
+	public Partitioner getPartitioner() {
 		return partitioner;
 	}
 
-	public void setPartitioner(final Partitioner<K> partitioner) {
+	public void setPartitioner(final Partitioner partitioner) {
 		this.partitioner = partitioner;
 	}
 
