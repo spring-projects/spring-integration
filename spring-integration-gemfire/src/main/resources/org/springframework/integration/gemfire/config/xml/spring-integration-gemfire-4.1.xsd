@@ -28,7 +28,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="InboundChannelAdapterType">
-
+				
 					<xsd:attribute name="region" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -148,6 +148,17 @@
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 
+			<xsd:attribute name="auto-startup" default="true" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Flag to indicate that the component should start automatically
+						on startup (default true).
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
 
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
@@ -184,6 +195,7 @@
 
 	<xsd:complexType name="InboundChannelAdapterType">
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+		
 		<xsd:attribute name="error-channel" type="xsd:string"
 			use="optional">
 			<xsd:annotation>

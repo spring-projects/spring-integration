@@ -16,10 +16,10 @@
 	
 	<gfe:replicated-region id="region3" cache-ref="gemfire-cache-2"/>
 	
-	<int-gfe:inbound-channel-adapter id="channel1" region="region1" cache-events="CREATED" expression="newValue"/>
+	<int-gfe:inbound-channel-adapter id="channel1" region="region1" cache-events="CREATED" expression="newValue" auto-startup="true"/>
 	 
-	<int-gfe:inbound-channel-adapter id="channel2" region="region2"/>
+	<int-gfe:inbound-channel-adapter id="channel2" region="region2" auto-startup="true"/>
 	
-	<int-gfe:inbound-channel-adapter id="channel3" region="region3" error-channel="errorChannel"/>
+	<int-gfe:inbound-channel-adapter id="channel3" region="region3" error-channel="errorChannel" auto-startup="true"/>
 	 
 </beans>

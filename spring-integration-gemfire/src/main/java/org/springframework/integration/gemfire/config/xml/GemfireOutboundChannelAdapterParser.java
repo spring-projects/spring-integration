@@ -21,6 +21,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.gemfire.outbound.CacheWritingMessageHandler;
 import org.springframework.util.xml.DomUtils;
 
@@ -36,6 +37,8 @@ public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannel
 	private static final String CACHE_ENTRIES_ELEMENT = "cache-entries";
 
 	private static final String REGION_ATTRIBUTE = "region";
+	
+	private static final String AUTO_STARTUP = "auto-startup";
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser#parseConsumer(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
@@ -54,6 +57,9 @@ public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannel
 		if (cacheEntries != null) {
 			Map<?,?> map = parserContext.getDelegate().parseMapElement(cacheEntries,cacheWritingMessageHandler.getBeanDefinition());
 			cacheWritingMessageHandler.addPropertyValue(CACHE_ENTRIES_PROPERTY, map);
+		}
+		if (element.hasAttribute(AUTO_STARTUP)){
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(cacheWritingMessageHandler, element, AUTO_STARTUP);
 		}
 
 		return cacheWritingMessageHandler.getBeanDefinition();

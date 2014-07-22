@@ -34,7 +34,7 @@
 
 	<int-gfe:cq-inbound-channel-adapter id="withDurable"
 		cq-listener-container="queryListenerContainer" query="select * from /test"
-		channel="outputChannel1" durable="${durable}" />
+		channel="outputChannel1" durable="${durable}" auto-startup="true" />
 
 	<int:channel id="outputChannel1">
 		<int:queue />
@@ -42,7 +42,7 @@
 
 	<int-gfe:cq-inbound-channel-adapter
 		cq-listener-container="queryListenerContainer" query="select * from /test"
-		channel="outputChannel2" expression="newValue" query-events="CREATED" />
+		channel="outputChannel2" expression="newValue" query-events="CREATED" auto-startup="true" />
 
 	<int:channel id="outputChannel2">
 		<int:queue />

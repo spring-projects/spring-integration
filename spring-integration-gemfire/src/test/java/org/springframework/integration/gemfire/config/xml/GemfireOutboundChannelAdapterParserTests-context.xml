@@ -9,7 +9,7 @@
 
 	<int:channel id="input" />
 
-	<int-gfe:outbound-channel-adapter region="region" channel="input">
+	<int-gfe:outbound-channel-adapter region="region" channel="input" auto-startup="true">
 		<int-gfe:request-handler-advice-chain>
 			<bean class="org.springframework.integration.gemfire.config.xml.GemfireOutboundChannelAdapterParserTests$FooAdvice" />
 		</int-gfe:request-handler-advice-chain>
