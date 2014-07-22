@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@ package org.springframework.integration.file.remote.gateway;
 
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -64,6 +66,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author liujiong
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
@@ -807,6 +810,94 @@ public class RemoteFileOutboundGatewayTests {
 		assertEquals("f1",
 				out.getHeaders().get(FileHeaders.REMOTE_FILE));
 	}
+
+	@Test
+	public void testGetTempFileDelete() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+				(sessionFactory, "get", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir));
+		gw.afterPropertiesSet();
+		new File(this.tmpDir + "/f1").delete();
+		when(sessionFactory.getSession()).thenReturn(new Session() {
+			private boolean open = true;
+
+			@Override
+			public boolean remove(String path) throws IOException {
+				return false;
+			}
+
+			@Override
+			public TestLsEntry[] list(String path) throws IOException {
+				return new TestLsEntry[]{
+						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
+				};
+			}
+
+			@Override
+			public void read(String source, OutputStream outputStream) {
+				throw new RuntimeException("test remove .writing");
+			}
+
+			@Override
+			public void write(InputStream inputStream, String destination)
+					throws IOException {
+			}
+
+			@Override
+			public boolean mkdir(String directory) throws IOException {
+				return true;
+			}
+
+			@Override
+			public void rename(String pathFrom, String pathTo)
+					throws IOException {
+			}
+
+			@Override
+			public void close() {
+				open = false;
+			}
+
+			@Override
+			public boolean isOpen() {
+				return open;
+			}
+
+			@Override
+			public boolean exists(String path) throws IOException {
+				return true;
+			}
+
+			@Override
+			public String[] listNames(String path) throws IOException {
+				return null;
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
+			}
+		});
+		try{
+			gw.handleRequestMessage(new GenericMessage<String>("f1"));
+			fail("Expected exception");
+		}
+		catch (MessagingException e) {
+			assertThat(e.getCause(), instanceOf(RuntimeException.class));
+			assertEquals("test remove .writing", e.getCause().getMessage());
+			@SuppressWarnings("unchecked")
+			RemoteFileTemplate template = new RemoteFileTemplate(sessionFactory);
+			File outFile = new File(this.tmpDir + "/f1"+ template.getTemporaryFileSuffix());
+			assertFalse(outFile.exists());
+		}
+	}
+
 
 	@Test
 	public void testGet_P() throws Exception {
