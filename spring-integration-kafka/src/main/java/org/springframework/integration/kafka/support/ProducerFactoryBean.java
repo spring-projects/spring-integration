@@ -71,7 +71,7 @@ public class ProducerFactoryBean<K,V> implements FactoryBean<Producer<K,V>> {
         LOGGER.info("Using producer properties => " + props);
 		final ProducerConfig config = new ProducerConfig(props);
 		final EventHandler<K, V> eventHandler = new DefaultEventHandler<K, V>(config,
-				producerMetadata.getPartitioner() == null ? new DefaultPartitioner<K>() : producerMetadata.getPartitioner(),
+				producerMetadata.getPartitioner() == null ? new DefaultPartitioner() : producerMetadata.getPartitioner(),
 				producerMetadata.getValueEncoder(), producerMetadata.getKeyEncoder(),
 				new ProducerPool(config), new HashMap<String, kafka.api.TopicMetadata>());
 

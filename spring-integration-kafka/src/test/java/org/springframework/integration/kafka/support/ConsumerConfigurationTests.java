@@ -262,9 +262,25 @@ public class ConsumerConfigurationTests<K,V> {
 		topicStreamMap.put("topic1", 1);
 		when(consumerMetadata.getTopicStreamMap()).thenReturn(topicStreamMap);
 		when(messageLeftOverTracker.getCurrentCount()).thenReturn(3);
-		final MessageAndMetadata<String, String> m1 = new MessageAndMetadata<String, String>("key1", "value1", "topic1", 1, 1L);
-		final MessageAndMetadata<String, String> m2 = new MessageAndMetadata<String, String>("key2", "value2", "topic2", 1, 1L);
-		final MessageAndMetadata<String, String> m3 = new MessageAndMetadata<String, String>("key1", "value3", "topic3", 1, 1L);
+
+        final MessageAndMetadata<String, String> m1 = mock(MessageAndMetadata.class);
+        final MessageAndMetadata<String, String> m2 = mock(MessageAndMetadata.class);
+        final MessageAndMetadata<String, String> m3 = mock(MessageAndMetadata.class);
+
+        when(m1.key()).thenReturn("key1");
+        when(m1.message()).thenReturn("value1");
+        when(m1.topic()).thenReturn("topic1");
+        when(m1.partition()).thenReturn(1);
+
+        when(m2.key()).thenReturn("key2");
+        when(m2.message()).thenReturn("value2");
+        when(m2.topic()).thenReturn("topic2");
+        when(m2.partition()).thenReturn(1);
+
+        when(m3.key()).thenReturn("key1");
+        when(m3.message()).thenReturn("value3");
+        when(m3.topic()).thenReturn("topic3");
+        when(m3.partition()).thenReturn(1);
 
 		final List<MessageAndMetadata<String, String>> mList = new ArrayList<MessageAndMetadata<String, String>>();
 		mList.add(m1);
