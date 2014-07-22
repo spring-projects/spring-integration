@@ -65,6 +65,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Liujiong
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
