@@ -653,6 +653,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception e) {
+				tempFile.delete();
 				if (e instanceof RuntimeException){
 					throw (RuntimeException) e;
 				}
