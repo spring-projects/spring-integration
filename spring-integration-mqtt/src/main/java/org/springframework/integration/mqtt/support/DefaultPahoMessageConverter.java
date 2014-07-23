@@ -78,10 +78,14 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 *
 	 * @param payloadAsBytes The payloadAsBytes to set.
 	 */
-	protected final void setPayloadAsBytes(boolean payloadAsBytes) {
+	public void setPayloadAsBytes(boolean payloadAsBytes) {
 		this.payloadAsBytes = payloadAsBytes;
 	}
 
+	public boolean isPayloadAsBytes() {
+		return this.payloadAsBytes;
+	}
+	
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained, String charset) {
 		this.defaultQos = defaultQos;
 		this.defaultRetained = defaultRetained;
