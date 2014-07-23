@@ -1917,6 +1917,16 @@
 					if the header does not exist, or if the header does not currently reference a MessageChannel.
 					</xsd:documentation>
 				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:attribute name="time-to-live-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Overrides the header channel registry default 'reaperDelay' - specifies the minimum time
+							that the mapping will remain in the registry, in milliseconds.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:complexType>
 			</xsd:element>
 			<xsd:element name="error-channel" type="referenceOrValueHeaderType">
 				<xsd:annotation>

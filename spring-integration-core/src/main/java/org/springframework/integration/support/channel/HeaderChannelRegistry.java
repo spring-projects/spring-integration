@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.support.channel;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -33,11 +34,21 @@ public interface HeaderChannelRegistry {
 	/**
 	 * Converts the channel to a name (String). If the channel is not a
 	 * {@link MessageChannel}, it is returned unchanged.
-	 *
 	 * @param channel The channel.
 	 * @return The channel name, or the channel if it is not a MessageChannel.
 	 */
-	public abstract Object channelToChannelName(Object channel);
+	Object channelToChannelName(Object channel);
+
+	/**
+	 * Converts the channel to a name (String). If the channel is not a
+	 * {@link MessageChannel}, it is returned unchanged.
+	 * @param channel The channel.
+	 * @param timeToLive How long (ms) at a minimum, the channel mapping should
+	 * remain in the registry.
+	 * @return The channel name, or the channel if it is not a MessageChannel.
+	 * @since 4.1
+	 */
+	Object channelToChannelName(Object channel, long timeToLive);
 
 	/**
 	 * Converts the channel name back to a {@link MessageChannel} (if it is
@@ -45,18 +56,18 @@ public interface HeaderChannelRegistry {
 	 * @param name The name of the channel.
 	 * @return The channel, or null if there is no channel registered with the name.
 	 */
-	public abstract MessageChannel channelNameToChannel(String name);
+	MessageChannel channelNameToChannel(String name);
 
 	/**
 	 * @return the current size of the registry
 	 */
 	@ManagedAttribute
-	public abstract int size();
+	int size();
 
 	/**
 	 * Cancel the scheduled reap task and run immediately; then reschedule.
 	 */
 	@ManagedOperation(description = "Cancel the scheduled reap task and run immediately; then reschedule.")
-	public abstract void runReaper();
+	void runReaper();
 
 }

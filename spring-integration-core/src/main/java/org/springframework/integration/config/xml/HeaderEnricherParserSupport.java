@@ -59,9 +59,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	static {
 		cannedHeaderElementExpressions.put("header-channels-to-string", new String[][] {
 				{"replyChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.replyChannel)" },
+						+ ".channelToChannelName(headers.replyChannel, ####)" },
 				{"errorChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.errorChannel)" },
+						+ ".channelToChannelName(headers.errorChannel, ####)" },
 		});
 	}
 
@@ -132,10 +132,17 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					}
 				}
 				if (headerName == null) {
+					String ttlExpression = headerElement.getAttribute("time-to-live-expression");
 					if (cannedHeaderElementExpressions.containsKey(elementName)) {
 						for (int j = 0; j < cannedHeaderElementExpressions.get(elementName).length; j++) {
 							headerName = cannedHeaderElementExpressions.get(elementName)[j][0];
 							expression = cannedHeaderElementExpressions.get(elementName)[j][1];
+							if (StringUtils.hasText(ttlExpression)) {
+								expression = expression.replace("####", ttlExpression);
+							}
+							else {
+								expression = expression.replace(", ####", "");
+							}
 							overwrite = "true";
 							this.addHeader(element, headers, parserContext, headerName, headerElement, headerType,
 									expression, overwrite);
@@ -143,7 +150,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					}
 				}
 				else {
-					this.addHeader(element, headers, parserContext, headerName, headerElement, headerType, expression,
+					this.addHeader(element, headers, parserContext, headerName, headerElement, headerType, null,
 							overwrite);
 				}
 			}
@@ -178,11 +185,13 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				expressionElement = subElement;
 			}
 			if (beanElement == null && scriptElement == null && expressionElement == null) {
-				parserContext.getReaderContext().error("Only 'bean', 'script' or 'expression' can be defined as a sub-element", element);
+				parserContext.getReaderContext()
+						.error("Only 'bean', 'script' or 'expression' can be defined as a sub-element", element);
 			}
 		}
 		if (StringUtils.hasText(expression) && expressionElement != null) {
-			parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
+			parserContext.getReaderContext()
+					.error("The 'expression' attribute and sub-element are mutually exclusive", element);
 		}
 
 		boolean isValue = StringUtils.hasText(value);
@@ -194,7 +203,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		BeanDefinition innerComponentDefinition = null;
 
 		if (beanElement != null) {
-			innerComponentDefinition = parserContext.getDelegate().parseBeanDefinitionElement(beanElement).getBeanDefinition();
+			innerComponentDefinition = parserContext.getDelegate()
+					.parseBeanDefinitionElement(beanElement)
+					.getBeanDefinition();
 		}
 		else if (isScript) {
 			innerComponentDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
@@ -203,7 +214,8 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		boolean isCustomBean = innerComponentDefinition != null;
 
 		if (hasMethod && isScript) {
-			parserContext.getReaderContext().error("The 'method' attribute cannot be used when a 'script' sub-element is defined", element);
+			parserContext.getReaderContext()
+					.error("The 'method' attribute cannot be used when a 'script' sub-element is defined", element);
 		}
 
 		if (!(isValue ^ (isRef ^ (isExpression ^ isCustomBean)))) {
@@ -218,17 +230,19 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 			Object headerValue = (headerType != null) ?
 					new TypedStringValue(value, headerType) : value;
-			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class);
-			valueProcessorBuilder.addConstructorArgValue(headerValue);
+			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+					.addConstructorArgValue(headerValue);
 		}
 		else if (isExpression) {
 			if (hasMethod) {
 				parserContext.getReaderContext().error(
 						"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 			}
-			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
 			if (expressionElement != null) {
-				BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
+				BeanDefinitionBuilder dynamicExpressionBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
 				dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
 				dynamicExpressionBuilder.addConstructorArgReference(expressionElement.getAttribute("source"));
 				valueProcessorBuilder.addConstructorArgValue(dynamicExpressionBuilder.getBeanDefinition());
@@ -244,8 +258,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						"The 'type' attribute cannot be used with an inner bean.", element);
 			}
 			if (hasMethod || isScript) {
-				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class);
-				valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class)
+								.addConstructorArgValue(innerComponentDefinition);
 				if (hasMethod) {
 					valueProcessorBuilder.addConstructorArgValue(method);
 				}
@@ -261,13 +276,14 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						"The 'type' attribute cannot be used with the 'ref' attribute.", element);
 			}
 			if (hasMethod) {
-				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class);
-				valueProcessorBuilder.addConstructorArgReference(ref);
-				valueProcessorBuilder.addConstructorArgValue(method);
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class)
+								.addConstructorArgReference(ref)
+								.addConstructorArgValue(method);
 			}
 			else {
-				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class);
-				valueProcessorBuilder.addConstructorArgReference(ref);
+				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+						.addConstructorArgReference(ref);
 			}
 		}
 		if (StringUtils.hasText(overwrite)) {
@@ -278,7 +294,6 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 
 	/**
 	 * Subclasses may override this method to provide any additional processing.
-	 *
 	 * @param builder The builder.
 	 * @param element The element.
 	 * @param parserContext The parser context.

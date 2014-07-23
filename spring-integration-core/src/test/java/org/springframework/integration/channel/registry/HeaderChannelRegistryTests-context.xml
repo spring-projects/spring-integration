@@ -11,6 +11,14 @@
 		<int:header-channels-to-string />
 	</int:header-enricher>
 
+	<int:header-enricher input-channel="inputTtl" output-channel="next">
+		<int:header-channels-to-string time-to-live-expression="120000" />
+	</int:header-enricher>
+
+	<int:header-enricher input-channel="inputCustomTtl" output-channel="next">
+		<int:header-channels-to-string time-to-live-expression="headers['channelTTL'] ?: 240000" />
+	</int:header-enricher>
+
 	<int:transformer input-channel="next">
 		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
 	</int:transformer>

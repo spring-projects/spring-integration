@@ -97,5 +97,14 @@
 				See <xref linkend="content-enricher"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-header-channel-registry">
+			<title>Header Channel Registry</title>
+			<para>
+				The <code>&lt;header-enricher/&gt;</code>'s <code>&lt;header-channels-to-string/&gt;</code>
+				element can now override the header channel registry's default time for retaining channel
+				mappings.
+				See <xref linkend="header-channel-registry"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
