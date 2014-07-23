@@ -166,7 +166,7 @@ public class EnricherParserTests {
 		requests.unsubscribe(foo);
 		adviceCalled--;
 	}
-	
+
 	@Test
 	public void testInt3027WrongHeaderType() {
 		MessageChannel input = context.getBean("input2", MessageChannel.class);

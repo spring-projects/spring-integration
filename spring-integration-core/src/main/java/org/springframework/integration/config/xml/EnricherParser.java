@@ -135,7 +135,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				}
 
 				if (!hasAttributeValue && !hasAttributeExpression && !hasAttributeNullResultExpression){
-					parserContext.getReaderContext().error("One of value or expression or null-result-expression is required", subElement);
+					parserContext.getReaderContext().error("One of 'value' or 'expression' or 'null-result-expression' is required", subElement);
 				}
 				BeanDefinition expressionDef = null;
 				if (hasAttributeValue) {
