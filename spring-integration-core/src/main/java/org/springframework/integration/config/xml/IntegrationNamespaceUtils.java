@@ -451,36 +451,32 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	public static BeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
-			String expressionElementName, String nullResultExpressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
+			String expressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
 
 		Assert.hasText(valueElementName, "'valueElementName' must not be empty");
 		Assert.hasText(expressionElementName, "'expressionElementName' must not be empty");
 
 		String valueElementValue = element.getAttribute(valueElementName);
 		String expressionElementValue = element.getAttribute(expressionElementName);
-		String nullResultExpressionElementValue = element.getAttribute(nullResultExpressionElementName);
 
 		boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
 		boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
-		boolean hasAttributeNullResultExpression = StringUtils.hasText(nullResultExpressionElementValue);
-
 
 		if (hasAttributeValue && hasAttributeExpression){
 			parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
 						+ expressionElementName + "' is allowed", element);
 		}
 
-		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression && !hasAttributeNullResultExpression)){
+		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)){
 			parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
-					+ expressionElementName + "' or '"
-					+ nullResultExpressionElementName + "' is required", element);
+					+ expressionElementName + "' is required", element);
 		}
 		BeanDefinition expressionDef = null;
 		if (hasAttributeValue) {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
 		}
-		else if (hasAttributeExpression) {
+		else {
 			expressionDef = createExpressionDefIfAttributeDefined(expressionElementName, element);
 		}
 		return expressionDef;
