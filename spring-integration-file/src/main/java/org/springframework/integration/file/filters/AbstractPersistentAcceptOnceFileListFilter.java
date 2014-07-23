@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.file.filters;
 
+import java.util.List;
+
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
@@ -28,7 +30,7 @@ import org.springframework.util.Assert;
  * @since 3.0
  *
  */
-public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> {
+public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F> {
 
 	protected final ConcurrentMetadataStore store;
 
@@ -56,6 +58,23 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 				return false;
 			}
 			return this.store.replace(key, oldValue, newValue); // true if replace successful
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @since 4.0.4
+	 */
+	@Override
+	public void rollback(F file, List<F> files) {
+		boolean rollingBack = false;
+		for (F fileToRollback : files) {
+			if (fileToRollback.equals(file)) {
+				rollingBack = true;
+			}
+			if (rollingBack) {
+				this.store.remove(buildKey(fileToRollback));
+			}
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -28,9 +29,10 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Gary Russell
  * @since 1.0.0
  */
-public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> {
+public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F> {
 
 	private final Queue<F> seen;
 
@@ -56,6 +58,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> {
 	}
 
 
+	@Override
 	public boolean accept(F file) {
 		synchronized (this.monitor) {
 			if (this.seen.contains(file)) {
@@ -66,6 +69,23 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> {
 				this.seen.add(file);
 			}
 			return true;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @since 4.0.4
+	 */
+	@Override
+	public void rollback(F file, List<F> files) {
+		boolean rollingBack = false;
+		for (F fileToRollback : files) {
+			if (fileToRollback.equals(file)) {
+				rollingBack = true;
+			}
+			if (rollingBack) {
+				this.seen.remove(fileToRollback);
+			}
 		}
 	}
 
