@@ -48,11 +48,13 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	private static final int DEFAULT_REAPER_DELAY = 60000;
 
-	private final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<String, DefaultHeaderChannelRegistry.MessageChannelWrapper>();
+	protected final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<String, DefaultHeaderChannelRegistry.MessageChannelWrapper>();
 
-	private static final AtomicLong id = new AtomicLong();
+	protected static final AtomicLong id = new AtomicLong();
 
-	private final String uuid = UUID.randomUUID().toString() + ":";
+	protected final String uuid = UUID.randomUUID().toString() + ":";
+
+	private volatile boolean removeOnGet;
 
 	private volatile long reaperDelay;
 
@@ -93,6 +95,16 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	public final long getReaperDelay() {
 		return reaperDelay;
+	}
+
+	/**
+	 * Set to true to immediately remove the channel mapping when
+	 * {@link #channelNameToChannel(String)} is invoked.
+	 * @param removeOnGet true to remove immediately, default false.
+	 * @since 4.1
+	 */
+	public void setRemoveOnGet(boolean removeOnGet) {
+		this.removeOnGet = removeOnGet;
 	}
 
 	@Override
@@ -160,9 +172,15 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public Object channelToChannelName(Object channel) {
+		return channelToChannelName(channel, this.reaperDelay);
+	}
+
+	@Override
+	public Object channelToChannelName(Object channel, long timeToLive) {
 		if (channel != null && channel instanceof MessageChannel) {
 			String name = this.uuid + DefaultHeaderChannelRegistry.id.incrementAndGet();
-			channels.put(name, new MessageChannelWrapper((MessageChannel) channel));
+			channels.put(name, new MessageChannelWrapper((MessageChannel) channel,
+					System.currentTimeMillis() + timeToLive));
 			if (logger.isDebugEnabled()) {
 				logger.debug("Registered " + channel + " as " + name);
 			}
@@ -176,7 +194,13 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	@Override
 	public MessageChannel channelNameToChannel(String name) {
 		if (name != null) {
-			MessageChannelWrapper messageChannelWrapper = this.channels.get(name);
+			MessageChannelWrapper messageChannelWrapper;
+			if (this.removeOnGet) {
+				messageChannelWrapper = this.channels.remove(name);
+			}
+			else {
+				messageChannelWrapper = this.channels.get(name);
+			}
 			if (logger.isDebugEnabled() && messageChannelWrapper != null) {
 				logger.debug("Retrieved " + messageChannelWrapper.getChannel() + " with " + name);
 			}
@@ -204,10 +228,10 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			logger.trace("Reaper started; channels size=" + this.channels.size());
 		}
 		Iterator<Entry<String, MessageChannelWrapper>> iterator = this.channels.entrySet().iterator();
-		long threshold = System.currentTimeMillis() - this.reaperDelay;
+		long now = System.currentTimeMillis();
 		while (iterator.hasNext()) {
 			Entry<String, MessageChannelWrapper> entry = iterator.next();
-			if (entry.getValue().getCreated() < threshold) {
+			if (entry.getValue().getExpireAt() < now) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Expiring " + entry.getKey() + " (" + entry.getValue().getChannel() + ")");
 				}
@@ -230,15 +254,15 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 		private final MessageChannel channel;
 
-		private final long created;
+		private final long expireAt;
 
-		private MessageChannelWrapper(MessageChannel channel) {
+		private MessageChannelWrapper(MessageChannel channel, long expireAt) {
 			this.channel = channel;
-			this.created = System.currentTimeMillis();
+			this.expireAt = expireAt;
 		}
 
-		public final long getCreated() {
-			return created;
+		public final long getExpireAt() {
+			return expireAt;
 		}
 
 		public final MessageChannel getChannel() {

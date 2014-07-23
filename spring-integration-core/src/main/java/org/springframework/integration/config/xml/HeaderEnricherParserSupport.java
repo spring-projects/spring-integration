@@ -59,9 +59,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	static {
 		cannedHeaderElementExpressions.put("header-channels-to-string", new String[][] {
 				{"replyChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.replyChannel)" },
+						+ ".channelToChannelName(headers.replyChannel, ####)" },
 				{"errorChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.errorChannel)" },
+						+ ".channelToChannelName(headers.errorChannel, ####)" },
 		});
 	}
 
@@ -132,10 +132,17 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					}
 				}
 				if (headerName == null) {
+					String ttlExpression = headerElement.getAttribute("time-to-live-expression");
 					if (cannedHeaderElementExpressions.containsKey(elementName)) {
 						for (int j = 0; j < cannedHeaderElementExpressions.get(elementName).length; j++) {
 							headerName = cannedHeaderElementExpressions.get(elementName)[j][0];
 							expression = cannedHeaderElementExpressions.get(elementName)[j][1];
+							if (StringUtils.hasText(ttlExpression)) {
+								expression = expression.replace("####", ttlExpression);
+							}
+							else {
+								expression = expression.replace(", ####", "");
+							}
 							overwrite = "true";
 							this.addHeader(element, headers, parserContext, headerName, headerElement, headerType,
 									expression, overwrite);

@@ -148,7 +148,8 @@
 			the incoming Message.
 	    </para>
 
-		<para><emphasis role="bold">Header Channel Registry</emphasis></para>
+	  <section id="header-channel-registry">
+		<title>Header Channel Registry</title>
 
 		<para>
 			Starting with <emphasis>Spring Integration 3.0</emphasis>, a new sub-element
@@ -169,8 +170,15 @@
 			bean. By default, the framework creates a <classname>DefaultHeaderChannelRegistry</classname>
 			with the default expiry (60 seconds). Channels
 			are removed from the registry after this time. To change this, simply define a bean
-			with id <code>integrationHeaderChannelRegistry</code> and configure the required delay using
+			with id <code>integrationHeaderChannelRegistry</code> and configure the required default delay using
 			a constructor argument (milliseconds).
+		</para>
+		
+		<para>
+			Since <emphasis>version 4.1</emphasis>, you can set a property <code>removeOnGet</code>
+			to <code>true</code> on the <code>&lt;bean/&gt;</code> definition, and the mapping entry will be removed
+			immediately on first use. This might be useful in a high-volume environment and when
+			the channel is only used once, rather than waiting for the reaper to remove it.
 		</para>
 
 		<para>
@@ -188,15 +196,32 @@
 			This sub-element is a convenience only, and is the equivalent of specifying:
 		</para>
 		<programlisting language="xml"><![CDATA[<int:reply-channel
-	expression="@integrationHeaderChannelRegistry.channelToChannelName(headers.replyChannel)"/>
+	expression="@integrationHeaderChannelRegistry.channelToChannelName(headers.replyChannel)"
+	overwrite="true" />
 <int:error-channel
-	expression="@integrationHeaderChannelRegistry.channelToChannelName(headers.errorChannel)"/>]]></programlisting>
+	expression="@integrationHeaderChannelRegistry.channelToChannelName(headers.errorChannel)"
+	overwrite="true" />]]></programlisting>
 
-		<tip>
-			For more examples for configuring header enrichers, see
-			<ulink url="https://github.com/SpringSource/spring-integration/wiki/Header-Enricher-Advanced-Configuration">
-			Header Enricher Advanced Configuration</ulink>.
-		</tip>
+		<para>
+			Starting with <emphasis>version 4.1</emphasis>, you can now override the registry's configured
+			reaper delay, so the the channel mapping is retained for at least the specified time, regardless
+			of the reaper delay:
+		</para>
+		<programlisting language="xml"><![CDATA[<int:header-enricher input-channel="inputTtl" output-channel="next">
+	<int:header-channels-to-string time-to-live-expression="120000" />
+</int:header-enricher>
+
+<int:header-enricher input-channel="inputCustomTtl" output-channel="next">
+	<int:header-channels-to-string 
+		time-to-live-expression="headers['channelTTL'] ?: 120000" />
+</int:header-enricher>]]></programlisting>
+
+		<para>
+			In the first case, the time to live for every header channel mapping will be 2 minutes; in the second case,
+			the time to live is specified in the message header and uses an elvis operator to use
+			2 minutes if there is no header.
+		</para>
+	  </section>
     </section>
 
     <section id="payload-enricher">
