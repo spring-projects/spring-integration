@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.config.xml;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -32,20 +33,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class KafkaOutboundAdapterParserTests<K,V> {
+public class KafkaOutboundAdapterParserTests<K, V> {
 
 	@Autowired
 	private ApplicationContext appContext;
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testOutboundAdapterConfiguration(){
-		final PollingConsumer pollingConsumer = appContext.getBean("kafkaOutboundChannelAdapter", PollingConsumer.class);
-		final KafkaProducerMessageHandler<K,V> messageHandler = appContext.getBean(KafkaProducerMessageHandler.class);
+	public void testOutboundAdapterConfiguration() {
+		final PollingConsumer pollingConsumer =
+				appContext.getBean("kafkaOutboundChannelAdapter", PollingConsumer.class);
+		final KafkaProducerMessageHandler<K, V> messageHandler = appContext.getBean(KafkaProducerMessageHandler.class);
 		Assert.assertNotNull(pollingConsumer);
 		Assert.assertNotNull(messageHandler);
-		final KafkaProducerContext<K,V> producerContext = messageHandler.getKafkaProducerContext();
+		Assert.assertEquals(messageHandler.getOrder(), 3);
+		final KafkaProducerContext<K, V> producerContext = messageHandler.getKafkaProducerContext();
 		Assert.assertNotNull(producerContext);
 		Assert.assertEquals(producerContext.getTopicsConfiguration().size(), 2);
 	}
+
 }

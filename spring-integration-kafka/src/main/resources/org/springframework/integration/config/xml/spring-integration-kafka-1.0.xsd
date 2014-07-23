@@ -9,7 +9,7 @@
     <xsd:import namespace="http://www.springframework.org/schema/beans"/>
     <xsd:import namespace="http://www.springframework.org/schema/tool"/>
     <xsd:import namespace="http://www.springframework.org/schema/integration"
-                schemaLocation="http://www.springframework.org/schema/integration/spring-integration.xsd"/>
+                schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd"/>
 
     <xsd:annotation>
         <xsd:documentation><![CDATA[
@@ -380,16 +380,7 @@
             <xsd:sequence>
                 <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
             </xsd:sequence>
-            <xsd:attributeGroup ref="coreKafkaComponentAttributes"/>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
+            <xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
             <xsd:attribute name="send-timeout" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[
@@ -419,8 +410,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="kafka-consumer-context-ref" use="required"
-                           type="xsd:string">
+            <xsd:attribute name="kafka-consumer-context-ref" use="required" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Kafka Server Bean Name
@@ -429,30 +419,6 @@
             </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
-
-    <xsd:attributeGroup name="coreKafkaComponentAttributes">
-        <xsd:attribute name="id" type="xsd:string" use="optional">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Identifies the underlying Spring bean definition, which is an
-                    instance of either 'EventDrivenConsumer' or 'PollingConsumer',
-                    depending on whether the component's input channel is a
-                    'SubscribableChannel' or 'PollableChannel'.
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
-        <xsd:attribute name="auto-startup" default="true" use="optional">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Flag to indicate that the component should start automatically
-                    on startup (default true).
-                </xsd:documentation>
-            </xsd:annotation>
-            <xsd:simpleType>
-                <xsd:union memberTypes="xsd:boolean xsd:string"/>
-            </xsd:simpleType>
-        </xsd:attribute>
-    </xsd:attributeGroup>
 
     <xsd:element name="outbound-channel-adapter">
         <xsd:annotation>
@@ -466,42 +432,20 @@
             <xsd:sequence>
                 <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
             </xsd:sequence>
-            <xsd:attribute name="id" type="xsd:string" use="optional">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Identifies the underlying Spring bean definition, which is an
-                        instance of either 'EventDrivenConsumer' or 'PollingConsumer',
-                        depending on whether the component's input channel is a
-                        'SubscribableChannel' or 'PollableChannel'.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="auto-startup" default="true" use="optional">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Flag to indicate that the component should start automatically
-                        on startup (default true).
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:simpleType>
-                    <xsd:union memberTypes="xsd:boolean xsd:string"/>
-                </xsd:simpleType>
-            </xsd:attribute>
-            <xsd:attribute name="kafka-producer-context-ref" use="required"
-                           type="xsd:string">
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+            <xsd:attribute name="kafka-producer-context-ref" use="required" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Kafka producer context reference.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="channel" type="xsd:string">
+            <xsd:attribute name="order">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Specifies the order for invocation when this endpoint is connected as a
+                        subscriber to a SubscribableChannel.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
         </xsd:complexType>
