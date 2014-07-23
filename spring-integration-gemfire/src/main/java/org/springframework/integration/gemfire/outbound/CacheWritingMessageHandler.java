@@ -47,16 +47,6 @@ public class CacheWritingMessageHandler extends AbstractMessageHandler {
 
 	private final GemfireTemplate gemfireTemplate = new GemfireTemplate();
 	
-	private boolean autoStartup;
-
-	public boolean isAutoStartup() {
-		return autoStartup;
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
 	@SuppressWarnings("rawtypes")
 	public CacheWritingMessageHandler(Region region) {
 		Assert.notNull(region, "region must not be null");

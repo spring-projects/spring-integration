@@ -38,8 +38,6 @@ public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannel
 
 	private static final String REGION_ATTRIBUTE = "region";
 	
-	private static final String AUTO_STARTUP = "auto-startup";
-
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser#parseConsumer(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
 	 */
@@ -58,10 +56,6 @@ public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannel
 			Map<?,?> map = parserContext.getDelegate().parseMapElement(cacheEntries,cacheWritingMessageHandler.getBeanDefinition());
 			cacheWritingMessageHandler.addPropertyValue(CACHE_ENTRIES_PROPERTY, map);
 		}
-		if (element.hasAttribute(AUTO_STARTUP)){
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(cacheWritingMessageHandler, element, AUTO_STARTUP);
-		}
-
 		return cacheWritingMessageHandler.getBeanDefinition();
 	}
 }

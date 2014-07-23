@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
+	xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
+		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int:channel id="input" />
-
-	<int-gfe:outbound-channel-adapter id="adapter" region="region" channel="input" auto-startup="false" phase="2" >
-		<int-gfe:request-handler-advice-chain>
-			<bean class="org.springframework.integration.gemfire.config.xml.GemfireOutboundChannelAdapterParserTests$FooAdvice" />
-		</int-gfe:request-handler-advice-chain>
-	</int-gfe:outbound-channel-adapter>
-
-	<bean id="region" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.gemstone.gemfire.cache.Region" />
-	</bean>
+	<gfe:cache id="gemfire-cache-2"/>
+	
+	<gfe:replicated-region id="region1" cache-ref="gemfire-cache-2"/>
+	
+	<int-gfe:inbound-channel-adapter id="channel1" region="region1" cache-events="CREATED" expression="newValue" auto-startup="false" phase="2"/>
+	 
 </beans>

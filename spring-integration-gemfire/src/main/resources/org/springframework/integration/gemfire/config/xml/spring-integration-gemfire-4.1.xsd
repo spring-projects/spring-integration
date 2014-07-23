@@ -146,31 +146,9 @@
 				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:string" use="optional" />
-
-			<xsd:attribute name="auto-startup" default="true" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						Flag to indicate that the component should start automatically
-						on startup (default true).
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:boolean xsd:string" />
-				</xsd:simpleType>
-			</xsd:attribute>
-
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.messaging.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-
+			
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			
 			<xsd:attribute name="region" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
