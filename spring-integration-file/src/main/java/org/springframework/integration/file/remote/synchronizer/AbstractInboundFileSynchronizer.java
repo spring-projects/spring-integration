@@ -22,7 +22,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -33,6 +32,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
@@ -170,12 +170,28 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				public Integer doInSession(Session<F> session) throws IOException {
 					F[] files = session.list(AbstractInboundFileSynchronizer.this.remoteDirectory);
 					if (!ObjectUtils.isEmpty(files)) {
-						Collection<F> filteredFiles = AbstractInboundFileSynchronizer.this.filterFiles(files);
+						List<F> filteredFiles = AbstractInboundFileSynchronizer.this.filterFiles(files);
 						for (F file : filteredFiles) {
-							if (file != null) {
-								AbstractInboundFileSynchronizer.this.copyFileToLocalDirectory(
-										AbstractInboundFileSynchronizer.this.remoteDirectory, file, localDirectory,
-										session);
+							try {
+								if (file != null) {
+									AbstractInboundFileSynchronizer.this.copyFileToLocalDirectory(
+											AbstractInboundFileSynchronizer.this.remoteDirectory, file, localDirectory,
+											session);
+								}
+							}
+							catch (RuntimeException e) {
+								if (AbstractInboundFileSynchronizer.this.filter instanceof ReversibleFileListFilter) {
+									((ReversibleFileListFilter<F>) AbstractInboundFileSynchronizer.this.filter)
+											.rollback(file, filteredFiles);
+								}
+								throw e;
+							}
+							catch (IOException e) {
+								if (AbstractInboundFileSynchronizer.this.filter instanceof ReversibleFileListFilter) {
+									((ReversibleFileListFilter<F>) AbstractInboundFileSynchronizer.this.filter)
+											.rollback(file, filteredFiles);
+								}
+								throw e;
 							}
 						}
 						return filteredFiles.size();
@@ -194,7 +210,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 	}
 
-	private void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory, Session<F> session) throws IOException {
+	protected void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory,
+			Session<F> session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
 		String localFileName = this.generateLocalFileName(remoteFileName);
 		String remoteFilePath = remoteDirectoryPath + remoteFileSeparator + remoteFileName;
