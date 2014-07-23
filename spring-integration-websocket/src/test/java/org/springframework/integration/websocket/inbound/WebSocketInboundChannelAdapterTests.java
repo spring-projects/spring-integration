@@ -70,14 +70,21 @@ public class WebSocketInboundChannelAdapterTests {
 	private DirectChannel clientOutboundChannel;
 
 	@Autowired
+	IntegrationWebSocketContainer clientWebSocketContainer;
+
+	@Autowired
 	@Qualifier("webSocketChannel")
 	private QueueChannel webSocketChannel;
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testWebSocketOutboundMessageHandler() throws Exception {
+		WebSocketSession session = clientWebSocketContainer.getSession(null);
+		assertNotNull(session);
+
 		Map<String, WebSocketSession> sessions =
 				TestUtils.getPropertyValue(this.subProtocolWebSocketHandler, "sessions", Map.class);
+
 
 		assertEquals(1, sessions.size());
 

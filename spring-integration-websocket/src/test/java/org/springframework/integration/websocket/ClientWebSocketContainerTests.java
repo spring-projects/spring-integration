@@ -63,6 +63,7 @@ public class ClientWebSocketContainerTests {
 		container.setMessageListener(messageListener);
 
 		container.start();
+
 		WebSocketSession session = container.getSession(null);
 		assertNotNull(session);
 		assertTrue(session.isOpen());

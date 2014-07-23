@@ -28,6 +28,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.WebSocketListener;
+import org.springframework.integration.websocket.support.PassThruSubProtocolHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -82,6 +83,10 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	private volatile boolean mergeWithDefaultConverters = false;
 
 	private volatile boolean active;
+
+	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer) {
+		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
+	}
 
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer,
 			SubProtocolHandlerRegistry protocolHandlerRegistry) {

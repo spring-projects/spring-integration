@@ -24,6 +24,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
+import org.springframework.integration.websocket.support.PassThruSubProtocolHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
@@ -71,6 +72,10 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 	private volatile List<MessageConverter> messageConverters;
 
 	private volatile boolean mergeWithDefaultConverters = false;
+
+	public WebSocketOutboundMessageHandler(IntegrationWebSocketContainer webSocketContainer) {
+		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
+	}
 
 	public WebSocketOutboundMessageHandler(IntegrationWebSocketContainer webSocketContainer,
 			SubProtocolHandlerRegistry protocolHandlerRegistry) {

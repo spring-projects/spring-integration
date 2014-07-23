@@ -142,6 +142,8 @@ public class WebSocketClientTests {
 
 	}
 
+	// WebSocket Server part
+
 	@Configuration
 	@EnableIntegration
 	static class ServerFlowConfig extends TestServerConfig {
