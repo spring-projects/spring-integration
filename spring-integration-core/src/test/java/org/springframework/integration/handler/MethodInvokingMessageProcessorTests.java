@@ -506,6 +506,16 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals("FOO", helper.process(new GenericMessage<Object>(targetObject)));
 	}
 
+	@Test
+	public void testIneligible() {
+		IneligibleMethodBean bean = new IneligibleMethodBean();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo");
+		processor.processMessage(MessageBuilder.withPayload("true").build());
+		assertNotNull(bean.lastArg);
+		assertEquals(String.class, bean.lastArg.getClass());
+		assertEquals("true", bean.lastArg);
+	}
+
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
 
@@ -679,6 +689,22 @@ public class MethodInvokingMessageProcessorTests {
 		public String foo(String s) {
 			this.lastArg = s;
 			return s;
+		}
+
+	}
+
+	private static class IneligibleMethodBean {
+
+		private volatile Object lastArg = null;
+
+		@SuppressWarnings("unused")
+		public void foo(String s) {
+			this.lastArg = s;
+		}
+
+		@SuppressWarnings("unused")
+		public void foo(String s, int i) {
+			throw new RuntimeException("expected ineligible");
 		}
 
 	}
