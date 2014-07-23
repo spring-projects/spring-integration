@@ -273,10 +273,10 @@
               send-timeout=""                             ]]><co id="payload-enricher08-co" linkends="payload-enricher08" /><![CDATA[
               should-clone-payload="false">               ]]><co id="payload-enricher09-co" linkends="payload-enricher09" /><![CDATA[
     <int:poller></int:poller>                             ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
-    <int:property name="" expression=""/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
-    <int:property name="" value="23" type="java.lang.Integer"/>
-    <int:header name="" expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
-    <int:header name="" value="" overwrite="" type=""/>
+    <int:property name="" expression="" null-result-expression="'Could not determine the name'"/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
+    <int:property name="" value="23" type="java.lang.Integer" null-result-expression="'0'"/>
+    <int:header name="" expression="" null-result-expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
+    <int:header name="" value="" overwrite="" type="" null-result-expression=""/>
 </int:enricher>]]></programlisting>
 
 	        <para>
@@ -408,7 +408,7 @@
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
 	                    </para>
-						<para>
+	                    <para>
 							Starting with <emphasis>4.0</emphasis>, when specifying
 							a <code>value</code> attribute, you can also specify an optional
 							<code>type</code> attribute. When the destination is a
@@ -420,7 +420,12 @@
 							<code>type</code> attribute allows you to, say, convert
 							a String containing a number to an <classname>Integer</classname>
 							value in the target payload.
-						</para>
+	                    </para>
+	                    <para>
+                            Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+                            <code>null-result-expression</code> attribute. When the <code>enricher</code>
+                            returns null, it will be evaluated and the output of the evaluation will be returned instead.
+	                    </para>
 	                </callout>
 					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
 	                    <para>
@@ -435,12 +440,17 @@
                             input Message if there is no request channel, or the
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
-							Note, similar to the <code>&lt;header-enricher&gt;</code>, the <code>&lt;enricher&gt;</code>'s
-							<code>header</code> element has <code>type</code> and <code>overwrite</code> attributes.
-							However, a difference is that, with the <code>&lt;enricher&gt;</code>,
-							the <code>overwrite</code> attribute is <code>true</code> by default,
-							to be consistent with <code>&lt;enricher&gt;</code>'s
-							<code>&lt;property&gt;</code> sub-element.
+                            Note, similar to the <code>&lt;header-enricher&gt;</code>, the <code>&lt;enricher&gt;</code>'s
+                            <code>header</code> element has <code>type</code> and <code>overwrite</code> attributes.
+                            However, a difference is that, with the <code>&lt;enricher&gt;</code>,
+                            the <code>overwrite</code> attribute is <code>true</code> by default,
+                            to be consistent with <code>&lt;enricher&gt;</code>'s
+                            <code>&lt;property&gt;</code> sub-element.
+	                    </para>
+	                    <para>
+                            Starting with <emphasis>4.1</emphasis>, you can also specify an optional
+                            <code>null-result-expression</code> attribute. When the <code>enricher</code>
+                            returns null, it will be evaluated and the output of the evaluation will be returned instead.
 	                    </para>
 	                </callout>
 	            </calloutlist>

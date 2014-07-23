@@ -24,7 +24,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.transformer.ContentEnricher;
@@ -38,6 +40,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Liujiong
  * @since 2.1
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {
@@ -51,29 +54,31 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
-
 		List<Element> subElements = DomUtils.getChildElementsByTagName(element, "property");
 		if (!CollectionUtils.isEmpty(subElements)) {
 			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
+			ManagedMap<String, Object> nullResultExpressions = new ManagedMap<String, Object>();
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
 
 				String value = subElement.getAttribute("value");
 				String type = subElement.getAttribute("type");
 				String expression = subElement.getAttribute("expression");
-
+				String nullResultExpression = subElement.getAttribute("null-result-expression");
 				boolean hasAttributeValue = StringUtils.hasText(value);
 				boolean hasAttributeExpression = StringUtils.hasText(expression);
+				boolean hasAttributeNullResultExpression = StringUtils.hasText(nullResultExpression);
 
 				if (hasAttributeValue && hasAttributeExpression){
 					parserContext.getReaderContext().error("Only one of 'value' or 'expression' is allowed", element);
 				}
 
-				if (!hasAttributeValue && !hasAttributeExpression){
-					parserContext.getReaderContext().error("One of 'value' or 'expression' is required", element);
+				if (!hasAttributeValue && !hasAttributeExpression && !hasAttributeNullResultExpression){
+					parserContext.getReaderContext().error("One of 'value' or 'expression' or 'null-result-expression' is required", element);
 				}
 
-				BeanDefinition expressionDef;
+				BeanDefinition expressionDef = null;
+				BeanDefinition nullResultExpressionExpressionDef;
 
 				if (hasAttributeValue) {
 					BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ValueExpression.class);
@@ -85,7 +90,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					}
 					expressionDef = expressionBuilder.getBeanDefinition();
 				}
-				else {
+				else if (hasAttributeExpression) {
 					if (StringUtils.hasText(type)) {
 						parserContext.getReaderContext().error("The 'type' attribute for '<property>' of '<enricher>' " +
 										"is not allowed with an 'expression' attribute.", element);
@@ -95,36 +100,83 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 							.addConstructorArgValue(expression)
 							.getBeanDefinition();
 				}
-
-
-
-				expressions.put(name, expressionDef);
+				if (expressionDef != null){
+					expressions.put(name, expressionDef);
+				}
+				if (hasAttributeNullResultExpression) {
+					nullResultExpressionExpressionDef = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(nullResultExpression).getBeanDefinition();
+					nullResultExpressions.put(name, nullResultExpressionExpressionDef);
+				}
 			}
-			builder.addPropertyValue("propertyExpressions", expressions);
+			if (expressions.size() > 0) {
+				builder.addPropertyValue("propertyExpressions", expressions);
+			}
+			if (nullResultExpressions.size() > 0) {
+				builder.addPropertyValue("nullResultPropertyExpressions", nullResultExpressions);
+			}
 		}
 
 		subElements = DomUtils.getChildElementsByTagName(element, "header");
 		if (!CollectionUtils.isEmpty(subElements)) {
 			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
+			ManagedMap<String, Object> nullResultHeaderExpressions = new ManagedMap<String, Object>();
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
-				BeanDefinition expressionDefinition = IntegrationNamespaceUtils
-						.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
-								subElement, true);
+				String nullResultHeaderExpression = subElement.getAttribute("null-result-expression");
+				String valueElementValue = subElement.getAttribute("value");
+				String expressionElementValue = subElement.getAttribute("expression");
+				boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
+				boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
+				boolean hasAttributeNullResultExpression = StringUtils.hasText(nullResultHeaderExpression);
+				if (hasAttributeValue && hasAttributeExpression){
+					parserContext.getReaderContext().error("Only one of '" + "value" + "' or '"
+								+ "expression" + "' is allowed", subElement);
+				}
+
+				if (!hasAttributeValue && !hasAttributeExpression && !hasAttributeNullResultExpression){
+					parserContext.getReaderContext().error("One of 'value' or 'expression' or 'null-result-expression' is required", subElement);
+				}
+				BeanDefinition expressionDef = null;
+				if (hasAttributeValue) {
+					expressionDef = new RootBeanDefinition(LiteralExpression.class);
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
+				}
+				else if (hasAttributeExpression) {
+					expressionDef = IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("expression", subElement);
+				}
+
 				if (StringUtils.hasText(subElement.getAttribute("expression"))
 						&& StringUtils.hasText(subElement.getAttribute("type"))) {
 					parserContext.getReaderContext()
 							.warning("The use of a 'type' attribute is deprecated since 4.0 "
-									+ "when using 'expression'", element);
+									+ "when using 'expression'", subElement);
 				}
-				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
-						.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
-						.addConstructorArgValue(expressionDefinition)
-						.addConstructorArgValue(subElement.getAttribute("type"));
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
-				expressions.put(name, valueProcessorBuilder.getBeanDefinition());
+				if (expressionDef != null) {
+					BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
+							.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(expressionDef)
+							.addConstructorArgValue(subElement.getAttribute("type"));
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
+					expressions.put(name, valueProcessorBuilder.getBeanDefinition());
+				}
+				if (hasAttributeNullResultExpression) {
+					BeanDefinition nullResultExpressionDefinition = IntegrationNamespaceUtils
+							.createExpressionDefIfAttributeDefined("null-result-expression", subElement);
+					BeanDefinitionBuilder nullResultValueProcessorBuilder = BeanDefinitionBuilder
+							.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(nullResultExpressionDefinition)
+							.addConstructorArgValue(subElement.getAttribute("type"));
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(nullResultValueProcessorBuilder, subElement, "overwrite");
+					nullResultHeaderExpressions.put(name, nullResultValueProcessorBuilder.getBeanDefinition());
+				}
 			}
-			builder.addPropertyValue("headerExpressions", expressions);
+			if (expressions.size() > 0) {
+				builder.addPropertyValue("headerExpressions", expressions);
+			}
+			if (nullResultHeaderExpressions.size() > 0) {
+				builder.addPropertyValue("nullResultHeaderExpressions", nullResultHeaderExpressions);
+			}
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "should-clone-payload");

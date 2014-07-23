@@ -1458,6 +1458,14 @@
 				Sub-element type for the 'enricher' element.
 			]]></xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="null-result-expression" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					The expression to be evaluated, when the underlying enricher sub-flow returns null.
+					The evaluation context root object is requestMessage. 
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="name" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

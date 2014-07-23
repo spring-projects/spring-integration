@@ -653,7 +653,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception e) {
+				/* Some operation systems acquire exclusive file-lock during file processing
+				and the file can't be deleted without closing streams before.
+				*/
+				outputStream.close();
 				tempFile.delete();
+
 				if (e instanceof RuntimeException){
 					throw (RuntimeException) e;
 				}

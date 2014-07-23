@@ -89,5 +89,13 @@
 				See <xref linkend="aggregator-config"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-content-enricher-improvement">
+			<title>Content Enricher Improvements</title>
+			<para>
+				Add null-result-expression attribute,  which will be evaluated and returned if <code>&lt;enricher&gt;</code> returns null.
+				It can be added in <code>&lt;header&gt;</code> and <code>&lt;property&gt;</code>.
+				See <xref linkend="content-enricher"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
