@@ -31,7 +31,6 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.transformer.ContentEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -125,18 +124,18 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 			for (Element subElement : subElements) {
 				String name = subElement.getAttribute("name");
 				String nullResultHeaderExpression = subElement.getAttribute("null-result-expression");
-				String valueElementValue = element.getAttribute("value");
-				String expressionElementValue = element.getAttribute("expression");
+				String valueElementValue = subElement.getAttribute("value");
+				String expressionElementValue = subElement.getAttribute("expression");
 				boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
 				boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
 				boolean hasAttributeNullResultExpression = StringUtils.hasText(nullResultHeaderExpression);
 				if (hasAttributeValue && hasAttributeExpression){
 					parserContext.getReaderContext().error("Only one of '" + "value" + "' or '"
-								+ "expression" + "' is allowed", element);
+								+ "expression" + "' is allowed", subElement);
 				}
 
 				if (!hasAttributeValue && !hasAttributeExpression && !hasAttributeNullResultExpression){
-					parserContext.getReaderContext().error("One of value or expression or null-result-expression is required", element);
+					parserContext.getReaderContext().error("One of value or expression or null-result-expression is required", subElement);
 				}
 				BeanDefinition expressionDef = null;
 				if (hasAttributeValue) {
@@ -144,14 +143,14 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
 				}
 				else if (hasAttributeExpression) {
-					expressionDef = IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("expression", element);
+					expressionDef = IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("expression", subElement);
 				}
 				
 				if (StringUtils.hasText(subElement.getAttribute("expression"))
 						&& StringUtils.hasText(subElement.getAttribute("type"))) {
 					parserContext.getReaderContext()
 							.warning("The use of a 'type' attribute is deprecated since 4.0 "
-									+ "when using 'expression'", element);
+									+ "when using 'expression'", subElement);
 				}
 				if (expressionDef != null) {
 					BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder

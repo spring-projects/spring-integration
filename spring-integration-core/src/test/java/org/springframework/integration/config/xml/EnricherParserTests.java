@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -168,45 +167,6 @@ public class EnricherParserTests {
 		adviceCalled--;
 	}
 	
-	@Test(expected=ReplyRequiredException.class)
-	public void nullReplyTest() {
-		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
-
-		class Foo extends AbstractReplyProducingMessageHandler {
-
-			@Override
-			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return null;
-			}
-		}
-
-		Foo foo = new Foo();
-		foo.setOutputChannel(context.getBean("replies", MessageChannel.class));
-		requests.subscribe(foo);
-		Target original = new Target();
-		Message<?> request = MessageBuilder.withPayload(original)
-				.setHeader("sourceName", "test")
-				.setHeader("notOverwrite", "test")
-				.build();
-		context.getBean("input", MessageChannel.class).send(request);
-		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
-		Target enriched = (Target) reply.getPayload();
-		assertEquals("foo", enriched.getName());
-		assertEquals(42, enriched.getAge());
-		assertEquals(Gender.MALE, enriched.getGender());
-		assertTrue(enriched.isMarried());
-		assertNotSame(original, enriched);
-		assertEquals(1, adviceCalled);
-
-		MessageHeaders headers = reply.getHeaders();
-		assertEquals("bar", headers.get("foo"));
-		assertEquals(Gender.MALE, headers.get("testBean"));
-		assertEquals("foo", headers.get("sourceName"));
-		assertEquals("test", headers.get("notOverwrite"));
-		requests.unsubscribe(foo);
-		adviceCalled--;
-	}
-
 	@Test
 	public void testInt3027WrongHeaderType() {
 		MessageChannel input = context.getBean("input2", MessageChannel.class);

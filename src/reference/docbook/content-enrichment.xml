@@ -424,7 +424,7 @@
 	                    <para>
                             Starting with <emphasis>4.1</emphasis>, you can also specify an optional
                             <code>null-result-expression</code> attribute. When the <code>enricher</code>
-                            returns null, it will be evaluated and returned instead.
+                            returns null, it will be evaluated and the output of the evaluation will be returned instead.
 	                    </para>
 	                </callout>
 					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
@@ -450,7 +450,7 @@
 	                    <para>
                             Starting with <emphasis>4.1</emphasis>, you can also specify an optional
                             <code>null-result-expression</code> attribute. When the <code>enricher</code>
-                            returns null, it will be evaluated and returned instead.
+                            returns null, it will be evaluated and the output of the evaluation will be returned instead.
 	                    </para>
 	                </callout>
 	            </calloutlist>

@@ -39,10 +39,10 @@
 		<header name="notOverwrite" expression="payload.sourceName" overwrite="false" null-result-expression="'Could not determine the notOverwrite'"/>
 		
 		<request-handler-advice-chain>
-			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests$FooAdvice" />
+			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests4$FooAdvice" />
 		</request-handler-advice-chain>
 	</enricher>
 
-	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParserTests$Gender.MALE"/>
+	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParserTests4$Gender.MALE"/>
 
 </beans:beans>
