@@ -29,16 +29,34 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 @ManagedResource
 public interface RecipientListRouterManagement {
 
+	/**
+	 * Add a recipent with channelName and expression.
+	 * @param channelName The channel name.
+	 * @param expression The expression to filter the incoming message
+	 */
 	@ManagedOperation
 	void addRecipient(String channelName, String expression);
 	
+	/**
+	 * Add a recipent with channelName.
+	 * @param channelName The channel name.
+	 */
 	@ManagedOperation
 	void addRecipient(String channelName);
 	
+	/**
+	 * Remove all recipients that match the channelName.
+	 * @param channelName The channel name.
+	 */
 	@ManagedOperation
-	void removeRecipient(String channelName);
+	int removeRecipient(String channelName);
 
+	/**
+	 * Remove all recipients that match the channelName and expression
+	 * @param channelName The channel name.
+	 * @param expression The expression to filter the incoming message
+	 */
 	@ManagedOperation
-	void removeRecipient(String channelName, String selector);
+	int removeRecipient(String channelName, String expression);
 	
 }

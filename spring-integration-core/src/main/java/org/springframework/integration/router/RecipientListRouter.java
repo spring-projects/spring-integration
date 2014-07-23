@@ -163,30 +163,36 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
 	@Override
 	@ManagedOperation
-	public void removeRecipient(String channelName) {
+	public int removeRecipient(String channelName) {
+		int counter = 0;
 		ConcurrentLinkedQueue<Recipient> removeList = new ConcurrentLinkedQueue<Recipient>();
 		for (Recipient recipient : recipients) {
 			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
 			if (channel.getBeanName().equals(channelName)) {
 				removeList.add(recipient);
+				counter++;
 			}
 		}
 		recipients.removeAll(removeList);
+		return counter;
 	}
 	
 	@Override
 	@ManagedOperation
-	public void removeRecipient(String channelName, String selector) {
+	public int removeRecipient(String channelName, String selector) {
+		int counter = 0;
 		ConcurrentLinkedQueue<Recipient> removeList = new ConcurrentLinkedQueue<Recipient>();
 		for (Recipient recipient : recipients) {
 			AbstractMessageChannel channel = (AbstractMessageChannel) recipient.getChannel();
 			if (channel.getBeanName().equals(channelName)) {
 				ExpressionEvaluatingSelector sourceExpressionEvaluatingSelector = (ExpressionEvaluatingSelector) recipient.getSelector();
-				if (sourceExpressionEvaluatingSelector.getExpressionString().equals(selector)){
+				if (sourceExpressionEvaluatingSelector.getExpressionString().equals(selector)) {
 					removeList.add(recipient);
+					counter++;
 				}
 			}
 		}
 		recipients.removeAll(removeList);
+		return counter;
 	}
 }

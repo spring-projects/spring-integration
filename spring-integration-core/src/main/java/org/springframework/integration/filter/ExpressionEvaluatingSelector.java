@@ -65,4 +65,8 @@ public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelec
 		return true;
 	}
 	
+	public int hashCode() {
+		return expressionString.hashCode();
+	}
+	
 }
