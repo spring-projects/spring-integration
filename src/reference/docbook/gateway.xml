@@ -531,24 +531,10 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
 	Streams.defer(Arrays.asList("1", "2", "3", "4", "5"))
 			.env(this.environment)
 			.get()
-			.map(new Function&lt;String, Integer>() {
-					@Override
-					public Integer apply(String s) {
-					return Integer.parseInt(s);
-					}
-			})
-			.mapMany(new Function&lt;Integer, Composable&lt;Integer>>() {
-					@Override
-					public Composable&lt;Integer> apply(Integer integer) {
-						return testGateway.multiply(integer);
-					}
-			})
-			.consume(new Consumer&lt;Integer>() {
-					@Override
-					public void accept(Integer integer) {
-						System.out.println(integer);
-					}
-			})
+			.map(Integer::parseInt)
+			.mapMany(integer -> testGateway.multiply(integer))
+			.collect()
+			.consume(integers -> ...)
 			.flush();</programlisting>
 	</para>
   </section>
