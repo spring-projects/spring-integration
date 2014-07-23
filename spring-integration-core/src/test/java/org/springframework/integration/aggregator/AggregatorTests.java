@@ -13,9 +13,13 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -237,6 +241,38 @@ public class AggregatorTests {
 		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
 		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
 		assertEquals(false, this.expiryEvents.get(0).isDiscarded());
+		Message<?> message3 = createMessage(5, "ABC", 3, 3, replyChannel, null);
+		this.aggregator.handleMessage(message3);
+		assertEquals(1, this.store.getMessageGroup("ABC").size());
+	}
+
+	@Test
+	public void testGroupRemainsAfterTimeout() throws InterruptedException {
+		this.aggregator.setSendPartialResultOnExpiry(true);
+		this.aggregator.setExpireGroupsUponTimeout(false);
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		this.aggregator.setDiscardChannel(discardChannel);
+		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
+		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
+		this.aggregator.handleMessage(message1);
+		this.aggregator.handleMessage(message2);
+		this.store.expireMessageGroups(-10000);
+		Message<?> reply = replyChannel.receive(1000);
+		assertNotNull("A reply message should have been received", reply);
+		assertEquals(15, reply.getPayload());
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
+		assertEquals(false, this.expiryEvents.get(0).isDiscarded());
+		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		Message<?> message3 = createMessage(5, "ABC", 3, 3, replyChannel, null);
+		this.aggregator.handleMessage(message3);
+		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		Message<?> discardedMessage = discardChannel.receive(1000);
+		assertNotNull("A message should have been discarded", discardedMessage);
+		assertSame(message3, discardedMessage);
 	}
 
 	@Test
