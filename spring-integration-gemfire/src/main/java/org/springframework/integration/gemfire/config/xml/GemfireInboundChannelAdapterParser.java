@@ -42,7 +42,7 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 	private static final String SUPPORTED_EVENT_TYPES_PROPERTY = "supportedEventTypes";
 
 	private static final String CACHE_EVENTS_ATTRIBUTE = "cache-events";
-
+	
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder listeningMessageProducer = BeanDefinitionBuilder.genericBeanDefinition(CacheListeningMessageProducer.class);
@@ -57,7 +57,6 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 
 		listeningMessageProducer.addPropertyReference(OUTPUT_CHANNEL_PROPERTY, channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(listeningMessageProducer, element, ERROR_CHANNEL_ATTRIBUTE);
-
 		return listeningMessageProducer.getBeanDefinition();
 	}
 

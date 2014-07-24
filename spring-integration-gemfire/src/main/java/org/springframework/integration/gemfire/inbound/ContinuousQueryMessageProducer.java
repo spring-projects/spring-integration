@@ -44,6 +44,7 @@ import com.gemstone.gemfire.cache.query.CqEvent;
  *
  */
 public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSupport implements ContinuousQueryListener {
+
 	private static Log logger = LogFactory.getLog(ContinuousQueryMessageProducer.class);
 
 	private final String query;
@@ -53,7 +54,7 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 	private volatile String queryName;
 
 	private boolean durable;
-
+	
 	private volatile Set<CqEventType> supportedEventTypes = new HashSet<CqEventType>(Arrays.asList(CqEventType.CREATED,
 			CqEventType.UPDATED));
 

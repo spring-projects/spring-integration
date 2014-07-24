@@ -46,7 +46,7 @@ public class CacheWritingMessageHandler extends AbstractMessageHandler {
 	private final Map<Expression, Expression> cacheEntryExpressions = new LinkedHashMap<Expression, Expression>();
 
 	private final GemfireTemplate gemfireTemplate = new GemfireTemplate();
-
+	
 	@SuppressWarnings("rawtypes")
 	public CacheWritingMessageHandler(Region region) {
 		Assert.notNull(region, "region must not be null");

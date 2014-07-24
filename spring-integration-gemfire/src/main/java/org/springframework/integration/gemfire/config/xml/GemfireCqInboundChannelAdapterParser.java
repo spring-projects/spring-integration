@@ -50,8 +50,7 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 	private static final String SUPPORTED_EVENT_TYPES_PROPERTY = "supportedEventTypes";
 
 	private static final String QUERY_EVENTS_ATTRIBUTE = "query-events";
-
-
+	
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder continuousQueryMesageProducer = BeanDefinitionBuilder.genericBeanDefinition(ContinuousQueryMessageProducer.class);
@@ -74,7 +73,6 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_NAME_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, DURABLE_ATTRIBUTE);
-
 		return continuousQueryMesageProducer.getBeanDefinition();
 	}
 

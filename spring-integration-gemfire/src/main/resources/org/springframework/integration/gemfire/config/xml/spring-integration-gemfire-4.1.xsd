@@ -28,7 +28,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="InboundChannelAdapterType">
-
+				
 					<xsd:attribute name="region" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -146,20 +146,9 @@
 				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:string" use="optional" />
-
-
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.messaging.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-
+			
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			
 			<xsd:attribute name="region" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -184,6 +173,7 @@
 
 	<xsd:complexType name="InboundChannelAdapterType">
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+		
 		<xsd:attribute name="error-channel" type="xsd:string"
 			use="optional">
 			<xsd:annotation>
