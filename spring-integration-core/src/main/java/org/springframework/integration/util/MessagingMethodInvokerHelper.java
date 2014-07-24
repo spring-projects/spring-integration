@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,13 +50,13 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -168,7 +168,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		Assert.notNull(targetObject, "targetObject must not be null");
 		this.targetObject = targetObject;
-		this.handlerMethod =  new HandlerMethod(method, canProcessMessageList);
+		try {
+			this.handlerMethod =  new HandlerMethod(method, canProcessMessageList);
+		}
+		catch (IneligibleMethodException e) {
+			throw new IllegalArgumentException(e);
+		}
 		this.handlerMethods = null;
 		this.handlerMessageMethods = null;
 		this.handlerMethodsList = null;
@@ -327,6 +332,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				HandlerMethod handlerMethod = null;
 				try {
 					handlerMethod = new HandlerMethod(method, canProcessMessageList);
+				}
+				catch (IneligibleMethodException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Method [" + method + "] is not eligible for Message handling "
+								+ e.getMessage() + ".");
+					}
+					return;
 				}
 				catch (Exception e) {
 					if (logger.isDebugEnabled()) {
@@ -741,8 +753,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		private synchronized void setExclusiveTargetParameterType(TypeDescriptor targetParameterType, MethodParameter methodParameter) {
-			Assert.isNull(this.targetParameterTypeDescriptor, "Found more than one parameter type candidate: ["
+			if (this.targetParameterTypeDescriptor != null) {
+				throw new IneligibleMethodException("Found more than one parameter type candidate: ["
 					+ this.targetParameterTypeDescriptor + "] and [" + targetParameterType + "]");
+			}
 			this.targetParameterTypeDescriptor = targetParameterType;
 			if (Message.class.isAssignableFrom(targetParameterType.getObjectType())) {
 				methodParameter.increaseNestingLevel();
@@ -802,6 +816,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				return payload.getClass();
 			}
 			return this.messages.getClass();
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private static class IneligibleMethodException extends RuntimeException {
+
+		private IneligibleMethodException(String message) {
+			super(message);
 		}
 
 	}
