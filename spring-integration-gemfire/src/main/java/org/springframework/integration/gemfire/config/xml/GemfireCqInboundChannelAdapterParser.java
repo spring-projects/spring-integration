@@ -51,9 +51,6 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 
 	private static final String QUERY_EVENTS_ATTRIBUTE = "query-events";
 	
-	private static final String AUTO_STARTUP = "auto-startup";
-
-
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder continuousQueryMesageProducer = BeanDefinitionBuilder.genericBeanDefinition(ContinuousQueryMessageProducer.class);
@@ -76,9 +73,6 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_NAME_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, DURABLE_ATTRIBUTE);
-		if (element.hasAttribute(AUTO_STARTUP)){
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, AUTO_STARTUP);
-		}
 		return continuousQueryMesageProducer.getBeanDefinition();
 	}
 

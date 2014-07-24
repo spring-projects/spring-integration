@@ -43,8 +43,6 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 
 	private static final String CACHE_EVENTS_ATTRIBUTE = "cache-events";
 	
-	private static final String AUTO_STARTUP = "auto-startup";
-
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder listeningMessageProducer = BeanDefinitionBuilder.genericBeanDefinition(CacheListeningMessageProducer.class);
@@ -59,9 +57,6 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 
 		listeningMessageProducer.addPropertyReference(OUTPUT_CHANNEL_PROPERTY, channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(listeningMessageProducer, element, ERROR_CHANNEL_ATTRIBUTE);
-		if (element.hasAttribute(AUTO_STARTUP)){
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element, AUTO_STARTUP);
-		}
 		return listeningMessageProducer.getBeanDefinition();
 	}
 

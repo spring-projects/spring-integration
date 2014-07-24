@@ -39,7 +39,7 @@ public class GemfireCqInboundChannelAdapterParserTests {
     private GemfireCqInboundChannelAdapterParser underTest = new GemfireCqInboundChannelAdapterParser();
 
     @Autowired
-	@Qualifier ("withDurable")
+    @Qualifier ("withDurable")
     ContinuousQueryMessageProducer adapter;
     
     @Test(expected = BeanDefinitionParsingException.class)
