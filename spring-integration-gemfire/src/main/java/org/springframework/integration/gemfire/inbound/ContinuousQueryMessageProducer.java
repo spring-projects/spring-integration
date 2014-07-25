@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.gemstone.gemfire.cache.query.CqEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,8 +30,6 @@ import org.springframework.data.gemfire.listener.ContinuousQueryListenerContaine
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import com.gemstone.gemfire.cache.query.CqEvent;
 
 /**
  * Responds to a Gemfire continuous query (set using the #query field) that is
@@ -43,7 +42,9 @@ import com.gemstone.gemfire.cache.query.CqEvent;
  * @since 2.1
  *
  */
-public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSupport implements ContinuousQueryListener {
+public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSupport
+		implements ContinuousQueryListener {
+
 	private static Log logger = LogFactory.getLog(ContinuousQueryMessageProducer.class);
 
 	private final String query;
@@ -102,7 +103,8 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.query, this, this.durable));
 		}
 		else {
-			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.queryName, this.query, this, this.durable));
+			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.queryName, this.query, this,
+					this.durable));
 		}
 	}
 
@@ -120,17 +122,18 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getQueryOperation()
 						.toString(), event.getKey()));
 			}
-			Message<?> cqEventMessage = this.getMessageBuilderFactory().withPayload(evaluatePayloadExpression(event)).build();
+			Message<?> cqEventMessage = this.getMessageBuilderFactory().withPayload(evaluatePayloadExpression(event))
+					.build();
 			sendMessage(cqEventMessage);
 		}
 	}
 
 	private boolean isEventSupported(CqEvent event) {
 
-		 String eventName = event.getQueryOperation().toString() +
-		 	(event.getQueryOperation().toString().endsWith("Y")? "ED" : "D");
-		 CqEventType eventType = CqEventType.valueOf(eventName);
-		 return supportedEventTypes.contains(eventType);
+		String eventName = event.getQueryOperation().toString() +
+				(event.getQueryOperation().toString().endsWith("Y") ? "ED" : "D");
+		CqEventType eventType = CqEventType.valueOf(eventName);
+		return supportedEventTypes.contains(eventType);
 	}
 
 }

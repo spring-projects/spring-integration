@@ -38,24 +38,24 @@ public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannel
 	private static final String REGION_ATTRIBUTE = "region";
 
 	/* (non-Javadoc)
-	 * @see org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser#parseConsumer(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
+	 * @see AbstractOutboundChannelAdapterParser#parseConsumer(Element, ParserContext)
 	 */
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder cacheWritingMessageHandler = BeanDefinitionBuilder.genericBeanDefinition(
 				CacheWritingMessageHandler.class);
-		if (!element.hasAttribute(REGION_ATTRIBUTE)){
-			parserContext.getReaderContext().error("'region' attribute is required.",element);
+		if (!element.hasAttribute(REGION_ATTRIBUTE)) {
+			parserContext.getReaderContext().error("'region' attribute is required.", element);
 		}
 
 		cacheWritingMessageHandler.addConstructorArgReference(element.getAttribute(REGION_ATTRIBUTE));
 
-		Element cacheEntries = DomUtils.getChildElementByTagName(element,CACHE_ENTRIES_ELEMENT);
+		Element cacheEntries = DomUtils.getChildElementByTagName(element, CACHE_ENTRIES_ELEMENT);
 		if (cacheEntries != null) {
-			Map<?,?> map = parserContext.getDelegate().parseMapElement(cacheEntries,cacheWritingMessageHandler.getBeanDefinition());
+			Map<?, ?> map = parserContext.getDelegate()
+					.parseMapElement(cacheEntries, cacheWritingMessageHandler.getBeanDefinition());
 			cacheWritingMessageHandler.addPropertyValue(CACHE_ENTRIES_PROPERTY, map);
 		}
-
 		return cacheWritingMessageHandler.getBeanDefinition();
 	}
 }

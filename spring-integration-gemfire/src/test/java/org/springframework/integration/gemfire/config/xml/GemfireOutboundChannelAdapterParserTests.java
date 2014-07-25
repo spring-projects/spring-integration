@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,23 +18,39 @@ import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.loadXMLFrom;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.support.GenericMessage;
-import org.w3c.dom.Element;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dan Oxlade
+ * @author Liujiong
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class GemfireOutboundChannelAdapterParserTests {
 
 	private GemfireOutboundChannelAdapterParser underTest = new GemfireOutboundChannelAdapterParser();
 
 	private volatile static int adviceCalled;
+
+	@Autowired
+	@Qualifier("adapter")
+	ConsumerEndpointFactoryBean adapter1;
+
+	@Autowired
+	ApplicationContext ctx;
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void regionIsARequiredAttribute() throws Exception {
@@ -45,10 +61,20 @@ public class GemfireOutboundChannelAdapterParserTests {
 
 	@Test
 	public void withAdvice() {
-		ApplicationContext ctx = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-context.xml", this.getClass());
+		adapter1.start();
 		MessageChannel channel = ctx.getBean("input", MessageChannel.class);
 		channel.send(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+	}
+
+	@Test
+	public void testPhase() {
+		assertEquals(2, adapter1.getPhase());
+	}
+
+	@Test
+	public void testAutoStart() {
+		assertEquals(false, adapter1.isAutoStartup());
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

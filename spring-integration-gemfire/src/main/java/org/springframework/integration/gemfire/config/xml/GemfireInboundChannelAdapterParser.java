@@ -45,19 +45,22 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder listeningMessageProducer = BeanDefinitionBuilder.genericBeanDefinition(CacheListeningMessageProducer.class);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element, EXPRESSION_ATTRIBUTE,PAYLOAD_EXPRESSION_PROPERTY);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element, CACHE_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
+		BeanDefinitionBuilder listeningMessageProducer =
+				BeanDefinitionBuilder.genericBeanDefinition(CacheListeningMessageProducer.class);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element,
+				EXPRESSION_ATTRIBUTE, PAYLOAD_EXPRESSION_PROPERTY);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element,
+				CACHE_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 
-		if (!element.hasAttribute(REGION_ATTRIBUTE)){
-			parserContext.getReaderContext().error("'region' attribute is required.",element);
+		if (!element.hasAttribute(REGION_ATTRIBUTE)) {
+			parserContext.getReaderContext().error("'region' attribute is required.", element);
 		}
 
 		listeningMessageProducer.addConstructorArgReference(element.getAttribute(REGION_ATTRIBUTE));
 
 		listeningMessageProducer.addPropertyReference(OUTPUT_CHANNEL_PROPERTY, channelName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(listeningMessageProducer, element, ERROR_CHANNEL_ATTRIBUTE);
-
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(listeningMessageProducer, element,
+				ERROR_CHANNEL_ATTRIBUTE);
 		return listeningMessageProducer.getBeanDefinition();
 	}
 

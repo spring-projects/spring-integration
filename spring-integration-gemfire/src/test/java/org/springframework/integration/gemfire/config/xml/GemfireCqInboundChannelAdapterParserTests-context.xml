@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
+		http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
+		http://www.springframework.org/schema/gemfire
+		http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util
+		http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder properties-ref="props" />
+
+	<util:properties id="props">
+		<prop key="durable">true</prop>
+	</util:properties>
+
+	<bean id="queryListenerContainer" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer"/>
+	</bean>
+
+	<int-gfe:cq-inbound-channel-adapter id="withDurable"
+										cq-listener-container="queryListenerContainer" query="select * from /test"
+										channel="outputChannel1" durable="${durable}" auto-startup="false" phase="2"/>
+
+	<int:channel id="outputChannel1">
+		<int:queue/>
+	</int:channel>
+
+
+</beans>

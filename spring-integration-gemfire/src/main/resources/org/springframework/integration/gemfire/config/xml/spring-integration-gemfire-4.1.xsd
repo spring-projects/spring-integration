@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/gemfire"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:tool="http://www.springframework.org/schema/tool"
-	xmlns:integration="http://www.springframework.org/schema/integration"
-	targetNamespace="http://www.springframework.org/schema/integration/gemfire"
-	elementFormDefault="qualified" attributeFormDefault="unqualified">
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/gemfire"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
-		schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd" />
-	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+				schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.1.xsd" />
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.1.xsd"/>
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
 	Defines the core configuration elements for Spring Integration GemFire Support.
@@ -33,14 +33,14 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="com.gemstone.gemfire.cache.Region" />
+									<tool:expected-type type="com.gemstone.gemfire.cache.Region"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 
 					<xsd:attribute name="cache-events" type="xsd:string"
-						use="optional" default="CREATED,UPDATED">
+								   use="optional" default="CREATED,UPDATED">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 						Enabled cache entry event types
@@ -48,7 +48,7 @@
 							<xsd:appinfo>
 								<tool:annotation kind="value">
 									<tool:expected-type
-										type="org.springframework.integration.gemfire.inbound.EventType" />
+											type="org.springframework.integration.gemfire.inbound.EventType"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -70,20 +70,20 @@
 			<xsd:complexContent>
 				<xsd:extension base="InboundChannelAdapterType">
 					<xsd:attribute name="cq-listener-container" use="required">
-					<xsd:annotation>
+						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 						Reference to a ContinuousQueryListenerContainer
 				]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="value">
 									<tool:expected-type
-										type="org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer" />
+											type="org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="query-events" type="xsd:string"
-						use="optional" default="CREATED,UPDATED">
+								   use="optional" default="CREATED,UPDATED">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 						Enabled continuous query event types
@@ -91,24 +91,24 @@
 							<xsd:appinfo>
 								<tool:annotation kind="value">
 									<tool:expected-type
-										type="org.springframework.integration.gemfire.inbound.CqEventType" />
+											type="org.springframework.integration.gemfire.inbound.CqEventType"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="query" use="required" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation><![CDATA[
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
 						The query string
 				]]></xsd:documentation>
-				</xsd:annotation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="query-name" use="optional" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation><![CDATA[
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
 						The query name
 				]]></xsd:documentation>
-				</xsd:annotation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="durable" use="optional" default="false">
 						<xsd:annotation>
@@ -121,7 +121,7 @@
 						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
-		</xsd:complexContent>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -136,35 +136,25 @@
 			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element name="cache-entries" type="beans:mapType"
-					minOccurs="0" maxOccurs="1">
+							 minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation>
 							A map of SpEL expressions used to create cache entries. If not
 							provided, payload must be a Map
-					</xsd:documentation>
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0"
+							 maxOccurs="1"/>
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:string" use="optional" />
 
-
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.messaging.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 
 			<xsd:attribute name="region" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.gemstone.gemfire.cache.Region" />
+							<tool:expected-type type="com.gemstone.gemfire.cache.Region"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -184,8 +174,9 @@
 
 	<xsd:complexType name="InboundChannelAdapterType">
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+
 		<xsd:attribute name="error-channel" type="xsd:string"
-			use="optional">
+					   use="optional">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -196,7 +187,7 @@
 							reference to the "nullChannel" here.
 						]]></xsd:documentation>
 						<tool:expected-type
-							type="org.springframework.messaging.MessageChannel" />
+								type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

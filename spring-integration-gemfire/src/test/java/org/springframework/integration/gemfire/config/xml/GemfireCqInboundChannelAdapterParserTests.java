@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,31 +13,56 @@
 
 package org.springframework.integration.gemfire.config.xml;
 
-import org.junit.Test;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.w3c.dom.Element;
-
+import static org.junit.Assert.assertEquals;
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.createFakeParserContext;
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.loadXMLFrom;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 /**
  * @author Dan Oxlade
+ * @author Liujiong
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class GemfireCqInboundChannelAdapterParserTests {
 
-    private GemfireCqInboundChannelAdapterParser underTest = new GemfireCqInboundChannelAdapterParser();
+	private GemfireCqInboundChannelAdapterParser underTest = new GemfireCqInboundChannelAdapterParser();
 
-    @Test(expected = BeanDefinitionParsingException.class)
-    public void cqListenerContainerIsARequiredAttribute() throws Exception {
-        String xml = "<cq-inbound-channel-adapter query=\"some-query\"/>";
-        Element element = loadXMLFrom(xml).getDocumentElement();
-        underTest.doParse(element, createFakeParserContext(), null);
-    }
+	@Autowired
+	@Qualifier("withDurable")
+	ContinuousQueryMessageProducer adapter;
 
-    @Test(expected = BeanDefinitionParsingException.class)
-    public void queryIsARequiredAttribute() throws Exception {
-        String xml = "<cq-inbound-channel-adapter cq-listener-container=\"some-reference\" />";
-        Element element = loadXMLFrom(xml).getDocumentElement();
-        underTest.doParse(element, createFakeParserContext(), null);
-    }
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void cqListenerContainerIsARequiredAttribute() throws Exception {
+		String xml = "<cq-inbound-channel-adapter query=\"some-query\"/>";
+		Element element = loadXMLFrom(xml).getDocumentElement();
+		underTest.doParse(element, createFakeParserContext(), null);
+	}
+
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void queryIsARequiredAttribute() throws Exception {
+		String xml = "<cq-inbound-channel-adapter cq-listener-container=\"some-reference\" />";
+		Element element = loadXMLFrom(xml).getDocumentElement();
+		underTest.doParse(element, createFakeParserContext(), null);
+	}
+
+	@Test
+	public void testPhase() {
+		assertEquals(2, adapter.getPhase());
+	}
+
+	@Test
+	public void testAutoStartup() {
+		assertEquals(false, adapter.isAutoStartup());
+	}
 }

@@ -51,30 +51,33 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 
 	private static final String QUERY_EVENTS_ATTRIBUTE = "query-events";
 
-
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder continuousQueryMesageProducer = BeanDefinitionBuilder.genericBeanDefinition(ContinuousQueryMessageProducer.class);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, EXPRESSION_ATTRIBUTE,PAYLOAD_EXPRESSION_PROPERTY);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
+		BeanDefinitionBuilder continuousQueryMesageProducer =
+				BeanDefinitionBuilder.genericBeanDefinition(ContinuousQueryMessageProducer.class);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element,
+				EXPRESSION_ATTRIBUTE, PAYLOAD_EXPRESSION_PROPERTY);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element,
+				QUERY_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 
-		if (!element.hasAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE)){
-			parserContext.getReaderContext().error("'" + QUERY_LISTENER_CONTAINER_ATTRIBUTE + "' attribute is required.",element);
+		if (!element.hasAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE)) {
+			parserContext.getReaderContext()
+					.error("'" + QUERY_LISTENER_CONTAINER_ATTRIBUTE + "' attribute is required.", element);
 		}
 
-		if (!element.hasAttribute(QUERY_ATTRIBUTE)){
-			parserContext.getReaderContext().error("'" + QUERY_ATTRIBUTE + "' attribute is required.",element);
+		if (!element.hasAttribute(QUERY_ATTRIBUTE)) {
+			parserContext.getReaderContext().error("'" + QUERY_ATTRIBUTE + "' attribute is required.", element);
 		}
 
 		continuousQueryMesageProducer.addConstructorArgReference(element.getAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE));
 		continuousQueryMesageProducer.addConstructorArgValue(element.getAttribute(QUERY_ATTRIBUTE));
 
 		continuousQueryMesageProducer.addPropertyReference(OUTPUT_CHANNEL_PROPERTY, channelName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(continuousQueryMesageProducer, element, ERROR_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(continuousQueryMesageProducer, element,
+				ERROR_CHANNEL_ATTRIBUTE);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_NAME_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, DURABLE_ATTRIBUTE);
-
 		return continuousQueryMesageProducer.getBeanDefinition();
 	}
 
