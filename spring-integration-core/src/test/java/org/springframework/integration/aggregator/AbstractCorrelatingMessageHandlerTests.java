@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
@@ -30,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +50,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -284,7 +287,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		Method forceComplete = AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
+		Method forceComplete =
+				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
 		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
 		GenericMessage<String> secondMessage = new GenericMessage<String>("bar");
@@ -321,9 +325,11 @@ public class AbstractCorrelatingMessageHandlerTests {
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
-		Method forceComplete = AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
+		Method forceComplete =
+				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		MessageGroup group = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class).get("foo");
+		MessageGroup group = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
+				.get("foo");
 		assertTrue(group.isComplete());
 		forceComplete.invoke(handler, group);
 		verify(mgs, never()).getMessageGroup("foo");
@@ -353,9 +359,11 @@ public class AbstractCorrelatingMessageHandlerTests {
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
-		Method forceComplete = AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
+		Method forceComplete =
+				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class).get("foo");
+		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
+				.get("foo");
 		assertTrue(groupInStore.isComplete());
 		assertFalse(group.isComplete());
 		new DirectFieldAccessor(group).setPropertyValue("lastModified", groupInStore.getLastModified());
@@ -386,9 +394,11 @@ public class AbstractCorrelatingMessageHandlerTests {
 		MessageGroup group = mgs.getMessageGroup("foo");
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
-		Method forceComplete = AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
+		Method forceComplete =
+				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class).get("foo");
+		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
+				.get("foo");
 		assertFalse(groupInStore.isComplete());
 		assertFalse(group.isComplete());
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(group);
@@ -397,6 +407,65 @@ public class AbstractCorrelatingMessageHandlerTests {
 		forceComplete.invoke(handler, group);
 		verify(mgs).getMessageGroup("foo");
 		assertNull(outputChannel.receive(0));
+	}
+
+	@Test
+	public void testInt3483DeadlockOnMessageStoreRemoveMessageGroup() throws InterruptedException {
+		final AggregatingMessageHandler handler =
+				new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
+		handler.setOutputChannel(new QueueChannel());
+		QueueChannel discardChannel = new QueueChannel();
+		handler.setDiscardChannel(discardChannel);
+		handler.setReleaseStrategy(new ReleaseStrategy() {
+
+			@Override
+			public boolean canRelease(MessageGroup group) {
+				return true;
+			}
+
+		});
+		handler.setSendPartialResultOnExpiry(true);
+		SimpleMessageStore messageStore = new SimpleMessageStore() {
+			@Override
+			public void removeMessageGroup(Object groupId) {
+				throw new RuntimeException("intentional");
+			}
+		};
+		handler.setMessageStore(messageStore);
+		handler.handleMessage(MessageBuilder.withPayload("foo")
+				.setCorrelationId(1)
+				.setSequenceNumber(1)
+				.setSequenceSize(2)
+				.build());
+
+		try {
+			messageStore.expireMessageGroups(0);
+		}
+		catch (Exception e) {
+			//suppress an intentional 'removeMessageGroup' exception
+		}
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(new Runnable() {
+			@Override
+			public void run() {
+				handler.handleMessage(MessageBuilder.withPayload("foo")
+						.setCorrelationId(1)
+						.setSequenceNumber(2)
+						.setSequenceSize(2)
+						.build());
+			}
+		});
+		executorService.shutdown();
+		/* Previously lock for the groupId hasn't been unlocked from the 'forceComplete', because it wasn't
+		 reachable in case of exception from the BasicMessageGroupStore.removeMessageGroup
+		  */
+		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
+
+		/* Since MessageGroup had been marked as 'complete', but hasn't been removed because of exception,
+		 the second message is discarded
+		  */
+		Message<?> receive = discardChannel.receive(1000);
+		assertNotNull(receive);
 	}
 
 }

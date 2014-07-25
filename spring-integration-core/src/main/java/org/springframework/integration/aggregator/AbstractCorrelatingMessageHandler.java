@@ -324,10 +324,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				}
 			}
 			finally {
-				if (removeGroup) {
-					this.remove(group);
+				try {
+					if (removeGroup) {
+						this.remove(group);
+					}
 				}
-				lock.unlock();
+				finally {
+					lock.unlock();
+				}
 			}
 		}
 		catch (InterruptedException ie) {
