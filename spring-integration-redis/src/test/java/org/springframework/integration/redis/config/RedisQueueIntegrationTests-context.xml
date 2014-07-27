@@ -3,8 +3,10 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	   xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 	<bean id="redisConnectionFactory"
@@ -12,12 +14,22 @@
 		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
 
-	<int:chain input-channel="toRedisQueueChannel">
-		<int-redis:queue-outbound-gateway queue-expression="payload"
-												  extract-payload="false"
-												  serializer="testSerializer"/>
-	</int:chain>
+	<bean id="customRedisConnectionFactory" parent="redisConnectionFactory"/>
 
-	<bean id="testSerializer" class="org.springframework.integration.redis.util.CustomJsonSerializer"/>
+	<int:channel id="sendChannel"/>
+	
+	<int:channel id="outputChannel"/>
+
+	<int-redis:queue-outbound-gateway id="defaultAdapter" channel="sendChannel" queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel">
+		<int-redis:request-handler-advice-chain>
+			<int:retry-advice/>
+		</int-redis:request-handler-advice-chain>
+	</int-redis:queue-outbound-gateway>
+
+	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+	
+	<int-redis:queue-inbound-channel-adapter id="defaultInAdapter" queue="foo"/>
+	
+	<int-stream:stdout-channel-adapter id="outputChannel"/>
 
 </beans>

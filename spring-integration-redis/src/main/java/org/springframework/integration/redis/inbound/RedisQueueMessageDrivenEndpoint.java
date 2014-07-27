@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author David Liu
  * @since 3.0
  */
 @ManagedResource
@@ -62,6 +63,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	private volatile Executor taskExecutor;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+	
+	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+	
+	private static final String REPLYMESSAGE = "OK";
 
 	private volatile boolean expectMessage = false;
 
@@ -74,7 +79,11 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	private volatile boolean active;
 
 	private volatile boolean listening;
-
+	
+	private volatile boolean expectReply;
+	
+	private volatile RedisTemplate<String, byte[]> template = null;
+	
 	/**
 	 * @param queueName         Must not be an empty String
 	 * @param connectionFactory Must not be null
@@ -82,12 +91,16 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	public RedisQueueMessageDrivenEndpoint(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		RedisTemplate<String, byte[]> template = new RedisTemplate<String, byte[]>();
+		template = new RedisTemplate<String, byte[]>();
 		template.setConnectionFactory(connectionFactory);
 		template.setEnableDefaultSerializer(false);
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
 		this.boundListOperations = template.boundListOps(queueName);
+	}
+	
+	public void setExpectReply(boolean expectReply) {
+		this.expectReply = expectReply;
 	}
 
 	@Override
@@ -184,16 +197,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		}
 		catch (Exception e) {
-			this.listening = false;
-			if (this.active) {
-				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
-						+ " milliseconds.", e);
-				this.publishException(e);
-				this.sleepBeforeRecoveryAttempt();
-			}
-			else {
-				logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
-			}
+			handlePopException(e);
 			return;
 		}
 
@@ -214,7 +218,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				message = this.getMessageBuilderFactory().withPayload(payload).build();
 			}
 		}
-
+		
 		if (message != null) {
 			if (this.listening) {
 				this.sendMessage(message);
@@ -222,6 +226,48 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			else {
 				this.boundListOperations.rightPush(value);
 			}
+		}
+	}
+	
+	private void handlePopException(Exception e) {
+		this.listening = false;
+		if (this.active) {
+			logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
+					+ " milliseconds.", e);
+			this.publishException(e);
+			this.sleepBeforeRecoveryAttempt();
+		}
+		else {
+			logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
+		}
+	}
+	
+	private void popMessageWithHeaderAndSend() {
+		byte[] value = null;
+		try {
+			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+		}
+		catch (Exception e) {
+			handlePopException(e);
+			return;
+		}
+		String uuid = null;
+		if (value != null) {
+			uuid = stringSerializer.deserialize(value);
+		}
+		try {
+			value = template.boundListOps(uuid+"").rightPop();
+		}
+		catch (Exception e) {
+			handlePopException(e);
+			return;
+		}
+		String messageBody = null;
+		if (value != null) {
+			messageBody = stringSerializer.deserialize(value);
+		}
+		if (messageBody != null) {
+			template.boundListOps(uuid+".reply").leftPush(stringSerializer.serialize(REPLYMESSAGE));
 		}
 	}
 
@@ -311,7 +357,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			try {
 				while (RedisQueueMessageDrivenEndpoint.this.active) {
 					RedisQueueMessageDrivenEndpoint.this.listening = true;
-					RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
+					if (expectReply == true) {
+						RedisQueueMessageDrivenEndpoint.this.popMessageWithHeaderAndSend();
+					}
+					else {
+						RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
+					}
 				}
 			}
 			finally {
@@ -331,5 +382,4 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		}
 
 	}
-
 }

@@ -31,7 +31,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
-import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
+import org.springframework.integration.redis.outbound.RedisQueueGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -58,11 +58,12 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 
 	@Autowired
 	@Qualifier("defaultAdapter.handler")
-	private RedisQueueOutboundChannelAdapter defaultAdapter;
+	private RedisQueueGateway defaultAdapter;
 
 	@Autowired
 	@Qualifier("customAdapter.handler")
-	private RedisQueueOutboundChannelAdapter customAdapter;
+	private RedisQueueGateway customAdapter;
+
 
 	@Autowired
 	private RedisSerializer<?> serializer;

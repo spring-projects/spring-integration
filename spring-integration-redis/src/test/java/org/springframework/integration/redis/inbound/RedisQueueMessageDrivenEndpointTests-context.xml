@@ -27,7 +27,7 @@
 
 	<int:chain input-channel="symmetricalInputChannel">
 		<int:payload-serializing-transformer/>
-		<int-redis:queue-outbound-channel-adapter queue-expression="headers.redis_queue"/>
+		<int-redis:queue-outbound-gateway queue-expression="headers.redis_queue"/>
 	</int:chain>
 
 	<int-redis:queue-inbound-channel-adapter queue="si.test.Int3017IntegrationSymmetrical"

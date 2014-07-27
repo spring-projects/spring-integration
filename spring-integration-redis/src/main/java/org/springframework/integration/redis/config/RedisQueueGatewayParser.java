@@ -19,25 +19,30 @@ package org.springframework.integration.redis.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
+import org.springframework.integration.redis.outbound.RedisQueueGateway;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;int-redis:queue-outbound-channel-adapter&gt; element.
+ * Parser for the &lt;int-redis:queue-outbound-gateway&gt; element.
  *
  * @author Artem Bilan
+ * @author David Liu
  * @since 3.0
  */
-public class RedisQueueOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class RedisQueueGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueOutboundChannelAdapter.class);
+	protected String getInputChannelAttributeName() {
+		return "channel";
+	}
+
+	@Override
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueGateway.class);
 		BeanDefinition queueExpression = IntegrationNamespaceUtils
 				.createExpressionDefinitionFromValueOrExpression("queue", "queue-expression", parserContext, element, true);
 		builder.addConstructorArgValue(queueExpression);
@@ -47,11 +52,13 @@ public class RedisQueueOutboundChannelAdapterParser extends AbstractOutboundChan
 			connectionFactory = "redisConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactory);
-
+		builder.addPropertyValue("expectReply", true);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel","outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
-
-		return builder.getBeanDefinition();
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requiresReply");
+		return builder;
 	}
 
 }
