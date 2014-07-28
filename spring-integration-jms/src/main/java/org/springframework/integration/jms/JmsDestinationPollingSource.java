@@ -43,15 +43,6 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	
 	private volatile String sessionAcknowledgeMode;
 
-	public String getSessionAcknowledgeMode() {
-		return sessionAcknowledgeMode;
-	}
-
-
-	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
-		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
-	}
-
 	private final JmsTemplate jmsTemplate;
 
 	private volatile Destination destination;
@@ -67,6 +58,13 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 		this.jmsTemplate = jmsTemplate;
 	}
 
+	public String getSessionAcknowledgeMode() {
+		return sessionAcknowledgeMode;
+	}
+
+	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
+		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+	}
 
 	public void setDestination(Destination destination) {
 		Assert.isNull(this.destinationName, "The 'destination' and 'destinationName' properties are mutually exclusive.");
