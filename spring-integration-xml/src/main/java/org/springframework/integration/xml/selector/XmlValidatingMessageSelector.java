@@ -21,8 +21,7 @@ import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.SAXParseException;
-
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
@@ -36,23 +35,37 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
+import org.xml.sax.SAXParseException;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @since 2.0
  */
-public class XmlValidatingMessageSelector implements MessageSelector {
+public class XmlValidatingMessageSelector implements MessageSelector,InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final XmlValidator xmlValidator;
+	private XmlValidator xmlValidator;
+	
+	private String schemaType;
+	
+	private Resource schema;
 
 	private volatile boolean throwExceptionOnRejection;
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
+	/** 
+	 * Constant that defines a W3C XML Schema. 
+	 **/
+	public static final String SCHEMA_W3C_XML = "http://www.w3.org/2001/XMLSchema";
 
+	/**
+	 *  Constant that defines a RELAX NG Schema. 
+	 **/
+	public static final String SCHEMA_RELAX_NG = "http://relaxng.org/ns/structure/1.0";
+	
 	public XmlValidatingMessageSelector(XmlValidator xmlValidator) {
 		Assert.notNull(xmlValidator, "XmlValidator must not be null");
 		this.xmlValidator = xmlValidator;
@@ -71,12 +84,9 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 */
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
 		Assert.notNull(schema, "You must provide XML schema location to perform validation");
-		if (!StringUtils.hasText(schemaType)) {
-			schemaType = XmlValidatorFactory.SCHEMA_W3C_XML;
-		}
-		this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType);
+		this.schemaType = schemaType;
+		this.schema = schema;
 	}
-
 
 	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;
@@ -91,6 +101,15 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		Assert.notNull(converter, "'converter' must not be null");
 		this.converter = converter;
 	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if(schema!=null){
+			this.schemaType = "xml-schema".equals(schemaType) ? SCHEMA_W3C_XML : SCHEMA_RELAX_NG;
+			this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType);
+		}
+	}
+	
 
 	@Override
 	public boolean accept(Message<?> message) {

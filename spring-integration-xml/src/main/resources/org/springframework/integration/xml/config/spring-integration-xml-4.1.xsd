@@ -38,10 +38,7 @@
 					</xsd:attribute>
 					<xsd:attribute name="result-type" use="optional">
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="DOMResult"/>
-								<xsd:enumeration value="StringResult"/>
-							</xsd:restriction>
+							<xsd:union memberTypes="resultType xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attribute name="result-factory" type="xsd:string" use="optional">
@@ -211,10 +208,7 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="DOMResult"/>
-								<xsd:enumeration value="StringResult"/>
-							</xsd:restriction>
+							<xsd:union memberTypes="resultType xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attribute name="result-transformer" type="xsd:string" use="optional">
@@ -294,13 +288,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="BOOLEAN_RESULT"/>
-								<xsd:enumeration value="STRING_RESULT"/>
-								<xsd:enumeration value="NUMBER_RESULT"/>
-								<xsd:enumeration value="NODE_RESULT"/>
-								<xsd:enumeration value="NODE_LIST_RESULT"/>
-							</xsd:restriction>
+							<xsd:union memberTypes="evaluationType xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attribute name="node-mapper">
@@ -421,13 +409,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="BOOLEAN_RESULT"/>
-					<xsd:enumeration value="STRING_RESULT"/>
-					<xsd:enumeration value="NUMBER_RESULT"/>
-					<xsd:enumeration value="NODE_RESULT"/>
-					<xsd:enumeration value="NODE_LIST_RESULT"/>
-				</xsd:restriction>
+				<xsd:union memberTypes="evaluationType xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="overwrite">
@@ -796,10 +778,7 @@
 					<xsd:attribute name="schema-location"/>
 					<xsd:attribute name="schema-type" default="xml-schema">
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="xml-schema"/>
-								<xsd:enumeration value="relax-ng"/>
-							</xsd:restriction>
+							<xsd:union memberTypes="schemaType xsd:string"/>
 						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
@@ -883,5 +862,29 @@
 			<xsd:attribute name="expression" type="xsd:string" use="optional"/>
 			<xsd:attribute name="value" type="xsd:string" use="optional"/>
 	</xsd:complexType>
-
+	
+	<xsd:simpleType name="resultType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="DOMResult"/>
+			<xsd:enumeration value="StringResult"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="evaluationType">
+		<xsd:restriction base="xsd:string">
+		<xsd:enumeration value="BOOLEAN_RESULT"/>
+		<xsd:enumeration value="STRING_RESULT"/>
+		<xsd:enumeration value="NUMBER_RESULT"/>
+		<xsd:enumeration value="NODE_RESULT"/>
+		<xsd:enumeration value="NODE_LIST_RESULT"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="schemaType">
+		<xsd:restriction base="xsd:string">
+		<xsd:enumeration value="xml-schema"/>
+		<xsd:enumeration value="relax-ng"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
 </xsd:schema>

@@ -47,6 +47,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 
@@ -77,7 +78,27 @@ import org.springframework.xml.transform.StringSource;
  * @author Mike Bazos
  * @author Gary Russell
  */
-public class XsltPayloadTransformer extends AbstractTransformer implements BeanClassLoaderAware {
+public class XsltPayloadTransformer extends AbstractXmlTransformer implements BeanClassLoaderAware {
+	
+	private volatile String resultType;
+	
+	private volatile String resultFactoryName;
+
+	public String getResultFactoryName() {
+		return resultFactoryName;
+	}
+
+	public void setResultFactoryName(String resultFactoryName) {
+		this.resultFactoryName = resultFactoryName;
+	}
+
+	public String getResultType() {
+		return resultType;
+	}
+
+	public void setResultType(String resultType) {
+		this.resultType = resultType;
+	}
 
 	private final ResultTransformer resultTransformer;
 
@@ -201,6 +222,14 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
+		ResultFactory generatedResultFactory = super.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
+		if (generatedResultFactory != null) {
+			resultFactory = generatedResultFactory;
+		}
+		boolean resultFactorySpecified = StringUtils.hasText(resultFactoryName) || StringUtils.hasText(resultType);
+		if(resultFactorySpecified){
+			alwaysUseResultFactory=true;
+		}
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.templates == null) {
 			TransformerFactory transformerFactory;

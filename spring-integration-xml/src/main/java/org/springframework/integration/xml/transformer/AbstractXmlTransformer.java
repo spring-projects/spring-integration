@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.config;
+package org.springframework.integration.xml.transformer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
@@ -24,17 +26,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Utility methods for the XML namespace.
+ * super class for XmlTransformer
  *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Liujiong
  */
-abstract class XmlNamespaceUtils {
+public abstract class AbstractXmlTransformer extends AbstractTransformer{
 
-	private static final String DOM_RESULT = "DOMResult";
+	public static final String DOM_RESULT = "DOMResult";
 
-	private static final String STRING_RESULT = "StringResult";
+	public static final String STRING_RESULT = "StringResult";
 
 
 	/**
@@ -42,22 +45,24 @@ abstract class XmlNamespaceUtils {
 	 * a bean definition for a {@link ResultFactory} based on either the
 	 * 'result-factory' or 'result-type' attributes.
 	 */
-	static void configureResultFactory(BeanDefinitionBuilder builder, String resultType, String resultFactory) {
-		boolean bothHaveText = StringUtils.hasText(resultFactory) && StringUtils.hasText(resultType);
+	public static ResultFactory configureResultFactory(String resultType, String resultFactoryName,BeanFactory beanFactory) {
+		boolean bothHaveText = StringUtils.hasText(resultFactoryName) && StringUtils.hasText(resultType);
+		ResultFactory resultFactory=null;
 		Assert.state(!bothHaveText, "Only one of 'result-factory' or 'result-type' should be specified.");
 		if (StringUtils.hasText(resultType)) {
 			Assert.state(resultType.equals(DOM_RESULT) || resultType.equals(STRING_RESULT),
 					"Result type must be either 'DOMResult' or 'StringResult'");
 		}
-		if (StringUtils.hasText(resultFactory)) {
-			builder.addPropertyReference("resultFactory", resultFactory);
+		if (StringUtils.hasText(resultFactoryName)) {
+			resultFactory=(ResultFactory) beanFactory.getBean(resultFactoryName);
 		}
-		else if (resultType.equals(STRING_RESULT)) {
-			builder.addPropertyValue("resultFactory", new StringResultFactory());
+		else if (STRING_RESULT.equals(resultType)) {
+			resultFactory=new StringResultFactory();
 		}
-		else if (resultType.equals(DOM_RESULT)) {
-			builder.addPropertyValue("resultFactory", new DomResultFactory());
+		else if (DOM_RESULT.equals(resultType)) {
+			resultFactory=new DomResultFactory();
 		}
+		return resultFactory;
 	}
 
 }

@@ -48,6 +48,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
@@ -594,7 +595,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
 			}
 			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
-				container.setSessionAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+				Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+				if (acknowledgeMode != null) {
+					if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
+						container.setSessionTransacted(true);
+					}
+					else {
+						container.setSessionAcknowledgeMode(acknowledgeMode);
+					}
+				}
 			}
 			if (this.replyContainerProperties.getTaskExecutor() != null) {
 				container.setTaskExecutor(this.replyContainerProperties.getTaskExecutor());
@@ -609,6 +618,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 		}
 	}
+	
 
 	@Override
 	public void start() {
@@ -1209,10 +1219,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	public static class ReplyContainerProperties {
-
 		private volatile Boolean sessionTransacted;
 
-		private volatile Integer sessionAcknowledgeMode;
+		private volatile String sessionAcknowledgeMode;
 
 		private volatile Long receiveTimeout;
 
@@ -1240,11 +1249,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			this.sessionTransacted = sessionTransacted;
 		}
 
-		public Integer getSessionAcknowledgeMode() {
+		public String getSessionAcknowledgeMode() {
 			return sessionAcknowledgeMode;
 		}
 
-		public void setSessionAcknowledgeMode(Integer sessionAcknowledgeMode) {
+		public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
 			this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 		}
 

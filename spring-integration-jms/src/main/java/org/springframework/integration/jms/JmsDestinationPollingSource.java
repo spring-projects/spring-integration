@@ -22,6 +22,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -39,6 +40,8 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public class JmsDestinationPollingSource extends IntegrationObjectSupport implements MessageSource<Object> {
+	
+	private volatile String sessionAcknowledgeMode;
 
 	private final JmsTemplate jmsTemplate;
 
@@ -55,6 +58,13 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 		this.jmsTemplate = jmsTemplate;
 	}
 
+	public String getSessionAcknowledgeMode() {
+		return sessionAcknowledgeMode;
+	}
+
+	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
+		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+	}
 
 	public void setDestination(Destination destination) {
 		Assert.isNull(this.destinationName, "The 'destination' and 'destinationName' properties are mutually exclusive.");
@@ -125,6 +135,21 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 			jmsMessage = this.jmsTemplate.receiveSelected(this.messageSelector);
 		}
 		return jmsMessage;
+	}
+	
+	@Override
+	protected void onInit() {
+		if (this.getSessionAcknowledgeMode()!= null) {
+			Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.getSessionAcknowledgeMode());
+			if (acknowledgeMode != null) {
+				if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
+					jmsTemplate.setSessionTransacted(true);
+				}
+				else {
+					jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
+				}
+			}
+		}
 	}
 
 }
