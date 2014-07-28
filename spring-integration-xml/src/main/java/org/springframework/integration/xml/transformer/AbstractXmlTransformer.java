@@ -17,7 +17,6 @@
 package org.springframework.integration.xml.transformer;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
@@ -33,12 +32,50 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Liujiong
  */
-public abstract class AbstractXmlTransformer extends AbstractTransformer{
+public abstract class AbstractXmlTransformer extends AbstractTransformer {
 
 	public static final String DOM_RESULT = "DOMResult";
 
 	public static final String STRING_RESULT = "StringResult";
+	
+	private volatile String resultType;
+	
+	private volatile String resultFactoryName;
+	
+	private volatile ResultFactory resultFactory = new DomResultFactory();
+	
+	public void setResultFactoryName(String resultFactoryName) {
+		this.resultFactoryName = resultFactoryName;
+	}
 
+	public void setResultType(String resultType) {
+		this.resultType = resultType;
+	}
+	
+	public void setResultFactory(ResultFactory resultFactory) {
+		this.resultFactory = resultFactory;
+	}
+	
+	public String getResultType() {
+		return resultType;
+	}
+
+	public String getResultFactoryName() {
+		return resultFactoryName;
+	}
+
+	public ResultFactory getResultFactory() {
+		return resultFactory;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		ResultFactory generatedResultFactory = configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
+		if (generatedResultFactory != null) {
+			resultFactory = generatedResultFactory;
+		}
+	}
 
 	/**
 	 * Helper method that encapsulates common logic for validating and building

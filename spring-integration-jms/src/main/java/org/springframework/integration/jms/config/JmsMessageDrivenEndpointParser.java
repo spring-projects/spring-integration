@@ -116,6 +116,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		builder.addConstructorArgReference(listenerBeanName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge","sessionAcknowledgeMode");
+		
 	}
 
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {
@@ -162,7 +164,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "sessionAcknowledgeModeName");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");

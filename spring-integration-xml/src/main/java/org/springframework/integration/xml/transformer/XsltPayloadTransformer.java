@@ -36,7 +36,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
@@ -80,26 +79,6 @@ import org.springframework.xml.transform.StringSource;
  */
 public class XsltPayloadTransformer extends AbstractXmlTransformer implements BeanClassLoaderAware {
 	
-	private volatile String resultType;
-	
-	private volatile String resultFactoryName;
-
-	public String getResultFactoryName() {
-		return resultFactoryName;
-	}
-
-	public void setResultFactoryName(String resultFactoryName) {
-		this.resultFactoryName = resultFactoryName;
-	}
-
-	public String getResultType() {
-		return resultType;
-	}
-
-	public void setResultType(String resultType) {
-		this.resultType = resultType;
-	}
-
 	private final ResultTransformer resultTransformer;
 
 	private volatile Resource xslResource;
@@ -113,8 +92,6 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	private Map<String, Expression> xslParameterMappings;
 
 	private volatile SourceFactory sourceFactory = new DomSourceFactory();
-
-	private volatile ResultFactory resultFactory = new DomResultFactory();
 
 	private volatile boolean resultFactoryExplicitlySet;
 
@@ -159,7 +136,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
 	}
-
+	
 	/**
 	 * Sets the SourceFactory.
 	 *
@@ -177,7 +154,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	 */
 	public void setResultFactory(ResultFactory resultFactory) {
 		Assert.notNull(sourceFactory, "ResultFactory must not be null");
-		this.resultFactory = resultFactory;
+		super.setResultFactory(resultFactory);
 		this.resultFactoryExplicitlySet = true;
 	}
 
@@ -221,12 +198,9 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	@Override
 	protected void onInit() throws Exception {
-		super.onInit();
-		ResultFactory generatedResultFactory = super.configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
-		if (generatedResultFactory != null) {
-			resultFactory = generatedResultFactory;
-		}
-		boolean resultFactorySpecified = StringUtils.hasText(resultFactoryName) || StringUtils.hasText(resultType);
+		
+		
+		boolean resultFactorySpecified = StringUtils.hasText(this.getResultFactoryName()) || StringUtils.hasText(this.getResultType());
 		if(resultFactorySpecified){
 			alwaysUseResultFactory=true;
 		}
@@ -299,7 +273,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			result = new StringResult();
 		}
 		else {
-			result = this.resultFactory.createResult(payload);
+			result = this.getResultFactory().createResult(payload);
 		}
 		transformer.transform(source, result);
 		if (this.resultTransformer != null) {
@@ -329,7 +303,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		else {
 			source = new DOMSource(documentPayload);
 		}
-		Result result = this.resultFactory.createResult(documentPayload);
+		Result result = this.getResultFactory().createResult(documentPayload);
 		if (!DOMResult.class.isAssignableFrom(result.getClass())) {
 			throw new MessagingException(
 					"Document to Document conversion requires a DOMResult-producing ResultFactory implementation.");

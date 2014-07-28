@@ -19,6 +19,7 @@ package org.springframework.integration.jms;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.util.Assert;
 
@@ -36,8 +37,9 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 	private final AbstractMessageListenerContainer listenerContainer;
 
 	private final ChannelPublishingJmsMessageListener listener;
-
-
+	
+	private volatile String sessionAcknowledgeMode;
+	
 	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer, ChannelPublishingJmsMessageListener listener) {
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
@@ -50,7 +52,10 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 		this.listenerContainer = listenerContainer;
 	}
 
-
+	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
+		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+	}
+	
 	@Override
 	public String getComponentType() {
 		return "jms:message-driven-channel-adapter";
@@ -61,6 +66,15 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 		this.listener.afterPropertiesSet();
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();
+		}
+		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.sessionAcknowledgeMode);
+		if (acknowledgeMode != null) {
+			if (acknowledgeMode.intValue() == JmsAdapterUtils.SESSION_TRANSACTED) {
+				listenerContainer.setSessionTransacted(true);
+			}
+			else {
+				listenerContainer.setSessionAcknowledgeMode(acknowledgeMode);
+			}
 		}
 		listener.setComponentName(this.getComponentName());
 	}
