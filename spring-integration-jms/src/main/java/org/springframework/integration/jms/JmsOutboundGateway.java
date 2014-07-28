@@ -600,9 +600,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 						container.setSessionTransacted(true);
 					}
-				}
-				else {
-					container.setSessionAcknowledgeMode(acknowledgeMode);
+					else {
+						container.setSessionAcknowledgeMode(acknowledgeMode);
+					}
 				}
 			}
 			if (this.replyContainerProperties.getTaskExecutor() != null) {

@@ -97,6 +97,7 @@ abstract class JmsAdapterParserUtils {
 		else {
 			builder.addPropertyValue("receiveTimeout", JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
 		return builder.getBeanDefinition();
 	}
 
