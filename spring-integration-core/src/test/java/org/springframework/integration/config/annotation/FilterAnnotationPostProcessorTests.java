@@ -198,7 +198,7 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithBooleanPrimitive {
 
-		@Filter(inputChannel="input", outputChannel="output")
+		@Filter(inputChannel = "input", outputChannel = "output")
 		public boolean filter(String s) {
 			return !s.contains("bad");
 		}
@@ -207,7 +207,7 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithAdviceDiscardWithin {
 
-		@Filter(inputChannel="input", outputChannel="output", adviceChain="adviceChain")
+		@Filter(inputChannel = "input", outputChannel = "output", adviceChain = "adviceChain")
 		public boolean filter(String s) {
 			return !s.contains("bad");
 		}
@@ -216,7 +216,7 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithAdviceDiscardWithinTwice {
 
-		@Filter(inputChannel="input", outputChannel="output", adviceChain={"adviceChain1", "adviceChain2"})
+		@Filter(inputChannel = "input", outputChannel = "output", adviceChain = {"adviceChain1", "adviceChain2"})
 		public boolean filter(String s) {
 			return !s.contains("bad");
 		}
@@ -225,8 +225,8 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithAdviceDiscardWithout {
 
-		@Filter(inputChannel="input", outputChannel="output",
-				adviceChain="adviceChain", discardWithinAdvice=false)
+		@Filter(inputChannel = "input", outputChannel = "output",
+				adviceChain = "adviceChain", discardWithinAdvice = "false")
 		public boolean filter(String s) {
 			return !s.contains("bad");
 		}
@@ -235,7 +235,7 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithBooleanWrapperClass {
 
-		@Filter(inputChannel="input", outputChannel="output")
+		@Filter(inputChannel = "input", outputChannel = "output")
 		public Boolean filter(String s) {
 			return !s.contains("bad");
 		}
@@ -245,7 +245,7 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithStringReturnType {
 
-		@Filter(inputChannel="input", outputChannel="output")
+		@Filter(inputChannel = "input", outputChannel = "output")
 		public String filter(String s) {
 			return s;
 		}
@@ -255,7 +255,7 @@ public class FilterAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TestFilterWithVoidReturnType {
 
-		@Filter(inputChannel="input", outputChannel="output")
+		@Filter(inputChannel = "input", outputChannel = "output")
 		public void filter(String s) {
 		}
 	}

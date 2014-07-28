@@ -70,6 +70,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
 	 * itself does not provide a channel.
+	 * @param defaultChannelName the publisher interceptor defaultChannel
 	 * @since 4.0.3
 	 */
 	public void setDefaultChannelName(String defaultChannelName) {

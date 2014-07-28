@@ -57,7 +57,6 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -187,6 +186,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	public void setOutputChannelName(String outputChannelName) {
+		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName;
 	}
 
@@ -215,27 +215,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
-			if (StringUtils.hasText(this.discardChannelName)) {
-				Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
-				try {
-					this.discardChannel = beanFactory.getBean(this.discardChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.discardChannelName + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
+					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 
-			if (StringUtils.hasText(this.outputChannelName)) {
-				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				try {
-					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
+					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 
 			if (this.outputProcessor instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
@@ -272,6 +256,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
 		this.discardChannelName = discardChannelName;
 	}
 
@@ -291,7 +276,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 * schedule than expiring partial groups, set this property. Empty groups will
 	 * then not be removed from the MessageStore until they have not been modified
 	 * for at least this number of milliseconds.
-	 *
 	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
 	 */
 	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
@@ -461,12 +445,30 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				}
 			}
 			else {
-				discardChannel.send(message);
+				discardMessage(message);
 			}
 		}
 		finally {
 			lock.unlock();
 		}
+	}
+
+	private void discardMessage(Message<?> message) {
+		if (this.discardChannelName != null) {
+			synchronized (this) {
+				if (this.discardChannelName != null) {
+					try {
+						this.discardChannel = getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
+						this.discardChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.discardChannelName + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+		this.discardChannel.send(message);
 	}
 
 	/**
@@ -591,17 +593,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: " + outputChannel);
+						+ correlationKey + "] to: "
+						+ (this.outputChannelName != null ? this.outputChannelName : this.outputChannel));
 			}
 			completeGroup(correlationKey, group);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Discarding messages of partially complete group with key ["
-						+ correlationKey + "] to: " + discardChannel);
+						+ correlationKey + "] to: "
+						+ (this.discardChannelName != null ? this.discardChannelName : this.discardChannel));
 			}
 			for (Message<?> message : group.getMessages()) {
-				discardChannel.send(message);
+				discardMessage(message);
 			}
 		}
 		if (this.applicationEventPublisher != null) {
@@ -645,6 +649,22 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
+
+		if (this.outputChannelName != null) {
+			synchronized (this) {
+				if (this.outputChannelName != null) {
+					try {
+						this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+						this.outputChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.outputChannelName + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+
 		Object replyChannel = this.outputChannel;
 		if (this.outputChannel == null) {
 			replyChannel = replyChannelHeader;
@@ -718,12 +738,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
 				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
-				if (!messageSequenceSize.equals(this.getSequenceSize())) {
-					return false;
-				}
-				else {
-					return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
-				}
+				return messageSequenceSize.equals(this.getSequenceSize())
+						&& !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
 			}
 			return true;
 		}
@@ -738,4 +754,5 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			return false;
 		}
 	}
+
 }
