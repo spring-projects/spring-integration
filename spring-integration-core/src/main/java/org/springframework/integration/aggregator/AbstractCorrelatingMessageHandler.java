@@ -215,27 +215,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
-			if (StringUtils.hasText(this.discardChannelName)) {
-				Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
-				try {
-					this.discardChannel = beanFactory.getBean(this.discardChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.discardChannelName + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(StringUtils.hasText(this.discardChannelName) && this.discardChannel != null),
+					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 
-			if (StringUtils.hasText(this.outputChannelName)) {
-				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				try {
-					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(StringUtils.hasText(this.outputChannelName) && this.outputChannel != null),
+					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 
 			if (this.outputProcessor instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
@@ -461,12 +445,28 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				}
 			}
 			else {
-				discardChannel.send(message);
+				discardMessage(message);
 			}
 		}
 		finally {
 			lock.unlock();
 		}
+	}
+
+	private void discardMessage(Message<?> message) {
+		if (StringUtils.hasText(this.discardChannelName)) {
+			synchronized (this) {
+				try {
+					this.discardChannel = getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
+					this.discardChannelName = null;
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.discardChannelName + "' in the BeanFactory.");
+				}
+			}
+		}
+		this.discardChannel.send(message);
 	}
 
 	/**
@@ -591,17 +591,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: " + outputChannel);
+						+ correlationKey + "] to: "
+						+ (StringUtils.hasText(this.outputChannelName) ? this.outputChannelName : this.outputChannel));
 			}
 			completeGroup(correlationKey, group);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Discarding messages of partially complete group with key ["
-						+ correlationKey + "] to: " + discardChannel);
+						+ correlationKey + "] to: "
+						+ (StringUtils.hasText(this.discardChannelName) ? this.discardChannelName : this.discardChannel));
 			}
 			for (Message<?> message : group.getMessages()) {
-				discardChannel.send(message);
+				discardMessage(message);
 			}
 		}
 		if (this.applicationEventPublisher != null) {
@@ -645,6 +647,20 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
+
+		if (StringUtils.hasText(this.outputChannelName)) {
+			synchronized (this) {
+				try {
+					this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+					this.outputChannelName = null;
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.outputChannelName + "' in the BeanFactory.");
+				}
+			}
+		}
+
 		Object replyChannel = this.outputChannel;
 		if (this.outputChannel == null) {
 			replyChannel = replyChannelHeader;

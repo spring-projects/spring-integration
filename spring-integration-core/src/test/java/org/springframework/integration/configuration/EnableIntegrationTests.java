@@ -402,7 +402,7 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -414,7 +414,7 @@ public class EnableIntegrationTests {
 		assertTrue(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput1"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice1"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(2000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -425,7 +425,7 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -437,7 +437,7 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput3"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -448,8 +448,8 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.discardChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.discardChannelName"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
 		assertFalse(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
@@ -460,8 +460,8 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.discardChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.discardChannelName"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
 		assertEquals(75L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
 		assertTrue(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));

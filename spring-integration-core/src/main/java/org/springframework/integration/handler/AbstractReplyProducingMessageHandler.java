@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
 		implements MessageProducer, BeanClassLoaderAware {
@@ -136,16 +137,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected final void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
-			if (StringUtils.hasText(this.outputChannelName)) {
-				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				try {
-					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(StringUtils.hasText(this.outputChannelName) && this.outputChannel != null),
+					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
@@ -229,7 +222,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * Send a reply Message. The 'replyChannelHeaderValue' will be considered only if this handler's
 	 * 'outputChannel' is <code>null</code>. In that case, the header value must not also be
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
-	 *
 	 * @param replyMessage the reply Message to send
 	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
 	 */
@@ -237,6 +229,19 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
+
+		if (StringUtils.hasText(this.outputChannelName)) {
+			synchronized (this) {
+				try {
+					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+				}
+				catch (BeansException e) {
+					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+							+ this.outputChannelName + "' in the BeanFactory.");
+				}
+			}
+		}
+
 		if (this.outputChannel != null) {
 			this.sendMessage(replyMessage, this.outputChannel);
 		}
@@ -251,7 +256,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	/**
 	 * Send the message to the given channel. The channel must be a String or
 	 * {@link MessageChannel} instance, never <code>null</code>.
-	 *
 	 * @param message The message.
 	 * @param channel The channel to which to send the message.
 	 */

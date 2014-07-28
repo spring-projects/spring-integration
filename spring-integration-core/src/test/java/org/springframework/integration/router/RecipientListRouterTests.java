@@ -426,6 +426,8 @@ public class RecipientListRouterTests {
 		router.setBeanFactory(beanFactory);
 		router.afterPropertiesSet();
 
+		router.handleMessage(new GenericMessage<String>("foo"));
+
 		assertSame(defaultChannel, TestUtils.getPropertyValue(router, "defaultOutputChannel"));
 		Mockito.verify(beanFactory).getBean(Mockito.eq("defaultChannel"), Mockito.eq(MessageChannel.class));
 	}

@@ -70,23 +70,21 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 		MessageFilter filter = new MessageFilter(selector);
 
-		/* TODO will be revised in the future
 		String discardWithinAdvice = MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice",
 				String.class);
 		if (StringUtils.hasText(discardWithinAdvice)) {
-			String discardWithinAdviceValue = this.environment.resolvePlaceholders(discardWithinAdvice);
-			if (StringUtils.hasText(discardWithinAdviceValue)) {
-				filter.setDiscardWithinAdvice(Boolean.parseBoolean(discardWithinAdviceValue));
+			discardWithinAdvice = this.environment.resolvePlaceholders(discardWithinAdvice);
+			if (StringUtils.hasText(discardWithinAdvice)) {
+				filter.setDiscardWithinAdvice(Boolean.parseBoolean(discardWithinAdvice));
 			}
-		}*/
+		}
 
-		filter.setDiscardWithinAdvice(MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice",
-				Boolean.class));
 
 		String throwExceptionOnRejection = MessagingAnnotationUtils.resolveAttribute(annotations,
 				"throwExceptionOnRejection", String.class);
 		if (StringUtils.hasText(throwExceptionOnRejection)) {
-			String throwExceptionOnRejectionValue = this.environment.resolvePlaceholders(throwExceptionOnRejection);
+			String throwExceptionOnRejectionValue = null;
+			throwExceptionOnRejectionValue = this.environment.resolvePlaceholders(throwExceptionOnRejection);
 			filter.setThrowExceptionOnRejection(Boolean.parseBoolean(throwExceptionOnRejectionValue));
 		}
 
