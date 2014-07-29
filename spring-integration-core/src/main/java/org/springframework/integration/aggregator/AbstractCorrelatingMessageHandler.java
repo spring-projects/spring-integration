@@ -275,7 +275,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 * schedule than expiring partial groups, set this property. Empty groups will
 	 * then not be removed from the MessageStore until they have not been modified
 	 * for at least this number of milliseconds.
-	 *
 	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
 	 */
 	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
@@ -456,13 +455,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private void discardMessage(Message<?> message) {
 		if (StringUtils.hasText(this.discardChannelName)) {
 			synchronized (this) {
-				try {
-					this.discardChannel = getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
-					this.discardChannelName = null;
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.discardChannelName + "' in the BeanFactory.");
+				if (this.discardChannelName != null) {
+					try {
+						this.discardChannel = getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
+						this.discardChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.discardChannelName + "' in the BeanFactory.");
+					}
 				}
 			}
 		}
@@ -650,13 +651,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		if (StringUtils.hasText(this.outputChannelName)) {
 			synchronized (this) {
-				try {
-					this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-					this.outputChannelName = null;
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
+				if (this.outputChannelName != null) {
+					try {
+						this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+						this.outputChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.outputChannelName + "' in the BeanFactory.");
+					}
 				}
 			}
 		}
@@ -734,12 +737,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
 				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
-				if (!messageSequenceSize.equals(this.getSequenceSize())) {
-					return false;
-				}
-				else {
-					return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
-				}
+				return messageSequenceSize.equals(this.getSequenceSize())
+						&& !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
 			}
 			return true;
 		}
@@ -754,4 +753,5 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			return false;
 		}
 	}
+
 }

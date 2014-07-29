@@ -81,7 +81,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * Set the timeout for sending reply Messages.
-	 *
 	 * @param sendTimeout The send timeout.
 	 */
 	public void setSendTimeout(long sendTimeout) {
@@ -90,7 +89,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
-	 *
 	 * @param channelResolver The channel resolver.
 	 */
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
@@ -101,7 +99,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	/**
 	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
 	 * If false an incoming message MAY result in a reply message being sent. Default is false.
-	 *
 	 * @param requiresReply true if a reply is required.
 	 */
 	public void setRequiresReply(boolean requiresReply) {
@@ -110,7 +107,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * Provides access to the {@link MessagingTemplate} for subclasses.
-	 *
 	 * @return The messaging template.
 	 */
 	protected MessagingTemplate getMessagingTemplate() {
@@ -232,12 +228,15 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 		if (StringUtils.hasText(this.outputChannelName)) {
 			synchronized (this) {
-				try {
-					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
+				if (this.outputChannelName != null) {
+					try {
+						this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+						this.outputChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.outputChannelName + "' in the BeanFactory.");
+					}
 				}
 			}
 		}
@@ -283,7 +282,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * Subclasses may override this. True by default.
-	 *
 	 * @return true if the request headers should be copied.
 	 */
 	protected boolean shouldCopyRequestHeaders() {
@@ -295,7 +293,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * value may be a Message, a MessageBuilder, or any plain Object. The base class
 	 * will handle the final creation of a reply Message from any of those starting
 	 * points. If the return value is null, the Message flow will end here.
-	 *
 	 * @param requestMessage The request message.
 	 * @return The result of handling the message, or {@code null}.
 	 */
@@ -321,7 +318,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		public String toString() {
 			return AbstractReplyProducingMessageHandler.this.toString();
 		}
-
 
 	}
 

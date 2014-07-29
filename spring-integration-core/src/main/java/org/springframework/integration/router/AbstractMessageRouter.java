@@ -62,9 +62,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * fails to return any channels. If no default channel is provided and channel
 	 * resolution fails to return any channels, the router will throw an
 	 * {@link MessageDeliveryException}.
-	 *
+	 * <p>
 	 * If messages shall be ignored (dropped) instead, please provide a {@link NullChannel}.
-	 *
 	 * @param defaultOutputChannel The default output channel.
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
@@ -78,7 +77,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	/**
 	 * Set the timeout for sending a message to the resolved channel. By default, there is no timeout, meaning the send
 	 * will block indefinitely.
-	 *
 	 * @param timeout The timeout.
 	 */
 	public void setTimeout(long timeout) {
@@ -89,7 +87,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * Specify whether send failures for one or more of the recipients should be ignored. By default this is
 	 * <code>false</code> meaning that an Exception will be thrown whenever a send fails. To override this and suppress
 	 * Exceptions, set the value to <code>true</code>.
-	 *
 	 * @param ignoreSendFailures true to ignore send failures.
 	 */
 	public void setIgnoreSendFailures(boolean ignoreSendFailures) {
@@ -101,7 +98,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * channels. By default, this value is <code>false</code> meaning that sequence headers will <em>not</em> be
 	 * applied. If planning to use an Aggregator downstream with the default correlation and completion strategies, you
 	 * should set this flag to <code>true</code>.
-	 *
 	 * @param applySequence true to apply sequence information.
 	 */
 	public void setApplySequence(boolean applySequence) {
@@ -115,7 +111,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	/**
 	 * Provides {@link MessagingTemplate} access for subclasses
-	 *
 	 * @return The messaging template.
 	 */
 	protected MessagingTemplate getMessagingTemplate() {
@@ -139,7 +134,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
 			if (StringUtils.hasText(this.defaultOutputChannelName)) {
-				Assert.isNull(this.defaultOutputChannel, "'defaultOutputChannelName' and 'defaultOutputChannel' are mutually exclusive.");
+				Assert.isNull(this.defaultOutputChannel,
+						"'defaultOutputChannelName' and 'defaultOutputChannel' are mutually exclusive.");
 			}
 		}
 	}
@@ -147,7 +143,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	/**
 	 * Subclasses must implement this method to return a Collection of zero or more
 	 * MessageChannels to which the given Message should be routed.
-	 *
 	 * @param message The message.
 	 * @return The collection of message channels.
 	 */

@@ -83,9 +83,10 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		String throwExceptionOnRejection = MessagingAnnotationUtils.resolveAttribute(annotations,
 				"throwExceptionOnRejection", String.class);
 		if (StringUtils.hasText(throwExceptionOnRejection)) {
-			String throwExceptionOnRejectionValue = null;
-			throwExceptionOnRejectionValue = this.environment.resolvePlaceholders(throwExceptionOnRejection);
-			filter.setThrowExceptionOnRejection(Boolean.parseBoolean(throwExceptionOnRejectionValue));
+			String throwExceptionOnRejectionValue = this.environment.resolvePlaceholders(throwExceptionOnRejection);
+			if (StringUtils.hasText(throwExceptionOnRejectionValue)) {
+				filter.setThrowExceptionOnRejection(Boolean.parseBoolean(throwExceptionOnRejectionValue));
+			}
 		}
 
 		String discardChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);

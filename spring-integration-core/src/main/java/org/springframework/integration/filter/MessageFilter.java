@@ -138,16 +138,17 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 		if (result == null) {
 			if (StringUtils.hasText(this.discardChannelName)) {
 				synchronized (this) {
-					try {
-						this.discardChannel = this.getBeanFactory()
-								.getBean(this.discardChannelName, MessageChannel.class);
-						this.discardChannelName = null;
+					if (this.discardChannelName != null) {
+						try {
+							this.discardChannel = this.getBeanFactory()
+									.getBean(this.discardChannelName, MessageChannel.class);
+							this.discardChannelName = null;
+						}
+						catch (BeansException e) {
+							throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+									+ this.discardChannelName + "' in the BeanFactory.");
+						}
 					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.discardChannelName + "' in the BeanFactory.");
-					}
-
 				}
 			}
 			if (this.discardChannel != null) {
