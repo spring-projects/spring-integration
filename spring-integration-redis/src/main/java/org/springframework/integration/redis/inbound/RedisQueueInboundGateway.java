@@ -24,12 +24,12 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
+import org.springframework.integration.redis.util.SerializerUtil;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -37,20 +37,16 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * @author Mark Fisher
- * @author Gunnar Hillert
- * @author Artem Bilan
  * @author David Liu
- * @since 3.0
+ * @since 4.1
  */
 @ManagedResource
-public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport implements ApplicationEventPublisherAware {
+public class RedisQueueInboundGateway extends MessagingGatewaySupport implements ApplicationEventPublisherAware {
 
-	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
+	public static final long DEFAULT_RECEIVE_TIMEOUT = 5000;
 
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
 
@@ -60,14 +56,14 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	private volatile MessageChannel errorChannel;
 
+	private volatile String queue;
+	
+	private volatile boolean serializerExplicitlySet;
+
 	private volatile Executor taskExecutor;
 
-	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 	
-	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
-	
-	private static final String REPLYMESSAGE = "OK";
-
 	private volatile boolean expectMessage = false;
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
@@ -82,13 +78,15 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	
 	private volatile boolean expectReply;
 	
+	private volatile String connectionFactory;
+	
 	private volatile RedisTemplate<String, byte[]> template = null;
 	
 	/**
 	 * @param queueName         Must not be an empty String
 	 * @param connectionFactory Must not be null
 	 */
-	public RedisQueueMessageDrivenEndpoint(String queueName, RedisConnectionFactory connectionFactory) {
+	public RedisQueueInboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		template = new RedisTemplate<String, byte[]>();
@@ -99,8 +97,16 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		this.boundListOperations = template.boundListOps(queueName);
 	}
 	
+	public void setConnectionFactory(String connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
+	
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
+	}
+
+	public void setQueue(String queue) {
+		this.queue = queue;
 	}
 
 	@Override
@@ -110,6 +116,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	public void setSerializer(RedisSerializer<?> serializer) {
 		this.serializer = serializer;
+		this.serializerExplicitlySet = true;
 	}
 
 	/**
@@ -142,8 +149,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	}
 
 	/**
-	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message will be processed
-	 * or this timeout is reached. Should be less then or equal to {@link #receiveTimeout}
+	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message
+	 * will be processed or this timeout is reached. Should be less then or equal to
+	 * {@link #receiveTimeout}
 	 * @since 4.0.3
 	 */
 	public void setStopTimeout(long stopTimeout) {
@@ -165,7 +173,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	}
 
 	@Override
-	protected void onInit() {
+	protected void onInit() throws Exception {
 		super.onInit();
 		if (this.expectMessage) {
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'expectMessage == true'.");
@@ -185,50 +193,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	@Override
 	public String getComponentType() {
-		return "redis:queue-inbound-channel-adapter";
+		return "redis:queue-inbound-gateway";
 	}
 
-	@SuppressWarnings("unchecked")
-	private void popMessageAndSend() {
-		Message<Object> message = null;
-
-		byte[] value = null;
-		try {
-			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
-		}
-		catch (Exception e) {
-			handlePopException(e);
-			return;
-		}
-
-		if (value != null) {
-			if (this.expectMessage) {
-				try {
-					message = (Message<Object>) this.serializer.deserialize(value);
-				}
-				catch (Exception e) {
-					throw new MessagingException("Deserialization of Message failed.", e);
-				}
-			}
-			else {
-				Object payload = value;
-				if (this.serializer != null) {
-					payload = this.serializer.deserialize(value);
-				}
-				message = this.getMessageBuilderFactory().withPayload(payload).build();
-			}
-		}
-		
-		if (message != null) {
-			if (this.listening) {
-				this.sendMessage(message);
-			}
-			else {
-				this.boundListOperations.rightPush(value);
-			}
-		}
-	}
-	
 	private void handlePopException(Exception e) {
 		this.listening = false;
 		if (this.active) {
@@ -253,21 +220,23 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		}
 		String uuid = null;
 		if (value != null) {
-			uuid = stringSerializer.deserialize(value);
-		}
-		try {
-			value = template.boundListOps(uuid+"").rightPop();
-		}
-		catch (Exception e) {
-			handlePopException(e);
-			return;
-		}
-		String messageBody = null;
-		if (value != null) {
-			messageBody = stringSerializer.deserialize(value);
-		}
-		if (messageBody != null) {
-			template.boundListOps(uuid+".reply").leftPush(stringSerializer.serialize(REPLYMESSAGE));
+			uuid = (String) serializer.deserialize(value);
+			try {
+				value = template.boundListOps(uuid).rightPop();
+			}
+			catch (Exception e) {
+				handlePopException(e);
+				return;
+			}
+			Object messageBody = null;
+			if (value != null) {
+				messageBody = serializer.deserialize(value);
+				Message<?> replyMessage = this.sendAndReceiveMessage(messageBody);
+				if (replyMessage != null) {
+					byte[] serializedReply = SerializerUtil.serialize(replyMessage.getPayload(), this.serializerExplicitlySet, this.serializer);
+					template.boundListOps(uuid + ".reply").leftPush(serializedReply);
+				}
+			}
 		}
 	}
 
@@ -355,27 +324,22 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		@Override
 		public void run() {
 			try {
-				while (RedisQueueMessageDrivenEndpoint.this.active) {
-					RedisQueueMessageDrivenEndpoint.this.listening = true;
-					if (expectReply == true) {
-						RedisQueueMessageDrivenEndpoint.this.popMessageWithHeaderAndSend();
-					}
-					else {
-						RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
-					}
+				while (RedisQueueInboundGateway.this.active) {
+					RedisQueueInboundGateway.this.listening = true;
+					RedisQueueInboundGateway.this.popMessageWithHeaderAndSend();
 				}
 			}
 			finally {
-				if (RedisQueueMessageDrivenEndpoint.this.active) {
-					RedisQueueMessageDrivenEndpoint.this.restart();
+				if (RedisQueueInboundGateway.this.active) {
+					RedisQueueInboundGateway.this.restart();
 				}
 				else {
-					RedisQueueMessageDrivenEndpoint.this.lifecycleLock.lock();
+					RedisQueueInboundGateway.this.lifecycleLock.lock();
 					try {
-						RedisQueueMessageDrivenEndpoint.this.lifecycleCondition.signalAll();
+						RedisQueueInboundGateway.this.lifecycleCondition.signalAll();
 					}
 					finally {
-						RedisQueueMessageDrivenEndpoint.this.lifecycleLock.unlock();
+						RedisQueueInboundGateway.this.lifecycleLock.unlock();
 					}
 				}
 			}

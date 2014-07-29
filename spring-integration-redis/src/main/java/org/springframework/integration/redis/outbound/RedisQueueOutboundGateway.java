@@ -1,0 +1,140 @@
+/*
+ * Copyright 2013 the original author or authors
+ *
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
+
+package org.springframework.integration.redis.outbound;
+
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.redis.util.SerializerUtil;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+
+/**
+ * @author David Liu
+ * @since 4.1
+ */
+public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler implements IntegrationEvaluationContextAware {
+
+	private final RedisTemplate<String, Object> template;
+
+	private final Expression queueNameExpression;
+
+	private volatile EvaluationContext evaluationContext;
+
+	private volatile boolean extractPayload = true;
+
+	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+
+	private volatile boolean serializerExplicitlySet;
+	
+	private static final int TIMEOUT = 1000;
+	
+	private volatile int timeout = TIMEOUT;
+	
+	private static final String MESSAGESUFFIX = ".reply";
+	
+	private volatile boolean expectReply;
+	
+	private BoundListOperations<String, Object> boundListOperations = null;
+	
+	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
+		this(new LiteralExpression(queueName), connectionFactory);
+	}
+
+	public RedisQueueOutboundGateway(Expression queueNameExpression, RedisConnectionFactory connectionFactory) {
+		Assert.notNull(queueNameExpression, "'queueNameExpression' is required");
+		Assert.hasText(queueNameExpression.getExpressionString(), "'queueNameExpression.getExpressionString()' is required");
+		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
+		this.queueNameExpression = queueNameExpression;
+		this.template = new RedisTemplate<String, Object>();
+		this.template.setConnectionFactory(connectionFactory);
+		this.template.setEnableDefaultSerializer(false);
+		this.template.setKeySerializer(new StringRedisSerializer());
+		this.template.afterPropertiesSet();
+	}
+	
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	public void setExpectReply(boolean expectReply) {
+		this.expectReply = expectReply;
+	}
+	
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
+	public void setSerializer(RedisSerializer<?> serializer) {
+		Assert.notNull(serializer, "'serializer' must not be null");
+		this.serializer = serializer;
+		this.serializerExplicitlySet = true;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "redis:queue-outbound-gatewway";
+	}
+
+	@Override
+	protected Object handleRequestMessage(Message<?> message) {
+		Object value = message;
+
+		if (this.extractPayload) {
+			value = message.getPayload();
+		}
+		value = SerializerUtil.serialize(value, this.serializerExplicitlySet, this.serializer);
+		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
+
+		if (this.expectReply) {
+			long uuid = generateRandomUUID();
+			this.template.boundListOps(queueName).leftPush(SerializerUtil.serialize(uuid+"", this.serializerExplicitlySet, this.serializer));
+			this.template.boundListOps(uuid + "").leftPush(value);
+			this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
+			byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
+			Object replyMessage = this.serializer.deserialize(reply);
+			if (replyMessage == null) {
+				return null;
+			}
+			return this.getMessageBuilderFactory().withPayload(replyMessage).build();
+		}
+		else {
+			this.template.boundListOps(queueName).leftPush(value);
+			return null;
+		}
+	}
+	
+	private long generateRandomUUID(){
+		return UUID.randomUUID().getMostSignificantBits();
+	}
+}

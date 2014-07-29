@@ -18,27 +18,30 @@ package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
+import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;queue-inbound-channel-adapter&gt; element of the 'redis' namespace.
+ * Parser for the &lt;queue-inbound-gateway&gt; element of the 'redis' namespace.
  *
- * @author Artem Bilan
- * @since 3.0
+ * @author David Liu
+ * @since 4.1
  */
-public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapterParser {
+public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser {
+
+	private static final String BASE_PACKAGE = "org.springframework.integration.redis.inbound";
 
 	@Override
-	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueMessageDrivenEndpoint.class);
-		builder.addConstructorArgValue(element.getAttribute("queue"));
+	protected String getBeanClassName(Element element) {
+		return BASE_PACKAGE + ".RedisQueueInboundGateway";
+	}
 
+	@Override
+	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
+		builder.addConstructorArgValue(element.getAttribute("queue"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "redisConnectionFactory";
@@ -47,14 +50,12 @@ public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapte
 		builder.addPropertyValue("expectReply", true);
 		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer", true);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
-		builder.addPropertyReference("outputChannel", channelName);
-
-		return builder.getBeanDefinition();
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 	}
 
 }

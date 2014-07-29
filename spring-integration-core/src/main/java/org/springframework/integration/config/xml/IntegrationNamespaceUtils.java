@@ -481,6 +481,8 @@ public abstract class IntegrationNamespaceUtils {
 		}
 		return expressionDef;
 	}
+	
+	
 
 	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {
 
