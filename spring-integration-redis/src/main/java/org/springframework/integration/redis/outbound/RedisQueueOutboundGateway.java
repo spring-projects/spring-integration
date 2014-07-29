@@ -28,22 +28,17 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.redis.util.SerializerUtil;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * @author Mark Fisher
- * @author Gunnar Hillert
- * @author Artem Bilan
  * @author David Liu
- * @since 3.0
+ * @since 4.1
  */
-public class RedisQueueGateway extends AbstractReplyProducingMessageHandler implements IntegrationEvaluationContextAware {
-
-	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler implements IntegrationEvaluationContextAware {
 
 	private final RedisTemplate<String, Object> template;
 
@@ -67,13 +62,11 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
 	
 	private BoundListOperations<String, Object> boundListOperations = null;
 	
-	private volatile boolean requiresReply;
-	
-	public RedisQueueGateway(String queueName, RedisConnectionFactory connectionFactory) {
+	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		this(new LiteralExpression(queueName), connectionFactory);
 	}
 
-	public RedisQueueGateway(Expression queueNameExpression, RedisConnectionFactory connectionFactory) {
+	public RedisQueueOutboundGateway(Expression queueNameExpression, RedisConnectionFactory connectionFactory) {
 		Assert.notNull(queueNameExpression, "'queueNameExpression' is required");
 		Assert.hasText(queueNameExpression.getExpressionString(), "'queueNameExpression.getExpressionString()' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
@@ -83,10 +76,6 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
 		this.template.setEnableDefaultSerializer(false);
 		this.template.setKeySerializer(new StringRedisSerializer());
 		this.template.afterPropertiesSet();
-	}
-	
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
 	}
 	
 	public void setTimeout(int timeout) {
@@ -114,7 +103,7 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
 
 	@Override
 	public String getComponentType() {
-		return "redis:queue-message-handler";
+		return "redis:queue-outbound-gatewway";
 	}
 
 	@Override
@@ -124,24 +113,18 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
 		if (this.extractPayload) {
 			value = message.getPayload();
 		}
-		value = this.serialize(value);
+		value = SerializerUtil.serialize(value, this.serializerExplicitlySet, this.serializer);
 		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
 
 		if (this.expectReply) {
 			long uuid = generateRandomUUID();
-			this.template.boundListOps(queueNameExpression.getExpressionString()).leftPush(this.serialize(uuid+""));
+			this.template.boundListOps(queueName).leftPush(SerializerUtil.serialize(uuid+"", this.serializerExplicitlySet, this.serializer));
 			this.template.boundListOps(uuid + "").leftPush(value);
 			this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
 			byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
-			String replyMessage = this.stringSerializer.deserialize(reply);
+			Object replyMessage = this.serializer.deserialize(reply);
 			if (replyMessage == null) {
-				if (this.requiresReply) {
-					throw new MessageTimeoutException(message,
-							"failed to receive Redis response within timeout of: " + this.timeout + "ms");
-				}
-				else {
-					return null;
-				}
+				return null;
 			}
 			return this.getMessageBuilderFactory().withPayload(replyMessage).build();
 		}
@@ -153,18 +136,5 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
 	
 	private long generateRandomUUID(){
 		return UUID.randomUUID().getMostSignificantBits();
-	}
-	
-	@SuppressWarnings("unchecked")
-	private byte[] serialize(Object value) {
-		if (!(value instanceof byte[])) {
-			if (value instanceof String && !this.serializerExplicitlySet) {
-				value = this.stringSerializer.serialize((String) value);
-			}
-			else {
-				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
-			}
-		}
-		return (byte[]) value;
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,14 +25,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
-import org.springframework.integration.redis.outbound.RedisQueueGateway;
+import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import reactor.util.Assert;
 
 /**
  * @author David Liu
@@ -50,12 +50,12 @@ public class RedisQueueIntegrationTests {
 	private RedisConnectionFactory customRedisConnectionFactory;
 
 	@Autowired
-	@Qualifier("defaultAdapter")
+	@Qualifier("defaultOutboundGateway")
 	private EventDrivenConsumer defaultEndpoint;
 
 	@Autowired
-	@Qualifier("defaultAdapter.handler")
-	private RedisQueueGateway defaultAdapter;
+	@Qualifier("defaultOutboundGateway.handler")
+	private RedisQueueOutboundGateway defaultOutboundGateway;
 
 	@Autowired
 	private RedisSerializer<?> serializer;
@@ -66,18 +66,20 @@ public class RedisQueueIntegrationTests {
 	
 	@Autowired
 	@Qualifier("outputChannel")
-	private DirectChannel outputChannel;
+	private QueueChannel outputChannel;
 
 	@Autowired
-	@Qualifier("defaultInAdapter.adapter")
-	private RedisQueueMessageDrivenEndpoint defaultInAdapter;
+	@Qualifier("inboundOutputChannel")
+	private QueueChannel inboundOutputChannel;
+
+	@Autowired
+	private RedisQueueInboundGateway defaultInboundGateway;
 	
 	@Test
-	public void testInt1DefaultConfig() throws Exception {
-		defaultInAdapter.start();
+	public void testRequestWithReply() throws Exception {
+		defaultInboundGateway.start();
 		sendChannel.send(new GenericMessage<String>("test1"));
-//		Assert.notNull(outputChannel);
+		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
+		defaultInboundGateway.stop();
 	}
-
-
 }

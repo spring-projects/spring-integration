@@ -69,7 +69,8 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter";
 
-		final RedisQueueGateway handler = new RedisQueueGateway(queueName, this.connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
+
 		String payload = "testing";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 
@@ -104,7 +105,7 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
-		final RedisQueueGateway handler = new RedisQueueGateway(queueName, this.connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
 		handler.setExtractPayload(false);
 
 		Message<String> message = MessageBuilder.withPayload("testing").build();
@@ -130,7 +131,7 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
-		final RedisQueueGateway handler = new RedisQueueGateway(queueName, this.connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
 		handler.setSerializer(new JacksonJsonRedisSerializer<Object>(Object.class));
 
 		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();

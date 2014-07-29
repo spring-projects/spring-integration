@@ -296,12 +296,12 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 		</calloutlist>
 		</para>
     </section>
-     <section id="redis-queue-outbound-gateway">
+     <section id="redis-queue-outbound-channel-adapter">
 		  <title>Redis Queue Outbound Channel Adapter</title>
 		  <para>
 			  Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Outbound Channel Adapter
 			   is available to 'left push' to a Redis List from Spring Integration messages:
-			  <programlisting language="xml"><![CDATA[<int-redis:queue-outbound-gateway id="" ]]><co id="redis-q-u-c-a-id"/><![CDATA[
+			  <programlisting language="xml"><![CDATA[<int-redis:queue-outbound-channel-adapter id="" ]]><co id="redis-q-u-c-a-id"/><![CDATA[
                     channel="" ]]><co id="redis-q-u-c-a-channel"/><![CDATA[
                     connection-factory="" ]]><co id="redis-q-u-c-a-connectionFactory"/><![CDATA[
                     queue="" ]]><co id="redis-q-u-c-a-queue"/><![CDATA[

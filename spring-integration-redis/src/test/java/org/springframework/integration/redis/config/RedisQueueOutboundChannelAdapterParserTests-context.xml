@@ -16,13 +16,13 @@
 
 	<int:channel id="sendChannel"/>
 
-	<int-redis:queue-outbound-gateway id="defaultAdapter" channel="sendChannel" queue="foo">
+	<int-redis:queue-outbound-channel-adapter id="defaultAdapter" channel="sendChannel" queue="foo">
 		<int-redis:request-handler-advice-chain>
 			<int:retry-advice/>
 		</int-redis:request-handler-advice-chain>
-	</int-redis:queue-outbound-gateway>
+	</int-redis:queue-outbound-channel-adapter>
 
-	<int-redis:queue-outbound-gateway id="customAdapter" channel="sendChannel"
+	<int-redis:queue-outbound-channel-adapter id="customAdapter" channel="sendChannel"
 											  queue-expression="headers['redis_queue']"
 											  extract-payload="false"
 											  serializer="serializer"

@@ -13,7 +13,7 @@
 	</bean>
 
 	<int:chain input-channel="toRedisQueueChannel">
-		<int-redis:queue-outbound-gateway queue-expression="payload"
+		<int-redis:queue-outbound-channel-adapter queue-expression="payload"
 												  extract-payload="false"
 												  serializer="testSerializer"/>
 	</int:chain>

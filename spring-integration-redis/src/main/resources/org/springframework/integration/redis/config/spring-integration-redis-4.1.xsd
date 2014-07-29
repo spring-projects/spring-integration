@@ -407,8 +407,132 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="queue-inbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures a gateway that will publish an Redis Message to the provided Exchange
+	and expect a reply Message.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Unique ID for this gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="queue" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						Redis queue name.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="serializer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer.
+							It can be specified as an empty String value, which means the Endpoint's 'serializer' property is
+							set to 'null', in which case the Message will contain the raw byte[] payload.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel to which Messages should be sent in order to have them converted and published to an Redis Exchange.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-timeout" type="xsd:string"/>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel to which replies should be sent after being received from an Redis Queue and converted.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Allows you to specify how long this gateway will wait for
+						the reply message to be sent successfully to the reply channel
+						before throwing an exception. This attribute only applies when the
+						channel might block, for example when using a bounded queue channel that
+						is currently full.
 
-	<xsd:element name="queue-outbound-gateway">
+						Also, keep in mind that when sending to a DirectChannel, the
+						invocation will occur in the sender's thread. Therefore,
+						the failing of the send operation may be caused by other
+						components further downstream.
+
+						The "reply-timeout" attribute maps to the "sendTimeout" property of the
+						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+						The attribute will default, if not specified, to '-1', meaning that
+						by default, the Gateway will wait indefinitely. The value is
+						specified in milliseconds.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connection-factory" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the Redis ConnectionFactory to be used by this component.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for executing
+						Redis listener invokers. Default is a SimpleAsyncTaskExecutor.
+					]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.concurrent.Executor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="expect-message" type="xsd:string" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						When true, specifies that the 'byte[]' from a Redis message should be deserialized
+						as an entire Spring Integration Message. Otherwise the data becomes just the
+						payload of the message (deserialized or not).
+						If this attribute is 'true', the 'serializer' must not be an empty String.
+						Default is 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="queue-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an outbound Redis Queue Message-sending Channel Adapter.
@@ -467,47 +591,127 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="reply-timeout" type="xsd:string">
-							<xsd:annotation>
-								<xsd:documentation><![CDATA[
-									Allows you to specify how long this gateway will wait for
-									the reply message to be sent successfully to the reply channel
-									before throwing an exception. This attribute only applies when the
-									channel might block, for example when using a bounded queue channel that
-									is currently full.
-
-									Also, keep in mind that when sending to a DirectChannel, the
-									invocation will occur in the sender's thread. Therefore,
-									the failing of the send operation may be caused by other
-									components further downstream.
-
-									The "reply-timeout" attribute maps to the "sendTimeout" property of the
-									underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
-
-									The attribute will default, if not specified, to '-1', meaning that
-									by default, the Gateway will wait indefinitely. The value is
-									specified in milliseconds.
-								]]></xsd:documentation>
-							</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specify whether this outbound gateway must return a non-null value. This value is
-								'true' by default, and a ReplyRequiredException will be thrown when
-								the underlying service returns a null value.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="reply-channel" use="optional" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Message Channel where reply Messages will be expected.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="queue-outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Redis Queue Message Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="3">
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+				minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="queue" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Specifies the name of the Redis queue.
+						This attribute is mutually exclusive with 'queue-expression' attribute.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="queue-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Specifies the expression to determine the name of the Redis queue
+						against the Message at runtime.
+						This attribute is mutually exclusive with 'queue' attribute.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Specifies the order for invocation when this adapter is connected as a
+						subscriber to a SubscribableChannel.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="serializer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies if the Message payload or the entire (serialized) Message will be send to the Redis queue.
+						Default is 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Allows you to specify how long this gateway will wait for
+						the reply message to be sent successfully to the reply channel
+						before throwing an exception. This attribute only applies when the
+						channel might block, for example when using a bounded queue channel that
+						is currently full.
+
+						Also, keep in mind that when sending to a DirectChannel, the
+						invocation will occur in the sender's thread. Therefore,
+						the failing of the send operation may be caused by other
+						components further downstream.
+
+						The "reply-timeout" attribute maps to the "sendTimeout" property of the
+						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+						The attribute will default, if not specified, to '-1', meaning that
+						by default, the Gateway will wait indefinitely. The value is
+						specified in milliseconds.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						'true' by default, and a ReplyRequiredException will be thrown when
+						the underlying service returns a null value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel where reply Messages will be expected.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel where request Messages will be expected.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connection-factory" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the Redis ConnectionFactory to be used by this component.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

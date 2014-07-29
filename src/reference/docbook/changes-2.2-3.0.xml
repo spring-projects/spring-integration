@@ -61,7 +61,7 @@
 			</itemizedlist>
 			<para>
 				New queue-based components have been added. The <code>&lt;int-redis:queue-inbound-channel-adapter/&gt;</code>
-				and the	<code>&lt;int-redis:queue-outbound-gateway/&gt;</code> components are provided
+				and the	<code>&lt;int-redis:queue-outbound-channel-adapter/&gt;</code> components are provided
 				to perform 'right pop' and 'left push' operations on a Redis List, respectively.
 			</para>
 			<para>

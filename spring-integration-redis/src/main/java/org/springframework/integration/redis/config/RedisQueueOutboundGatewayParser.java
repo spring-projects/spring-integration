@@ -23,26 +23,26 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.redis.outbound.RedisQueueGateway;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;int-redis:queue-outbound-gateway&gt; element.
+ * Parser for the &lt;int-redis:queue-outbound-channel-adapter&gt; element.
  *
  * @author Artem Bilan
  * @author David Liu
  * @since 3.0
  */
-public class RedisQueueGatewayParser extends AbstractConsumerEndpointParser {
+public class RedisQueueOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected String getInputChannelAttributeName() {
-		return "channel";
+		return "request-channel";
 	}
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueGateway.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueOutboundGateway.class);
 		BeanDefinition queueExpression = IntegrationNamespaceUtils
 				.createExpressionDefinitionFromValueOrExpression("queue", "queue-expression", parserContext, element, true);
 		builder.addConstructorArgValue(queueExpression);
@@ -57,7 +57,8 @@ public class RedisQueueGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requiresReply");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
 		return builder;
 	}
 

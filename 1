@@ -1,0 +1,626 @@
+diff --git a/build.gradle b/build.gradle
+index cea00d9..e542a1b 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -486,7 +486,6 @@ project('spring-integration-redis') {
+ 		}
+ 		testCompile "redis.clients:jedis:$jedisVersion"
+ 		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+-		testCompile project(":spring-integration-stream")
+ 	}
+ }
+ 
+diff --git a/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisNamespaceHandler.java b/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisNamespaceHandler.java
+index bb6234c..2a03813 100644
+--- a/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisNamespaceHandler.java
++++ b/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisNamespaceHandler.java
+@@ -33,7 +33,9 @@ public class RedisNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+ 		registerBeanDefinitionParser("store-outbound-channel-adapter", new RedisStoreOutboundChannelAdapterParser());
+ 		registerBeanDefinitionParser("outbound-channel-adapter", new RedisOutboundChannelAdapterParser());
+ 		registerBeanDefinitionParser("queue-inbound-channel-adapter", new RedisQueueInboundChannelAdapterParser());
+-		registerBeanDefinitionParser("queue-outbound-gateway", new RedisQueueGatewayParser());
++		registerBeanDefinitionParser("queue-inbound-gateway", new RedisQueueInboundGatewayParser());
++		registerBeanDefinitionParser("queue-outbound-channel-adapter", new RedisQueueOutboundChannelAdapterParser());
++		registerBeanDefinitionParser("queue-outbound-gateway", new RedisQueueOutboundGatewayParser());
+ 		registerBeanDefinitionParser("outbound-gateway", new RedisOutboundGatewayParser());
+ 	}
+ }
+diff --git a/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisQueueOutboundGatewayParser.java b/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisQueueOutboundGatewayParser.java
+index a1932bc..7db3558 100644
+--- a/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisQueueOutboundGatewayParser.java
++++ b/spring-integration-redis/src/main/java/org/springframework/integration/redis/config/RedisQueueOutboundGatewayParser.java
+@@ -23,26 +23,26 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+ import org.springframework.beans.factory.xml.ParserContext;
+ import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
+ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+-import org.springframework.integration.redis.outbound.RedisQueueGateway;
++import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
+ import org.springframework.util.StringUtils;
+ 
+ /**
+- * Parser for the &lt;int-redis:queue-outbound-gateway&gt; element.
++ * Parser for the &lt;int-redis:queue-outbound-channel-adapter&gt; element.
+  *
+  * @author Artem Bilan
+  * @author David Liu
+  * @since 3.0
+  */
+-public class RedisQueueGatewayParser extends AbstractConsumerEndpointParser {
++public class RedisQueueOutboundGatewayParser extends AbstractConsumerEndpointParser {
+ 
+ 	@Override
+ 	protected String getInputChannelAttributeName() {
+-		return "channel";
++		return "request-channel";
+ 	}
+ 
+ 	@Override
+ 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueGateway.class);
++		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueOutboundGateway.class);
+ 		BeanDefinition queueExpression = IntegrationNamespaceUtils
+ 				.createExpressionDefinitionFromValueOrExpression("queue", "queue-expression", parserContext, element, true);
+ 		builder.addConstructorArgValue(queueExpression);
+@@ -57,7 +57,8 @@ public class RedisQueueGatewayParser extends AbstractConsumerEndpointParser {
+ 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+ 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+ 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "timeout");
+-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requiresReply");
++		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
++		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
+ 		return builder;
+ 	}
+ 
+diff --git a/spring-integration-redis/src/main/java/org/springframework/integration/redis/outbound/RedisQueueOutboundGateway.java b/spring-integration-redis/src/main/java/org/springframework/integration/redis/outbound/RedisQueueOutboundGateway.java
+index 77d6098..6dec98b 100644
+--- a/spring-integration-redis/src/main/java/org/springframework/integration/redis/outbound/RedisQueueOutboundGateway.java
++++ b/spring-integration-redis/src/main/java/org/springframework/integration/redis/outbound/RedisQueueOutboundGateway.java
+@@ -28,22 +28,17 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
+ import org.springframework.expression.EvaluationContext;
+ import org.springframework.expression.Expression;
+ import org.springframework.expression.common.LiteralExpression;
+-import org.springframework.integration.MessageTimeoutException;
+ import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+ import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
++import org.springframework.integration.redis.util.SerializerUtil;
+ import org.springframework.messaging.Message;
+ import org.springframework.util.Assert;
+ 
+ /**
+- * @author Mark Fisher
+- * @author Gunnar Hillert
+- * @author Artem Bilan
+  * @author David Liu
+- * @since 3.0
++ * @since 4.1
+  */
+-public class RedisQueueGateway extends AbstractReplyProducingMessageHandler implements IntegrationEvaluationContextAware {
+-
+-	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
++public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler implements IntegrationEvaluationContextAware {
+ 
+ 	private final RedisTemplate<String, Object> template;
+ 
+@@ -67,13 +62,11 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
+ 	
+ 	private BoundListOperations<String, Object> boundListOperations = null;
+ 	
+-	private volatile boolean requiresReply;
+-	
+-	public RedisQueueGateway(String queueName, RedisConnectionFactory connectionFactory) {
++	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
+ 		this(new LiteralExpression(queueName), connectionFactory);
+ 	}
+ 
+-	public RedisQueueGateway(Expression queueNameExpression, RedisConnectionFactory connectionFactory) {
++	public RedisQueueOutboundGateway(Expression queueNameExpression, RedisConnectionFactory connectionFactory) {
+ 		Assert.notNull(queueNameExpression, "'queueNameExpression' is required");
+ 		Assert.hasText(queueNameExpression.getExpressionString(), "'queueNameExpression.getExpressionString()' is required");
+ 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
+@@ -85,10 +78,6 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
+ 		this.template.afterPropertiesSet();
+ 	}
+ 	
+-	public void setRequiresReply(boolean requiresReply) {
+-		this.requiresReply = requiresReply;
+-	}
+-	
+ 	public void setTimeout(int timeout) {
+ 		this.timeout = timeout;
+ 	}
+@@ -114,7 +103,7 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
+ 
+ 	@Override
+ 	public String getComponentType() {
+-		return "redis:queue-message-handler";
++		return "redis:queue-outbound-gatewway";
+ 	}
+ 
+ 	@Override
+@@ -124,24 +113,18 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
+ 		if (this.extractPayload) {
+ 			value = message.getPayload();
+ 		}
+-		value = this.serialize(value);
++		value = SerializerUtil.serialize(value, this.serializerExplicitlySet, this.serializer);
+ 		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
+ 
+ 		if (this.expectReply) {
+ 			long uuid = generateRandomUUID();
+-			this.template.boundListOps(queueNameExpression.getExpressionString()).leftPush(this.serialize(uuid+""));
++			this.template.boundListOps(queueName).leftPush(SerializerUtil.serialize(uuid+"", this.serializerExplicitlySet, this.serializer));
+ 			this.template.boundListOps(uuid + "").leftPush(value);
+ 			this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
+ 			byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
+-			String replyMessage = this.stringSerializer.deserialize(reply);
++			Object replyMessage = this.serializer.deserialize(reply);
+ 			if (replyMessage == null) {
+-				if (this.requiresReply) {
+-					throw new MessageTimeoutException(message,
+-							"failed to receive Redis response within timeout of: " + this.timeout + "ms");
+-				}
+-				else {
+-					return null;
+-				}
++				return null;
+ 			}
+ 			return this.getMessageBuilderFactory().withPayload(replyMessage).build();
+ 		}
+@@ -154,17 +137,4 @@ public class RedisQueueGateway extends AbstractReplyProducingMessageHandler impl
+ 	private long generateRandomUUID(){
+ 		return UUID.randomUUID().getMostSignificantBits();
+ 	}
+-	
+-	@SuppressWarnings("unchecked")
+-	private byte[] serialize(Object value) {
+-		if (!(value instanceof byte[])) {
+-			if (value instanceof String && !this.serializerExplicitlySet) {
+-				value = this.stringSerializer.serialize((String) value);
+-			}
+-			else {
+-				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
+-			}
+-		}
+-		return (byte[]) value;
+-	}
+ }
+diff --git a/spring-integration-redis/src/main/resources/org/springframework/integration/redis/config/spring-integration-redis-4.1.xsd b/spring-integration-redis/src/main/resources/org/springframework/integration/redis/config/spring-integration-redis-4.1.xsd
+index 91a1ae8..f75ce89 100644
+--- a/spring-integration-redis/src/main/resources/org/springframework/integration/redis/config/spring-integration-redis-4.1.xsd
++++ b/spring-integration-redis/src/main/resources/org/springframework/integration/redis/config/spring-integration-redis-4.1.xsd
+@@ -407,8 +407,132 @@
+ 			</xsd:complexContent>
+ 		</xsd:complexType>
+ 	</xsd:element>
++	
++	<xsd:element name="queue-inbound-gateway">
++		<xsd:annotation>
++			<xsd:documentation>
++	Configures a gateway that will publish an Redis Message to the provided Exchange
++	and expect a reply Message.
++            </xsd:documentation>
++		</xsd:annotation>
++		<xsd:complexType>
++			<xsd:attribute name="id" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Unique ID for this gateway.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="queue" type="xsd:string" use="required">
++				<xsd:annotation>
++					<xsd:documentation>
++						Redis queue name.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="serializer" type="xsd:string">
++				<xsd:annotation>
++					<xsd:appinfo>
++						<xsd:documentation>
++							Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer.
++							It can be specified as an empty String value, which means the Endpoint's 'serializer' property is
++							set to 'null', in which case the Message will contain the raw byte[] payload.
++						</xsd:documentation>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="request-channel" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Message Channel to which Messages should be sent in order to have them converted and published to an Redis Exchange.
++					</xsd:documentation>
++					<xsd:appinfo>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="request-timeout" type="xsd:string"/>
++			<xsd:attribute name="reply-channel" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Message Channel to which replies should be sent after being received from an Redis Queue and converted.
++					</xsd:documentation>
++					<xsd:appinfo>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="reply-timeout" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation><![CDATA[
++						Allows you to specify how long this gateway will wait for
++						the reply message to be sent successfully to the reply channel
++						before throwing an exception. This attribute only applies when the
++						channel might block, for example when using a bounded queue channel that
++						is currently full.
+ 
+-	<xsd:element name="queue-outbound-gateway">
++						Also, keep in mind that when sending to a DirectChannel, the
++						invocation will occur in the sender's thread. Therefore,
++						the failing of the send operation may be caused by other
++						components further downstream.
++
++						The "reply-timeout" attribute maps to the "sendTimeout" property of the
++						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
++
++						The attribute will default, if not specified, to '-1', meaning that
++						by default, the Gateway will wait indefinitely. The value is
++						specified in milliseconds.
++					]]></xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="connection-factory" use="optional" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Reference to the Redis ConnectionFactory to be used by this component.
++					</xsd:documentation>
++					<xsd:appinfo>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="task-executor" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation><![CDATA[
++						A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for executing
++						Redis listener invokers. Default is a SimpleAsyncTaskExecutor.
++					]]></xsd:documentation>
++					<xsd:appinfo>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="java.util.concurrent.Executor"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="expect-message" type="xsd:string" default="false">
++				<xsd:annotation>
++					<xsd:documentation>
++						When true, specifies that the 'byte[]' from a Redis message should be deserialized
++						as an entire Spring Integration Message. Otherwise the data becomes just the
++						payload of the message (deserialized or not).
++						If this attribute is 'true', the 'serializer' must not be an empty String.
++						Default is 'false'.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
++		</xsd:complexType>
++	</xsd:element>
++	
++	<xsd:element name="queue-outbound-channel-adapter">
+ 		<xsd:annotation>
+ 			<xsd:documentation>
+ 				Defines an outbound Redis Queue Message-sending Channel Adapter.
+@@ -467,47 +591,127 @@
+ 							</xsd:documentation>
+ 						</xsd:annotation>
+ 					</xsd:attribute>
+-					<xsd:attribute name="reply-timeout" type="xsd:string">
+-							<xsd:annotation>
+-								<xsd:documentation><![CDATA[
+-									Allows you to specify how long this gateway will wait for
+-									the reply message to be sent successfully to the reply channel
+-									before throwing an exception. This attribute only applies when the
+-									channel might block, for example when using a bounded queue channel that
+-									is currently full.
++				</xsd:extension>
++			</xsd:complexContent>
++		</xsd:complexType>
++	</xsd:element>
+ 
+-									Also, keep in mind that when sending to a DirectChannel, the
+-									invocation will occur in the sender's thread. Therefore,
+-									the failing of the send operation may be caused by other
+-									components further downstream.
++	<xsd:element name="queue-outbound-gateway">
++		<xsd:annotation>
++			<xsd:documentation>
++				Defines an outbound Redis Queue Message Gateway.
++			</xsd:documentation>
++		</xsd:annotation>
++		<xsd:complexType>
++			<xsd:choice minOccurs="0" maxOccurs="3">
++				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
++				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
++				minOccurs="0" maxOccurs="1" />
++			</xsd:choice>
++			<xsd:attribute name="id" type="xsd:string"/>
++			<xsd:attribute name="queue" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation><![CDATA[
++						Specifies the name of the Redis queue.
++						This attribute is mutually exclusive with 'queue-expression' attribute.
++					]]></xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="queue-expression" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation><![CDATA[
++						Specifies the expression to determine the name of the Redis queue
++						against the Message at runtime.
++						This attribute is mutually exclusive with 'queue' attribute.
++					]]></xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="order" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation><![CDATA[
++						Specifies the order for invocation when this adapter is connected as a
++						subscriber to a SubscribableChannel.
++					]]></xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="serializer" type="xsd:string">
++				<xsd:annotation>
++					<xsd:appinfo>
++						<xsd:documentation>
++							Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer
++						</xsd:documentation>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
++				<xsd:annotation>
++					<xsd:documentation>
++						Specifies if the Message payload or the entire (serialized) Message will be send to the Redis queue.
++						Default is 'true'.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="reply-timeout" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation><![CDATA[
++						Allows you to specify how long this gateway will wait for
++						the reply message to be sent successfully to the reply channel
++						before throwing an exception. This attribute only applies when the
++						channel might block, for example when using a bounded queue channel that
++						is currently full.
+ 
+-									The "reply-timeout" attribute maps to the "sendTimeout" property of the
+-									underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
++						Also, keep in mind that when sending to a DirectChannel, the
++						invocation will occur in the sender's thread. Therefore,
++						the failing of the send operation may be caused by other
++						components further downstream.
+ 
+-									The attribute will default, if not specified, to '-1', meaning that
+-									by default, the Gateway will wait indefinitely. The value is
+-									specified in milliseconds.
+-								]]></xsd:documentation>
+-							</xsd:annotation>
+-					</xsd:attribute>
+-					<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+-						<xsd:annotation>
+-							<xsd:documentation>
+-								Specify whether this outbound gateway must return a non-null value. This value is
+-								'true' by default, and a ReplyRequiredException will be thrown when
+-								the underlying service returns a null value.
+-							</xsd:documentation>
+-						</xsd:annotation>
+-					</xsd:attribute>
+-					<xsd:attribute name="reply-channel" use="optional" type="xsd:string">
+-						<xsd:annotation>
+-							<xsd:documentation>
+-								Message Channel where reply Messages will be expected.
+-							</xsd:documentation>
+-						</xsd:annotation>
+-					</xsd:attribute>
+-				</xsd:extension>
+-			</xsd:complexContent>
++						The "reply-timeout" attribute maps to the "sendTimeout" property of the
++						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
++
++						The attribute will default, if not specified, to '-1', meaning that
++						by default, the Gateway will wait indefinitely. The value is
++						specified in milliseconds.
++					]]></xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
++				<xsd:annotation>
++					<xsd:documentation>
++						Specify whether this outbound gateway must return a non-null value. This value is
++						'true' by default, and a ReplyRequiredException will be thrown when
++						the underlying service returns a null value.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="reply-channel" use="optional" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Message Channel where reply Messages will be expected.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="request-channel" use="optional" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Message Channel where request Messages will be expected.
++					</xsd:documentation>
++				</xsd:annotation>
++			</xsd:attribute>
++			<xsd:attribute name="connection-factory" use="optional" type="xsd:string">
++				<xsd:annotation>
++					<xsd:documentation>
++						Reference to the Redis ConnectionFactory to be used by this component.
++					</xsd:documentation>
++					<xsd:appinfo>
++						<tool:annotation kind="ref">
++							<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
++						</tool:annotation>
++					</xsd:appinfo>
++				</xsd:annotation>
++			</xsd:attribute>
+ 		</xsd:complexType>
+ 	</xsd:element>
+ 
+diff --git a/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests-context.xml b/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests-context.xml
+index 5c61851..d762f8f 100644
+--- a/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests-context.xml
++++ b/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests-context.xml
+@@ -21,17 +21,21 @@
+ 	<int:channel id="outputChannel">
+ 		<int:queue/>
+ 	</int:channel>
+-
+-	<int-redis:queue-outbound-gateway id="defaultAdapter" channel="sendChannel" queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel">
+-		<int-redis:request-handler-advice-chain>
+-			<int:retry-advice/>
+-		</int-redis:request-handler-advice-chain>
+-	</int-redis:queue-outbound-gateway>
++	
++	<int:channel id="inboundOutputChannel">
++		<int:queue/>
++	</int:channel>
++	
++	<int:channel id="requestChannel"/>
++	
++	<int-redis:queue-outbound-gateway id="defaultOutboundGateway" request-channel="sendChannel" queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel" serializer="serializer"/>
+ 
+ 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+ 	
+-	<int-redis:queue-inbound-channel-adapter id="defaultInAdapter" queue="foo"/>
+-	
+-	<!-- <int-stream:stdout-channel-adapter id="outputChannel"/> -->
++	<int-redis:queue-inbound-gateway id="defaultInboudGateway" queue="foo" request-channel="requestChannel" reply-channel="inboundOutputChannel" serializer="serializer" reply-timeout="20001" request-timeout="20000" />
+ 
++	<int:service-activator input-channel="requestChannel" ref="barista" method="toUpperCase"/>
++	
++	<bean id="barista" class="org.springframework.integration.redis.config.Barista"/>
++	
+ </beans>
+diff --git a/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests.java b/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests.java
+index 5df5bca..87252c5 100644
+--- a/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests.java
++++ b/spring-integration-redis/src/test/java/org/springframework/integration/redis/config/RedisQueueIntegrationTests.java
+@@ -27,8 +27,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
+ import org.springframework.integration.channel.DirectChannel;
+ import org.springframework.integration.channel.QueueChannel;
+ import org.springframework.integration.endpoint.EventDrivenConsumer;
+-import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
+-import org.springframework.integration.redis.outbound.RedisQueueGateway;
++import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
++import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
+ import org.springframework.messaging.support.GenericMessage;
+ import org.springframework.test.context.ContextConfiguration;
+ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+@@ -50,12 +50,12 @@ public class RedisQueueIntegrationTests {
+ 	private RedisConnectionFactory customRedisConnectionFactory;
+ 
+ 	@Autowired
+-	@Qualifier("defaultAdapter")
++	@Qualifier("defaultOutboundGateway")
+ 	private EventDrivenConsumer defaultEndpoint;
+ 
+ 	@Autowired
+-	@Qualifier("defaultAdapter.handler")
+-	private RedisQueueGateway defaultAdapter;
++	@Qualifier("defaultOutboundGateway.handler")
++	private RedisQueueOutboundGateway defaultOutboundGateway;
+ 
+ 	@Autowired
+ 	private RedisSerializer<?> serializer;
+@@ -69,15 +69,17 @@ public class RedisQueueIntegrationTests {
+ 	private QueueChannel outputChannel;
+ 
+ 	@Autowired
+-	@Qualifier("defaultInAdapter.adapter")
+-	private RedisQueueMessageDrivenEndpoint defaultInAdapter;
++	@Qualifier("inboundOutputChannel")
++	private QueueChannel inboundOutputChannel;
++
++	@Autowired
++	private RedisQueueInboundGateway defaultInboundGateway;
+ 	
+ 	@Test
+-	public void testInt1DefaultConfig() throws Exception {
+-		defaultInAdapter.start();
++	public void testRequestWithReply() throws Exception {
++		defaultInboundGateway.start();
+ 		sendChannel.send(new GenericMessage<String>("test1"));
+-		Assert.assertNotNull(outputChannel.receive().getPayload());
++		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
++		defaultInboundGateway.stop();
+ 	}
+-
+-
+ }
+diff --git a/src/reference/docbook/changes-2.2-3.0.xml b/src/reference/docbook/changes-2.2-3.0.xml
+index b07b188..b455017 100644
+--- a/src/reference/docbook/changes-2.2-3.0.xml
++++ b/src/reference/docbook/changes-2.2-3.0.xml
+@@ -61,7 +61,7 @@
+ 			</itemizedlist>
+ 			<para>
+ 				New queue-based components have been added. The <code>&lt;int-redis:queue-inbound-channel-adapter/&gt;</code>
+-				and the	<code>&lt;int-redis:queue-outbound-gateway/&gt;</code> components are provided
++				and the	<code>&lt;int-redis:queue-outbound-channel-adapter/&gt;</code> components are provided
+ 				to perform 'right pop' and 'left push' operations on a Redis List, respectively.
+ 			</para>
+ 			<para>
+diff --git a/src/reference/docbook/endpoint-summary.xml b/src/reference/docbook/endpoint-summary.xml
+index 2387ed8..fee82dc 100644
+--- a/src/reference/docbook/endpoint-summary.xml
++++ b/src/reference/docbook/endpoint-summary.xml
+@@ -140,7 +140,7 @@
+ 						   <xref linkend="redis-queue-inbound-channel-adapter" /> and
+ 						   <xref linkend="redis-store-inbound-channel-adapter" /></entry>
+ 					<entry><xref linkend="redis-outbound-channel-adapter" /> and
+-						   <xref linkend="redis-queue-outbound-gateway" /> and
++						   <xref linkend="redis-queue-outbound-channel-adapter" /> and
+ 						   <xref linkend="redis-store-outbound-channel-adapter" /></entry>
+ 					<entry>N</entry>
+ 					<entry><xref linkend="redis-outbound-gateway" /></entry>
+diff --git a/src/reference/docbook/redis.xml b/src/reference/docbook/redis.xml
+index b4b6dcf..5f73cef 100644
+--- a/src/reference/docbook/redis.xml
++++ b/src/reference/docbook/redis.xml
+@@ -296,12 +296,12 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
+ 		</calloutlist>
+ 		</para>
+     </section>
+-     <section id="redis-queue-outbound-gateway">
++     <section id="redis-queue-outbound-channel-adapter">
+ 		  <title>Redis Queue Outbound Channel Adapter</title>
+ 		  <para>
+ 			  Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Outbound Channel Adapter
+ 			   is available to 'left push' to a Redis List from Spring Integration messages:
+-			  <programlisting language="xml"><![CDATA[<int-redis:queue-outbound-gateway id="" ]]><co id="redis-q-u-c-a-id"/><![CDATA[
++			  <programlisting language="xml"><![CDATA[<int-redis:queue-outbound-channel-adapter id="" ]]><co id="redis-q-u-c-a-id"/><![CDATA[
+                     channel="" ]]><co id="redis-q-u-c-a-channel"/><![CDATA[
+                     connection-factory="" ]]><co id="redis-q-u-c-a-connectionFactory"/><![CDATA[
+                     queue="" ]]><co id="redis-q-u-c-a-queue"/><![CDATA[
