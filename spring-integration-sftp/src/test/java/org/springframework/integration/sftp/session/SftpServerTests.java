@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.session;
 
 import static org.junit.Assert.assertEquals;
@@ -29,11 +30,13 @@ import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
 import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
+import org.apache.sshd.common.util.Base64;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.PublickeyAuthenticator;
@@ -45,14 +48,11 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.test.util.SocketUtils;
-
-import sun.misc.BASE64Decoder;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
+import org.springframework.util.StreamUtils;
 
 /**
  * @author Gary Russell
- * @since 3.0.2
+ * @since 4.1
  *
  */
 public class SftpServerTests {
@@ -161,7 +161,7 @@ public class SftpServerTests {
 
 	private PublicKey decodePublicKey() throws Exception {
 		InputStream stream = new ClassPathResource("id_rsa.pub").getInputStream();
-		byte[] decodeBuffer = new BASE64Decoder().decodeBuffer(stream);
+		byte[] decodeBuffer = Base64.decodeBase64(StreamUtils.copyToByteArray(stream));
 		ByteBuffer bb = ByteBuffer.wrap(decodeBuffer);
 		int len = bb.getInt();
 		byte[] type = new byte[len];
