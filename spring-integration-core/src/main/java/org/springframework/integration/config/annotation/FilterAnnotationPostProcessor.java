@@ -90,7 +90,9 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		}
 
 		String discardChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
-		filter.setDiscardChannelName(discardChannelName);
+		if (StringUtils.hasText(discardChannelName)) {
+			filter.setDiscardChannelName(discardChannelName);
+		}
 
 		this.setOutputChannelIfPresent(annotations, filter);
 		return filter;

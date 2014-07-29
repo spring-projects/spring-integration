@@ -187,6 +187,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	public void setOutputChannelName(String outputChannelName) {
+		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName;
 	}
 
@@ -215,10 +216,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
-			Assert.state(!(StringUtils.hasText(this.discardChannelName) && this.discardChannel != null),
+			Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 
-			Assert.state(!(StringUtils.hasText(this.outputChannelName) && this.outputChannel != null),
+			Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
 					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 
 			if (this.outputProcessor instanceof BeanFactoryAware) {
@@ -256,6 +257,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
 		this.discardChannelName = discardChannelName;
 	}
 
@@ -453,7 +455,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	private void discardMessage(Message<?> message) {
-		if (StringUtils.hasText(this.discardChannelName)) {
+		if (this.discardChannelName != null) {
 			synchronized (this) {
 				if (this.discardChannelName != null) {
 					try {
@@ -649,7 +651,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
 
-		if (StringUtils.hasText(this.outputChannelName)) {
+		if (this.outputChannelName != null) {
 			synchronized (this) {
 				if (this.outputChannelName != null) {
 					try {

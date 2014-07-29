@@ -25,7 +25,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Message Handler that delegates to a {@link MessageSelector}. If and only if
@@ -91,6 +90,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
 		this.discardChannelName = discardChannelName;
 	}
 
@@ -111,10 +111,8 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	@Override
 	protected void doInit() {
-		if (StringUtils.hasText(this.discardChannelName)) {
-			Assert.state(!(StringUtils.hasText(this.discardChannelName) && this.discardChannel != null),
-					"'outputChannelName' and 'discardChannel' are mutually exclusive.");
-		}
+		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
+					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
 		}
@@ -136,7 +134,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	@Override
 	public Object postProcess(Message<?> message, Object result) {
 		if (result == null) {
-			if (StringUtils.hasText(this.discardChannelName)) {
+			if (this.discardChannelName != null) {
 				synchronized (this) {
 					if (this.discardChannelName != null) {
 						try {

@@ -31,6 +31,7 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for the {@link BridgeTo @BridgeTo} annotation.
@@ -64,7 +65,9 @@ public class BridgeToAnnotationPostProcessor extends AbstractMethodAnnotationPos
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		BridgeHandler handler = new BridgeHandler();
 		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "value", String.class);
-		handler.setOutputChannelName(outputChannelName);
+		if (StringUtils.hasText(outputChannelName)) {
+			handler.setOutputChannelName(outputChannelName);
+		}
 		return handler;
 	}
 

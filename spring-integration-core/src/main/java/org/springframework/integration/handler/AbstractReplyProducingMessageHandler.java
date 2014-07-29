@@ -35,7 +35,6 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -76,6 +75,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	public void setOutputChannelName(String outputChannelName) {
+		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName;
 	}
 
@@ -131,10 +131,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	@Override
 	protected final void onInit() {
+		Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
+				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
-			Assert.state(!(StringUtils.hasText(this.outputChannelName) && this.outputChannel != null),
-					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
@@ -226,7 +226,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
 
-		if (StringUtils.hasText(this.outputChannelName)) {
+		if (this.outputChannelName != null) {
 			synchronized (this) {
 				if (this.outputChannelName != null) {
 					try {

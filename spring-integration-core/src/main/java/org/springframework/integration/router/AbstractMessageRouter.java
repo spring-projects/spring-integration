@@ -31,7 +31,6 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for all Message Routers.
@@ -71,6 +70,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
+		Assert.hasText(defaultOutputChannelName, "'defaultOutputChannelName' must not be empty");
 		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
@@ -131,12 +131,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
+		Assert.state(!(this.defaultOutputChannelName != null && this.defaultOutputChannel != null),
+				"'defaultOutputChannelName' and 'defaultOutputChannel' are mutually exclusive.");
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
-			if (StringUtils.hasText(this.defaultOutputChannelName)) {
-				Assert.isNull(this.defaultOutputChannel,
-						"'defaultOutputChannelName' and 'defaultOutputChannel' are mutually exclusive.");
-			}
 		}
 	}
 
@@ -156,8 +154,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			int sequenceSize = results.size();
 			int sequenceNumber = 1;
 			for (MessageChannel channel : results) {
-				final Message<?> messageToSend = (!this.applySequence) ? message : this.getMessageBuilderFactory().fromMessage(message)
-						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
+				final Message<?> messageToSend =
+						!this.applySequence ? message : (this.getMessageBuilderFactory()
+								.fromMessage(message)
+								.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize)
+								.build());
 				if (channel != null) {
 					try {
 						this.messagingTemplate.send(channel, messageToSend);
@@ -175,16 +176,18 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 		if (!sent) {
-			if (StringUtils.hasText(this.defaultOutputChannelName)) {
+			if (this.defaultOutputChannelName != null) {
 				synchronized (this) {
-					try {
-						this.defaultOutputChannel = getBeanFactory()
-								.getBean(this.defaultOutputChannelName, MessageChannel.class);
-						this.defaultOutputChannelName = null;
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.defaultOutputChannelName + "' in the BeanFactory.");
+					if (this.defaultOutputChannelName != null) {
+						try {
+							this.defaultOutputChannel = getBeanFactory()
+									.getBean(this.defaultOutputChannelName, MessageChannel.class);
+							this.defaultOutputChannelName = null;
+						}
+						catch (BeansException e) {
+							throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+									+ this.defaultOutputChannelName + "' in the BeanFactory.");
+						}
 					}
 				}
 			}
