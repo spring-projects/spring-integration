@@ -16,14 +16,12 @@
 
 package org.springframework.integration.redis.config;
 
-import org.springframework.stereotype.Component;
 
 /**
  * @author David Liu 
  * since 4.1
  */
 
-@Component
 public class Barista {
 
 	public String toUpperCase(String input) {

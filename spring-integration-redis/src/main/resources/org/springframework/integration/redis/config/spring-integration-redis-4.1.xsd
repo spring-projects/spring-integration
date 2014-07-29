@@ -411,9 +411,9 @@
 	<xsd:element name="queue-inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a gateway that will publish an Redis Message to the provided Exchange
-	and expect a reply Message.
-            </xsd:documentation>
+				Configures a gateway that will publish an Redis Message to the provided Exchange
+				and expect a reply Message.
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string">

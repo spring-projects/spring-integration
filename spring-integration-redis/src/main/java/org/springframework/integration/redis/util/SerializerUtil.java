@@ -19,7 +19,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * @author Gary Russell
+ * @author David Liu
  * @since 4.1
  *
  */

@@ -134,7 +134,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		}
 	}
 	
-	private long generateRandomUUID(){
+	private long generateRandomUUID() {
 		return UUID.randomUUID().getMostSignificantBits();
 	}
 }
