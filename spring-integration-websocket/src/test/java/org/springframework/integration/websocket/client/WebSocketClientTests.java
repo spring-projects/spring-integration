@@ -16,8 +16,10 @@
 
 package org.springframework.integration.websocket.client;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,8 +37,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.transformer.HeaderFilter;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
@@ -51,8 +51,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.NativeMessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;

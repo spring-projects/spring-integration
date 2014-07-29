@@ -16,8 +16,10 @@
 
 package org.springframework.integration.websocket.inbound;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -137,12 +139,11 @@ public class WebSocketInboundChannelAdapterTests {
 		public MessageProducer webSocketInboundChannelAdapter() {
 			WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
 					new WebSocketInboundChannelAdapter(clientWebSocketContainer(),
-					new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
+							new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 			webSocketInboundChannelAdapter.setOutputChannel(webSocketChannel());
 			return webSocketInboundChannelAdapter;
 		}
 
 	}
-
 
 }

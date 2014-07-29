@@ -29,6 +29,7 @@ import org.springframework.web.socket.WebSocketSession;
  * {@link IntegrationWebSocketContainer} which delegates messages and
  * {@link WebSocketSession} events to this implementation.
  *
+ * @author Andy Wilkinson
  * @author Artem Bilan
  * @since 4.1
  * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter

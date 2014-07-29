@@ -16,8 +16,11 @@
 
 package org.springframework.integration.websocket.outbound;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +32,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.JettyWebSocketTestServer;
@@ -112,8 +114,8 @@ public class WebSocketOutboundMessageHandlerTests {
 
 		@Bean
 		public MessageHandler webSocketOutboundMessageHandler() {
-			 return new WebSocketOutboundMessageHandler(clientWebSocketContainer(),
-					 new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
+			return new WebSocketOutboundMessageHandler(clientWebSocketContainer(),
+					new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 		}
 
 	}

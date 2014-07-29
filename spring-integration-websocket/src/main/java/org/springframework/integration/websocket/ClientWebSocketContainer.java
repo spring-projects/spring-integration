@@ -51,7 +51,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private final ConnectionManagerSupport connectionManager;
 
-	private volatile CountDownLatch connectionLatch = new CountDownLatch(1);
+	private volatile CountDownLatch connectionLatch;
 
 	private WebSocketSession clientSession;
 
@@ -122,26 +122,17 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	@Override
 	public void start() {
 		this.connectionManager.start();
+		this.connectionLatch = new CountDownLatch(1);
 	}
 
 	@Override
 	public void stop() {
-		try {
-			this.connectionManager.stop();
-		}
-		finally {
-			this.connectionLatch = new CountDownLatch(1);
-		}
+		this.connectionManager.stop();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		try {
-			this.connectionManager.stop(callback);
-		}
-		finally {
-			this.connectionLatch = new CountDownLatch(1);
-		}
+		this.connectionManager.stop(callback);
 	}
 
 	/**
