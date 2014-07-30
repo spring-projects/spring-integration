@@ -136,7 +136,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
 	}
-	
+
 	/**
 	 * Sets the SourceFactory.
 	 *
@@ -198,8 +198,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	@Override
 	protected void onInit() throws Exception {
-		
-		
+		super.onInit();
 		boolean resultFactorySpecified = StringUtils.hasText(this.getResultFactoryName()) || StringUtils.hasText(this.getResultType());
 		if(resultFactorySpecified){
 			alwaysUseResultFactory=true;

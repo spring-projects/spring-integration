@@ -139,14 +139,14 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	
 	@Override
 	protected void onInit() {
-		if (this.getSessionAcknowledgeMode()!= null) {
+		if (this.getSessionAcknowledgeMode() != null) {
 			Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.getSessionAcknowledgeMode());
 			if (acknowledgeMode != null) {
 				if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
-					jmsTemplate.setSessionTransacted(true);
+					this.jmsTemplate.setSessionTransacted(true);
 				}
 				else {
-					jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
+					this.jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
 				}
 			}
 		}

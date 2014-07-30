@@ -116,7 +116,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		builder.addConstructorArgReference(listenerBeanName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge","sessionAcknowledgeMode");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
 		
 	}
 

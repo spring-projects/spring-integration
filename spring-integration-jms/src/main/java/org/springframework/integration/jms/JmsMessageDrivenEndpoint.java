@@ -70,10 +70,10 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.sessionAcknowledgeMode);
 		if (acknowledgeMode != null) {
 			if (acknowledgeMode.intValue() == JmsAdapterUtils.SESSION_TRANSACTED) {
-				listenerContainer.setSessionTransacted(true);
+				this.listenerContainer.setSessionTransacted(true);
 			}
 			else {
-				listenerContainer.setSessionAcknowledgeMode(acknowledgeMode);
+				this.listenerContainer.setSessionAcknowledgeMode(acknowledgeMode);
 			}
 		}
 		listener.setComponentName(this.getComponentName());

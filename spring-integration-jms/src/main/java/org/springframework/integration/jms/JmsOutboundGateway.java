@@ -594,8 +594,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.replyContainerProperties.getRecoveryInterval() != null) {
 				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
 			}
-			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
-				Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+			if (StringUtils.hasText(this.replyContainerProperties.getSessionAcknowledgeModeName())) {
+				Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeModeName());
 				if (acknowledgeMode != null) {
 					if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 						container.setSessionTransacted(true);
@@ -1221,7 +1221,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	public static class ReplyContainerProperties {
 		private volatile Boolean sessionTransacted;
 
-		private volatile String sessionAcknowledgeMode;
+		private volatile Integer sessionAcknowledgeMode;
+		
+		private volatile String sessionAcknowledgeModeName;
 
 		private volatile Long receiveTimeout;
 
@@ -1240,6 +1242,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		private volatile Integer idleTaskExecutionLimit;
 
 		private volatile Executor taskExecutor;
+		
+		public String getSessionAcknowledgeModeName() {
+			return sessionAcknowledgeModeName;
+		}
+
+		public void setSessionAcknowledgeModeName(String sessionAcknowledgeModeName) {
+			this.sessionAcknowledgeModeName = sessionAcknowledgeModeName;
+		}
 
 		public Boolean isSessionTransacted() {
 			return sessionTransacted;
@@ -1249,11 +1259,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			this.sessionTransacted = sessionTransacted;
 		}
 
-		public String getSessionAcknowledgeMode() {
+		public Integer getSessionAcknowledgeMode() {
 			return sessionAcknowledgeMode;
 		}
 
-		public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
+		public void setSessionAcknowledgeMode(Integer sessionAcknowledgeMode) {
 			this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 		}
 

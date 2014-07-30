@@ -13,11 +13,6 @@
 			http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-	<context:property-placeholder properties-ref="props"/>
-
-	<util:properties id="props">
-		<prop key="jsmAcknowledgeMode">auto</prop>
- 	</util:properties>
 
 	<int:channel id="receiveChannel">
 		<int:queue/>

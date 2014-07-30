@@ -21,6 +21,8 @@ import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.xml.sax.SAXParseException;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessageRejectedException;
@@ -32,17 +34,15 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
-import org.xml.sax.SAXParseException;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @since 2.0
  */
-public class XmlValidatingMessageSelector implements MessageSelector,InitializingBean {
+public class XmlValidatingMessageSelector implements MessageSelector, InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -104,7 +104,7 @@ public class XmlValidatingMessageSelector implements MessageSelector,Initializin
 	
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if(schema!=null){
+		if(schema != null) {
 			this.schemaType = "xml-schema".equals(schemaType) ? SCHEMA_W3C_XML : SCHEMA_RELAX_NG;
 			this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType);
 		}
