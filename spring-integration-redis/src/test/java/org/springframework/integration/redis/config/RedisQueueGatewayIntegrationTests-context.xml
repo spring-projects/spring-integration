@@ -34,8 +34,6 @@
 	
 	<int-redis:queue-inbound-gateway id="defaultInboundGateway" queue="foo" request-channel="requestChannel" reply-channel="inboundOutputChannel" serializer="serializer" reply-timeout="20001" request-timeout="20000" />
 
-	<int:service-activator input-channel="requestChannel" ref="barista" method="toUpperCase"/>
-	
-	<bean id="barista" class="org.springframework.integration.redis.config.Barista"/>
+	<int:service-activator input-channel="requestChannel" expression="payload.toUpperCase()"/>
 	
 </beans>

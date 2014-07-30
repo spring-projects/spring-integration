@@ -617,15 +617,6 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="queue-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-						Specifies the expression to determine the name of the Redis queue
-						against the Message at runtime.
-						This attribute is mutually exclusive with 'queue' attribute.
-					]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="order" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[

@@ -18,7 +18,6 @@ package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -43,16 +42,12 @@ public class RedisQueueOutboundGatewayParser extends AbstractConsumerEndpointPar
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueOutboundGateway.class);
-		BeanDefinition queueExpression = IntegrationNamespaceUtils
-				.createExpressionDefinitionFromValueOrExpression("queue", "queue-expression", parserContext, element, true);
-		builder.addConstructorArgValue(queueExpression);
-
+		builder.addConstructorArgValue(element.getAttribute("queue"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "redisConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactory);
-		builder.addPropertyValue("expectReply", true);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel","outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");

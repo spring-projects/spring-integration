@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,11 +32,9 @@ import org.springframework.util.StringUtils;
  */
 public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.redis.inbound";
-
 	@Override
-	protected String getBeanClassName(Element element) {
-		return BASE_PACKAGE + ".RedisQueueInboundGateway";
+	protected Class<?> getBeanClass(Element element) {
+		return RedisQueueInboundGateway.class;
 	}
 
 	@Override
@@ -47,8 +45,7 @@ public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser
 			connectionFactory = "redisConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactory);
-		builder.addPropertyValue("expectReply", true);
-		
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");

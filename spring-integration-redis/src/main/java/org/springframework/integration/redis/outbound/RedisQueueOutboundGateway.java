@@ -25,10 +25,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.util.SerializerUtil;
 import org.springframework.messaging.Message;
@@ -38,57 +34,39 @@ import org.springframework.util.Assert;
  * @author David Liu
  * @since 4.1
  */
-public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler implements IntegrationEvaluationContextAware {
+public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RedisTemplate<String, Object> template;
 
-	private final Expression queueNameExpression;
-
-	private volatile EvaluationContext evaluationContext;
+	private volatile String queueName;
 
 	private volatile boolean extractPayload = true;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
 	private volatile boolean serializerExplicitlySet;
-	
-	private static final int TIMEOUT = 1000;
-	
-	private volatile int timeout = TIMEOUT;
-	
-	private static final String MESSAGESUFFIX = ".reply";
-	
-	private volatile boolean expectReply;
-	
-	private BoundListOperations<String, Object> boundListOperations = null;
-	
-	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
-		this(new LiteralExpression(queueName), connectionFactory);
-	}
 
-	public RedisQueueOutboundGateway(Expression queueNameExpression, RedisConnectionFactory connectionFactory) {
-		Assert.notNull(queueNameExpression, "'queueNameExpression' is required");
-		Assert.hasText(queueNameExpression.getExpressionString(), "'queueNameExpression.getExpressionString()' is required");
+	private static final int TIMEOUT = 1000;
+
+	private volatile int timeout = TIMEOUT;
+
+	private static final String MESSAGESUFFIX = ".reply";
+
+	private BoundListOperations<String, Object> boundListOperations = null;
+
+	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
+		Assert.hasText(queueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		this.queueNameExpression = queueNameExpression;
+		this.queueName = queueName;
 		this.template = new RedisTemplate<String, Object>();
 		this.template.setConnectionFactory(connectionFactory);
 		this.template.setEnableDefaultSerializer(false);
 		this.template.setKeySerializer(new StringRedisSerializer());
 		this.template.afterPropertiesSet();
 	}
-	
+
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
-	}
-
-	public void setExpectReply(boolean expectReply) {
-		this.expectReply = expectReply;
-	}
-	
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
 	}
 
 	public void setExtractPayload(boolean extractPayload) {
@@ -114,27 +92,19 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 			value = message.getPayload();
 		}
 		value = SerializerUtil.serialize(value, this.serializerExplicitlySet, this.serializer);
-		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
-
-		if (this.expectReply) {
-			long uuid = generateRandomUUID();
-			this.template.boundListOps(queueName).leftPush(SerializerUtil.serialize(uuid+"", this.serializerExplicitlySet, this.serializer));
-			this.template.boundListOps(uuid + "").leftPush(value);
-			this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
-			byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
-			Object replyMessage = this.serializer.deserialize(reply);
-			if (replyMessage == null) {
-				return null;
-			}
-			return this.getMessageBuilderFactory().withPayload(replyMessage).build();
-		}
-		else {
-			this.template.boundListOps(queueName).leftPush(value);
+		String uuid = generateRandomUUID();
+		this.template.boundListOps(this.queueName).leftPush(SerializerUtil.serialize(uuid, this.serializerExplicitlySet, this.serializer));
+		this.template.boundListOps(uuid + "").leftPush(value);
+		this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
+		byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
+		Object replyMessage = this.serializer.deserialize(reply);
+		if (replyMessage == null) {
 			return null;
 		}
+		return this.getMessageBuilderFactory().withPayload(replyMessage).build();
 	}
-	
-	private long generateRandomUUID() {
-		return UUID.randomUUID().getMostSignificantBits();
+
+	private String generateRandomUUID() {
+		return UUID.randomUUID().toString();
 	}
 }

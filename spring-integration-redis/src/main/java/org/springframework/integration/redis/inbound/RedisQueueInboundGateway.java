@@ -57,13 +57,13 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	private volatile MessageChannel errorChannel;
 
 	private volatile String queue;
-	
+
 	private volatile boolean serializerExplicitlySet;
 
 	private volatile Executor taskExecutor;
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
-	
+
 	private volatile boolean expectMessage = false;
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
@@ -75,13 +75,11 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	private volatile boolean active;
 
 	private volatile boolean listening;
-	
-	private volatile boolean expectReply;
-	
+
 	private volatile String connectionFactory;
-	
+
 	private volatile RedisTemplate<String, byte[]> template = null;
-	
+
 	/**
 	 * @param queueName         Must not be an empty String
 	 * @param connectionFactory Must not be null
@@ -96,13 +94,9 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		template.afterPropertiesSet();
 		this.boundListOperations = template.boundListOps(queueName);
 	}
-	
+
 	public void setConnectionFactory(String connectionFactory) {
 		this.connectionFactory = connectionFactory;
-	}
-	
-	public void setExpectReply(boolean expectReply) {
-		this.expectReply = expectReply;
 	}
 
 	public void setQueue(String queue) {
@@ -208,7 +202,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
 		}
 	}
-	
+
 	private void popMessageWithHeaderAndSend() {
 		byte[] value = null;
 		try {
@@ -222,7 +216,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		if (value != null) {
 			uuid = (String) serializer.deserialize(value);
 			try {
-				value = template.boundListOps(uuid).rightPop();
+				value = template.boundListOps(uuid).rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
 			catch (Exception e) {
 				handlePopException(e);

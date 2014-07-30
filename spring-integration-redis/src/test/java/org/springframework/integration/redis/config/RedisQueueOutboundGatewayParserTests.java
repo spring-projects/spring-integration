@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -39,7 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author David Liu 
+ * @author David Liu
  * since 4.1
  */
 @ContextConfiguration
@@ -52,15 +51,15 @@ public class RedisQueueOutboundGatewayParserTests extends RedisAvailableTests {
 	@Autowired
 	@Qualifier("outboundGateway")
 	private PollingConsumer consumer;
-	
+
 	@Autowired
 	@Qualifier("outboundGateway.handler")
 	private RedisQueueOutboundGateway defaultGateway;
-	
+
 	@Autowired
 	@Qualifier("receiveChannel")
 	private MessageChannel receiveChannel;
-	
+
 	@Autowired
 	@Qualifier("requestChannel")
 	private MessageChannel requestChannel;
@@ -70,14 +69,13 @@ public class RedisQueueOutboundGatewayParserTests extends RedisAvailableTests {
 
 	@Autowired
 	private ApplicationContext context;
-	
+
 	@Test
 	public void testDefaultConfig() throws Exception {
 		assertSame(this.connectionFactory,
 				TestUtils.getPropertyValue(this.defaultGateway, "template.connectionFactory"));
 		assertEquals("si.test.queue",
-				TestUtils.getPropertyValue(this.defaultGateway, "queueNameExpression", Expression.class)
-				.getExpressionString());
+				TestUtils.getPropertyValue(this.defaultGateway, "queueName", String.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
 		assertSame(serializer,TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
