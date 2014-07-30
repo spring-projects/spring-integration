@@ -56,6 +56,7 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -375,7 +376,7 @@ public class SftpOutboundTests {
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 
 		@Override
-		public Session<LsEntry> getSession() {
+		public SftpSession getSession() {
 			try {
 				ChannelSftp channel = mock(ChannelSftp.class);
 

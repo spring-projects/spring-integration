@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ftpServer" class="org.springframework.integration.ftp.TesFtpServer">
+	<bean id="ftpServer" class="org.springframework.integration.ftp.TestFtpServer">
 		<constructor-arg value="FtpServerOutboundTests"/>
 	</bean>
 

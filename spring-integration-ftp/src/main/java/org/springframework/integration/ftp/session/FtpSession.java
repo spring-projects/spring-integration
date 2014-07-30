@@ -128,6 +128,20 @@ public class FtpSession implements Session<FTPFile> {
 	}
 
 	@Override
+	public void append(InputStream inputStream, String path) throws IOException {
+		Assert.notNull(inputStream, "inputStream must not be null");
+		Assert.hasText(path, "path must not be null");
+		boolean completed = this.client.appendFile(path, inputStream);
+		if (!completed) {
+			throw new IOException("Failed to append to '" + path
+					+ "'. Server replied with: " + this.client.getReplyString());
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("File has been successfully transfered to: " + path);
+		}
+	}
+
+	@Override
 	public void close() {
 		try {
 			this.client.disconnect();
@@ -169,6 +183,12 @@ public class FtpSession implements Session<FTPFile> {
 	}
 
 	@Override
+	public boolean rmdir(String directory) throws IOException {
+		return this.client.removeDirectory(directory);
+	}
+
+
+	@Override
 	public boolean exists(String path) throws IOException{
 		Assert.hasText(path, "'path' must not be empty");
 
@@ -187,4 +207,9 @@ public class FtpSession implements Session<FTPFile> {
 
 		return exists;
 	}
+
+	public FTPClient getClientInstance() {
+		return this.client;
+	}
+
 }

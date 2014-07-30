@@ -159,18 +159,8 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
-		when(sessionFactory.getSession()).thenReturn(new Session() {
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 			int n;
-
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
-
-			@Override
-			public Object[] list(String path) throws IOException {
-				return null;
-			}
 
 			@Override
 			public void read(String source, OutputStream outputStream)
@@ -185,48 +175,10 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return false;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-			}
-
-			@Override
-			public boolean isOpen() {
-				return false;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return false;
-			}
-
-			@Override
 			public String[] listNames(String path) throws IOException {
-				return new String[]{path1, path2};
+				return new String[] { path1, path2 };
 			}
 
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		@SuppressWarnings("unchecked")
 		Message<List<File>> out = (Message<List<File>>) gw
@@ -246,16 +198,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
-		when(sessionFactory.getSession()).thenReturn(new Session() {
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
-
-			@Override
-			public Object[] list(String path) throws IOException {
-				return null;
-			}
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 
 			@Override
 			public void read(String source, OutputStream outputStream)
@@ -264,48 +207,10 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return false;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-			}
-
-			@Override
-			public boolean isOpen() {
-				return false;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return false;
-			}
-
-			@Override
 			public String[] listNames(String path) throws IOException {
 				return new String[]{"f1"};
 			}
 
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		@SuppressWarnings("unchecked")
 		Message<List<File>> out = (Message<List<File>>) gw
@@ -326,16 +231,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
-		when(sessionFactory.getSession()).thenReturn(new Session() {
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
-
-			@Override
-			public Object[] list(String path) throws IOException {
-				return null;
-			}
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 
 			@Override
 			public void read(String source, OutputStream outputStream)
@@ -343,49 +239,6 @@ public class RemoteFileOutboundGatewayTests {
 				outputStream.write("testData".getBytes());
 			}
 
-			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return false;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-			}
-
-			@Override
-			public boolean isOpen() {
-				return false;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return false;
-			}
-
-			@Override
-			public String[] listNames(String path) throws IOException {
-				return new String[0];
-			}
-
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
 	}
@@ -733,13 +586,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
-		when(sessionFactory.getSession()).thenReturn(new Session() {
-			private boolean open = true;
-
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
@@ -754,50 +601,6 @@ public class RemoteFileOutboundGatewayTests {
 				outputStream.write("testfile".getBytes());
 			}
 
-			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return true;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-				open = false;
-			}
-
-			@Override
-			public boolean isOpen() {
-				return open;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return true;
-			}
-
-			@Override
-			public String[] listNames(String path) throws IOException {
-				return null;
-			}
-
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
@@ -819,13 +622,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
-		when(sessionFactory.getSession()).thenReturn(new Session() {
-			private boolean open = true;
-
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
@@ -839,50 +636,6 @@ public class RemoteFileOutboundGatewayTests {
 				throw new RuntimeException("test remove .writing");
 			}
 
-			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return true;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-				open = false;
-			}
-
-			@Override
-			public boolean isOpen() {
-				return open;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return true;
-			}
-
-			@Override
-			public String[] listNames(String path) throws IOException {
-				return null;
-			}
-
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		try{
 			gw.handleRequestMessage(new GenericMessage<String>("f1"));
@@ -911,13 +664,7 @@ public class RemoteFileOutboundGatewayTests {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MONTH, -1);
 		final Date modified = new Date(cal.getTime().getTime() / 1000 * 1000);
-		when(sessionFactory.getSession()).thenReturn(new Session() {
-			private boolean open = true;
-
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
@@ -932,50 +679,6 @@ public class RemoteFileOutboundGatewayTests {
 				outputStream.write("testfile".getBytes());
 			}
 
-			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return true;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-				open = false;
-			}
-
-			@Override
-			public boolean isOpen() {
-				return open;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return true;
-			}
-
-			@Override
-			public String[] listNames(String path) throws IOException {
-				return null;
-			}
-
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("x/f1"));
@@ -999,13 +702,7 @@ public class RemoteFileOutboundGatewayTests {
 				(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir + "/x"));
 		gw.afterPropertiesSet();
-		when(sessionFactory.getSession()).thenReturn(new Session() {
-			private boolean open = true;
-
-			@Override
-			public boolean remove(String path) throws IOException {
-				return false;
-			}
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
@@ -1020,50 +717,6 @@ public class RemoteFileOutboundGatewayTests {
 				outputStream.write("testfile".getBytes());
 			}
 
-			@Override
-			public void write(InputStream inputStream, String destination)
-					throws IOException {
-			}
-
-			@Override
-			public boolean mkdir(String directory) throws IOException {
-				return true;
-			}
-
-			@Override
-			public void rename(String pathFrom, String pathTo)
-					throws IOException {
-			}
-
-			@Override
-			public void close() {
-				open = false;
-			}
-
-			@Override
-			public boolean isOpen() {
-				return open;
-			}
-
-			@Override
-			public boolean exists(String path) throws IOException {
-				return true;
-			}
-
-			@Override
-			public String[] listNames(String path) throws IOException {
-				return null;
-			}
-
-			@Override
-			public InputStream readRaw(String source) throws IOException {
-				return null;
-			}
-
-			@Override
-			public boolean finalizeRaw() throws IOException {
-				return false;
-			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
 		File out = new File(this.tmpDir + "/x/f1");
@@ -1203,6 +856,88 @@ public class RemoteFileOutboundGatewayTests {
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt"), equalTo("foo/" + dir1.getName() + "/" + file3.getName())));
 		assertThat(out.get(2), anyOf(
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt"), equalTo("foo/" + dir1.getName() + "/" + file3.getName())));
+	}
+
+}
+
+abstract class TestSession implements org.springframework.integration.file.remote.session.Session<TestLsEntry> {
+
+	private boolean open;
+
+
+	@Override
+	public boolean remove(String path) throws IOException {
+		return false;
+	}
+
+	@Override
+	public TestLsEntry[] list(String path) throws IOException {
+		return null;
+	}
+
+	@Override
+	public void read(String source, OutputStream outputStream)
+			throws IOException {
+	}
+
+	@Override
+	public void write(InputStream inputStream, String destination)
+			throws IOException {
+	}
+
+	@Override
+	public void append(InputStream inputStream, String destination)
+			throws IOException {
+	}
+
+	@Override
+	public boolean mkdir(String directory) throws IOException {
+		return true;
+	}
+
+	@Override
+	public boolean rmdir(String directory) throws IOException {
+		return true;
+	}
+
+	@Override
+	public void rename(String pathFrom, String pathTo)
+			throws IOException {
+	}
+
+	@Override
+	public void close() {
+		open = false;
+	}
+
+	@Override
+	public boolean isOpen() {
+		return open;
+	}
+
+	@Override
+	public boolean exists(String path) throws IOException {
+		return true;
+	}
+
+	@Override
+	public String[] listNames(String path) throws IOException {
+		return null;
+	}
+
+	@Override
+	public InputStream readRaw(String source) throws IOException {
+		return null;
+	}
+
+	@Override
+	public boolean finalizeRaw() throws IOException {
+		return false;
+	}
+
+	@Override
+	public Object getClientInstance() {
+		return null;
 	}
 
 }

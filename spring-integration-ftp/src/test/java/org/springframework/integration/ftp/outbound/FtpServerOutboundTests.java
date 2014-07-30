@@ -46,7 +46,7 @@ import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.ftp.TesFtpServer;
+import org.springframework.integration.ftp.TestFtpServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -65,7 +65,7 @@ import org.springframework.util.FileCopyUtils;
 public class FtpServerOutboundTests {
 
 	@Autowired
-	private TesFtpServer ftpServer;
+	private TestFtpServer ftpServer;
 
 	@Autowired
 	private SessionFactory<FTPFile> ftpSessionFactory;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,19 +34,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.ftp.session.FtpSession;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 
@@ -60,7 +60,7 @@ public class FtpInboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac =
+		ConfigurableApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
 		assertFalse(TestUtils.getPropertyValue(adapter, "autoStartup", Boolean.class));
@@ -100,11 +100,12 @@ public class FtpInboundChannelAdapterParserTests {
 			}
 		});
 		assertEquals("FOO.afoo", genMethod.get().invoke(fisync, "foo"));
+		ac.close();
 	}
 
 	@Test
 	public void cachingSessionFactory() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
 				"FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapterWithCachedSessions", SourcePollingChannelAdapter.class);
 		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
@@ -114,11 +115,12 @@ public class FtpInboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals("/", remoteFileSeparator);
+		ac.close();
 	}
 
 	@Test
 	public void testFtpInboundChannelAdapterCompleteNoId() throws Exception{
-		ApplicationContext ac =
+		ConfigurableApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
 		SourcePollingChannelAdapter adapter = null;
@@ -128,25 +130,26 @@ public class FtpInboundChannelAdapterParserTests {
 			}
 		}
 		assertNotNull(adapter);
+		ac.close();
 	}
 
 	@Test
 	public void testAutoChannel() {
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		// Auto-created channel
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		context.close();
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {
 
 		@Override
-		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public DefaultFtpSessionFactory getObject() throws Exception {
 			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
-			Session session = mock(Session.class);
+			FtpSession session = mock(FtpSession.class);
 			when(factory.getSession()).thenReturn(session);
 			return factory;
 		}

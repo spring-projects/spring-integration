@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
-	private final SessionFactory<F> sessionFactory;
+	protected final SessionFactory<F> sessionFactory;
 
 	private volatile String temporaryFileSuffix =".writing";
 
@@ -178,12 +178,27 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public String send(final Message<?> message) {
-		return this.send(message, null);
+	public String append(final Message<?> message) {
+		return append(message, null);
 	}
 
 	@Override
-	public String send(final Message<?> message, final String subDirectory) {
+	public String append(final Message<?> message, String subDirectory) {
+		Assert.isTrue(!this.useTemporaryFileName, "Cannot append when using a temporary file name");
+		return send(message, subDirectory, true);
+	}
+
+	@Override
+	public String send(final Message<?> message) {
+		return send(message, null, false);
+	}
+
+	@Override
+	public String send(final Message<?> message, String subDirectory) {
+		return send(message, subDirectory, false);
+	}
+
+	private String send(final Message<?> message, final String subDirectory, final boolean append) {
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
@@ -211,7 +226,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 						}
 						fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
 						RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
-								temporaryRemoteDirectory, remoteDirectory, fileName, session);
+								temporaryRemoteDirectory, remoteDirectory, fileName, session, append);
 						return remoteDirectory + fileName;
 					}
 					catch (FileNotFoundException e) {
@@ -324,6 +339,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
+	@Override
+	public <T, C> T executeWithClient(ClientCallback<C, T> callback) {
+		throw new UnsupportedOperationException("executeWithClient is not supported");
+	}
+
 	private StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
@@ -365,7 +385,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectory,
-			String remoteDirectory, String fileName, Session<F> session) throws IOException {
+			String remoteDirectory, String fileName, Session<F> session, boolean append) throws IOException {
 
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
 		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
@@ -387,7 +407,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 
 		try {
-			session.write(inputStream, tempFilePath);
+			if (append) {
+				session.append(inputStream, tempFilePath);
+			}
+			else {
+				session.write(inputStream, tempFilePath);
+			}
 			// then rename it to its final name if necessary
 			if (useTemporaryFileName){
 			   session.rename(tempFilePath, remoteFilePath);
@@ -431,6 +456,5 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 
 	}
-
 
 }

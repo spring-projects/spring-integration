@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.sftp.session;
-
+package org.springframework.integration.file.remote;
 
 /**
- * @author Oleg Zhurakousky
+ * {@code RemoteFileTemplate} callback with the underlying client instance providing
+ * access to lower level methods.
+ * @author Gary Russell
+ * @since 4.1
  *
  */
-public class SftpTestSessionFactory {
+public interface ClientCallback<C, T> {
 
-	public static SftpSession createSftpSession(com.jcraft.jsch.Session jschSession) {
-		SftpSession sftpSession = new SftpSession(jschSession);
-		sftpSession.connect();
-		return sftpSession;
-	}
+	T doWithClient(C client);
+
 }

@@ -216,6 +216,11 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
+		public void append(InputStream inputStream, String destination) throws IOException {
+			this.targetSession.append(inputStream, destination);
+		}
+
+		@Override
 		public boolean isOpen() {
 			return this.targetSession.isOpen();
 		}
@@ -228,6 +233,11 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		@Override
 		public boolean mkdir(String directory) throws IOException {
 			return this.targetSession.mkdir(directory);
+		}
+
+		@Override
+		public boolean rmdir(String directory) throws IOException {
+			return this.targetSession.rmdir(directory);
 		}
 
 		@Override
@@ -252,6 +262,11 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 		public void dirty() {
 			this.dirty = true;
+		}
+
+		@Override
+		public Object getClientInstance() {
+			return this.targetSession.getClientInstance();
 		}
 
 	}
