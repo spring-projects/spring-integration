@@ -29,33 +29,53 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
  */
+@ContextConfiguration(classes = GatewayInterfaceTests.TestConfig.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class GatewayInterfaceTests {
+
+	@Autowired
+	private Int2634Gateway int2634Gateway;
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod() throws Exception {
@@ -296,6 +316,15 @@ public class GatewayInterfaceTests {
 		ac.close();
 	}
 
+	@Test
+	public void testInt2634() {
+		Map<Object, Object> param = Collections.<Object, Object>singletonMap(1, 1);
+		Object result = this.int2634Gateway.test2(param);
+		assertEquals(param, result);
+
+		result = this.int2634Gateway.test1(param);
+		assertEquals(param, result);
+	}
 
 
 	public interface Foo {
@@ -333,4 +362,28 @@ public class GatewayInterfaceTests {
 		}
 
 	}
+
+	@Configuration
+	@EnableIntegration
+	@IntegrationComponentScan
+	public static class TestConfig {
+
+		@Bean
+		@BridgeTo
+		public MessageChannel gatewayChannel() {
+			return new DirectChannel();
+		}
+	}
+
+	@MessagingGateway
+	public interface Int2634Gateway {
+
+		@Gateway(requestChannel = "gatewayChannel", payloadExpression = "#args[0]")
+		Object test1(Map<Object, ?> map);
+
+		@Gateway(requestChannel = "gatewayChannel")
+		Object test2(@Payload Map<Object, ?> map);
+
+	}
+
 }
