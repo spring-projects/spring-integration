@@ -162,7 +162,7 @@ public class SftpServerTests {
 			server.stop(true);
 		}
 	}
-	
+
 	private PublicKey decodePublicKey() throws Exception {
 		InputStream stream = new ClassPathResource("id_rsa.pub").getInputStream();
 		byte[] decodeBuffer = Base64.decodeBase64(StreamUtils.copyToByteArray(stream));
