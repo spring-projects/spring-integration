@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  */
 public class MarshallingTransformer extends AbstractXmlTransformer {
-	
+
 	private final Marshaller marshaller;
 
 	private final ResultTransformer resultTransformer;
@@ -53,7 +53,7 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	public MarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
 		this(marshaller, null);
 	}
-	
+
 
 	/**
 	 * Specify whether the source Message's payload should be extracted prior
@@ -70,11 +70,7 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	public String getComponentType() {
 		return "xml:marshalling-transformer";
 	}
-	
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-	}
+
 
 	@Override
 	public Object doTransform(Message<?> message) {
