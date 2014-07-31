@@ -15,13 +15,19 @@
  */
 package org.springframework.integration.router;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Properties;
+
+import org.springframework.integration.router.RecipientListRouter.Recipient;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
- * Exposes adding/removing individual recipients operations for 
+ * Exposes adding/removing individual recipients operations for
  * RecipientListRouter. This can be used with a control-bus and JMX.
- * 
+ *
  * @author Liujiong
  * @since 4.1
  *
@@ -30,20 +36,20 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 public interface RecipientListRouterManagement {
 
 	/**
-	 * Add a recipent with channelName and expression.
+	 * Add a recipient with channelName and expression.
 	 * @param channelName The channel name.
-	 * @param expression The expression to filter the incoming message
+	 * @param expression The expression to filter the incoming message.
 	 */
 	@ManagedOperation
-	void addRecipient(String channelName, String expression);
-	
+	void addRecipient(String channelName, String selectorExpression);
+
 	/**
-	 * Add a recipent with channelName.
+	 * Add a recipient with channelName.
 	 * @param channelName The channel name.
 	 */
 	@ManagedOperation
 	void addRecipient(String channelName);
-	
+
 	/**
 	 * Remove all recipients that match the channelName.
 	 * @param channelName The channel name.
@@ -52,11 +58,31 @@ public interface RecipientListRouterManagement {
 	int removeRecipient(String channelName);
 
 	/**
-	 * Remove all recipients that match the channelName and expression
+	 * Remove all recipients that match the channelName and expression.
 	 * @param channelName The channel name.
 	 * @param expression The expression to filter the incoming message
 	 */
 	@ManagedOperation
-	int removeRecipient(String channelName, String expression);
-	
+	int removeRecipient(String channelName, String selectorExpression);
+
+	/**
+	 * @return an unmodifiable collection of recipients.
+	 */
+	@ManagedAttribute
+	Collection<Recipient> getRecipients();
+
+	/**
+	 * Replace recipient.
+	 * @param recipientMappings contain channelName and expression.
+	 */
+	@ManagedOperation
+	void replaceRecipients(Properties recipientMappings);
+
+	/**
+	 * Set recipients.
+	 * @param recipientMappings contain channelName and expression.
+	 */
+	@ManagedAttribute
+	void setRecipientMappings(Map<String, String> recipientMappings);
+
 }

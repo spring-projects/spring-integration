@@ -16,9 +16,16 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,11 +33,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.router.RecipientListRouter.Recipient;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
@@ -39,11 +49,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class ControlBusRecipientListRouterTests {
 
 	@Autowired
 	private MessageChannel input;
+
+	@Autowired
+	private PollableChannel output;
 
 	@Autowired
 	private ConfigurableApplicationContext context;
@@ -52,9 +65,13 @@ public class ControlBusRecipientListRouterTests {
 	@Qualifier("routingChannelA")
 	private MessageChannel channel;
 
+	@Before
+	public  void aa(){
+		context.start();
+	}
+
 	@Test
 	public void testAddRecipient() {
-		context.start();
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel2','true')");
@@ -68,7 +85,6 @@ public class ControlBusRecipientListRouterTests {
 
 	@Test
 	public void testAddRecipientWithNullExpression() {
-		context.start();
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel3')");
@@ -80,10 +96,9 @@ public class ControlBusRecipientListRouterTests {
 		assertTrue(chanel1.receive(0).getPayload().equals(1));
 		assertTrue(chanel3.receive(0).getPayload().equals(1));
 	}
-	
+
 	@Test
 	public void testRemoveRecipient() {
-		context.start();
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel4')");
@@ -96,10 +111,9 @@ public class ControlBusRecipientListRouterTests {
 		assertTrue(chanel1.receive(0).getPayload().equals(1));
 		assertNull(chanel4.receive(0));
 	}
-	
+
 	@Test
 	public void testRemoveRecipientWithNullExpression() {
-		context.start();
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel5','true')");
@@ -111,5 +125,47 @@ public class ControlBusRecipientListRouterTests {
 		PollableChannel chanel5 = (PollableChannel) context.getBean("channel5");
 		assertTrue(chanel1.receive(0).getPayload().equals(1));
 		assertNull(chanel5.receive(0));
+	}
+
+	@Test
+	public void testGetRecipients() {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setReceiveTimeout(1000);
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.getRecipients()");
+		Message<?> result = this.output.receive(0);
+		Collection<Recipient> mappings = (Collection<Recipient>) result.getPayload();
+		assertEquals(context.getBean("channel1"), mappings.iterator().next().getChannel());
+	}
+
+	@Test
+	public void testSetRecipients() {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setReceiveTimeout(1000);
+
+		Map<String,String> map = new HashMap<String,String>();map.put("channel6","true");
+		Message<?> message = MessageBuilder.withPayload("@'simpleRouter.handler'.setRecipientMappings(headers.recipientMap)").setHeader("recipientMap", map).build();
+		this.input.send(message);
+		message = new GenericMessage<Integer>(1);
+		channel.send(message);
+		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel chanel6 = (PollableChannel) context.getBean("channel6");
+		assertNull(chanel1.receive(0));
+		assertTrue(chanel6.receive(0).getPayload().equals(1));
+	}
+
+	@Test
+	public void testReplaceRecipients() {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setReceiveTimeout(1000);
+		Properties prop = new Properties();
+		prop.setProperty("channel7", "true");
+
+		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.replaceRecipients('channel7=true')");
+		Message<?>  message = new GenericMessage<Integer>(1);
+		channel.send(message);
+		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel chanel7 = (PollableChannel) context.getBean("channel7");
+		assertNull(chanel1.receive(0));
+		assertTrue(chanel7.receive(0).getPayload().equals(1));
 	}
 }
