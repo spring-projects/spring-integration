@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ftp.session;
+package org.springframework.integration.sftp.session;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,45 +32,53 @@ import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.ftp.TestFtpServer;
+import org.springframework.integration.sftp.TestSftpServer;
+import org.springframework.integration.sftp.TestSftpServerConfig;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 
 /**
  * @author Gary Russell
  * @since 4.1
  *
  */
-@ContextConfiguration
+@ContextConfiguration(classes=TestSftpServerConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class FtpRemoteFileTemplateTests {
+@DirtiesContext
+public class SftpRemoteFileTemplateTests {
 
 	@Autowired
-	private TestFtpServer ftpServer;
+	private TestSftpServer sftpServer;
 
 	@Autowired
-	private DefaultFtpSessionFactory sessionFactory;
+	private DefaultSftpSessionFactory sessionFactory;
 
 	@Before
 	@After
 	public void setup() {
-		this.ftpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
-		this.ftpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
+		this.sftpServer.recursiveDelete(sftpServer.getTargetLocalDirectory());
+		this.sftpServer.recursiveDelete(sftpServer.getTargetSftpDirectory());
 	}
 
 	@Test
 	public void testINT3412AppendStatRmdir() {
-		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(sessionFactory);
+		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'foobar.txt'");
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.execute(new SessionCallback<FTPFile, Boolean>() {
+		template.execute(new SessionCallback<LsEntry, Boolean>() {
 
 			@Override
-			public Boolean doInSession(Session<FTPFile> session) throws IOException {
+			public Boolean doInSession(Session<LsEntry> session) throws IOException {
 				session.mkdir("foo/");
 				return session.mkdir("foo/bar/");
 			}
@@ -81,26 +87,26 @@ public class FtpRemoteFileTemplateTests {
 		template.append(new GenericMessage<String>("foo"));
 		template.append(new GenericMessage<String>("bar"));
 		assertTrue(template.exists("foo/foobar.txt"));
-		template.executeWithClient(new ClientCallbackWithoutResult<FTPClient>() {
+		template.executeWithClient(new ClientCallbackWithoutResult<ChannelSftp>() {
 
 			@Override
-			public void doWithClientWithoutResult(FTPClient client) {
+			public void doWithClientWithoutResult(ChannelSftp client) {
 				try {
-					FTPFile[] files = client.listFiles("foo/foobar.txt");
-					assertEquals(6, files[0].getSize());
+					SftpATTRS file = client.lstat("foo/foobar.txt");
+					assertEquals(6, file.getSize());
 				}
-				catch (IOException e) {
+				catch (SftpException e) {
 					throw new RuntimeException(e);
 				}
 			}
 		});
-		template.execute(new SessionCallbackWithoutResult<FTPFile>() {
+		template.execute(new SessionCallbackWithoutResult<LsEntry>() {
 
 			@Override
-			public void doInSessionWithoutResult(Session<FTPFile> session) throws IOException {
+			public void doInSessionWithoutResult(Session<LsEntry> session) throws IOException {
 				assertTrue(session.remove("foo/foobar.txt"));
 				assertTrue(session.rmdir("foo/bar/"));
-				FTPFile[] files = session.list("foo/");
+				LsEntry[] files = session.list("foo/");
 				assertEquals(0, files.length);
 				assertTrue(session.rmdir("foo/"));
 			}

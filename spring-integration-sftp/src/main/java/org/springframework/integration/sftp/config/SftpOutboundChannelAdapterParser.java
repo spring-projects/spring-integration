@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,18 @@
  */
 package org.springframework.integration.sftp.config;
 
-import org.springframework.integration.file.config.AbstractRemoteFileOutboundGatewayParser;
+import org.springframework.integration.file.config.RemoteFileOutboundChannelAdapterParser;
 import org.springframework.integration.file.remote.RemoteFileOperations;
-import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
-import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
-import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 /**
+ * Parser for SFTP Outbound Channel Adapters.
+ *
  * @author Gary Russell
- * @author Artem Bilan
- * @since 2.1
+ * @since 4.1
  *
  */
-public class SftpOutboundGatewayParser extends AbstractRemoteFileOutboundGatewayParser {
-
-	@Override
-	public String getGatewayClassName() {
-		return SftpOutboundGateway.class.getName();
-	}
-
-	@Override
-	protected String getSimplePatternFileListFilterClassName() {
-		return SftpSimplePatternFileListFilter.class.getName();
-	}
-
-	@Override
-	protected String getRegexPatternFileListFilterClassName() {
-		return SftpRegexPatternFileListFilter.class.getName();
-	}
+public class SftpOutboundChannelAdapterParser extends RemoteFileOutboundChannelAdapterParser {
 
 	@Override
 	protected Class<? extends RemoteFileOperations<?>> getTemplateClass() {

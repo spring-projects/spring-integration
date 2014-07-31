@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.file.remote;
 
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 
 /**
@@ -30,9 +31,10 @@ public interface RemoteFileOperations<F> {
 	 * Send a file to a remote server, based on information in a message.
 	 *
 	 * @param message The message.
+	 * @param mode See {@link FileExistsMode} (optional; default REPLACE).
 	 * @return The remote path, or null if no local file was found.
 	 */
-	String send(Message<?> message);
+	String send(Message<?> message, FileExistsMode... mode);
 
 	/**
 	 * Send a file to a remote server, based on information in a message.
@@ -41,15 +43,17 @@ public interface RemoteFileOperations<F> {
 	 *
 	 * @param message The message.
 	 * @param subDirectory The sub directory.
+	 * @param mode See {@link FileExistsMode} (optional; default REPLACE).
 	 * @return The remote path, or null if no local file was found.
 	 */
-	String send(Message<?> message, String subDirectory);
+	String send(Message<?> message, String subDirectory, FileExistsMode... mode);
 
 	/**
 	 * Send a file to a remote server, based on information in a message, appending.
 	 *
 	 * @param message The message.
 	 * @return The remote path, or null if no local file was found.
+	 * @since 4.1
 	 */
 	String append(Message<?> message);
 
@@ -61,6 +65,7 @@ public interface RemoteFileOperations<F> {
 	 * @param message The message.
 	 * @param subDirectory The sub directory.
 	 * @return The remote path, or null if no local file was found.
+	 * @since 4.1
 	 */
 	String append(Message<?> message, String subDirectory);
 
@@ -83,10 +88,19 @@ public interface RemoteFileOperations<F> {
 	boolean get(Message<?> message, InputStreamCallback callback);
 
 	/**
+	 * Check if a file exists on the remote server.
+	 *
+	 * @param path The full path to the file.
+	 * @return true when the file exists.
+	 * @since 4.1
+	 */
+	boolean exists(String path);
+
+	/**
 	 * Remove a remote file.
 	 *
 	 * @param path The full path to the file.
-	 * @return true when successful
+	 * @return true when successful.
 	 */
 	boolean remove(String path);
 
@@ -116,6 +130,7 @@ public interface RemoteFileOperations<F> {
 	 * @param callback the ClientCallback.
 	 * @param <T> The type returned by {@link ClientCallback#doWithClient(Object)}.
 	 * @return The result of the callback method.
+	 * @since 4.1
 	 */
 	<T, C> T executeWithClient(ClientCallback<C, T> callback);
 

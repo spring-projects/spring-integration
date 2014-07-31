@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.sftp.session;
+package org.springframework.integration.sftp;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 
 /**
- * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @since 4.1
  *
  */
-public class SftpTestSessionFactory {
+@Configuration
+public class TestSftpServerConfig {
 
-	public static SftpSession createSftpSession(com.jcraft.jsch.Session jschSession) {
-		SftpSession sftpSession = new SftpSession(jschSession);
-		sftpSession.connect();
-		return sftpSession;
+	@Bean
+	public TestSftpServer sftpServer() {
+		return new TestSftpServer();
 	}
+
+	@Bean
+	public DefaultSftpSessionFactory sftpSessionFactory(TestSftpServer server) {
+		return sftpServer().getSessionFactory();
+	}
+
 }

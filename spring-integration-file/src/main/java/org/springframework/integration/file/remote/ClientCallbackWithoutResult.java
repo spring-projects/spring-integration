@@ -15,29 +15,32 @@
  */
 package org.springframework.integration.file.remote;
 
-import org.springframework.integration.file.remote.session.Session;
 
 /**
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
- * access to lower level methods.
+ * access to lower level methods where no result is returned.
  * @author Gary Russell
  *
  * @param <C> The type of the underlying client object.
- * @param <T> The return type of the callback method.
  * @since 4.1
  *
  */
-public interface ClientCallback<C, T> {
+public abstract class ClientCallbackWithoutResult<C> implements ClientCallback<C, Object> {
+
+	@Override
+	public Object doWithClient(C client) {
+		doWithClientWithoutResult(client);
+		return null;
+	}
 
 	/**
-	 * Called within the context of a {@link Session}.
+	 * Called within the context of a session.
 	 * Perform some operation(s) on the client instance underlying the session. The caller will take
 	 * care of closing the session after this method exits. However, the implementation
 	 * is required to perform any clean up required by the client after performing
 	 * operations.
-	 * @param client The client instance.
-	 * @return The return value.
+	 * @param client The client.
 	 */
-	T doWithClient(C client);
+	protected abstract void doWithClientWithoutResult(C client);
 
 }

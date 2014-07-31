@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.DefaultFtpsSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
@@ -34,17 +39,27 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Gary Russell
  * @since 2.0
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FtpsOutboundChannelAdapterParserTests {
+
+	@Autowired
+	private EventDrivenConsumer ftpOutbound;
+
+	@Autowired
+	private MessageChannel ftpChannel;
+
+	@Autowired
+	private FileNameGenerator fileNameGenerator;
 
 	@Test
 	public void testFtpsOutboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext("FtpsOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object consumer = ac.getBean("ftpOutbound");
-		assertTrue(consumer instanceof EventDrivenConsumer);
-		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
-		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
+		assertTrue(ftpOutbound instanceof EventDrivenConsumer);
+		assertEquals(this.ftpChannel, TestUtils.getPropertyValue(ftpOutbound, "inputChannel"));
+		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
+		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
+		assertEquals(this.fileNameGenerator, TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
 		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory", DefaultFtpsSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));

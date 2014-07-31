@@ -52,6 +52,13 @@ public interface Session<F> {
 
 	boolean mkdir(String directory) throws IOException;
 
+	/**
+	 * Remove a remote directory.
+	 * @param directory The directory.
+	 * @return True if the directory was removed.
+	 * @throws IOException an IO exception.
+	 * @since 4.1
+	 */
 	boolean rmdir(String directory) throws IOException;
 
 	void rename(String pathFrom, String pathTo) throws IOException;

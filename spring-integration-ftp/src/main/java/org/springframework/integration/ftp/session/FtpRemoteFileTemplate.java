@@ -17,6 +17,7 @@ package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.ClientCallback;
@@ -24,6 +25,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.messaging.MessagingException;
 
 /**
  * FTP version of {@code RemoteFileTemplate} providing type-safe access to
@@ -39,16 +41,37 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 		super(sessionFactory);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T, FTPClient> T executeWithClient(final ClientCallback<FTPClient, T> callback) {
+	public <T, C> T executeWithClient(final ClientCallback<C, T> callback) {
+		return doExecuteWithClient((ClientCallback<FTPClient, T>) callback);
+	}
+
+	protected <T> T doExecuteWithClient(final ClientCallback<FTPClient, T> callback) {
 		return execute(new SessionCallback<FTPFile, T>() {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public T doInSession(Session<FTPFile> session) throws IOException {
 				return callback.doWithClient((FTPClient) session.getClientInstance());
 			}
 		});
 	}
+
+	@Override
+	public boolean exists(final String path) {
+		return executeWithClient(new ClientCallback<FTPClient, Boolean>() {
+
+			@Override
+			public Boolean doWithClient(FTPClient client) {
+				try {
+					return client.getStatus() != null;
+				}
+				catch (IOException e) {
+					throw new MessagingException("Failed to stat " + path, e);
+				}
+			}
+		});
+	}
+
 
 }
