@@ -221,7 +221,9 @@ Add a comment to the associated JIRA issue(s) linking to your new pull request.
 Add a JIRA issue link to your first commit comment of the pull request on the last line, so your commit message may looks like this:
 
     INT-1639: Add <spel-function> support
-
+    
+    JIRA: https://jira.springsource.org/browse/INT-1639
+    
     * add `<spel-function>` XSD element
     * add `SpelFunctionParser`
     * add `SpelFunctionRegistrar` to avoid introducing some confused 'Method'-bean
@@ -229,7 +231,6 @@ Add a JIRA issue link to your first commit comment of the pull request on the la
     * some refactoring for `IntegrationEvaluationContextFactoryBean`
     * polishing some failed tests after this change
 
-    JIRA: https://jira.springsource.org/browse/INT-1639
 
 [help documentation]: http://help.github.com/send-pull-requests
 [JIRA issue tracker]: https://jira.springsource.org/browse/INT
