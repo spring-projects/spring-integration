@@ -16,9 +16,13 @@
 package org.springframework.integration.xml.selector;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.xml.validation.XmlValidatorFactory;
+import org.springframework.integration.xml.selector.XmlValidatingMessageSelector.SchemaType;
 
 /**
  * @author Oleg Zhurakousky
@@ -29,23 +33,23 @@ public class XmlValidatingMessageSelectorTests {
 	@Test
 	public void validateCreationWithSchemaAndDefaultSchemaType() throws Exception{
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, null);
+		new XmlValidatingMessageSelector(resource, (SchemaType)null);
 	}
 
 	@Test
 	public void validateCreationWithSchemaAndProvidedSchemaType() throws Exception{
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, XmlValidatorFactory.SCHEMA_W3C_XML);
+		new XmlValidatingMessageSelector(resource, XmlValidatingMessageSelector.SchemaType.SCHEMA_W3C_XML);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=BeanCreationException.class)
 	public void validateFailureInvalidSchemaLanguage() throws Exception{
-		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, "foo");
+		ApplicationContext context = new FileSystemXmlApplicationContext("src/test/java/org/springframework/integration/xml/selector/XmlValidatingMessageSelectorTests-context.xml");
+		context.getBean("xmlValidatingMessageSelector");
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void validateFailureWhenNoSchemaResourceProvided() throws Exception{
-		new XmlValidatingMessageSelector(null, null);
+		new XmlValidatingMessageSelector(null, (SchemaType)null);
 	}
 }

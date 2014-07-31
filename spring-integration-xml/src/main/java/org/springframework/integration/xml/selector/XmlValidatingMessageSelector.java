@@ -33,7 +33,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
 
@@ -58,6 +57,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		this.xmlValidator = xmlValidator;
 	}
 
+
 	/**
 	 * Creates a selector with a default {@link XmlValidator}. The validator will be initialized with
 	 * the provided 'schema' location {@link Resource} and 'schemaType'. The valid options for schema
@@ -69,12 +69,16 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 *
 	 * @throws IOException if the XmlValidatorFactory fails to create a validator
 	 */
-	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
+	public XmlValidatingMessageSelector(Resource schema, SchemaType schemaType) throws IOException {
 		Assert.notNull(schema, "You must provide XML schema location to perform validation");
-		if (!StringUtils.hasText(schemaType)) {
-			schemaType = XmlValidatorFactory.SCHEMA_W3C_XML;
+		if(schemaType == null) {
+			schemaType = SchemaType.SCHEMA_W3C_XML;
 		}
-		this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType);
+		this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType.getUrl());
+	}
+
+	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
+		this(schema, SchemaType.valueOf(schemaType));
 	}
 
 
@@ -113,6 +117,19 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 			}
 		}
 		return validationSuccess;
+	}
+
+	public enum SchemaType {
+
+		SCHEMA_W3C_XML(XmlValidatorFactory.SCHEMA_W3C_XML),
+		SCHEMA_RELAX_NG(XmlValidatorFactory.SCHEMA_RELAX_NG);
+		private String url;
+		private String getUrl() {
+	    	 return this.url;
+		}
+		private SchemaType(String url) {
+	    	 this.url = url;
+		}
 	}
 
 }
