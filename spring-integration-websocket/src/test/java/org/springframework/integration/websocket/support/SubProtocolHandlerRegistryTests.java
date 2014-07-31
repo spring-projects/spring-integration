@@ -82,7 +82,7 @@ public class SubProtocolHandlerRegistryTests {
 	}
 
 	@Test
-	public void testDefaultHandler() {
+	public void testHandlerSelection() {
 		SubProtocolHandler testProtocolHandler = new StompSubProtocolHandler();
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry =
 				new SubProtocolHandlerRegistry(testProtocolHandler);
@@ -95,7 +95,7 @@ public class SubProtocolHandlerRegistryTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("No handler for sub-protocol 'foo', handlers = {}"));
+			assertThat(e.getMessage(), containsString("No handler for sub-protocol 'foo'"));
 		}
 
 		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);

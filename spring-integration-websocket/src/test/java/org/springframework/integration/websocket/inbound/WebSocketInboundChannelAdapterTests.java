@@ -20,8 +20,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Test;
@@ -51,10 +53,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
+import org.springframework.web.socket.sockjs.client.Transport;
+import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
@@ -83,6 +89,8 @@ public class WebSocketInboundChannelAdapterTests {
 	public void testWebSocketOutboundMessageHandler() throws Exception {
 		WebSocketSession session = clientWebSocketContainer.getSession(null);
 		assertNotNull(session);
+		assertTrue(session.isOpen());
+		assertEquals("v10.stomp", session.getAcceptedProtocol());
 
 		Map<String, WebSocketSession> sessions =
 				TestUtils.getPropertyValue(this.subProtocolWebSocketHandler, "sessions", Map.class);
@@ -121,8 +129,13 @@ public class WebSocketInboundChannelAdapterTests {
 		}
 
 		@Bean
+		public WebSocketClient webSocketClient() {
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
+		}
+
+		@Bean
 		public IntegrationWebSocketContainer clientWebSocketContainer() {
-			return new ClientWebSocketContainer(new JettyWebSocketClient(), server().getWsBaseUrl() + "/ws");
+			return new ClientWebSocketContainer(webSocketClient(), server().getWsBaseUrl() + "/ws");
 		}
 
 		@Bean

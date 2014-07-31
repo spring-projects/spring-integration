@@ -183,20 +183,25 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 
 		@Override
 		public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-			IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-			if (IntegrationWebSocketContainer.this.messageListener != null) {
-				IntegrationWebSocketContainer.this.messageListener.afterSessionEnded(session, closeStatus);
-			}
-			else if (IntegrationWebSocketContainer.this.eventPublisher != null) {
-				publishEvent(new SessionDisconnectEvent(this, session.getId(), closeStatus));
+			WebSocketSession removed = IntegrationWebSocketContainer.this.sessions.remove(session.getId());
+			if (removed != null) {
+				if (IntegrationWebSocketContainer.this.messageListener != null) {
+					IntegrationWebSocketContainer.this.messageListener.afterSessionEnded(session, closeStatus);
+				}
+				else if (IntegrationWebSocketContainer.this.eventPublisher != null) {
+					publishEvent(new SessionDisconnectEvent(this, session.getId(), closeStatus));
+				}
 			}
 		}
 
 		@Override
 		public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-			IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-			if (IntegrationWebSocketContainer.this.eventPublisher != null) {
-				publishEvent(new SessionErrorEvent(this, session.getId(), exception));
+			WebSocketSession removed = IntegrationWebSocketContainer.this.sessions.remove(session.getId());
+			if (removed != null) {
+				IntegrationWebSocketContainer.this.sessions.remove(session.getId());
+				if (IntegrationWebSocketContainer.this.eventPublisher != null) {
+					publishEvent(new SessionErrorEvent(this, session.getId(), exception));
+				}
 			}
 		}
 

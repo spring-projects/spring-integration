@@ -63,7 +63,7 @@ public class ClientWebSocketContainerTests {
 	@Test
 	public void testClientWebSocketContainer() throws Exception {
 		ClientWebSocketContainer container =
-				new ClientWebSocketContainer(new JettyWebSocketClient(), server.getWsBaseUrl() + "/ws");
+				new ClientWebSocketContainer(new JettyWebSocketClient(), server.getWsBaseUrl() + "/ws/websocket");
 
 		TestWebSocketListener messageListener = new TestWebSocketListener();
 		container.setMessageListener(messageListener);

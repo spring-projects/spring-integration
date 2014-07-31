@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.Collections;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -45,9 +47,13 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
+import org.springframework.web.socket.sockjs.client.Transport;
+import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
@@ -100,9 +106,14 @@ public class WebSocketOutboundMessageHandlerTests {
 		}
 
 		@Bean
+		public WebSocketClient webSocketClient() {
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
+		}
+
+		@Bean
 		public IntegrationWebSocketContainer clientWebSocketContainer() {
 			ClientWebSocketContainer container =
-					new ClientWebSocketContainer(new JettyWebSocketClient(), server().getWsBaseUrl() + "/ws");
+					new ClientWebSocketContainer(webSocketClient(), server().getWsBaseUrl() + "/ws");
 			container.setAutoStartup(true);
 			return container;
 		}

@@ -70,6 +70,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
+import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 /**
  * @author Artem Bilan
@@ -221,7 +223,7 @@ public class StompIntegrationTests {
 
 		@Bean
 		public IntegrationWebSocketContainer clientWebSocketContainer() {
-			return new ClientWebSocketContainer(new JettyWebSocketClient(), server().getWsBaseUrl() + "/ws");
+			return new ClientWebSocketContainer(new JettyWebSocketClient(), server().getWsBaseUrl() + "/ws/websocket");
 		}
 
 		@Bean
@@ -310,9 +312,14 @@ public class StompIntegrationTests {
 			includeFilters = @ComponentScan.Filter(IntegrationTestController.class))
 	static class ServerConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
+		@Bean
+		public DefaultHandshakeHandler handshakeHandler() {
+			return new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy());
+		}
+
 		@Override
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
-			registry.addEndpoint("/ws");
+			registry.addEndpoint("/ws").setHandshakeHandler(handshakeHandler()).withSockJS();
 		}
 
 		@Override

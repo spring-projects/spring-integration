@@ -85,6 +85,16 @@ public final class SubProtocolHandlerRegistry {
 		}
 		else {
 			this.defaultProtocolHandler = defaultProtocolHandler;
+			if (this.protocolHandlers.isEmpty()) {
+				List<String> protocols = this.defaultProtocolHandler.getSupportedProtocols();
+				for (String protocol : protocols) {
+					SubProtocolHandler replaced = this.protocolHandlers.put(protocol, this.defaultProtocolHandler);
+					if (replaced != null) {
+						throw new IllegalStateException("Failed to map handler " + this.defaultProtocolHandler
+								+ " to protocol '" + protocol + "', it is already mapped to handler " + replaced);
+					}
+				}
+			}
 		}
 	}
 

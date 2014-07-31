@@ -76,7 +76,8 @@ public class TestServerConfig implements WebSocketConfigurer {
 
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(subProtocolWebSocketHandler(), "/ws");
+		registry.addHandler(subProtocolWebSocketHandler(), "/ws")
+				.withSockJS();
 	}
 
 }
