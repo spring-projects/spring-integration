@@ -57,7 +57,6 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -595,7 +594,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
 						+ correlationKey + "] to: "
-						+ (StringUtils.hasText(this.outputChannelName) ? this.outputChannelName : this.outputChannel));
+						+ (this.outputChannelName != null ? this.outputChannelName : this.outputChannel));
 			}
 			completeGroup(correlationKey, group);
 		}
@@ -603,7 +602,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			if (logger.isDebugEnabled()) {
 				logger.debug("Discarding messages of partially complete group with key ["
 						+ correlationKey + "] to: "
-						+ (StringUtils.hasText(this.discardChannelName) ? this.discardChannelName : this.discardChannel));
+						+ (this.discardChannelName != null ? this.discardChannelName : this.discardChannel));
 			}
 			for (Message<?> message : group.getMessages()) {
 				discardMessage(message);
