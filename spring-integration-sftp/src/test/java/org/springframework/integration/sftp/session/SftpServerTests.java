@@ -30,7 +30,6 @@ import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.FileSystemView;
@@ -45,13 +44,17 @@ import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.junit.Test;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.util.StreamUtils;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 /**
  * @author Gary Russell
+ * @author David Liu
  * @since 4.1
  *
  */
@@ -150,7 +153,8 @@ public class SftpServerTests {
 			f.setHost("localhost");
 			f.setPort(port);
 			f.setUser("user");
-			f.setPrivateKey(new ClassPathResource("id_rsa"));
+			InputStream stream = new ClassPathResource("id_rsa").getInputStream();
+			f.setPrivateKey(new ByteArrayResource(StreamUtils.copyToByteArray(stream)));
 			Session<LsEntry> session = f.getSession();
 			doTest(server, session);
 		}
