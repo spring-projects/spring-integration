@@ -29,7 +29,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
-import org.springframework.integration.redis.util.SerializerUtil;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -79,6 +78,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	private volatile String connectionFactory;
 
 	private volatile RedisTemplate<String, byte[]> template = null;
+
+	private final static RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -227,8 +228,18 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 				messageBody = serializer.deserialize(value);
 				Message<?> replyMessage = this.sendAndReceiveMessage(messageBody);
 				if (replyMessage != null) {
-					byte[] serializedReply = SerializerUtil.serialize(replyMessage.getPayload(), this.serializerExplicitlySet, this.serializer);
-					template.boundListOps(uuid + ".reply").leftPush(serializedReply);
+					if (!(replyMessage.getPayload() instanceof byte[])) {
+						if (replyMessage.getPayload() instanceof String && !serializerExplicitlySet) {
+							value = stringSerializer.serialize((String) replyMessage.getPayload());
+						}
+						else {
+							value = ((RedisSerializer<Object>) serializer).serialize(replyMessage.getPayload());
+						}
+					}
+					else {
+						value = (byte[]) replyMessage.getPayload();
+					}
+					template.boundListOps(uuid + ".reply").leftPush(value);
 				}
 			}
 		}

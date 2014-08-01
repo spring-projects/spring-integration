@@ -26,7 +26,6 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.redis.util.SerializerUtil;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -43,6 +42,8 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 	private volatile boolean extractPayload = true;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+
+	private final static RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
 	private volatile boolean serializerExplicitlySet;
 
@@ -91,9 +92,24 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		if (this.extractPayload) {
 			value = message.getPayload();
 		}
-		value = SerializerUtil.serialize(value, this.serializerExplicitlySet, this.serializer);
+		if (!(value instanceof byte[])) {
+			if (value instanceof String && !serializerExplicitlySet) {
+				value = stringSerializer.serialize((String) value);
+			}
+			else {
+				value = ((RedisSerializer<Object>) serializer).serialize(value);
+			}
+		}
 		String uuid = generateRandomUUID();
-		this.template.boundListOps(this.queueName).leftPush(SerializerUtil.serialize(uuid, this.serializerExplicitlySet, this.serializer));
+
+		byte[] uuidByte;
+		if (!serializerExplicitlySet) {
+			uuidByte = stringSerializer.serialize(uuid);
+		}
+		else {
+			uuidByte = ((RedisSerializer<Object>) serializer).serialize(uuid);
+		}
+		this.template.boundListOps(this.queueName).leftPush(uuidByte);
 		this.template.boundListOps(uuid + "").leftPush(value);
 		this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
 		byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
