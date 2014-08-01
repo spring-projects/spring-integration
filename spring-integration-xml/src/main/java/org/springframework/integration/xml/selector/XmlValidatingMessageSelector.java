@@ -36,12 +36,30 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
 
+import reactor.util.StringUtils;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @since 2.0
  */
 public class XmlValidatingMessageSelector implements MessageSelector {
+
+	public enum SchemaType {
+
+		SCHEMA_W3C_XML(XmlValidatorFactory.SCHEMA_W3C_XML),
+
+		SCHEMA_RELAX_NG(XmlValidatorFactory.SCHEMA_RELAX_NG);
+
+		private String url;
+
+		private String getUrl() {
+	    	 return this.url;
+		}
+		private SchemaType(String url) {
+	    	 this.url = url;
+		}
+	}
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -78,7 +96,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	}
 
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
-		this(schema, SchemaType.valueOf(schemaType));
+		this(schema, StringUtils.isEmpty(schemaType) ? (SchemaType) null : SchemaType.valueOf(schemaType));
 	}
 
 
@@ -117,19 +135,6 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 			}
 		}
 		return validationSuccess;
-	}
-
-	public enum SchemaType {
-
-		SCHEMA_W3C_XML(XmlValidatorFactory.SCHEMA_W3C_XML),
-		SCHEMA_RELAX_NG(XmlValidatorFactory.SCHEMA_RELAX_NG);
-		private String url;
-		private String getUrl() {
-	    	 return this.url;
-		}
-		private SchemaType(String url) {
-	    	 this.url = url;
-		}
 	}
 
 }

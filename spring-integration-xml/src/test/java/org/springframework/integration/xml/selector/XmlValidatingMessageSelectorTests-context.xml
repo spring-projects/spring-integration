@@ -4,7 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="xmlValidatingMessageSelector" class="org.springframework.integration.xml.selector.XmlValidatingMessageSelector">
-		<!-- <constructor-arg value="src/test/java/org/springframework/integration/xml/selector/file"/> -->
 		<constructor-arg value="0x03"/>
 		<constructor-arg value="foo"/>
 	</bean>

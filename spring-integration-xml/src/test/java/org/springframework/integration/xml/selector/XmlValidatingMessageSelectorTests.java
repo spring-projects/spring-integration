@@ -15,10 +15,11 @@
  */
 package org.springframework.integration.xml.selector;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -33,23 +34,33 @@ public class XmlValidatingMessageSelectorTests {
 	@Test
 	public void validateCreationWithSchemaAndDefaultSchemaType() throws Exception{
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, (SchemaType)null);
+		new XmlValidatingMessageSelector(resource, (SchemaType) null);
 	}
 
 	@Test
 	public void validateCreationWithSchemaAndProvidedSchemaType() throws Exception{
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
-		new XmlValidatingMessageSelector(resource, XmlValidatingMessageSelector.SchemaType.SCHEMA_W3C_XML);
+		new XmlValidatingMessageSelector(resource, SchemaType.SCHEMA_W3C_XML);
 	}
 
-	@Test(expected=BeanCreationException.class)
+	@Test
 	public void validateFailureInvalidSchemaLanguage() throws Exception{
-		ApplicationContext context = new FileSystemXmlApplicationContext("src/test/java/org/springframework/integration/xml/selector/XmlValidatingMessageSelectorTests-context.xml");
-		context.getBean("xmlValidatingMessageSelector");
+		ConfigurableApplicationContext context = null;
+		try {
+			context = new FileSystemXmlApplicationContext("src/test/java/org/springframework/integration/xml/selector/XmlValidatingMessageSelectorTests-context.xml");
+		}
+		catch (Exception e) {
+		     assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: No enum constant"));
+		}
+		finally {
+			if(context != null) {
+				context.close();
+			}
+		}
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void validateFailureWhenNoSchemaResourceProvided() throws Exception{
-		new XmlValidatingMessageSelector(null, (SchemaType)null);
+		new XmlValidatingMessageSelector(null, (SchemaType) null);
 	}
 }
