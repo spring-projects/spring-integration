@@ -167,6 +167,16 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		return this.interceptors.getInterceptors();
 	}
 
+	@Override
+	public boolean removeInterceptor(ChannelInterceptor interceptor) {
+		return this.interceptors.remove(interceptor);
+	}
+
+	@Override
+	public ChannelInterceptor removeInterceptor(int index) {
+		return this.interceptors.remove(index);
+	}
+
 	/**
 	 * Exposes the interceptor list for subclasses.
 	 *
@@ -390,5 +400,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		public List<ChannelInterceptor> getInterceptors() {
 			return Collections.unmodifiableList(this.interceptors);
 		}
+
+		public boolean remove(ChannelInterceptor interceptor) {
+			return this.interceptors.remove(interceptor);
+		}
+
+		public ChannelInterceptor remove(int index) {
+			return this.interceptors.remove(index);
+		}
+
 	}
+
 }

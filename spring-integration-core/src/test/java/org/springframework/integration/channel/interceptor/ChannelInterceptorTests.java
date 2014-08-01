@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptorAware;
@@ -70,8 +70,15 @@ public class ChannelInterceptorTests {
 		Message<?> message = new GenericMessage<String>("test");
 		channel.send(message);
 		assertEquals(1, interceptor.getCount());
+
+		assertTrue(channel.removeInterceptor(interceptor));
+
+		channel.send(new GenericMessage<String>("TEST"));
+		assertEquals(1, interceptor.getCount());
+
 		Message<?> result = channel.receive(0);
-		assertNull(result);
+		assertNotNull(result);
+		assertEquals("TEST", result.getPayload());
 	}
 
 	@Test
@@ -113,6 +120,11 @@ public class ChannelInterceptorTests {
 		singleItemChannel.send(new GenericMessage<String>("test1"));
 		assertEquals(1, invokedCounter.get());
 		assertEquals(1, sentCounter.get());
+		singleItemChannel.send(new GenericMessage<String>("test2"), 0);
+		assertEquals(2, invokedCounter.get());
+		assertEquals(1, sentCounter.get());
+
+		assertNotNull(singleItemChannel.removeInterceptor(0));
 		singleItemChannel.send(new GenericMessage<String>("test2"), 0);
 		assertEquals(2, invokedCounter.get());
 		assertEquals(1, sentCounter.get());
@@ -164,8 +176,9 @@ public class ChannelInterceptorTests {
 		assertEquals(1, messageCount.get());
 	}
 	@Test
-	public void testInterceptorBeanWithPnamespace(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("ChannelInterceptorTests-context.xml", ChannelInterceptorTests.class);
+	public void testInterceptorBeanWithPNamespace(){
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("ChannelInterceptorTests-context.xml", ChannelInterceptorTests.class);
 		ChannelInterceptorAware channel = ac.getBean("input", AbstractMessageChannel.class);
 		List<ChannelInterceptor> interceptors = channel.getChannelInterceptors();
 		ChannelInterceptor channelInterceptor = interceptors.get(0);
@@ -173,6 +186,7 @@ public class ChannelInterceptorTests {
 		String foo = ((PreSendReturnsMessageInterceptor) channelInterceptor).getFoo();
 		assertTrue(StringUtils.hasText(foo));
 		assertEquals("foo", foo);
+		ac.close();
 	}
 
 

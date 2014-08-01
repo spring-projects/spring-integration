@@ -32,12 +32,43 @@ import org.springframework.messaging.support.ChannelInterceptor;
  */
 public interface ChannelInterceptorAware {
 
+	/**
+	 * Populate the {@link ChannelInterceptor}s to the target implementation.
+	 * @param interceptors the {@link ChannelInterceptor}s to populate.
+	 */
 	void setInterceptors(List<ChannelInterceptor> interceptors);
 
+	/**
+	 * And a {@link ChannelInterceptor} to the target implementation.
+	 * @param interceptor the {@link ChannelInterceptor} to add.
+	 */
 	void addInterceptor(ChannelInterceptor interceptor);
 
+	/**
+	 * And a {@link ChannelInterceptor} to the target implementation for the specific index.
+	 * @param index the index for {@link ChannelInterceptor} to add.
+	 * @param interceptor the {@link ChannelInterceptor} to add.
+	 */
 	void addInterceptor(int index, ChannelInterceptor interceptor);
 
+	/**
+	 * return the {@link ChannelInterceptor} list.
+	 * @return the {@link ChannelInterceptor} list.
+	 */
 	List<ChannelInterceptor> getChannelInterceptors();
+
+	/**
+	 * Remove the provided {@link ChannelInterceptor} from the target implementation.
+	 * @param interceptor {@link ChannelInterceptor} to remove.
+	 * @return the {@code boolean} if {@link ChannelInterceptor} has been removed.
+	 */
+	boolean removeInterceptor(ChannelInterceptor interceptor);
+
+	/**
+	 * Remove a {@link ChannelInterceptor} from the target implementation for specific index.
+	 * @param index the index for the {@link org.springframework.messaging.support.ChannelInterceptor} to remove.
+	 * @return the {@code boolean} if the {@link ChannelInterceptor} has been removed.
+	 */
+	ChannelInterceptor removeInterceptor(int index);
 
 }
