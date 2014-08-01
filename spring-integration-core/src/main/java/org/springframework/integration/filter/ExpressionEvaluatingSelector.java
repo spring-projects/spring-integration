@@ -53,13 +53,7 @@ public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelec
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ExpressionEvaluatingSelector [expressionParser=")
-			.append(expressionParser.toString())
-			.append(", expressionString=")
-			.append(this.expressionString)
-			.append("]");
-		return builder.toString();
+		return "ExpressionEvaluatingSelector for: [" + this.expressionString + "]";
 	}
 
 }

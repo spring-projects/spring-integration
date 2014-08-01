@@ -95,7 +95,13 @@ public class RecipientListRouter extends AbstractMessageRouter
 	 */
 	public void setRecipients(List<Recipient> recipients) {
 		Assert.notEmpty(recipients, "recipients must not be empty");
+		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
+		this.recipients.clear();
 		this.recipients.addAll(recipients);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel Recipients:" + originalRecipients
+					+ " replaced with:" + this.recipients);
+		}
 	}
 
 	/**
@@ -106,6 +112,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedAttribute
 	public void setRecipientMappings(Map<String, String> recipientMappings) {
 		Assert.notEmpty(recipientMappings, "recipientMappings must not be empty");
+		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
 		this.recipients.clear();
 		for(Iterator<Entry<String, String>> it = recipientMappings.entrySet().iterator(); it.hasNext();) {
 			Entry<String, String> next = it.next();
@@ -115,7 +122,10 @@ public class RecipientListRouter extends AbstractMessageRouter
 			else {
 				this.addRecipient(next.getKey());
 			}
-
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel Recipients:" + originalRecipients
+					+ " replaced with:" + this.recipients);
 		}
 	}
 
@@ -201,6 +211,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	public void replaceRecipients(Properties recipientMappings) {
 		Assert.notNull(recipientMappings, "'recipientMappings' must not be null");
 		Set<String> keys = recipientMappings.stringPropertyNames();
+		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
 		this.recipients.clear();
 		for (String key : keys) {
 			Assert.notNull(key, "channelName can't be null.");
@@ -210,6 +221,10 @@ public class RecipientListRouter extends AbstractMessageRouter
 			else {
 				this.addRecipient(key);
 			}
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel Recipients:" + originalRecipients
+					+ " replaced with:" + this.recipients);
 		}
 	}
 
