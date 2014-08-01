@@ -64,7 +64,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 			@Override
 			public Boolean doWithClient(FTPClient client) {
 				try {
-					return client.getStatus() != null;
+					return client.getStatus(path) != null;
 				}
 				catch (IOException e) {
 					throw new MessagingException("Failed to stat " + path, e);

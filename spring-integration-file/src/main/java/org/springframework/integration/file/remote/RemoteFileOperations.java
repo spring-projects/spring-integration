@@ -31,7 +31,9 @@ public interface RemoteFileOperations<F> {
 	 * Send a file to a remote server, based on information in a message.
 	 *
 	 * @param message The message.
-	 * @param mode See {@link FileExistsMode} (optional; default REPLACE).
+	 * @param mode See {@link FileExistsMode} (optional; default REPLACE). A
+	 * vararg is used to make the argument optional; only the first will be
+	 * used if more than one is provided.
 	 * @return The remote path, or null if no local file was found.
 	 */
 	String send(Message<?> message, FileExistsMode... mode);
@@ -43,7 +45,9 @@ public interface RemoteFileOperations<F> {
 	 *
 	 * @param message The message.
 	 * @param subDirectory The sub directory.
-	 * @param mode See {@link FileExistsMode} (optional; default REPLACE).
+	 * @param mode See {@link FileExistsMode} (optional; default REPLACE). A
+	 * vararg is used to make the argument optional; only the first will be
+	 * used if more than one is provided.
 	 * @return The remote path, or null if no local file was found.
 	 */
 	String send(Message<?> message, String subDirectory, FileExistsMode... mode);

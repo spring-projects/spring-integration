@@ -22,7 +22,6 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.messaging.MessagingException;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -68,7 +67,7 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<LsEntry> {
 					return client.stat(path) != null;
 				}
 				catch (SftpException e) {
-					throw new MessagingException("Failed to stat " + path, e);
+					return false;
 				}
 			}
 		});

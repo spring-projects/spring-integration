@@ -20,6 +20,7 @@ import org.springframework.integration.file.remote.session.Session;
 /**
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
  * access to lower level methods.
+ *
  * @author Gary Russell
  *
  * @param <C> The type of the underlying client object.
