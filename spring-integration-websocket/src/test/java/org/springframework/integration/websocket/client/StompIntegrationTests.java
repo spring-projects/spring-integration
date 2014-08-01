@@ -38,11 +38,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.JettyWebSocketTestServer;
@@ -200,7 +208,7 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message2);
 
 
-		Message<?> receive = webSocketInputChannel.receive(1000);
+		Message<?> receive = webSocketInputChannel.receive(10000);
 		assertNotNull(receive);
 
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(receive);
@@ -210,6 +218,30 @@ public class StompIntegrationTests {
 
 		assertEquals("Got error: Bad input", receive.getPayload());
 	}
+
+	@Test
+	public void sendMessageToGateway() throws Exception {
+
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+		headers.setSubscriptionId("subs1");
+		headers.setDestination("/user/queue/answer");
+		Message<byte[]> message = MessageBuilder.withPayload(ByteBuffer.allocate(0).array())
+				.setHeaders(headers)
+				.build();
+
+		headers = StompHeaderAccessor.create(StompCommand.SEND);
+		headers.setSubscriptionId("subs1");
+		headers.setDestination("/app/greeting");
+		Message<String> message2 = MessageBuilder.withPayload("Bob").setHeaders(headers).build();
+
+		this.webSocketOutputChannel.send(message);
+		this.webSocketOutputChannel.send(message2);
+
+		Message<?> receive = webSocketInputChannel.receive(5000);
+		assertNotNull(receive);
+		assertEquals("Hello Bob", receive.getPayload());
+	}
+
 
 
 	@Configuration
@@ -304,13 +336,39 @@ public class StompIntegrationTests {
 	}
 
 
+	@MessagingGateway
+	@Controller
+	static interface WebSocketGateway {
+
+		@MessageMapping("/greeting")
+		@SendToUser("/queue/answer")
+		@Gateway(requestChannel = "greetingChannel")
+		String greeting(String payload);
+
+	}
+
 	@Configuration
 	@EnableWebSocketMessageBroker
+	@EnableIntegration
 	@ComponentScan(
 			basePackageClasses = StompIntegrationTests.class,
 			useDefaultFilters = false,
 			includeFilters = @ComponentScan.Filter(IntegrationTestController.class))
+	@IntegrationComponentScan
 	static class ServerConfig extends AbstractWebSocketMessageBrokerConfigurer {
+
+		private static final ExpressionParser expressionParser = new SpelExpressionParser();
+
+		@Bean
+		public MessageChannel greetingChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@Transformer(inputChannel = "greetingChannel")
+		public ExpressionEvaluatingTransformer greetingTransformer() {
+			return new ExpressionEvaluatingTransformer(expressionParser.parseExpression("'Hello ' + payload"));
+		}
 
 		@Bean
 		public DefaultHandshakeHandler handshakeHandler() {
