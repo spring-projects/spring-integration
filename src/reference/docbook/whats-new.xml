@@ -154,5 +154,13 @@
 				See <xref linkend="amqp-message-headers"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-amqp-channels">
+			<title>AMQP Channels: template-channel-transacted</title>
+			<para>
+				The new <code>template-channel-transacted</code> attribute has been introduced for AMQP
+				<classname>MessageChannel</classname>s.
+				See <xref linkend="amqp-channels"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
