@@ -56,6 +56,7 @@ public class AmqpChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "amqp-admin");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "channel-transacted");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "template-channel-transacted");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
