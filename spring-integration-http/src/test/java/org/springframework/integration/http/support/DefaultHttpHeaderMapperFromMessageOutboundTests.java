@@ -520,7 +520,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		httpHeaders.set("Transfer-Encoding", "chunked");
 
 		Map<String, ?> messageHeaders = mapper.toHeaders(httpHeaders);
-		assertEquals(0, messageHeaders.size());
+		assertEquals(1, messageHeaders.size());
 
 	}
 
@@ -673,6 +673,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals(0, messageHeaders.size());
 	}
 
+	@Test
 	public void testInt2995IfModifiedSince() throws Exception{
 		Date ifModifiedSince = new Date();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy", Locale.US);
@@ -686,6 +687,16 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		c.setTime(ifModifiedSince);
 		c.set(Calendar.MILLISECOND, 0);
 		assertEquals(c.getTimeInMillis(), headers.getIfModifiedSince());
+	}
+
+	@Test
+	public void testContentDispositionHeader() throws Exception{
+		HttpHeaders headers = new HttpHeaders();
+		String headerValue = "attachment; filename=\"test.txt\"";
+		headers.set("Content-Disposition", headerValue);
+		Map<String, Object> messageHeaders = DefaultHttpHeaderMapper.outboundMapper().toHeaders(headers);
+		assertEquals(1, messageHeaders.size());
+		assertEquals(headerValue, messageHeaders.get("Content-Disposition"));
 	}
 
 }

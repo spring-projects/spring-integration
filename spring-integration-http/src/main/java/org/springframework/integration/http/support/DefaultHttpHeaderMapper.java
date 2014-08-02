@@ -67,7 +67,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @since 2.0
  */
-public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean{
+public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
@@ -108,6 +108,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private static final String CONTENT_RANGE = "Content-Range";
 
 	private static final String CONTENT_TYPE = "Content-Type";
+
+	private static final String CONTENT_DISPOSITION = "Content-Disposition";
 
 	public  static final String COOKIE = "Cookie";
 
@@ -173,6 +175,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
 
+	private static final String TRANSFER_ENCODING = "Transfer-Encoding";
+
 	private static final String[] HTTP_REQUEST_HEADER_NAMES = new String[] {
 			ACCEPT,
 			ACCEPT_CHARSET,
@@ -219,6 +223,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			CONTENT_MD5,
 			CONTENT_RANGE,
 			CONTENT_TYPE,
+			CONTENT_DISPOSITION,
+			TRANSFER_ENCODING,
 			DATE,
 			ETAG,
 			EXPIRES,
@@ -240,7 +246,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private static String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = new String[0];
 
 	private static String[] HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS = new String[] {
-		CONTENT_LENGTH
+			CONTENT_LENGTH, TRANSFER_ENCODING
 	};
 
 	public static final String HTTP_REQUEST_HEADER_NAME_PATTERN = "HTTP_REQUEST_HEADERS";
@@ -345,11 +351,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				Object value = headers.get(name);
 				if (value != null) {
 					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) &&
-						!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
+							!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 						// prefix the user-defined header names if not already prefixed
 
 						name = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
-							this.userDefinedHeaderPrefix + name;
+								this.userDefinedHeaderPrefix + name;
 					}
 					if (logger.isDebugEnabled()) {
 						logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
@@ -376,7 +382,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
 					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
-						this.userDefinedHeaderPrefix + name;
+							this.userDefinedHeaderPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
 						if (logger.isDebugEnabled()) {
