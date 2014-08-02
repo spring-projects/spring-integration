@@ -452,8 +452,15 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       </callout>
 
        <callout arearefs="aggxml09" id="aggxml09-txt">
-        <para>The timeout interval for sending the aggregated messages to the output or
-        reply channel. <emphasis>Optional</emphasis>.</para>
+        <para>The timeout interval to wait when sending a reply
+			<interfacename>Message</interfacename> to the <code>output-channel</code> or <code>discard-channel</code>.
+			By default the send will block for one second.
+			It is applied only if the output channel has some 'sending' limitations, e.g. <classname>QueueChannel</classname>
+			with a fixed 'capacity'. In this case a <classname>MessageDeliveryException</classname> is thrown.
+			The <code>send-timeout</code> is ignored in case of <classname>AbstractSubscribableChannel</classname> implementations.
+			In case of <code>group-timeout(-expression)</code> the <classname>MessageDeliveryException</classname>
+			from the scheduled expire task leads this task to be rescheduled.
+			<emphasis>Optional</emphasis>.</para>
       </callout>
 
        <callout arearefs="aggxml10" id="aggxml10-txt">

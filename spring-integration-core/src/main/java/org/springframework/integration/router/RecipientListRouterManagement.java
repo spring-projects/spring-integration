@@ -53,6 +53,7 @@ public interface RecipientListRouterManagement {
 	/**
 	 * Remove all recipients that match the channelName.
 	 * @param channelName The channel name.
+	 * @return The number of recipients removed.
 	 */
 	@ManagedOperation
 	int removeRecipient(String channelName);
@@ -61,6 +62,7 @@ public interface RecipientListRouterManagement {
 	 * Remove all recipients that match the channelName and expression.
 	 * @param channelName The channel name.
 	 * @param selectorExpression The expression to filter the incoming message
+	 * @return The number of recipients removed.
 	 */
 	@ManagedOperation
 	int removeRecipient(String channelName, String selectorExpression);

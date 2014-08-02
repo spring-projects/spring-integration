@@ -16,15 +16,19 @@
 
 package org.springframework.integration.aggregator.integration;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,11 +36,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -71,10 +77,16 @@ public class AggregatorIntegrationTests {
 	private MessageChannel groupTimeoutExpressionAggregatorInput;
 
 	@Autowired
-	private PollableChannel output;
+	private MessageChannel zeroGroupTimeoutExpressionAggregatorInput;
+
+	@Autowired
+	private QueueChannel output;
 
 	@Autowired
 	private PollableChannel discard;
+
+	@Autowired
+	private QueueChannel errors;
 
 	@Test//(timeout=5000)
 	public void testVanillaAggregation() throws Exception {
@@ -147,6 +159,31 @@ public class AggregatorIntegrationTests {
 		}
 	}
 
+	@Test
+	public void testGroupTimeoutReschedulingOnMessageDeliveryException() throws Exception {
+		for (int i = 0; i < 5; i++) {
+			this.output.send(new GenericMessage<String>("fake message"));
+		}
+
+		Map<String, Object> headers = stubHeaders(1, 2, 1);
+		this.groupTimeoutAggregatorInput.send(new GenericMessage<Integer>(1, headers));
+
+		//Wait until 'group-timeout' does its stuff.
+		MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
+				MessageGroupStore.class);
+		int n = 0;
+		while (n++ < 100 && mgs.getMessageGroupCount() > 0) {
+			Thread.sleep(100);
+			if (n == 10) {
+				TestUtils.getPropertyValue(this.output, "queue", Queue.class).clear();
+			}
+		}
+		assertTrue("Group did not complete", n < 100);
+		Message<?> receive = this.output.receive(1000);
+		assertNotNull(receive);
+		assertEquals(Collections.singletonList(1), receive.getPayload());
+		assertNull(this.discard.receive(0));
+	}
 
 	@Test
 	public void testGroupTimeoutExpressionScheduling() throws Exception {
@@ -187,6 +224,28 @@ public class AggregatorIntegrationTests {
 		assertNull(this.discard.receive(0));
 	}
 
+	@Test
+	public void testZeroGroupTimeoutExpressionScheduling() throws Exception {
+		try {
+			this.output.purge(null);
+			this.errors.purge(null);
+			GenericMessage<String> message = new GenericMessage<String>("foo");
+			this.output.send(message);
+			this.output.send(message);
+			this.output.send(message);
+			this.output.send(message);
+			this.output.send(message);
+			this.zeroGroupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(1, stubHeaders(1, 2, 1)));
+			ErrorMessage em = (ErrorMessage) this.errors.receive(10000);
+			assertNotNull(em);
+			assertThat(em.getPayload().getMessage(),
+					containsString("failed to send message to channel 'output' within timeout: 10"));
+		}
+		finally {
+			this.output.purge(null);
+			this.errors.purge(null);
+		}
+	}
 
 	// configured in context associated with this test
 	public static class SummingAggregator {

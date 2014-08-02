@@ -37,6 +37,7 @@
 	<aggregator id="gta"
 				input-channel="groupTimeoutAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
+				send-timeout="100"
 				group-timeout="100"/>
 
 	<aggregator input-channel="groupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
@@ -44,5 +45,18 @@
 				group-timeout-expression="size() ge 2 ? 100 : -1"
 			    release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
 
+	<aggregator input-channel="zeroGroupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
+				send-partial-result-on-expiry="true"
+				send-timeout="10"
+				group-timeout-expression="@bool.getAndSet(true) ? 0 : 10"
+			    release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+
+	<beans:bean id="bool" class="java.util.concurrent.atomic.AtomicBoolean" />
+
+	<bridge input-channel="errorChannel" output-channel="errors" />
+
+	<channel id="errors">
+		<queue />
+	</channel>
 
 </beans:beans>

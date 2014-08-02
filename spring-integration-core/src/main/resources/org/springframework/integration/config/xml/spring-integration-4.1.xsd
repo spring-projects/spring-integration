@@ -4295,8 +4295,10 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify the maximum amount of time in milliseconds to wait when sending a reply
-					Message to the
-					output channel. By default the send will block for one second.
+					Message to the output channel. By default the send will block for one second.
+					It is applied only if the output channel has some 'sending' limitations, e.g. QueueChannel with
+					fixed a 'capacity'. In this case a MessageDeliveryException is thrown. The 'send-timeout'
+					is ignored in case of AbstractSubscribableChannel implementations.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
