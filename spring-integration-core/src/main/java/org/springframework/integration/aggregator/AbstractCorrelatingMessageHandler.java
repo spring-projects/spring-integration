@@ -50,6 +50,7 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.scheduling.TaskScheduler;
@@ -383,21 +384,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 					Long groupTimeout = this.obtainGroupTimeout(messageGroup);
 					if (groupTimeout != null && groupTimeout >= 0) {
 						if (groupTimeout > 0) {
-							final MessageGroup messageGroupToSchedule = messageGroup;
-
-							scheduledFuture = this.getTaskScheduler()
-									.schedule(new Runnable() {
-
-										@Override
-										public void run() {
-											AbstractCorrelatingMessageHandler.this.forceComplete(messageGroupToSchedule);
-										}
-									}, new Date(System.currentTimeMillis() + groupTimeout));
-
-							if (logger.isDebugEnabled()) {
-								logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
-							}
-							this.expireGroupScheduledFutures.put(groupIdUuid, scheduledFuture);
+							scheduleGroupToForceComplete(messageGroup, groupTimeout);
 						}
 						else {
 							this.forceComplete(messageGroup);
@@ -406,8 +393,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 			else {
-				discardMessage(message);
-			}
+				discardMessage(message);			}
 		}
 		finally {
 			lock.unlock();
@@ -429,9 +415,32 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 		}
-		this.discardChannel.send(message);
+		this.messagingTemplate.send(this.discardChannel, message);
 	}
+private void scheduleGroupToForceComplete(final MessageGroup messageGroup, final long groupTimeout) {
+		ScheduledFuture<?> scheduledFuture = this.getTaskScheduler()
+				.schedule(new Runnable() {
 
+					@Override
+					public void run() {
+						try {
+							AbstractCorrelatingMessageHandler.this.forceComplete(messageGroup);
+						}
+						catch (MessageDeliveryException e) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("The MessageGroup [ " + messageGroup + "] is rescheduled by the reason: "
+										+ e.getMessage());
+							}
+							scheduleGroupToForceComplete(messageGroup, groupTimeout);
+						}
+					}
+				}, new Date(System.currentTimeMillis() + groupTimeout));
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
+		}
+		this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(messageGroup.getGroupId()), scheduledFuture);
+	}
 	/**
 	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released.
 	 * @param group The group.
@@ -511,6 +520,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 								") has changed - it may be reconsidered for a future expiration");
 					}
 				}
+			}
+			catch (MessageDeliveryException e) {
+				removeGroup = false;
+				if (logger.isDebugEnabled()) {
+					logger.debug("Group expiry candidate (" + correlationKey +
+							") has been affected by MessageDeliveryException - " +
+							"it may be reconsidered for a future expiration one more time");
+				}
+				throw e;
 			}
 			finally {
 				try {

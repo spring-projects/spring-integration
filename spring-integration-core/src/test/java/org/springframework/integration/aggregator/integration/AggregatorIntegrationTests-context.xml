@@ -37,6 +37,7 @@
 	<aggregator id="gta"
 				input-channel="groupTimeoutAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
+				send-timeout="100"
 				group-timeout="100"/>
 
 	<aggregator input-channel="groupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"

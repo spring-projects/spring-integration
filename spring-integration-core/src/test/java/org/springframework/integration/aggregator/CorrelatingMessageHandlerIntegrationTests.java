@@ -16,6 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -63,6 +64,7 @@ public class CorrelatingMessageHandlerIntegrationTests {
 	public void completesAfterThreshold() throws Exception {
 		defaultHandler.setReleaseStrategy(new MessageCountReleaseStrategy());
 		MessageChannel discardChannel = mock(MessageChannel.class);
+		when(discardChannel.send(any(Message.class))).thenReturn(true);
 		defaultHandler.setDiscardChannel(discardChannel);
 		Message<?> message1 = correlatedMessage(1, 2, 1);
 		Message<?> message2 = correlatedMessage(1, 2, 2);

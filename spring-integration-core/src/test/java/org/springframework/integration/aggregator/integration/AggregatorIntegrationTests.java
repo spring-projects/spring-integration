@@ -22,9 +22,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -147,6 +149,31 @@ public class AggregatorIntegrationTests {
 		}
 	}
 
+	@Test
+	public void testGroupTimeoutReschedulingOnMessageDeliveryException() throws Exception {
+		for (int i = 0; i < 5; i++) {
+			this.output.send(new GenericMessage<String>("fake message"));
+		}
+
+		Map<String, Object> headers = stubHeaders(1, 2, 1);
+		this.groupTimeoutAggregatorInput.send(new GenericMessage<Integer>(1, headers));
+
+		//Wait until 'group-timeout' does its stuff.
+		MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
+				MessageGroupStore.class);
+		int n = 0;
+		while (n++ < 100 && mgs.getMessageGroupCount() > 0) {
+			Thread.sleep(100);
+			if (n == 10) {
+				TestUtils.getPropertyValue(this.output, "queue", Queue.class).clear();
+			}
+		}
+		assertTrue("Group did not complete", n < 100);
+		Message<?> receive = this.output.receive(1000);
+		assertNotNull(receive);
+		assertEquals(Collections.singletonList(1), receive.getPayload());
+		assertNull(this.discard.receive(0));
+	}
 
 	@Test
 	public void testGroupTimeoutExpressionScheduling() throws Exception {
