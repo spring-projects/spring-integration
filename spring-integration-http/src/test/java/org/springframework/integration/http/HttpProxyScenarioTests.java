@@ -109,6 +109,8 @@ public class HttpProxyScenarioTests {
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
 
+		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
+
 		Mockito.doAnswer(new Answer<ResponseEntity<?>>() {
 			@Override
 			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
@@ -122,6 +124,7 @@ public class HttpProxyScenarioTests {
 
 				MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
 				responseHeaders.set("Connection", "close");
+				responseHeaders.set("Content-Disposition", contentDispositionValue);
 				return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
 			}
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
@@ -138,6 +141,7 @@ public class HttpProxyScenarioTests {
 		assertNull(response.getHeaderValue("If-Modified-Since"));
 		assertNull(response.getHeaderValue("If-Unmodified-Since"));
 		assertEquals("close", response.getHeaderValue("Connection"));
+		assertEquals(contentDispositionValue, response.getHeader("Content-Disposition"));
 
 		Message<?> message = this.checkHeadersChannel.receive(2000);
 		MessageHeaders headers = message.getHeaders();
