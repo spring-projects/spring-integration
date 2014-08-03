@@ -28,7 +28,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -47,8 +46,6 @@ public class RecipientListRouterParser extends AbstractRouterParser {
 	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder recipientListRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(RecipientListRouter.class);
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "recipient");
-		Assert.notEmpty(childElements,
-				"At least one recipient channel must be defined (e.g., <recipient channel=\"channel1\"/>).");
 		ManagedList recipientList = new ManagedList();
 		for (Element childElement : childElements) {
 			BeanDefinitionBuilder recipientBuilder = BeanDefinitionBuilder.genericBeanDefinition(Recipient.class);
@@ -62,7 +59,9 @@ public class RecipientListRouterParser extends AbstractRouterParser {
 			}
 			recipientList.add(recipientBuilder.getBeanDefinition());
 		}
-		recipientListRouterBuilder.addPropertyValue("recipients", recipientList);
+		if(recipientList.size() > 0) {
+			recipientListRouterBuilder.addPropertyValue("recipients", recipientList);
+		}
 		return recipientListRouterBuilder.getBeanDefinition();
 	}
 

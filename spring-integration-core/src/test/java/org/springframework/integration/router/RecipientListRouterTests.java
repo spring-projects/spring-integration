@@ -360,7 +360,10 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	/*
+	 * RecipientListRouter can have no channel recipient now
+	 */
+//	@Test(expected = IllegalArgumentException.class)
 	public void noChannelListFailsInitialization() {
 		RecipientListRouter router = new RecipientListRouter();
 		router.setBeanFactory(mock(BeanFactory.class));

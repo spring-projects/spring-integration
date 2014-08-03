@@ -136,7 +136,6 @@ public class RecipientListRouter extends AbstractMessageRouter
 
 	@Override
 	public void onInit() throws Exception {
-		Assert.notEmpty(this.recipients, "recipient list must not be empty");
 		super.onInit();
 	}
 
@@ -173,8 +172,9 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public int removeRecipient(String channelName) {
 		int counter = 0;
+		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
 		for (Iterator<Recipient> it = this.recipients.iterator();it.hasNext();) {
-			if (it.next().getChannel().equals(this.getBeanFactory().getBean(channelName))) {
+			if (it.next().getChannel().equals(channel)) {
 				it.remove();
 				counter++;
 			}
@@ -186,13 +186,14 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public int removeRecipient(String channelName, String selectorExpression) {
 		int counter = 0;
+		MessageChannel targetChannel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
 		for (Iterator<Recipient> it = this.recipients.iterator();it.hasNext();) {
 			Recipient next = it.next();
 			MessageSelector selector = next.getSelector();
 			MessageChannel channel = next.getChannel();
 			if(selector instanceof ExpressionEvaluatingSelector &&
-					channel.equals(this.getBeanFactory().getBean(channelName)) &&
-					((ExpressionEvaluatingSelector)selector).getExpressionString().equals(selectorExpression)) {
+					channel.equals(targetChannel) &&
+					((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
 				it.remove();
 				counter++;
 			}
