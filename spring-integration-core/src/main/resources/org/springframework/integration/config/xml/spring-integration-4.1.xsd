@@ -2941,7 +2941,7 @@
             <xsd:extension base="commonRecipientListRouterType">
                 <xsd:sequence>
                     <xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 						    <xsd:documentation>
 						        An expression to be evaluated to determine if this recipient
@@ -2962,7 +2962,7 @@
         <xsd:complexContent>
             <xsd:extension base="commonRecipientListRouterType">
                 <xsd:sequence>
-                    <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
 						    <xsd:documentation>
 						        An expression to be evaluated to determine if this recipient

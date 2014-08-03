@@ -18,13 +18,25 @@ package org.springframework.integration.router;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+
+import reactor.util.StringUtils;
 
 /**
  * <pre class="code">
@@ -55,11 +67,12 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Liujiong
  */
-public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
+public class RecipientListRouter extends AbstractMessageRouter
+	implements InitializingBean, RecipientListRouterManagement {
 
-	private volatile List<Recipient> recipients;
-
+	private final ConcurrentLinkedQueue<Recipient> recipients = new ConcurrentLinkedQueue<Recipient>();
 
 	/**
 	 * Set the channels for this router. Either call this method or
@@ -82,7 +95,38 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	 */
 	public void setRecipients(List<Recipient> recipients) {
 		Assert.notEmpty(recipients, "recipients must not be empty");
-		this.recipients = recipients;
+		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
+		this.recipients.clear();
+		this.recipients.addAll(recipients);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel Recipients:" + originalRecipients
+					+ " replaced with:" + this.recipients);
+		}
+	}
+
+	/**
+	 * Set the recipients for this router.
+	 * @param recipientMappings, map contains channelName and expression
+	 */
+	@Override
+	@ManagedAttribute
+	public void setRecipientMappings(Map<String, String> recipientMappings) {
+		Assert.notEmpty(recipientMappings, "recipientMappings must not be empty");
+		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
+		this.recipients.clear();
+		for(Iterator<Entry<String, String>> it = recipientMappings.entrySet().iterator(); it.hasNext();) {
+			Entry<String, String> next = it.next();
+			if(StringUtils.hasText(next.getValue())) {
+				this.addRecipient(next.getKey(), next.getValue());
+			}
+			else {
+				this.addRecipient(next.getKey());
+			}
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel Recipients:" + originalRecipients
+					+ " replaced with:" + this.recipients);
+		}
 	}
 
 	@Override
@@ -92,20 +136,97 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
 	@Override
 	public void onInit() throws Exception {
-		Assert.notEmpty(this.recipients, "recipient list must not be empty");
 		super.onInit();
 	}
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-		List<Recipient> recipientList = this.recipients;
-		for (Recipient recipient : recipientList) {
+		for (Recipient recipient : this.recipients) {
 			if (recipient.accept(message)) {
 				channels.add(recipient.getChannel());
 			}
 		}
 		return channels;
+	}
+
+	@Override
+	@ManagedOperation
+	public void addRecipient(String channelName, String selectorExpression) {
+		Assert.notNull(channelName, "channelName can't be null.");
+		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		ExpressionEvaluatingSelector expressionEvaluatingSelector = new ExpressionEvaluatingSelector(selectorExpression);
+		expressionEvaluatingSelector.setBeanFactory(this.getBeanFactory());
+		this.recipients.add(new Recipient(channel, expressionEvaluatingSelector));
+	}
+
+	@Override
+	@ManagedOperation
+	public void addRecipient(String channelName) {
+		Assert.notNull(channelName, "channelName can't be null.");
+		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		this.recipients.add(new Recipient(channel));
+	}
+
+	@Override
+	@ManagedOperation
+	public int removeRecipient(String channelName) {
+		int counter = 0;
+		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		for (Iterator<Recipient> it = this.recipients.iterator();it.hasNext();) {
+			if (it.next().getChannel() == channel) {
+				it.remove();
+				counter++;
+			}
+		}
+		return counter;
+	}
+
+	@Override
+	@ManagedOperation
+	public int removeRecipient(String channelName, String selectorExpression) {
+		int counter = 0;
+		MessageChannel targetChannel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		for (Iterator<Recipient> it = this.recipients.iterator();it.hasNext();) {
+			Recipient next = it.next();
+			MessageSelector selector = next.getSelector();
+			MessageChannel channel = next.getChannel();
+			if(selector instanceof ExpressionEvaluatingSelector &&
+					channel == targetChannel &&
+					((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
+				it.remove();
+				counter++;
+			}
+		}
+		return counter;
+	}
+
+	@Override
+	@ManagedAttribute
+	public Collection<Recipient> getRecipients() {
+		  return Collections.unmodifiableCollection(this.recipients);
+	}
+
+	@Override
+	@ManagedOperation
+	public void replaceRecipients(Properties recipientMappings) {
+		Assert.notNull(recipientMappings, "'recipientMappings' must not be null");
+		Set<String> keys = recipientMappings.stringPropertyNames();
+		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
+		this.recipients.clear();
+		for (String key : keys) {
+			Assert.notNull(key, "channelName can't be null.");
+			if(StringUtils.hasText(recipientMappings.getProperty(key))) {
+				this.addRecipient(key, recipientMappings.getProperty(key));
+			}
+			else {
+				this.addRecipient(key);
+			}
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel Recipients:" + originalRecipients
+					+ " replaced with:" + this.recipients);
+		}
 	}
 
 
@@ -125,6 +246,9 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			this.selector = selector;
 		}
 
+		private MessageSelector getSelector() {
+			return selector;
+		}
 
 		public MessageChannel getChannel() {
 			return this.channel;
@@ -134,5 +258,4 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			return (this.selector == null || this.selector.accept(message));
 		}
 	}
-
 }
