@@ -174,7 +174,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 		int counter = 0;
 		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
 		for (Iterator<Recipient> it = this.recipients.iterator();it.hasNext();) {
-			if (it.next().getChannel().equals(channel)) {
+			if (it.next().getChannel() == channel) {
 				it.remove();
 				counter++;
 			}
@@ -192,7 +192,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 			MessageSelector selector = next.getSelector();
 			MessageChannel channel = next.getChannel();
 			if(selector instanceof ExpressionEvaluatingSelector &&
-					channel.equals(targetChannel) &&
+					channel == targetChannel &&
 					((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
 				it.remove();
 				counter++;

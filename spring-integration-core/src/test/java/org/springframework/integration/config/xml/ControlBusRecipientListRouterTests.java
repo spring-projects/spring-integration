@@ -110,7 +110,7 @@ public class ControlBusRecipientListRouterTests {
 	}
 
 	@Test
-	public void testRemoveRecipientWithNullExpression() {
+	public void testRemoveRecipientWithExpression() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel1','true')");
