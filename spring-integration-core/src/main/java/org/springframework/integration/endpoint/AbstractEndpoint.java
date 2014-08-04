@@ -112,7 +112,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		}
 	}
 
-	public final void stop(Runnable callback) {
+	public void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
 			this.stop();
