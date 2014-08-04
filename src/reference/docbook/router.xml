@@ -557,12 +557,29 @@
              should be included in the recipient list for a given input Message. The evaluation result of the expression must be a boolean. If this
              attribute is not defined, the channel will always be among the list of recipients.
           </para>
-          
-			<para>The <classname>RecipientListRouter</classname> support following ManagedOperation:
-				<code>addRecipient</code>, <code>removeRecipient</code>, <code>replaceRecipients</code> and
-				following ManagedAttribute: <code>getRecipients</code>, <code>setRecipientMappings</code> 
-			</para>
       </section>
+      
+	<section id="router-implementations-recipientListRouterManagement">
+        <title>RecipientListRouterManagement</title>
+         <para>
+          Starting with <emphasis>version 4.1</emphasis>, a <classname>RecipientListRouterManagement</classname> will support adding and removing 
+          recipients dynamically etc:
+          <programlisting language="xml"><![CDATA[<control-bus input-channel="input" output-channel="output" send-timeout="100" order="1"
+          
+<recipient-list-router id="simpleRouter" input-channel="routingChannelA"/>
+<channel id="channel2">
+	<queue capacity="1" />
+</channel>
+          ]]></programlisting>
+          <programlisting language="java"><![CDATA[MessagingTemplate messagingTemplate = new MessagingTemplate();
+          
+messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel2','true')");
+          ]]></programlisting>
+        </para>
+        <para>
+           <code>&lt;recipient-list-router&gt;</code> can have no <code>&lt;recipient&gt;</code>  for feature reconfiguration at runtime
+          </para>
+	</section>
 
       <section id="router-implementations-xpath-router">
           <title>XPath Router</title>

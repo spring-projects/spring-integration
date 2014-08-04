@@ -74,12 +74,11 @@
 				See <xref linkend="mqtt-inbound"/> for more information.
 			</para>
 		</section>
-		<section id="4.1-add-managedOperation-managedAttribute-in-recipientListRouter">
+		<section id="4.1-recipientListRouter">
 			<title>Add ManagedOperation and ManagedAttribute in RecipientListRouter</title>
 			<para>
-				The <classname>RecipientListRouter</classname> will support following ManagedOperation:
-				<code>addRecipient</code>, <code>removeRecipient</code>, <code>replaceRecipients</code> and
-				following ManagedAttribute: <code>getRecipients</code>, <code>setRecipientMappings</code> 
+				The <classname>RecipientListRouterManagement</classname> implemented by <classname>RecipientListRouter</classname> 
+				will support ManagedOperation and ManagedAttribute
 				See <xref linkend="router"/> for more information.
 			</para>
 		</section>
