@@ -112,17 +112,26 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		}
 	}
 
-	public void stop(Runnable callback) {
+	public final void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
-			this.stop();
-			callback.run();
+			doStop(callback);
 		}
 		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
 
+	/**
+	 * Subclasses may override this method to defer the callback invocation.
+	 * 
+	 * @param callback the Runnable to invoke
+	 */
+	protected void doStop(Runnable callback) {
+	    this.stop();
+	    callback.run();
+	}
+	
 	/**
 	 * Subclasses must implement this method with the start behavior.
 	 * This method will be invoked while holding the {@link #lifecycleLock}.
