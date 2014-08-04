@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -60,7 +61,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
-	private final SessionFactory<F> sessionFactory;
+	protected final SessionFactory<F> sessionFactory;
 
 	private volatile String temporaryFileSuffix =".writing";
 
@@ -178,13 +179,30 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public String send(final Message<?> message) {
-		return this.send(message, null);
+	public String append(final Message<?> message) {
+		return append(message, null);
 	}
 
 	@Override
-	public String send(final Message<?> message, final String subDirectory) {
+	public String append(final Message<?> message, String subDirectory) {
+		return send(message, subDirectory, FileExistsMode.APPEND);
+	}
+
+	@Override
+	public String send(Message<?> message, FileExistsMode... mode) {
+		return send(message, null, mode);
+	}
+
+	@Override
+	public String send(final Message<?> message, String subDirectory, FileExistsMode... mode) {
+		FileExistsMode modeToUse = mode == null || mode.length < 1 ? FileExistsMode.REPLACE : mode[0];
+		return send(message, subDirectory, modeToUse);
+	}
+
+	private String send(final Message<?> message, final String subDirectory, final FileExistsMode mode) {
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
+		Assert.isTrue(!FileExistsMode.APPEND.equals(mode) || !this.useTemporaryFileName,
+				"Cannot append when using a temporary file name");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
 			return this.execute(new SessionCallback<F, String>() {
@@ -211,7 +229,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 						}
 						fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
 						RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
-								temporaryRemoteDirectory, remoteDirectory, fileName, session);
+								temporaryRemoteDirectory, remoteDirectory, fileName, session, mode);
 						return remoteDirectory + fileName;
 					}
 					catch (FileNotFoundException e) {
@@ -237,6 +255,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			return null;
 		}
+	}
+
+	@Override
+	public boolean exists(String path) {
+		throw new UnsupportedOperationException("exists() is not supported by the generic template");
 	}
 
 	@Override
@@ -324,6 +347,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
+	@Override
+	public <T, C> T executeWithClient(ClientCallback<C, T> callback) {
+		throw new UnsupportedOperationException("executeWithClient() is not supported by the generic template");
+	}
+
 	private StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
@@ -365,7 +393,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectory,
-			String remoteDirectory, String fileName, Session<F> session) throws IOException {
+			String remoteDirectory, String fileName, Session<F> session, FileExistsMode mode) throws IOException {
 
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
 		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
@@ -387,9 +415,29 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 
 		try {
-			session.write(inputStream, tempFilePath);
+			boolean rename = this.useTemporaryFileName;
+			if (FileExistsMode.REPLACE.equals(mode)) {
+				session.write(inputStream, tempFilePath);
+			}
+			else if (FileExistsMode.APPEND.equals(mode)) {
+				session.append(inputStream, tempFilePath);
+			}
+			else {
+				if (exists(remoteFilePath)) {
+					if (FileExistsMode.FAIL.equals(mode)) {
+						throw new MessagingException(
+								"The destination file already exists at '" + remoteFilePath + "'.");
+					}
+					else {
+						if (logger.isDebugEnabled()) {
+							logger.debug("File not transferred to '" + remoteFilePath + "'; already exists.");
+						}
+					}
+					rename = false;
+				}
+			}
 			// then rename it to its final name if necessary
-			if (useTemporaryFileName){
+			if (rename) {
 			   session.rename(tempFilePath, remoteFilePath);
 			}
 		}
@@ -431,6 +479,5 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 
 	}
-
 
 }

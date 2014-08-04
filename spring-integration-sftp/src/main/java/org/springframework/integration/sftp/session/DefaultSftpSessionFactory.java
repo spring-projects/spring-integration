@@ -21,7 +21,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
@@ -314,7 +313,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 
 	@Override
-	public Session<LsEntry> getSession() {
+	public SftpSession getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");

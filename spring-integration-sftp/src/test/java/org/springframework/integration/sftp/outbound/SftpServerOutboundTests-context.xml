@@ -14,17 +14,17 @@
 
 	<int:channel id="inboundGet"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundGet"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remoteDirectory.toUpperCase()"
-							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
+							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory.toUpperCase()"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
 	<int:channel id="invalidDirExpression"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="invalidDirExpression"
 							  command="get"
 							  expression="payload"
@@ -33,40 +33,40 @@
 
 	<int:channel id="inboundMGet"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundMGet"
 							  command="mget"
 							  expression="payload"
-							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remoteDirectory"
-							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
+							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMGetRecursive"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundMGetRecursive"
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
-							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remoteDirectory"
-							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
+							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMGetRecursiveFiltered"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundMGetRecursiveFiltered"
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
 							  filename-regex="(subSftpSource|.*1.txt)"
-							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remoteDirectory"
-							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
+							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMPut"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundMPut"
 							  command="mput"
 							  auto-create-directory="true"
@@ -77,7 +77,7 @@
 
 	<int:channel id="inboundMPutRecursive"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundMPutRecursive"
 							  command="mput"
 							  command-options="-R"
@@ -89,7 +89,7 @@
 
 	<int:channel id="inboundMPutRecursiveFiltered"/>
 
-	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
 							  request-channel="inboundMPutRecursiveFiltered"
 							  command="mput"
 							  command-options="-R"
@@ -100,32 +100,37 @@
 							  remote-directory="sftpTarget"
 							  reply-channel="output"/>
 
-	<bean id="ftpSessionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" />
-	</bean>
+	<int:channel id="appending" />
 
-	<beans profile="realSSH">
-		<bean id="ftpSessionFactory"
-			  class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-			<property name="host" value="localhost"/>
-			<property name="user" value="ftptest"/>
-			<property name="password" value="ftptest"/>
-		</bean>
-	</beans>
+	<bean id="sftpServerConfig" class="org.springframework.integration.sftp.TestSftpServerConfig" />
 
-	<beans profile="realSSHSharedSession">
-		<bean id="ftpSessionFactory" 
-				class="org.springframework.integration.file.remote.session.CachingSessionFactory">
-			<constructor-arg>
-				<bean
-			  		class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-					<constructor-arg value="true"/>
-					<property name="host" value="localhost"/>
-					<property name="user" value="ftptest"/>
-					<property name="password" value="ftptest"/>
-				</bean>
-			</constructor-arg>
-		</bean>
-	</beans>
+	<int-sftp:outbound-channel-adapter id="appender"
+							  session-factory="sftpSessionFactory"
+							  channel="appending"
+							  mode="APPEND"
+							  use-temporary-file-name="false"
+							  remote-directory="sftpTarget"
+							  auto-create-directory="true"
+							  remote-file-separator="/"	/>
+
+	<int:channel id="ignoring" />
+
+	<int-sftp:outbound-channel-adapter id="ignore"
+							  session-factory="sftpSessionFactory"
+							  channel="ignoring"
+							  mode="IGNORE"
+							  remote-directory="sftpTarget"
+							  auto-create-directory="true"
+							  remote-file-separator="/"	/>
+
+	<int:channel id="failing" />
+
+	<int-sftp:outbound-channel-adapter id="fail"
+							  session-factory="sftpSessionFactory"
+							  channel="failing"
+							  mode="FAIL"
+							  remote-directory="sftpTarget"
+							  auto-create-directory="true"
+							  remote-file-separator="/"	/>
 
 </beans>

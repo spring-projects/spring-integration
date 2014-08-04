@@ -148,7 +148,16 @@ public class CachingSessionFactoryTests {
 		}
 
 		@Override
+		public void append(InputStream inputStream, String destination) throws IOException {
+		}
+
+		@Override
 		public boolean mkdir(String directory) throws IOException {
+			return false;
+		}
+
+		@Override
+		public boolean rmdir(String directory) throws IOException {
 			return false;
 		}
 
@@ -184,6 +193,11 @@ public class CachingSessionFactoryTests {
 		@Override
 		public boolean finalizeRaw() throws IOException {
 			return false;
+		}
+
+		@Override
+		public Object getClientInstance() {
+			return null;
 		}
 
 	}

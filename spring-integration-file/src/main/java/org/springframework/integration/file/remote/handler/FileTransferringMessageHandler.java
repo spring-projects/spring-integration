@@ -20,6 +20,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -39,14 +40,22 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
+	private final FileExistsMode mode;
+
 	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
+		this.mode = FileExistsMode.REPLACE;
 	}
 
 	public FileTransferringMessageHandler(RemoteFileTemplate<F> remoteFileTemplate) {
+		this(remoteFileTemplate, FileExistsMode.REPLACE);
+	}
+
+	public FileTransferringMessageHandler(RemoteFileTemplate<F> remoteFileTemplate, FileExistsMode mode) {
 		Assert.notNull(remoteFileTemplate, "remoteFileTemplate must not be null");
 		this.remoteFileTemplate = remoteFileTemplate;
+		this.mode = mode;
 	}
 
 
@@ -98,7 +107,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		this.remoteFileTemplate.send(message);
+		this.remoteFileTemplate.send(message, this.mode);
 	}
 
 }
