@@ -16,7 +16,7 @@ package org.springframework.integration.config;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
@@ -137,7 +137,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
 		return noRouterAttributesProvided();
 	}
 

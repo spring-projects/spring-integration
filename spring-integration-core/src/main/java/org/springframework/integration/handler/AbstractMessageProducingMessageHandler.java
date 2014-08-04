@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -26,11 +27,43 @@ import org.springframework.messaging.MessageChannel;
  * since 4.1
  */
 public abstract class AbstractMessageProducingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer{
+		implements MessageProducer {
 
 	private MessageChannel outputChannel;
 
 	private String outputChannelName;
+
+
+	private volatile boolean requiresReply = false;
+
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	public boolean isRequiresReply() {
+		return requiresReply;
+	}
+
+	public MessagingTemplate getMessagingTemplate() {
+		return messagingTemplate;
+	}
+
+	/**
+	 * Set the timeout for sending reply Messages.
+	 *
+	 * @param sendTimeout The send timeout.
+	 */
+	public void setSendTimeout(long sendTimeout) {
+		this.messagingTemplate.setSendTimeout(sendTimeout);
+	}
+
+	/**
+	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
+	 * If false an incoming message MAY result in a reply message being sent. Default is false.
+	 *
+	 * @param requiresReply true if a reply is required.
+	 */
+	public void setRequiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
+	}
 
 	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {

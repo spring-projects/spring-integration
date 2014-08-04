@@ -17,13 +17,14 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -110,7 +111,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 
 	@Override
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout.longValue());
 		}
@@ -132,7 +133,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	 * MessageSelector, MesageSelector wins and gets wrapped in a MessageFilter.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
 		return handler instanceof MessageFilter
 				|| (!(handler instanceof MessageSelector)
 						&& this.discardChannel == null && this.throwExceptionOnRejection == null

@@ -38,7 +38,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.store.MessageGroup;
@@ -100,8 +99,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private volatile ReleaseStrategy releaseStrategy;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
 	private volatile MessageChannel discardChannel;
 
 	private volatile String discardChannelName;
@@ -136,7 +133,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.correlationStrategy = correlationStrategy == null ?
 				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
-		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+		getMessagingTemplate().setSendTimeout(DEFAULT_SEND_TIMEOUT);
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
@@ -187,7 +184,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		super.setTaskScheduler(taskScheduler);
+		setTaskScheduler(taskScheduler);
 	}
 
 	@Override
@@ -200,7 +197,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
+			getMessagingTemplate().setBeanFactory(beanFactory);
 			if (StringUtils.hasText(this.discardChannelName)) {
 				Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
 				try {
@@ -212,14 +209,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 
-			if (StringUtils.hasText(super.getOutputChannelName())) {
-				Assert.isNull(super.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+			if (StringUtils.hasText(getOutputChannelName())) {
+				Assert.isNull(getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
 				try {
-					super.setOutputChannel(this.getBeanFactory().getBean(super.getOutputChannelName(), MessageChannel.class));
+					setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
 				}
 				catch (BeansException e) {
 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ super.getOutputChannelName() + "' in the BeanFactory.");
+							+ getOutputChannelName() + "' in the BeanFactory.");
 				}
 			}
 
@@ -261,8 +258,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.discardChannelName = discardChannelName;
 	}
 
+	@Override
 	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
+		getMessagingTemplate().setSendTimeout(sendTimeout);
 	}
 
 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
@@ -323,12 +321,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected ReleaseStrategy getReleaseStrategy() {
 		return releaseStrategy;
-	}
-
-
-
-	protected MessagingTemplate getMessagingTemplate() {
-		return messagingTemplate;
 	}
 
 	protected MessageChannel getDiscardChannel() {
@@ -571,7 +563,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: " + super.getOutputChannel());
+						+ correlationKey + "] to: " + getOutputChannel());
 			}
 			completeGroup(correlationKey, group);
 		}
@@ -625,8 +617,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
-		Object replyChannel = super.getOutputChannel();
-		if (super.getOutputChannel() == null) {
+		Object replyChannel = getOutputChannel();
+		if (getOutputChannel() == null) {
 			replyChannel = replyChannelHeader;
 		}
 		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");
@@ -642,15 +634,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	protected void sendReplyMessage(Object reply, Object replyChannel) {
 		if (replyChannel instanceof MessageChannel) {
 			if (reply instanceof Message<?>) {
-				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
+				getMessagingTemplate().send((MessageChannel) replyChannel, (Message<?>) reply);
 			} else {
-				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, reply);
+				getMessagingTemplate().convertAndSend((MessageChannel) replyChannel, reply);
 			}
 		} else if (replyChannel instanceof String) {
 			if (reply instanceof Message<?>) {
-				this.messagingTemplate.send((String) replyChannel, (Message<?>) reply);
+				getMessagingTemplate().send((String) replyChannel, (Message<?>) reply);
 			} else {
-				this.messagingTemplate.convertAndSend((String) replyChannel, reply);
+				getMessagingTemplate().convertAndSend((String) replyChannel, reply);
 			}
 		} else {
 			throw new MessagingException("replyChannel must be a MessageChannel or String");

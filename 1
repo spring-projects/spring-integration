@@ -1,0 +1,521 @@
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/aggregator/AbstractCorrelatingMessageHandler.java b/spring-integration-core/src/main/java/org/springframework/integration/aggregator/AbstractCorrelatingMessageHandler.java
+index 35799c6..9194a22 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/aggregator/AbstractCorrelatingMessageHandler.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/aggregator/AbstractCorrelatingMessageHandler.java
+@@ -38,7 +38,6 @@ import org.springframework.expression.Expression;
+ import org.springframework.integration.IntegrationMessageHeaderAccessor;
+ import org.springframework.integration.channel.NullChannel;
+ import org.springframework.integration.core.MessageProducer;
+-import org.springframework.integration.core.MessagingTemplate;
+ import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+ import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+ import org.springframework.integration.store.MessageGroup;
+@@ -100,8 +99,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 
+ 	private volatile ReleaseStrategy releaseStrategy;
+ 
+-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+-
+ 	private volatile MessageChannel discardChannel;
+ 
+ 	private volatile String discardChannelName;
+@@ -136,7 +133,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 		this.correlationStrategy = correlationStrategy == null ?
+ 				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
+ 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
+-		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
++		getMessagingTemplate().setSendTimeout(DEFAULT_SEND_TIMEOUT);
+ 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
+ 	}
+ 
+@@ -187,7 +184,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 
+ 	@Override
+ 	public void setTaskScheduler(TaskScheduler taskScheduler) {
+-		super.setTaskScheduler(taskScheduler);
++		setTaskScheduler(taskScheduler);
+ 	}
+ 
+ 	@Override
+@@ -200,7 +197,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 		super.onInit();
+ 		BeanFactory beanFactory = this.getBeanFactory();
+ 		if (beanFactory != null) {
+-			this.messagingTemplate.setBeanFactory(beanFactory);
++			getMessagingTemplate().setBeanFactory(beanFactory);
+ 			if (StringUtils.hasText(this.discardChannelName)) {
+ 				Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
+ 				try {
+@@ -212,14 +209,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 				}
+ 			}
+ 
+-			if (StringUtils.hasText(super.getOutputChannelName())) {
+-				Assert.isNull(super.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
++			if (StringUtils.hasText(getOutputChannelName())) {
++				Assert.isNull(getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+ 				try {
+-					super.setOutputChannel(this.getBeanFactory().getBean(super.getOutputChannelName(), MessageChannel.class));
++					setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
+ 				}
+ 				catch (BeansException e) {
+ 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+-							+ super.getOutputChannelName() + "' in the BeanFactory.");
++							+ getOutputChannelName() + "' in the BeanFactory.");
+ 				}
+ 			}
+ 
+@@ -261,8 +258,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 		this.discardChannelName = discardChannelName;
+ 	}
+ 
++	@Override
+ 	public void setSendTimeout(long sendTimeout) {
+-		this.messagingTemplate.setSendTimeout(sendTimeout);
++		getMessagingTemplate().setSendTimeout(sendTimeout);
+ 	}
+ 
+ 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
+@@ -325,12 +323,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 		return releaseStrategy;
+ 	}
+ 
+-
+-
+-	protected MessagingTemplate getMessagingTemplate() {
+-		return messagingTemplate;
+-	}
+-
+ 	protected MessageChannel getDiscardChannel() {
+ 		return discardChannel;
+ 	}
+@@ -571,7 +563,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 		if (sendPartialResultOnExpiry) {
+ 			if (logger.isDebugEnabled()) {
+ 				logger.debug("Prematurely releasing partially complete group with key ["
+-						+ correlationKey + "] to: " + super.getOutputChannel());
++						+ correlationKey + "] to: " + getOutputChannel());
+ 			}
+ 			completeGroup(correlationKey, group);
+ 		}
+@@ -625,8 +617,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 		if (message != null) {
+ 			replyChannelHeader = message.getHeaders().getReplyChannel();
+ 		}
+-		Object replyChannel = super.getOutputChannel();
+-		if (super.getOutputChannel() == null) {
++		Object replyChannel = getOutputChannel();
++		if (getOutputChannel() == null) {
+ 			replyChannel = replyChannelHeader;
+ 		}
+ 		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");
+@@ -642,15 +634,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
+ 	protected void sendReplyMessage(Object reply, Object replyChannel) {
+ 		if (replyChannel instanceof MessageChannel) {
+ 			if (reply instanceof Message<?>) {
+-				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
++				getMessagingTemplate().send((MessageChannel) replyChannel, (Message<?>) reply);
+ 			} else {
+-				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, reply);
++				getMessagingTemplate().convertAndSend((MessageChannel) replyChannel, reply);
+ 			}
+ 		} else if (replyChannel instanceof String) {
+ 			if (reply instanceof Message<?>) {
+-				this.messagingTemplate.send((String) replyChannel, (Message<?>) reply);
++				getMessagingTemplate().send((String) replyChannel, (Message<?>) reply);
+ 			} else {
+-				this.messagingTemplate.convertAndSend((String) replyChannel, reply);
++				getMessagingTemplate().convertAndSend((String) replyChannel, reply);
+ 			}
+ 		} else {
+ 			throw new MessagingException("replyChannel must be a MessageChannel or String");
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/config/AbstractStandardMessageHandlerFactoryBean.java b/spring-integration-core/src/main/java/org/springframework/integration/config/AbstractStandardMessageHandlerFactoryBean.java
+index 689cd16..17204b0 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/config/AbstractStandardMessageHandlerFactoryBean.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/config/AbstractStandardMessageHandlerFactoryBean.java
+@@ -22,6 +22,7 @@ import org.springframework.expression.Expression;
+ import org.springframework.expression.ExpressionParser;
+ import org.springframework.expression.spel.SpelParserConfiguration;
+ import org.springframework.expression.spel.standard.SpelExpressionParser;
++import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+ import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+ import org.springframework.integration.handler.MessageProcessor;
+ import org.springframework.messaging.MessageHandler;
+@@ -77,8 +78,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
+ 		if (this.targetObject != null) {
+ 			Assert.state(this.expression == null,
+ 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
+-			AbstractReplyProducingMessageHandler actualHandler = this.extractTypeIfPossible(targetObject,
+-										AbstractReplyProducingMessageHandler.class);
++			AbstractMessageProducingMessageHandler actualHandler = this.extractTypeIfPossible(targetObject,
++					AbstractMessageProducingMessageHandler.class);
+ 			boolean targetIsDirectReplyProducingHandler = actualHandler != null
+ 							&& this.canBeUsedDirect(actualHandler) // give subclasses a say
+ 							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
+@@ -119,7 +120,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
+ 		}
+ 	}
+ 
+-	private void checkReuse(AbstractReplyProducingMessageHandler replyHandler) {
++	private void checkReuse(AbstractMessageProducingMessageHandler replyHandler) {
+ 		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
+ 				"An AbstractReplyProducingMessageHandler may only be referenced once (" +
+ 				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
+@@ -170,11 +171,11 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
+ 				|| "handleMessage".equals(targetMethodName));
+ 	}
+ 
+-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
++	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+ 		return false;
+ 	}
+ 
+-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
++	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+ 	}
+ 
+ }
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/config/FilterFactoryBean.java b/spring-integration-core/src/main/java/org/springframework/integration/config/FilterFactoryBean.java
+index 06c48e4..abaee6d 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/config/FilterFactoryBean.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/config/FilterFactoryBean.java
+@@ -17,13 +17,14 @@
+ package org.springframework.integration.config;
+ 
+ import org.springframework.expression.Expression;
+-import org.springframework.messaging.MessageChannel;
+-import org.springframework.messaging.MessageHandler;
+ import org.springframework.integration.core.MessageSelector;
+ import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+ import org.springframework.integration.filter.MessageFilter;
+ import org.springframework.integration.filter.MethodInvokingSelector;
++import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+ import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
++import org.springframework.messaging.MessageChannel;
++import org.springframework.messaging.MessageHandler;
+ import org.springframework.util.Assert;
+ import org.springframework.util.StringUtils;
+ 
+@@ -110,7 +111,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
+ 
+ 
+ 	@Override
+-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
++	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+ 		if (this.sendTimeout != null) {
+ 			handler.setSendTimeout(this.sendTimeout.longValue());
+ 		}
+@@ -132,7 +133,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
+ 	 * MessageSelector, MesageSelector wins and gets wrapped in a MessageFilter.
+ 	 */
+ 	@Override
+-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
++	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+ 		return handler instanceof MessageFilter
+ 				|| (!(handler instanceof MessageSelector)
+ 						&& this.discardChannel == null && this.throwExceptionOnRejection == null
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/config/RouterFactoryBean.java b/spring-integration-core/src/main/java/org/springframework/integration/config/RouterFactoryBean.java
+index d8dc893..12e6ad3 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/config/RouterFactoryBean.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/config/RouterFactoryBean.java
+@@ -16,7 +16,7 @@ package org.springframework.integration.config;
+ import java.util.Map;
+ 
+ import org.springframework.expression.Expression;
+-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
++import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+ import org.springframework.integration.router.AbstractMappingMessageRouter;
+ import org.springframework.integration.router.AbstractMessageRouter;
+ import org.springframework.integration.router.ExpressionEvaluatingRouter;
+@@ -137,7 +137,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
+ 	}
+ 
+ 	@Override
+-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
++	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+ 		return noRouterAttributesProvided();
+ 	}
+ 
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/config/ServiceActivatorFactoryBean.java b/spring-integration-core/src/main/java/org/springframework/integration/config/ServiceActivatorFactoryBean.java
+index 7d5bb81..ea7633e 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/config/ServiceActivatorFactoryBean.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/config/ServiceActivatorFactoryBean.java
+@@ -62,7 +62,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
+ 
+ 	/**
+ 	 * If the target object is a {@link MessageHandler} and the method is 'handleMessage', return an
+-	 * {@link AbstractReplyProducingMessageHandler} that wraps it.
++	 * {@link AbstractMessageProducingMessageHandler} that wraps it.
+ 	 */
+ 	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
+ 		MessageHandler handler = null;
+@@ -109,16 +109,16 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
+ 
+ 
+ 	/**
+-	 * Always returns true - any {@link AbstractReplyProducingMessageHandler} can
++	 * Always returns true - any {@link AbstractMessageProducingMessageHandler} can
+ 	 * be used directly.
+ 	 */
+ 	@Override
+-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
++	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+ 		return true;
+ 	}
+ 
+ 	@Override
+-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
++	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+ 		if (this.sendTimeout != null) {
+ 			handler.setSendTimeout(this.sendTimeout);
+ 		}
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/config/SplitterFactoryBean.java b/spring-integration-core/src/main/java/org/springframework/integration/config/SplitterFactoryBean.java
+index e6762db..9b71330 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/config/SplitterFactoryBean.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/config/SplitterFactoryBean.java
+@@ -17,7 +17,7 @@
+ package org.springframework.integration.config;
+ 
+ import org.springframework.expression.Expression;
+-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
++import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+ import org.springframework.integration.splitter.AbstractMessageSplitter;
+ import org.springframework.integration.splitter.DefaultMessageSplitter;
+ import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
+@@ -106,13 +106,13 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
+ 	}
+ 
+ 	@Override
+-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
++	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+ 		return handler instanceof AbstractMessageSplitter
+ 				|| (this.applySequence == null && this.delimiters == null);
+ 	}
+ 
+ 	@Override
+-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
++	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+ 		if (this.sendTimeout != null) {
+ 			handler.setSendTimeout(sendTimeout);
+ 		}
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/config/TransformerFactoryBean.java b/spring-integration-core/src/main/java/org/springframework/integration/config/TransformerFactoryBean.java
+index 9590700..a53f789 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/config/TransformerFactoryBean.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/config/TransformerFactoryBean.java
+@@ -17,6 +17,7 @@
+ package org.springframework.integration.config;
+ 
+ import org.springframework.expression.Expression;
++import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+ import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+ import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
+ import org.springframework.integration.transformer.MessageTransformingHandler;
+@@ -72,7 +73,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
+ 	}
+ 
+ 	@Override
+-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
++	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+ 		if (this.sendTimeout != null) {
+ 			handler.setSendTimeout(this.sendTimeout.longValue());
+ 		}
+@@ -83,7 +84,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
+ 	 * be used directly.
+ 	 */
+ 	@Override
+-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
++	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+ 		return true; // Any ARPMH can be a transformer
+ 	}
+ 
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractMessageProducingMessageHandler.java b/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractMessageProducingMessageHandler.java
+index e3f4181..fc9110b 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractMessageProducingMessageHandler.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractMessageProducingMessageHandler.java
+@@ -17,6 +17,7 @@
+ package org.springframework.integration.handler;
+ 
+ import org.springframework.integration.core.MessageProducer;
++import org.springframework.integration.core.MessagingTemplate;
+ import org.springframework.messaging.MessageChannel;
+ 
+ /**
+@@ -26,12 +27,44 @@ import org.springframework.messaging.MessageChannel;
+  * since 4.1
+  */
+ public abstract class AbstractMessageProducingMessageHandler extends AbstractMessageHandler
+-		implements MessageProducer{
++		implements MessageProducer {
+ 
+ 	private MessageChannel outputChannel;
+ 
+ 	private String outputChannelName;
+ 
++
++	private volatile boolean requiresReply = false;
++
++	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
++
++	public boolean isRequiresReply() {
++		return requiresReply;
++	}
++
++	public MessagingTemplate getMessagingTemplate() {
++		return messagingTemplate;
++	}
++
++	/**
++	 * Set the timeout for sending reply Messages.
++	 *
++	 * @param sendTimeout The send timeout.
++	 */
++	public void setSendTimeout(long sendTimeout) {
++		this.messagingTemplate.setSendTimeout(sendTimeout);
++	}
++
++	/**
++	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
++	 * If false an incoming message MAY result in a reply message being sent. Default is false.
++	 *
++	 * @param requiresReply true if a reply is required.
++	 */
++	public void setRequiresReply(boolean requiresReply) {
++		this.requiresReply = requiresReply;
++	}
++
+ 	@Override
+ 	public void setOutputChannel(MessageChannel outputChannel) {
+ 		this.outputChannel = outputChannel;
+diff --git a/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractReplyProducingMessageHandler.java b/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractReplyProducingMessageHandler.java
+index 2d0574b..df8b12c 100644
+--- a/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractReplyProducingMessageHandler.java
++++ b/spring-integration-core/src/main/java/org/springframework/integration/handler/AbstractReplyProducingMessageHandler.java
+@@ -23,8 +23,6 @@ import org.aopalliance.aop.Advice;
+ import org.springframework.aop.framework.ProxyFactory;
+ import org.springframework.beans.BeansException;
+ import org.springframework.beans.factory.BeanClassLoaderAware;
+-import org.springframework.integration.core.MessageProducer;
+-import org.springframework.integration.core.MessagingTemplate;
+ import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+ import org.springframework.messaging.Message;
+ import org.springframework.messaging.MessageChannel;
+@@ -46,11 +44,7 @@ import org.springframework.util.StringUtils;
+  * @author Gary Russell
+  */
+ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingMessageHandler
+-		implements MessageProducer, BeanClassLoaderAware {
+-
+-	private volatile boolean requiresReply = false;
+-
+-	private final MessagingTemplate messagingTemplate;
++		implements BeanClassLoaderAware {
+ 
+ 	private volatile RequestHandler advisedRequestHandler;
+ 
+@@ -59,21 +53,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
+ 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+ 
+ 
+-
+-	public AbstractReplyProducingMessageHandler() {
+-		this.messagingTemplate = new MessagingTemplate();
+-	}
+-
+-
+-	/**
+-	 * Set the timeout for sending reply Messages.
+-	 *
+-	 * @param sendTimeout The send timeout.
+-	 */
+-	public void setSendTimeout(long sendTimeout) {
+-		this.messagingTemplate.setSendTimeout(sendTimeout);
+-	}
+-
+ 	/**
+ 	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
+ 	 *
+@@ -81,29 +60,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
+ 	 */
+ 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+ 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+-		this.messagingTemplate.setDestinationResolver(channelResolver);
++		getMessagingTemplate().setDestinationResolver(channelResolver);
+ 	}
+ 
+-	/**
+-	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
+-	 * If false an incoming message MAY result in a reply message being sent. Default is false.
+-	 *
+-	 * @param requiresReply true if a reply is required.
+-	 */
+-	public void setRequiresReply(boolean requiresReply) {
+-		this.requiresReply = requiresReply;
+-	}
+-
+-	/**
+-	 * Provides access to the {@link MessagingTemplate} for subclasses.
+-	 *
+-	 * @return The messaging template.
+-	 */
+-	protected MessagingTemplate getMessagingTemplate() {
+-		return this.messagingTemplate;
+-	}
+-
+-
+ 	public void setAdviceChain(List<Advice> adviceChain) {
+ 		Assert.notNull(adviceChain, "adviceChain cannot be null");
+ 		this.adviceChain = adviceChain;
+@@ -122,15 +81,15 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
+ 	@Override
+ 	protected final void onInit() {
+ 		if (this.getBeanFactory() != null) {
+-			this.messagingTemplate.setBeanFactory(getBeanFactory());
+-			if (StringUtils.hasText(super.getOutputChannelName())) {
+-				Assert.isNull(super.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
++			getMessagingTemplate().setBeanFactory(getBeanFactory());
++			if (StringUtils.hasText(getOutputChannelName())) {
++				Assert.isNull(getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+ 				try {
+-					super.setOutputChannel(this.getBeanFactory().getBean(super.getOutputChannelName(), MessageChannel.class));
++					setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
+ 				}
+ 				catch (BeansException e) {
+ 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+-							+ super.getOutputChannelName() + "' in the BeanFactory.");
++							+ getOutputChannelName() + "' in the BeanFactory.");
+ 				}
+ 			}
+ 		}
+@@ -163,7 +122,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
+ 			MessageHeaders requestHeaders = message.getHeaders();
+ 			this.handleResult(result, requestHeaders);
+ 		}
+-		else if (this.requiresReply) {
++		else if (isRequiresReply()) {
+ 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
+ 					this.getComponentName() + "', and its 'requiresReply' property is set to true.");
+ 		}
+@@ -224,8 +183,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
+ 		if (logger.isDebugEnabled()) {
+ 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
+ 		}
+-		if (super.getOutputChannel() != null) {
+-			this.sendMessage(replyMessage, super.getOutputChannel());
++		if (getOutputChannel() != null) {
++			this.sendMessage(replyMessage, getOutputChannel());
+ 		}
+ 		else if (replyChannelHeaderValue != null) {
+ 			this.sendMessage(replyMessage, replyChannelHeaderValue);
+@@ -244,10 +203,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
+ 	 */
+ 	private void sendMessage(final Message<?> message, final Object channel) {
+ 		if (channel instanceof MessageChannel) {
+-			this.messagingTemplate.send((MessageChannel) channel, message);
++			getMessagingTemplate().send((MessageChannel) channel, message);
+ 		}
+ 		else if (channel instanceof String) {
+-			this.messagingTemplate.send((String) channel, message);
++			getMessagingTemplate().send((String) channel, message);
+ 		}
+ 		else {
+ 			throw new MessageDeliveryException(message,

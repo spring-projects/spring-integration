@@ -62,7 +62,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	/**
 	 * If the target object is a {@link MessageHandler} and the method is 'handleMessage', return an
-	 * {@link AbstractReplyProducingMessageHandler} that wraps it.
+	 * {@link AbstractMessageProducingMessageHandler} that wraps it.
 	 */
 	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
@@ -109,16 +109,16 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 
 	/**
-	 * Always returns true - any {@link AbstractReplyProducingMessageHandler} can
+	 * Always returns true - any {@link AbstractMessageProducingMessageHandler} can
 	 * be used directly.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
 		return true;
 	}
 
 	@Override
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}

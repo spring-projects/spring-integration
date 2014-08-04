@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
@@ -72,7 +73,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout.longValue());
 		}
@@ -83,7 +84,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	 * be used directly.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
 		return true; // Any ARPMH can be a transformer
 	}
 

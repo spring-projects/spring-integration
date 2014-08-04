@@ -17,7 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
@@ -106,13 +106,13 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
 		return handler instanceof AbstractMessageSplitter
 				|| (this.applySequence == null && this.delimiters == null);
 	}
 
 	@Override
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(sendTimeout);
 		}
