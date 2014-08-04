@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.config.xml.AbstractConsumerEndpointParser
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,7 +46,8 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
-		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, false);
+		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, false,
+				getTemplateClass());
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getGatewayClassName());
 
@@ -119,5 +121,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 	protected abstract String getSimplePatternFileListFilterClassName();
 
 	protected abstract String getGatewayClassName();
+
+	protected abstract Class<? extends RemoteFileOperations<?>> getTemplateClass();
 
 }

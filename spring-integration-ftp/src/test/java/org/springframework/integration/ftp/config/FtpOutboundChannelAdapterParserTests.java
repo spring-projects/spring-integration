@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,34 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
@@ -50,25 +55,47 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Gunnar Hillert
  * @since 2.0
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FtpOutboundChannelAdapterParserTests {
 
 	private static volatile int adviceCalled;
 
+	@Autowired
+	private EventDrivenConsumer simpleAdapter;
+
+	@Autowired
+	private EventDrivenConsumer advisedAdapter;
+
+	@Autowired
+	private EventDrivenConsumer withBeanExpressions;
+
+	@Autowired
+	private EventDrivenConsumer ftpOutbound;
+
+	@Autowired
+	private EventDrivenConsumer ftpOutbound2;
+
+	@Autowired
+	private EventDrivenConsumer ftpOutbound3;
+
+	@Autowired
+	private PublishSubscribeChannel ftpChannel;
+
+	@Autowired
+	private FileNameGenerator fileNameGenerator;
+
 	@Test
 	public void testFtpOutboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac =
-			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object consumer = ac.getBean("ftpOutbound");
-		assertTrue(consumer instanceof EventDrivenConsumer);
-		PublishSubscribeChannel channel = ac.getBean("ftpChannel", PublishSubscribeChannel.class);
-		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
-		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
+		assertEquals(ftpChannel, TestUtils.getPropertyValue(ftpOutbound, "inputChannel"));
+		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
+		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
 		assertEquals("", remoteFileSeparator);
-		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
+		assertEquals(this.fileNameGenerator, TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
@@ -82,13 +109,15 @@ public class FtpOutboundChannelAdapterParserTests {
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
 				.getPropertyValue(
-						TestUtils.getPropertyValue(channel, "dispatcher"),
+						TestUtils.getPropertyValue(ftpChannel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
+		assertSame(TestUtils.getPropertyValue(this.ftpOutbound2, "handler"), iterator.next());
 		assertSame(handler, iterator.next());
+		assertEquals(FileExistsMode.APPEND, TestUtils.getPropertyValue(ftpOutbound, "handler.mode"));
 	}
 
+	@SuppressWarnings("resource")
 	@Test(expected=BeanCreationException.class)
 	public void testFailWithEmptyRfsAndAcdTrue() throws Exception{
 		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass());
@@ -96,40 +125,30 @@ public class FtpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void cachingByDefault() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext(
-				"FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object adapter = ac.getBean("simpleAdapter");
-		Object sfProperty = TestUtils.getPropertyValue(adapter, "handler.remoteFileTemplate.sessionFactory");
+		Object sfProperty = TestUtils.getPropertyValue(simpleAdapter, "handler.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sfProperty.getClass());
 		Object innerSfProperty = TestUtils.getPropertyValue(sfProperty, "sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
+		assertEquals(FileExistsMode.REPLACE, TestUtils.getPropertyValue(simpleAdapter, "handler.mode"));
 	}
 
 	@Test
 	public void adviceChain() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext(
-				"FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object adapter = ac.getBean("advisedAdapter");
-		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(advisedAdapter, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
 	}
 
 	@Test
 	public void testTemporaryFileSuffix() {
-		ApplicationContext ac =
-				new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
-			FileTransferringMessageHandler<?> handler =
-					(FileTransferringMessageHandler<?>)TestUtils.getPropertyValue(ac.getBean("ftpOutbound3"), "handler");
-			assertFalse((Boolean)TestUtils.getPropertyValue(handler,"remoteFileTemplate.useTemporaryFileName"));
+		FileTransferringMessageHandler<?> handler =
+				(FileTransferringMessageHandler<?>)TestUtils.getPropertyValue(ftpOutbound3, "handler");
+		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"remoteFileTemplate.useTemporaryFileName"));
 	}
 
 	@Test
 	public void testBeanExpressions() throws Exception{
-		ApplicationContext ac =
-			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object consumer = ac.getBean("withBeanExpressions");
-		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
+		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(withBeanExpressions, "handler", FileTransferringMessageHandler.class);
 		ExpressionEvaluatingMessageProcessor<?> dirExpProc = TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.directoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
 		assertNotNull(dirExpProc);

@@ -74,6 +74,19 @@
 				See <xref linkend="mqtt-inbound"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-sftp">
+			<title>FTP/SFTP Adapter Changes</title>
+			<para>
+				The FTP and SFTP outbound channel adapters now support appending to remote files, as
+				well as taking specific actions when a remote file already exists. The remote file
+				templates now also support this as well as <code>rmdir()</code> and <code>exists()</code>.
+				In addition, the remote file templates provide access to the underlying client object
+				enabling access to low-level APIs.
+			</para>
+			<para>
+				See <xref linkend="ftp"/> and <xref linkend="sftp"/> for more information.
+			</para>
+		</section>
 		<section id="4.1-splitter-iterator">
 			<title>Splitter and Iterator</title>
 			<para>

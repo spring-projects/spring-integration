@@ -17,6 +17,7 @@
 package org.springframework.integration.ftp.outbound;
 
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
@@ -42,12 +43,17 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.ftp.TesFtpServer;
+import org.springframework.integration.ftp.TestFtpServer;
+import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
@@ -65,10 +71,10 @@ import org.springframework.util.FileCopyUtils;
 public class FtpServerOutboundTests {
 
 	@Autowired
-	private TesFtpServer ftpServer;
+	private TestFtpServer ftpServer;
 
 	@Autowired
-	private SessionFactory<FTPFile> ftpSessionFactory;
+	private DefaultFtpSessionFactory ftpSessionFactory;
 
 	@Autowired
 	private PollableChannel output;
@@ -96,6 +102,15 @@ public class FtpServerOutboundTests {
 
 	@Autowired
 	private DirectChannel inboundMPutRecursiveFiltered;
+
+	@Autowired
+	private DirectChannel appending;
+
+	@Autowired
+	private DirectChannel ignoring;
+
+	@Autowired
+	private DirectChannel failing;
 
 	@Before
 	public void setup() {
@@ -302,6 +317,41 @@ public class FtpServerOutboundTests {
 				out.getPayload().get(1),
 				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
 						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+	}
+
+	@Test
+	public void testInt3412FileMode() {
+		Message<String> m = MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, "appending.txt")
+				.build();
+		appending.send(m);
+		appending.send(m);
+
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
+		assertLength6(template);
+
+		ignoring.send(m);
+		assertLength6(template);
+		try {
+			failing.send(m);
+			fail("Expected exception");
+		}
+		catch (MessagingException e) {
+			assertThat(e.getCause().getCause().getMessage(), containsString("The destination file already exists"));
+		}
+
+	}
+
+	private void assertLength6(FtpRemoteFileTemplate template) {
+		FTPFile[] files = template.execute(new SessionCallback<FTPFile, FTPFile[]>() {
+
+			@Override
+			public FTPFile[] doInSession(Session<FTPFile> session) throws IOException {
+				return session.list("ftpTarget/appending.txt");
+			}
+		});
+		assertEquals(1, files.length);
+		assertEquals(6, files[0].getSize());
 	}
 
 }

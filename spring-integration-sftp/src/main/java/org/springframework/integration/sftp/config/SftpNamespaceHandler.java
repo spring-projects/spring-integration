@@ -17,7 +17,6 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
-import org.springframework.integration.file.config.RemoteFileOutboundChannelAdapterParser;
 
 /**
  * Provides namespace support for using SFTP.
@@ -30,9 +29,10 @@ import org.springframework.integration.file.config.RemoteFileOutboundChannelAdap
  */
 public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
+	@Override
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new SftpInboundChannelAdapterParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new RemoteFileOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new SftpOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-gateway", new SftpOutboundGatewayParser());
 	}
 

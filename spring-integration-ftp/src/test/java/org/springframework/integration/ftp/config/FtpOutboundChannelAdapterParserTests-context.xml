@@ -31,6 +31,7 @@
 				auto-create-directory="false"
 				remote-file-separator=""
 				temporary-file-suffix=".foo"
+				mode="APPEND"
 				remote-filename-generator="fileNameGenerator"
 				order="23"/>
 				

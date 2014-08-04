@@ -45,11 +45,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -92,7 +92,6 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		ftpSessionFactory.setUser("kermit");
 		ftpSessionFactory.setPassword("frog");
 		ftpSessionFactory.setHost("foo.com");
-
 
 		SftpInboundFileSynchronizer synchronizer = spy(new SftpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
@@ -168,7 +167,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		}
 
 		@Override
-		public Session<LsEntry> getSession() {
+		public SftpSession getSession() {
 			if (this.sftpEntries.size() == 0) {
 				this.init();
 			}
@@ -184,7 +183,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 				when(jschSession.openChannel("sftp")).thenReturn(channel);
 				return SftpTestSessionFactory.createSftpSession(jschSession);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new RuntimeException("Failed to create mock sftp session", e);
 			}
 		}

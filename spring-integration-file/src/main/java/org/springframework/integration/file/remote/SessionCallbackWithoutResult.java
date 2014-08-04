@@ -31,7 +31,7 @@ public abstract class SessionCallbackWithoutResult<F> implements SessionCallback
 
 	@Override
 	public Object doInSession(Session<F> session) throws IOException {
-		this.doInSessionWithoutResult(session);
+		doInSessionWithoutResult(session);
 		return null;
 	}
 
