@@ -557,6 +557,11 @@
              should be included in the recipient list for a given input Message. The evaluation result of the expression must be a boolean. If this
              attribute is not defined, the channel will always be among the list of recipients.
           </para>
+          
+			<para>The <classname>RecipientListRouter</classname> support following ManagedOperation:
+				<code>addRecipient</code>, <code>removeRecipient</code>, <code>replaceRecipients</code> and
+				following ManagedAttribute: <code>getRecipients</code>, <code>setRecipientMappings</code> 
+			</para>
       </section>
 
       <section id="router-implementations-xpath-router">
