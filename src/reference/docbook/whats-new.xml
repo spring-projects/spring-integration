@@ -119,5 +119,12 @@
 				See <xref linkend="header-channel-registry"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-orderly-shutdown">
+			<title>Orderly Shutdown</title>
+			<para>
+				Improvements have been made to the orderly shutdown algorithm.
+				See <xref linkend="jmx-shutdown"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

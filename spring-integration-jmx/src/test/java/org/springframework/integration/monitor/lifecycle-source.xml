@@ -15,6 +15,14 @@
 		<int:queue />
 	</int:channel>
 
+	<int:bridge input-channel="input" output-channel="input2">
+		<int:poller fixed-delay="200" />
+	</int:bridge>
+	
+	<int:channel id="input2">
+		<int:queue />
+	</int:channel>
+
 	<int:inbound-channel-adapter id="explicit" ref="service" method="execute" channel="input">
 		<int:poller fixed-rate="200" />
 	</int:inbound-channel-adapter>
@@ -29,7 +37,13 @@
 
 	<bean id="nonSpringExecutor" class="java.util.concurrent.Executors" factory-method="newSingleThreadExecutor" />
 
-	<bean id="otherActiveComponent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$OtherActiveComponent" />
+	<bean id="otherActiveComponent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$OtherActiveComponent">
+		<property name="outputChannel" ref="input" />
+	</bean>
+
+	<bean id="messageProducer" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$AMessageProducer">
+		<property name="outputChannel" ref="input" />
+	</bean>
 
 	<bean id="ignoreWrappedExecutor" class="org.springframework.core.task.support.ExecutorServiceAdapter">
 		<constructor-arg ref="someExecutor" />
