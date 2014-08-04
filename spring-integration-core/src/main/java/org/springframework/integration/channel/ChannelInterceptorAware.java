@@ -66,9 +66,9 @@ public interface ChannelInterceptorAware {
 
 	/**
 	 * Remove a {@link ChannelInterceptor} from the target implementation for specific index.
-	 * @param index the index for the {@link ChannelInterceptor} to remove.
+	 * @param index the index for the {@link org.springframework.messaging.support.ChannelInterceptor} to remove.
 	 * @return the {@code boolean} if the {@link ChannelInterceptor} has been removed.
 	 */
-	boolean removeInterceptor(int index);
+	ChannelInterceptor removeInterceptor(int index);
 
 }

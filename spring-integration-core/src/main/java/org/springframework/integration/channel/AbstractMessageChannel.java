@@ -173,7 +173,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	public boolean removeInterceptor(int index) {
+	public ChannelInterceptor removeInterceptor(int index) {
 		return this.interceptors.remove(index);
 	}
 
@@ -405,8 +405,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return this.interceptors.remove(interceptor);
 		}
 
-		public boolean remove(int index) {
-			return this.interceptors.remove(index) != null;
+		public ChannelInterceptor remove(int index) {
+			return this.interceptors.remove(index);
 		}
 
 	}

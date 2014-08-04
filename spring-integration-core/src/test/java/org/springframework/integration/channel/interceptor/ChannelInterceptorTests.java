@@ -124,7 +124,7 @@ public class ChannelInterceptorTests {
 		assertEquals(2, invokedCounter.get());
 		assertEquals(1, sentCounter.get());
 
-		assertTrue(singleItemChannel.removeInterceptor(0));
+		assertNotNull(singleItemChannel.removeInterceptor(0));
 		singleItemChannel.send(new GenericMessage<String>("test2"), 0);
 		assertEquals(2, invokedCounter.get());
 		assertEquals(1, sentCounter.get());
