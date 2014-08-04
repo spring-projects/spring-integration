@@ -18,10 +18,9 @@ package org.springframework.integration.handler;
 
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
- * Base class for MessageHandlers that are capable of producing replies.
+ * Base class for MessageHandlers that set outputchannel.
  *
  * @author David Liu
  * since 4.1
@@ -35,7 +34,6 @@ public abstract class AbstractMessageProducingMessageHandler extends AbstractMes
 
 	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
-		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		this.outputChannel = outputChannel;
 	}
 

@@ -212,14 +212,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 
-			if (StringUtils.hasText(this.getOutputChannelName())) {
-				Assert.isNull(this.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+			if (StringUtils.hasText(super.getOutputChannelName())) {
+				Assert.isNull(super.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
 				try {
-					this.setOutputChannel(this.getBeanFactory().getBean(this.getOutputChannelName(), MessageChannel.class));
+					super.setOutputChannel(this.getBeanFactory().getBean(super.getOutputChannelName(), MessageChannel.class));
 				}
 				catch (BeansException e) {
 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.getOutputChannelName() + "' in the BeanFactory.");
+							+ super.getOutputChannelName() + "' in the BeanFactory.");
 				}
 			}
 
@@ -571,7 +571,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: " + this.getOutputChannel());
+						+ correlationKey + "] to: " + super.getOutputChannel());
 			}
 			completeGroup(correlationKey, group);
 		}
@@ -625,8 +625,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
-		Object replyChannel = this.getOutputChannel();
-		if (this.getOutputChannel() == null) {
+		Object replyChannel = super.getOutputChannel();
+		if (super.getOutputChannel() == null) {
 			replyChannel = replyChannelHeader;
 		}
 		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");

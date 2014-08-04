@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.integration.redis.store;
+/**
+ * @author David Liu
+ * since 4.1
+ */
+package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,11 +36,11 @@ import org.springframework.messaging.MessageChannel;
  * @author David Liu
  * since 4.1
  */
-public class ResequencerIntegrationTests {
+public class INT3460Tests {
 
 	@Test
 	public void validateUnboundedResequencerLight(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("AbstractCorrelatingMessageHandlerTest-context.xml",  ResequencerIntegrationTests.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext("INT3460Tests-context.xml",  INT3460Tests.class);
 		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();

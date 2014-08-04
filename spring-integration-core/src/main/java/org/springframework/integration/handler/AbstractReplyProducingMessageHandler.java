@@ -130,7 +130,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 				}
 				catch (BeansException e) {
 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ getOutputChannelName() + "' in the BeanFactory.");
+							+ super.getOutputChannelName() + "' in the BeanFactory.");
 				}
 			}
 		}
