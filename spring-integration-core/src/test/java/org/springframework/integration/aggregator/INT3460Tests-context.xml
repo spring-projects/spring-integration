@@ -12,16 +12,15 @@
 	<int:service-activator id="customResequencer" ref="resequencerLight" 
         input-channel="inputChannel" output-channel="outputChannel"/>
         
-    <bean id="resequencerLight" class="org.springframework.integration.aggregator.ResequencingMessageHandler">
+	<bean id="resequencerLight" class="org.springframework.integration.aggregator.ResequencingMessageHandler">
 		<constructor-arg name="releaseStrategy"  ref="releaseStrategy"/>
-    	<constructor-arg name="processor" ref="customResequencerMessageGroupProcessor"/>
-    	<constructor-arg name="store" ref="testMessageStore"/>
-    	<constructor-arg name="correlationStrategy" ref="customCorrelationStrategy"/>
-    	<property name="sendPartialResultOnExpiry" value="true"></property>
+		<constructor-arg name="processor" ref="customResequencerMessageGroupProcessor"/>
+		<constructor-arg name="store" ref="testMessageStore"/>
+		<constructor-arg name="correlationStrategy" ref="customCorrelationStrategy"/>
+		<property name="sendPartialResultOnExpiry" value="true"></property>
 	</bean>
 
 	<bean id="customResequencerMessageGroupProcessor" class="org.springframework.integration.aggregator.ResequencingMessageGroupProcessor"/>
-
 
 	<bean id="releaseStrategy" class="org.springframework.integration.config.ResequencerParserTests.TestReleaseStrategy" />
 
