@@ -47,109 +47,104 @@ import org.springframework.xml.transform.StringResult;
  */
 public class XsltPayloadTransformerParserTests {
 
-    private final String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private final String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
-    private ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
-    private PollableChannel output;
+	private PollableChannel output;
 
-    @Before
-    public void setUp() {
-        applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
-        output = (PollableChannel) applicationContext.getBean("output");
-    }
+	@Before
+	public void setUp() {
+		applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+		output = (PollableChannel) applicationContext.getBean("output");
+	}
 
+	@Test
+	public void testWithResourceProvided() throws Exception {
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withResourceIn");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		input.send(message);
+		Message<?> result = output.receive(0);
+		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
+		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
+		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
+		assertNotNull(TestUtils.getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
+				"transformer.evaluationContext.beanResolver"));
+	}
 
-    @Test
-    public void testWithResourceProvided() throws Exception {
-        MessageChannel input = (MessageChannel) applicationContext.getBean("withResourceIn");
-        GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-        input.send(message);
-        Message<?> result = output.receive(0);
-        assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
-        Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-        assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
-        assertNotNull(TestUtils.getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
-        		"transformer.evaluationContext.beanResolver"));
-    }
+	@Test
+	public void testWithTemplatesProvided() throws Exception {
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesIn");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		input.send(message);
+		Message<?> result = output.receive(0);
+		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
+		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
+		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
+	}
 
-    @Test
-    public void testWithTemplatesProvided() throws Exception {
-        MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesIn");
-        GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-        input.send(message);
-        Message<?> result = output.receive(0);
-        assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
-        Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-        assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
-    }
+	@Test
+	public void testWithTemplatesAndResultTransformer() throws Exception {
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultTransformerIn");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		input.send(message);
+		Message<?> result = output.receive(0);
+		assertEquals("Wrong payload type", String.class, result.getPayload().getClass());
+		String strResult = (String) result.getPayload();
+		assertEquals("Wrong payload", "testReturn", strResult);
+	}
 
-    @Test
-    public void testWithTemplatesAndResultTransformer() throws Exception {
-        MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultTransformerIn");
-        GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-        input.send(message);
-        Message<?> result = output.receive(0);
-        assertEquals("Wrong payload type", String.class, result.getPayload().getClass());
-        String strResult = (String) result.getPayload();
-        assertEquals("Wrong payload", "testReturn", strResult);
-    }
+	@Test
+	public void testWithResourceProvidedAndStubResultFactory() throws Exception {
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultFactoryIn");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		input.send(message);
+		Message<?> result = output.receive(0);
+		assertTrue("Payload was not a StubStringResult", result.getPayload() instanceof StubStringResult);
+	}
 
-    @Test
-    public void testWithResourceProvidedAndStubResultFactory() throws Exception {
-        MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultFactoryIn");
-        GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-        input.send(message);
-        Message<?> result = output.receive(0);
-        assertTrue("Payload was not a StubStringResult", result.getPayload() instanceof StubStringResult);
-    }
+	@Test
+	public void testWithResourceAndStringResultType() throws Exception {
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndStringResultTypeIn");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		input.send(message);
+		Message<?> result = output.receive(0);
+		assertTrue("Payload was not a StringResult", result.getPayload() instanceof StringResult);
+	}
 
-    @Test
-    public void testWithResourceAndStringResultType() throws Exception {
-        MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndStringResultTypeIn");
-        GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-        input.send(message);
-        Message<?> result = output.receive(0);
-        assertTrue("Payload was not a StringResult", result.getPayload() instanceof StringResult);
-    }
+	@Test
+	public void docInStringResultOut() throws Exception {
+		MessageChannel input = applicationContext.getBean("docinStringResultOutTransformerChannel",
+				MessageChannel.class);
+		Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).build();
+		input.send(message);
+		Message<?> resultMessage = output.receive();
+		Assert.assertEquals("Wrong payload type", StringResult.class, resultMessage.getPayload().getClass());
+		String payload = resultMessage.getPayload().toString();
+		Assert.assertTrue(payload.contains("<bob>test</bob>"));
+	}
 
+	@Test
+	public void stringInDocResultOut() throws Exception {
+		MessageChannel input = applicationContext.getBean("stringResultOutTransformerChannel", MessageChannel.class);
+		Message<?> message = MessageBuilder.withPayload(this.doc).build();
+		input.send(message);
+		Message<?> resultMessage = output.receive();
+		Assert.assertEquals("Wrong payload type", DOMResult.class, resultMessage.getPayload().getClass());
+		Document payload = (Document) ((DOMResult) resultMessage.getPayload()).getNode();
+		Assert.assertTrue(XmlTestUtil.docToString(payload).contains("<bob>test</bob>"));
+	}
 
-    @Test
-    public void docInStringResultOut() throws Exception {
-        MessageChannel input = applicationContext.getBean("docinStringResultOutTransformerChannel", MessageChannel.class);
-        Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).
-                build();
-        input.send(message);
-        Message<?> resultMessage = output.receive();
-        Assert.assertEquals("Wrong payload type", StringResult.class, resultMessage.getPayload().getClass());
-        String payload = resultMessage.getPayload().toString();
-        Assert.assertTrue(payload.contains("<bob>test</bob>"));
-    }
-
-    @Test
-    public void stringInDocResultOut() throws Exception {
-        MessageChannel input = applicationContext.getBean("stringResultOutTransformerChannel", MessageChannel.class);
-        Message<?> message = MessageBuilder.withPayload(this.doc).
-                build();
-        input.send(message);
-        Message<?> resultMessage = output.receive();
-        Assert.assertEquals("Wrong payload type", DOMResult.class, resultMessage.getPayload().getClass());
-        Document payload = (Document) ((DOMResult) resultMessage.getPayload()).getNode();
-        Assert.assertTrue(XmlTestUtil.docToString(payload).contains("<bob>test</bob>"));
-    }
-
-
-    @Test
-    public void stringInAndCustomResultFactory() throws Exception {
-        MessageChannel input = applicationContext.getBean("stringInCustomResultFactoryChannel", MessageChannel.class);
-        Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).
-                build();
-        input.send(message);
-        Message<?> resultMessage = output.receive();
-        Assert.assertEquals("Wrong payload type", CustomTestResultFactory.FixedStringResult.class, resultMessage.getPayload().getClass());
-        String payload = resultMessage.getPayload().toString();
-        Assert.assertTrue(payload.contains("fixedStringForTesting"));
-    }
-
+	@Test
+	public void stringInAndCustomResultFactory() throws Exception {
+		MessageChannel input = applicationContext.getBean("stringInCustomResultFactoryChannel", MessageChannel.class);
+		Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).build();
+		input.send(message);
+		Message<?> resultMessage = output.receive();
+		Assert.assertEquals("Wrong payload type", CustomTestResultFactory.FixedStringResult.class, resultMessage
+				.getPayload().getClass());
+		String payload = resultMessage.getPayload().toString();
+		Assert.assertTrue(payload.contains("fixedStringForTesting"));
+	}
 
 }

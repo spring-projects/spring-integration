@@ -64,6 +64,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		else {
 			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
 		if (hasDestinationRef || hasDestinationName) {
 			if (hasDestinationRef) {
 				if (hasDestinationName) {

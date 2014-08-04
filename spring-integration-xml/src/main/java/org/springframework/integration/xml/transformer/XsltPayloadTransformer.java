@@ -36,7 +36,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
@@ -47,6 +46,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 
@@ -77,7 +77,7 @@ import org.springframework.xml.transform.StringSource;
  * @author Mike Bazos
  * @author Gary Russell
  */
-public class XsltPayloadTransformer extends AbstractTransformer implements BeanClassLoaderAware {
+public class XsltPayloadTransformer extends AbstractXmlTransformer implements BeanClassLoaderAware {
 
 	private final ResultTransformer resultTransformer;
 
@@ -92,8 +92,6 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	private Map<String, Expression> xslParameterMappings;
 
 	private volatile SourceFactory sourceFactory = new DomSourceFactory();
-
-	private volatile ResultFactory resultFactory = new DomResultFactory();
 
 	private volatile boolean resultFactoryExplicitlySet;
 
@@ -155,8 +153,7 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 	 * @param resultFactory The result factory.
 	 */
 	public void setResultFactory(ResultFactory resultFactory) {
-		Assert.notNull(sourceFactory, "ResultFactory must not be null");
-		this.resultFactory = resultFactory;
+		super.setResultFactory(resultFactory);
 		this.resultFactoryExplicitlySet = true;
 	}
 
@@ -192,6 +189,21 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 		this.classLoader = classLoader;
 	}
 
+	@Override
+	public void setResultType(String resultType) {
+		super.setResultType(resultType);
+		if (StringUtils.hasText(resultType)) {
+			this.alwaysUseResultFactory = true;
+		}
+	}
+
+	@Override
+	public void setResultFactoryName(String resultFactoryName) {
+		super.setResultFactoryName(resultFactoryName);
+		if (StringUtils.hasText(resultFactoryName)) {
+			this.alwaysUseResultFactory = true;
+		}
+	}
 
 	@Override
 	public String getComponentType() {
@@ -270,7 +282,7 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 			result = new StringResult();
 		}
 		else {
-			result = this.resultFactory.createResult(payload);
+			result = this.getResultFactory().createResult(payload);
 		}
 		transformer.transform(source, result);
 		if (this.resultTransformer != null) {
@@ -300,7 +312,7 @@ public class XsltPayloadTransformer extends AbstractTransformer implements BeanC
 		else {
 			source = new DOMSource(documentPayload);
 		}
-		Result result = this.resultFactory.createResult(documentPayload);
+		Result result = this.getResultFactory().createResult(documentPayload);
 		if (!DOMResult.class.isAssignableFrom(result.getClass())) {
 			throw new MessagingException(
 					"Document to Document conversion requires a DOMResult-producing ResultFactory implementation.");

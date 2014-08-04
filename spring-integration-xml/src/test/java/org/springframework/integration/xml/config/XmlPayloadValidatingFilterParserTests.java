@@ -23,17 +23,20 @@ import static org.junit.Assert.fail;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Jonas Partner
@@ -42,11 +45,15 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Artem Bilan
  */
 @ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class XmlPayloadValidatingFilterParserTests {
+
+	@Autowired
+	private ApplicationContext ac;
 
 	@Test
 	public void testValidMessage() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
 		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
@@ -56,7 +63,6 @@ public class XmlPayloadValidatingFilterParserTests {
 	}
 	@Test
 	public void testInvalidMessageWithDiscardChannel() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
 		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
@@ -68,7 +74,6 @@ public class XmlPayloadValidatingFilterParserTests {
 	}
 	@Test
 	public void testInvalidMessageWithThrowException() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
 		Document doc = XmlTestUtil.getDocumentForString("<greeting ping=\"pong\"><other/></greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		MessageChannel inputChannel = ac.getBean("inputChannelB", MessageChannel.class);
@@ -88,7 +93,6 @@ public class XmlPayloadValidatingFilterParserTests {
 	}
 	@Test
 	public void testValidMessageWithValidator() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
 		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
@@ -96,16 +100,15 @@ public class XmlPayloadValidatingFilterParserTests {
 		inputChannel.send(docMessage);
 		assertNotNull(validChannel.receive(100));
 	}
-	@SuppressWarnings("unused")
+
 	@Test
 	public void testInvalidMessageWithValidatorAndDiscardChannel() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
 		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
 		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
 		inputChannel.send(docMessage);
 		assertNotNull(invalidChannel.receive(100));
 	}
+
 }

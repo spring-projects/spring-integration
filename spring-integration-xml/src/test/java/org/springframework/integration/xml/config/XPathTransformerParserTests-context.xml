@@ -3,32 +3,46 @@
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
-
+			
+	<context:property-placeholder properties-ref="props"/>
+	
+	<util:properties id="props">
+		<beans:prop key="booleanResult">BOOLEAN_RESULT</beans:prop>
+		<beans:prop key="stringResult">STRING_RESULT</beans:prop>
+		<beans:prop key="numberResult">NUMBER_RESULT</beans:prop>
+		<beans:prop key="nodeResult">NODE_RESULT</beans:prop>
+		<beans:prop key="nodeListResult">NODE_LIST_RESULT</beans:prop>
+ 	</util:properties>
+ 	
 	<si:channel id="output">
 		<si:queue/>
 	</si:channel>
 
 	<xpath-transformer input-channel="defaultInput" xpath-expression="/person/@name" output-channel="output"/>
 
-	<xpath-transformer input-channel="numberInput" xpath-expression="/person/@age" evaluation-type="NUMBER_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="numberInput" xpath-expression="/person/@age" evaluation-type="${numberResult}" output-channel="output"/>
 
-	<xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'" evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'" evaluation-type="${booleanResult}" output-channel="output"/>
 
-	<xpath-transformer input-channel="nodeInput" xpath-expression="/person/@age" evaluation-type="NODE_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="nodeInput" xpath-expression="/person/@age" evaluation-type="${nodeResult}" output-channel="output"/>
 
-	<xpath-transformer input-channel="nodeListInput" xpath-expression="/person/@*" evaluation-type="NODE_LIST_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="nodeListInput" xpath-expression="/person/@*" evaluation-type="${nodeListResult}" output-channel="output"/>
 
 	<xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age" node-mapper="testNodeMapper" output-channel="output"/>
 
 	<xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type" converter="testXmlPayloadConverter" output-channel="output"/>
 
-	<xpath-transformer input-channel="expressionRefInput" xpath-expression-ref="testExpression" evaluation-type="NUMBER_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="expressionRefInput" xpath-expression-ref="testExpression" evaluation-type="${numberResult}" output-channel="output"/>
 
 	<xpath-expression id="testExpression" expression="/person/@age * 2"/>
 

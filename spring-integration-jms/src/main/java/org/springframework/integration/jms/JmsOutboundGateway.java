@@ -48,6 +48,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
@@ -593,9 +594,28 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.replyContainerProperties.getRecoveryInterval() != null) {
 				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
 			}
-			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
-				container.setSessionAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+			if (StringUtils.hasText(this.replyContainerProperties.getSessionAcknowledgeModeName())) {
+				Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeModeName());
+				if (acknowledgeMode != null) {
+					if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
+						container.setSessionTransacted(true);
+					}
+					else {
+						container.setSessionAcknowledgeMode(acknowledgeMode);
+					}
+				}
 			}
+			else if	(this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
+				Integer sessionAcknowledgeMode = this.replyContainerProperties.getSessionAcknowledgeMode();
+				if (Session.SESSION_TRANSACTED == sessionAcknowledgeMode) {
+					container.setSessionTransacted(true);
+				}
+				else {
+					container.setSessionAcknowledgeMode(sessionAcknowledgeMode);
+				}
+
+			}
+
 			if (this.replyContainerProperties.getTaskExecutor() != null) {
 				container.setTaskExecutor(this.replyContainerProperties.getTaskExecutor());
 			}
@@ -609,6 +629,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 		}
 	}
+
 
 	@Override
 	public void start() {
@@ -1209,10 +1230,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	public static class ReplyContainerProperties {
-
 		private volatile Boolean sessionTransacted;
 
 		private volatile Integer sessionAcknowledgeMode;
+
+		private volatile String sessionAcknowledgeModeName;
 
 		private volatile Long receiveTimeout;
 
@@ -1231,6 +1253,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		private volatile Integer idleTaskExecutionLimit;
 
 		private volatile Executor taskExecutor;
+
+		public String getSessionAcknowledgeModeName() {
+			return sessionAcknowledgeModeName;
+		}
+
+		public void setSessionAcknowledgeModeName(String sessionAcknowledgeModeName) {
+			this.sessionAcknowledgeModeName = sessionAcknowledgeModeName;
+		}
 
 		public Boolean isSessionTransacted() {
 			return sessionTransacted;

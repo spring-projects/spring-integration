@@ -24,7 +24,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-
 import org.w3c.dom.Element;
 
 /**
@@ -73,6 +72,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			builder.addPropertyValue("deliveryPersistent", deliveryPersistent);
 		}
 		Element container = DomUtils.getChildElementByTagName(element, "reply-listener");
+		
 		if (container != null) {
 			this.parseReplyContainer(builder, parserContext, container);
 		}
@@ -119,15 +119,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	private void parseReplyContainer(BeanDefinitionBuilder gatewayBuilder, ParserContext parserContext, Element element) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.ReplyContainerProperties.class);
-		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
-		if (acknowledgeMode != null) {
-			if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
-				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
-			}
-			else {
-				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-			}
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeModeName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-task");

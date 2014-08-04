@@ -4,15 +4,26 @@
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
 	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/task
 			http://www.springframework.org/schema/task/spring-task.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
-
+			
+	<context:property-placeholder properties-ref="props"/>
+	
+	<util:properties id="props">
+		<prop key="jmsAcknowledgeModeTransacted">transacted</prop>
+		<prop key="jmsAcknowledgeModeDupsOk">dups-ok</prop>
+ 	</util:properties>
+	
 	<si:channel id="requestChannel"/>
 
 	<jms:outbound-gateway id="jmsGateway"
@@ -21,7 +32,7 @@
 						  delivery-persistent="true"
 						  auto-startup="false">
 		<jms:reply-listener
-			acknowledge="transacted"
+			acknowledge="${jmsAcknowledgeModeTransacted}"
 			concurrent-consumers="4"
 			max-concurrent-consumers="5"
 			max-messages-per-task="10"
@@ -53,7 +64,7 @@
 			<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$FooAdvice" />
 		</jms:request-handler-advice-chain>
 		<jms:reply-listener
-			acknowledge="dups-ok"
+			acknowledge="${jmsAcknowledgeModeDupsOk}"
 			concurrent-consumers="3"
 			max-concurrent-consumers="5"
 			max-messages-per-task="10"

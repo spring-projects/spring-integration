@@ -4,21 +4,28 @@
 	xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/context 
 			http://www.springframework.org/schema/context/spring-context.xsd">
+			
+	<context:property-placeholder properties-ref="props"/>
+
+	<util:properties id="props">
+		<prop key="result">DOMResult</prop>
+ 	</util:properties>
 			
 	<context:annotation-config/>
 
 	<si:channel id="marshallIn"/>
 	
 	<si:channel id="unmarshallIn"/>
-		
 		
 	<si:channel id="unmarshallOut">
 		<si:queue capacity="10" />
@@ -28,11 +35,9 @@
 		<si:queue capacity="10" />
 	</si:channel>
 	
-	<si-xml:marshalling-transformer id="marshaller" input-channel="marshallIn" output-channel="marshallOut" marshaller="marshallerUnmarshaller" />
-	
+	<si-xml:marshalling-transformer id="marshaller" input-channel="marshallIn" output-channel="marshallOut" marshaller="marshallerUnmarshaller" result-type="${result}" />
 	
 	<si-xml:unmarshalling-transformer id="unmarshaller" input-channel="unmarshallIn" output-channel="unmarshallOut" unmarshaller="marshallerUnmarshaller" />
-	
 	
 	<bean id="marshallerUnmarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller" >
 		<property name="classesToBeBound">

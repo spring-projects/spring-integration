@@ -3,24 +3,38 @@
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
-
+			
+	<context:property-placeholder properties-ref="props"/>
+	
+	<util:properties id="props">
+		<beans:prop key="booleanResult">BOOLEAN_RESULT</beans:prop>
+		<beans:prop key="stringResult">STRING_RESULT</beans:prop>
+		<beans:prop key="numberResult">NUMBER_RESULT</beans:prop>
+		<beans:prop key="nodeResult">NODE_RESULT</beans:prop>
+		<beans:prop key="nodeListResult">NODE_LIST_RESULT</beans:prop>
+ 	</util:properties>
+	
 	<si:channel id="output">
 		<si:queue/>
 	</si:channel>
 
 	<xpath-header-enricher input-channel="input" output-channel="output">
 		<header name="name" xpath-expression="/person/@name" />
-		<header name="age" xpath-expression="/person/@age" evaluation-type="NUMBER_RESULT" header-type="int"/>
-		<header name="married" xpath-expression="/person/@married = 'true'" evaluation-type="BOOLEAN_RESULT" />
-		<header name="node-test" xpath-expression="/person/@age" evaluation-type="NODE_RESULT" />
-		<header name="node-list-test" xpath-expression="/person/@*" evaluation-type="NODE_LIST_RESULT" />
-		<header name="ref-test" xpath-expression-ref="testExpression" evaluation-type="NUMBER_RESULT" />
+		<header name="age" xpath-expression="/person/@age" evaluation-type="${numberResult}" header-type="int"/>
+		<header name="married" xpath-expression="/person/@married = 'true'" evaluation-type="${booleanResult}" />
+		<header name="node-test" xpath-expression="/person/@age" evaluation-type="${nodeResult}" />
+		<header name="node-list-test" xpath-expression="/person/@*" evaluation-type="${nodeListResult}" />
+		<header name="ref-test" xpath-expression-ref="testExpression" evaluation-type="${numberResult}" />
 	</xpath-header-enricher>
 
 	<xpath-expression id="testExpression" expression="/person/@age * 2"/>

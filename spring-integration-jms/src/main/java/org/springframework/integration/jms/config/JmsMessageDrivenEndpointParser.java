@@ -116,6 +116,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		builder.addConstructorArgReference(listenerBeanName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
+		
 	}
 
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {
@@ -161,15 +163,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			builder.addPropertyValue("destinationName", destinationName);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
-		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
-		if (acknowledgeMode != null) {
-			if (acknowledgeMode.intValue() == JmsAdapterParserUtils.SESSION_TRANSACTED) {
-				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
-			}
-			else {
-				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
-			}
-		}
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
