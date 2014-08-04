@@ -134,10 +134,6 @@ public class RecipientListRouter extends AbstractMessageRouter
 		return "recipient-list-router";
 	}
 
-	@Override
-	public void onInit() throws Exception {
-		super.onInit();
-	}
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
