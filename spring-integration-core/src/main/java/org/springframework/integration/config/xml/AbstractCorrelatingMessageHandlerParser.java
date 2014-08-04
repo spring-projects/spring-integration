@@ -19,7 +19,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.util.StringUtils;
 

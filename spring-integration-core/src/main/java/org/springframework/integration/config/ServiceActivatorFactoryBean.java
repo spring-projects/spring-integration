@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
@@ -67,7 +68,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		MessageHandler handler = null;
 		if (targetObject instanceof MessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
-			if (targetObject instanceof AbstractReplyProducingMessageHandler) {
+			if (targetObject instanceof AbstractMessageProducingMessageHandler) {
 				// should never happen but just return it if it's already an ARPMH
 				return (MessageHandler) targetObject;
 			}

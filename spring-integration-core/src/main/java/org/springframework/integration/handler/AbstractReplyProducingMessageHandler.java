@@ -45,12 +45,8 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
+public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingMessageHandler
 		implements MessageProducer, BeanClassLoaderAware {
-
-	private MessageChannel outputChannel;
-
-	private String outputChannelName;
 
 	private volatile boolean requiresReply = false;
 
@@ -68,15 +64,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.messagingTemplate = new MessagingTemplate();
 	}
 
-
-	@Override
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
-
-	public void setOutputChannelName(String outputChannelName) {
-		this.outputChannelName = outputChannelName;
-	}
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -136,14 +123,14 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected final void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
-			if (StringUtils.hasText(this.outputChannelName)) {
-				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+			if (StringUtils.hasText(super.getOutputChannelName())) {
+				Assert.isNull(super.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
 				try {
-					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+					super.setOutputChannel(this.getBeanFactory().getBean(super.getOutputChannelName(), MessageChannel.class));
 				}
 				catch (BeansException e) {
 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
+							+ getOutputChannelName() + "' in the BeanFactory.");
 				}
 			}
 		}
@@ -237,8 +224,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		if (this.outputChannel != null) {
-			this.sendMessage(replyMessage, this.outputChannel);
+		if (super.getOutputChannel() != null) {
+			this.sendMessage(replyMessage, super.getOutputChannel());
 		}
 		else if (replyChannelHeaderValue != null) {
 			this.sendMessage(replyMessage, replyChannelHeaderValue);

@@ -40,7 +40,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
@@ -82,7 +82,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @since 2.0
  */
-public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler
+public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingMessageHandler
 		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware,
 		ApplicationEventPublisherAware {
 
@@ -99,10 +99,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private volatile CorrelationStrategy correlationStrategy;
 
 	private volatile ReleaseStrategy releaseStrategy;
-
-	private MessageChannel outputChannel;
-
-	private String outputChannelName;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -180,16 +176,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
-	@Override
-	public void setOutputChannel(MessageChannel outputChannel) {
-		Assert.notNull(outputChannel, "'outputChannel' must not be null");
-		this.outputChannel = outputChannel;
-	}
-
-	public void setOutputChannelName(String outputChannelName) {
-		this.outputChannelName = outputChannelName;
-	}
-
 	public void setGroupTimeoutExpression(Expression groupTimeoutExpression) {
 		this.groupTimeoutExpression = groupTimeoutExpression;
 	}
@@ -226,14 +212,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				}
 			}
 
-			if (StringUtils.hasText(this.outputChannelName)) {
-				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+			if (StringUtils.hasText(this.getOutputChannelName())) {
+				Assert.isNull(this.getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
 				try {
-					this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
+					this.setOutputChannel(this.getBeanFactory().getBean(this.getOutputChannelName(), MessageChannel.class));
 				}
 				catch (BeansException e) {
 					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
+							+ this.getOutputChannelName() + "' in the BeanFactory.");
 				}
 			}
 
@@ -339,13 +325,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return releaseStrategy;
 	}
 
-	protected MessageChannel getOutputChannel() {
-		return outputChannel;
-	}
 
-	protected String getOutputChannelName() {
-		return outputChannelName;
-	}
 
 	protected MessagingTemplate getMessagingTemplate() {
 		return messagingTemplate;
@@ -591,7 +571,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: " + outputChannel);
+						+ correlationKey + "] to: " + this.getOutputChannel());
 			}
 			completeGroup(correlationKey, group);
 		}
@@ -645,8 +625,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
-		Object replyChannel = this.outputChannel;
-		if (this.outputChannel == null) {
+		Object replyChannel = this.getOutputChannel();
+		if (this.getOutputChannel() == null) {
 			replyChannel = replyChannelHeader;
 		}
 		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");

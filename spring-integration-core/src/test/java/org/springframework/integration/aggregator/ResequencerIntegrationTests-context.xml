@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="outputChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:service-activator id="customResequencer" ref="resequencerLight" 
+        input-channel="inputChannel" output-channel="outputChannel"/>
+        
+    <bean id="resequencerLight" class="org.springframework.integration.aggregator.ResequencingMessageHandler">
+		<constructor-arg name="releaseStrategy"  ref="releaseStrategy"/>
+    	<constructor-arg name="processor" ref="customResequencerMessageGroupProcessor"/>
+    	<constructor-arg name="store" ref="testMessageStore"/>
+    	<constructor-arg name="correlationStrategy" ref="customCorrelationStrategy"/>
+    	<property name="sendPartialResultOnExpiry" value="true"></property>
+	</bean>
+
+	<bean id="customResequencerMessageGroupProcessor" class="org.springframework.integration.aggregator.ResequencingMessageGroupProcessor"/>
+
+
+	<bean id="releaseStrategy" class="org.springframework.integration.config.ResequencerParserTests.TestReleaseStrategy" />
+
+	<bean id="customCorrelationStrategy" class="org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy" >
+   		<constructor-arg name="attributeName" value="correlationId"/>
+	</bean>
+
+	<bean id="testMessageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+</beans>
