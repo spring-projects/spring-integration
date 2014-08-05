@@ -43,7 +43,7 @@ public class SftpPersistentAcceptOnceFileListFilter extends AbstractPersistentAc
 
 	@Override
 	protected String fileName(LsEntry file) {
-		return file.getLongname();
+		return file.getFilename();
 	}
 
 
