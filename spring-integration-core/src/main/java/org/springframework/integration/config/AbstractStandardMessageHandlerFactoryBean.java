@@ -49,8 +49,6 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 
 	private volatile Expression expression;
 
-	private volatile String beanName;
-
 	public void setTargetObject(Object targetObject) {
 		this.targetObject = targetObject;
 	}
@@ -87,7 +85,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 			}
 			else if (targetIsDirectReplyProducingHandler) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Wiring handler (" + beanName + ") directly into endpoint");
+					logger.debug("Wiring handler (" + targetObject + ") directly into endpoint");
 				}
 				this.checkReuse(actualHandler);
 				this.postProcessReplyProducer(actualHandler);
