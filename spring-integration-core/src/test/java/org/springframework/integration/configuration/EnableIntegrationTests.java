@@ -16,7 +16,7 @@
 
 package org.springframework.integration.configuration;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -26,19 +26,16 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,18 +45,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import reactor.core.Environment;
-import reactor.core.composable.Composable;
-import reactor.core.composable.Promise;
-import reactor.core.composable.Stream;
-import reactor.core.composable.spec.Promises;
-import reactor.core.composable.spec.Streams;
-import reactor.function.Consumer;
-import reactor.function.Function;
-import reactor.function.Functions;
-import reactor.spring.context.config.EnableReactor;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -93,7 +79,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -102,12 +87,9 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
-import org.springframework.integration.gateway.TestService;
-import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -134,6 +116,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+
+import reactor.core.Environment;
+import reactor.core.composable.Composable;
+import reactor.core.composable.Promise;
+import reactor.core.composable.spec.Streams;
+import reactor.function.Consumer;
+import reactor.function.Function;
+import reactor.spring.context.config.EnableReactor;
 
 /**
  * @author Artem Bilan

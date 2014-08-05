@@ -28,10 +28,6 @@ import java.util.concurrent.Future;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import reactor.core.Environment;
-import reactor.core.composable.Promise;
-import reactor.core.composable.spec.Promises;
-import reactor.function.Functions;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -65,6 +61,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+
+import reactor.core.Environment;
+import reactor.core.composable.Promise;
+import reactor.core.composable.spec.Promises;
+import reactor.function.Functions;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -110,7 +111,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
-	private volatile Environment reactorEnvironment = new Environment();
+	private volatile Environment reactorEnvironment;
 
 	private volatile boolean initialized;
 
@@ -233,8 +234,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	/**
-	 * Set the Reactor {@link Environment} to be used for {@link Promise} return type
-	 * @param reactorEnvironment the Reactor Environment
+	 * Set the Reactor {@link Environment} to be used for {@link Promise} return type.
+	 * Required in case of {@link Promise} usage.
+	 * @param reactorEnvironment the Reactor Environment.
 	 * @since 4.1
 	 */
 	public void setReactorEnvironment(Environment reactorEnvironment) {
@@ -310,6 +312,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
 		}
 		if (Promise.class.isAssignableFrom(returnType)) {
+			Assert.notNull(this.reactorEnvironment, "'reactorEnvironment' is required in case of 'Promise' return type.");
 			return Promises.<Object>task(Functions.supplier(new AsyncInvocationTask(invocation)))
 					.env(this.reactorEnvironment)
 					.get();

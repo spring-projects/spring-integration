@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import reactor.core.composable.Promise;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +40,8 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import reactor.core.composable.Promise;
 
 /**
  * @author Mark Fisher
@@ -142,6 +143,7 @@ public class GatewayParserTests {
 				throw new IllegalStateException("unexpected exception in testExecutor", e);
 			}
 		}
+
 	}
 
 }

@@ -117,7 +117,8 @@ public @interface MessagingGateway {
 	 * to use for any of the interface methods that have a {@link reactor.core.composable.Promise} return type.
 	 * This {@code reactor.core.Environment} will only be used for those async methods; the sync methods
 	 * will be invoked in the caller's thread.
-	 * @return the suggested reactor Environment bean name, if any
+	 * <p> This attribute is required in case of {@link reactor.core.composable.Promise} usage.
+	 * @return the suggested reactor Environment bean name.
 	 * @since 4.1
 	 */
 	String reactorEnvironment() default "";

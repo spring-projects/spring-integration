@@ -16,8 +16,9 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -25,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
-import reactor.core.composable.Promise;
-import reactor.function.Consumer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -34,6 +33,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import reactor.core.Environment;
+import reactor.core.composable.Promise;
+import reactor.function.Consumer;
 
 /**
  * @author Mark Fisher
@@ -44,8 +47,14 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class AsyncGatewayTests {
 
+	private final Environment reactorEnvironment = new Environment();
+
 	// TODO: changed from 0 because of recurrent failure: is this right?
 	private final long safety = 100;
+
+	public void tearDown() {
+		this.reactorEnvironment.shutdown();
+	}
 
 	@Test
 	public void futureWithMessageReturned() throws Exception {
@@ -83,7 +92,7 @@ public class AsyncGatewayTests {
 		Object result = f.get(1000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertTrue(result instanceof String);
 		assertEquals("foobar", result);
 	}
@@ -104,7 +113,7 @@ public class AsyncGatewayTests {
 		Object result = f.get(1000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertTrue(result instanceof String);
 		assertEquals("foobar", result);
 	}
@@ -119,6 +128,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<Message<?>> promise = service.returnMessagePromise("foo");
@@ -137,6 +147,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
@@ -158,6 +169,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<?> promise = service.returnSomethingPromise("foo");
@@ -179,6 +191,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<String> promise = service.returnStringPromise("foo");
@@ -194,7 +207,7 @@ public class AsyncGatewayTests {
 				latch.countDown();
 			}
 		})
-		.flush();
+				.flush();
 
 		latch.await(1, TimeUnit.SECONDS);
 		long elapsed = System.currentTimeMillis() - start;
