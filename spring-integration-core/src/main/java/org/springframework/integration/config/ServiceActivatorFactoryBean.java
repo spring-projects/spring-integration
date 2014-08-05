@@ -69,7 +69,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		if (targetObject instanceof MessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 			if (targetObject instanceof AbstractMessageProducingMessageHandler) {
-				// should never happen but just return it if it's already an ARPMH
+				// should never happen but just return it if it's already an AMPMH
 				return (MessageHandler) targetObject;
 			}
 			/*

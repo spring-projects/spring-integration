@@ -34,14 +34,7 @@ public abstract class AbstractMessageProducingMessageHandler extends AbstractMes
 
 	private String outputChannelName;
 
-
-	private volatile boolean requiresReply = false;
-
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
-	public boolean isRequiresReply() {
-		return requiresReply;
-	}
 
 	public MessagingTemplate getMessagingTemplate() {
 		return messagingTemplate;
@@ -54,16 +47,6 @@ public abstract class AbstractMessageProducingMessageHandler extends AbstractMes
 	 */
 	public void setSendTimeout(long sendTimeout) {
 		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
-
-	/**
-	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
-	 * If false an incoming message MAY result in a reply message being sent. Default is false.
-	 *
-	 * @param requiresReply true if a reply is required.
-	 */
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
 	}
 
 	@Override

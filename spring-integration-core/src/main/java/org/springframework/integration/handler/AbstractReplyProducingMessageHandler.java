@@ -52,6 +52,18 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
+	private volatile boolean requiresReply = false;
+
+	/**
+	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
+	 * If false an incoming message MAY result in a reply message being sent. Default is false.
+	 *
+	 * @param requiresReply true if a reply is required.
+	 */
+	public void setRequiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
+	}
+
 	/**
 	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
 	 * @param channelResolver The channel resolver.
@@ -113,7 +125,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			MessageHeaders requestHeaders = message.getHeaders();
 			this.handleResult(result, requestHeaders);
 		}
-		else if (isRequiresReply()) {
+		else if (this.requiresReply) {
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
 					this.getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
