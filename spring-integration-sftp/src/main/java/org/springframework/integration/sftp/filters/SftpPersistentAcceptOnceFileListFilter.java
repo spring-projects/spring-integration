@@ -27,6 +27,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * 'seen' this file.
  *
  * @author Gary Russell
+ * @author David Liu
  * @since 3.0
  *
  */
@@ -43,7 +44,7 @@ public class SftpPersistentAcceptOnceFileListFilter extends AbstractPersistentAc
 
 	@Override
 	protected String fileName(LsEntry file) {
-		return file.getLongname();
+		return file.getFilename();
 	}
 
 
