@@ -18,14 +18,12 @@
 
 	<int:control-bus input-channel="toControlBus" />
 
-	<int-jmx:mbean-export id="integrationMbeanExporter" shutdown-executor="shutdownExec"
+	<int-jmx:mbean-export id="integrationMbeanExporter"
 		default-domain="self-destruct" />
 
 	<context:mbean-server />
 
 	<int:poller default="true" fixed-delay="500" />
-
-	<task:executor id="shutdownExec" />
 
 	<bean id="activeChannel" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$ActiveChannelImpl" />
 
@@ -35,6 +33,8 @@
 
 	<bean id="nonSpringExecutor" class="java.util.concurrent.Executors" factory-method="newSingleThreadExecutor" />
 
-	<bean id="otherActiveComponent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$OtherActiveComponent" />
+	<bean id="otherActiveComponent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$OtherActiveComponent">
+		<property name="outputChannel" ref="nullChannel" />
+	</bean>
 
 </beans>

@@ -186,25 +186,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="shutdown-executor" use="optional">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="java.util.concurrent.Executor" />
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								An Executor used when shutting down the application using the 'stopActiveComponents()'
-								method. Only required when invoking the operation on a Spring-managed thread, such as
-								via a <control-bus/> from, say, an error flow. Using this executor avoids the
-								problem where the shutdown will wait for the current thread to terminate, time out,
-								and then force-close other components. When a dedicated executor is supplied,
-								the method will not wait on its threads to complete, and will terminate normally.
-								It is recommended that the executor used here is dedicated for this purpose and
-								not used elsewhere.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="object-naming-strategy" use="optional">
 						<xsd:annotation>
 							<xsd:appinfo>

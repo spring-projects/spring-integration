@@ -11,9 +11,8 @@
 	<para>
 		As described in <xref linkend="jmx-mbean-exporter"/>, the MBean exporter provides a JMX operation
 		<emphasis>stopActiveComponents</emphasis>, which is used to stop the application in an orderly manner. The operation
-		has two parameters, a boolean and a long. The boolean indicates whether attempts will be made
-		to stop (interrupt) active threads; in most cases this will be set to <emphasis>false</emphasis> for orderly
-		shutdown. The long parameter indicates how long (in milliseconds) the operation will wait to allow
+		has a single long parameter.
+		The parameter indicates how long (in milliseconds) the operation will wait to allow
 		in-flight messages to complete. The operation works as follows:
 	</para>
 	<para>
@@ -29,35 +28,21 @@
 		The second step stops any active channels, such as JMS- or AMQP-backed channels.
 	</para>
 	<para>
-		The third step stops all <classname>TaskScheduler</classname>s, preventing any new
-		scheduled operations (polling etc).
+		The third step stops all <classname>MessageSource</classname>s.
 	</para>
 	<para>
-		The fourth step stops all <classname>TaskExecutor</classname>s, preventing any new
-		tasks from running.
-	</para>
-	<note>
-		If the shutdown is running from a Spring-managed <classname>TaskExecutor</classname>, shutting down that
-		executor would cause all the timeout time to be consumed by this step, because the thread won't terminate).
-		For this reason, either use a dedicated executor (via the shutdownExecutor property on the MBean exporter),
-		or do not use a Spring-managed executor to invoke this operation.
-	</note>
-	<para>
-		The fifth step stops all <classname>MessageSource</classname>s.
+		The fourth step stops all inbound <classname>MessageProducer</classname>s (that are not
+		<interfacename>OrderlyShutdownCapable</interfacename>).
 	</para>
 	<para>
-		The sixth step waits for any remaining time left, as defined by the value of the long parameter passed
+		The fifth step waits for any remaining time left, as defined by the value of the long parameter passed
 		in to the operation. This is intended to allow any in-flight messages to complete their journeys. It is
 		therefore important to select an appropriate timeout when invoking this operation.
 	</para>
 	<para>
-		The seventh step calls <classname>afterShutdown()</classname> on all OrderlyShutdownCapable components.
+		The sixth step calls <classname>afterShutdown()</classname> on all OrderlyShutdownCapable components.
 		This allows such components to perform final shutdown tasks (closing all open sockets, for example).
 	</para>
-	<note>
-		If no time is left when we get to step 6, it probably means some thread is hung; in which case, the
-		operation attempts a forced shutdown on all schedulers and executors before exiting.
-	</note>
 	<para>
 		As discussed in <xref linkend="jmx-mbean-shutdown"/> this operation can be invoked using JMX. If you
 		wish to programmatically invoke the method, you will need to inject, or otherwise get a reference to,
@@ -76,4 +61,10 @@
 		<ulink url="https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/monitoring"
 		>monitoring Spring Integration sample application</ulink> for details.
 	</para>
+	<important>
+		The above algorithm was improved in <emphasis>version 4.1</emphasis>. Previously, all task executors
+		and schedulers were stopped. This could cause mid-flow messages in <classname>QueueChannel</classname>s
+		to remain. Now, the shutdown leaves pollers running in order to allow these messages to be
+		drained and processed.
+	</important>
 </section>
