@@ -38,7 +38,7 @@ public interface RecipientListRouterManagement {
 	/**
 	 * Add a recipient with channelName and expression.
 	 * @param channelName The channel name.
-	 * @param expression The expression to filter the incoming message.
+	 * @param selectorExpression The expression to filter the incoming message.
 	 */
 	@ManagedOperation
 	void addRecipient(String channelName, String selectorExpression);
@@ -60,7 +60,7 @@ public interface RecipientListRouterManagement {
 	/**
 	 * Remove all recipients that match the channelName and expression.
 	 * @param channelName The channel name.
-	 * @param expression The expression to filter the incoming message
+	 * @param selectorExpression The expression to filter the incoming message
 	 */
 	@ManagedOperation
 	int removeRecipient(String channelName, String selectorExpression);

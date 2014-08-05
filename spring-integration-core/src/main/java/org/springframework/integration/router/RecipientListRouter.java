@@ -35,8 +35,8 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import reactor.util.StringUtils;
 
 /**
  * <pre class="code">
@@ -150,6 +150,9 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public void addRecipient(String channelName, String selectorExpression) {
 		Assert.notNull(channelName, "channelName can't be null.");
+		Assert.hasText(channelName, "channelName can't be empty.");
+		Assert.notNull(selectorExpression, "selectorExpression can't be null.");
+		Assert.hasText(selectorExpression, "selectorExpression can't be empty.");
 		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
 		ExpressionEvaluatingSelector expressionEvaluatingSelector = new ExpressionEvaluatingSelector(selectorExpression);
 		expressionEvaluatingSelector.setBeanFactory(this.getBeanFactory());
@@ -169,7 +172,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	public int removeRecipient(String channelName) {
 		int counter = 0;
 		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
-		for (Iterator<Recipient> it = this.recipients.iterator();it.hasNext();) {
+		for (Iterator<Recipient> it = this.recipients.iterator(); it.hasNext();) {
 			if (it.next().getChannel() == channel) {
 				it.remove();
 				counter++;
@@ -207,6 +210,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public void replaceRecipients(Properties recipientMappings) {
 		Assert.notNull(recipientMappings, "'recipientMappings' must not be null");
+		Assert.notEmpty(recipientMappings, "'recipientMappings' must not be empty");
 		Set<String> keys = recipientMappings.stringPropertyNames();
 		ConcurrentLinkedQueue<Recipient> originalRecipients = this.recipients;
 		this.recipients.clear();
@@ -254,4 +258,5 @@ public class RecipientListRouter extends AbstractMessageRouter
 			return (this.selector == null || this.selector.accept(message));
 		}
 	}
+
 }
