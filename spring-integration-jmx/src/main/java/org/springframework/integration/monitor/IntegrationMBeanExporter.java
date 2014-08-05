@@ -128,7 +128,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Set<SimpleMessageSourceMetrics> sources = new HashSet<SimpleMessageSourceMetrics>();
 
-	private final Set<Lifecycle> inboundLifecyleMessageProducers = new HashSet<Lifecycle>();
+	private final Set<Lifecycle> inboundLifecycleMessageProducers = new HashSet<Lifecycle>();
 
 	private final Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
 
@@ -289,7 +289,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
 			Lifecycle target = (Lifecycle) extractTarget(bean);
 			if (!(target instanceof AbstractReplyProducingMessageHandler)) { // TODO: change to AMPMH
-				this.inboundLifecyleMessageProducers.add(target);
+				this.inboundLifecycleMessageProducers.add(target);
 			}
 		}
 
@@ -487,7 +487,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	/**
 	 * Shutdown active components.
 	 *
-	 * @param force No longer used.
 	 * @param howLong The time to wait in total for all activities to complete
 	 * in milliseconds.
 	 */
@@ -562,7 +561,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 */
 	@ManagedOperation
 	public void stopInboundMessageProducers() {
-		for (Lifecycle producer : this.inboundLifecyleMessageProducers) {
+		for (Lifecycle producer : this.inboundLifecycleMessageProducers) {
 			if (!(producer instanceof OrderlyShutdownCapable)) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Stopping message producer " + producer);
