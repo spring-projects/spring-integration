@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,26 +27,30 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.ftp.session.FtpSession;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 
@@ -56,23 +60,39 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
  * @author Gary Russell
  * @author Gunnar Hillert
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FtpInboundChannelAdapterParserTests {
+
+	@Autowired
+	private SourcePollingChannelAdapter ftpInbound;
+
+	@Autowired
+	private SourcePollingChannelAdapter simpleAdapterWithCachedSessions;
+
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired
+	@Qualifier("autoChannel.adapter")
+	private SourcePollingChannelAdapter autoChannelAdapter;
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac =
-			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
-		assertFalse(TestUtils.getPropertyValue(adapter, "autoStartup", Boolean.class));
-		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		assertFalse(TestUtils.getPropertyValue(ftpInbound, "autoStartup", Boolean.class));
+		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(ftpInbound, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
 		Comparator<?> comparator = blockingQueue.comparator();
 		assertNotNull(comparator);
-		assertEquals("ftpInbound", adapter.getComponentName());
-		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
-		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));
-		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(adapter, "outputChannel"));
+		assertEquals("ftpInbound", ftpInbound.getComponentName());
+		assertEquals("ftp:inbound-channel-adapter", ftpInbound.getComponentType());
+		assertNotNull(TestUtils.getPropertyValue(ftpInbound, "poller"));
+		assertEquals(context.getBean("ftpChannel"), TestUtils.getPropertyValue(ftpInbound, "outputChannel"));
 		FtpInboundFileSynchronizingMessageSource inbound =
-			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
 
 		FtpInboundFileSynchronizer fisync =
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
@@ -86,7 +106,7 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(filter);
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "remoteFileTemplate.sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
-		FileListFilter<?> acceptAllFilter = ac.getBean("acceptAllFilter", FileListFilter.class);
+		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
 		assertTrue(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
 		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
 		ReflectionUtils.doWithMethods(AbstractInboundFileSynchronizer.class, new MethodCallback() {
@@ -104,49 +124,26 @@ public class FtpInboundChannelAdapterParserTests {
 
 	@Test
 	public void cachingSessionFactory() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext(
-				"FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapterWithCachedSessions", SourcePollingChannelAdapter.class);
-		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
+		Object sessionFactory = TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
 		FtpInboundFileSynchronizer fisync =
-			TestUtils.getPropertyValue(adapter, "source.synchronizer", FtpInboundFileSynchronizer.class);
+			TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer", FtpInboundFileSynchronizer.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals("/", remoteFileSeparator);
 	}
 
 	@Test
-	public void testFtpInboundChannelAdapterCompleteNoId() throws Exception{
-		ApplicationContext ac =
-			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
-		SourcePollingChannelAdapter adapter = null;
-		for (String key : spcas.keySet()) {
-			if (!key.equals("ftpInbound") && !key.equals("simpleAdapter")){
-				adapter = spcas.get(key);
-			}
-		}
-		assertNotNull(adapter);
-	}
-
-	@Test
 	public void testAutoChannel() {
-		ApplicationContext context =
-			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-		// Auto-created channel
-		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
-		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {
 
 		@Override
-		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public DefaultFtpSessionFactory getObject() throws Exception {
 			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
-			Session session = mock(Session.class);
+			FtpSession session = mock(FtpSession.class);
 			when(factory.getSession()).thenReturn(session);
 			return factory;
 		}

@@ -30,17 +30,35 @@ import java.io.OutputStream;
  * @author Gary Russell
  * @since 2.0
  */
-public interface Session<T> {
+public interface Session<F> {
 
 	boolean remove(String path) throws IOException;
 
-	T[] list(String path) throws IOException;
+	F[] list(String path) throws IOException;
 
 	void read(String source, OutputStream outputStream) throws IOException;
 
 	void write(InputStream inputStream, String destination) throws IOException;
 
+	/**
+	 * Append to a file.
+	 * @param inputStream the stream.
+	 * @param destination the destination.
+	 * @throws IOException an IO Exception.
+	 * @since 4.1
+	 */
+	void append(InputStream inputStream, String destination) throws IOException;
+
 	boolean mkdir(String directory) throws IOException;
+
+	/**
+	 * Remove a remote directory.
+	 * @param directory The directory.
+	 * @return True if the directory was removed.
+	 * @throws IOException an IO exception.
+	 * @since 4.1
+	 */
+	boolean rmdir(String directory) throws IOException;
 
 	void rename(String pathFrom, String pathTo) throws IOException;
 
@@ -57,6 +75,7 @@ public interface Session<T> {
 	 * @param source The path of the remote file.
 	 * @return The raw inputStream.
 	 * @throws IOException Any IOException.
+	 * @since 3.0
 	 */
 	InputStream readRaw(String source) throws IOException;
 
@@ -65,7 +84,19 @@ public interface Session<T> {
 	 * Required by some session providers.
 	 * @return true if successful.
 	 * @throws IOException Any IOException.
+	 * @since 3.0
 	 */
 	boolean finalizeRaw() throws IOException;
+
+	/**
+	 * Get the underlying client library's client instance for this session.
+	 * Returns an {@code Object} to avoid significant changes to -file, -ftp, -sftp
+	 * modules, which would be required
+	 * if we added another generic parameter. Implementations should narrow the
+	 * return type.
+	 * @return The client instance.
+	 * @since 4.1
+	 */
+	Object getClientInstance();
 
 }

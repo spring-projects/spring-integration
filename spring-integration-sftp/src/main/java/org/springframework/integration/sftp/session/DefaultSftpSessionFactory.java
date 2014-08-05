@@ -21,10 +21,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
+import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -42,6 +42,7 @@ import com.jcraft.jsch.UserInfo;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author David Liu
  *
  * @since 2.0
  */
@@ -312,7 +313,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 
 	@Override
-	public Session<LsEntry> getSession() {
+	public SftpSession getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");
@@ -367,12 +368,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		// private key
 		if (this.privateKey != null) {
-			String privateKeyFilePath = this.privateKey.getFile().getAbsolutePath();
+			byte[] keyByteArray = StreamUtils.copyToByteArray(this.privateKey.getInputStream());
 			if (StringUtils.hasText(this.privateKeyPassphrase)) {
-				this.jsch.addIdentity(privateKeyFilePath, this.privateKeyPassphrase);
+				this.jsch.addIdentity(this.user, keyByteArray, null, this.privateKeyPassphrase.getBytes());
 			}
 			else {
-				this.jsch.addIdentity(privateKeyFilePath);
+				this.jsch.addIdentity(this.user, keyByteArray, null, null);
 			}
 		}
 		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);

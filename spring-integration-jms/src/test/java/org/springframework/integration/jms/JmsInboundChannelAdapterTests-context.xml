@@ -3,13 +3,23 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
+	<context:property-placeholder properties-ref="props"/>
+
+	<util:properties id="props">
+		<prop key="jmsAcknowledgeModeTransacted">transacted</prop>
+ 	</util:properties>
+ 	
 	<int-jms:inbound-channel-adapter channel="out" session-transacted="true"
 			connection-factory="connectionFactory" destination-name="incatQ"
-			receive-timeout="500">
+			receive-timeout="500" acknowledge="${jmsAcknowledgeModeTransacted}">
 		<int:poller fixed-delay="500"/>
 	</int-jms:inbound-channel-adapter>
 

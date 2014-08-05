@@ -30,9 +30,7 @@ import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -72,13 +70,11 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 		String discardChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
 		if (StringUtils.hasText(discardChannelName)) {
-			MessageChannel discardChannel = this.channelResolver.resolveDestination(discardChannelName);
-			Assert.notNull(discardChannel, "failed to resolve discardChannel '" + discardChannelName + "'");
-			handler.setDiscardChannel(discardChannel);
+			handler.setDiscardChannelName(discardChannelName);
 		}
 		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
 		if (StringUtils.hasText(outputChannelName)) {
-			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
+			handler.setOutputChannelName(outputChannelName);
 		}
 		Long sendTimeout = MessagingAnnotationUtils.resolveAttribute(annotations, "sendTimeout", Long.class);
 		if (sendTimeout != null) {
@@ -90,7 +86,6 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 			handler.setSendPartialResultOnExpiry(sendPartialResultsOnExpiry);
 		}
 		handler.setBeanFactory(this.beanFactory);
-		handler.afterPropertiesSet();
 		return handler;
 	}
 

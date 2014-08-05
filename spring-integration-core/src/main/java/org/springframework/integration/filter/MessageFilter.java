@@ -25,7 +25,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Message Handler that delegates to a {@link MessageSelector}. If and only if
@@ -52,9 +51,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	private volatile String discardChannelName;
 
 	/**
-	 * Create a MessageFilter that will delegate to the given
-	 * {@link MessageSelector}.
-	 *
+	 * Create a MessageFilter that will delegate to the given {@link MessageSelector}.
 	 * @param selector The message selector.
 	 */
 	public MessageFilter(MessageSelector selector) {
@@ -72,9 +69,8 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * a discard channel is provided, but if so, it will still apply
 	 * (in such a case, the Message will be sent to the discard channel,
 	 * and <em>then</em> the exception will be thrown).
-	 * @see #setDiscardChannel(MessageChannel)
-	 *
 	 * @param throwExceptionOnRejection true if an exception should be thrown.
+	 * @see #setDiscardChannel(MessageChannel)
 	 */
 	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;
@@ -86,9 +82,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
 	 * trigger an exception. That value is evaluated regardless of the presence
 	 * of a discard channel.
-	 *
 	 * @param discardChannel The discard channel.
-	 *
 	 * @see #setThrowExceptionOnRejection(boolean)
 	 */
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -96,6 +90,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
 		this.discardChannelName = discardChannelName;
 	}
 
@@ -103,7 +98,6 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * Set to 'true' if you wish the discard processing to occur within any
 	 * request handler advice applied to this filter. Also applies to
 	 * throwing an exception on rejection. Default: true.
-	 *
 	 * @param discardWithinAdvice true to discard within the advice.
 	 */
 	public void setDiscardWithinAdvice(boolean discardWithinAdvice) {
@@ -117,16 +111,8 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	@Override
 	protected void doInit() {
-		if (StringUtils.hasText(this.discardChannelName)) {
-			Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
-			try {
-				this.discardChannel = this.getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
-			}
-			catch (BeansException e) {
-				throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-						+ this.discardChannelName + "' in the BeanFactory.");
-			}
-		}
+		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
+					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
 		}
@@ -148,11 +134,27 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	@Override
 	public Object postProcess(Message<?> message, Object result) {
 		if (result == null) {
+			if (this.discardChannelName != null) {
+				synchronized (this) {
+					if (this.discardChannelName != null) {
+						try {
+							this.discardChannel = this.getBeanFactory()
+									.getBean(this.discardChannelName, MessageChannel.class);
+							this.discardChannelName = null;
+						}
+						catch (BeansException e) {
+							throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+									+ this.discardChannelName + "' in the BeanFactory.");
+						}
+					}
+				}
+			}
 			if (this.discardChannel != null) {
 				this.getMessagingTemplate().send(this.discardChannel, message);
 			}
 			if (this.throwExceptionOnRejection) {
-				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName() + "' rejected Message");
+				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName()
+						+ "' rejected Message");
 			}
 		}
 		return result;

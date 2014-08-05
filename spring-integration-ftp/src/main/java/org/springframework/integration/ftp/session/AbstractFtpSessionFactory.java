@@ -26,7 +26,6 @@ import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -164,7 +163,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	}
 
 	@Override
-	public Session<FTPFile> getSession() {
+	public FtpSession getSession() {
 		try {
 			return new FtpSession(this.createClient());
 		}

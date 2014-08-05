@@ -2,34 +2,54 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore">
 		<property name="expiryCallbacks" ref="expiryCallback"/>
 	</bean>
-	
+
 	<bean id="expiryCallback" class="org.springframework.integration.store.MessageStoreReaperTests$ExpiryCallback"/>
-	
+
 	<bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
 		<property name="messageGroupStore" ref="messageStore"/>
 		<property name="timeout" value="10"/>
 	</bean>
-	
-	<task:scheduled-tasks scheduler="scheduler">	
+
+	<task:scheduled-tasks scheduler="scheduler">
 		<task:scheduled ref="reaper" method="run" fixed-rate="100"/>
+		<task:scheduled ref="reaper3" method="run" fixed-rate="100"/>
 	</task:scheduled-tasks>
-	
+
 	<task:scheduler id="scheduler"/>
-	
+
 	<bean id="messageStore2" class="org.springframework.integration.store.SimpleMessageStore">
-    <property name="expiryCallbacks" ref="expiryCallback2"/>
-  </bean>
-  
-  <bean id="expiryCallback2" class="org.springframework.integration.store.MessageStoreReaperTests$ExpiryCallback"/>
-  
-  <bean id="reaper2" class="org.springframework.integration.store.MessageGroupStoreReaper">
-    <property name="messageGroupStore" ref="messageStore2"/>
-  </bean>
+		<property name="expiryCallbacks" ref="expiryCallback2"/>
+	</bean>
+
+	<bean id="expiryCallback2" class="org.springframework.integration.store.MessageStoreReaperTests$ExpiryCallback"/>
+
+	<bean id="reaper2" class="org.springframework.integration.store.MessageGroupStoreReaper">
+		<property name="messageGroupStore" ref="messageStore2"/>
+	</bean>
+
+	<bean id="messageStore3" class="org.springframework.integration.store.SimpleMessageStore" />
+
+	<bean id="reaper3" class="org.springframework.integration.store.MessageGroupStoreReaper">
+		<property name="messageGroupStore" ref="messageStore3"/>
+		<property name="timeout" value="50" />
+	</bean>
+
+	<int:aggregator input-channel="aggChannel"
+		discard-channel="discards"
+		message-store="messageStore3" />
+
+	<int:channel id="aggChannel" />
+
+	<int:channel id="discards">
+		<int:queue />
+	</int:channel>
 
 </beans>

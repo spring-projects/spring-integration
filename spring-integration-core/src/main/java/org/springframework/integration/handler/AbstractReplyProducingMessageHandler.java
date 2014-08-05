@@ -33,7 +33,6 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -42,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingMessageHandler
 		implements BeanClassLoaderAware {
@@ -52,16 +52,15 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-
 	/**
 	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
-	 *
 	 * @param channelResolver The channel resolver.
 	 */
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		getMessagingTemplate().setDestinationResolver(channelResolver);
 	}
+
 
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notNull(adviceChain, "adviceChain cannot be null");
@@ -80,18 +79,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	@Override
 	protected final void onInit() {
+		Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
+				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		if (this.getBeanFactory() != null) {
 			getMessagingTemplate().setBeanFactory(getBeanFactory());
-			if (StringUtils.hasText(getOutputChannelName())) {
-				Assert.isNull(getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				try {
-					setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ getOutputChannelName() + "' in the BeanFactory.");
-				}
-			}
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
@@ -175,7 +166,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * Send a reply Message. The 'replyChannelHeaderValue' will be considered only if this handler's
 	 * 'outputChannel' is <code>null</code>. In that case, the header value must not also be
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
-	 *
 	 * @param replyMessage the reply Message to send
 	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
 	 */
@@ -183,6 +173,21 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
+		if (getOutputChannelName() != null) {
+			synchronized (this) {
+				if (getOutputChannelName() != null) {
+					try {
+						setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
+						setOutputChannelName(null);
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ getOutputChannelName() + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+
 		if (getOutputChannel() != null) {
 			this.sendMessage(replyMessage, getOutputChannel());
 		}
@@ -197,7 +202,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	/**
 	 * Send the message to the given channel. The channel must be a String or
 	 * {@link MessageChannel} instance, never <code>null</code>.
-	 *
 	 * @param message The message.
 	 * @param channel The channel to which to send the message.
 	 */
@@ -225,7 +229,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * Subclasses may override this. True by default.
-	 *
 	 * @return true if the request headers should be copied.
 	 */
 	protected boolean shouldCopyRequestHeaders() {
@@ -237,7 +240,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * value may be a Message, a MessageBuilder, or any plain Object. The base class
 	 * will handle the final creation of a reply Message from any of those starting
 	 * points. If the return value is null, the Message flow will end here.
-	 *
 	 * @param requestMessage The request message.
 	 * @return The result of handling the message, or {@code null}.
 	 */
@@ -263,7 +265,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		public String toString() {
 			return AbstractReplyProducingMessageHandler.this.toString();
 		}
-
 
 	}
 

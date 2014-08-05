@@ -329,7 +329,9 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
     auto-create-directory="true"
     remote-directory-expression="headers.['remote_dir']"
     temporary-remote-directory-expression="headers.['temp_remote_dir']"
-    filename-generator="fileNameGenerator"/>]]></programlisting>
+    filename-generator="fileNameGenerator"
+    use-temporary-filename="true"
+    mode="REPLACE"/>]]></programlisting>
 
 	As you can see from the configuration above you can configure an <emphasis>FTP Outbound Channel Adapter</emphasis> via the
 	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code>
@@ -356,7 +358,14 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
   	instead of remote-directory="/foo/bar")
   	</important>
   	</para>
-
+    <para>
+    Starting with <emphasis>version 4.1</emphasis>, you can specify the <code>mode</code> when transferring the file. By default,
+    an existing file will be overwritten; the modes are defined on <code>enum</code>
+    <classname>FileExistsMode</classname>, having values <code>REPLACE</code> (default), <code>APPEND</code>,
+    <code>IGNORE</code>, and <code>FAIL</code>. With <code>IGNORE</code> and <code>FAIL</code>, the file is not
+    transferred; <code>FAIL</code> causes an exception to be thrown whereas <code>IGNORE</code> silently
+    ignores the transfer (although a <code>DEBUG</code> log entry is produced).
+    </para>
     <para>
       <emphasis>Avoiding Partially Written Files</emphasis>
     </para>
@@ -635,7 +644,15 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 		<classname>InputStream</classname>), remove, and rename files. In addition an <code>execute</code>
 		method is provided allowing the caller to execute multiple operations on the session. In all cases,
 		the template takes care of reliably closing the session.
-		For more information, refer to the javadocs for <classname>RemoteFileTemplate</classname>.
+		For more information, refer to the <ulink
+		url="http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html">javadocs
+		for <classname>RemoteFileTemplate</classname></ulink> There is a subclass for FTP:
+		<classname>FtpRemoteFileTemplate</classname>. <!-- TODO: fix the link when 4.1 is released -->
+	</para>
+	<para>
+		Additional methods were added in <emphasis>version 4.1</emphasis> including <code>getClientInstance()</code>
+		which provides access to the underlying <classname>FTPClient</classname> enabling access to low-level
+		APIs.
 	</para>
   </section>
 </chapter>

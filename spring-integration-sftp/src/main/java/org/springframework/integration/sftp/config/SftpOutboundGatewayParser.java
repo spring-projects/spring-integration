@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.file.config.AbstractRemoteFileOutboundGatewayParser;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
+import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 /**
  * @author Gary Russell
@@ -28,6 +30,7 @@ import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
  */
 public class SftpOutboundGatewayParser extends AbstractRemoteFileOutboundGatewayParser {
 
+	@Override
 	public String getGatewayClassName() {
 		return SftpOutboundGateway.class.getName();
 	}
@@ -40,6 +43,11 @@ public class SftpOutboundGatewayParser extends AbstractRemoteFileOutboundGateway
 	@Override
 	protected String getRegexPatternFileListFilterClassName() {
 		return SftpRegexPatternFileListFilter.class.getName();
+	}
+
+	@Override
+	protected Class<? extends RemoteFileOperations<?>> getTemplateClass() {
+		return SftpRemoteFileTemplate.class;
 	}
 
 }

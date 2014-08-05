@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@
 package org.springframework.integration.store;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -21,10 +22,16 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -36,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class MessageStoreReaperTests {
 
 	@Autowired
@@ -58,12 +66,21 @@ public class MessageStoreReaperTests {
 	@Qualifier("expiryCallback2")
 	private ExpiryCallback expiryCallback2;
 
+	@Autowired
+	private MessageChannel aggChannel;
+
+	@Autowired
+	private PollableChannel discards;
+
 	@Test
 	public void testExpiry() throws Exception {
 		messageStore.addMessageToGroup("FOO", new GenericMessage<String>("foo"));
 		assertEquals(1, messageStore.getMessageGroup("FOO").size());
 		// wait for expiry...
-		Thread.sleep(200L);
+		int n = 0;
+		while (n++ < 200 & messageStore.getMessageGroup("FOO").size() > 0) {
+			Thread.sleep(50);
+		}
 		assertEquals(0, messageStore.getMessageGroup("FOO").size());
 		assertEquals(1, expiryCallback.groups.size());
 	}
@@ -106,10 +123,23 @@ public class MessageStoreReaperTests {
 		assertEquals(2, expiryCallback2.groups.size());
 	}
 
+	@Test
+	public void testWithAggregator() {
+		this.aggChannel.send(MessageBuilder.withPayload("foo")
+				.setCorrelationId("bar")
+				.setSequenceSize(2)
+				.setSequenceNumber(1)
+				.build());
+		Message<?> discard = this.discards.receive(10000);
+		assertNotNull(discard);
+		assertEquals("foo", discard.getPayload());
+	}
+
 	public static class ExpiryCallback implements MessageGroupCallback {
 
 		public final List<MessageGroup> groups = new ArrayList<MessageGroup>();
 
+		@Override
 		public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			groups.add(group);
 			messageGroupStore.removeMessageGroup(group.getGroupId());

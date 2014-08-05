@@ -170,10 +170,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="default"/>
-					<xsd:enumeration value="simple"/>
-				</xsd:restriction>
+				<xsd:union memberTypes="listenerContainerEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="container-class" type="xsd:string">
@@ -264,13 +261,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="none"/>
-					<xsd:enumeration value="connection"/>
-					<xsd:enumeration value="session"/>
-					<xsd:enumeration value="consumer"/>
-					<xsd:enumeration value="auto"/>
-				</xsd:restriction>
+				<xsd:union memberTypes="cacheLevelEnumeration xsd:string"/>					
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="acknowledge" default="transacted">
@@ -283,12 +274,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="auto"/>
-					<xsd:enumeration value="client"/>
-					<xsd:enumeration value="dups-ok"/>
-					<xsd:enumeration value="transacted"/>
-				</xsd:restriction>
+				<xsd:union memberTypes="jsmAcknowledgeModeEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="transaction-manager" type="xsd:string">
@@ -755,12 +741,7 @@
 								]]></xsd:documentation>
 							</xsd:annotation>
 							<xsd:simpleType>
-								<xsd:restriction base="xsd:NMTOKEN">
-									<xsd:enumeration value="auto"/>
-									<xsd:enumeration value="client"/>
-									<xsd:enumeration value="dups-ok"/>
-									<xsd:enumeration value="transacted"/>
-								</xsd:restriction>
+								<xsd:union memberTypes="jsmAcknowledgeModeEnumeration xsd:string"/>
 							</xsd:simpleType>
 						</xsd:attribute>
 						<xsd:attributeGroup ref="dmlcAttributeGroup" />
@@ -1269,12 +1250,7 @@
 						]]></xsd:documentation>
 					</xsd:annotation>
 					<xsd:simpleType>
-						<xsd:restriction base="xsd:NMTOKEN">
-							<xsd:enumeration value="auto"/>
-							<xsd:enumeration value="client"/>
-							<xsd:enumeration value="dups-ok"/>
-							<xsd:enumeration value="transacted"/>
-						</xsd:restriction>
+						<xsd:union memberTypes="jsmAcknowledgeModeEnumeration xsd:string"/>
 					</xsd:simpleType>
 				</xsd:attribute>
 				<xsd:attribute name="selector" type="xsd:string">
@@ -1502,5 +1478,31 @@
 		</xsd:attribute>
 
 	</xsd:attributeGroup>
-
+	
+	<xsd:simpleType name="cacheLevelEnumeration">
+		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="none"/>
+			<xsd:enumeration value="connection"/>
+			<xsd:enumeration value="session"/>
+			<xsd:enumeration value="consumer"/>
+			<xsd:enumeration value="auto"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="listenerContainerEnumeration"> 
+		<xsd:restriction base="xsd:NMTOKEN">
+			 <xsd:enumeration value="default"/>
+			 <xsd:enumeration value="simple"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType  name="jsmAcknowledgeModeEnumeration">
+ 		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="auto"/>
+			<xsd:enumeration value="client"/>
+			<xsd:enumeration value="dups-ok"/>
+			<xsd:enumeration value="transacted"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
 </xsd:schema>

@@ -52,7 +52,7 @@ import org.springframework.integration.test.util.SocketUtils;
  * @since 3.0
  */
 @Configuration
-public class TesFtpServer {
+public class TestFtpServer {
 
 	private final int ftpPort = SocketUtils.findAvailableServerSocket();
 
@@ -72,7 +72,7 @@ public class TesFtpServer {
 
 	private volatile FtpServer server;
 
-	public TesFtpServer(final String root) {
+	public TestFtpServer(final String root) {
 		this.ftpFolder = new TemporaryFolder() {
 
 			@Override

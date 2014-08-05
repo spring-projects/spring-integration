@@ -255,12 +255,20 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
    <section id="sftp-rft">
 	<title>RemoteFileTemplate</title>
 	<para>
-		Starting with <emphasis>Spring Integration version 3.0</emphasis> a new abstraction is provided over the
+		Starting with <emphasis>Spring Integration version 3.0</emphasis>, a new abstraction is provided over the
 		<classname>SftpSession</classname> object. The template provides methods to send, retrieve (as an
 		<classname>InputStream</classname>), remove, and rename files. In addition an <code>execute</code>
 		method is provided allowing the caller to execute multiple operations on the session. In all cases,
 		the template takes care of reliably closing the session.
-		For more information, refer to the javadocs for <classname>RemoteFileTemplate</classname>.
+		For more information, refer to the <ulink
+		url="http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html">javadocs
+		for <classname>RemoteFileTemplate</classname></ulink> There is a subclass for SFTP:
+		<classname>SftpRemoteFileTemplate</classname>. <!-- TODO: fix the link when 4.1 is released -->
+	</para>
+	<para>
+		Additional methods were added in <emphasis>version 4.1</emphasis> including <code>getClientInstance()</code>
+		which provides access to the underlying <classname>ChannelSftp</classname> enabling access to low-level
+		APIs.
 	</para>
    </section>
 
@@ -411,11 +419,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	the file contents; 3) <classname>java.lang.String</classname> - text that represents the file contents.
 
   	<programlisting language="xml"><![CDATA[<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
-				session-factory="sftpSessionFactory"
-				channel="inputChannel"
-				charset="UTF-8"
-				remote-directory="foo/bar"
-				remote-filename-generator-expression="payload.getName() + '-foo'"/>]]></programlisting>
+    session-factory="sftpSessionFactory"
+    channel="inputChannel"
+    charset="UTF-8"
+    remote-file-separator="/"
+    remote-directory="foo/bar"
+    remote-filename-generator-expression="payload.getName() + '-foo'"
+    filename-generator="fileNameGenerator"
+    use-temporary-filename="true"
+    mode="REPLACE"/>]]></programlisting>
 
 	As you can see from the configuration above you can configure the <emphasis>SFTP Outbound Channel Adapter</emphasis> via
 	the <code>outbound-channel-adapter</code> element.
@@ -433,6 +445,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
         the <code>remote-filename-generator-expression</code> attribute with an expression
   		value that computes the <emphasis>file name</emphasis> based on its original name while also appending a suffix: '-foo'.
   	</para>
+
+    <para>
+    Starting with <emphasis>version 4.1</emphasis>, you can specify the <code>mode</code> when transferring the file. By default,
+    an existing file will be overwritten; the modes are defined on <code>enum</code>
+    <classname>FileExistsMode</classname>, having values <code>REPLACE</code> (default), <code>APPEND</code>,
+    <code>IGNORE</code>, and <code>FAIL</code>. With <code>IGNORE</code> and <code>FAIL</code>, the file is not
+    transferred; <code>FAIL</code> causes an exception to be thrown whereas <code>IGNORE</code> silently
+    ignores the transfer (although a <code>DEBUG</code> log entry is produced).
+    </para>
 
     <para>
       <emphasis>Avoiding Partially Written Files</emphasis>

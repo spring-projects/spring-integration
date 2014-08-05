@@ -254,7 +254,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 			}
 		}
 		catch (Exception e) {
-			logger.warn("failure occurred in gateway sendAndReceive", e);
+			if (logger.isDebugEnabled()) {
+				logger.debug("failure occurred in gateway sendAndReceive: " + e.getMessage());
+			}
 			error = e;
 		}
 

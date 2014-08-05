@@ -47,7 +47,7 @@ import com.jcraft.jsch.SftpException;
  * @author Gary Russell
  * @since 2.0
  */
-class SftpSession implements Session<LsEntry> {
+public class SftpSession implements Session<LsEntry> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -160,6 +160,17 @@ class SftpSession implements Session<LsEntry> {
 	}
 
 	@Override
+	public void append(InputStream inputStream, String destination) throws IOException {
+		Assert.state(this.channel != null, "session is not connected");
+		try {
+			this.channel.put(inputStream, destination, ChannelSftp.APPEND);
+		}
+		catch (SftpException e) {
+			throw new NestedIOException("failed to write file", e);
+		}
+	}
+
+	@Override
 	public void close() {
 		this.closed = true;
 		if (this.wrapper != null) {
@@ -224,6 +235,17 @@ class SftpSession implements Session<LsEntry> {
 	}
 
 	@Override
+	public boolean rmdir(String remoteDirectory) throws IOException {
+		try {
+			this.channel.rmdir(remoteDirectory);
+		}
+		catch (SftpException e) {
+			throw new NestedIOException("failed to remove remote directory '" + remoteDirectory + "'.", e);
+		}
+		return true;
+	}
+
+	@Override
 	public boolean exists(String path) {
 		try {
 			this.channel.lstat(path);
@@ -249,6 +271,11 @@ class SftpSession implements Session<LsEntry> {
 			this.close();
 			throw new IllegalStateException("failed to connect", e);
 		}
+	}
+
+	@Override
+	public ChannelSftp getClientInstance() {
+		return this.channel;
 	}
 
 }

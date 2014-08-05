@@ -16,8 +16,12 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -333,7 +337,7 @@ public class RecipientListRouterTests {
 		assertNotNull(result1a);
 		assertNotNull(result1b);
 		assertEquals("test", result1a.getPayload());
-		assertEquals(1,new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber().intValue());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber().intValue());
 		assertEquals(2, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize().intValue());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(result1a).getCorrelationId());
 		assertEquals("test", result1b.getPayload());
@@ -425,6 +429,8 @@ public class RecipientListRouterTests {
 				.thenReturn(defaultChannel);
 		router.setBeanFactory(beanFactory);
 		router.afterPropertiesSet();
+
+		router.handleMessage(new GenericMessage<String>("foo"));
 
 		assertSame(defaultChannel, TestUtils.getPropertyValue(router, "defaultOutputChannel"));
 		Mockito.verify(beanFactory).getBean(Mockito.eq("defaultChannel"), Mockito.eq(MessageChannel.class));

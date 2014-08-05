@@ -198,7 +198,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	 * object</b>.
 	 * <p>
 	 * For instance the following SpEL expressions (among others) are possible:
-	 * <p>
 	 * <ul>
 	 *   <li>payload.foo</li>
 	 *   <li>headers.foobar</li>

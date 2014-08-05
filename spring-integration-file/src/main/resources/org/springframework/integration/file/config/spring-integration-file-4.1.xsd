@@ -398,48 +398,7 @@ Only files matching this regular expression will be picked up by this adapter.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="mode">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-					This attribute defaults to 'REPLACE' if not set explicitly.
-
-					The following options are available:
-
-					APPEND:
-
-					If append is specified, the data will be appended
-					to the existing file if such file exists, otherwise the
-					new file will be created as usual but once created the
-					subsequent data will be appended to it. This attribute
-					is mutualy exclusive with the 'temporary-file-suffix'
-					since append is done to the actual file and not its
-					temporary counterpart.
-
-					If set to APPEND, the component will also create a real
-					instance of the LockRegistry to ensure that there are no
-					collisions when multiple threads are writing to the same
-					file.
-
-					FAIL:
-
-					If the target file exists, a MessageHandlingException
-					is thrown.
-
-					IGNORE:
-
-					If the target file exists, the message payload is silently
-					ignored.
-
-					REPLACE:
-
-					This is the default behavior when writing files. If the
-					target file already exists, it will be overwritten.
-				]]></xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:union memberTypes="mode xsd:string"/>
-			</xsd:simpleType>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="modeGroup" />
         <xsd:attribute name="delete-source-files" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
@@ -606,13 +565,13 @@ Only files matching this regular expression will be picked up by this adapter.
 					<xsd:documentation><![CDATA[
 						If append is specified, the data will be appended
 						to the existing file if such file exists, otherwise the
-						new file will be created as usual but once created the
+						new file will be created as usual but, once created,
 						subsequent data will be appended to it. This attribute
-						is mutualy exclusive with the 'temporary-file-suffix'
+						is mutualy exclusive with the use of a temporary file,
 						since append is done to the actual file and not its
 						temporary counterpart.
 
-						If set to APPEND, the component will also create a real
+						If set to APPEND, the component will also use an
 						instance of the LockRegistry to ensure that there are no
 						collisions when multiple threads are writing to the same
 						file.
@@ -717,6 +676,52 @@ Only files matching this regular expression will be picked up by this adapter.
 					Allows you to suppress using a temporary file name while writing the file.
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="modeGroup" />
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="modeGroup">
+		<xsd:attribute name="mode">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					This attribute defaults to 'REPLACE' if not set explicitly.
+
+					The following options are available:
+
+					APPEND:
+
+					If append is specified, the data will be appended
+					to the existing file if such file exists, otherwise the
+					new file will be created as usual but, once created, the
+					subsequent data will be appended to it. This attribute
+					is mutualy exclusive with the use of a temporary file,
+					since append is done to the actual file and not its
+					temporary counterpart.
+
+					If set to APPEND, the component will also use
+					instance of the LockRegistry to ensure that there are no
+					collisions when multiple threads are writing to the same
+					file.
+
+					FAIL:
+
+					If the target file exists, a MessageHandlingException
+					is thrown.
+
+					IGNORE:
+
+					If the target file exists, the message payload is silently
+					ignored.
+
+					REPLACE:
+
+					This is the default behavior when writing files. If the
+					target file already exists, it will be overwritten.
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="mode xsd:string"/>
+			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 

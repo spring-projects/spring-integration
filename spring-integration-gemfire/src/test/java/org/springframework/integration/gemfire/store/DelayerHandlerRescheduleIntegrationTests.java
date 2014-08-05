@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
@@ -46,6 +46,7 @@ import com.gemstone.gemfire.cache.Cache;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class DelayerHandlerRescheduleIntegrationTests {
@@ -54,8 +55,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static Cache cache;
 
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
+	@ClassRule
+	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@BeforeClass
 	public static void startUp() throws Exception {
@@ -125,6 +126,10 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertNotSame(payload1, payload2);
 
 		assertEquals(1, messageStore.getMessageGroupCount());
+		int n = 0;
+		while (n++ < 200 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
+			Thread.sleep(50);
+		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
 	}

@@ -22,8 +22,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
 import org.springframework.integration.transformer.AbstractTransformer;
-import org.springframework.integration.xml.result.DomResultFactory;
-import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Marshaller;
@@ -35,11 +33,9 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class MarshallingTransformer extends AbstractTransformer {
+public class MarshallingTransformer extends AbstractXmlTransformer {
 
 	private final Marshaller marshaller;
-
-	private volatile ResultFactory resultFactory;
 
 	private final ResultTransformer resultTransformer;
 
@@ -50,18 +46,12 @@ public class MarshallingTransformer extends AbstractTransformer {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
 		this.resultTransformer = resultTransformer;
-		this.resultFactory = new DomResultFactory();
 	}
 
 	public MarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
 		this(marshaller, null);
 	}
 
-
-	public void setResultFactory(ResultFactory resultFactory) {
-		Assert.notNull(resultFactory, "ResultFactory must not be null");
-		this.resultFactory = resultFactory;
-	}
 
 	/**
 	 * Specify whether the source Message's payload should be extracted prior
@@ -79,11 +69,12 @@ public class MarshallingTransformer extends AbstractTransformer {
 		return "xml:marshalling-transformer";
 	}
 
+
 	@Override
 	public Object doTransform(Message<?> message) {
 		Object source = (this.extractPayload) ? message.getPayload() : message;
 		Object transformedPayload = null;
-		Result result = this.resultFactory.createResult(source);
+		Result result = this.getResultFactory().createResult(source);
 		if (result == null) {
 			throw new MessagingException(
 					"Unable to marshal payload, ResultFactory returned null.");

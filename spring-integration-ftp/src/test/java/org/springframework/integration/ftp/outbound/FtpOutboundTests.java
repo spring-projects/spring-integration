@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,20 +48,20 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -207,17 +207,20 @@ public class FtpOutboundTests {
 		File destFile = new File(targetDir, srcFile.getName());
 		destFile.deleteOnExit();
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("FtpOutboundInsideChainTests-context.xml", getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"FtpOutboundInsideChainTests-context.xml", getClass());
 
 		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
 
 		channel.send(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
+		context.close();
 	}
 
 	@Test //INT-2275
 	public void testFtpOutboundGatewayInsideChain() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("FtpOutboundInsideChainTests-context.xml", getClass());
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"FtpOutboundInsideChainTests-context.xml", getClass());
 
 		MessageChannel channel = context.getBean("ftpOutboundGatewayInsideChain", MessageChannel.class);
 
@@ -235,6 +238,7 @@ public class FtpOutboundTests {
 		for (FileInfo<?> remoteFile : remoteFiles) {
 			assertTrue(files.contains(remoteFile.getFilename()));
 		}
+		context.close();
 	}
 
 

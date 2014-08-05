@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ftpServer" class="org.springframework.integration.ftp.TesFtpServer">
+	<bean id="ftpServer" class="org.springframework.integration.ftp.TestFtpServer">
 		<constructor-arg value="FtpServerOutboundTests"/>
 	</bean>
 
@@ -103,5 +103,36 @@
 							  expression="payload"
 							  remote-directory="ftpTarget"
 							  reply-channel="output"/>
+
+	<int:channel id="appending" />
+
+	<int-ftp:outbound-channel-adapter id="appender"
+							  session-factory="ftpSessionFactory"
+							  channel="appending"
+							  mode="APPEND"
+							  use-temporary-file-name="false"
+							  remote-directory="ftpTarget"
+							  auto-create-directory="true"
+							  remote-file-separator="/"	/>
+
+	<int:channel id="ignoring" />
+
+	<int-ftp:outbound-channel-adapter id="ignore"
+							  session-factory="ftpSessionFactory"
+							  channel="ignoring"
+							  mode="IGNORE"
+							  remote-directory="ftpTarget"
+							  auto-create-directory="true"
+							  remote-file-separator="/"	/>
+
+	<int:channel id="failing" />
+
+	<int-ftp:outbound-channel-adapter id="fail"
+							  session-factory="ftpSessionFactory"
+							  channel="failing"
+							  mode="FAIL"
+							  remote-directory="ftpTarget"
+							  auto-create-directory="true"
+							  remote-file-separator="/"	/>
 
 </beans>

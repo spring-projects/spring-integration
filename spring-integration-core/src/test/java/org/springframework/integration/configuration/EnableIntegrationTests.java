@@ -17,7 +17,15 @@
 package org.springframework.integration.configuration;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.lang.annotation.ElementType;
@@ -402,19 +410,19 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
 
 		consumer = this.context.getBean(
-					"enableIntegrationTests.AnnotationTestService.annCount1.serviceActivator",
-					PollingConsumer.class);
+				"enableIntegrationTests.AnnotationTestService.annCount1.serviceActivator",
+				PollingConsumer.class);
 		consumer.stop();
 		assertTrue(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput1"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice1"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(2000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -425,7 +433,7 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -437,7 +445,7 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput3"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertSame(context.getBean("annAdvice"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
@@ -448,8 +456,8 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.discardChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.discardChannelName"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
 		assertFalse(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
@@ -460,8 +468,8 @@ public class EnableIntegrationTests {
 		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.outputChannel"));
-		assertSame(context.getBean("annOutput"), TestUtils.getPropertyValue(consumer, "handler.discardChannel"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.discardChannelName"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
 		assertEquals(75L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
 		assertTrue(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
@@ -795,8 +803,8 @@ public class EnableIntegrationTests {
 			return new MessageHandler() {
 				@Override
 				public void handleMessage(Message<?> message) throws MessagingException {
-						asyncAnnotationProcessLatch().countDown();
-						asyncAnnotationProcessThread().set(Thread.currentThread());
+					asyncAnnotationProcessLatch().countDown();
+					asyncAnnotationProcessThread().set(Thread.currentThread());
 				}
 			};
 		}
@@ -996,7 +1004,7 @@ public class EnableIntegrationTests {
 		}
 
 		@MyServiceActivator1(inputChannel = "annInput1", autoStartup = "true",
-				adviceChain = { "annAdvice1" }, poller = @Poller(fixedRate = "2000") )
+				adviceChain = {"annAdvice1"}, poller = @Poller(fixedRate = "2000"))
 		public Integer annCount1() {
 			return 0;
 		}
@@ -1074,11 +1082,11 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@ServiceActivator(autoStartup = "false",
-					  phase = "23",
-					  inputChannel = "annInput",
-					  outputChannel = "annOutput",
-					  adviceChain = { "annAdvice" },
-					  poller = @Poller(fixedDelay = "1000"))
+			phase = "23",
+			inputChannel = "annInput",
+			outputChannel = "annOutput",
+			adviceChain = {"annAdvice"},
+			poller = @Poller(fixedDelay = "1000"))
 	public static @interface MyServiceActivator {
 
 		String inputChannel() default "";
@@ -1181,22 +1189,22 @@ public class EnableIntegrationTests {
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@ServiceActivator(autoStartup = "false",
-					  phase = "23",
-					  inputChannel = "annInput",
-					  outputChannel = "annOutput",
-					  adviceChain = { "annAdvice" },
-					  poller = @Poller(fixedDelay = "1000"))
+			phase = "23",
+			inputChannel = "annInput",
+			outputChannel = "annOutput",
+			adviceChain = {"annAdvice"},
+			poller = @Poller(fixedDelay = "1000"))
 	public static @interface MyServiceActivatorNoLocalAtts {
 	}
 
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@Aggregator(autoStartup = "false",
-				phase = "23",
-				inputChannel = "annInput",
-				outputChannel = "annOutput",
-				discardChannel = "annOutput",
-				poller = @Poller(fixedDelay = "1000"))
+			phase = "23",
+			inputChannel = "annInput",
+			outputChannel = "annOutput",
+			discardChannel = "annOutput",
+			poller = @Poller(fixedDelay = "1000"))
 	public static @interface MyAggregator {
 
 		String inputChannel() default "";
@@ -1219,13 +1227,13 @@ public class EnableIntegrationTests {
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@Aggregator(autoStartup = "false",
-				phase = "23",
-				inputChannel = "annInput",
-				outputChannel = "annOutput",
-				discardChannel = "annOutput",
-				sendPartialResultsOnExpiry = false,
-				sendTimeout = 1000L,
-				poller = @Poller(fixedDelay = "1000"))
+			phase = "23",
+			inputChannel = "annInput",
+			outputChannel = "annOutput",
+			discardChannel = "annOutput",
+			sendPartialResultsOnExpiry = false,
+			sendTimeout = 1000L,
+			poller = @Poller(fixedDelay = "1000"))
 	public static @interface MyAggregatorDefaultOverrideDefaults {
 
 		boolean sendPartialResultsOnExpiry() default true;

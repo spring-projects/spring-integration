@@ -75,7 +75,9 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		}
 		String defaultOutputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations,
 				"defaultOutputChannel", String.class);
-		router.setDefaultOutputChannelName(defaultOutputChannelName);
+		if (StringUtils.hasText(defaultOutputChannelName)) {
+			router.setDefaultOutputChannelName(defaultOutputChannelName);
+		}
 
 		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
 		if (StringUtils.hasText(applySequence)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,10 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
+
+import reactor.util.StringUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -32,16 +35,23 @@ import org.springframework.integration.file.remote.handler.FileTransferringMessa
  * @author Gary Russell
  * @since 2.0
  */
-public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public abstract class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandler.class);
 
-		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, true);
+		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, true,
+				getTemplateClass());
 
 		handlerBuilder.addConstructorArgValue(templateDefinition);
+		String mode = element.getAttribute("mode");
+		if (StringUtils.hasText(mode)) {
+			handlerBuilder.addConstructorArgValue(mode);
+		}
 		return handlerBuilder.getBeanDefinition();
 	}
+
+	protected abstract Class<? extends RemoteFileOperations<?>> getTemplateClass();
 
 }

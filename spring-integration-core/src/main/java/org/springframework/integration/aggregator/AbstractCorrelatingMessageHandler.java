@@ -56,7 +56,6 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -198,27 +197,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			getMessagingTemplate().setBeanFactory(beanFactory);
-			if (StringUtils.hasText(this.discardChannelName)) {
-				Assert.isNull(this.discardChannel, "'outputChannelName' and 'discardChannel' are mutually exclusive.");
-				try {
-					this.discardChannel = beanFactory.getBean(this.discardChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.discardChannelName + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
+					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 
-			if (StringUtils.hasText(getOutputChannelName())) {
-				Assert.isNull(getOutputChannel(), "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				try {
-					setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ getOutputChannelName() + "' in the BeanFactory.");
-				}
-			}
+			Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
+					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 
 			if (this.outputProcessor instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
@@ -255,6 +238,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
 		this.discardChannelName = discardChannelName;
 	}
 
@@ -275,7 +259,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * schedule than expiring partial groups, set this property. Empty groups will
 	 * then not be removed from the MessageStore until they have not been modified
 	 * for at least this number of milliseconds.
-	 *
 	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
 	 */
 	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
@@ -433,12 +416,30 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 			else {
-				discardChannel.send(message);
+				discardMessage(message);
 			}
 		}
 		finally {
 			lock.unlock();
 		}
+	}
+
+	private void discardMessage(Message<?> message) {
+		if (this.discardChannelName != null) {
+			synchronized (this) {
+				if (this.discardChannelName != null) {
+					try {
+						this.discardChannel = getBeanFactory().getBean(this.discardChannelName, MessageChannel.class);
+						this.discardChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.discardChannelName + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+		this.discardChannel.send(message);
 	}
 
 	/**
@@ -563,17 +564,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: " + getOutputChannel());
+						+ correlationKey + "] to: "
+						+ (getOutputChannelName() != null ? getOutputChannelName() : getOutputChannel()));
 			}
 			completeGroup(correlationKey, group);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Discarding messages of partially complete group with key ["
-						+ correlationKey + "] to: " + discardChannel);
+						+ correlationKey + "] to: "
+						+ (this.discardChannelName != null ? this.discardChannelName : this.discardChannel));
 			}
 			for (Message<?> message : group.getMessages()) {
-				discardChannel.send(message);
+				discardMessage(message);
 			}
 		}
 		if (this.applicationEventPublisher != null) {
@@ -617,6 +620,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
+		if (getOutputChannelName() != null) {
+			synchronized (this) {
+				if (getOutputChannelName() != null) {
+					try {
+						setOutputChannel(getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
+						setOutputChannelName(null);
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ getOutputChannelName() + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+
 		Object replyChannel = getOutputChannel();
 		if (getOutputChannel() == null) {
 			replyChannel = replyChannelHeader;
@@ -690,12 +708,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
 				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
-				if (!messageSequenceSize.equals(this.getSequenceSize())) {
-					return false;
-				}
-				else {
-					return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
-				}
+				return messageSequenceSize.equals(this.getSequenceSize())
+						&& !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
 			}
 			return true;
 		}
@@ -710,4 +724,5 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			return false;
 		}
 	}
+
 }

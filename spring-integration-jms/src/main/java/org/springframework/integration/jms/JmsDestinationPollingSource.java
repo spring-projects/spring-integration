@@ -22,6 +22,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -40,6 +41,7 @@ import org.springframework.util.Assert;
  */
 public class JmsDestinationPollingSource extends IntegrationObjectSupport implements MessageSource<Object> {
 
+
 	private final JmsTemplate jmsTemplate;
 
 	private volatile Destination destination;
@@ -50,11 +52,11 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
+	private volatile String sessionAcknowledgeMode;
 
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		this.jmsTemplate = jmsTemplate;
 	}
-
 
 	public void setDestination(Destination destination) {
 		Assert.isNull(this.destinationName, "The 'destination' and 'destinationName' properties are mutually exclusive.");
@@ -82,6 +84,10 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
+	}
+
+	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
+		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
 
 	/**
@@ -125,6 +131,21 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 			jmsMessage = this.jmsTemplate.receiveSelected(this.messageSelector);
 		}
 		return jmsMessage;
+	}
+
+	@Override
+	protected void onInit() {
+		if (this.sessionAcknowledgeMode != null) {
+			Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.sessionAcknowledgeMode);
+			if (acknowledgeMode != null) {
+				if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
+					this.jmsTemplate.setSessionTransacted(true);
+				}
+				else {
+					this.jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
+				}
+			}
+		}
 	}
 
 }

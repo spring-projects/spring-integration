@@ -26,7 +26,7 @@
 
 	<enricher id="enricher" input-channel="input"
 	                        request-channel="requests1" request-timeout="1234"
-	                        reply-timeout="9876" reply-channel="replies"
+	                        reply-timeout="0" reply-channel="replies"
 	                        order="99" should-clone-payload="true" output-channel="output">
 		<property name="name" expression="payload.sourceName" null-result-expression="'Could not determine the name'"/>
 		<property name="age" value="42" null-result-expression="'11'"/>

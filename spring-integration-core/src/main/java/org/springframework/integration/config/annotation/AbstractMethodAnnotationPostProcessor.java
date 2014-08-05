@@ -319,7 +319,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	protected void setOutputChannelIfPresent(List<Annotation> annotations, AbstractReplyProducingMessageHandler	handler) {
 		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
 		if (StringUtils.hasText(outputChannelName)) {
-			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
+			handler.setOutputChannelName(outputChannelName);
 		}
 	}
 

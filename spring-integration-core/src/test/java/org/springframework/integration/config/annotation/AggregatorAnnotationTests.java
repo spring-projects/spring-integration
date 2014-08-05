@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,8 @@ import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Marius Bogoevici
@@ -71,10 +68,8 @@ public class AggregatorAnnotationTests {
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
-		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryChannelResolver(context);
-		assertEquals(channelResolver.resolveDestination("outputChannel"), getPropertyValue(aggregator, "outputChannel"));
-		assertEquals(channelResolver.resolveDestination("discardChannel"), getPropertyValue(aggregator,
-				"discardChannel"));
+		assertEquals("outputChannel", getPropertyValue(aggregator, "outputChannelName"));
+		assertEquals("discardChannel", getPropertyValue(aggregator, "discardChannelName"));
 		assertEquals(98765432l, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}

@@ -629,7 +629,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		</para>
 		<note>
 			When a group is timed out, the <interfacename>ReleaseStrategy</interfacename> is given
-			one more opportunity to release the group; if it does so, then expiration is controlled
+			one more opportunity to release the group; if it does so, and
+			<code>expire-groups-upon-timeout</code> is false,
+			then expiration is controlled
 			by <code>expire-groups-upon-completion</code>. If the group is not released by the release
 			strategy during timeout, then the expiration is controlled by the
 			<code>expire-groups-upon-timeout</code>. Timed-out groups are either discarded, or a

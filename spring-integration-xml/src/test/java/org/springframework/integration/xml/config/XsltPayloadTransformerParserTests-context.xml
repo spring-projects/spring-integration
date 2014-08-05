@@ -1,32 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
-       xmlns:si="http://www.springframework.org/schema/integration"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
+		xmlns:si="http://www.springframework.org/schema/integration"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+			
+	<context:property-placeholder properties-ref="props"/>
 
+	<util:properties id="props">
+		<prop key="domResult">DOMResult</prop>
+		<prop key="stringResult">StringResult</prop>
+ 	</util:properties>
+ 	
     <si:channel id="output">
         <si:queue capacity="1"/>
     </si:channel>
 
     <si:channel id="withResourceIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithResource"
                              input-channel="withResourceIn"
                              output-channel="output"
                              xsl-resource="org/springframework/integration/xml/config/test.xsl"/>
 
     <si:channel id="withTemplatesIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplates"
                              input-channel="withTemplatesIn"
                              output-channel="output"
                              xsl-templates="templates"/>
 
     <si:channel id="withTemplatesAndResultTransformerIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
                              input-channel="withTemplatesAndResultTransformerIn"
                              output-channel="output"
@@ -34,6 +48,7 @@
                              result-transformer="resultTransformer"/>
 
     <si:channel id="withTemplatesAndResultFactoryIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultFactory"
                              input-channel="withTemplatesAndResultFactoryIn"
                              output-channel="output"
@@ -41,23 +56,24 @@
                              result-factory="stubResultFactory"/>
 
     <si:channel id="withTemplatesAndStringResultTypeIn"/>
+    
     <si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndStringResultType"
                              input-channel="withTemplatesAndStringResultTypeIn"
                              output-channel="output"
                              xsl-templates="templates"
-                             result-type="StringResult"/>
+                             result-type="${stringResult}"/>
 
 
     <si-xml:xslt-transformer id="docInStringResultOutTransformer"
                              input-channel="docinStringResultOutTransformerChannel"
-                             output-channel="output" result-type="StringResult"
+                             output-channel="output" result-type="${stringResult}"
                              xsl-resource="classpath:org/springframework/integration/xml/transformer/transformer.xslt">
     </si-xml:xslt-transformer>
 
 
     <si-xml:xslt-transformer id="stringResultOutTransformer"
                              input-channel="stringResultOutTransformerChannel"
-                             output-channel="output" result-type="DOMResult"
+                             output-channel="output" result-type="${domResult}"
                              xsl-resource="classpath:org/springframework/integration/xml/transformer/transform.xsl">
     </si-xml:xslt-transformer>
 
@@ -79,6 +95,5 @@
     </bean>
 
     <bean id="stubResultFactory" class="org.springframework.integration.xml.config.StubResultFactory"/>
-
 
 </beans>
