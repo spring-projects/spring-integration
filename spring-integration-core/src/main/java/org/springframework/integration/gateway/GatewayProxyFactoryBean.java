@@ -312,7 +312,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
 		}
 		if (Promise.class.isAssignableFrom(returnType)) {
-			Assert.notNull(this.reactorEnvironment, "'reactorEnvironment' is required in case of 'Promise' return type.");
+			Assert.state(this.reactorEnvironment != null,
+					"'reactorEnvironment' is required in case of 'Promise' return type.");
 			return Promises.<Object>task(Functions.supplier(new AsyncInvocationTask(invocation)))
 					.env(this.reactorEnvironment)
 					.get();

@@ -17,7 +17,9 @@
 package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
@@ -25,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -216,6 +219,23 @@ public class AsyncGatewayTests {
 		assertEquals("foobar", result.get());
 	}
 
+	@Test
+	public void promiseMethodWithoutEnvironment() throws Exception {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		try {
+			service.returnStringPromise("foo");
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(IllegalStateException.class));
+			assertEquals(e.getMessage(), "'reactorEnvironment' is required in case of 'Promise' return type.");
+		}
+	}
 
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
