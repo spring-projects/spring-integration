@@ -41,6 +41,7 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
@@ -101,8 +102,18 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 				Object payload = WebSocketInboundChannelAdapter.this.messageConverter.fromMessage(message,
 						WebSocketInboundChannelAdapter.this.payloadType.get());
 				SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
-				headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
-				sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+				SimpMessageType messageType = headerAccessor.getMessageType();
+				if (messageType == null || SimpMessageType.MESSAGE.equals(messageType)) {
+					headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
+					sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+				}
+				else {
+				   if (logger.isDebugEnabled()) {
+					   logger.debug("Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
+							   "'outputChannel'. They have to be emitted as 'ApplicationEvent's " +
+							   "from the 'SubProtocolHandler'. Received message: " + message);
+				   }
+				}
 			}
 
 		});

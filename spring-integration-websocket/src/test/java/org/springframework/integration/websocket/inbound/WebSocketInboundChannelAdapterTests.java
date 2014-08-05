@@ -86,7 +86,7 @@ public class WebSocketInboundChannelAdapterTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testWebSocketOutboundMessageHandler() throws Exception {
+	public void testWebSocketInboundMessageHandler() throws Exception {
 		WebSocketSession session = clientWebSocketContainer.getSession(null);
 		assertNotNull(session);
 		assertTrue(session.isOpen());
@@ -100,7 +100,7 @@ public class WebSocketInboundChannelAdapterTests {
 
 		String sessionId = sessions.keySet().iterator().next();
 
-		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECTED);
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.MESSAGE);
 		headers.setLeaveMutable(true);
 		headers.setSessionId(sessionId);
 		Message<byte[]> message = MessageBuilder.createMessage(ByteBuffer.allocate(0).array(), headers.getMessageHeaders());
@@ -111,7 +111,7 @@ public class WebSocketInboundChannelAdapterTests {
 		assertNotNull(received);
 
 		StompHeaderAccessor receivedHeaders = StompHeaderAccessor.wrap(received);
-		assertEquals(StompCommand.CONNECTED, receivedHeaders.getCommand());
+		assertEquals(StompCommand.MESSAGE, receivedHeaders.getCommand());
 
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload, instanceOf(String.class));
