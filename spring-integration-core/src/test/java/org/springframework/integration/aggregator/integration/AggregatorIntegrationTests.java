@@ -181,7 +181,7 @@ public class AggregatorIntegrationTests {
 
 		// The last message in the sequence - normal release by provided 'ReleaseStrategy'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(6, stubHeaders(6, 6, 1)));
-		receive = this.output.receive(0);
+		receive = this.output.receive(500);
 		assertNotNull(receive);
 		assertEquals(1, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));

@@ -74,13 +74,14 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
 			}
-			throw new MessageHandlingException(message, "failure occurred in Service Activator '" + this + "'", e);
+			throw new MessageHandlingException(message, "failure occurred in '" + this + "'", e);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "ServiceActivator for [" + this.processor + "]";
+		return "ServiceActivator for [" + this.processor + "]"
+				+ (this.getComponentName() == null ? "" : " (" + this.getComponentName() + ")");
 	}
 
 }

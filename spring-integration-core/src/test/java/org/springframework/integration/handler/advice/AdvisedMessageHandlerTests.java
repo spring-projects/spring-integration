@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.handler.advice;
 
+import static org.hamcrest.Matchers.endsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -46,6 +47,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -54,6 +56,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -64,6 +67,7 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -76,6 +80,9 @@ import org.springframework.retry.RetryState;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.DefaultRetryState;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -83,7 +90,32 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  * @since 2.2
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class AdvisedMessageHandlerTests {
+
+	@Autowired
+	private MessageChannel input;
+
+	@Test
+	public void circuitBreakerExceptionText() {
+		GenericMessage<String> message = new GenericMessage<String>("foo");
+		try {
+			input.send(message);
+			fail("expected exception");
+		}
+		catch (MessageHandlingException e) {
+			assertThat(e.getCause(), Matchers.instanceOf(ArithmeticException.class));
+		}
+		try {
+			input.send(message);
+			fail("expected exception");
+		}
+		catch (RuntimeException e) {
+			assertThat(e.getMessage(), endsWith("(myService)]"));
+		}
+	}
 
 	@Test
 	public void successFailureAdvice() {
@@ -252,6 +284,7 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpression("1/0");
@@ -812,6 +845,7 @@ public class AdvisedMessageHandlerTests {
 		QueueChannel errors = new QueueChannel();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
 		expressionAdvice.setOnFailureExpression("'foo'");
 		expressionAdvice.setFailureChannel(errors);
 
