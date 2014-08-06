@@ -124,6 +124,12 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 					this.handler instanceof AbstractReplyProducingMessageHandler) {
 				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
 			}
+			else if(!(this.handler instanceof AbstractReplyProducingMessageHandler)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("adviceChain can only be set to AbstractReplyProducingMessageHandler or its subclass, "
+					+ ((IntegrationObjectSupport) this.handler).getComponentName() + " doesn't support it.");
+				}
+			}
 			if (this.handler instanceof Orderable && this.order != null) {
 				((Orderable) this.handler).setOrder(this.order);
 			}

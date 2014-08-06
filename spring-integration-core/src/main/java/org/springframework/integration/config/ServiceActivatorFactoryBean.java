@@ -123,7 +123,15 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 			handler.setSendTimeout(this.sendTimeout);
 		}
 		if (this.requiresReply != null) {
-			handler.setRequiresReply(this.requiresReply);
+			if(handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
+					+ handler.getComponentName() + " doesn't support it.");
+				}
+			}
 		}
 	}
 

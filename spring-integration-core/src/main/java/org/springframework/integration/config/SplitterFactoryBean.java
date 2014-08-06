@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
@@ -117,7 +118,9 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			handler.setSendTimeout(sendTimeout);
 		}
 		if (this.requiresReply != null) {
-			handler.setRequiresReply(requiresReply);
+			if(handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
+			}
 		}
 		if (!(handler instanceof AbstractMessageSplitter)) {
 			Assert.isNull(this.applySequence, "Cannot set applySequence if the referenced bean is "
