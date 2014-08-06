@@ -234,8 +234,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	/**
-	 * Set the Reactor {@link Environment} to be used for {@link Promise} return type.
-	 * Required in case of {@link Promise} usage.
+	 * Set the Reactor {@link Environment} to be used for processing methods with a
+	 * {@link Promise} return type. (Required when any such methods are declared on the
+	 * service interface).
 	 * @param reactorEnvironment the Reactor Environment.
 	 * @since 4.1
 	 */
@@ -312,8 +313,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
 		}
 		if (Promise.class.isAssignableFrom(returnType)) {
-			Assert.state(this.reactorEnvironment != null,
-					"'reactorEnvironment' is required in case of 'Promise' return type.");
+			if (this.reactorEnvironment == null) {
+				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
+			}
 			return Promises.<Object>task(Functions.supplier(new AsyncInvocationTask(invocation)))
 					.env(this.reactorEnvironment)
 					.get();
