@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.filters;
-
-
 
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
@@ -27,6 +26,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * 'seen' this file.
  *
  * @author Gary Russell
+ * @author David Liu
  * @since 3.0
  *
  */
@@ -43,8 +43,7 @@ public class SftpPersistentAcceptOnceFileListFilter extends AbstractPersistentAc
 
 	@Override
 	protected String fileName(LsEntry file) {
-		return file.getLongname();
+		return file.getFilename();
 	}
-
 
 }

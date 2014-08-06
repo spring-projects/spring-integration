@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.filters;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.List;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpATTRS;
 import org.junit.Test;
 
 import org.springframework.integration.metadata.SimpleMetadataStore;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpATTRS;
+
 /**
  * @author Gary Russell
+ * @author David Liu
  * @since 4.0.4
  *
  */
@@ -60,6 +64,24 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		assertEquals("baz", now.get(1).getFilename());
 		now = filter.filterFiles(files);
 		assertEquals(0, now.size());
+	}
+
+	@Test
+	public void testKeyUsingFileName() throws Exception {
+		SftpPersistentAcceptOnceFileListFilter filter = new SftpPersistentAcceptOnceFileListFilter(
+				new SimpleMetadataStore(), "rollback:");
+		ChannelSftp channel = new ChannelSftp();
+		SftpATTRS attrs = mock(SftpATTRS.class);
+		@SuppressWarnings("unchecked")
+		Constructor<LsEntry> ctor = (Constructor<LsEntry>) LsEntry.class.getDeclaredConstructors()[0];
+		ctor.setAccessible(true);
+		LsEntry sftpFile1 = ctor.newInstance(channel, "foo", "same", attrs);
+		LsEntry sftpFile2 = ctor.newInstance(channel, "bar", "same", attrs);
+		LsEntry[] files = new LsEntry[] {sftpFile1, sftpFile2};
+		List<LsEntry> now = filter.filterFiles(files);
+		assertEquals(2, now.size());
+		assertEquals("foo", now.get(0).getFilename());
+		assertEquals("bar", now.get(1).getFilename());
 	}
 
 }
