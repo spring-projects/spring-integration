@@ -17,10 +17,14 @@
 package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Test;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -37,6 +41,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Kris Jacyna
  * @since 2.0.1
  */
 public class MessageProducerSupportTests {
@@ -114,6 +119,22 @@ public class MessageProducerSupportTests {
 		assertEquals(message, exception.getFailedMessage());
 	}
 
+	@Test
+	public void customDoStop() {
+		final CustomEndpoint endpoint = new CustomEndpoint();
+		assertEquals(0, endpoint.getCount());
+		assertTrue(endpoint.isStopped());
+		endpoint.start();
+		assertFalse(endpoint.isStopped());
+		endpoint.stop(new Runnable() {
+			@Override
+			public void run() {
+				// Do nothing
+			}
+		});
+		assertEquals(1, endpoint.getCount());
+		assertTrue(endpoint.isStopped());
+	}
 
 	private static class SuccessfulErrorService {
 
@@ -123,6 +144,37 @@ public class MessageProducerSupportTests {
 		public void handleErrorMessage(Message<?> errorMessage) {
 			this.lastMessage = errorMessage;
 		}
+	}
+
+	private static class CustomEndpoint extends AbstractEndpoint {
+
+		private final AtomicInteger count = new AtomicInteger(0);
+		private final AtomicBoolean stopped = new AtomicBoolean(true);
+
+		public int getCount() {
+			return this.count.get();
+		}
+
+		public boolean isStopped() {
+			return this.stopped.get();
+		}
+
+		@Override
+		protected void doStop(final Runnable callback) {
+			this.count.incrementAndGet();
+			super.doStop(callback);
+		}
+
+		@Override
+		protected void doStart() {
+			this.stopped.set(false);
+		}
+
+		@Override
+		protected void doStop() {
+			this.stopped.set(true);
+		}
+
 	}
 
 }

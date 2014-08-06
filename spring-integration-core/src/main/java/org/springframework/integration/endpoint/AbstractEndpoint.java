@@ -34,6 +34,7 @@ import org.springframework.scheduling.TaskScheduler;
  * to the {@link #setAutoStartup(boolean)} method.
  *
  * @author Mark Fisher
+ * @author Kris Jacyna
  */
 public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle {
 
@@ -84,7 +85,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		this.lifecycleLock.lock();
 		try {
 			if (!this.running) {
-				this.doStart();
+				doStart();
 				this.running = true;
 				if (logger.isInfoEnabled()) {
 					logger.info("started " + this);
@@ -100,7 +101,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
-				this.doStop();
+				doStop();
 				this.running = false;
 				if (logger.isInfoEnabled()) {
 					logger.info("stopped " + this);
@@ -115,12 +116,21 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 	public final void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
-			this.stop();
-			callback.run();
+			doStop(callback);
 		}
 		finally {
 			this.lifecycleLock.unlock();
 		}
+	}
+
+	/**
+	 * Subclasses may override this method to invoke the callback before
+	 * or after the start behavior.
+	 * @param callback the Runnable to invoke
+	 */
+	protected void doStop(Runnable callback) {
+	    doStop();
+	    callback.run();
 	}
 
 	/**
