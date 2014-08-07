@@ -17,7 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
@@ -62,13 +62,13 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	/**
 	 * If the target object is a {@link MessageHandler} and the method is 'handleMessage', return an
-	 * {@link AbstractMessageProducingMessageHandler} that wraps it.
+	 * {@link AbstractMessageProducingHandler} that wraps it.
 	 */
 	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
 		if (targetObject instanceof MessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
-			if (targetObject instanceof AbstractMessageProducingMessageHandler) {
+			if (targetObject instanceof AbstractMessageProducingHandler) {
 				// should never happen but just return it if it's already an AMPMH
 				return (MessageHandler) targetObject;
 			}
@@ -109,16 +109,16 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 
 	/**
-	 * Always returns true - any {@link AbstractMessageProducingMessageHandler} can
+	 * Always returns true - any {@link AbstractMessageProducingHandler} can
 	 * be used directly.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return true;
 	}
 
 	@Override
-	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}

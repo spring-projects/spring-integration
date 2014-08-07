@@ -37,9 +37,8 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
@@ -80,8 +79,8 @@ import org.springframework.util.CollectionUtils;
  * @author Artem Bilan
  * @since 2.0
  */
-public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingMessageHandler
-		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware,
+public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
+		implements DisposableBean, IntegrationEvaluationContextAware,
 		ApplicationEventPublisherAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
@@ -636,7 +635,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 
 		Object replyChannel = getOutputChannel();
-		if (getOutputChannel() == null) {
+		if (replyChannel == null) {
 			replyChannel = replyChannelHeader;
 		}
 		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");

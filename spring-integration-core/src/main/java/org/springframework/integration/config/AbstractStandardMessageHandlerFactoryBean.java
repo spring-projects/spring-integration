@@ -22,7 +22,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.handler.AbstractMessageProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.MessageHandler;
@@ -78,8 +78,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		if (this.targetObject != null) {
 			Assert.state(this.expression == null,
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
-			AbstractMessageProducingMessageHandler actualHandler = this.extractTypeIfPossible(targetObject,
-					AbstractMessageProducingMessageHandler.class);
+			AbstractMessageProducingHandler actualHandler = this.extractTypeIfPossible(targetObject,
+					AbstractMessageProducingHandler.class);
 			boolean targetIsDirectReplyProducingHandler = actualHandler != null
 							&& this.canBeUsedDirect(actualHandler) // give subclasses a say
 							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
@@ -120,7 +120,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		}
 	}
 
-	private void checkReuse(AbstractMessageProducingMessageHandler replyHandler) {
+	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
 		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
 				"An AbstractReplyProducingMessageHandler may only be referenced once (" +
 				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
@@ -171,11 +171,11 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 				|| "handleMessage".equals(targetMethodName));
 	}
 
-	protected boolean canBeUsedDirect(AbstractMessageProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return false;
 	}
 
-	protected void postProcessReplyProducer(AbstractMessageProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 	}
 
 }
