@@ -72,18 +72,16 @@ public class RedisQueueOutboundGatewayParserTests extends RedisAvailableTests {
 
 	@Test
 	public void testDefaultConfig() throws Exception {
-		assertSame(this.connectionFactory,
-				TestUtils.getPropertyValue(this.defaultGateway, "template.connectionFactory"));
-		assertEquals("si.test.queue",
-				TestUtils.getPropertyValue(this.defaultGateway, "queueName", String.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
-		assertSame(serializer,TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
-		assertEquals(2,(int)TestUtils.getPropertyValue(this.defaultGateway, "order", Integer.class));
-		assertSame(receiveChannel,TestUtils.getPropertyValue(this.defaultGateway, "outputChannel", MessageChannel.class));
-		assertSame(requestChannel,TestUtils.getPropertyValue(this.consumer, "inputChannel", PollableChannel.class));
-		assertEquals(true,TestUtils.getPropertyValue(this.defaultGateway, "requiresReply", Boolean.class));
-		assertEquals(2000,(int)TestUtils.getPropertyValue(this.defaultGateway, "timeout", Integer.class));
+		assertSame(serializer, TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
+		assertEquals(2, (int)TestUtils.getPropertyValue(this.defaultGateway, "order", Integer.class));
+		assertSame(receiveChannel, TestUtils.getPropertyValue(this.defaultGateway, "outputChannel", MessageChannel.class));
+		assertSame(requestChannel, TestUtils.getPropertyValue(this.consumer, "inputChannel", PollableChannel.class));
+		assertEquals(true, TestUtils.getPropertyValue(this.defaultGateway, "requiresReply", Boolean.class));
+		assertEquals(2000, (int)TestUtils.getPropertyValue(this.defaultGateway, "timeout", Integer.class));
+		assertEquals(false, TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
+		assertSame(3, Integer.valueOf(TestUtils.getPropertyValue(this.defaultGateway, "phase", Integer.class)));
 	}
 
 }

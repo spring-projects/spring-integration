@@ -18,7 +18,9 @@
 		queue="si.test.queue"
 		task-executor="executor"
 		expect-message="true"
-		serializer="serializer"/>
+		serializer="serializer"
+		auto-startup="false"
+		phase="3"/>
 	
 	<int:channel id="si.test.queue">
 		<int:queue/>

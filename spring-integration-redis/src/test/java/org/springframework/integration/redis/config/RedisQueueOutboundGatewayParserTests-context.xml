@@ -18,7 +18,9 @@
 										order="2"
 										queue="si.test.queue"
 										extract-payload="true"
-										serializer="serializer">
+										serializer="serializer"
+										auto-startup="false"
+										phase="3">
 		<int-redis:request-handler-advice-chain>
 			<int:retry-advice/>
 		</int-redis:request-handler-advice-chain>

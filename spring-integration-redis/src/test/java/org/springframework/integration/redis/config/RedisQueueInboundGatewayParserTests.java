@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -38,7 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import reactor.util.Assert;
 
 /**
- * @author David Liu 
+ * @author David Liu
  * since 4.1
  */
 @ContextConfiguration
@@ -46,36 +45,31 @@ import reactor.util.Assert;
 public class RedisQueueInboundGatewayParserTests extends RedisAvailableTests {
 
 	@Autowired
-	private RedisConnectionFactory connectionFactory;
-
-	@Autowired
 	@Qualifier("inboundGateway")
 	private RedisQueueInboundGateway defaultGateway;
-	
+
 	@Autowired
 	@Qualifier("receiveChannel")
 	private MessageChannel receiveChannel;
-	
+
 	@Autowired
 	@Qualifier("requestChannel")
 	private MessageChannel requestChannel;
 
 	@Autowired
 	private RedisSerializer<?> serializer;
-	
+
 	@Test
 	public void testDefaultConfig() throws Exception {
-		assertSame(this.connectionFactory,
-				TestUtils.getPropertyValue(this.defaultGateway, "template.connectionFactory"));
-		assertEquals("si.test.queue",
-				TestUtils.getPropertyValue(this.defaultGateway, "queue", String.class));
-		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "expectMessage", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
 		assertSame(serializer,TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
 		assertSame(receiveChannel,TestUtils.getPropertyValue(this.defaultGateway, "replyChannel", MessageChannel.class));
 		assertSame(requestChannel,TestUtils.getPropertyValue(this.defaultGateway, "requestChannel", PollableChannel.class));
 		assertEquals(2000,(long)TestUtils.getPropertyValue(this.defaultGateway, "replyTimeout", Long.class));
 		Assert.notNull(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor"));
+		assertEquals(false, TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
+		assertSame(3, Integer.valueOf(TestUtils.getPropertyValue(this.defaultGateway, "phase", Integer.class)));
 	}
 
 }

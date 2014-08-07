@@ -36,6 +36,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -55,15 +56,13 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile MessageChannel errorChannel;
 
-	private volatile String queue;
-
 	private volatile boolean serializerExplicitlySet;
 
 	private volatile Executor taskExecutor;
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	private volatile boolean expectMessage = false;
+	private volatile boolean extractPayload = false;
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
@@ -75,7 +74,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile boolean listening;
 
-	private volatile String connectionFactory;
 
 	private volatile RedisTemplate<String, byte[]> template = null;
 
@@ -96,13 +94,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		this.boundListOperations = template.boundListOps(queueName);
 	}
 
-	public void setConnectionFactory(String connectionFactory) {
-		this.connectionFactory = connectionFactory;
-	}
-
-	public void setQueue(String queue) {
-		this.queue = queue;
-	}
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -123,8 +114,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	 * Message.
 	 * @param expectMessage Defaults to false
 	 */
-	public void setExpectMessage(boolean expectMessage) {
-		this.expectMessage = expectMessage;
+	public void setExtractPayload(boolean expectMessage) {
+		this.extractPayload = expectMessage;
 	}
 
 	/**
@@ -170,7 +161,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (this.expectMessage) {
+		if (this.extractPayload) {
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'expectMessage == true'.");
 		}
 		if (this.taskExecutor == null) {
@@ -225,7 +216,21 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			}
 			Object messageBody = null;
 			if (value != null) {
-				messageBody = serializer.deserialize(value);
+				if (this.extractPayload) {
+					try {
+						messageBody = this.serializer.deserialize(value);
+					}
+					catch (Exception e) {
+						throw new MessagingException("Deserialization of Message failed.", e);
+					}
+				}
+				else {
+					Object payload = value;
+					if (this.serializer != null) {
+						payload = this.serializer.deserialize(value);
+					}
+					messageBody = this.getMessageBuilderFactory().withPayload(payload).build();
+				}
 				Message<?> replyMessage = this.sendAndReceiveMessage(messageBody);
 				if (replyMessage != null) {
 					if (!(replyMessage.getPayload() instanceof byte[])) {

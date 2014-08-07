@@ -16,7 +16,6 @@
 
 package org.springframework.integration.redis.outbound;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,6 +26,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 
 /**
@@ -110,17 +110,21 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 			uuidByte = ((RedisSerializer<Object>) serializer).serialize(uuid);
 		}
 		this.template.boundListOps(this.queueName).leftPush(uuidByte);
-		this.template.boundListOps(uuid + "").leftPush(value);
+		this.template.boundListOps(uuid).leftPush(value);
 		this.boundListOperations = template.boundListOps(uuid + MESSAGESUFFIX);
 		byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
-		Object replyMessage = this.serializer.deserialize(reply);
-		if (replyMessage == null) {
-			return null;
+		if(reply != null && reply.length > 0) {
+			Object replyMessage = this.serializer.deserialize(reply);
+			if (replyMessage == null) {
+				return null;
+			}
+			return this.getMessageBuilderFactory().withPayload(replyMessage).build();
 		}
-		return this.getMessageBuilderFactory().withPayload(replyMessage).build();
+		return null;
 	}
 
 	private String generateRandomUUID() {
-		return UUID.randomUUID().toString();
+		AlternativeJdkIdGenerator alternativeJdkIdGenerator = new AlternativeJdkIdGenerator();
+		return alternativeJdkIdGenerator.generateId().toString();
 	}
 }

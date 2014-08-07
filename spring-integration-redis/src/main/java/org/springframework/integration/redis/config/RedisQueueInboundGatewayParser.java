@@ -19,7 +19,8 @@ package org.springframework.integration.redis.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.util.StringUtils;
@@ -30,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author David Liu
  * @since 4.1
  */
-public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser {
+public class RedisQueueInboundGatewayParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -38,7 +39,7 @@ public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser
 	}
 
 	@Override
-	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		builder.addConstructorArgValue(element.getAttribute("queue"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
@@ -53,6 +54,9 @@ public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message", "extractPayload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 	}
 
 }
