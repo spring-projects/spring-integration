@@ -127,7 +127,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
+				if (true == this.requiresReply && logger.isDebugEnabled()) {
 					logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
 					+ handler.getComponentName() + " doesn't support it.");
 				}

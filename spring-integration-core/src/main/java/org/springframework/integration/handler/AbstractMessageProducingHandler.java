@@ -36,10 +36,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private String outputChannelName;
 
-	public MessagingTemplate getMessagingTemplate() {
-		return messagingTemplate;
-	}
-
 	/**
 	 * Set the timeout for sending reply Messages.
 	 *

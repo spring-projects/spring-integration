@@ -131,7 +131,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.correlationStrategy = correlationStrategy == null ?
 				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
-		getMessagingTemplate().setSendTimeout(DEFAULT_SEND_TIMEOUT);
+		super.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
@@ -195,7 +195,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
-			getMessagingTemplate().setBeanFactory(beanFactory);
+			super.messagingTemplate.setBeanFactory(beanFactory);
 			Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 
@@ -243,7 +243,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	@Override
 	public void setSendTimeout(long sendTimeout) {
-		getMessagingTemplate().setSendTimeout(sendTimeout);
+		super.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
@@ -651,15 +651,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	protected void sendReplyMessage(Object reply, Object replyChannel) {
 		if (replyChannel instanceof MessageChannel) {
 			if (reply instanceof Message<?>) {
-				getMessagingTemplate().send((MessageChannel) replyChannel, (Message<?>) reply);
+				super.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
 			} else {
-				getMessagingTemplate().convertAndSend((MessageChannel) replyChannel, reply);
+				super.messagingTemplate.convertAndSend((MessageChannel) replyChannel, reply);
 			}
 		} else if (replyChannel instanceof String) {
 			if (reply instanceof Message<?>) {
-				getMessagingTemplate().send((String) replyChannel, (Message<?>) reply);
+				super.messagingTemplate.send((String) replyChannel, (Message<?>) reply);
 			} else {
-				getMessagingTemplate().convertAndSend((String) replyChannel, reply);
+				super.messagingTemplate.convertAndSend((String) replyChannel, reply);
 			}
 		} else {
 			throw new MessagingException("replyChannel must be a MessageChannel or String");
