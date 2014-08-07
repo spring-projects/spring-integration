@@ -151,6 +151,10 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 		server.start();
 	}
 
+	public int getPort() {
+		return port;
+	}
+
 	@Override
 	public void destroy() throws Exception {
 		this.server.stop();

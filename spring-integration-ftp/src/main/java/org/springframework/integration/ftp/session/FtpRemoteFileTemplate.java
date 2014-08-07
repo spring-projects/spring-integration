@@ -25,6 +25,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.remote.session.SessionFactoryResolver;
 import org.springframework.messaging.MessagingException;
 
 /**
@@ -39,6 +40,9 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 
 	public FtpRemoteFileTemplate(SessionFactory<FTPFile> sessionFactory) {
 		super(sessionFactory);
+	}
+	public FtpRemoteFileTemplate(SessionFactoryResolver<FTPFile> resolver) {
+		super(resolver);
 	}
 
 	@SuppressWarnings("unchecked")
