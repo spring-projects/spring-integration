@@ -151,7 +151,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 				}
 			}
 			if (this.discardChannel != null) {
-				super.messagingTemplate.send(this.discardChannel, message);
+				this.messagingTemplate.send(this.discardChannel, message);
 			}
 			if (this.throwExceptionOnRejection) {
 				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName()

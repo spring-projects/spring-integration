@@ -71,7 +71,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		super.messagingTemplate.setDestinationResolver(channelResolver);
+		this.messagingTemplate.setDestinationResolver(channelResolver);
 	}
 
 
@@ -95,7 +95,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		if (this.getBeanFactory() != null) {
-			super.messagingTemplate.setBeanFactory(getBeanFactory());
+			this.messagingTemplate.setBeanFactory(getBeanFactory());
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
@@ -220,10 +220,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	private void sendMessage(final Message<?> message, final Object channel) {
 		if (channel instanceof MessageChannel) {
-			super.messagingTemplate.send((MessageChannel) channel, message);
+			this.messagingTemplate.send((MessageChannel) channel, message);
 		}
 		else if (channel instanceof String) {
-			super.messagingTemplate.send((String) channel, message);
+			this.messagingTemplate.send((String) channel, message);
 		}
 		else {
 			throw new MessageDeliveryException(message,
