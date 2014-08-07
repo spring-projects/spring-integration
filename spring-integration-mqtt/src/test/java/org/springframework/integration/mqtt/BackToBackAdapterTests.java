@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mqtt;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +32,7 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -58,6 +59,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -68,6 +70,9 @@ public class BackToBackAdapterTests {
 
 	@ClassRule
 	public static final BrokerRunning brokerRunning = BrokerRunning.isRunning(1883);
+
+	@ClassRule
+	public static final TemporaryFolder folder = new TemporaryFolder();
 
 	@Autowired
 	private MessageChannel out;
@@ -221,11 +226,10 @@ public class BackToBackAdapterTests {
 	@Test
 	public void testAsyncPersisted() throws Exception {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-		String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "mqtt_persist";
-		new File(tmpDir).mkdirs();
-		MqttClientPersistence persistence = new MqttDefaultFilePersistence(tmpDir);
+		MqttClientPersistence persistence = new MqttDefaultFilePersistence(folder.getRoot().getAbsolutePath());
 		factory.setPersistence(persistence);
-		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out", factory);
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out",
+				factory);
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setAsync(true);
