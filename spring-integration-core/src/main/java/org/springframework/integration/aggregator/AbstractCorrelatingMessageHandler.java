@@ -183,7 +183,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		setTaskScheduler(taskScheduler);
+		super.setTaskScheduler(taskScheduler);
 	}
 
 	@Override
