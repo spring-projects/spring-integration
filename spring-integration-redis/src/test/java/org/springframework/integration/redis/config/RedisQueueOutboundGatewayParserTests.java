@@ -80,8 +80,8 @@ public class RedisQueueOutboundGatewayParserTests extends RedisAvailableTests {
 		assertSame(requestChannel, TestUtils.getPropertyValue(this.consumer, "inputChannel", PollableChannel.class));
 		assertEquals(true, TestUtils.getPropertyValue(this.defaultGateway, "requiresReply", Boolean.class));
 		assertEquals(2000, (int)TestUtils.getPropertyValue(this.defaultGateway, "timeout", Integer.class));
-		assertEquals(false, TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
-		assertSame(3, Integer.valueOf(TestUtils.getPropertyValue(this.defaultGateway, "phase", Integer.class)));
+		assertEquals(false, TestUtils.getPropertyValue(this.consumer, "autoStartup", Boolean.class));
+		assertSame(3, Integer.valueOf(TestUtils.getPropertyValue(this.consumer, "phase", Integer.class)));
 	}
 
 }

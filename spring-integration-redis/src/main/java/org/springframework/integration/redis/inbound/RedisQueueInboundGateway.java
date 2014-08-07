@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
 @ManagedResource
 public class RedisQueueInboundGateway extends MessagingGatewaySupport implements ApplicationEventPublisherAware {
 
+	private static final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+
 	public static final long DEFAULT_RECEIVE_TIMEOUT = 5000;
 
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
@@ -77,7 +79,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile RedisTemplate<String, byte[]> template = null;
 
-	private final static RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -206,7 +208,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		}
 		String uuid = null;
 		if (value != null) {
-			uuid = (String) serializer.deserialize(value);
+			uuid = stringSerializer.deserialize(value);
 			try {
 				value = template.boundListOps(uuid).rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
@@ -217,11 +219,16 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			Object messageBody = null;
 			if (value != null) {
 				if (this.extractPayload) {
-					try {
-						messageBody = this.serializer.deserialize(value);
+					if (this.serializer != null) {
+						try {
+							messageBody = this.serializer.deserialize(value);
+						}
+						catch (Exception e) {
+							throw new MessagingException("Deserialization of Message failed.", e);
+						}
 					}
-					catch (Exception e) {
-						throw new MessagingException("Deserialization of Message failed.", e);
+					else {
+						messageBody = value;
 					}
 				}
 				else {
