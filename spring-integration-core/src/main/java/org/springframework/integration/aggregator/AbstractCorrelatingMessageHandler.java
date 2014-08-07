@@ -242,10 +242,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.discardChannelName = discardChannelName;
 	}
 
-	@Override
-	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
 
 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;

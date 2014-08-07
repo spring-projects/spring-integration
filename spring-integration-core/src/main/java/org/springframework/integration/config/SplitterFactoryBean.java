@@ -122,6 +122,10 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			if(handler instanceof AbstractReplyProducingMessageHandler) {
 				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
 			}
+			else if (true == this.requiresReply && logger.isDebugEnabled()) {
+			      logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
+			                     + handler.getComponentName() + " doesn't support it.");
+			 }
 		}
 		if (!(handler instanceof AbstractMessageSplitter)) {
 			Assert.isNull(this.applySequence, "Cannot set applySequence if the referenced bean is "

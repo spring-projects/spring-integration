@@ -29,7 +29,6 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Stefan Ferstl
  * @author Artem Bilan
- * @author David Liu
  * @since 2.1
  *
  */

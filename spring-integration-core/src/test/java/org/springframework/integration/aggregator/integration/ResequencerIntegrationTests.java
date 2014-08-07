@@ -134,4 +134,5 @@ public class ResequencerIntegrationTests {
 		assertNotNull(message1);
 		assertEquals((Integer)1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
 	}
+
 }
