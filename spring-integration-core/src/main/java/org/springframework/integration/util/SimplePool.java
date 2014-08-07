@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.util;
 
 import java.util.Collections;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * Implementation of {@link Pool} supporting dynamic resizing and a variable
  * timeout when attempting to obtain an item from the pool. Pool grows on
  * demand up to the limit.
+ *
  * @author Gary Russell
  * @since 2.2
  *
@@ -158,14 +160,13 @@ public class SimplePool<T> implements Pool<T> {
 				permitted = this.permits.tryAcquire(this.waitTimeout, TimeUnit.MILLISECONDS);
 			}
 			catch (InterruptedException e) {
+				logger.error("Interrupted awaiting a pooled resource.");
 				Thread.currentThread().interrupt();
-				throw new MessagingException("Interrupted awaiting a pooled resource", e);
 			}
 			if (!permitted) {
 				throw new IllegalStateException("Timed out while waiting to aquire a pool entry.");
 			}
-			T item = doGetItem();
-			return item;
+			return doGetItem();
 		}
 		catch (Exception e) {
 			if (permitted) {
