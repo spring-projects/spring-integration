@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Liu
  * @since 2.0
  */
 public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {

@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Alexander Peters
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 

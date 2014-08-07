@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler {
 

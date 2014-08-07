@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Gary Russell
+ * @author David Liu
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 

@@ -21,8 +21,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.MessageChannel;
 
 /**
- * This class will allow "directHandler" logic for the AbstractCorrelatingMessageHandler,
- * when we use setOutputChannel() for all "reply" cases.
+ * The base {@ AbstractMessageHandler} implementation for the {@link MessageProducer}.
  *
  * @author David Liu
  * since 4.1

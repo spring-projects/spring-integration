@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Liu
  * @since 2.0
  */
 public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
@@ -69,7 +70,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		if (targetObject instanceof MessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 			if (targetObject instanceof AbstractMessageProducingHandler) {
-				// should never happen but just return it if it's already an AMPMH
+				// should never happen but just return it if it's already an AMPH
 				return (MessageHandler) targetObject;
 			}
 			/*

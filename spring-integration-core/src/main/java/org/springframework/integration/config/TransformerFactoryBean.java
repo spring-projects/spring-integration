@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Liu
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -84,7 +85,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	 */
 	@Override
 	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
-		return true; // Any AMPMH can be a transformer
+		return true; // Any AMPH can be a transformer
 	}
 
 

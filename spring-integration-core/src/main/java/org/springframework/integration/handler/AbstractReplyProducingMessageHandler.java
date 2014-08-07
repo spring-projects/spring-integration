@@ -42,6 +42,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {

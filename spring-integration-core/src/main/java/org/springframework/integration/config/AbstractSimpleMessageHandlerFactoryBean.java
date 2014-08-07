@@ -39,6 +39,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
 		implements FactoryBean<MessageHandler>, BeanFactoryAware {

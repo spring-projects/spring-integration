@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author David Liu
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
