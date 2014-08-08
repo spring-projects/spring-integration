@@ -44,6 +44,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.syslog.DefaultMessageConverter;
 import org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterFactoryBean;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
@@ -52,6 +53,7 @@ import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Gary Russell
+ * @author David Liu
  * @since 3.0
  *
  */
@@ -130,6 +132,35 @@ public class SyslogReceivingChannelAdapterTests {
 		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
 		adapter.stop();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void testAsMapFalse() throws Exception {
+		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
+				SyslogReceivingChannelAdapterFactoryBean.Protocol.udp);
+		int port = SocketUtils.findAvailableUdpSocket(1514);
+		factory.setPort(port);
+		PollableChannel outputChannel = new QueueChannel();
+		factory.setOutputChannel(outputChannel);
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
+		factory.start();
+		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
+		DefaultMessageConverter defaultMessageConverter = new DefaultMessageConverter();
+		defaultMessageConverter.setAsMap(false);
+		adapter.setConverter(defaultMessageConverter);
+		Thread.sleep(1000);
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
+		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
+		DatagramSocket socket = new DatagramSocket();
+		socket.send(packet);
+		socket.close();
+		Message<?> message = outputChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
+		assertEquals("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE",
+				new String((byte[]) message.getPayload(), "UTF-8"));
+		adapter.stop();
 	}
 
 }

@@ -31,11 +31,11 @@ import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 
 /**
- * Default {@link MessageConverter}; delegates to a {@link SyslogToMapTransformer}
- * to convert the payload to a map of values and also provides some of the map
- * contents as message headers.
- * See @link {@link SyslogHeaders} for the headers that are mapped.
+ * Default {@link MessageConverter}; delegates to a {@link SyslogToMapTransformer} to
+ * convert the payload to a map of values and also provides some of the map contents as
+ * message headers. See @link {@link SyslogHeaders} for the headers that are mapped.
  * @author Gary Russell
+ * @author David Liu
  * @since 3.0
  *
  */
@@ -50,6 +50,15 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean asMap = true;
+
+	/**
+	 * Set false will leave the payload as the original complete syslog.
+	 * @param asMap
+	 */
+	public void setAsMap(boolean asMap) {
+		this.asMap = asMap;
+	}
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
@@ -71,7 +80,7 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 				out.put(SyslogHeaders.PREFIX + entry.getKey(), entry.getValue());
 			}
 		}
-		return this.messageBuilderFactory.withPayload(map)
+		return this.messageBuilderFactory.withPayload(this.asMap ? map : message.getPayload())
 				.copyHeaders(out)
 				.build();
 	}

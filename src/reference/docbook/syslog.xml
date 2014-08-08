@@ -28,6 +28,13 @@
 			being the <code>Map</code> of Syslog fields. In addition, all fields except the message
 			are also made available as headers in the message, prefixed with <code>syslog_</code>.
 		</para>
+		<para>
+			Since <emphasis>version 4.1</emphasis>,
+			the <classname>DefaultMessageConverter</classname> has a property <code>asMap</code>
+			(default <code>true</code>); when it is <code>false</code>, the converter will leave
+			the message payload as the original complete syslog message, in a <code>byte[]</code>,
+			while still setting the headers.
+		</para>
 		<section id="syslog-inbound-examplers">
 			<title>Example Configuration</title>
 			<programlisting language="xml"><![CDATA[<int-syslog:inbound-channel-adapter id="syslogIn" port="1514" />]]></programlisting>

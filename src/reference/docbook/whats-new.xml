@@ -169,6 +169,13 @@
 				for the JSON transformers. See <xref linkend="transformer"/> for more information.
 			</para>
 		</section>
-
+		<section id="4.1-syslog">
+			<title>Syslog Adapter</title>
+			<para>
+				The default syslog message converter now has an option to retain the original message in
+				the payload, while still setting the headers.
+				See <xref linkend="syslog-inbound-adapter"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>
