@@ -16,13 +16,15 @@
 
 package org.springframework.integration.redis.config;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -43,11 +45,7 @@ public class RedisQueueGatewayIntegrationTests {
 
 	@Autowired
 	@Qualifier("redisConnectionFactory")
-	private RedisConnectionFactory connectionFactory;
-
-	@Autowired
-	@Qualifier("customRedisConnectionFactory")
-	private RedisConnectionFactory customRedisConnectionFactory;
+	private JedisConnectionFactory connectionFactory;
 
 	@Autowired
 	@Qualifier("defaultOutboundGateway")
@@ -59,11 +57,11 @@ public class RedisQueueGatewayIntegrationTests {
 
 	@Autowired
 	private RedisSerializer<?> serializer;
-	
+
 	@Autowired
 	@Qualifier("sendChannel")
 	private DirectChannel sendChannel;
-	
+
 	@Autowired
 	@Qualifier("outputChannel")
 	private QueueChannel outputChannel;
@@ -74,12 +72,38 @@ public class RedisQueueGatewayIntegrationTests {
 
 	@Autowired
 	private RedisQueueInboundGateway defaultInboundGateway;
-	
-	@Test
+
+//	@Test
 	public void testRequestWithReply() throws Exception {
 		defaultInboundGateway.start();
 		sendChannel.send(new GenericMessage<String>("test1"));
 		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
 		defaultInboundGateway.stop();
 	}
+
+//	@Test
+	public void testInboundGatewayStop() throws Exception {
+		defaultInboundGateway.stop();
+		try {
+			sendChannel.send(new GenericMessage<String>("test1"));
+		}
+		catch(Exception e) {
+			assertTrue(e.getMessage().contains("No reply produced"));
+		}
+	}
+
+	@Test
+	public void testRedisServerStop() throws Exception {
+		connectionFactory.destroy();
+		defaultInboundGateway.start();
+
+		try {
+			sendChannel.send(new GenericMessage<String>("test1"));
+		}
+		catch(Exception e) {
+		}
+		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
+		defaultInboundGateway.stop();
+	}
+
 }
