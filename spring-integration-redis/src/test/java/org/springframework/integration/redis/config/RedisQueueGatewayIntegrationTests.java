@@ -73,7 +73,7 @@ public class RedisQueueGatewayIntegrationTests {
 	@Autowired
 	private RedisQueueInboundGateway defaultInboundGateway;
 
-//	@Test
+	@Test
 	public void testRequestWithReply() throws Exception {
 		defaultInboundGateway.start();
 		sendChannel.send(new GenericMessage<String>("test1"));
@@ -81,7 +81,7 @@ public class RedisQueueGatewayIntegrationTests {
 		defaultInboundGateway.stop();
 	}
 
-//	@Test
+	@Test
 	public void testInboundGatewayStop() throws Exception {
 		defaultInboundGateway.stop();
 		try {
@@ -93,16 +93,15 @@ public class RedisQueueGatewayIntegrationTests {
 	}
 
 	@Test
-	public void testRedisServerStop() throws Exception {
-		connectionFactory.destroy();
+	public void testNullSerializer() throws Exception {
+		defaultInboundGateway.setSerializer(null);
 		defaultInboundGateway.start();
-
 		try {
 			sendChannel.send(new GenericMessage<String>("test1"));
 		}
 		catch(Exception e) {
+			assertTrue(e.getMessage().contains("No reply produced"));
 		}
-		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
 		defaultInboundGateway.stop();
 	}
 
