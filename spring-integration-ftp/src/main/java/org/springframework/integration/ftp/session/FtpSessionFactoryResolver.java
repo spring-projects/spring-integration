@@ -15,39 +15,45 @@
  */
 package org.springframework.integration.ftp.session;
 
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactoryResolver;
 import org.springframework.messaging.Message;
 
 /**
+ * Ftp {@link SessionFactoryResolver}; Used to resolve sessionfactory from message sent
+ * containing host, username, password, name.
+ *
  * @author David Liu
  * @since 4.1
  *
  */
-public class FtpSessionFactoryResolver<F> implements SessionFactoryResolver<F>{
+public class FtpSessionFactoryResolver<F> implements SessionFactoryResolver<F>, IntegrationEvaluationContextAware{
 
-	private final static String DEFAULTHOSTEXPRESSIONSTRING = "headers['ftp_host']";
+	private final static String DEFAULT_HOST_EXPRESSION_STRING = "headers['ftp_host']";
 
-	private final static String DEFAULTUSEREXPRESSIONSTRING = "headers['ftp_username']";
+	private final static String DEFAULT_USER_EXPRESSION_STRING = "headers['ftp_username']";
 
-	private final static String DEFAULTPASSWORDEXPRESSIONSTRING = "headers['ftp_password']";
+	private final static String DEFAULT_PASSWORD_EXPRESSION_STRING = "headers['ftp_password']";
 
-	private final static String DEFAULTPORTEXPRESSIONSTRING = "headers['ftp_port']";
+	private final static String DEFAULT_PORT_EXPRESSION_STRING = "headers['ftp_port']";
 
 	private final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private volatile Expression headerExpression = expressionParser.parseExpression(DEFAULTHOSTEXPRESSIONSTRING);
+	private volatile Expression headerExpression = expressionParser.parseExpression(DEFAULT_HOST_EXPRESSION_STRING);
 
-	private volatile Expression userNameExpression = expressionParser.parseExpression(DEFAULTUSEREXPRESSIONSTRING);
+	private volatile Expression userNameExpression = expressionParser.parseExpression(DEFAULT_USER_EXPRESSION_STRING);
 
-	private volatile Expression passwordExpression = expressionParser.parseExpression(DEFAULTPASSWORDEXPRESSIONSTRING);
+	private volatile Expression passwordExpression = expressionParser.parseExpression(DEFAULT_PASSWORD_EXPRESSION_STRING);
 
-	private volatile Expression portExpression = expressionParser.parseExpression(DEFAULTPORTEXPRESSIONSTRING);
+	private volatile Expression portExpression = expressionParser.parseExpression(DEFAULT_PORT_EXPRESSION_STRING);
 
+	private EvaluationContext evaluationContext;
 
 	public void setHostExpression(String hostExpression) {
 		this.headerExpression = expressionParser.parseExpression(hostExpression);
@@ -65,14 +71,23 @@ public class FtpSessionFactoryResolver<F> implements SessionFactoryResolver<F>{
 		this.portExpression = expressionParser.parseExpression(portExpression);
 	}
 
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public SessionFactory<F> resolve(Message<?> message) {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		sessionFactory.setHost(this.headerExpression.getValue(message).toString());
-		sessionFactory.setUsername(this.userNameExpression.getValue(message).toString());
-		sessionFactory.setPassword(this.passwordExpression.getValue(message).toString());
-		sessionFactory.setPort(Integer.valueOf(this.portExpression.getValue(message).toString()));
+		sessionFactory.setHost(evaluationContext != null ? this.headerExpression.getValue(evaluationContext, message, String.class)
+				: this.headerExpression.getValue(message, String.class));
+		sessionFactory.setUsername(evaluationContext != null ? this.userNameExpression.getValue(evaluationContext, message, String.class)
+				 : this.userNameExpression.getValue(message, String.class));
+		sessionFactory.setPassword(evaluationContext != null ? this.passwordExpression.getValue(evaluationContext, message, String.class)
+				 : this.passwordExpression.getValue(message, String.class));
+		sessionFactory.setPort(evaluationContext != null ? this.portExpression.getValue(evaluationContext, message, Integer.class)
+				 : this.portExpression.getValue(message, Integer.class));
 		return (SessionFactory<F>) sessionFactory;
 	}
 

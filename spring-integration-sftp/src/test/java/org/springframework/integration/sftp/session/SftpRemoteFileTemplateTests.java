@@ -142,4 +142,5 @@ public class SftpRemoteFileTemplateTests {
 		template.append(message);
 		assertTrue(template.exists("foo/foobar.txt"));
 	}
+
 }

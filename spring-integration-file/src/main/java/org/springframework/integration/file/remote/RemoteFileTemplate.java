@@ -89,11 +89,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private volatile BeanFactory beanFactory;
 
-	private volatile SessionFactoryResolver<F> resolver;
+	private final SessionFactoryResolver<F> resolver;
 
 	public RemoteFileTemplate(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
+		resolver = null;
 	}
 
 	public RemoteFileTemplate(SessionFactoryResolver<F> resolver) {
@@ -103,6 +104,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		else {
 			this.resolver = resolver;
 		}
+		sessionFactory = null;
 	}
 
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {

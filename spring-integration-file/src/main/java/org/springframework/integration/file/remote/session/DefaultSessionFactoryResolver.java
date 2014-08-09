@@ -18,18 +18,23 @@ package org.springframework.integration.file.remote.session;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
 
 /**
+ * Default {@link SessionFactoryResolver}; Used to resolve sessionfactory from message sent
+ * containing sessionfactory bean name.
+ *
  * @author David Liu
  * @since 4.1
  *
  */
-public class DefaultSessionFactoryResolver<F> implements SessionFactoryResolver<F>, BeanFactoryAware {
+public class DefaultSessionFactoryResolver<F> implements SessionFactoryResolver<F>, BeanFactoryAware, IntegrationEvaluationContextAware{
 
 	private final static String SESSIONFACTORY = "headers['sessionFactory']";
 
@@ -39,15 +44,25 @@ public class DefaultSessionFactoryResolver<F> implements SessionFactoryResolver<
 
 	private volatile BeanFactory beanFactory;
 
+	private EvaluationContext evaluationContext;
+
 	public void setSessionFactory(String expression) {
 		this.sessionFactoryExpression = expressionParser.parseExpression(expression);
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public SessionFactory<F> resolve(Message<?> message) {
-		if(beanFactory != null) {
-			return beanFactory.getBean(this.sessionFactoryExpression.getValue(message).toString(), SessionFactory.class);
+		if(this.beanFactory != null) {
+			if(evaluationContext != null) {
+				return this.beanFactory.getBean(this.sessionFactoryExpression.getValue(evaluationContext, message, String.class), SessionFactory.class);
+			}
+			return this.beanFactory.getBean(this.sessionFactoryExpression.getValue(message, String.class), SessionFactory.class);
 		}
 		return null;
 	}
@@ -56,4 +71,5 @@ public class DefaultSessionFactoryResolver<F> implements SessionFactoryResolver<
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
+
 }

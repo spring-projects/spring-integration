@@ -18,10 +18,14 @@ package org.springframework.integration.file.remote.session;
 import org.springframework.messaging.Message;
 
 /**
+ * A resolver to resolve sessionfactory from sending message
+ *
  * @author David Liu
  * @since 4.1
  *
  */
 public interface SessionFactoryResolver<F> {
+
 	SessionFactory<F> resolve(Message<?> message);
+
 }
