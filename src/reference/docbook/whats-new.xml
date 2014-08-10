@@ -9,6 +9,26 @@
 		in more details, please see the Issue Tracker tickets that
 		were resolved as part of the 4.1 development process.
 	</para>
+	<section id="4.1-new-components">
+	<title>New Components</title>
+	<section id="4.1-redis-queue-outbound-gateway">
+		<title>Redis Queue Outbound Gateway</title>
+		<para>
+			A Gateway <classname>Redisqueueoutboundgateway</classname> send request and reply queuename to a control 
+			queue. Then send request to request queuename and wati reply in reply queuename.
+			See <xref linkend="redis-queue-outbound-gateway"/>.
+		</para>
+	</section>
+	<section id="4.1-redis-queue-inbound-gateway">
+		<title>Redis Queue Inbound Gateway</title>
+		<para>
+			A Gateway <classname>Redisqueueinboundgateway</classname> adapts incoming Redis messages
+			from control queue and convert to queuename of the request and reply, get and process the request and 
+			send the reply.
+			See <xref linkend="redis-queue-inbound-gateway"/>.
+		</para>
+	</section>
+	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>
 		<section id="4.1-amqp-inbound-missing-queues">

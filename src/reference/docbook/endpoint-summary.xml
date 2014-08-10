@@ -143,7 +143,9 @@
 						   <xref linkend="redis-queue-outbound-channel-adapter" /> and
 						   <xref linkend="redis-store-outbound-channel-adapter" /></entry>
 					<entry>N</entry>
-					<entry><xref linkend="redis-outbound-gateway" /></entry>
+					<entry><xref linkend="redis-outbound-gateway" /> and 
+						   <xref linkend="redis-queue-outbound-gateway" /> and 
+						   <xref linkend="redis-queue-inbound-gateway" /></entry>
 				</row>
 				<row>
 					<entry><emphasis role="bold">Resource</emphasis></entry>
