@@ -15,8 +15,9 @@
  */
 package org.springframework.integration.amqp.channel;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -71,7 +72,8 @@ public class DispatcherHasNoSubscribersTests {
 			@Override
 			public Channel answer(InvocationOnMock invocation) throws Throwable {
 				return channel;
-			}}).when(connection).createChannel(anyBoolean());
+			}
+		}).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -90,7 +92,8 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.", e.getMessage());
+			assertThat(e.getMessage(),
+					containsString("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'."));
 		}
 	}
 
@@ -102,7 +105,8 @@ public class DispatcherHasNoSubscribersTests {
 			@Override
 			public Channel answer(InvocationOnMock invocation) throws Throwable {
 				return channel;
-			}}).when(connection).createChannel(anyBoolean());
+			}
+		}).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -141,7 +145,8 @@ public class DispatcherHasNoSubscribersTests {
 					logList.add(message);
 				}
 				return null;
-			}}).when(logger).warn(anyString(), any(Exception.class));
+			}
+		}).when(logger).warn(anyString(), any(Exception.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		Object listener = container.getMessageListener();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(listener);
@@ -157,7 +162,8 @@ public class DispatcherHasNoSubscribersTests {
 			assertNotNull("Failed to get expected exception", message);
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				expectedExceptionFound = true;
-				assertEquals("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.", message);
+				assertThat(message,
+						containsString("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'."));
 				break;
 			}
 		}
