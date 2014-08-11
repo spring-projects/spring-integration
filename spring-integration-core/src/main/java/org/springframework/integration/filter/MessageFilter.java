@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler {
 
@@ -150,7 +151,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 				}
 			}
 			if (this.discardChannel != null) {
-				this.getMessagingTemplate().send(this.discardChannel, message);
+				this.messagingTemplate.send(this.discardChannel, message);
 			}
 			if (this.throwExceptionOnRejection) {
 				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName()

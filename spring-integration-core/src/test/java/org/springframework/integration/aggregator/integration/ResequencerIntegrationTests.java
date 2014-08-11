@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.aggregator.integration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.QueueChannel;
@@ -28,19 +32,26 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author David Liu
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
+@DirtiesContext
 public class ResequencerIntegrationTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
 	public void validateUnboundedResequencerLight(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTests.class);
 		MessageChannel inputChannel = context .getBean("resequencerLightInput", MessageChannel.class);
 		QueueChannel outputChannel = context .getBean("outputChannel", QueueChannel.class);
 		EventDrivenConsumer edc = context.getBean("resequencerLight", EventDrivenConsumer.class);
@@ -93,7 +104,6 @@ public class ResequencerIntegrationTests {
 
 	@Test
 	public void validateUnboundedResequencerDeep(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTests.class);
 		MessageChannel inputChannel = context .getBean("resequencerDeepInput", MessageChannel.class);
 		QueueChannel outputChannel = context .getBean("outputChannel", QueueChannel.class);
 		EventDrivenConsumer edc = context.getBean("resequencerDeep", EventDrivenConsumer.class);
@@ -113,4 +123,16 @@ public class ResequencerIntegrationTests {
 		assertNotNull(outputChannel.receive(0));
 		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 	}
+
+	@Test
+	public void testResequencerRefServiceActivator(){
+		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
+		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
+		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
+		inputChannel.send(message1);
+		message1 = outputChannel.receive(0);
+		assertNotNull(message1);
+		assertEquals((Integer)1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+	}
+
 }

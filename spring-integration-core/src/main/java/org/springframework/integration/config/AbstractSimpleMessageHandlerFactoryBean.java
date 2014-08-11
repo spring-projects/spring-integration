@@ -39,6 +39,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
 		implements FactoryBean<MessageHandler>, BeanFactoryAware {
@@ -123,6 +124,12 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (!CollectionUtils.isEmpty(this.adviceChain) &&
 					this.handler instanceof AbstractReplyProducingMessageHandler) {
 				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
+			}
+			else if(!(this.handler instanceof AbstractReplyProducingMessageHandler)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("adviceChain can only be set to AbstractReplyProducingMessageHandler or its subclass, "
+					+ ((IntegrationObjectSupport) this.handler).getComponentName() + " doesn't support it.");
+				}
 			}
 			if (this.handler instanceof Orderable && this.order != null) {
 				((Orderable) this.handler).setOrder(this.order);
