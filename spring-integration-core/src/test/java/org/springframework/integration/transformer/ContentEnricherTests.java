@@ -16,10 +16,12 @@
 
 package org.springframework.integration.transformer;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -414,7 +416,7 @@ public class ContentEnricherTests {
 		try {
 		    enricher.handleMessage(requestMessage);
 		} catch (MessageHandlingException e) {
-			assertEquals("Failed to clone payload object", e.getMessage());
+			assertThat(e.getMessage(), containsString("Failed to clone payload object"));
             return;
 		}
 

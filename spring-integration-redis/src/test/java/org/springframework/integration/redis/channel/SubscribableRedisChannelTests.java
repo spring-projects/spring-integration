@@ -15,8 +15,9 @@
  */
 package org.springframework.integration.redis.channel;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -104,8 +105,8 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			assertNotNull(cause);
-			assertEquals("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel).",
-					cause.getMessage());
+			assertThat(cause.getMessage(),
+					containsString("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel)."));
 		}
 
 	}
