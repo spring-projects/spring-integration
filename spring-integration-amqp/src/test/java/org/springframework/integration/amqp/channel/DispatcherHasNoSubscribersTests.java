@@ -16,18 +16,22 @@
 
 package org.springframework.integration.amqp.channel;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.rabbitmq.client.AMQP.Queue.DeclareOk;
-import com.rabbitmq.client.Channel;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -45,6 +49,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
+
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
+import com.rabbitmq.client.Channel;
 
 
 /**
@@ -67,7 +74,8 @@ public class DispatcherHasNoSubscribersTests {
 			@Override
 			public Channel answer(InvocationOnMock invocation) throws Throwable {
 				return channel;
-			}}).when(connection).createChannel(anyBoolean());
+			}
+		}).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -86,7 +94,8 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.", e.getMessage());
+			assertThat(e.getMessage(),
+					containsString("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'."));
 		}
 	}
 
@@ -98,7 +107,8 @@ public class DispatcherHasNoSubscribersTests {
 			@Override
 			public Channel answer(InvocationOnMock invocation) throws Throwable {
 				return channel;
-			}}).when(connection).createChannel(anyBoolean());
+			}
+		}).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -107,11 +117,12 @@ public class DispatcherHasNoSubscribersTests {
 		final Queue queue = new Queue("noSubscribersQueue");
 		PublishSubscribeAmqpChannel amqpChannel = new PublishSubscribeAmqpChannel("noSubscribersChannel",
 				container, amqpTemplate) {
-					@Override
-					protected String obtainQueueName(AmqpAdmin admin,
-							String channelName) {
-						return queue.getName();
-					}};
+			@Override
+			protected String obtainQueueName(AmqpAdmin admin,
+					String channelName) {
+				return queue.getName();
+			}
+		};
 		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
@@ -137,7 +148,8 @@ public class DispatcherHasNoSubscribersTests {
 					logList.add(message);
 				}
 				return null;
-			}}).when(logger).warn(anyString(), any(Exception.class));
+			}
+		}).when(logger).warn(anyString(), any(Exception.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		Object listener = container.getMessageListener();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(listener);
@@ -153,7 +165,8 @@ public class DispatcherHasNoSubscribersTests {
 			assertNotNull("Failed to get expected exception", message);
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				expectedExceptionFound = true;
-				assertEquals("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.", message);
+				assertThat(message,
+						containsString("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'."));
 				break;
 			}
 		}

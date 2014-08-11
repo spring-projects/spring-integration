@@ -15,13 +15,17 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.mongodb.MongoClient;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -38,6 +42,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+
+import com.mongodb.MongoClient;
 
 /**
  *
@@ -249,7 +255,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertNotNull(retrievedMessage);
 		assertTrue(retrievedMessage instanceof ErrorMessage);
 		assertThat(retrievedMessage.getPayload(), Matchers.instanceOf(MessagingException.class));
-		assertEquals("intentional MessagingException", ((MessagingException) retrievedMessage.getPayload()).getMessage());
+		assertThat(((MessagingException) retrievedMessage.getPayload()).getMessage(),
+				containsString("intentional MessagingException"));
 		assertEquals(failedMessage, ((MessagingException) retrievedMessage.getPayload()).getFailedMessage());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.rmi;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -78,7 +81,8 @@ public class BackToBackTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertEquals("Dispatcher has no subscribers for channel 'context.baz'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage(),
+					containsString("Dispatcher has no subscribers for channel 'context.baz'."));
 		}
 	}
 
