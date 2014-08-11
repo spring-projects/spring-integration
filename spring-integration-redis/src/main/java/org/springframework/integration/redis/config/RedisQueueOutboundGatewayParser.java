@@ -42,7 +42,7 @@ public class RedisQueueOutboundGatewayParser extends AbstractConsumerEndpointPar
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueOutboundGateway.class);
-		builder.addConstructorArgValue(element.getAttribute("queue"));
+		builder.addConstructorArgValue(element.getAttribute("control-queue"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "redisConnectionFactory";

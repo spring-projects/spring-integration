@@ -699,7 +699,8 @@ the serialization of values, you may want to consider providing your own
 				<callout arearefs="redis-o-g-requires-reply">
 					<para>
 						Specify whether this outbound gateway must return a non-null value. This value is
-						<code>true</code> by default.
+						<code>true</code> by default. A ReplyRequiredException will be thrown when
+-						the Redis returns a <code>null</code> value.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-reply-timeout">
@@ -775,10 +776,10 @@ the serialization of values, you may want to consider providing your own
 		</para>
 	</section>
 	<section id="redis-queue-outbound-gateway">
-	<title>Redis Queue Outbound Command Gateway</title>
+	<title>Redis Queue Outbound Gateway</title>
 		<para>
-			Since <emphasis>Spring Integration 4.1</emphasis>, the Redis Queue Command Gateway is available to
-			perform any standard Redis command with control queue using generic
+			Since <emphasis>Spring Integration 4.1</emphasis>, the Redis Queue outbound Gateway is available to
+			send queuename to get the request to control queue, then send request and wait for the reply using
 			<code>RedisConnection#execute</code>
 			method:
 			<programlisting language="xml"><![CDATA[<int-redis:queue-outbound-gateway
@@ -787,7 +788,7 @@ the serialization of values, you may want to consider providing your own
 		requires-reply="" ]]><co id="redis-q-o-g-requires-reply"/><![CDATA[
 		reply-timeout="" ]]><co id="redis-q-o-g-reply-timeout"/><![CDATA[
 		connection-factory="" ]]><co id="redis-q-o-g-connectionFactory"/><![CDATA[
-		queue="" ]]><co id="redis-q-o-g-queue"/><![CDATA[
+		control-queue="" ]]><co id="redis-q-o-g-controlqueue"/><![CDATA[
 		order="" ]]><co id="redis-q-o-g-order"/><![CDATA[
 		serializer="" ]]><co id="redis-q-o-g-serializer"/><![CDATA[
 		extract-payload="" ]]><co id="redis-q-o-g-extract-payload"/>
@@ -822,9 +823,9 @@ the serialization of values, you may want to consider providing your own
 						Defaults to <code>redisConnectionFactory</code>. Mutually exclusive with 'redis-template' attribute.
 					</para>
 				</callout>
-				<callout arearefs="redis-q-o-g-queue">
+				<callout arearefs="redis-q-o-g-controlqueue">
 					<para>
-						The name of the Redis List on which the queue-based 'right pop' operation is performed to get Redis messages
+						The name of the Redis control-queue to which outbound gateway will send queuename to get the request.
 					</para>
 				</callout>
 				<callout arearefs="redis-q-o-g-order">
@@ -853,21 +854,23 @@ the serialization of values, you may want to consider providing your own
 		   Redis operation with control queue. For example:
 			<programlisting language="xml"><![CDATA[<int-redis:queue-outbound-gateway id="defaultOutboundGateway" request-channel="sendChannel"
 			 queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel"/>]]></programlisting>
-			where the Message comes from <code>request-channel</code>, send to <code>queue</code>, get reply and send to <code>reply-channel</code>.
+			where the Message comes from <code>request-channel</code>, send request queuename to <code>queue</code>, then send request and get reply, 
+			then send to <code>reply-channel</code>.
 		</para>
 	</section>
 	<section id="redis-queue-inbound-gateway">
-	<title>Redis Queue Inbound Command Gateway</title>
+	<title>Redis Queue Inbound Gateway</title>
 		<para>
-			Since <emphasis>Spring Integration 4.1</emphasis>, the Redis Queue Inbound Command Gateway adapts incoming Redis messages 
-			into Spring Integration Messages with control queue, and send reply.
+			Since <emphasis>Spring Integration 4.1</emphasis>, the Redis Queue Inbound Gateway adapts incoming Redis messages 
+			into Spring Integration Messages from control queue, find queuename to get request and implies where to send the reply. Then get request, process 
+			it and send reply.
 			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway
 		request-channel="" ]]><co id="redis-q-i-g-request-channel"/><![CDATA[
 		reply-channel="" ]]><co id="redis-q-i-g-reply-channel"/><![CDATA[
 		executor="" ]]><co id="redis-q-i-g-task-executor"/><![CDATA[
 		reply-timeout="" ]]><co id="redis-q-i-g-reply-timeout"/><![CDATA[
 		connection-factory="" ]]><co id="redis-q-i-g-connectionFactory"/><![CDATA[
-		queue="" ]]><co id="redis-q-i-g-queue"/><![CDATA[
+		control-queue="" ]]><co id="redis-q-i-g-controlqueue"/><![CDATA[
 		order="" ]]><co id="redis-q-i-g-order"/><![CDATA[
 		serializer="" ]]><co id="redis-q-i-g-serializer"/><![CDATA[
 		receive-timeout="" ]]><co id="redis-q-i-g-receive-timeout"/><![CDATA[
@@ -903,9 +906,9 @@ the serialization of values, you may want to consider providing your own
 						Defaults to <code>redisConnectionFactory</code>. Mutually exclusive with 'redis-template' attribute.
 					</para>
 				</callout>
-				<callout arearefs="redis-q-i-g-queue">
+				<callout arearefs="redis-q-i-g-controlqueue">
 					<para>
-						The name of the Redis List on which the queue-based 'right pop' operation is performed to get Redis messages
+						The name of the Redis control-queue tell the inbound gateway queuename to find the request (and implies where to send the reply).
 					</para>
 				</callout>
 				<callout arearefs="redis-q-i-g-order">
@@ -936,10 +939,10 @@ the serialization of values, you may want to consider providing your own
 			</calloutlist>
 		</para>
 		<para>
-		   The <code>&lt;int-redis:redis-inbound-gateway&gt;</code> can be used to adapt incoming Redis messages 
-			into Spring Integration Messages with control queue and send reply. For example to get message from queue:
-			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway id="defaultInboundGateway" queue="foo"/>]]></programlisting>
-			where the Message comes from <code>queue</code>.
+		   The <code>&lt;int-redis:redis-inbound-gateway&gt;</code> can be used to perform Redis command with control queue. For example:
+			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway id="defaultInboundGateway" control-queue="foo"/>]]></programlisting>
+			where the Message comes from <code>control-queue</code> gives queuename of the request and implies where to send reply, then <code>queue-inbound-gateway</code>
+			will get the request, process and send reply.
 		</para>
 	</section>
 	<section id="redis-lock-registry">

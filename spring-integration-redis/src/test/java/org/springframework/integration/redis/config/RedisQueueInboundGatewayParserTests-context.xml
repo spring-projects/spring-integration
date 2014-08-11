@@ -15,7 +15,7 @@
 		reply-channel="receiveChannel"
 		request-timeout="3000"
 		reply-timeout="2000"
-		queue="si.test.queue"
+		control-queue="si.test.queue"
 		task-executor="executor"
 		expect-message="true"
 		serializer="serializer"

@@ -26,13 +26,13 @@
 	
 	<int:channel id="requestChannel"/>
 	
-	<int-redis:queue-outbound-gateway id="defaultOutboundGateway" request-channel="sendChannel" queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel" serializer="serializer"/>
+	<int-redis:queue-outbound-gateway id="defaultOutboundGateway" request-channel="sendChannel" control-queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel" serializer="serializer"/>
 
 	
 
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 	
-	<int-redis:queue-inbound-gateway id="defaultInboundGateway" queue="foo" request-channel="requestChannel" reply-channel="inboundOutputChannel" serializer="serializer" reply-timeout="20001" request-timeout="20000" />
+	<int-redis:queue-inbound-gateway id="defaultInboundGateway" control-queue="foo" request-channel="requestChannel" reply-channel="inboundOutputChannel" serializer="serializer" reply-timeout="20001" request-timeout="20000" />
 
 	<int:service-activator input-channel="requestChannel" expression="payload.toUpperCase()"/>
 	

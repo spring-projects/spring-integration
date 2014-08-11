@@ -423,10 +423,10 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="queue" type="xsd:string" use="required">
+			<xsd:attribute name="control-queue" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
-						Redis queue name.
+						Redis control-queue tell the inbound gateway where to find the request (and implies where to send the reply).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -609,11 +609,10 @@
 				minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="queue" type="xsd:string">
+			<xsd:attribute name="control-queue" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-						Specifies the name of the Redis queue.
-						This attribute is mutually exclusive with 'queue-expression' attribute.
+						Redis control-queue tell the inbound gateway where to find the request (and implies where to send the reply).
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

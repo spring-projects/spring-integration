@@ -14,8 +14,8 @@
 	<section id="4.1-redis-queue-outbound-gateway">
 		<title>Redis Queue Outbound Gateway</title>
 		<para>
-			A Gateway <classname>Redisqueueoutboundgateway</classname> send request and reply queuename to a control 
-			queue. Then send request to request queuename and wati reply in reply queuename.
+			A Gateway <classname>Redisqueueoutboundgateway</classname> send request queuename to a control 
+			queue. Then send request to request queue and wait reply in reply queue.
 			See <xref linkend="redis-queue-outbound-gateway"/>.
 		</para>
 	</section>
@@ -23,7 +23,7 @@
 		<title>Redis Queue Inbound Gateway</title>
 		<para>
 			A Gateway <classname>Redisqueueinboundgateway</classname> adapts incoming Redis messages
-			from control queue and convert to queuename of the request and reply, get and process the request and 
+			from control queue and convert to queuename of the request, get and process the request and 
 			send the reply.
 			See <xref linkend="redis-queue-inbound-gateway"/>.
 		</para>
