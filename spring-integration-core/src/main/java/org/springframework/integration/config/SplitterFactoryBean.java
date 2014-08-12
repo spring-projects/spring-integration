@@ -146,5 +146,4 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		}
 	}
 
-
 }

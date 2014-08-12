@@ -88,5 +88,4 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 		return true; // Any AMPH can be a transformer
 	}
 
-
 }

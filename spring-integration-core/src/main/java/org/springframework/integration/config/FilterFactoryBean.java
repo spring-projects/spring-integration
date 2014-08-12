@@ -141,5 +141,4 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 						&& this.discardWithinAdvice == null);
 	}
 
-
 }
