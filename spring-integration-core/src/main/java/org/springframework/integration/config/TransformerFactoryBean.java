@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Liu
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -72,20 +73,19 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 		if (this.sendTimeout != null) {
-			handler.setSendTimeout(this.sendTimeout.longValue());
+			handler.setSendTimeout(this.sendTimeout);
 		}
 	}
 
 	/**
-	 * Always returns true - any {@link AbstractReplyProducingMessageHandler} can
+	 * Always returns true - any {@link AbstractMessageProducingHandler} can
 	 * be used directly.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
-		return true; // Any ARPMH can be a transformer
+	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
+		return true; // Any AMPH can be a transformer
 	}
-
 
 }

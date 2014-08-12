@@ -37,10 +37,8 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
@@ -79,11 +77,11 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  * @since 2.0
  */
-public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer, DisposableBean, IntegrationEvaluationContextAware,
-		ApplicationEventPublisherAware {
+public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
+		implements DisposableBean, IntegrationEvaluationContextAware, ApplicationEventPublisherAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
@@ -98,12 +96,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private volatile CorrelationStrategy correlationStrategy;
 
 	private volatile ReleaseStrategy releaseStrategy;
-
-	private MessageChannel outputChannel;
-
-	private String outputChannelName;
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel discardChannel;
 
@@ -179,17 +171,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
-	@Override
-	public void setOutputChannel(MessageChannel outputChannel) {
-		Assert.notNull(outputChannel, "'outputChannel' must not be null");
-		this.outputChannel = outputChannel;
-	}
-
-	public void setOutputChannelName(String outputChannelName) {
-		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
-		this.outputChannelName = outputChannelName;
-	}
-
 	public void setGroupTimeoutExpression(Expression groupTimeoutExpression) {
 		this.groupTimeoutExpression = groupTimeoutExpression;
 	}
@@ -218,7 +199,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 
-			Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
+			Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
 					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 
 			if (this.outputProcessor instanceof BeanFactoryAware) {
@@ -260,9 +241,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.discardChannelName = discardChannelName;
 	}
 
-	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
 
 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
@@ -321,18 +299,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	protected ReleaseStrategy getReleaseStrategy() {
 		return releaseStrategy;
-	}
-
-	protected MessageChannel getOutputChannel() {
-		return outputChannel;
-	}
-
-	protected String getOutputChannelName() {
-		return outputChannelName;
-	}
-
-	protected MessagingTemplate getMessagingTemplate() {
-		return messagingTemplate;
 	}
 
 	protected MessageChannel getDiscardChannel() {
@@ -594,7 +560,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
 						+ correlationKey + "] to: "
-						+ (this.outputChannelName != null ? this.outputChannelName : this.outputChannel));
+						+ (getOutputChannelName() != null ? getOutputChannelName() : getOutputChannel()));
 			}
 			completeGroup(correlationKey, group);
 		}
@@ -649,24 +615,23 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
 		}
-
-		if (this.outputChannelName != null) {
+		if (getOutputChannelName() != null) {
 			synchronized (this) {
-				if (this.outputChannelName != null) {
+				if (getOutputChannelName() != null) {
 					try {
-						this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-						this.outputChannelName = null;
+						setOutputChannel(getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
+						setOutputChannelName(null);
 					}
 					catch (BeansException e) {
 						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.outputChannelName + "' in the BeanFactory.");
+								+ getOutputChannelName() + "' in the BeanFactory.");
 					}
 				}
 			}
 		}
 
-		Object replyChannel = this.outputChannel;
-		if (this.outputChannel == null) {
+		Object replyChannel = getOutputChannel();
+		if (replyChannel == null) {
 			replyChannel = replyChannelHeader;
 		}
 		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");
@@ -753,6 +718,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			}
 			return false;
 		}
+
 	}
 
 }

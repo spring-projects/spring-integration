@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author David Liu
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -106,18 +108,24 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return handler instanceof AbstractMessageSplitter
 				|| (this.applySequence == null && this.delimiters == null);
 	}
 
 	@Override
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(sendTimeout);
 		}
 		if (this.requiresReply != null) {
-			handler.setRequiresReply(requiresReply);
+			if(handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
+			}
+			else if (this.requiresReply && logger.isDebugEnabled()) {
+			      logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
+			                     + handler.getComponentName() + " doesn't support it.");
+			 }
 		}
 		if (!(handler instanceof AbstractMessageSplitter)) {
 			Assert.isNull(this.applySequence, "Cannot set applySequence if the referenced bean is "
@@ -137,6 +145,5 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			}
 		}
 	}
-
 
 }

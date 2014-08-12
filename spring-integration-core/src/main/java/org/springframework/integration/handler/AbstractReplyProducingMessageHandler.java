@@ -23,8 +23,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -44,17 +42,10 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
-public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer, BeanClassLoaderAware {
-
-	private MessageChannel outputChannel;
-
-	private String outputChannelName;
-
-	private volatile boolean requiresReply = false;
-
-	private final MessagingTemplate messagingTemplate;
+public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
+		implements BeanClassLoaderAware {
 
 	private volatile RequestHandler advisedRequestHandler;
 
@@ -62,39 +53,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-
-
-	public AbstractReplyProducingMessageHandler() {
-		this.messagingTemplate = new MessagingTemplate();
-	}
-
-
-	@Override
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
-
-	public void setOutputChannelName(String outputChannelName) {
-		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
-		this.outputChannelName = outputChannelName;
-	}
-
-	/**
-	 * Set the timeout for sending reply Messages.
-	 * @param sendTimeout The send timeout.
-	 */
-	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
-
-	/**
-	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
-	 * @param channelResolver The channel resolver.
-	 */
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.messagingTemplate.setDestinationResolver(channelResolver);
-	}
+	private volatile boolean requiresReply = false;
 
 	/**
 	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
@@ -106,11 +65,12 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	/**
-	 * Provides access to the {@link MessagingTemplate} for subclasses.
-	 * @return The messaging template.
+	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
+	 * @param channelResolver The channel resolver.
 	 */
-	protected MessagingTemplate getMessagingTemplate() {
-		return this.messagingTemplate;
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.messagingTemplate.setDestinationResolver(channelResolver);
 	}
 
 
@@ -131,7 +91,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	@Override
 	protected final void onInit() {
-		Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
+		Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
@@ -225,24 +185,23 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-
-		if (this.outputChannelName != null) {
+		if (getOutputChannelName() != null) {
 			synchronized (this) {
-				if (this.outputChannelName != null) {
+				if (getOutputChannelName() != null) {
 					try {
-						this.outputChannel = this.getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-						this.outputChannelName = null;
+						setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
+						setOutputChannelName(null);
 					}
 					catch (BeansException e) {
 						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.outputChannelName + "' in the BeanFactory.");
+								+ getOutputChannelName() + "' in the BeanFactory.");
 					}
 				}
 			}
 		}
 
-		if (this.outputChannel != null) {
-			this.sendMessage(replyMessage, this.outputChannel);
+		if (getOutputChannel() != null) {
+			this.sendMessage(replyMessage, getOutputChannel());
 		}
 		else if (replyChannelHeaderValue != null) {
 			this.sendMessage(replyMessage, replyChannelHeaderValue);
@@ -305,6 +264,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 		@Override
 		String toString();
+
 	}
 
 	private class AdvisedRequestHandler implements RequestHandler {

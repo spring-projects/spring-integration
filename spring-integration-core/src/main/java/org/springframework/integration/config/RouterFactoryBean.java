@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,7 +16,7 @@ package org.springframework.integration.config;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Gary Russell
+ * @author David Liu
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -102,10 +103,9 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	private AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
-		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName))
+		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
-		return router;
 	}
 
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
@@ -113,7 +113,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}
 		if (this.timeout != null) {
-			router.setTimeout(timeout.longValue());
+			router.setTimeout(this.timeout);
 		}
 		if (this.applySequence != null) {
 			router.setApplySequence(this.applySequence);
@@ -137,7 +137,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return noRouterAttributesProvided();
 	}
 
