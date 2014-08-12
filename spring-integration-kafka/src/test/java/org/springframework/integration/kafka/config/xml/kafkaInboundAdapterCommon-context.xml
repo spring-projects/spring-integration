@@ -9,9 +9,10 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <context:component-scan base-package="org.springframework.integration.kafka.inbound"></context:component-scan>
-    <int:channel id="inputFromKafka">
-    </int:channel>
+    <context:component-scan base-package="org.springframework.integration.kafka.inbound"/>
+
+    <int:channel id="inputFromKafka"/>
 
     <stream:stdout-channel-adapter id="stdout" channel="inputFromKafka" append-newline="true"/>
+
 </beans>
