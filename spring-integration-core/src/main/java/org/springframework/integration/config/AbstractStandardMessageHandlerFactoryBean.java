@@ -22,6 +22,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.MessageHandler;
@@ -35,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Alexander Peters
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Liu
  */
 abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
@@ -48,6 +50,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 	private volatile String targetMethodName;
 
 	private volatile Expression expression;
+
+	private volatile String beanName;
 
 	public void setTargetObject(Object targetObject) {
 		this.targetObject = targetObject;
@@ -75,8 +79,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		if (this.targetObject != null) {
 			Assert.state(this.expression == null,
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
-			AbstractReplyProducingMessageHandler actualHandler = this.extractTypeIfPossible(targetObject,
-										AbstractReplyProducingMessageHandler.class);
+			AbstractMessageProducingHandler actualHandler = this.extractTypeIfPossible(targetObject,
+					AbstractMessageProducingHandler.class);
 			boolean targetIsDirectReplyProducingHandler = actualHandler != null
 							&& this.canBeUsedDirect(actualHandler) // give subclasses a say
 							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
@@ -85,7 +89,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 			}
 			else if (targetIsDirectReplyProducingHandler) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Wiring handler (" + targetObject + ") directly into endpoint");
+					logger.debug("Wiring handler (" + this.targetObject + ") directly into endpoint");
 				}
 				this.checkReuse(actualHandler);
 				this.postProcessReplyProducer(actualHandler);
@@ -117,7 +121,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		}
 	}
 
-	private void checkReuse(AbstractReplyProducingMessageHandler replyHandler) {
+	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
 		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
 				"An AbstractReplyProducingMessageHandler may only be referenced once (" +
 				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
@@ -168,11 +172,11 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 				|| "handleMessage".equals(targetMethodName));
 	}
 
-	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return false;
 	}
 
-	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 	}
 
 }
