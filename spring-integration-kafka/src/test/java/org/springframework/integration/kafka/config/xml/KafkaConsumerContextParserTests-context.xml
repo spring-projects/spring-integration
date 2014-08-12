@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
-       xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <int-kafka:zookeeper-connect id="zookeeperConnect" zk-connect="localhost:2181" zk-connection-timeout="6000"
                                  zk-session-timeout="6000"
@@ -25,6 +27,14 @@
 		</property>
 	</bean>
 
+	<util:properties id="placeholderProperties">
+		<prop key="topic.filter.pattern">foo</prop>
+		<prop key="topic.filter.streams">10</prop>
+		<prop key="topic.filter.exclude">true</prop>
+	</util:properties>
+
+	<context:property-placeholder properties-ref="placeholderProperties"/>
+
     <int-kafka:consumer-context id="consumerContext"
                                 consumer-timeout="4000"
                                 zookeeper-connect="zookeeperConnect"
@@ -34,9 +44,11 @@
                                               value-decoder="valueDecoder"
                                               key-decoder="valueDecoder"
                                               max-messages="5000">
-                <int-kafka:topic id="test1" streams="4"/>
-                <int-kafka:topic id="test2" streams="4"/>
+				<int-kafka:topic-filter pattern="${topic.filter.pattern}"
+										streams="${topic.filter.streams}"
+										exclude="${topic.filter.exclude}"/>
             </int-kafka:consumer-configuration>
         </int-kafka:consumer-configurations>
     </int-kafka:consumer-context>
+
 </beans>

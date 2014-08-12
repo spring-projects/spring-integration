@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.config.xml;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -24,14 +29,20 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.kafka.support.*;
+import org.springframework.integration.kafka.support.ConsumerConfigFactoryBean;
+import org.springframework.integration.kafka.support.ConsumerConfiguration;
+import org.springframework.integration.kafka.support.ConsumerConnectionProvider;
+import org.springframework.integration.kafka.support.ConsumerMetadata;
+import org.springframework.integration.kafka.support.KafkaConsumerContext;
+import org.springframework.integration.kafka.support.MessageLeftOverTracker;
+import org.springframework.integration.kafka.support.TopicFilterConfiguration;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Soby Chacko
  * @author Rajasekar Elango
+ * @author Artem Bilan
  * @since 0.5
  */
 public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionParser {
@@ -50,7 +61,7 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 	}
 
 	private void parseConsumerConfigurations(final Element consumerConfigurations, final ParserContext parserContext,
-											 final BeanDefinitionBuilder builder, final Element parentElem) {
+			final BeanDefinitionBuilder builder, final Element parentElem) {
 		for (final Element consumerConfiguration : DomUtils.getChildElementsByTagName(consumerConfigurations, "consumer-configuration")) {
 			final BeanDefinitionBuilder consumerConfigurationBuilder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerConfiguration.class);
 			final BeanDefinitionBuilder consumerMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerMetadata.class);
@@ -68,7 +79,7 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 
 			final List<Element> topicConfigurations = DomUtils.getChildElementsByTagName(consumerConfiguration, "topic");
 
-			if (topicConfigurations != null){
+			if (topicConfigurations != null) {
 				for (final Element topicConfiguration : topicConfigurations) {
 					final String topic = topicConfiguration.getAttribute("id");
 					final String streams = topicConfiguration.getAttribute("streams");
@@ -80,9 +91,14 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 
 			final Element topicFilter = DomUtils.getChildElementByTagName(consumerConfiguration, "topic-filter");
 
-			if (topicFilter != null){
-				final TopicFilterConfiguration topicFilterConfiguration = new TopicFilterConfiguration(topicFilter.getAttribute("pattern"),Integer.valueOf(topicFilter.getAttribute("streams")), Boolean.valueOf(topicFilter.getAttribute("exclude")));
-				consumerMetadataBuilder.addPropertyValue("topicFilterConfiguration", topicFilterConfiguration);
+			if (topicFilter != null) {
+				BeanDefinition topicFilterConfigurationBeanDefinition =
+						BeanDefinitionBuilder.genericBeanDefinition(TopicFilterConfiguration.class)
+								.addConstructorArgValue(topicFilter.getAttribute("pattern"))
+								.addConstructorArgValue(topicFilter.getAttribute("streams"))
+								.addConstructorArgValue(topicFilter.getAttribute("exclude"))
+								.getBeanDefinition();
+				consumerMetadataBuilder.addPropertyValue("topicFilterConfiguration", topicFilterConfigurationBeanDefinition);
 			}
 
 			final BeanDefinition consumerMetadataBeanDef = consumerMetadataBuilder.getBeanDefinition();
