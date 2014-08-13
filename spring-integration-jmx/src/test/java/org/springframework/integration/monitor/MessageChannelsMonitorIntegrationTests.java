@@ -91,6 +91,8 @@ public class MessageChannelsMonitorIntegrationTests {
 			// The handler monitor is registered under the endpoint id (since it is explicit)
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertEquals("No send statistics for input channel", 50, sends, 0.01);
+			long sendsLong = messageChannelsMonitor.getChannelSendRate("" + channel).getCountLong();
+			assertEquals("No send statistics for input channel", sendsLong, sends, 0.01);
 
 		}
 		finally {

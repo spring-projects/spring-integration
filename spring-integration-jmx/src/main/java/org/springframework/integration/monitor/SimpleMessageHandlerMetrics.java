@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 
 package org.springframework.integration.monitor;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.StopWatch;
 
 /**
@@ -41,11 +42,11 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 
 	private final MessageHandler handler;
 
-	private final AtomicInteger activeCount = new AtomicInteger();
+	private final AtomicLong activeCount = new AtomicLong();
 
-	private final AtomicInteger handleCount = new AtomicInteger();
+	private final AtomicLong handleCount = new AtomicLong();
 
-	private final AtomicInteger errorCount = new AtomicInteger();
+	private final AtomicLong errorCount = new AtomicLong();
 
 	private final ExponentialMovingAverage duration = new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW);
 
@@ -123,14 +124,22 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		this.handleCount.set(0);
 	}
 
-	public int getHandleCount() {
+	public long getHandleCountLong() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
 		}
 		return this.handleCount.get();
 	}
 
+	public int getHandleCount() {
+		return (int) getHandleCountLong();
+	}
+
 	public int getErrorCount() {
+		return (int) this.errorCount.get();
+	}
+
+	public long getErrorCountLong() {
 		return this.errorCount.get();
 	}
 
@@ -151,6 +160,10 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 	}
 
 	public int getActiveCount() {
+		return (int) this.activeCount.get();
+	}
+
+	public long getActiveCountLong() {
 		return this.activeCount.get();
 	}
 

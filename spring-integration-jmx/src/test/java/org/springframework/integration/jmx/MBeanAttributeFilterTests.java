@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -104,6 +105,8 @@ public class MBeanAttributeFilterTests {
 		assertEquals(8, bean.size());
 		assertFalse(bean.containsKey("SendCount"));
 		assertFalse(bean.containsKey("SendErrorCount"));
+		assertFalse(bean.containsKey("SendCountLong"));
+		assertFalse(bean.containsKey("SendErrorCountLong"));
 
 		adapterNot.stop();
 	}

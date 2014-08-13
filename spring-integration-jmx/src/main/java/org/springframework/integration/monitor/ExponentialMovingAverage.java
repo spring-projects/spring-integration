@@ -1,11 +1,11 @@
 /*
- * Copyright 2009-2010 the original author or authors.
- * 
+ * Copyright 2009-2014 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -20,13 +20,13 @@ package org.springframework.integration.monitor;
  * weight, with a decay factor determined by a "window" size chosen by the caller. The result is a good approximation to
  * the statistics of the series but with more weight given to recent measurements, so if the statistics change over time
  * those trends can be approximately reflected.
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */
 public class ExponentialMovingAverage {
 
-	private volatile int count;
+	private volatile long count;
 
 	private volatile double weight;
 
@@ -44,7 +44,7 @@ public class ExponentialMovingAverage {
 	/**
 	 * Create a moving average accumulator with decay lapse window provided. Measurements older than this will have
 	 * smaller weight than <code>1/e</code>.
-	 * 
+	 *
 	 * @param window the exponential lapse window (number of measurements)
 	 */
 	public ExponentialMovingAverage(int window) {
@@ -63,7 +63,7 @@ public class ExponentialMovingAverage {
 
 	/**
 	 * Add a new measurement to the series.
-	 * 
+	 *
 	 * @param value the measurement to append
 	 */
 	public synchronized void append(double value) {
@@ -83,6 +83,13 @@ public class ExponentialMovingAverage {
 	 * @return the number of measurements recorded
 	 */
 	public int getCount() {
+		return (int) count;
+	}
+
+	/**
+	 * @return the number of measurements recorded
+	 */
+	public long getCountLong() {
 		return count;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -43,7 +43,7 @@ public class ControlBusParserTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		Object value = messagingTemplate.convertSendAndReceive(control,
 				"@integrationMbeanExporter.getChannelSendRate('testChannel').count", null);
-		assertEquals(new Integer(0), value);
+		assertEquals(0, value);
 		MBeanExporter exporter = this.context.getBean(MBeanExporter.class);
 		exporter.destroy();
 	}

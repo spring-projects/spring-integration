@@ -1,11 +1,11 @@
 /*
- * Copyright 2009-2010 the original author or authors.
- * 
+ * Copyright 2009-2014 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -13,21 +13,22 @@
 
 package org.springframework.integration.monitor;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.StopWatch;
 
 /**
  * Registers all message channels, and accumulates statistics about their performance. The statistics are then published
  * locally for other components to consume and publish remotely.
- * 
+ *
  * @author Dave Syer
  * @author Helena Edelson
  * @since 2.0
@@ -56,9 +57,9 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	private final ExponentialMovingAverageRate sendRate = new ExponentialMovingAverageRate(
 			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
 
-	private final AtomicInteger sendCount = new AtomicInteger();
+	private final AtomicLong sendCount = new AtomicLong();
 
-	private final AtomicInteger sendErrorCount = new AtomicInteger();
+	private final AtomicLong sendErrorCount = new AtomicLong();
 
 	private final String name;
 
@@ -136,7 +137,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 			}
 		}
 	}
-	
+
 	public synchronized void reset() {
 		sendDuration.reset();
 		sendErrorRate.reset();
@@ -147,10 +148,18 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	}
 
 	public int getSendCount() {
+		return (int) sendCount.get();
+	}
+
+	public long getSendCountLong() {
 		return sendCount.get();
 	}
 
 	public int getSendErrorCount() {
+		return (int) sendErrorCount.get();
+	}
+
+	public long getSendErrorCountLong() {
 		return sendErrorCount.get();
 	}
 
@@ -185,11 +194,11 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	public double getStandardDeviationSendDuration() {
 		return sendDuration.getStandardDeviation();
 	}
-	
+
 	public Statistics getSendDuration() {
 		return sendDuration.getStatistics();
 	}
-	
+
 	public Statistics getSendRate() {
 		return sendRate.getStatistics();
 	}
