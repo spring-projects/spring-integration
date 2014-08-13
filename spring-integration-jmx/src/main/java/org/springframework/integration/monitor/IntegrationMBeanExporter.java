@@ -631,9 +631,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
 	public int getActiveHandlerCount() {
+		return (int) getActiveHandlerCountLong();
+	}
+
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
+	public long getActiveHandlerCountLong() {
 		int count = 0;
 		for (MessageHandlerMetrics monitor : handlers) {
-			count += monitor.getActiveCount();
+			count += monitor.getActiveCountLong();
 		}
 		return count;
 	}
@@ -663,17 +668,25 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	public int getSourceMessageCount(String name) {
+		return (int) getSourceMessageCountLong(name);
+	}
+
+	public long getSourceMessageCountLong(String name) {
 		if (sourcesByName.containsKey(name)) {
-			return sourcesByName.get(name).getMessageCount();
+			return sourcesByName.get(name).getMessageCountLong();
 		}
 		logger.debug("No source found for (" + name + ")");
 		return -1;
 	}
 
 	public int getChannelReceiveCount(String name) {
+		return (int) getChannelReceiveCountLong(name);
+	}
+
+	public long getChannelReceiveCountLong(String name) {
 		if (channelsByName.containsKey(name)) {
 			if (channelsByName.get(name) instanceof PollableChannelMetrics) {
-				return ((PollableChannelMetrics) channelsByName.get(name)).getReceiveCount();
+				return ((PollableChannelMetrics) channelsByName.get(name)).getReceiveCountLong();
 			}
 		}
 		logger.debug("No channel found for (" + name + ")");

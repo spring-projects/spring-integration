@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.integration.monitor;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.messaging.MessageChannel;
+
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Dave Syer
@@ -30,9 +31,9 @@ import org.springframework.jmx.support.MetricType;
  */
 public class PollableChannelMetrics extends DirectChannelMetrics {
 
-	private final AtomicInteger receiveCount = new AtomicInteger();
+	private final AtomicLong receiveCount = new AtomicLong();
 
-	private final AtomicInteger receiveErrorCount = new AtomicInteger();
+	private final AtomicLong receiveErrorCount = new AtomicLong();
 
 
 	public PollableChannelMetrics(MessageChannel messageChannel, String name) {
@@ -73,11 +74,21 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
 	public int getReceiveCount() {
+		return (int) this.receiveCount.get();
+	}
+
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
+	public long getReceiveCountLong() {
 		return this.receiveCount.get();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
 	public int getReceiveErrorCount() {
+		return (int) this.receiveErrorCount.get();
+	}
+
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
+	public long getReceiveErrorCountLong() {
 		return this.receiveErrorCount.get();
 	}
 

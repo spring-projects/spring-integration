@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 the original author or authors.
+ * Copyright 2009-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -97,6 +97,14 @@ public class ExponentialMovingAverageRate {
 	}
 
 	/**
+	 * @return the number of measurements recorded
+	 * @since 3.0
+	 */
+	public long getCountLong() {
+		return rates.getCountLong();
+	}
+
+	/**
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
@@ -107,7 +115,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the mean value
 	 */
 	public double getMean() {
-		int count = rates.getCount();
+		long count = rates.getCountLong();
 		if (count == 0) {
 			return 0;
 		}
