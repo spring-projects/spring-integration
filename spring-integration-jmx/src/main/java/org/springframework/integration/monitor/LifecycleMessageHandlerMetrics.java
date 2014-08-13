@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 /**
  * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
  * be used to stop and start polling endpoints, for instance, in a live system.
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */
@@ -41,64 +41,92 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		this.delegate = delegate;
 	}
 
-
+	@Override
 	@ManagedAttribute
 	public boolean isRunning() {
 		return this.lifecycle.isRunning();
 	}
 
+	@Override
 	@ManagedOperation
 	public void start() {
 		this.lifecycle.start();
 	}
 
+	@Override
 	@ManagedOperation
 	public void stop() {
 		this.lifecycle.stop();
 	}
 
+	@Override
 	public void reset() {
 		this.delegate.reset();
 	}
 
+	@Override
 	public int getErrorCount() {
 		return this.delegate.getErrorCount();
 	}
 
+	@Override
 	public int getHandleCount() {
 		return this.delegate.getHandleCount();
 	}
 
+	@Override
 	public double getMaxDuration() {
 		return this.delegate.getMaxDuration();
 	}
 
+	@Override
 	public double getMeanDuration() {
 		return this.delegate.getMeanDuration();
 	}
 
+	@Override
 	public double getMinDuration() {
 		return this.delegate.getMinDuration();
 	}
 
+	@Override
 	public double getStandardDeviationDuration() {
 		return this.delegate.getStandardDeviationDuration();
 	}
 
+	@Override
 	public Statistics getDuration() {
 		return this.delegate.getDuration();
 	}
 
+	@Override
 	public String getName() {
 		return this.delegate.getName();
 	}
 
+	@Override
 	public String getSource() {
 		return this.delegate.getSource();
 	}
 
+	@Override
 	public int getActiveCount() {
 		return this.delegate.getActiveCount();
+	}
+
+	@Override
+	public long getHandleCountLong() {
+		return this.delegate.getHandleCountLong();
+	}
+
+	@Override
+	public long getErrorCountLong() {
+		return this.delegate.getErrorCountLong();
+	}
+
+	@Override
+	public long getActiveCountLong() {
+		return this.delegate.getActiveCountLong();
 	}
 
 }

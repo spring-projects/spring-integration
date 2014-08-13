@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package org.springframework.integration.monitor;
  */
 public class Statistics {
 
-	private final int count;
+	private final long count;
 
 	private final double min;
 
@@ -33,7 +33,7 @@ public class Statistics {
 	private final double standardDeviation;
 
 
-	public Statistics(int count, double min, double max, double mean, double standardDeviation) {
+	public Statistics(long count, double min, double max, double mean, double standardDeviation) {
 		this.count = count;
 		this.min = min;
 		this.max = max;
@@ -43,29 +43,33 @@ public class Statistics {
 
 
 	public int getCount() {
-		return count;
+		return (int) this.count;
+	}
+
+	public long getCountLong() {
+		return this.count;
 	}
 
 	public double getMin() {
-		return min;
+		return this.min;
 	}
 
 	public double getMax() {
-		return max;
+		return this.max;
 	}
 
 	public double getMean() {
-		return mean;
+		return this.mean;
 	}
 
 	public double getStandardDeviation() {
-		return standardDeviation;
+		return this.standardDeviation;
 	}
 
 	@Override
 	public String toString() {
 		return String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]",
-				count, min, max, getMean(), getStandardDeviation());
+				this.count, this.min, this.max, getMean(), getStandardDeviation());
 	}
 
 }

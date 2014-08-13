@@ -105,6 +105,8 @@ public class MBeanAttributeFilterTests {
 		assertEquals(8, bean.size());
 		assertFalse(bean.containsKey("SendCount"));
 		assertFalse(bean.containsKey("SendErrorCount"));
+		assertFalse(bean.containsKey("SendCountLong"));
+		assertFalse(bean.containsKey("SendErrorCountLong"));
 
 		adapterNot.stop();
 	}
