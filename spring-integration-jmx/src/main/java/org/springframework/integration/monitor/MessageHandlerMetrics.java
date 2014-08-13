@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,13 @@ public interface MessageHandlerMetrics {
 	 * @return the number of successful handler calls
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count")
-	int getHandleCount();
+	long getHandleCount();
 
 	/**
 	 * @return the number of failed handler calls
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count")
-	int getErrorCount();
+	long getErrorCount();
 
 	/**
 	 * @return the mean handler duration (milliseconds)
@@ -64,10 +64,10 @@ public interface MessageHandlerMetrics {
 	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration in Milliseconds")
 	double getStandardDeviationDuration();
-	
+
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Execution Count")
-	int getActiveCount();
-	
+	long getActiveCount();
+
 	/**
 	 * @return summary statistics about the handler duration (milliseconds)
 	 */

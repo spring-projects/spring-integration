@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.jmx.support.MetricType;
 /**
  * Interface for all message channel monitors containing accessors for various useful metrics that are generic for all
  * channel types.
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */
@@ -36,13 +36,13 @@ public interface MessageChannelMetrics {
 	 * @return the number of successful sends
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Count")
-	int getSendCount();
+	long getSendCount();
 
 	/**
 	 * @return the number of failed sends (either throwing an exception or rejected by the channel)
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Error Count")
-	int getSendErrorCount();
+	long getSendErrorCount();
 
 	/**
 	 * @return the time in seconds since the last send

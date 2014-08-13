@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2009-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -84,7 +84,7 @@ public class ExponentialMovingAverageRatio {
 	/**
 	 * @return the number of measurements recorded
 	 */
-	public int getCount() {
+	public long getCount() {
 		return cumulative.getCount();
 	}
 
@@ -99,7 +99,7 @@ public class ExponentialMovingAverageRatio {
 	 * @return the mean success rate
 	 */
 	public double getMean() {
-		int count = cumulative.getCount();
+		long count = cumulative.getCount();
 		if (count == 0) {
 			// Optimistic to start: success rate is 100%
 			return 1;

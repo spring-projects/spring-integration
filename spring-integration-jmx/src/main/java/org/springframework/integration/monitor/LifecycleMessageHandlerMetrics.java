@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 /**
  * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
  * be used to stop and start polling endpoints, for instance, in a live system.
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */
@@ -61,11 +61,11 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		this.delegate.reset();
 	}
 
-	public int getErrorCount() {
+	public long getErrorCount() {
 		return this.delegate.getErrorCount();
 	}
 
-	public int getHandleCount() {
+	public long getHandleCount() {
 		return this.delegate.getHandleCount();
 	}
 
@@ -97,7 +97,7 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		return this.delegate.getSource();
 	}
 
-	public int getActiveCount() {
+	public long getActiveCount() {
 		return this.delegate.getActiveCount();
 	}
 

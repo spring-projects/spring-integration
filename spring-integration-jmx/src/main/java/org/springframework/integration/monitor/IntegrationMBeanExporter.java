@@ -662,7 +662,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return null;
 	}
 
-	public int getSourceMessageCount(String name) {
+	public long getSourceMessageCount(String name) {
 		if (sourcesByName.containsKey(name)) {
 			return sourcesByName.get(name).getMessageCount();
 		}
@@ -670,7 +670,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return -1;
 	}
 
-	public int getChannelReceiveCount(String name) {
+	public long getChannelReceiveCount(String name) {
 		if (channelsByName.containsKey(name)) {
 			if (channelsByName.get(name) instanceof PollableChannelMetrics) {
 				return ((PollableChannelMetrics) channelsByName.get(name)).getReceiveCount();
