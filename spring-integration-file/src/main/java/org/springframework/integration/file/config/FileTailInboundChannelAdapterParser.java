@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
@@ -26,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -46,6 +48,7 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file-delay");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "end");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reopen");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 
 		return builder.getBeanDefinition();
 	}

@@ -263,6 +263,18 @@ Only files matching this regular expression will be picked up by this adapter.
 					<xsd:union memberTypes="xsd:boolean xsd:string"/>
 				</xsd:simpleType>
             </xsd:attribute>
+			<xsd:attribute name="error-channel" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel to which error Messages should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 

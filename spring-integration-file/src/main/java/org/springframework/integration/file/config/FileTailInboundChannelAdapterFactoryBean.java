@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.config;
 
 import java.io.File;
@@ -33,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -60,6 +62,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	private volatile String beanName;
 
 	private volatile MessageChannel outputChannel;
+
+	private volatile MessageChannel errorChannel;
 
 	private volatile Boolean autoStartup;
 
@@ -110,6 +114,10 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.outputChannel = outputChannel;
 	}
 
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.errorChannel = errorChannel;
+	}
+
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
@@ -139,10 +147,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public boolean isRunning() {
-		if (this.adapter != null) {
-			return this.adapter.isRunning();
-		}
-		return false;
+		return this.adapter != null && this.adapter.isRunning();
 	}
 
 	@Override
@@ -155,10 +160,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public boolean isAutoStartup() {
-		if (this.adapter != null) {
-			return this.adapter.isAutoStartup();
-		}
-		return false;
+		return this.adapter != null && this.adapter.isAutoStartup();
 	}
 
 	@Override
@@ -206,7 +208,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		if (this.fileDelay != null) {
 			adapter.setTailAttemptsDelay(this.fileDelay);
 		}
-		adapter.setOutputChannel(outputChannel);
+		adapter.setOutputChannel(this.outputChannel);
+		adapter.setErrorChannel(this.errorChannel);
 		adapter.setBeanName(this.beanName);
 		if (this.autoStartup != null) {
 			adapter.setAutoStartup(this.autoStartup);
@@ -217,8 +220,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		if (this.applicationEventPublisher != null) {
 			adapter.setApplicationEventPublisher(this.applicationEventPublisher);
 		}
-		if (this.getBeanFactory() != null) {
-			adapter.setBeanFactory(this.getBeanFactory());
+		if (getBeanFactory() != null) {
+			adapter.setBeanFactory(getBeanFactory());
 		}
 		adapter.afterPropertiesSet();
 		this.adapter = adapter;

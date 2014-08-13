@@ -124,9 +124,8 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 	}
 
 	/**
-	 * Subclasses may override this method to invoke the callback before
-	 * or after the start behavior.
-	 * @param callback the Runnable to invoke
+	 * Stop the component and invoke callback.
+	 * @param callback the Runnable to invoke.
 	 */
 	protected void doStop(Runnable callback) {
 	    doStop();

@@ -13,12 +13,15 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+	<int:channel id="tailErrorChannel"/>
+
 	<int-file:tail-inbound-channel-adapter id="default"
 		channel="input"
 		task-executor="exec"
 		file="/tmp/baz"
 		auto-startup="false"
-		phase="123" />
+		phase="123"
+		error-channel="tailErrorChannel"/>
 
 	<int-file:tail-inbound-channel-adapter id="native"
 		channel="input"
@@ -42,7 +45,7 @@
 		file-delay="10000"
 		auto-startup="false"
 		phase="123" />
-	
+
 	<context:property-placeholder properties-ref="props"/>
 
 	<util:properties id="props">
@@ -62,7 +65,7 @@
 		phase="123" />
 
 	<int:channel id="input" />
-	
+
 	<task:executor id="exec" />
 
 	<task:scheduler id="sched" />
