@@ -44,7 +44,6 @@ public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapte
 			connectionFactory = "redisConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactory);
-
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer", true);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
