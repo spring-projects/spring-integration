@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 the original author or authors.
+ * Copyright 2009-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -59,7 +59,7 @@ public class MessageSourceMonitoringIntegrationTests {
 			channel.receive(1000L);
 			assertTrue(before < service.getCounter());
 
-			long count = exporter.getSourceMessageCount(monitor);
+			int count = exporter.getSourceMessageCount(monitor);
 			assertTrue("No statistics for input channel", count > 0);
 
 		} finally {

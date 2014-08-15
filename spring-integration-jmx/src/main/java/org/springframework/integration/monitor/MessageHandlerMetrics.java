@@ -33,13 +33,27 @@ public interface MessageHandlerMetrics {
 	 * @return the number of successful handler calls
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count")
-	long getHandleCount();
+	int getHandleCount();
+
+	/**
+	 * @return the number of successful handler calls
+	 * @since 3.0
+	 */
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count")
+	long getHandleCountLong();
 
 	/**
 	 * @return the number of failed handler calls
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count")
-	long getErrorCount();
+	int getErrorCount();
+
+	/**
+	 * @return the number of failed handler calls
+	 * @since 3.0
+	 */
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count")
+	long getErrorCountLong();
 
 	/**
 	 * @return the mean handler duration (milliseconds)
@@ -66,7 +80,10 @@ public interface MessageHandlerMetrics {
 	double getStandardDeviationDuration();
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Execution Count")
-	long getActiveCount();
+	int getActiveCount();
+
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Execution Count")
+	long getActiveCountLong();
 
 	/**
 	 * @return summary statistics about the handler duration (milliseconds)

@@ -64,7 +64,11 @@ public class SimpleMessageSourceMetrics implements MethodInterceptor, MessageSou
 		this.messageCount.set(0);
 	}
 
-	public long getMessageCount() {
+	public int getMessageCount() {
+		return (int) this.messageCount.get();
+	}
+
+	public long getMessageCountLong() {
 		return this.messageCount.get();
 	}
 

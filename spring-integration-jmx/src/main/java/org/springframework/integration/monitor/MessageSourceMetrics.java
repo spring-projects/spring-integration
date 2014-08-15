@@ -30,7 +30,14 @@ public interface MessageSourceMetrics {
 	 * @return the number of successful handler calls
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count")
-	long getMessageCount();
+	int getMessageCount();
+
+	/**
+	 * @return the number of successful handler calls
+	 * @since 3.0
+	 */
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count")
+	long getMessageCountLong();
 
 	String getName();
 

@@ -82,7 +82,14 @@ public class ExponentialMovingAverage {
 	/**
 	 * @return the number of measurements recorded
 	 */
-	public long getCount() {
+	public int getCount() {
+		return (int) count;
+	}
+
+	/**
+	 * @return the number of measurements recorded
+	 */
+	public long getCountLong() {
 		return count;
 	}
 

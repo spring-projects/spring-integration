@@ -73,12 +73,22 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
-	public long getReceiveCount() {
+	public int getReceiveCount() {
+		return (int) this.receiveCount.get();
+	}
+
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
+	public long getReceiveCountLong() {
 		return this.receiveCount.get();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
-	public long getReceiveErrorCount() {
+	public int getReceiveErrorCount() {
+		return (int) this.receiveErrorCount.get();
+	}
+
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
+	public long getReceiveErrorCountLong() {
 		return this.receiveErrorCount.get();
 	}
 

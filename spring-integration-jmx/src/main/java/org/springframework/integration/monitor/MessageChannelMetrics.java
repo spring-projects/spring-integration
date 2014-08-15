@@ -36,13 +36,27 @@ public interface MessageChannelMetrics {
 	 * @return the number of successful sends
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Count")
-	long getSendCount();
+	int getSendCount();
+
+	/**
+	 * @return the number of successful sends
+	 * @since 3.0
+	 */
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Count")
+	long getSendCountLong();
 
 	/**
 	 * @return the number of failed sends (either throwing an exception or rejected by the channel)
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Error Count")
-	long getSendErrorCount();
+	int getSendErrorCount();
+
+	/**
+	 * @return the number of failed sends (either throwing an exception or rejected by the channel)
+	 * @since 3.0
+	 */
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Error Count")
+	long getSendErrorCountLong();
 
 	/**
 	 * @return the time in seconds since the last send

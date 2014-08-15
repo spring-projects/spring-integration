@@ -84,8 +84,15 @@ public class ExponentialMovingAverageRatio {
 	/**
 	 * @return the number of measurements recorded
 	 */
-	public long getCount() {
+	public int getCount() {
 		return cumulative.getCount();
+	}
+
+	/**
+	 * @return the number of measurements recorded
+	 */
+	public long getCountLong() {
+		return cumulative.getCountLong();
 	}
 
 	/**
@@ -99,7 +106,7 @@ public class ExponentialMovingAverageRatio {
 	 * @return the mean success rate
 	 */
 	public double getMean() {
-		long count = cumulative.getCount();
+		long count = cumulative.getCountLong();
 		if (count == 0) {
 			// Optimistic to start: success rate is 100%
 			return 1;

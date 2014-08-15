@@ -41,64 +41,92 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		this.delegate = delegate;
 	}
 
-
+	@Override
 	@ManagedAttribute
 	public boolean isRunning() {
 		return this.lifecycle.isRunning();
 	}
 
+	@Override
 	@ManagedOperation
 	public void start() {
 		this.lifecycle.start();
 	}
 
+	@Override
 	@ManagedOperation
 	public void stop() {
 		this.lifecycle.stop();
 	}
 
+	@Override
 	public void reset() {
 		this.delegate.reset();
 	}
 
-	public long getErrorCount() {
+	@Override
+	public int getErrorCount() {
 		return this.delegate.getErrorCount();
 	}
 
-	public long getHandleCount() {
+	@Override
+	public int getHandleCount() {
 		return this.delegate.getHandleCount();
 	}
 
+	@Override
 	public double getMaxDuration() {
 		return this.delegate.getMaxDuration();
 	}
 
+	@Override
 	public double getMeanDuration() {
 		return this.delegate.getMeanDuration();
 	}
 
+	@Override
 	public double getMinDuration() {
 		return this.delegate.getMinDuration();
 	}
 
+	@Override
 	public double getStandardDeviationDuration() {
 		return this.delegate.getStandardDeviationDuration();
 	}
 
+	@Override
 	public Statistics getDuration() {
 		return this.delegate.getDuration();
 	}
 
+	@Override
 	public String getName() {
 		return this.delegate.getName();
 	}
 
+	@Override
 	public String getSource() {
 		return this.delegate.getSource();
 	}
 
-	public long getActiveCount() {
+	@Override
+	public int getActiveCount() {
 		return this.delegate.getActiveCount();
+	}
+
+	@Override
+	public long getHandleCountLong() {
+		return this.delegate.getHandleCountLong();
+	}
+
+	@Override
+	public long getErrorCountLong() {
+		return this.delegate.getErrorCountLong();
+	}
+
+	@Override
+	public long getActiveCountLong() {
+		return this.delegate.getActiveCountLong();
 	}
 
 }

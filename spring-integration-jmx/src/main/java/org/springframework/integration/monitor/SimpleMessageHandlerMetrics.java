@@ -124,14 +124,22 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		this.handleCount.set(0);
 	}
 
-	public long getHandleCount() {
+	public long getHandleCountLong() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
 		}
 		return this.handleCount.get();
 	}
 
-	public long getErrorCount() {
+	public int getHandleCount() {
+		return (int) getHandleCountLong();
+	}
+
+	public int getErrorCount() {
+		return (int) this.errorCount.get();
+	}
+
+	public long getErrorCountLong() {
 		return this.errorCount.get();
 	}
 
@@ -151,7 +159,11 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		return this.duration.getStandardDeviation();
 	}
 
-	public long getActiveCount() {
+	public int getActiveCount() {
+		return (int) this.activeCount.get();
+	}
+
+	public long getActiveCountLong() {
 		return this.activeCount.get();
 	}
 

@@ -147,11 +147,19 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		sendErrorCount.set(0);
 	}
 
-	public long getSendCount() {
+	public int getSendCount() {
+		return (int) sendCount.get();
+	}
+
+	public long getSendCountLong() {
 		return sendCount.get();
 	}
 
-	public long getSendErrorCount() {
+	public int getSendErrorCount() {
+		return (int) sendErrorCount.get();
+	}
+
+	public long getSendErrorCountLong() {
 		return sendErrorCount.get();
 	}
 

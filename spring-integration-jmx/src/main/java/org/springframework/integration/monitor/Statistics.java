@@ -42,7 +42,11 @@ public class Statistics {
 	}
 
 
-	public long getCount() {
+	public int getCount() {
+		return (int) this.count;
+	}
+
+	public long getCountLong() {
 		return this.count;
 	}
 

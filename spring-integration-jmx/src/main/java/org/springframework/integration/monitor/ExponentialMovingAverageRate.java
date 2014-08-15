@@ -92,8 +92,16 @@ public class ExponentialMovingAverageRate {
 	/**
 	 * @return the number of measurements recorded
 	 */
-	public long getCount() {
+	public int getCount() {
 		return rates.getCount();
+	}
+
+	/**
+	 * @return the number of measurements recorded
+	 * @since 3.0
+	 */
+	public long getCountLong() {
+		return rates.getCountLong();
 	}
 
 	/**
@@ -107,7 +115,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the mean value
 	 */
 	public double getMean() {
-		long count = rates.getCount();
+		long count = rates.getCountLong();
 		if (count == 0) {
 			return 0;
 		}

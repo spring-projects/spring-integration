@@ -74,8 +74,13 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 	 * @return int
 	 * @see org.springframework.integration.monitor.MessageSourceMetrics#getMessageCount()
 	 */
-	public long getMessageCount() {
+	public int getMessageCount() {
 		return this.delegate.getMessageCount();
+	}
+
+	@Override
+	public long getMessageCountLong() {
+		return this.delegate.getMessageCountLong();
 	}
 
 }
