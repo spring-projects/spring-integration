@@ -19,6 +19,6 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="messageBuilderFactory" class="org.springframework.integration.support.MutableMessageBuilderFacfory" />
+	<bean id="messageBuilderFactory" class="org.springframework.integration.support.MutableMessageBuilderFactory" />
 
 </beans>

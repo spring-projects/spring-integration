@@ -33,7 +33,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.message.MessageBuilderAtConfigTests.MBConfig;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.MutableMessageBuilderFacfory;
+import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -59,7 +59,7 @@ public class MessageBuilderAtConfigTests {
 
 	@Test
 	public void mutate() {
-		assertTrue(messageBuilderFactory instanceof MutableMessageBuilderFacfory);
+		assertTrue(messageBuilderFactory instanceof MutableMessageBuilderFactory);
 		in.send(new GenericMessage<String>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
@@ -83,7 +83,7 @@ public class MessageBuilderAtConfigTests {
 
 		@Bean
 		public MessageBuilderFactory messageBuilderFactory() {
-			return new MutableMessageBuilderFacfory();
+			return new MutableMessageBuilderFactory();
 		}
 
 		@Bean

@@ -35,7 +35,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilder;
-import org.springframework.integration.support.MutableMessageBuilderFacfory;
+import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -145,7 +145,7 @@ public class MessageBuilderTests {
 
 	@Test
 	public void mutate() {
-		assertTrue(messageBuilderFactory instanceof MutableMessageBuilderFacfory);
+		assertTrue(messageBuilderFactory instanceof MutableMessageBuilderFactory);
 		in.send(new GenericMessage<String>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
@@ -179,7 +179,7 @@ public class MessageBuilderTests {
 	public void mutableFromImmutableMutate() {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
-		Message<String> message2 = new MutableMessageBuilderFacfory().fromMessage(message1).setHeader("another", 1).build();
+		Message<String> message2 = new MutableMessageBuilderFactory().fromMessage(message1).setHeader("another", 1).build();
 		assertEquals("bar", message2.getHeaders().get("foo"));
 		assertSame(message1.getHeaders().getId(), message2.getHeaders().getId());
 		assertNotSame(message1, message2);
