@@ -31,6 +31,6 @@
 
 	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
 
-	<bean id="messageBuilderFactory" class="org.springframework.integration.support.MutableMessageBuilderFacfory" />
+	<bean id="messageBuilderFactory" class="org.springframework.integration.support.MutableMessageBuilderFactory" />
 
 </beans>

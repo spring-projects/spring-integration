@@ -22,7 +22,7 @@ import org.springframework.messaging.Message;
  * @since 4.0
  *
  */
-public class MutableMessageBuilderFacfory implements MessageBuilderFactory {
+public class MutableMessageBuilderFactory implements MessageBuilderFactory {
 
 	@Override
 	public <T> MutableMessageBuilder<T> fromMessage(Message<T> message) {
