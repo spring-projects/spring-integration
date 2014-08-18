@@ -23,6 +23,7 @@ import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
 import org.springframework.integration.support.MessageBuilder;
@@ -31,9 +32,10 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Soby Chacko
+ * @author Ilayaperumal Gopinathan
  * @since 0.5
  */
-public class KafkaConsumerContext<K,V>  implements BeanFactoryAware {
+public class KafkaConsumerContext<K,V>  implements BeanFactoryAware, DisposableBean {
 	private Map<String, ConsumerConfiguration<K,V>> consumerConfigurations;
 	private String consumerTimeout = KafkaConsumerDefaults.CONSUMER_TIMEOUT;
 	private ZookeeperConnect zookeeperConnect;
@@ -76,5 +78,12 @@ public class KafkaConsumerContext<K,V>  implements BeanFactoryAware {
 
 	public void setZookeeperConnect(final ZookeeperConnect zookeeperConnect) {
 		this.zookeeperConnect = zookeeperConnect;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		for (ConsumerConfiguration<K,V> config: consumerConfigurations.values()) {
+			config.getConsumerConnector().shutdown();
+		}
 	}
 }
