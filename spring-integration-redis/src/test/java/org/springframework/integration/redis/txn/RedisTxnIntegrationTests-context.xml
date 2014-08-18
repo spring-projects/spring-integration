@@ -32,10 +32,10 @@
 
 
 	<int-redis:outbound-channel-adapter id="outboundAdapter"
-										channel="outputChannel"
-										topic-expression="headers['topic'] ?: 'outbound'"
-										message-converter="testConverter"
-										serializer="serializer">
+		channel="outputChannel"
+		topic-expression="headers['topic'] ?: 'outbound'"
+		message-converter="testConverter"
+		serializer="serializer">
 		<int-redis:request-handler-advice-chain>
 			<int:retry-advice/>
 		</int-redis:request-handler-advice-chain>
@@ -66,10 +66,10 @@
 	<int:service-activator input-channel="exceptionReceiveChannel" expression="payload.toUpperCase()" output-channel="exceptionOutputChannel"/>
 	
 	<int-redis:outbound-channel-adapter id="exceptionOutboundAdapter"
-										channel="exceptionOutputChannel"
-										topic-expression="headers['topic'] ?: 'exceptionOutbound'"
-										message-converter="testConverter"
-										serializer="serializer">
+		channel="exceptionOutputChannel"
+		topic-expression="headers['topic'] ?: 'exceptionOutbound'"
+		message-converter="testConverter"
+		serializer="serializer">
 		<int-redis:request-handler-advice-chain>
 			<int:retry-advice/>
 		</int-redis:request-handler-advice-chain>

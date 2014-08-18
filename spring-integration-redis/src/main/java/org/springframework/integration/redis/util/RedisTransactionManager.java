@@ -54,4 +54,5 @@ public class RedisTransactionManager extends AbstractPlatformTransactionManager 
 	@Override
 	protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
 	}
+
 }

@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
+public class RedisTxnIntegrationTests extends RedisAvailableTests {
 
 	@Autowired
 	private ApplicationContext context;

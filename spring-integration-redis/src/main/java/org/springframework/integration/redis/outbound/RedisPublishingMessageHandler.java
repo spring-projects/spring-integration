@@ -40,10 +40,6 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 
 	private final RedisTemplate<?, ?> template;
 
-	public RedisTemplate<?, ?> getTemplate() {
-		return template;
-	}
-
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
@@ -58,6 +54,10 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 		this.template.setConnectionFactory(connectionFactory);
 		this.template.setEnableDefaultSerializer(false);
 		this.template.afterPropertiesSet();
+	}
+
+	public RedisTemplate<?, ?> getTemplate() {
+		return template;
 	}
 
 	@Override

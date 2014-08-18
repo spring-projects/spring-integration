@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,23 +13,18 @@
 package org.springframework.integration.redis.util;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
+
 /**
- * An implementation of {@link PlatformTransactionManager} that provides transaction-like semantics to
- * {@link MessageSource}s that are not inherently transactional. It does <b>not</b> make such
- * sources transactional; rather, together with a {@link TransactionSynchronizationFactory}, it provides
- * the ability to synchronize operations after a flow completes, via beforeCommit, afterCommit and
- * afterRollback operations.
+ * An implementation of {@link PlatformTransactionManager} that provides transaction-like
+ * semantics to RedisTemplate, it will throw exception during docommit.
  *
- * @author Gary Russell
- * @author Oleg Zhurakousky
- * @since 2.2
+ * @author David Liu
+ * @since 4.1
  *
  */
 public class ExceptionTransactionManager extends AbstractPlatformTransactionManager {
@@ -60,4 +55,5 @@ public class ExceptionTransactionManager extends AbstractPlatformTransactionMana
 	@Override
 	protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
 	}
+
 }
