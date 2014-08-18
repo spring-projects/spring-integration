@@ -287,11 +287,18 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 							count++;
 						}
 						catch (Exception e) {
-							if (e instanceof RuntimeException) {
-								throw (RuntimeException) e;
+							if (!Thread.interrupted()) {
+								if (e instanceof RuntimeException) {
+									throw (RuntimeException) e;
+								}
+								else {
+									throw new MessageHandlingException(new ErrorMessage(e), e);
+								}
 							}
 							else {
-								throw new MessageHandlingException(new ErrorMessage(e), e);
+								if (logger.isDebugEnabled()) {
+									logger.debug("The interruption error occurred during stop: " + e.getMessage());
+								}
 							}
 						}
 					}

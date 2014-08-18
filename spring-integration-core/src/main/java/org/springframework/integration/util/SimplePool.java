@@ -160,11 +160,11 @@ public class SimplePool<T> implements Pool<T> {
 				permitted = this.permits.tryAcquire(this.waitTimeout, TimeUnit.MILLISECONDS);
 			}
 			catch (InterruptedException e) {
-				logger.error("Interrupted awaiting a pooled resource.");
 				Thread.currentThread().interrupt();
+				throw new MessagingException("Interrupted awaiting a pooled resource", e);
 			}
 			if (!permitted) {
-				throw new IllegalStateException("Timed out while waiting to aquire a pool entry.");
+				throw new IllegalStateException("Timed out while waiting to acquire a pool entry.");
 			}
 			return doGetItem();
 		}
