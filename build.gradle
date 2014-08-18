@@ -88,6 +88,7 @@ subprojects { subproject ->
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.4.7'
 		jedisVersion = '2.4.2'
+		jettyVersion = '9.2.1.v20140609'
 		jmsApiVersion = '1.1-rev-1'
 		jpaApiVersion = '2.0.0'
 		jrubyVersion = '1.7.12'
@@ -118,7 +119,7 @@ subprojects { subproject ->
 		springSecurityVersion = '3.2.4.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.0.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.0.6.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.2.0.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
@@ -595,6 +596,17 @@ project('spring-integration-websocket') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-websocket:$springVersion"
+
+		testCompile "org.springframework:spring-webmvc:$springVersion"
+		testCompile("org.eclipse.jetty:jetty-webapp:$jettyVersion") {
+			exclude group: "javax.servlet", module: "javax.servlet"
+		}
+		testCompile("org.eclipse.jetty.websocket:websocket-server:$jettyVersion") {
+			exclude group: "javax.servlet", module: "javax.servlet"
+		}
+		testCompile "org.eclipse.jetty.websocket:websocket-client:$jettyVersion"
+		testCompile"org.eclipse.jetty:jetty-client:$jettyVersion"
+		testCompile "org.slf4j:slf4j-jcl:$slf4jVersion"
 	}
 }
 
