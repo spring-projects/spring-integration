@@ -162,7 +162,7 @@ public class SimplePool<T> implements Pool<T> {
 				throw new MessagingException("Interrupted awaiting a pooled resource", e);
 			}
 			if (!permitted) {
-				throw new IllegalStateException("Timed out while waiting to aquire a pool entry.");
+				throw new IllegalStateException("Timed out while waiting to acquire a pool entry.");
 			}
 			T item = doGetItem();
 			return item;

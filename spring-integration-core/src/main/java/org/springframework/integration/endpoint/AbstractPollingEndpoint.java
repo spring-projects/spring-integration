@@ -187,7 +187,21 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private boolean doPoll() {
 		IntegrationResourceHolder holder = this.bindResourceHolderIfNecessary(
 				this.getResourceKey(), this.getResourceToBind());
-		Message<?> message = this.receiveMessage();
+		Message<?> message = null;
+		try {
+			message = this.receiveMessage();
+		}
+		catch (Exception e) {
+			if (Thread.interrupted()) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Poll interrupted - during stop()? : " + e.getMessage());
+				}
+				return false;
+			}
+			else {
+				throw (RuntimeException) e;
+			}
+		}
 		boolean result;
 		if (message == null) {
 			if (this.logger.isDebugEnabled()){

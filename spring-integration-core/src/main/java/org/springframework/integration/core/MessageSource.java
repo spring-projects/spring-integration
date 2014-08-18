@@ -28,8 +28,7 @@ public interface MessageSource<T> {
 	/**
 	 * Retrieve the next available message from this source.
 	 * Returns <code>null</code> if no message is available.
-	 *
-	 * @return The messasge or null.
+	 * @return The message or null.
 	 */
 	Message<T> receive();
 
