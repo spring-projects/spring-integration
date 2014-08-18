@@ -126,6 +126,9 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+		<xsd:sequence>
+		<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
+		</xsd:sequence>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="connection-factory" type="xsd:string">
 				<xsd:annotation>

@@ -40,6 +40,10 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 
 	private final RedisTemplate<?, ?> template;
 
+	public RedisTemplate<?, ?> getTemplate() {
+		return template;
+	}
+
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();

@@ -19,7 +19,12 @@ package org.springframework.integration.redis.inbound;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aopalliance.aop.Advice;
+
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
@@ -33,6 +38,8 @@ import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
@@ -52,6 +59,14 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	private volatile String[] topicPatterns;
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
+
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+	private volatile ManagedList<Advice> adviceChain;
+
+	public void setAdviceChain(ManagedList<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
 
 	public RedisInboundChannelAdapter(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -100,8 +115,22 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
 		}
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		adapter.setSerializer(this.serializer);
+		MessageListener adapter = new MessageListenerAdapter(delegate);
+		((MessageListenerAdapter) adapter).setSerializer(this.serializer);
+		((MessageListenerAdapter) adapter).afterPropertiesSet();
+		if (this.adviceChain != null && this.adviceChain.size() > 0) {
+			List<Advice> adviceChain = this.adviceChain;
+			if (!CollectionUtils.isEmpty(adviceChain)) {
+				ProxyFactory proxyFactory = new ProxyFactory(adapter);
+				if (!CollectionUtils.isEmpty(adviceChain)) {
+					for (Advice advice : adviceChain) {
+						proxyFactory.addAdvice(advice);
+					}
+				}
+				adapter = (MessageListener) proxyFactory.getProxy(this.beanClassLoader);
+			}
+		}
+
 		List<Topic> topicList = new ArrayList<Topic>();
 		if (hasTopics) {
 			for (String topic : this.topics) {
@@ -113,7 +142,8 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 				topicList.add(new PatternTopic(pattern));
 			}
 		}
-		adapter.afterPropertiesSet();
+
+
 		this.container.addMessageListener(adapter, topicList);
 		this.container.afterPropertiesSet();
 	}
