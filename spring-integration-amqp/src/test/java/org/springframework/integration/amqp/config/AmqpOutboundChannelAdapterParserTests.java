@@ -241,7 +241,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		requestChannel.send(message);
 		PollableChannel returnChannel = context.getBean("returnChannel", PollableChannel.class);
-		RabbitTemplate template = context.getBean("amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate template = context.getBean("amqpTemplateReturns", RabbitTemplate.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put(PublisherCallbackChannel.RETURN_CORRELATION, template.getUUID());
 		BasicProperties properties = mock(BasicProperties.class);
