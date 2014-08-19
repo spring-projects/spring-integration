@@ -79,6 +79,8 @@ public abstract class AmqpHeaders {
 
 	public static final String PUBLISH_CONFIRM = PREFIX + "publishConfirm";
 
+	public static final String PUBLISH_CONFIRM_NACK_CAUSE = PREFIX + "publishConfirmNackCause";
+
 	public static final String RETURN_REPLY_CODE = PREFIX + "returnReplyCode";
 
 	public static final String RETURN_REPLY_TEXT = PREFIX + "returnReplyText";

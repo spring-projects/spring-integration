@@ -489,6 +489,11 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                 defined by this expression and the message will have a header 'amqp_publishConfirm' set to
                 true (ack) or false (nack). Examples: "headers['myCorrelationData']", "payload".
                 <emphasis>Optional</emphasis>.</para>
+				<para>
+					Starting with <emphasis>version 4.1</emphasis> the new <code>amqp_publishConfirmNackCause</code>
+					message header has been added. It contains a <code>cause</code> message of 'nack' for publisher
+					confirm.
+				</para>
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-9-co" id="amqp-outbound-channel-adapter-xml-9">
                 <para>The channel to which positive (ack) publisher confirms are sent; payload is
@@ -671,7 +676,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
       </important>
   </section>
 
-  <section>
+  <section id="amqp-channels">
     <title>AMQP Backed Message Channels</title>
 
     <para>
@@ -697,6 +702,14 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 		and bind that to the Fanout Exchange while registering a consumer on that Queue to receive Messages. There is no
 		"pollable" option for a publish-subscribe-channel; it must be message-driven.
 	</para>
+	  <para>
+		  Starting with <emphasis>version 4.1</emphasis> AMQP Backed Message Channels, alongside with
+		  <code>channel-transacted</code>, support <code>template-channel-transacted</code> to separate
+		  <code>transactional</code> configuration for the <classname>AbstractMessageListenerContainer</classname>
+		  and for the <classname>RabbitTemplate</classname>.
+		  Note, previously, the <code>channel-transacted</code> was <code>true</code> by default, now it changed to
+		  <code>false</code> as standard default value for the <classname>AbstractMessageListenerContainer</classname>.
+	  </para>
   </section>
 	<section id="amqp-message-headers">
 		<title>AMQP Message Headers</title>
@@ -760,6 +773,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 			<listitem>amqp_springReplyCorrelation</listitem>
 			<listitem>amqp_springReplyToStack</listitem>
 			<listitem>amqp_publishConfirm</listitem>
+			<listitem>amqp_publishConfirmNackCause</listitem>
 			<listitem>amqp_returnReplyCode</listitem>
 			<listitem>amqp_returnReplyText</listitem>
 			<listitem>amqp_returnExchange</listitem>

@@ -621,13 +621,6 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="containerAndTemplateSharedAttributes">
-		<xsd:attribute name="channel-transacted" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Flag to indicate that channels created by this component will be transactional.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="connection-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -663,6 +656,14 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	SimpleMessageListenerContainer, such as channelTransacted, connectionFactory, and messagePropertiesConverter.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="template-channel-transacted" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate that channels created by this component will be transactional.
+					Only applies to messages sent to this channel, or when 'message-driven' is 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="encoding" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -693,6 +694,14 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	connectionFactory, and messsagePropertiesConverter.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="channel-transacted" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate that channels created by this component will be transactional.
+					Only applies to outbound messages when 'message-driven' is 'true'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="acknowledge-mode">
 			<xsd:annotation>
 				<xsd:documentation>

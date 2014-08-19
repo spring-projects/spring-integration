@@ -109,10 +109,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private volatile AcknowledgeMode acknowledgeMode;
 
-	/**
-	 * This value differs from the container implementations' default (which is false).
-	 */
-	private volatile boolean channelTransacted = true;
+	private volatile boolean channelTransacted;
 
 	private volatile Executor taskExecutor;
 
@@ -202,15 +199,21 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		}
 	}
 
+	public void setTemplateChannelTransacted(boolean channelTransacted) {
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setChannelTransacted(channelTransacted);
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("AmqpTemplate is not a RabbitTemplate, so configured 'channelTransacted' will be ignored.");
+		}
+	}
+
 	/*
 	 * Template and Container properties
 	 */
 
 	public void setChannelTransacted(boolean channelTransacted) {
 		this.channelTransacted = channelTransacted;
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).setChannelTransacted(channelTransacted);
-		}
 	}
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {

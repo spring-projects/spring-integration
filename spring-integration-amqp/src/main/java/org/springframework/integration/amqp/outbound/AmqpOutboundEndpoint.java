@@ -13,6 +13,7 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.AmqpException;
@@ -43,6 +44,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Adapter that converts and sends Messages to an AMQP Exchange.
@@ -318,13 +320,20 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	public void confirm(CorrelationData correlationData, boolean ack) {
+	public void confirm(CorrelationData correlationData, boolean ack, String cause) {
 		Object userCorrelationData = correlationData;
 		if (correlationData instanceof CorrelationDataWrapper) {
 			userCorrelationData = ((CorrelationDataWrapper) correlationData).getUserData();
 		}
+
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put(AmqpHeaders.PUBLISH_CONFIRM, ack);
+		if (!ack && StringUtils.hasText(cause)) {
+			headers.put(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE, cause);
+		}
+
 		Message<Object> confirmMessage = this.getMessageBuilderFactory().withPayload(userCorrelationData)
-				.setHeader(AmqpHeaders.PUBLISH_CONFIRM, ack)
+				.copyHeaders(headers)
 				.build();
 		if (ack && this.confirmAckChannel != null) {
 			this.confirmAckChannel.send(confirmMessage);

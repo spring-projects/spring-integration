@@ -24,6 +24,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -38,11 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -81,9 +85,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
-
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
 
 /**
  * @author Mark Fisher
@@ -186,7 +187,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Channel mockChannel = mock(Channel.class);
 
 		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		PublisherCallbackChannelImpl publisherCallbackChannel = spy(new PublisherCallbackChannelImpl(mockChannel));
+		doAnswer(new DoesNothing()).when(publisherCallbackChannel).close();
 		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
 
 		MessageChannel requestChannel = context.getBean("pcRequestChannel", MessageChannel.class);
@@ -246,7 +248,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Channel mockChannel = mock(Channel.class);
 
 		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		PublisherCallbackChannelImpl publisherCallbackChannel = spy(new PublisherCallbackChannelImpl(mockChannel));
+		doAnswer(new DoesNothing()).when(publisherCallbackChannel).close();
 		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
 
 		MessageChannel requestChannel = context.getBean("returnRequestChannel", MessageChannel.class);

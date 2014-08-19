@@ -60,6 +60,8 @@ public class AmqpChannelParserTests {
 		assertSame(mbf, TestUtils.getPropertyValue(channel, "dispatcher.messageBuilderFactory"));
 		assertSame(mbf, TestUtils.getPropertyValue(channel, "container.messageListener.messageBuilderFactory"));
 		assertTrue(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class));
 	}
 
 	@Test
@@ -68,6 +70,8 @@ public class AmqpChannelParserTests {
 		assertEquals(1, TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
 		assertFalse(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class));
 	}
 
 
