@@ -21,7 +21,6 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -90,12 +89,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 
 	@Override
-	protected final void onInit() {
-		Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
-				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
-		if (this.getBeanFactory() != null) {
-			this.messagingTemplate.setBeanFactory(getBeanFactory());
-		}
+	protected final void onInit() throws Exception {
+		super.onInit();
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
 			for (Advice advice : this.adviceChain) {
@@ -181,27 +176,14 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * @param replyMessage the reply Message to send
 	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
 	 */
-	private void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
+	private void sendReplyMessage(Message<?> replyMessage, Object replyChannelHeaderValue) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		if (getOutputChannelName() != null) {
-			synchronized (this) {
-				if (getOutputChannelName() != null) {
-					try {
-						setOutputChannel(this.getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
-						setOutputChannelName(null);
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ getOutputChannelName() + "' in the BeanFactory.");
-					}
-				}
-			}
-		}
 
-		if (getOutputChannel() != null) {
-			this.sendMessage(replyMessage, getOutputChannel());
+		MessageChannel outputChannel = getOutputChannel();
+		if (outputChannel != null) {
+			this.sendMessage(replyMessage, outputChannel);
 		}
 		else if (replyChannelHeaderValue != null) {
 			this.sendMessage(replyMessage, replyChannelHeaderValue);

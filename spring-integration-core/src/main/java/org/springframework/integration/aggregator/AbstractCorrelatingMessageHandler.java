@@ -131,7 +131,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.correlationStrategy = correlationStrategy == null ?
 				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
-		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+		setSendTimeout(DEFAULT_SEND_TIMEOUT);
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
@@ -193,15 +193,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
+		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
+				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
-			Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
-					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
-
-			Assert.state(!(getOutputChannelName() != null && getOutputChannel() != null),
-					"'outputChannelName' and 'outputChannel' are mutually exclusive.");
-
 			if (this.outputProcessor instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
 			}
@@ -559,8 +554,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (sendPartialResultOnExpiry) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Prematurely releasing partially complete group with key ["
-						+ correlationKey + "] to: "
-						+ (getOutputChannelName() != null ? getOutputChannelName() : getOutputChannel()));
+						+ correlationKey + "] to: " + getOutputChannel());
 			}
 			completeGroup(correlationKey, group);
 		}
@@ -614,20 +608,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Object replyChannelHeader = null;
 		if (message != null) {
 			replyChannelHeader = message.getHeaders().getReplyChannel();
-		}
-		if (getOutputChannelName() != null) {
-			synchronized (this) {
-				if (getOutputChannelName() != null) {
-					try {
-						setOutputChannel(getBeanFactory().getBean(getOutputChannelName(), MessageChannel.class));
-						setOutputChannelName(null);
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ getOutputChannelName() + "' in the BeanFactory.");
-					}
-				}
-			}
 		}
 
 		Object replyChannel = getOutputChannel();
