@@ -196,7 +196,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		taskScheduler.shutdown();
 
 		verifyZeroInteractions(errorHandlerLogger);
-		verify(adapterLogger).debug(contains("The interruption error occurred during stop:"));
+		verify(adapterLogger).debug(contains("Poll interrupted - during stop()?"));
 	}
 
 	private static class TestSource implements MessageSource<String> {

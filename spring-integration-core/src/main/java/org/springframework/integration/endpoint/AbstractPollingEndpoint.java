@@ -187,7 +187,21 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private boolean doPoll() {
 		IntegrationResourceHolder holder = this.bindResourceHolderIfNecessary(
 				this.getResourceKey(), this.getResourceToBind());
-		Message<?> message = this.receiveMessage();
+		Message<?> message = null;
+		try {
+			message = this.receiveMessage();
+		}
+		catch (Exception e) {
+			if (Thread.interrupted()) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Poll interrupted - during stop()? : " + e.getMessage());
+				}
+				return false;
+			}
+			else {
+				throw (RuntimeException) e;
+			}
+		}
 		boolean result;
 		if (message == null) {
 			if (this.logger.isDebugEnabled()){
@@ -287,18 +301,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 							count++;
 						}
 						catch (Exception e) {
-							if (!Thread.interrupted()) {
-								if (e instanceof RuntimeException) {
-									throw (RuntimeException) e;
-								}
-								else {
-									throw new MessageHandlingException(new ErrorMessage(e), e);
-								}
+							if (e instanceof RuntimeException) {
+								throw (RuntimeException) e;
 							}
 							else {
-								if (logger.isDebugEnabled()) {
-									logger.debug("The interruption error occurred during stop: " + e.getMessage());
-								}
+								throw new MessageHandlingException(new ErrorMessage(e), e);
 							}
 						}
 					}
