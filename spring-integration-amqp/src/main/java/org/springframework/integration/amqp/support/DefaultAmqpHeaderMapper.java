@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Stephane Nicoll
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
@@ -78,6 +79,10 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(JsonHeaders.KEY_TYPE_ID);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_CORRELATION);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_TO_STACK);
+	}
+
+	public DefaultAmqpHeaderMapper() {
+		super(AmqpHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
 	}
 
 	/**
@@ -329,24 +334,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (!amqpMessageProperties.getHeaders().containsKey(headerName)) {
 			amqpMessageProperties.setHeader(headerName, headerValue);
 		}
-	}
-
-
-	@Override
-	protected List<String> getStandardRequestHeaderNames() {
-		return STANDARD_HEADER_NAMES;
-	}
-
-
-	@Override
-	protected List<String> getStandardReplyHeaderNames() {
-		return STANDARD_HEADER_NAMES;
-	}
-
-
-	@Override
-	protected String getStandardHeaderPrefix() {
-		return AmqpHeaders.PREFIX;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2013 the original author or authors.
+ *  Copyright 2002-2014 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.ws.config;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -30,6 +29,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -52,10 +52,9 @@ import org.springframework.ws.soap.SoapMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +63,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Stephane Nicoll
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -144,14 +144,16 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("errorChannel"),
 				is(customErrorChannel));
-		@SuppressWarnings("unchecked")
-		List<String> requestHeaders = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.requestHeaderNames", List.class);
-		@SuppressWarnings("unchecked")
-		List<String> replyHeaders = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.replyHeaderNames", List.class);
-		assertEquals(1, requestHeaders.size());
-		assertEquals(1, replyHeaders.size());
-		assertTrue(requestHeaders.contains("testRequest"));
-		assertTrue(replyHeaders.contains("testReply"));
+
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
+				"headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertTrue(requestHeaderMatcher.matchHeader("testRequest"));
+		assertFalse(requestHeaderMatcher.matchHeader("testReply"));
+
+		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
+				"headerMapper.replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertFalse(replyHeaderMatcher.matchHeader("testRequest"));
+		assertTrue(replyHeaderMatcher.matchHeader("testReply"));
 	}
 
 	@Test

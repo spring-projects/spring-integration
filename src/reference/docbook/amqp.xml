@@ -698,7 +698,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 		"pollable" option for a publish-subscribe-channel; it must be message-driven.
 	</para>
   </section>
-	<section>
+	<section id="amqp-message-headers">
 		<title>AMQP Message Headers</title>
 		<para>
 			The Spring Integration AMPQ Adapters will map standard AMQP  properties
@@ -724,6 +724,15 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 			if you need to copy all user-defined headers simply use the wild-card
 			character '*'.
 		</tip>
+		<para>
+			Starting with <emphasis>version 4.1</emphasis>, the <classname>AbstractHeaderMapper</classname>
+			(a <classname>DefaultAmqpHeaderMapper</classname> superclass) allows the <code>NON_STANDARD_HEADERS</code>
+			token to be configured for the <emphasis>requestHeaderNames</emphasis> and/or <emphasis>replyHeaderNames</emphasis>
+			properties (in addition to existing <code>STANDARD_REQUEST_HEADERS</code> and <code>
+			STANDARD_REPLY_HEADERS</code>) to map all user-defined headers. Note, it is recommended to use the
+			combination like this <code>STANDARD_REPLY_HEADERS, NON_STANDARD_HEADERS</code> instead of
+			generic <code>*</code>, to avoid mapping of <emphasis>request</emphasis> headers to the reply.
+		</para>
 		<para>
 			Class <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/AmqpHeaders.html">AmqpHeaders</ulink></classname>
 			identifies the default headers that will be used by the

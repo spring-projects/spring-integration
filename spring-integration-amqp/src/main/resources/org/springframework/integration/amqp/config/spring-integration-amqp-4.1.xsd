@@ -195,7 +195,7 @@
 			this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
 			A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
 			it is included by default. If you wish to add your own headers, you must also include this token if you wish the
-			standard headers to also be mapped.
+			standard headers to also be mapped. To map all non-standard headers the 'NON_STANDARD_HEADERS' token can be used.
 								]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -257,7 +257,7 @@
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
 	A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
 	it is included by default. If you wish to add your own headers, you must also include this token if you wish the
-	standard headers to also be mapped.
+	standard headers to also be mapped. To map all non-standard headers the 'NON_STANDARD_HEADERS' token can be used.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -457,7 +457,7 @@ This can only be provided if the 'header-mapper' reference is not being set dire
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
 A special token 'STANDARD_REQUEST_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
 it is included by default. If you wish to add your own headers, you must also include this token if you wish the
-standard headers to also be mapped.
+standard headers to also be mapped. To map all non-standard headers the 'NON_STANDARD_HEADERS' token can be used.
 						]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -559,7 +559,7 @@ This can only be provided if the 'header-mapper' reference is not being set dire
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
 A special token 'STANDARD_REQUEST_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
 it is included by default. If you wish to add your own headers, you must also include this token if you wish the
-standard headers to also be mapped.
+standard headers to also be mapped. To map all non-standard headers the 'NON_STANDARD_HEADERS' token can be used.
 						]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

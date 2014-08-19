@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.amqp.support;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -30,6 +32,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.http.MediaType;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
 
@@ -37,6 +40,7 @@ import org.springframework.integration.amqp.AmqpHeaders;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Stephane Nicoll
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapperTests {
@@ -67,6 +71,10 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.USER_ID, "test.userId");
 		headerMap.put(AmqpHeaders.SPRING_REPLY_CORRELATION, "test.correlation");
 		headerMap.put(AmqpHeaders.SPRING_REPLY_TO_STACK, "test.replyTo2");
+
+		headerMap.put(MessageHeaders.ERROR_CHANNEL, mock(MessageChannel.class));
+		headerMap.put(MessageHeaders.REPLY_CHANNEL, mock(MessageChannel.class));
+
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
@@ -95,6 +103,9 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.userId", amqpProperties.getUserId());
 		assertEquals("test.correlation", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER));
 		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER));
+
+		assertNull(amqpProperties.getHeaders().get(MessageHeaders.ERROR_CHANNEL));
+		assertNull(amqpProperties.getHeaders().get(MessageHeaders.REPLY_CHANNEL));
 	}
 
 	@Test
@@ -163,25 +174,25 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
-	public void replyChannelNotMappedToAmqpProperties() {
+	public void messageIdNotMappedToAmqpProperties() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
-		headerMap.put(MessageHeaders.REPLY_CHANNEL, "foo");
+		headerMap.put(MessageHeaders.ID, "msg-id");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
-		assertEquals(null, amqpProperties.getHeaders().get(MessageHeaders.REPLY_CHANNEL));
+		assertNull(amqpProperties.getHeaders().get(MessageHeaders.ID));
 	}
 
 	@Test
-	public void errorChannelNotMappedToAmqpProperties() {
+	public void messageTimestampNotMappedToAmqpProperties() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
-		headerMap.put(MessageHeaders.ERROR_CHANNEL, "foo");
+		headerMap.put(MessageHeaders.TIMESTAMP, 1234L);
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
-		assertEquals(null, amqpProperties.getHeaders().get(MessageHeaders.ERROR_CHANNEL));
+		assertNull(amqpProperties.getHeaders().get(MessageHeaders.TIMESTAMP));
 	}
 
 	@Test // INT-2090

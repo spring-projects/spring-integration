@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Florian Schmaus
+ * @author Stephane Nicoll
  *
  * @since 2.1
  */
@@ -47,6 +48,10 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		STANDARD_HEADER_NAMES.add(XmppHeaders.THREAD);
 		STANDARD_HEADER_NAMES.add(XmppHeaders.TO);
 		STANDARD_HEADER_NAMES.add(XmppHeaders.TYPE);
+	}
+
+	public DefaultXmppHeaderMapper() {
+		super(XmppHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
 	}
 
 	@Override
@@ -126,20 +131,6 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	@Override
 	protected void populateUserDefinedHeader(String headerName, Object headerValue, Message target) {
 		JivePropertiesManager.addProperty(target, headerName, headerValue);
-	}
-
-	@Override
-	protected List<String> getStandardReplyHeaderNames() {
-		return STANDARD_HEADER_NAMES;
-	}
-
-	@Override
-	protected List<String> getStandardRequestHeaderNames() {
-		return STANDARD_HEADER_NAMES;
-	}
-	@Override
-	protected String getStandardHeaderPrefix() {
-		return XmppHeaders.PREFIX;
 	}
 
 }

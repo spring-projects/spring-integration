@@ -18,10 +18,9 @@ package org.springframework.integration.xmpp.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import java.util.List;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
@@ -32,6 +31,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -96,10 +96,15 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		Object eventConsumer = context.getBean("outboundEventAdapter");
 		DefaultXmppHeaderMapper headerMapper =
 				TestUtils.getPropertyValue(eventConsumer, "handler.headerMapper", DefaultXmppHeaderMapper.class);
-		List<String> requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", List.class);
-		assertEquals(2, requestHeaderNames.size());
-		assertEquals("foo*", requestHeaderNames.get(0));
-		assertEquals("bar*", requestHeaderNames.get(1));
+
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
+				"requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertTrue(requestHeaderMatcher.matchHeader("foo"));
+		assertTrue(requestHeaderMatcher.matchHeader("foo123"));
+		assertTrue(requestHeaderMatcher.matchHeader("bar"));
+		assertTrue(requestHeaderMatcher.matchHeader("bar123"));
+		assertFalse(requestHeaderMatcher.matchHeader("biz"));
+		assertFalse(requestHeaderMatcher.matchHeader("else"));
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
 

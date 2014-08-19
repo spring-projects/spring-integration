@@ -146,5 +146,13 @@
 				See <xref linkend="recipient-list-router-management"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-AbstractHeaderMapper-changes">
+			<title>AbstractHeaderMapper: NON_STANDARD_HEADERS token</title>
+			<para>
+				The <classname>AbstractHeaderMapper</classname> implementations now provides the additional
+				<code>NON_STANDARD_HEADERS</code> token to map any user-defined headers, which aren't mapped by default.
+				See <xref linkend="amqp-message-headers"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

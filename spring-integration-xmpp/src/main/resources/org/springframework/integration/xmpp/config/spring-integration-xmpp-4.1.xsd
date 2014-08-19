@@ -259,7 +259,7 @@
 						<xsd:element name="chat-thread-id" type="headerType">
 							<xsd:annotation>
 								<xsd:documentation>
-									The conversation thread id used to corelate XMPP packets as
+									The conversation thread id used to correlate XMPP packets as
 									belonging to a particular conversation
 								</xsd:documentation>
 							</xsd:annotation>
