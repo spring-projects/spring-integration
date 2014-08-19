@@ -19,11 +19,17 @@ package org.springframework.integration.json;
 import org.springframework.core.convert.converter.Converter;
 
 /**
+ * The {@link Converter} implementation for the conversion of
+ * {@link JsonPropertyAccessor.ToStringFriendlyJsonNode} to {@link String},
+ * when the {@link JsonPropertyAccessor.ToStringFriendlyJsonNode} can be a result of the
+ * expression for JSON in case of the {@link JsonPropertyAccessor} usage.
+ *
  * @author Artem Bilan
  * @since 4.1
  */
 class ToStringFriendlyJsonNodeToStringConverter
 		implements Converter<JsonPropertyAccessor.ToStringFriendlyJsonNode, String> {
+
 	@Override
 	public String convert(JsonPropertyAccessor.ToStringFriendlyJsonNode source) {
 		return source.toString();

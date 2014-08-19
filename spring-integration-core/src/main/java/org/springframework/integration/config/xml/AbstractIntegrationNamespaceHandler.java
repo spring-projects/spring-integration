@@ -52,7 +52,9 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	@Override
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.verifySchemaVersion(element, parserContext);
-		new IntegrationRegistrar().registerBeanDefinitions(null, parserContext.getRegistry());
+		IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
+		integrationRegistrar.setBeanClassLoader(parserContext.getReaderContext().getBeanClassLoader());
+		integrationRegistrar.registerBeanDefinitions(null, parserContext.getRegistry());
 		return this.delegate.parse(element, parserContext);
 	}
 
