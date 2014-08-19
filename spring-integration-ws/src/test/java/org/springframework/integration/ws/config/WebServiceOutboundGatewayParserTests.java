@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.ws.config;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,6 +31,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
@@ -75,14 +75,15 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(expected, accessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals(Boolean.FALSE, accessor.getPropertyValue("requiresReply"));
 
-		@SuppressWarnings("unchecked")
-		List<String> requestHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.requestHeaderNames", List.class);
-		@SuppressWarnings("unchecked")
-		List<String> replyHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.replyHeaderNames", List.class);
-		assertEquals(1, requestHeaders.size());
-		assertEquals(1, replyHeaders.size());
-		assertTrue(requestHeaders.contains("testRequest"));
-		assertTrue(replyHeaders.contains("testReply"));
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(endpoint,
+				"handler.headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertTrue(requestHeaderMatcher.matchHeader("testRequest"));
+		assertFalse(requestHeaderMatcher.matchHeader("testReply"));
+
+		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(endpoint,
+				"handler.headerMapper.replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertFalse(replyHeaderMatcher.matchHeader("testRequest"));
+		assertTrue(replyHeaderMatcher.matchHeader("testReply"));
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(Long.valueOf(777), sendTimeout);

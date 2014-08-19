@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -24,7 +25,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,6 +39,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -90,14 +91,23 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper", DefaultSoapHeaderMapper.class);
 		assertNotNull(headerMapper);
 
-		List<String> requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", List.class);
-		assertEquals(2, requestHeaderNames.size());
-		assertEquals("foo*", requestHeaderNames.get(0));
-		assertEquals("*baz*", requestHeaderNames.get(1));
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
+				"requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertTrue(requestHeaderMatcher.matchHeader("foo"));
+		assertTrue(requestHeaderMatcher.matchHeader("foo123"));
+		assertTrue(requestHeaderMatcher.matchHeader("baz"));
+		assertTrue(requestHeaderMatcher.matchHeader("123baz123"));
+		assertFalse(requestHeaderMatcher.matchHeader("bar"));
+		assertFalse(requestHeaderMatcher.matchHeader("bar123"));
 
-		List<String> responseHeaderNames = TestUtils.getPropertyValue(headerMapper, "replyHeaderNames", List.class);
-		assertEquals(1, responseHeaderNames.size());
-		assertEquals("bar*", responseHeaderNames.get(0));
+		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
+				"replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		assertFalse(replyHeaderMatcher.matchHeader("foo"));
+		assertFalse(replyHeaderMatcher.matchHeader("foo123"));
+		assertFalse(replyHeaderMatcher.matchHeader("baz"));
+		assertFalse(replyHeaderMatcher.matchHeader("123baz123"));
+		assertTrue(replyHeaderMatcher.matchHeader("bar"));
+		assertTrue(replyHeaderMatcher.matchHeader("bar123"));
 	}
 
 	@Test
