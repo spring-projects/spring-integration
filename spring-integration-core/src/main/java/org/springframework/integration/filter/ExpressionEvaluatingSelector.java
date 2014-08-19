@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,21 +26,36 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 /**
  * A {@link MessageSelector} implementation that evaluates a SpEL expression.
  * The evaluation result of the expression must be a boolean value.
- * 
+ *
  * @author Mark Fisher
+ * @author Liujiong
  * @since 2.0
  */
 public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser expressionParser =
+			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
+	private final String expressionString;
 
 	public ExpressionEvaluatingSelector(String expressionString) {
-		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expressionParser.parseExpression(expressionString), Boolean.class));
+		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expressionParser.parseExpression(expressionString),
+				Boolean.class));
+		this.expressionString = expressionString;
 	}
 
 	public ExpressionEvaluatingSelector(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expression, Boolean.class));
+		this.expressionString = expression.getExpressionString();
+	}
+
+	public String getExpressionString() {
+		return expressionString;
+	}
+
+	@Override
+	public String toString() {
+		return "ExpressionEvaluatingSelector for: [" + this.expressionString + "]";
 	}
 
 }

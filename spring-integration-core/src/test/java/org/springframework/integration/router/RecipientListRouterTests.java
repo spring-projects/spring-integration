@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -62,11 +63,11 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		router.setBeanFactory(mock(BeanFactory.class));
 		router.afterPropertiesSet();
-		List<Recipient> recipients = (List<Recipient>)
+		ConcurrentLinkedQueue<Recipient> recipients = (ConcurrentLinkedQueue<Recipient>)
 				new DirectFieldAccessor(router).getPropertyValue("recipients");
 		assertEquals(2, recipients.size());
-		assertEquals(channel1, new DirectFieldAccessor(recipients.get(0)).getPropertyValue("channel"));
-		assertEquals(channel2, new DirectFieldAccessor(recipients.get(1)).getPropertyValue("channel"));
+		assertEquals(channel1, new DirectFieldAccessor(recipients.poll()).getPropertyValue("channel"));
+		assertEquals(channel2, new DirectFieldAccessor(recipients.poll()).getPropertyValue("channel"));
 	}
 
 	@Test
@@ -359,11 +360,16 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void noChannelListFailsInitialization() {
+	@Test
+	public void noChannelListPassInitialization() {
 		RecipientListRouter router = new RecipientListRouter();
 		router.setBeanFactory(mock(BeanFactory.class));
+		QueueChannel defaultOutputChannel = new QueueChannel();
+		router.setDefaultOutputChannel(defaultOutputChannel);
 		router.afterPropertiesSet();
+		router.handleMessage(new GenericMessage<String>("foo"));
+		Message<?> receive = defaultOutputChannel.receive(1000);
+		assertNotNull(receive);
 	}
 
 	@Test

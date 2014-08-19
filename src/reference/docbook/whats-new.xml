@@ -136,5 +136,15 @@
 				See <xref linkend="jmx-shutdown"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-recipientListRouter">
+			<title>Management for RecipientListRouter</title>
+			<para>
+				The <classname>RecipientListRouter</classname> provides now several <emphasis>management</emphasis>
+				operations to configure <emphasis>recipients</emphasis> at runtime.
+				With that the <code>&lt;recipient-list-router&gt;</code> can now be configured without any
+				<code>&lt;recipient&gt;</code> from the start.
+				See <xref linkend="recipient-list-router-management"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

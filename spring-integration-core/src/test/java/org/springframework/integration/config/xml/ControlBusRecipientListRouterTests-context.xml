@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<channel id="output">
+		<queue/>
+	</channel>
+
+	<control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="false"/>
+
+	<recipient-list-router id="simpleRouter" input-channel="routingChannelA"/>
+
+	<channel id="channel1">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="channel2">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="channel3">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="channel4">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="channel5">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="channel6">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="channel7">
+		<queue capacity="1" />
+	</channel>
+
+</beans:beans>

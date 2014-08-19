@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -43,13 +42,11 @@ import org.springframework.util.xml.DomUtils;
 public class RecipientListRouterParser extends AbstractRouterParser {
 
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder recipientListRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(RecipientListRouter.class);
+		BeanDefinitionBuilder recipientListRouterBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(RecipientListRouter.class);
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "recipient");
-		Assert.notEmpty(childElements,
-				"At least one recipient channel must be defined (e.g., <recipient channel=\"channel1\"/>).");
-		ManagedList recipientList = new ManagedList();
+		ManagedList<BeanDefinition> recipientList = new ManagedList<BeanDefinition>();
 		for (Element childElement : childElements) {
 			BeanDefinitionBuilder recipientBuilder = BeanDefinitionBuilder.genericBeanDefinition(Recipient.class);
 			recipientBuilder.addConstructorArgReference(childElement.getAttribute("channel"));
@@ -62,7 +59,9 @@ public class RecipientListRouterParser extends AbstractRouterParser {
 			}
 			recipientList.add(recipientBuilder.getBeanDefinition());
 		}
-		recipientListRouterBuilder.addPropertyValue("recipients", recipientList);
+		if(recipientList.size() > 0) {
+			recipientListRouterBuilder.addPropertyValue("recipients", recipientList);
+		}
 		return recipientListRouterBuilder.getBeanDefinition();
 	}
 

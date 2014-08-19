@@ -1685,7 +1685,15 @@
 					<xsd:element name="resequencer" type="resequencer-type"/>
 					<xsd:element name="router" type="routerTypeChain"/>
 					<xsd:element name="payload-type-router" type="payloadTypeRouterTypeChain"/>
-					<xsd:element name="recipient-list-router" type="recipientListRouterTypeChain"/>
+					<xsd:element name="recipient-list-router">
+						<xsd:complexType>
+							<xsd:complexContent>
+								<xsd:extension base="abstractRouterType">
+									<xsd:group ref="commonRecipientListRouterGroup"/>
+								</xsd:extension>
+							</xsd:complexContent>
+						</xsd:complexType>
+					</xsd:element>
 					<xsd:element name="exception-type-router" type="exceptionTypeRouterTypeChain"/>
 					<xsd:element name="header-value-router" type="headerValueRouterTypeChain"/>
 					<xsd:element name="delayer" type="delayer-type"/>
@@ -2835,7 +2843,7 @@
         <xsd:complexContent>
             <xsd:extension base="commonRouterType">
                 <xsd:sequence>
-                    <xsd:element ref="poller"                                        minOccurs="0" maxOccurs="1"/>
+                    <xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
                     <xsd:group ref="routerCommonGroup" />
                 </xsd:sequence>
                 <xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
@@ -2943,61 +2951,40 @@
 
     <!-- Type definitions used by the Recipient List Router -->
 
-    <xsd:complexType name="commonRecipientListRouterType" abstract="true">
-        <xsd:complexContent>
-            <xsd:extension base="abstractRouterType">
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+	<xsd:group name="commonRecipientListRouterGroup">
+		<xsd:sequence>
+			<xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						An expression to be evaluated to determine if this recipient
+						should be included in the recipient list for a given input
+						Message. The evaluation result of the expression must be a boolean.
+						If this attribute is not defined, the channel will always be
+						among the list of recipients.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
 
-    <xsd:complexType name="recipientListRouterType">
-        <xsd:complexContent>
-            <xsd:extension base="commonRecipientListRouterType">
-                <xsd:sequence>
-                    <xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="1" maxOccurs="unbounded">
-						<xsd:annotation>
-						    <xsd:documentation>
-						        An expression to be evaluated to determine if this recipient
-						        should be included in the recipient list for a given input
-						        Message. The evaluation result of the expression must be a boolean.
-						        If this attribute is not defined, the channel will always be
-						        among the list of recipients.
-						    </xsd:documentation>
-						</xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-                <xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+	<xsd:complexType name="recipientListRouterType">
+		<xsd:complexContent>
+			<xsd:extension base="abstractRouterType">
+				<xsd:sequence>
+					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+					<xsd:group ref="commonRecipientListRouterGroup"/>
+				</xsd:sequence>
+				<xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
-    <xsd:complexType name="recipientListRouterTypeChain">
-        <xsd:complexContent>
-            <xsd:extension base="commonRecipientListRouterType">
-                <xsd:sequence>
-                    <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="1" maxOccurs="unbounded">
-                        <xsd:annotation>
-						    <xsd:documentation>
-						        An expression to be evaluated to determine if this recipient
-						        should be included in the recipient list for a given input
-						        Message. The evaluation result of the expression must be a boolean.
-						        If this attribute is not defined, the channel will always be
-						        among the list of recipients.
-						    </xsd:documentation>
-						</xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
 
     <!-- Type definitions used by the Payload Type Router -->
 
     <xsd:complexType name="commonPayloadTypeRouterType" abstract="true">
         <xsd:complexContent>
-            <xsd:extension base="abstractRouterType">
-            </xsd:extension>
+            <xsd:extension base="abstractRouterType"/>
         </xsd:complexContent>
     </xsd:complexType>
 

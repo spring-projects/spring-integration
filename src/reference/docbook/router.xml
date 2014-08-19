@@ -559,6 +559,42 @@
           </para>
       </section>
 
+	<section id="recipient-list-router-management">
+        <title>RecipientListRouterManagement</title>
+         <para>
+          Starting with <emphasis>version 4.1</emphasis>, the <classname>RecipientListRouter</classname> provides
+			 several operation to manipulate with <emphasis>recipients</emphasis> dynamically at runtime. These
+			 management operations are presented by <interfacename>RecipientListRouterManagement</interfacename>
+			 <classname>@ManagedResource</classname>. They are available using <xref linkend="control-bus"/>
+			 as well as via JMX:
+          <programlisting
+				  language="xml"><![CDATA[<control-bus input-channel="controlBus"/>
+
+<recipient-list-router id="simpleRouter" input-channel="routingChannelA">
+   <recipient channel="channel1"/>
+</recipient-list-router>
+
+<channel id="channel2"/>]]></programlisting>
+          <programlisting language="java"><![CDATA[
+          messagingTemplate.convertAndSend(controlBus,
+          "@'simpleRouter.handler'.addRecipient('channel2')");
+          ]]></programlisting>
+			 From the application start up the <code>simpleRouter</code> will have only one <code>channel1</code>
+			 recipient. But after the <code>addRecipient</code> command above the new <code>channel2</code> recipient
+			 will be added. It is a "registering an interest in something that is part of the Message" use case, when
+			 we may be interested in messages from the <emphasis>router</emphasis> at some time period, so we are
+			 <emphasis>subscribing</emphasis> to the the <code>recipient-list-router</code> and in some point decide to
+			 <emphasis>unsubscribe</emphasis> our interest.
+		 </para>
+        <para>
+			Having the runtime management operation for the <code>&lt;recipient-list-router&gt;</code>, it can be configured
+			without any <code>&lt;recipient&gt;</code> from the start. In this case the behaviour of
+			<classname>RecipientListRouter</classname> is the same, when there is no one matching recipient for the
+			message: if <code>defaultOutputChannel</code> is configured, the message will be sent there, otherwise
+			the <classname>MessageDeliveryException</classname> is thrown.
+		</para>
+	</section>
+
       <section id="router-implementations-xpath-router">
           <title>XPath Router</title>
           <para>The XPath Router is part of the XML Module. As such, please read chapter
