@@ -96,6 +96,7 @@ public class ClientWebSocketContainerTests {
 		assertThat(messageListener.message, instanceOf(PongMessage.class));
 	}
 
+
 	private class TestWebSocketListener implements WebSocketListener {
 
 		public boolean started;
@@ -126,6 +127,7 @@ public class ClientWebSocketContainerTests {
 		public List<String> getSubProtocols() {
 			return Collections.singletonList("v10.stomp");
 		}
+
 	}
 
 }

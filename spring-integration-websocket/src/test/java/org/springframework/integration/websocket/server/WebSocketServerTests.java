@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.websocket.client;
+package org.springframework.integration.websocket.server;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -30,28 +30,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.Poller;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.transformer.ObjectToStringTransformer;
+import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.JettyWebSocketTestServer;
-import org.springframework.integration.websocket.TestServerConfig;
+import org.springframework.integration.websocket.ServerWebSocketContainer;
 import org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter;
 import org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -67,10 +67,12 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  * @author Artem Bilan
  * @since 4.1
  */
-@ContextConfiguration
+@ContextConfiguration(classes = WebSocketServerTests.ContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class WebSocketClientTests {
+public class WebSocketServerTests {
+
+	private final static SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	@Autowired
 	@Qualifier("webSocketOutputChannel")
@@ -78,7 +80,7 @@ public class WebSocketClientTests {
 
 	@Autowired
 	@Qualifier("webSocketInputChannel")
-	private QueueChannel webSocketInputChannel;
+	private PollableChannel webSocketInputChannel;
 
 	@Test
 	public void testWebSocketOutboundMessageHandler() throws Exception {
@@ -94,18 +96,19 @@ public class WebSocketClientTests {
 		assertEquals("Hello Spring", receivedPayload);
 	}
 
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
 
 		@Bean
 		public JettyWebSocketTestServer server() {
-			return new JettyWebSocketTestServer(ServerFlowConfig.class);
+			return new JettyWebSocketTestServer(ServerConfig.class);
 		}
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new	JettyWebSocketClient())));
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
 		}
 
 		@Bean
@@ -119,7 +122,7 @@ public class WebSocketClientTests {
 		}
 
 		@Bean
-		public MessageChannel webSocketInputChannel() {
+		public PollableChannel webSocketInputChannel() {
 			return new QueueChannel();
 		}
 
@@ -150,33 +153,48 @@ public class WebSocketClientTests {
 
 	@Configuration
 	@EnableIntegration
-	static class ServerFlowConfig extends TestServerConfig {
+	static class ServerConfig {
 
 		@Bean
-		@Transformer(inputChannel = "clientInboundChannel", outputChannel = "serviceChannel",
-				poller = @Poller(fixedDelay = "100", maxMessagesPerPoll = "1"))
-		public org.springframework.integration.transformer.Transformer objectToStringTransformer() {
-			return new ObjectToStringTransformer();
+		public ServerWebSocketContainer serverWebSocketContainer() {
+			return new ServerWebSocketContainer("/ws").withSockJs();
 		}
 
 		@Bean
-		public DirectChannel serviceChannel() {
+		public SubProtocolHandler stompSubProtocolHandler() {
+			return new StompSubProtocolHandler();
+		}
+
+		@Bean
+		public MessageChannel webSocketInputChannel() {
 			return new DirectChannel();
 		}
 
 		@Bean
-		public TestService service() {
-			return new TestService();
+		public MessageChannel webSocketOutputChannel() {
+			return new DirectChannel();
 		}
 
-		@Component
-		public static class TestService {
+		@Bean
+		public MessageProducer webSocketInboundChannelAdapter() {
+			WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
+					new WebSocketInboundChannelAdapter(serverWebSocketContainer(),
+							new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
+			webSocketInboundChannelAdapter.setOutputChannel(webSocketInputChannel());
+			return webSocketInboundChannelAdapter;
+		}
 
-			@ServiceActivator(inputChannel = "serviceChannel", outputChannel = "clientOutboundChannel")
-			public byte[] handle(String payload) {
-				return ("Hello " + payload).getBytes();
-			}
+		@Bean
+		@Transformer(inputChannel = "webSocketInputChannel", outputChannel = "webSocketOutputChannel")
+		public ExpressionEvaluatingTransformer transformer() {
+			return new ExpressionEvaluatingTransformer(PARSER.parseExpression("'Hello ' + payload"));
+		}
 
+		@Bean
+		@ServiceActivator(inputChannel = "webSocketOutputChannel")
+		public MessageHandler webSocketOutboundMessageHandler() {
+			return new WebSocketOutboundMessageHandler(serverWebSocketContainer(),
+					new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 		}
 
 	}

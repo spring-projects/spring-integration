@@ -597,7 +597,8 @@ project('spring-integration-websocket') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-websocket:$springVersion"
 
-		testCompile "org.springframework:spring-webmvc:$springVersion"
+		compile ("org.springframework:spring-webmvc:$springVersion", optional)
+
 		testCompile("org.eclipse.jetty:jetty-webapp:$jettyVersion") {
 			exclude group: "javax.servlet", module: "javax.servlet"
 		}

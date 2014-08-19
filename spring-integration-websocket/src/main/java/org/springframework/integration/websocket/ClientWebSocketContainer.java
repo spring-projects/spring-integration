@@ -121,8 +121,8 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	@Override
 	public void start() {
-		this.connectionManager.start();
 		this.connectionLatch = new CountDownLatch(1);
+		this.connectionManager.start();
 	}
 
 	@Override
