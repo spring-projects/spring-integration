@@ -17,16 +17,18 @@
 package org.springframework.integration.websocket.inbound;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
+import org.springframework.integration.websocket.ServerWebSocketContainer;
 import org.springframework.integration.websocket.WebSocketListener;
 import org.springframework.integration.websocket.support.PassThruSubProtocolHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
@@ -42,6 +44,9 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
+import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
+import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
@@ -73,7 +78,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 
 	private final IntegrationWebSocketContainer webSocketContainer;
 
-	private final SubProtocolHandlerRegistry protocolHandlerContainer;
+	private final boolean server;
+
+	private final SubProtocolHandlerRegistry subProtocolHandlerRegistry;
 
 	private final MessageChannel subProtocolHandlerChannel;
 
@@ -85,6 +92,10 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 
 	private volatile boolean active;
 
+	private volatile boolean useBroker;
+
+	private AbstractBrokerMessageHandler brokerHandler;
+
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer) {
 		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
 	}
@@ -94,26 +105,13 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		Assert.notNull(webSocketContainer, "'webSocketContainer' must not be null");
 		Assert.notNull(protocolHandlerRegistry, "'protocolHandlerRegistry' must not be null");
 		this.webSocketContainer = webSocketContainer;
-		this.protocolHandlerContainer = protocolHandlerRegistry;
+		this.server = this.webSocketContainer instanceof ServerWebSocketContainer;
+		this.subProtocolHandlerRegistry = protocolHandlerRegistry;
 		this.subProtocolHandlerChannel = new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				Object payload = WebSocketInboundChannelAdapter.this.messageConverter.fromMessage(message,
-						WebSocketInboundChannelAdapter.this.payloadType.get());
-				SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
-				SimpMessageType messageType = headerAccessor.getMessageType();
-				if (messageType == null || SimpMessageType.MESSAGE.equals(messageType)) {
-					headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
-					sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
-				}
-				else {
-				   if (logger.isDebugEnabled()) {
-					   logger.debug("Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
-							   "'outputChannel'. They have to be emitted as 'ApplicationEvent's " +
-							   "from the 'SubProtocolHandler'. Received message: " + message);
-				   }
-				}
+				handleMessageAndSend(message);
 			}
 
 		});
@@ -149,6 +147,20 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		this.payloadType.set(payloadType);
 	}
 
+	/**
+	 * Specify if this adapter should use an existing single {@link AbstractBrokerMessageHandler}
+	 * bean for {@code non-MESSAGE} {@link org.springframework.web.socket.WebSocketMessage}s
+	 * and to route messages with broker destinations.
+	 * Since only single {@link AbstractBrokerMessageHandler} bean is allowed in the current
+	 * application context, the algorithm to lookup the former by type, rather than applying
+	 * the bean reference.
+	 * This is used only on server side and is ignored from client side.
+	 * @param useBroker the boolean flag.
+	 */
+	public void setUseBroker(boolean useBroker) {
+		this.useBroker = useBroker;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -156,7 +168,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		if (!CollectionUtils.isEmpty(this.messageConverters)) {
 			List<MessageConverter> converters = this.messageConverter.getConverters();
 			if (this.mergeWithDefaultConverters) {
-				for (ListIterator<MessageConverter> iterator = this.messageConverters.listIterator(); iterator.hasPrevious(); ) {
+				ListIterator<MessageConverter> iterator =
+						this.messageConverters.listIterator(this.messageConverters.size());
+				while (iterator.hasPrevious()) {
 					MessageConverter converter = iterator.previous();
 					converters.add(0, converter);
 				}
@@ -166,17 +180,31 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 				converters.addAll(this.messageConverters);
 			}
 		}
+		if (this.server && this.useBroker) {
+			Map<String, AbstractBrokerMessageHandler> brokers = getApplicationContext()
+					.getBeansOfType(AbstractBrokerMessageHandler.class);
+			for (AbstractBrokerMessageHandler broker : brokers.values()) {
+				if (broker instanceof SimpleBrokerMessageHandler || broker instanceof StompBrokerRelayMessageHandler) {
+					this.brokerHandler = broker;
+					break;
+				}
+			}
+			if (this.brokerHandler == null) {
+				logger.warn("'AbstractBrokerMessageHandler' isn't present in the application context. " +
+						"The non-MESSAGE WebSocketMessages will be ignored.");
+			}
+		}
 	}
 
 	@Override
 	public List<String> getSubProtocols() {
-		return this.protocolHandlerContainer.getSubProtocols();
+		return this.subProtocolHandlerRegistry.getSubProtocols();
 	}
 
 	@Override
 	public void afterSessionStarted(WebSocketSession session) throws Exception {
 		if (isActive()) {
-			this.protocolHandlerContainer.findProtocolHandler(session)
+			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.afterSessionStarted(session, this.subProtocolHandlerChannel);
 		}
 	}
@@ -184,7 +212,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	@Override
 	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) throws Exception {
 		if (isActive()) {
-			this.protocolHandlerContainer.findProtocolHandler(session)
+			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.afterSessionEnded(session, closeStatus, this.subProtocolHandlerChannel);
 		}
 	}
@@ -192,7 +220,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	@Override
 	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage) throws Exception {
 		if (isActive()) {
-			this.protocolHandlerContainer.findProtocolHandler(session)
+			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.handleMessageFromClient(session, webSocketMessage, this.subProtocolHandlerChannel);
 		}
 	}
@@ -220,6 +248,44 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 			logger.warn("MessageProducer '" + this + "'isn't started to accept WebSocket events");
 		}
 		return this.active;
+	}
+
+	private void handleMessageAndSend(Message<?> message) {
+		Object payload = this.messageConverter.fromMessage(message,
+				this.payloadType.get());
+		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
+		SimpMessageType messageType = headerAccessor.getMessageType();
+		if ((messageType == null || SimpMessageType.MESSAGE.equals(messageType))
+				&& !checkDestinationPrefix(headerAccessor.getDestination())) {
+			headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
+			sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+		}
+		else {
+			if (this.brokerHandler != null) {
+				this.brokerHandler.handleMessage(message);
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug("Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
+						"'outputChannel'. They have to be emitted as 'ApplicationEvent's " +
+						"from the 'SubProtocolHandler'. Or using 'AbstractBrokerMessageHandler'(useBroker = true) " +
+						"from server side. Received message: " + message);
+			}
+		}
+	}
+
+	private boolean checkDestinationPrefix(String destination) {
+		if (this.brokerHandler != null) {
+			Collection<String> destinationPrefixes = this.brokerHandler.getDestinationPrefixes();
+			if ((destination == null) || CollectionUtils.isEmpty(destinationPrefixes)) {
+				return false;
+			}
+			for (String prefix : destinationPrefixes) {
+				if (destination.startsWith(prefix)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 }

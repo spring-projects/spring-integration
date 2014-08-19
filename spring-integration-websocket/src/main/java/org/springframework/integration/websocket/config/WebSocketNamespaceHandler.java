@@ -25,7 +25,10 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class WebSocketNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-
+		this.registerBeanDefinitionParser("server-container", new ServerWebSocketContainerParser());
+		this.registerBeanDefinitionParser("client-container", new ClientWebSocketContainerParser());
+		this.registerBeanDefinitionParser("inbound-channel-adapter", new WebSocketInboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("outbound-channel-adapter", new WebSocketOutboundMessageHandlerParser());
 	}
 
 }

@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -40,6 +41,11 @@ import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
  */
 @Configuration
 @EnableWebSocket
+/*
+ * According to the WebSocketIntegrationConfigurationInitializer with usage of @EnableIntegration there is no need to
+ * use @EnableWebSocket anymore. They are left here both to check consistency of registration algorithm.
+ */
+@EnableIntegration
 public class TestServerConfig implements WebSocketConfigurer {
 
 	@Bean

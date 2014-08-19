@@ -18,6 +18,15 @@
 				See <xref linkend="async-gateway"/>.
 			</para>
 		</section>
+		<section id="4.1-web-sockets">
+			<title>WebSocket support</title>
+			<para>
+				The <emphasis>WebSocket</emphasis> module is now available. It is fully based on the Spring WebSocket
+				and Spring Messaging modules and provides an <code>&lt;inbound-channel-adapter&gt;</code> and an
+				<code>&lt;outbound-channel-adapter&gt;</code>.
+				More documentation to follow.
+			</para>
+		</section>
 	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>

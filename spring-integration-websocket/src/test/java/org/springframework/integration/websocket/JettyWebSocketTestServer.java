@@ -52,7 +52,7 @@ public class JettyWebSocketTestServer implements InitializingBean, DisposableBea
 	}
 
 	public AnnotationConfigWebApplicationContext getServerContext() {
-		return serverContext;
+		return this.serverContext;
 	}
 
 	public String getWsBaseUrl() {

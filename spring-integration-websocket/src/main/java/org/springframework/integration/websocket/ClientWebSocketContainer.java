@@ -16,6 +16,7 @@
 
 package org.springframework.integration.websocket;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +24,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.socket.CloseStatus;
@@ -66,8 +68,19 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		this.headers.setOrigin(origin);
 	}
 
+	public void setHeadersMap(Map<String, String> headers) {
+		Assert.notNull(headers);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		for (Map.Entry<String, String> entry : headers.entrySet()) {
+			String[] values = StringUtils.commaDelimitedListToStringArray(entry.getValue());
+			for (String v : values) {
+				httpHeaders.add(entry.getKey(), v);
+			}
+		}
+		setHeaders(httpHeaders);
+	}
+
 	public void setHeaders(HttpHeaders headers) {
-		this.headers.clear();
 		this.headers.putAll(headers);
 	}
 
@@ -121,8 +134,8 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	@Override
 	public void start() {
-		this.connectionManager.start();
 		this.connectionLatch = new CountDownLatch(1);
+		this.connectionManager.start();
 	}
 
 	@Override

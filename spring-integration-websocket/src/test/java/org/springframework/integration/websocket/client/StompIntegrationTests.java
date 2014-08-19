@@ -132,7 +132,7 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 		this.webSocketOutputChannel.send(message2);
 
-		Message<?> receive = webSocketInputChannel.receive(1000);
+		Message<?> receive = webSocketInputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("6", receive.getPayload());
 	}
@@ -155,7 +155,7 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 		this.webSocketOutputChannel.send(message2);
 
-		Message<?> receive = webSocketInputChannel.receive(1000);
+		Message<?> receive = webSocketInputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("10", receive.getPayload());
 	}
@@ -236,7 +236,7 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 		this.webSocketOutputChannel.send(message2);
 
-		Message<?> receive = webSocketInputChannel.receive(5000);
+		Message<?> receive = webSocketInputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("Hello Bob", receive.getPayload());
 	}
