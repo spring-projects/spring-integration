@@ -322,6 +322,12 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	@Override
 	public void confirm(CorrelationData correlationData, boolean ack, String cause) {
 		Object userCorrelationData = correlationData;
+		if (correlationData == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("No correlation data provided for ack: " + ack + " cause:" + cause);
+			}
+			return;
+		}
 		if (correlationData instanceof CorrelationDataWrapper) {
 			userCorrelationData = ((CorrelationDataWrapper) correlationData).getUserData();
 		}

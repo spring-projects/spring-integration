@@ -43,6 +43,11 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		String amqpTemplateRef = element.getAttribute("amqp-template");
 		if (!StringUtils.hasText(amqpTemplateRef)) {
 			amqpTemplateRef = "amqpTemplate";
+			if (StringUtils.hasText(element.getAttribute("return-channel"))
+					|| StringUtils.hasText(element.getAttribute("confirm-correlation-expression"))) {
+				parserContext.getReaderContext().error("A dedicated 'amqp-template' is required when" +
+						" using publisher confirms and returns", element);
+			}
 		}
 		builder.addConstructorArgReference(amqpTemplateRef);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name", true);

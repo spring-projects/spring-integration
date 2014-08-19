@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,6 +83,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
+
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
 
 /**
  * @author Mark Fisher
@@ -256,7 +257,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		requestChannel.send(message);
 		PollableChannel returnChannel = context.getBean("returnChannel", PollableChannel.class);
-		RabbitTemplate template = context.getBean("amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate template = context.getBean("amqpTemplateReturns", RabbitTemplate.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put(PublisherCallbackChannel.RETURN_CORRELATION, template.getUUID());
 		BasicProperties properties = mock(BasicProperties.class);
@@ -360,6 +361,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		AmqpOutboundEndpoint handler = new AmqpOutboundEndpoint(amqpTemplate);
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		doAnswer(new DoesNothing()).when(logger).error("Failed to eagerly establish the connection.", toBeThrown);
 		ApplicationContext context = mock(ApplicationContext.class);
 		handler.setApplicationContext(context);
 		handler.setBeanFactory(context);

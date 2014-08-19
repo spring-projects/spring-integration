@@ -698,7 +698,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 			<xsd:annotation>
 				<xsd:documentation>
 					Flag to indicate that channels created by this component will be transactional.
-					Only applies to outbound messages when 'message-driven' is 'true'.
+					Only applies to messages received from this channel when 'message-driven' is 'true'.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
