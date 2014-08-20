@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.kafka.support;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.messaging.Message;
+package org.springframework.integration.kafka.support;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.messaging.Message;
+
 /**
  * @author Soby Chacko
  * @since 0.5
  */
-public class KafkaConsumerContextTest<K,V> {
+public class KafkaConsumerContextTest<K, V> {
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testMergeResultsFromMultipleConsumerConfiguration() {
-		final KafkaConsumerContext<K,V> kafkaConsumerContext = new KafkaConsumerContext<K,V>();
+		final KafkaConsumerContext<K, V> kafkaConsumerContext = new KafkaConsumerContext<K, V>();
 		final ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
-		final ConsumerConfiguration<K,V> consumerConfiguration1 = Mockito.mock(ConsumerConfiguration.class);
-		final ConsumerConfiguration<K,V> consumerConfiguration2 = Mockito.mock(ConsumerConfiguration.class);
+		final ConsumerConfiguration<K, V> consumerConfiguration1 = Mockito.mock(ConsumerConfiguration.class);
+		final ConsumerConfiguration<K, V> consumerConfiguration2 = Mockito.mock(ConsumerConfiguration.class);
 
-		final Map<String, ConsumerConfiguration<K,V>> map = new HashMap<String, ConsumerConfiguration<K,V>>();
+		final Map<String, ConsumerConfiguration<K, V>> map = new HashMap<String, ConsumerConfiguration<K, V>>();
 		map.put("config1", consumerConfiguration1);
 		map.put("config2", consumerConfiguration2);
 
-		Mockito.when((Map<String, ConsumerConfiguration<K,V>>) (Object) beanFactory.getBeansOfType(ConsumerConfiguration.class)).thenReturn(
-				map);
-		kafkaConsumerContext.setBeanFactory(beanFactory);
+		kafkaConsumerContext.setConsumerConfigurations(map);
 
 		final Map<String, Map<Integer, List<Object>>> result1 = new HashMap<String, Map<Integer, List<Object>>>();
 		final List<Object> l1 = new ArrayList<Object>();
@@ -80,4 +80,5 @@ public class KafkaConsumerContextTest<K,V> {
 		Assert.assertEquals(messages.getPayload().get("topic2").get(1).get(1), "got message2 - l2");
 		Assert.assertEquals(messages.getPayload().get("topic2").get(1).get(2), "got message3 - l2");
 	}
+
 }
