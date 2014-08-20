@@ -16,9 +16,15 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
@@ -186,14 +192,16 @@ public class InboundEndpointTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 
-		RabbitTemplate rabbitTemplate = Mockito.spy(TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class));
+		RabbitTemplate rabbitTemplate = Mockito.spy(TestUtils.getPropertyValue(gateway, "amqpTemplate",
+				RabbitTemplate.class));
 
 		Mockito.doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				org.springframework.amqp.core.Message message = (org.springframework.amqp.core.Message) invocation.getArguments()[2];
-				Map<String,Object> headers = message.getMessageProperties().getHeaders();
+				org.springframework.amqp.core.Message message =
+						(org.springframework.amqp.core.Message) invocation.getArguments()[2];
+				Map<String, Object> headers = message.getMessageProperties().getHeaders();
 				assertTrue(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
 				assertNotEquals("foo", headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
 				assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
@@ -203,9 +211,7 @@ public class InboundEndpointTests {
 				assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID));
 				return null;
 			}
-		}
-
-		).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
+		}).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
 				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(gateway);
@@ -223,7 +229,6 @@ public class InboundEndpointTests {
 		listener.onMessage(amqpMessage, rabbitChannel);
 
 	}
-
 
 
 	public static class Foo {
@@ -252,11 +257,8 @@ public class InboundEndpointTests {
 
 			Foo foo = (Foo) o;
 
-			if (bar != null ? !bar.equals(foo.bar) : foo.bar != null) {
-				return false;
-			}
+			return !(bar != null ? !bar.equals(foo.bar) : foo.bar != null);
 
-			return true;
 		}
 
 		@Override

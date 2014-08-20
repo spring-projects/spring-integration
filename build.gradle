@@ -246,7 +246,6 @@ project('spring-integration-core') {
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile "org.projectreactor:reactor-core:$reactorVersion"
 		compile("org.projectreactor.spring:reactor-spring-context:$reactorSpringVersion", optional)
-		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
 		compile("io.fastjson:boon:$boonVersion", optional)

@@ -47,8 +47,7 @@ public final class JsonObjectMapperProvider {
 			return new BoonJsonObjectMapper();
 		}
 		else {
-			throw new IllegalStateException("Neither jackson-databind.jar, nor boon.jar aren't presented " +
-					"in the classpath.");
+			throw new IllegalStateException("Neither jackson-databind.jar, nor boon.jar is present in the classpath.");
 		}
 	}
 
