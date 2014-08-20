@@ -459,7 +459,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 			with a fixed 'capacity'. In this case a <classname>MessageDeliveryException</classname> is thrown.
 			The <code>send-timeout</code> is ignored in case of <classname>AbstractSubscribableChannel</classname> implementations.
 			In case of <code>group-timeout(-expression)</code> the <classname>MessageDeliveryException</classname>
-			from the scheduled expire task leads this task to be rescheduled with the same <code>timeout</code>.
+			from the scheduled expire task leads this task to be rescheduled.
 			<emphasis>Optional</emphasis>.</para>
       </callout>
 

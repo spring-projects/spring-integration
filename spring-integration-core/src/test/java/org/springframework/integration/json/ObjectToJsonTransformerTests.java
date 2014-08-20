@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,21 +53,21 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void simpleStringPayload() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		String result = (String) transformer.transform(new GenericMessage<String>("foo")).getPayload();
 		assertEquals("\"foo\"", result);
 	}
 
 	@Test
 	public void withDefaultContentType() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<String>("foo"));
 		assertEquals(ObjectToJsonTransformer.JSON_CONTENT_TYPE, result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void withProvidedContentType() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
@@ -75,7 +75,7 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void withProvidedContentTypeWithOverride() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType(ObjectToJsonTransformer.JSON_CONTENT_TYPE);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
 		Message<?> result = transformer.transform(message);
@@ -84,7 +84,7 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void withProvidedContentTypeAsEmptyString() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType("");
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		Message<?> result = transformer.transform(message);
@@ -93,29 +93,29 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void withProvidedContentTypeAsEmptyStringDoesNotOverride() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType("");
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void withProvidedContentTypeAsNull() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType(null);
 	}
 
 	@Test
 	public void simpleIntegerPayload() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		String result = (String) transformer.transform(new GenericMessage<Integer>(123)).getPayload();
 		assertEquals("123", result);
 	}
 
 	@Test
 	public void objectPayload() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		TestAddress address = new TestAddress(123, "Main Street");
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(address);
@@ -135,7 +135,7 @@ public class ObjectToJsonTransformerTests {
 	public void objectPayloadWithCustomObjectMapper() throws Exception {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new Jackson2JsonObjectMapper(customMapper));
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new Jackson2JsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
@@ -152,7 +152,7 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void testBoonJsonObjectMapper() throws Exception {
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new BoonJsonObjectMapper());
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper());
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
