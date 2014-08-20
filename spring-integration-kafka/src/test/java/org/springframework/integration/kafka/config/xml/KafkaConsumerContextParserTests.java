@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.config.xml;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import kafka.consumer.Blacklist;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.kafka.support.ConsumerConfiguration;
 import org.springframework.integration.kafka.support.ConsumerMetadata;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
 import org.springframework.integration.kafka.support.TopicFilterConfiguration;
@@ -45,11 +50,11 @@ public class KafkaConsumerContextParserTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConsumerContextConfiguration() {
-		final KafkaConsumerContext<K, V> consumerContext =
-				appContext.getBean("consumerContext", KafkaConsumerContext.class);
-		assertNotNull(consumerContext);
-
-		ConsumerMetadata<K, V> cm = appContext.getBean("consumerMetadata_default1", ConsumerMetadata.class);
+		final KafkaConsumerContext<K, V> consumerContext = appContext.getBean("consumerContext",
+				KafkaConsumerContext.class);
+		Assert.assertNotNull(consumerContext);
+		ConsumerConfiguration<K, V> cc = consumerContext.getConsumerConfiguration("default1");
+		ConsumerMetadata<K, V> cm = cc.getConsumerMetadata();
 		assertNotNull(cm);
 		TopicFilterConfiguration topicFilterConfiguration = cm.getTopicFilterConfiguration();
 		assertEquals("foo : 10", topicFilterConfiguration.toString());
