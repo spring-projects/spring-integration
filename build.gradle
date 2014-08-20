@@ -70,6 +70,7 @@ subprojects { subproject ->
 		activeMqVersion = '5.9.0'
 		aspectjVersion = '1.8.0'
 		apacheSshdVersion = '0.10.1'
+		boonVersion = '0.22'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
@@ -83,7 +84,6 @@ subprojects { subproject ->
 		hibernateVersion = '4.2.11.Final'
 		hsqldbVersion = '2.3.2'
 		h2Version = '1.3.175'
-		jacksonVersion = '1.9.13'
 		jackson2Version = '2.3.2'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.4.7'
@@ -246,9 +246,9 @@ project('spring-integration-core') {
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile "org.projectreactor:reactor-core:$reactorVersion"
 		compile("org.projectreactor.spring:reactor-spring-context:$reactorSpringVersion", optional)
-		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
+		compile("io.fastjson:boon:$boonVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 	}

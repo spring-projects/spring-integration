@@ -16,7 +16,7 @@
 package org.springframework.integration.json;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
- * By default this transformer uses {@linkplain JacksonJsonObjectMapperProvider} factory
+ * By default this transformer uses {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider} factory
  * to get an instance of a Jackson or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
  * depending on the jackson-databind or jackson-mapper-asl libs on the classpath.
  * Any other {@linkplain JsonObjectMapper} implementation can be provided.
@@ -56,7 +56,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	private volatile boolean contentTypeExplicitlySet = false;
 
 	public ObjectToJsonTransformer() {
-		this(JacksonJsonObjectMapperProvider.newInstance());
+		this(JsonObjectMapperProvider.newInstance());
 	}
 
 	public ObjectToJsonTransformer(JsonObjectMapper<?, ?> jsonObjectMapper) {
@@ -64,7 +64,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	}
 
 	public ObjectToJsonTransformer(ResultType resultType) {
-		this(JacksonJsonObjectMapperProvider.newInstance(), resultType);
+		this(JsonObjectMapperProvider.newInstance(), resultType);
 	}
 
 	public ObjectToJsonTransformer(JsonObjectMapper<?, ?> jsonObjectMapper, ResultType resultType) {
@@ -113,7 +113,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 			headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 		}
 
-		this.jsonObjectMapper.populateJavaTypes(headers, message.getPayload().getClass());
+		this.jsonObjectMapper.populateJavaTypes(headers, message.getPayload());
 
 		messageBuilder.copyHeaders(headers);
 		return messageBuilder.build();

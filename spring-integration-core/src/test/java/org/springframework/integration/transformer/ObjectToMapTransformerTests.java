@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.transformer;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,22 +25,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Test;
+
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import static org.junit.Assert.assertNull;
+import org.springframework.messaging.Message;
 
 /**
  *
@@ -47,9 +42,10 @@ import static org.junit.Assert.assertNull;
  * @since 2.0
  */
 public class ObjectToMapTransformerTests {
+
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testObjectToSpelMapTransformer() throws JsonParseException, JsonMappingException, JsonGenerationException, IOException{
+	public void testObjectToSpelMapTransformer() throws IOException {
 		Employee employee = this.buildEmployee();
 		StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());

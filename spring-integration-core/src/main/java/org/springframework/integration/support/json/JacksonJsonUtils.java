@@ -38,9 +38,6 @@ public final class JacksonJsonUtils {
 			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", classLoader) &&
 					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", classLoader);
 
-	private static final IllegalStateException NO_JACKSON_LIB_EXCEPTION =
-			new IllegalStateException("Neither jackson-databind.jar, nor jackson-mapper-asl.jar aren't presented in the classpath.");
-
 	public static boolean isJackson2Present() {
 		return jackson2Present;
 	}
@@ -49,7 +46,4 @@ public final class JacksonJsonUtils {
 		return jacksonPresent;
 	}
 
-	public static IllegalStateException getNoJacksonLibException() {
-		return NO_JACKSON_LIB_EXCEPTION;
-	}
 }

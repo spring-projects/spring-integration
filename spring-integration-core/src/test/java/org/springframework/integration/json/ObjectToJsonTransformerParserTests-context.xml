@@ -18,6 +18,11 @@
 
 	<object-to-json-transformer id="jsonNodeTransformer" input-channel="jsonNodeInput" result-type="NODE"/>
 
+	<object-to-json-transformer input-channel="boonJsonNodeInput" result-type="NODE"
+			object-mapper="boonJsonObjectMapper"/>
+
+	<beans:bean id="boonJsonObjectMapper" class="org.springframework.integration.support.json.BoonJsonObjectMapper"/>
+
 	<beans:bean id="customJsonObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomJsonObjectMapper"/>
 
 </beans:beans>

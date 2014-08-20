@@ -96,7 +96,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 	}
 
 	@Test
-	public void tesUudpOutboundChannelAdapterWithinChain() throws Exception {
+	public void tesUdpOutboundChannelAdapterWithinChain() throws Exception {
 		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
@@ -189,7 +189,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 	public static void main(String[] args) throws Exception {
 		hangAroundFor = 120000;
 		new UdpUnicastEndToEndTests().runIt();
-		new UdpUnicastEndToEndTests().tesUudpOutboundChannelAdapterWithinChain();
+		new UdpUnicastEndToEndTests().tesUdpOutboundChannelAdapterWithinChain();
 	}
 
 }

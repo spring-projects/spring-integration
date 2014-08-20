@@ -16,10 +16,15 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
+import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -35,13 +40,35 @@ public class JsonTransformersSymmetricalTests {
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 
+		List<TestPerson> payload = new ArrayList<TestPerson>();
+		payload.add(person);
+
 		ObjectToJsonTransformer objectToJsonTransformer = new ObjectToJsonTransformer();
-		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(person));
+		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(payload));
 
 		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer();
-		Message<?> result = jsonToObjectTransformer.transform(jsonMessage);
-
-		assertEquals(person, result.getPayload());
+		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
+		assertThat(result, Matchers.instanceOf(List.class));
+		assertEquals(person, ((List) result).get(0));
 	}
+
+	@Test
+	public void testBoonObjectToJson_JsonToObject() {
+
+		TestPerson person = new TestPerson("John", "Doe", 42);
+		person.setAddress(new TestAddress(123, "Main Street"));
+
+		List<TestPerson> payload = new ArrayList<TestPerson>();
+		payload.add(person);
+
+		ObjectToJsonTransformer objectToJsonTransformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper());
+		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(payload));
+
+		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer(new BoonJsonObjectMapper());
+		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
+		assertThat(result, Matchers.instanceOf(List.class));
+		assertEquals(person, ((List) result).get(0));
+	}
+
 
 }

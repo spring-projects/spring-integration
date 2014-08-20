@@ -38,7 +38,8 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @since 3.0
  */
-public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonObjectMapper<N, P>, BeanClassLoaderAware {
+public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjectMapperAdapter<N, P>
+		implements BeanClassLoaderAware {
 
 	protected static final Collection<Class<?>> supportedJsonTypes =
 			Arrays.<Class<?>> asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);

@@ -17,9 +17,11 @@
 package org.springframework.integration.support.json;
 
 
+import org.springframework.util.ClassUtils;
+
 /**
- * Simple factory to provide {@linkplain Jackson2JsonObjectMapper} or {@linkplain JacksonJsonObjectMapper}
- * instances dependently of jackson-databind or jackson-mapper-asl libs in the classpath.
+ * Simple factory to provide {@linkplain JsonObjectMapper}
+ * instances dependently of jackson-databind or boon libs in the classpath.
  * If there are both libs in the classpath, it prefers Jackson 2 JSON-processor implementation.
  * If there is not any of them, {@linkplain IllegalStateException} will be thrown.
  *
@@ -28,18 +30,25 @@ package org.springframework.integration.support.json;
  * @since 3.0
  *
  * @see Jackson2JsonObjectMapper
+ * @see org.springframework.integration.support.json.BoonJsonObjectMapper
  */
-public final class JacksonJsonObjectMapperProvider {
+public final class JsonObjectMapperProvider {
 
-	@SuppressWarnings("deprecation")
+	private static final ClassLoader classLoader = JsonObjectMapperProvider.class.getClassLoader();
+
+	private static final boolean boonPresent =
+			ClassUtils.isPresent("org.boon.json.ObjectMapper", classLoader);
+
 	public static JsonObjectMapper<?, ?> newInstance() {
 		if (JacksonJsonUtils.isJackson2Present()) {
 			return new Jackson2JsonObjectMapper();
 		}
-		if(JacksonJsonUtils.isJacksonPresent()) {
-			return new JacksonJsonObjectMapper();
+		else if (boonPresent) {
+			return new BoonJsonObjectMapper();
 		}
-		throw JacksonJsonUtils.getNoJacksonLibException();
+		else {
+			throw new IllegalStateException("Neither jackson-databind.jar, nor boon.jar is present in the classpath.");
+		}
 	}
 
 }

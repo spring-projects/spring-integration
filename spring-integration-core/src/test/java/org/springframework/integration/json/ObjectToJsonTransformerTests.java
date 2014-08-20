@@ -16,23 +16,21 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
@@ -140,6 +138,23 @@ public class ObjectToJsonTransformerTests {
 		String addressResult = matcher.group(1);
 		assertTrue(addressResult.contains("number:123"));
 		assertTrue(addressResult.contains("street:\"Main Street\""));
+	}
+
+	@Test
+	public void testBoonJsonObjectMapper() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new BoonJsonObjectMapper());
+		TestPerson person = new TestPerson("John", "Doe", 42);
+		person.setAddress(new TestAddress(123, "Main Street"));
+		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
+		assertTrue(result.contains("\"firstName\":\"John\""));
+		assertTrue(result.contains("\"lastName\":\"Doe\""));
+		assertTrue(result.contains("\"age\":42"));
+		Pattern addressPattern = Pattern.compile("(\"address\":\\{.*?\\})");
+		Matcher matcher = addressPattern.matcher(result);
+		assertTrue(matcher.find());
+		String addressResult = matcher.group(1);
+		assertTrue(addressResult.contains("\"number\":123"));
+		assertTrue(addressResult.contains("\"street\":\"Main Street\""));
 	}
 
 }

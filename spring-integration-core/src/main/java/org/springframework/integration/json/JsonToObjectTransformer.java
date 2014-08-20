@@ -19,14 +19,14 @@ package org.springframework.integration.json;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 
 /**
  * Transformer implementation that converts a JSON string payload into an instance of the provided target Class.
- * By default this transformer uses {@linkplain JacksonJsonObjectMapperProvider} factory
+ * By default this transformer uses {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider} factory
  * to get an instance of Jackson 1 or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
  * depending on the jackson-databind or jackson-mapper-asl libs on the classpath.
  * Any other {@linkplain JsonObjectMapper} implementation can be provided.
@@ -34,7 +34,7 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Artem Bilan
  * @see JsonObjectMapper
- * @see JacksonJsonObjectMapperProvider
+ * @see org.springframework.integration.support.json.JsonObjectMapperProvider
  * @since 2.0
  */
 public class JsonToObjectTransformer extends AbstractTransformer implements BeanClassLoaderAware {
@@ -57,7 +57,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 
 	public JsonToObjectTransformer(Class<?> targetClass, JsonObjectMapper<?, ?> jsonObjectMapper) {
 		this.targetClass = targetClass;
-		this.jsonObjectMapper = (jsonObjectMapper != null) ? jsonObjectMapper : JacksonJsonObjectMapperProvider.newInstance();
+		this.jsonObjectMapper = (jsonObjectMapper != null) ? jsonObjectMapper : JsonObjectMapperProvider.newInstance();
 	}
 
 	@Override

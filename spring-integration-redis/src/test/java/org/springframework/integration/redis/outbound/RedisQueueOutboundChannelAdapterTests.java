@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors
+ * Copyright 2013-2014 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.mapping.InboundMessageMapper;
@@ -69,7 +69,8 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter";
 
-		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName,
+				this.connectionFactory);
 
 		String payload = "testing";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
@@ -105,7 +106,8 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
-		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName,
+				this.connectionFactory);
 		handler.setExtractPayload(false);
 
 		Message<String> message = MessageBuilder.withPayload("testing").build();
@@ -131,8 +133,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
-		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
-		handler.setSerializer(new JacksonJsonRedisSerializer<Object>(Object.class));
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName,
+				this.connectionFactory);
+		handler.setSerializer(new Jackson2JsonRedisSerializer<Object>(Object.class));
 
 		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
@@ -168,7 +171,8 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		String result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
-		InboundMessageMapper<String> mapper = new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser());
+		InboundMessageMapper<String> mapper = new JsonInboundMessageMapper(String.class,
+				new Jackson2JsonMessageParser());
 		Message<?> resultMessage = mapper.toMessage(result);
 		assertEquals(message.getPayload(), resultMessage.getPayload());
 	}
