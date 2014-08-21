@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,18 @@ import java.util.Set;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.annotation.Header;
-import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * An {@link PublisherMetadataSource} implementation that retrieves the channel
  * name and expression strings from an annotation.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class MethodAnnotationPublisherMetadataSource implements PublisherMetadataSource {
@@ -71,28 +72,39 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		return (StringUtils.hasText(channelName) ? channelName : null);
 	}
 
+	@SuppressWarnings("deprecation")
 	public String getPayloadExpression(Method method) {
 		String payloadExpression = null;
-		Payload methodPayloadAnnotation = AnnotationUtils.findAnnotation(method, Payload.class);
-		if (methodPayloadAnnotation != null) {
-			payloadExpression = StringUtils.hasText(methodPayloadAnnotation.value())
-					? methodPayloadAnnotation.value()
-					: "#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME;
+		Annotation methodPayloadAnnotation =
+				AnnotationUtils.findAnnotation(method, org.springframework.integration.annotation.Payload.class);
+		if (methodPayloadAnnotation == null) {
+			methodPayloadAnnotation = AnnotationUtils.findAnnotation(method, Payload.class);
 		}
+
+		if (methodPayloadAnnotation != null) {
+			payloadExpression = getAnnotationValue(methodPayloadAnnotation, null, String.class);
+			if (!StringUtils.hasText(payloadExpression)) {
+				payloadExpression = "#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME;
+			}
+		}
+
 		Annotation[][] annotationArray = method.getParameterAnnotations();
 		for (int i = 0; i < annotationArray.length; i++) {
 			Annotation[] parameterAnnotations = annotationArray[i];
 			for (Annotation currentAnnotation : parameterAnnotations) {
-				if (Payload.class.equals(currentAnnotation.annotationType())) {
+				if (org.springframework.integration.annotation.Payload.class.equals(currentAnnotation.annotationType())
+						|| Payload.class.equals(currentAnnotation.annotationType())) {
 					Assert.state(payloadExpression == null,
-							"@Payload can be used at most once on a @Publisher method, either at method-level or on a single parameter");
-					Assert.state("".equals(((Payload) currentAnnotation).value()),
+							"@Payload can be used at most once on a @Publisher method, " +
+									"either at method-level or on a single parameter");
+					Assert.state("".equals(AnnotationUtils.getValue(currentAnnotation)),
 							"@Payload on a parameter for a @Publisher method may not contain an expression");
 					payloadExpression = "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]";
 				}
 			}
 		}
-		if (payloadExpression == null || payloadExpression.contains("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME)) {
+		if (payloadExpression == null
+				|| payloadExpression.contains("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME)) {
 			Assert.isTrue(!void.class.equals(method.getReturnType()),
 					"When defining @Publisher on a void-returning method, an explicit payload " +
 					"expression that does not rely upon a #return value is required.");
@@ -100,6 +112,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		return payloadExpression;
 	}
 
+	@SuppressWarnings("deprecation")
 	public Map<String, String> getHeaderExpressions(Method method) {
 		Map<String, String> headerExpressions = new HashMap<String, String>();
 		String[] parameterNames = this.parameterNameDiscoverer.getParameterNames(method);
@@ -107,13 +120,14 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		for (int i = 0; i < annotationArray.length; i++) {
 			Annotation[] parameterAnnotations = annotationArray[i];
 			for (Annotation currentAnnotation : parameterAnnotations) {
-				if (Header.class.equals(currentAnnotation.annotationType())) {
-					Header headerAnnotation = (Header) currentAnnotation;
-					String name = headerAnnotation.value();
+				if (org.springframework.integration.annotation.Header.class.equals(currentAnnotation.annotationType())
+						|| Header.class.equals(currentAnnotation.annotationType())) {
+					String name = getAnnotationValue(currentAnnotation, null, String.class);
 					if (!StringUtils.hasText(name)) {
 						name = parameterNames[i];
 					}
-					headerExpressions.put(name, "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]");
+					headerExpressions.put(name,
+							"#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]");
 				}
 			}
 		}

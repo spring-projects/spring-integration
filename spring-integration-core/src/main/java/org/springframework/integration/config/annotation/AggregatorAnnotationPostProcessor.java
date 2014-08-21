@@ -30,6 +30,7 @@ import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.StringUtils;
 

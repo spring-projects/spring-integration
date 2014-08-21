@@ -24,7 +24,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
-import org.springframework.integration.config.annotation.MessagingAnnotationUtils;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.StringUtils;
 
 /**

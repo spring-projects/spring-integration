@@ -72,7 +72,7 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.annotation.Payload;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;

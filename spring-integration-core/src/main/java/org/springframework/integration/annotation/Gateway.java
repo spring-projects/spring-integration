@@ -32,9 +32,11 @@ import java.lang.annotation.Target;
  * <p>A method annotated with @Gateway may accept a single non-annotated
  * parameter of type {@link org.springframework.messaging.Message}
  * or of the intended Message payload type. Method parameters may be mapped
- * to individual Message header values by using the {@link Header @Header}
+ * to individual Message header values by using the
+ * {@link org.springframework.messaging.handler.annotation.Header @Header}
  * parameter annotation. Alternatively, to pass the entire Message headers
- * map, a Map-typed parameter may be annotated with {@link Headers}.
+ * map, a Map-typed parameter may be annotated with
+ * {@link org.springframework.messaging.handler.annotation.Headers}.
  *
  * <p>Return values from the annotated method may be of any type. If the
  * declared return value is not a Message, the reply Message's payload will be

@@ -30,6 +30,7 @@ import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

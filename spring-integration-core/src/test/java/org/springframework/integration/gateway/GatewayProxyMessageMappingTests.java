@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,18 +28,19 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.integration.annotation.Header;
-import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.annotation.Payload;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class GatewayProxyMessageMappingTests {
@@ -213,6 +214,10 @@ public class GatewayProxyMessageMappingTests {
 	public static interface TestGateway {
 
 		void payloadAndHeaderMapWithoutAnnotations(String s, Map<String, Object> map);
+
+		@SuppressWarnings("deprecation")
+		void payloadAndHeaderMapWithAnnotationsDeprecated(@org.springframework.integration.annotation.Payload String s,
+				@org.springframework.integration.annotation.Headers Map<String, Object> map);
 
 		void payloadAndHeaderMapWithAnnotations(@Payload String s, @Headers Map<String, Object> map);
 

@@ -24,12 +24,12 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.Header;
 
 /**
  * @author Mark Fisher
@@ -110,17 +110,18 @@ public class HeaderAnnotationTransformerTests {
 			return payload.toString() + correlationId.toString();
 		}
 
-		public String appendFoo(Object payload, @Header(value = "foo") Object header) {
+		public String appendFoo(Object payload, @Header("foo") Object header) {
 			return payload.toString() + header.toString();
 		}
 
-		public String evalCorrelationId(@Header(value = IntegrationMessageHeaderAccessor.CORRELATION_ID + ".toUpperCase()") String result) {
-			return result.toString();
+		public String evalCorrelationId(@Header(IntegrationMessageHeaderAccessor.CORRELATION_ID + ".toUpperCase()") String result) {
+			return result;
 		}
 
 		public String evalFoo(@Header(value = "foo.toUpperCase()", required = true) String result) {
-			return result.toString();
+			return result;
 		}
+
 	}
 
 }
