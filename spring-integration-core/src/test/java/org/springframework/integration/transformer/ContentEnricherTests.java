@@ -221,7 +221,7 @@ public class ContentEnricherTests {
 
 		try {
 		    enricher.afterPropertiesSet();
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalStateException e) {
 			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
 			return;
 		}
@@ -287,7 +287,7 @@ public class ContentEnricherTests {
 
 		try {
 		    enricher.afterPropertiesSet();
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalStateException e) {
             assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
             return;
 		}
