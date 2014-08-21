@@ -115,11 +115,13 @@ public class JpaOutboundGatewayTests {
 
 	@Test
 	public void getAllStudents() {
-
-		final List<StudentDomain> students = studentService.getAllStudents();
+		List<StudentDomain> students = studentService.getAllStudentsDeprecated();
 		Assert.assertNotNull(students);
 		Assert.assertTrue(students.size() == 3);
 
+		students = studentService.getAllStudents();
+		Assert.assertNotNull(students);
+		Assert.assertTrue(students.size() == 3);
 	}
 
 	@Test

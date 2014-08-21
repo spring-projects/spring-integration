@@ -33,10 +33,14 @@ import java.lang.annotation.Target;
  *
  * @author Oleg Zhurakousky
  * @since 2.0
+ *
+ * @deprecated since 4.1 in favor of {@link org.springframework.messaging.handler.annotation.Payload}.
+ * Will be removed in a future release.
  */
 @Target({ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Deprecated
 public @interface Payload {
 
 	/**

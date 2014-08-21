@@ -25,18 +25,22 @@ import java.lang.annotation.Target;
 /**
  * Annotation indicating that a method parameter's value should be
  * retrieved from the message headers. The value of the annotation
- * can either be a header name (e.g., 'foo') or SpEL expression 
+ * can either be a header name (e.g., 'foo') or SpEL expression
  * (e.g., 'payload.getCustomerId()') which is quite useful when
- * the name of the header has to be dynamically computed. It also 
+ * the name of the header has to be dynamically computed. It also
  * provides an optional 'required' property which
  * specifies whether the attribute value must be available within
  * the header. The default value for 'required' is <code>true</code>.
- * 
+ *
  * @author Mark Fisher
+ *
+ * @deprecated since 4.1 in favor of {@link org.springframework.messaging.handler.annotation.Header}.
+ * Will be removed in a future release.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Deprecated
 public @interface Header {
 
 	String value() default "";

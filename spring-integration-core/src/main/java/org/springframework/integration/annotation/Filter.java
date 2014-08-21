@@ -30,7 +30,8 @@ import java.lang.annotation.Target;
  * Message payload's type. Any type conversion supported by default or any
  * Converters registered with the "integrationConversionService" bean will be
  * applied to the Message payload if necessary. Header values can also be passed
- * as Message parameters by using the {@link Header @Header} parameter annotation.
+ * as Message parameters by using the
+ * {@link org.springframework.messaging.handler.annotation.Header @Header} parameter annotation.
  * <p>
  * The return type of the annotated method must be a boolean (or Boolean).
  *

@@ -26,12 +26,16 @@ import java.lang.annotation.Target;
  * Annotation indicating that a method parameter's value should be mapped to or
  * from the message headers. The annotated parameter must be assignable to
  * {@link java.util.Map}, and all of the Map's keys must be Strings.
- * 
+ *
  * @author Mark Fisher
+ *
+ * @deprecated since 4.1 in favor of {@link org.springframework.messaging.handler.annotation.Headers}.
+ * Will be removed in a future release.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Deprecated
 public @interface Headers {
 
 }

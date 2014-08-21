@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.config.annotation;
+
+package org.springframework.integration.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -23,6 +24,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -88,6 +93,39 @@ public final class MessagingAnnotationUtils {
 		});
 
 		return reference.get();
+	}
+
+	/**
+	 * Find the one of {@link Payload}, {@link Header} or {@link Headers} annotation from
+	 * the provided {@code annotations} array.
+	 * @param annotations the annotations to scan.
+	 * @return the matched annotation or {@code null}.
+	 * @throws MessagingException if more than one of {@link Payload}, {@link Header}
+	 * or {@link Headers} annotations are presented.
+	 */
+	@SuppressWarnings("deprecation")
+	public static Annotation findMessagePartAnnotation(Annotation[] annotations) {
+		if (annotations == null || annotations.length == 0) {
+			return null;
+		}
+		Annotation match = null;
+		for (Annotation annotation : annotations) {
+			Class<? extends Annotation> type = annotation.annotationType();
+			if (type.equals(org.springframework.integration.annotation.Payload.class)
+					|| type.equals(Payload.class)
+					|| type.equals(org.springframework.integration.annotation.Header.class)
+					|| type.equals(Header.class)
+					|| type.equals(org.springframework.integration.annotation.Headers.class)
+					|| type.equals(Headers.class)) {
+				if (match != null) {
+					throw new MessagingException("At most one parameter annotation can be provided "
+							+ "for message mapping, but found two: [" + match.annotationType().getName() + "] and ["
+							+ annotation.annotationType().getName() + "]");
+				}
+				match = annotation;
+			}
+		}
+		return match;
 	}
 
 	private static Class<?> getTargetClass(Object targetObject) {

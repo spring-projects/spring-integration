@@ -29,6 +29,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;

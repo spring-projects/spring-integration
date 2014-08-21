@@ -31,7 +31,8 @@ import java.lang.annotation.Target;
  * Message payload's type. Any type conversion supported by
  * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
  * the Message payload if necessary. Header values can also be passed as
- * Message parameters by using the {@link Header @Header} parameter annotation.
+ * Message parameters by using the
+ * {@link org.springframework.messaging.handler.annotation.Header @Header} parameter annotation.
  * <p>
  * Return values from the annotated method may be of any type. If the return
  * value is not a Message, a reply Message will be created with that object

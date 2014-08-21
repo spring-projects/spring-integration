@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.annotation.Header;
+
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -137,12 +138,12 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
-
 
 	}
 
@@ -163,7 +164,8 @@ public class MethodInvokingRouterTests {
 		this.doTestChannelInstanceResolutionByPayload(router, channelResolver);
 	}
 
-	private void doTestChannelInstanceResolutionByPayload(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestChannelInstanceResolutionByPayload(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		Message<String> fooMessage = new GenericMessage<String>("foo");
 		Message<String> barMessage = new GenericMessage<String>("bar");
 		Message<String> badMessage = new GenericMessage<String>("bad");
@@ -182,9 +184,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 
@@ -207,7 +210,8 @@ public class MethodInvokingRouterTests {
 		this.doTestChannelInstanceResolutionByMessage(router, channelResolver);
 	}
 
-	private void doTestChannelInstanceResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestChannelInstanceResolutionByMessage(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -226,9 +230,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 
@@ -251,7 +256,8 @@ public class MethodInvokingRouterTests {
 		this.doTestMultiChannelNameResolutionByPayload(router, channelResolver);
 	}
 
-	private void doTestMultiChannelNameResolutionByPayload(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestMultiChannelNameResolutionByPayload(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -276,9 +282,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2b.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 	}
@@ -300,7 +307,8 @@ public class MethodInvokingRouterTests {
 		this.doTestMultiChannelNameResolutionByMessage(router, channelResolver);
 	}
 
-	private void doTestMultiChannelNameResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestMultiChannelNameResolutionByMessage(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -325,9 +333,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2b.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 	}
@@ -349,7 +358,8 @@ public class MethodInvokingRouterTests {
 		this.doTestMultiChannelNameArrayResolutionByMessage(router, channelResolver);
 	}
 
-	private void doTestMultiChannelNameArrayResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestMultiChannelNameArrayResolutionByMessage(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -374,9 +384,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2b.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 	}
@@ -398,7 +409,8 @@ public class MethodInvokingRouterTests {
 		this.doTestMultiChannelListResolutionByPayload(router, channelResolver);
 	}
 
-	private void doTestMultiChannelListResolutionByPayload(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestMultiChannelListResolutionByPayload(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -423,9 +435,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2b.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 
@@ -448,7 +461,8 @@ public class MethodInvokingRouterTests {
 		this.doTestMultiChannelListResolutionByMessage(router, channelResolver);
 	}
 
-	private void doTestMultiChannelListResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestMultiChannelListResolutionByMessage(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -473,9 +487,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2b.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 
@@ -498,7 +513,8 @@ public class MethodInvokingRouterTests {
 		this.doTestMultiChannelArrayResolutionByMessage(router, channelResolver);
 	}
 
-	private void doTestMultiChannelArrayResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
+	private void doTestMultiChannelArrayResolutionByMessage(MethodInvokingRouter router,
+			TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -523,9 +539,10 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2b.getPayload());
 
 		try {
-		    router.handleMessage(badMessage);
-		    fail();
-		} catch (MessageDeliveryException e) {
+			router.handleMessage(badMessage);
+			fail();
+		}
+		catch (MessageDeliveryException e) {
 			/* Success */
 		}
 
@@ -551,6 +568,7 @@ public class MethodInvokingRouterTests {
 			}
 			return null;
 		}
+
 	}
 
 
@@ -583,6 +601,7 @@ public class MethodInvokingRouterTests {
 			}
 			return results;
 		}
+
 	}
 
 
@@ -607,6 +626,7 @@ public class MethodInvokingRouterTests {
 			}
 			return null;
 		}
+
 	}
 
 
@@ -645,6 +665,7 @@ public class MethodInvokingRouterTests {
 			}
 			return results;
 		}
+
 	}
 
 }

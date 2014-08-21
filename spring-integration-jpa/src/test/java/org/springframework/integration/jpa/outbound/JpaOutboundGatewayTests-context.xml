@@ -25,6 +25,7 @@
 		<int:method name="getStudent"               request-channel="getStudentChannel"    />
 		<int:method name="getStudentWithException"  request-channel="getStudentEndpointWithExceptionChannel"/>
 		<int:method name="getStudentWithParameters" request-channel="getStudentWithParametersChannel"/>
+		<int:method name="getAllStudentsDeprecated"           request-channel="getAllStudentsChannel" />
 		<int:method name="getAllStudents"           request-channel="getAllStudentsChannel" />
 		<int:method name="persistStudent"           request-channel="persistStudentChannel" />
 		<int:method name="persistStudentUsingMerge" request-channel="persistStudentUsingMergeChannel" />

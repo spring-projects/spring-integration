@@ -43,6 +43,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationException;
@@ -50,14 +51,13 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.annotation.Header;
-import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
@@ -235,7 +235,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		if (method instanceof Method) {
 			context.registerMethodFilter(targetType, new FixedMethodFilter((Method) method));
 			if (expectedType != null) {
-				Assert.state(context.getTypeConverter().canConvert(TypeDescriptor.valueOf(((Method) method).getReturnType()),
+				Assert.state(context.getTypeConverter()
+								.canConvert(TypeDescriptor.valueOf(((Method) method).getReturnType()),
 						TypeDescriptor.valueOf(expectedType)),
 						"Cannot convert to expected type (" + expectedType + ") from " + method);
 			}
@@ -250,13 +251,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		context.setVariable("target", targetObject);
 	}
 
-	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType, TypeConverter typeConverter) {
+	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
+			TypeConverter typeConverter) {
 		if (expectedType == null) {
 			return true;
 		}
 		List<Method> methods = filter.filter(Arrays.asList(ReflectionUtils.getAllDeclaredMethods(targetType)));
 		for (Method method : methods) {
-			if (typeConverter.canConvert(TypeDescriptor.valueOf(method.getReturnType()), TypeDescriptor.valueOf(expectedType))) {
+			if (typeConverter.canConvert(TypeDescriptor.valueOf(method.getReturnType()),
+					TypeDescriptor.valueOf(expectedType))) {
 				return true;
 			}
 		}
@@ -413,7 +416,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					if ("org.springframework.integration.gateway.RequestReplyExchanger".equals(iface.getName())) {
 						frameworkMethods.add(targetClass.getMethod("exchange", Message.class));
 						if (logger.isDebugEnabled()) {
-							logger.debug(targetObject.getClass() + ": Ambiguous fallback methods; using RequestReplyExchanger.exchange()");
+							logger.debug(targetObject.getClass() +
+									": Ambiguous fallback methods; using RequestReplyExchanger.exchange()");
 						}
 					}
 				}
@@ -431,7 +435,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		try {
 			Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
-					"Target object of type [" + this.targetObject.getClass() + "] has no eligible methods for handling Messages.");
+					"Target object of type [" + this.targetObject.getClass() +
+							"] has no eligible methods for handling Messages.");
 		}
 		catch (Exception e) {
 			//TODO backward compatibility
@@ -536,7 +541,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-		private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new LocalVariableTableParameterNameDiscoverer();
+		private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
+				new LocalVariableTableParameterNameDiscoverer();
 
 		private static final TypeDescriptor messageTypeDescriptor = TypeDescriptor.valueOf(Message.class);
 
@@ -585,6 +591,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return this.method.toString();
 		}
 
+		@SuppressWarnings("deprecation")
 		private Expression generateExpression(Method method) {
 			StringBuilder sb = new StringBuilder("#target." + method.getName() + "(");
 			Class<?>[] parameterTypes = method.getParameterTypes();
@@ -597,12 +604,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				MethodParameter methodParameter = new MethodParameter(method, i);
 				TypeDescriptor parameterTypeDescriptor = new TypeDescriptor(methodParameter);
 				Class<?> parameterType = parameterTypeDescriptor.getObjectType();
-				Annotation mappingAnnotation = findMappingAnnotation(parameterAnnotations[i]);
+				Annotation mappingAnnotation =
+						MessagingAnnotationUtils.findMessagePartAnnotation(parameterAnnotations[i]);
 				if (mappingAnnotation != null) {
 					Class<? extends Annotation> annotationType = mappingAnnotation.annotationType();
-					if (annotationType.equals(Payload.class)) {
+					if (annotationType.equals(org.springframework.integration.annotation.Payload.class)
+							|| annotationType.equals(Payload.class)) {
 						sb.append("payload");
-						String qualifierExpression = ((Payload) mappingAnnotation).value();
+						String qualifierExpression = (String) AnnotationUtils.getValue(mappingAnnotation);
 						if (StringUtils.hasText(qualifierExpression)) {
 							sb.append("." + qualifierExpression);
 						}
@@ -621,14 +630,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 							this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 						}
 					}
-					else if (annotationType.equals(Headers.class)) {
+					else if (annotationType.equals(org.springframework.integration.annotation.Headers.class)
+							|| annotationType.equals(Headers.class)) {
 						Assert.isTrue(Map.class.isAssignableFrom(parameterType),
 								"The @Headers annotation can only be applied to a Map-typed parameter.");
 						sb.append("headers");
 					}
-					else if (annotationType.equals(Header.class)) {
-						Header headerAnnotation = (Header) mappingAnnotation;
-						sb.append(this.determineHeaderExpression(headerAnnotation, methodParameter));
+					else if (annotationType.equals(org.springframework.integration.annotation.Header.class)
+							|| annotationType.equals(Header.class)) {
+						sb.append(this.determineHeaderExpression(mappingAnnotation, methodParameter));
 					}
 				}
 				else if (parameterTypeDescriptor.isAssignableTo(messageTypeDescriptor)) {
@@ -636,8 +646,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					sb.append("message");
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
-				else if ((parameterTypeDescriptor.isAssignableTo(messageListTypeDescriptor) || parameterTypeDescriptor
-								.isAssignableTo(messageArrayTypeDescriptor))) {
+				else if ((parameterTypeDescriptor.isAssignableTo(messageListTypeDescriptor)
+						|| parameterTypeDescriptor.isAssignableTo(messageArrayTypeDescriptor))) {
 					sb.append("messages");
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
@@ -704,31 +714,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return EXPRESSION_PARSER.parseExpression(sb.toString());
 		}
 
-		private Annotation findMappingAnnotation(Annotation[] annotations) {
-			if (annotations == null || annotations.length == 0) {
-				return null;
-			}
-			Annotation match = null;
-			for (Annotation annotation : annotations) {
-				Class<? extends Annotation> type = annotation.annotationType();
-				if (type.equals(Payload.class) || type.equals(Payloads.class) || type.equals(Header.class) || type.equals(Headers.class)) {
-					if (match != null) {
-						throw new MessagingException(
-								"At most one parameter annotation can be provided for message mapping, "
-										+ "but found two: [" + match.annotationType().getName() + "] and ["
-										+ annotation.annotationType().getName() + "]");
-					}
-					match = annotation;
-				}
-			}
-			return match;
-		}
-
-		private String determineHeaderExpression(Header headerAnnotation, MethodParameter methodParameter) {
+		private String determineHeaderExpression(Annotation headerAnnotation, MethodParameter methodParameter) {
 			methodParameter.initParameterNameDiscovery(PARAMETER_NAME_DISCOVERER);
 			String headerName = null;
 			String relativeExpression = "";
-			String valueAttribute = headerAnnotation.value();
+			AnnotationAttributes annotationAttributes =
+					(AnnotationAttributes) AnnotationUtils.getAnnotationAttributes(headerAnnotation);
+			String valueAttribute = annotationAttributes.getString(AnnotationUtils.VALUE);
 			if (!StringUtils.hasText(valueAttribute)) {
 				headerName = methodParameter.getParameterName();
 			}
@@ -746,13 +738,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					+ "disabled or header name is not explicitly provided via @Header annotation.");
 			String headerRetrievalExpression = "headers['" + headerName + "']";
 			String fullHeaderExpression = headerRetrievalExpression + relativeExpression;
-			String fallbackExpression = (headerAnnotation.required())
-					? "T(org.springframework.util.Assert).isTrue(false, 'required header not available:  " + headerName + "')"
+			String fallbackExpression = (annotationAttributes.getBoolean("required"))
+					? "T(org.springframework.util.Assert).isTrue(false, 'required header not available: "
+					+ headerName + "')"
 					: "null";
 			return headerRetrievalExpression + " != null ? " + fullHeaderExpression + " : " + fallbackExpression;
 		}
 
-		private synchronized void setExclusiveTargetParameterType(TypeDescriptor targetParameterType, MethodParameter methodParameter) {
+		private synchronized void setExclusiveTargetParameterType(TypeDescriptor targetParameterType,
+				MethodParameter methodParameter) {
 			if (this.targetParameterTypeDescriptor != null) {
 				throw new IneligibleMethodException("Found more than one parameter type candidate: ["
 					+ this.targetParameterTypeDescriptor + "] and [" + targetParameterType + "]");
