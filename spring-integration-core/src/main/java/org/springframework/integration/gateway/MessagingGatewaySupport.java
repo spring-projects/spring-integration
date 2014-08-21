@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gateway;
 
+import org.springframework.beans.BeansException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -33,6 +34,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -53,9 +55,15 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private volatile MessageChannel requestChannel;
 
+	private volatile String requestChannelName;
+
 	private volatile MessageChannel replyChannel;
 
+	private volatile String replyChannelName;
+
 	private volatile MessageChannel errorChannel;
+
+	private volatile String errorChannelName;
 
 	private volatile long replyTimeout = DEFAULT_TIMEOUT;
 
@@ -66,7 +74,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private final MessagingTemplate messagingTemplate;
 
-	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
+	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
+			new HistoryWritingMessagePostProcessor();
 
 	private volatile boolean initialized;
 
@@ -86,7 +95,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	/**
 	 * Set the request channel.
-	 *
 	 * @param requestChannel the channel to which request messages will be sent
 	 */
 	public void setRequestChannel(MessageChannel requestChannel) {
@@ -94,9 +102,18 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	}
 
 	/**
+	 * Set the request channel name.
+	 * @param requestChannelName the channel bean name to which request messages will be sent
+	 * @since 4.1
+	 */
+	public void setRequestChannelName(String requestChannelName) {
+		Assert.hasText(requestChannelName, "'requestChannelName' must not be empty");
+		this.requestChannelName = requestChannelName;
+	}
+
+	/**
 	 * Set the reply channel. If no reply channel is provided, this gateway will
 	 * always use an anonymous, temporary channel for handling replies.
-	 *
 	 * @param replyChannel the channel from which reply messages will be received
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
@@ -104,10 +121,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	}
 
 	/**
+	 * Set the reply channel name. If no reply channel is provided, this gateway will
+	 * always use an anonymous, temporary channel for handling replies.
+	 * @param replyChannelName the channel bean name from which reply messages will be received
+	 * @since 4.1
+	 */
+	public void setReplyChannelName(String replyChannelName) {
+		Assert.hasText(replyChannelName, "'replyChannelName' must not be empty");
+		this.replyChannelName = replyChannelName;
+	}
+
+	/**
 	 * Set the error channel. If no error channel is provided, this gateway will
 	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
 	 * a reference to the "nullChannel" here.
-	 *
 	 * @param errorChannel The error channel.
 	 */
 	public void setErrorChannel(MessageChannel errorChannel) {
@@ -115,9 +142,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	}
 
 	/**
+	 * Set the error channel name. If no error channel is provided, this gateway will
+	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
+	 * a reference to the "nullChannel" here.
+	 * @param errorChannelName The error channel bean name.
+	 * @since 4.1
+	 */
+	public void setErrorChannelName(String errorChannelName) {
+		Assert.hasText(errorChannelName, "'errorChannelName' must not be empty");
+		this.errorChannelName = errorChannelName;
+	}
+
+	/**
 	 * Set the timeout value for sending request messages. If not
 	 * explicitly configured, the default is one second.
-	 *
 	 * @param requestTimeout the timeout value in milliseconds
 	 */
 	public void setRequestTimeout(long requestTimeout) {
@@ -127,7 +165,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the timeout value for receiving reply messages. If not
 	 * explicitly configured, the default is one second.
-	 *
 	 * @param replyTimeout the timeout value in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {
@@ -138,7 +175,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Provide an {@link InboundMessageMapper} for creating request Messages
 	 * from any object passed in a send or sendAndReceive operation.
-	 *
 	 * @param requestMapper The request mapper.
 	 */
 	public void setRequestMapper(InboundMessageMapper<?> requestMapper) {
@@ -150,7 +186,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Provide an {@link OutboundMessageMapper} for mapping to objects from
 	 * any reply Messages received in receive or sendAndReceive operations.
-	 *
 	 * @param replyMapper The reply mapper.
 	 */
 	public void setReplyMapper(OutboundMessageMapper<?> replyMapper) {
@@ -173,6 +208,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	@Override
 	protected void onInit() throws Exception {
+		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
+				"'requestChannelName' and 'requestChannel' are mutually exclusive.");
+		Assert.state(!(this.replyChannelName != null && this.replyChannel != null),
+				"'replyChannelName' and 'replyChannel' are mutually exclusive.");
+		Assert.state(!(this.errorChannelName != null && this.errorChannel != null),
+				"'errorChannelName' and 'errorChannel' are mutually exclusive.");
 		this.historyWritingPostProcessor.setTrackableComponent(this);
 		this.historyWritingPostProcessor.setMessageBuilderFactory(this.getMessageBuilderFactory());
 		if (this.getBeanFactory() != null) {
@@ -191,17 +232,79 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		}
 	}
 
+	private MessageChannel getRequestChannel() {
+		if (this.requestChannelName != null) {
+			synchronized (this) {
+				if (this.requestChannelName != null) {
+					try {
+						Assert.state(getBeanFactory() != null,
+								"A bean factory is required to resolve the requestChannel at runtime.");
+						this.requestChannel = getBeanFactory().getBean(this.requestChannelName, MessageChannel.class);
+						this.requestChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.requestChannelName + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+		return this.requestChannel;
+	}
+
+	private MessageChannel getReplyChannel() {
+		if (this.replyChannelName != null) {
+			synchronized (this) {
+				if (this.replyChannelName != null) {
+					try {
+						Assert.state(getBeanFactory() != null,
+								"A bean factory is required to resolve the replyChannel at runtime.");
+						this.replyChannel = getBeanFactory().getBean(this.replyChannelName, MessageChannel.class);
+						this.replyChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.replyChannelName + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+		return this.replyChannel;
+	}
+
+	private MessageChannel getErrorChannel() {
+		if (this.errorChannelName != null) {
+			synchronized (this) {
+				if (this.errorChannelName != null) {
+					try {
+						Assert.state(getBeanFactory() != null,
+								"A bean factory is required to resolve the errorChannel at runtime.");
+						this.errorChannel = getBeanFactory().getBean(this.errorChannelName, MessageChannel.class);
+						this.errorChannelName = null;
+					}
+					catch (BeansException e) {
+						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
+								+ this.errorChannelName + "' in the BeanFactory.");
+					}
+				}
+			}
+		}
+		return this.errorChannel;
+	}
+
 	protected void send(Object object) {
 		this.initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
-		Assert.state(this.requestChannel != null,
+		MessageChannel requestChannel = getRequestChannel();
+		Assert.state(requestChannel != null,
 				"send is not supported, because no request channel has been configured");
 		try {
-			this.messagingTemplate.convertAndSend(this.requestChannel, object, this.historyWritingPostProcessor);
+			this.messagingTemplate.convertAndSend(requestChannel, object, this.historyWritingPostProcessor);
 		}
 		catch (Exception e) {
-			if (this.errorChannel != null) {
-				this.messagingTemplate.send(this.errorChannel, new ErrorMessage(e));
+			MessageChannel errorChannel = getErrorChannel();
+			if (errorChannel != null) {
+				this.messagingTemplate.send(errorChannel, new ErrorMessage(e));
 			}
 			else {
 				this.rethrow(e, "failed to send message");
@@ -211,9 +314,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	protected Object receive() {
 		this.initializeIfNecessary();
-		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
+		MessageChannel replyChannel = getReplyChannel();
+		Assert.state(replyChannel != null && (replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
-		return this.messagingTemplate.receiveAndConvert((PollableChannel) this.replyChannel, null);
+		return this.messagingTemplate.receiveAndConvert(replyChannel, null);
 	}
 
 	protected Object sendAndReceive(Object object) {
@@ -228,17 +332,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	private Object doSendAndReceive(Object object, boolean shouldConvert) {
 		this.initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
-		if (this.requestChannel == null) {
+		MessageChannel requestChannel = getRequestChannel();
+		if (requestChannel == null) {
 			throw new MessagingException("No request channel available. Cannot send request message.");
 		}
-		if (this.replyChannel != null && this.replyMessageCorrelator == null) {
+		MessageChannel replyChannel = getReplyChannel();
+		if (replyChannel != null && this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
 		Object reply = null;
 		Throwable error = null;
 		try {
 			if (shouldConvert) {
-				reply = this.messagingTemplate.convertSendAndReceive(this.requestChannel, object, null, this.historyWritingPostProcessor);
+				reply = this.messagingTemplate.convertSendAndReceive(requestChannel, object, null,
+						this.historyWritingPostProcessor);
 				if (reply instanceof Throwable) {
 					error = (Throwable) reply;
 				}
@@ -247,7 +354,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				Message<?> requestMessage = (object instanceof Message<?>)
 						? (Message<?>) object : this.requestMapper.toMessage(object);
 				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
-				reply = this.messagingTemplate.sendAndReceive(this.requestChannel, requestMessage);
+				reply = this.messagingTemplate.sendAndReceive(requestChannel, requestMessage);
 				if (reply instanceof ErrorMessage) {
 					error = ((ErrorMessage) reply).getPayload();
 				}
@@ -261,14 +368,16 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		}
 
 		if (error != null) {
-			if (this.errorChannel != null) {
+			MessageChannel errorChannel = getErrorChannel();
+			if (errorChannel != null) {
 				Message<?> errorMessage = new ErrorMessage(error);
 				Message<?> errorFlowReply = null;
 				try {
-					errorFlowReply = this.messagingTemplate.sendAndReceive(this.errorChannel, errorMessage);
+					errorFlowReply = this.messagingTemplate.sendAndReceive(errorChannel, errorMessage);
 				}
 				catch (Exception errorFlowFailure) {
-					throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
+					throw new MessagingException(errorMessage, "failure occurred in error-handling flow",
+							errorFlowFailure);
 				}
 				if (shouldConvert) {
 					Object result = (errorFlowReply != null) ? errorFlowReply.getPayload() : null;
@@ -307,17 +416,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				handler.setBeanFactory(this.getBeanFactory());
 			}
 			handler.afterPropertiesSet();
-			if (this.replyChannel instanceof SubscribableChannel) {
-				correlator = new EventDrivenConsumer(
-						(SubscribableChannel) this.replyChannel, handler);
+			MessageChannel replyChannel = getReplyChannel();
+			if (replyChannel instanceof SubscribableChannel) {
+				correlator = new EventDrivenConsumer((SubscribableChannel) replyChannel, handler);
 			}
-			else if (this.replyChannel instanceof PollableChannel) {
-				PollingConsumer endpoint = new PollingConsumer(
-						(PollableChannel) this.replyChannel, handler);
+			else if (replyChannel instanceof PollableChannel) {
+				PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChannel, handler);
 				endpoint.setBeanFactory(this.getBeanFactory());
 				endpoint.setReceiveTimeout(this.replyTimeout);
 				endpoint.afterPropertiesSet();
 				correlator = endpoint;
+			}
+			else {
+				throw new MessagingException("Unsupported 'replyChannel' type [" + replyChannel.getClass() + "]."
+						+ "SubscribableChannel or PollableChannel type are supported.");
 			}
 			if (this.isRunning()) {
 				correlator.start();
@@ -356,6 +468,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 			}
 			return (object != null) ? this.messageBuilderFactory.withPayload(object).build() : null;
 		}
+
 	}
 
 }

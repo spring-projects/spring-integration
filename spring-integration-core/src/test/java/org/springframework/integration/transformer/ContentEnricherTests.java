@@ -118,7 +118,8 @@ public class ContentEnricherTests {
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				try {
 					Thread.sleep(5000);
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					fail(e.getMessage());
 				}
 				return new Target("child");
@@ -144,7 +145,8 @@ public class ContentEnricherTests {
 
 		try {
 		    enricher.handleMessage(requestMessage);
-		} catch (ReplyRequiredException e) {
+		}
+		catch (ReplyRequiredException e) {
 			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.", e.getMessage());
 			return;
 		}
@@ -173,8 +175,9 @@ public class ContentEnricherTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
 		try {
-		    enricher.handleMessage(requestMessage);
-		} catch (MessageDeliveryException e) {
+			enricher.handleMessage(requestMessage);
+		}
+		catch (MessageDeliveryException e) {
 			assertEquals("failed to send message to channel '" + requestChannelName
 					   + "' within timeout: " + requestTimeout, e.getMessage());
 			return;
@@ -220,8 +223,9 @@ public class ContentEnricherTests {
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
-		    enricher.afterPropertiesSet();
-		} catch (IllegalArgumentException e) {
+			enricher.afterPropertiesSet();
+		}
+		catch (IllegalStateException e) {
 			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
 			return;
 		}
@@ -236,8 +240,9 @@ public class ContentEnricherTests {
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
-		    enricher.setReplyTimeout(null);
-		} catch (IllegalArgumentException e) {
+			enricher.setReplyTimeout(null);
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("replyTimeout must not be null", e.getMessage());
 			return;
 		}
@@ -252,8 +257,9 @@ public class ContentEnricherTests {
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
-		    enricher.setRequestTimeout(null);
-		} catch (IllegalArgumentException e) {
+			enricher.setRequestTimeout(null);
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("requestTimeout must not be null", e.getMessage());
 			return;
 		}
@@ -286,10 +292,11 @@ public class ContentEnricherTests {
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
-		    enricher.afterPropertiesSet();
-		} catch (IllegalArgumentException e) {
-            assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
-            return;
+			enricher.afterPropertiesSet();
+		}
+		catch (IllegalStateException e) {
+			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
+			return;
 		}
 
 		fail("Expected an IllegalArgumentException to be thrown.");
@@ -414,10 +421,11 @@ public class ContentEnricherTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
 		try {
-		    enricher.handleMessage(requestMessage);
-		} catch (MessageHandlingException e) {
+		enricher.handleMessage(requestMessage);
+		}
+		catch (MessageHandlingException e) {
 			assertThat(e.getMessage(), containsString("Failed to clone payload object"));
-            return;
+			return;
 		}
 
 		fail("Expected a MessageHandlingException to be thrown.");
@@ -478,6 +486,7 @@ public class ContentEnricherTests {
 		public String getLastName() {
 			return lastName;
 		}
+
 	}
 
 
@@ -517,6 +526,7 @@ public class ContentEnricherTests {
 			clone.setChild(this.child);
 			return clone;
 		}
+
 	}
 
 	public static final class TargetUser {
@@ -557,6 +567,7 @@ public class ContentEnricherTests {
 		public Object clone() {
 			throw new IllegalStateException("Cloning not possible");
 		}
+
 	}
 
 }
