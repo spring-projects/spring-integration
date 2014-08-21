@@ -37,7 +37,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Content Enricher is a Message Transformer that can augment a message's payload with
@@ -55,6 +54,8 @@ import org.springframework.util.StringUtils;
 public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		implements Lifecycle, IntegrationEvaluationContextAware {
 
+	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
 	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<Expression, Expression>();
 
 	private volatile Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions =
@@ -64,8 +65,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 
 	private volatile Map<String, HeaderValueMessageProcessor<?>> headerExpressions =
 			new HashMap<String, HeaderValueMessageProcessor<?>>();
-
-	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private EvaluationContext sourceEvaluationContext;
 
@@ -149,6 +148,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setRequestChannelName(String requestChannelName) {
+		Assert.hasText(requestChannelName, "'requestChannelName' must not be empty");
 		this.requestChannelName = requestChannelName;
 	}
 
@@ -163,6 +163,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setReplyChannelName(String replyChannelName) {
+		Assert.hasText(replyChannelName, "'replyChannelName' must not be empty");
 		this.replyChannelName = replyChannelName;
 	}
 
@@ -239,33 +240,33 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	 */
 	@Override
 	protected void doInit() {
-		if (StringUtils.hasText(this.requestChannelName)) {
-			Assert.isNull(this.requestChannel, "'requestChannelName' and 'requestChannel' are mutually exclusive.");
-			this.requestChannel = this.getBeanFactory().getBean(this.requestChannelName, MessageChannel.class);
-		}
+		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
+				"'requestChannelName' and 'requestChannel' are mutually exclusive.");
 
-		if (StringUtils.hasText(this.replyChannelName)) {
-			Assert.isNull(this.replyChannel, "'replyChannelName' and 'replyChannel' are mutually exclusive.");
-			this.replyChannel = this.getBeanFactory().getBean(this.replyChannelName, MessageChannel.class);
-		}
+		Assert.state(!(this.replyChannelName != null && this.replyChannel != null),
+				"'replyChannelName' and 'replyChannel' are mutually exclusive.");
 
-		if (this.replyChannel != null) {
-			Assert.notNull(this.requestChannel, "If the replyChannel is set, then the requestChannel must not be null");
+		if (this.replyChannel != null || this.replyChannelName != null) {
+			Assert.state(this.requestChannel != null || this.requestChannelName != null,
+					"If the replyChannel is set, then the requestChannel must not be null");
 		}
-		if (this.requestChannel != null) {
+		if (this.requestChannel != null || this.requestChannelName != null) {
 			this.gateway = new Gateway();
-			this.gateway.setRequestChannel(requestChannel);
+			this.gateway.setRequestChannel(this.requestChannel);
+			if (this.requestChannelName != null) {
+				this.gateway.setRequestChannelName(this.requestChannelName);
+			}
 
 			if (this.requestTimeout != null) {
 				this.gateway.setRequestTimeout(this.requestTimeout);
 			}
-
 			if (this.replyTimeout != null) {
 				this.gateway.setReplyTimeout(this.replyTimeout);
 			}
 
-			if (replyChannel != null) {
-				this.gateway.setReplyChannel(replyChannel);
+			this.gateway.setReplyChannel(replyChannel);
+			if (this.replyChannelName != null) {
+				this.gateway.setReplyChannelName(this.replyChannelName);
 			}
 
 			if (this.getBeanFactory() != null) {
