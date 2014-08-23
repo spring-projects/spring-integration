@@ -55,8 +55,8 @@ public class AnnotationAggregatorTests {
 		@SuppressWarnings("unchecked")
 		Message<String> result = (Message<String>) output.receive();
 		String payload = result.getPayload();
-		assertTrue("Wrong payload: "+payload, payload.matches(".*Payload.*?=a.*"));
-		assertTrue("Wrong payload: "+payload, payload.matches(".*Payload.*?=b.*"));
+		assertTrue("Wrong payload: "+payload, payload.matches(".*payload.*?=a.*"));
+		assertTrue("Wrong payload: "+payload, payload.matches(".*payload.*?=b.*"));
 	}
 
 	@SuppressWarnings("unused")
