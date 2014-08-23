@@ -444,8 +444,8 @@ project('spring-integration-mail') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.mail:javax.mail-api:$javaxMailVersion", provided)
 		compile("com.sun.mail:imap:$javaxMailVersion", provided)
+		compile("com.sun.mail:mailapi:$javaxMailVersion", provided);
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
-		testRuntime "com.sun.mail:mailapi:$javaxMailVersion"
 	}
 
 	// suppress javax.activation path warnings
