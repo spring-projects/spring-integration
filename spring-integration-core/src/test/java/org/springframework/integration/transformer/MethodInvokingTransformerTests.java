@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import java.util.Properties;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -212,7 +212,7 @@ public class MethodInvokingTransformerTests {
 		assertNull(result);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test // this changed in 2.0 see INT-785 and INT-1130
 	public void headerEnricherConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
@@ -231,7 +231,7 @@ public class MethodInvokingTransformerTests {
 		assertEquals("baz", result.getHeaders().get("prop3"));
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test // this changed in 2.0 see INT-785 and INT-1130
 	public void headerEnricherConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
@@ -264,7 +264,7 @@ public class MethodInvokingTransformerTests {
 		}
 
 		@Transformer
-		public String optionalHeaderTest(String s, @Header(value="number", required=false) Integer num) {
+		public String optionalHeaderTest(String s, @Header(value = "number", required = false) Integer num) {
 			return s + num;
 		}
 
@@ -290,6 +290,7 @@ public class MethodInvokingTransformerTests {
 		public Object nullReturnValueTest(Message<?> message) {
 			return null;
 		}
+
 	}
 
 }

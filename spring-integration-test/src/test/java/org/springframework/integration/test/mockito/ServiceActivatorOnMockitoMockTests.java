@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -47,10 +47,12 @@ public class ServiceActivatorOnMockitoMockTests {
 	PollableChannel out;
 
 	public static class SingleAnnotatedMethodOnClass {
+
 		@ServiceActivator
 		public String move(String s) {
 			return s;
 		}
+
 	}
 
 	@Autowired
@@ -77,10 +79,13 @@ public class ServiceActivatorOnMockitoMockTests {
 		verify(singleMethodOnClass).move("SingleMethodOnClass");
 	}
 
+	@SuppressWarnings("deprecation")
 	public static class SingleMethodAcceptingHeaderOnClass {
-		public String move(@Header("s") String s) {
+
+		public String move(@org.springframework.integration.annotation.Header("s") String s) {
 			return s;
 		}
+
 	}
 
 	@Autowired
@@ -88,7 +93,9 @@ public class ServiceActivatorOnMockitoMockTests {
 
 	@Test
 	public void shouldInvokeMockedSingleMethodAcceptingHeaderOnClass() {
-		in.send(MessageBuilder.withPayload("SingleMethodAcceptingHeaderOnClass").setHeader("s", "SingleMethodAcceptingHeaderOnClass").build());
+		in.send(MessageBuilder.withPayload("SingleMethodAcceptingHeaderOnClass")
+				.setHeader("s", "SingleMethodAcceptingHeaderOnClass")
+				.build());
 		verify(singleMethodAcceptingHeaderOnClass).move("SingleMethodAcceptingHeaderOnClass");
 	}
 

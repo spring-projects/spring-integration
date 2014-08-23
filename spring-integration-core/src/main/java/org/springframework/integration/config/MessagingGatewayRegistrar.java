@@ -38,7 +38,7 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.config.annotation.MessagingAnnotationUtils;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.Assert;

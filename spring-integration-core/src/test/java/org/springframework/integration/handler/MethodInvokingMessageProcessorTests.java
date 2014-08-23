@@ -15,6 +15,7 @@
  */
 
 package org.springframework.integration.handler;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -39,7 +40,7 @@ import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.integration.annotation.Header;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -58,7 +59,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gary Russell
  * @author Gunnar Hillert
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MethodInvokingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,18 @@ import static org.junit.Assert.assertNotNull;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -305,7 +306,6 @@ public class MethodInvokingSplitterTests {
 				return list;
 			}
 		}
-		;
 		GenericMessage<List<?>> message = new GenericMessage<List<?>>(Arrays.asList("foo", "bar"));
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new ListSplitter(), "split");
 		QueueChannel replyChannel = new QueueChannel();
@@ -511,14 +511,11 @@ public class MethodInvokingSplitterTests {
 		public List<String> splitPayloadAndHeader(String payload, @Header("testHeader") String header) {
 			String regex = "\\.";
 			List<String> results = new ArrayList<String>();
-			for (String s : payload.split(regex)) {
-				results.add(s);
-			}
-			for (String s : header.split(regex)) {
-				results.add(s);
-			}
+			Collections.addAll(results, payload.split(regex));
+			Collections.addAll(results, header.split(regex));
 			return results;
 		}
+
 	}
 
 	public static class SingleAnnotationTestBean {
@@ -531,6 +528,7 @@ public class MethodInvokingSplitterTests {
 		public String[] anotherMethod(String input) {
 			throw new UnsupportedOperationException("incorrect test invocation");
 		}
+
 	}
 
 	public static class AmbiguousTypeMatchTestBean {
@@ -544,6 +542,7 @@ public class MethodInvokingSplitterTests {
 		public String[] method2(String input) {
 			throw new UnsupportedOperationException("incorrect test invocation");
 		}
+
 	}
 
 	public static class SinglePublicMethodTestBean {
@@ -555,6 +554,7 @@ public class MethodInvokingSplitterTests {
 		String[] anotherMethod(String input) {
 			throw new UnsupportedOperationException("incorrect test invocation");
 		}
+
 	}
 
 	public static class MultiplePublicMethodTestBean {
@@ -566,6 +566,7 @@ public class MethodInvokingSplitterTests {
 		public String[] method2(String input) {
 			throw new UnsupportedOperationException("incorrect test invocation");
 		}
+
 	}
 
 
@@ -575,5 +576,6 @@ public class MethodInvokingSplitterTests {
 		private TestStringMessage(String payload) {
 			super(payload);
 		}
+
 	}
 }

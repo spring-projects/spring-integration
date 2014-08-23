@@ -22,7 +22,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
-import org.springframework.integration.config.annotation.MessagingAnnotationUtils;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.StringUtils;
 
 /**

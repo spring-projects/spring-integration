@@ -24,7 +24,7 @@ import org.springframework.messaging.MessageHeaders;
  * Generic strategy interface for mapping {@link MessageHeaders} to and from other
  * types of objects. This would typically be used by adapters where the "other type"
  * has a concept of headers or properties (HTTP, JMS, AMQP, etc).
- * 
+ *
  * @author Mark Fisher
  *
  * @param <T> type of the instance to and from which headers will be mapped.

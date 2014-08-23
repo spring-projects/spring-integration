@@ -28,6 +28,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

@@ -46,7 +46,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
-import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -55,6 +54,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -349,7 +349,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
-		boolean hasPayloadExpression = method.isAnnotationPresent(Payload.class);
+		@SuppressWarnings("deprecation")
+		boolean hasPayloadExpression =
+				method.isAnnotationPresent(org.springframework.integration.annotation.Payload.class)
+				|| method.isAnnotationPresent(Payload.class);
 		if (!hasPayloadExpression && this.methodMetadataMap != null) {
 			// check for the method metadata next
 			GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());

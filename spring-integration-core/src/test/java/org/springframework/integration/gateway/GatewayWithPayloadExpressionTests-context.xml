@@ -10,7 +10,7 @@
 	<int:gateway id="gateway" service-interface="org.springframework.integration.gateway.GatewayWithPayloadExpressionTests$SampleGateway">
 		<int:method name="send1" request-channel="input" payload-expression="#args[0] + 'bar'"/>
 		<int:method name="send2" request-channel="input" payload-expression="@testBean.sum(#args[0])"/>
-		<int:method name="send3" request-channel="input" payload-expression="#method"/>
+		<int:method name="send3" request-channel="input" payload-expression="#gatewayMethod.name"/>
 	</int:gateway>
 
 	<int:gateway id="annotatedGateway"
