@@ -27,6 +27,8 @@
 			to the <classname>SyslogToMapTransformer</classname>, creating a message with its payload
 			being the <code>Map</code> of Syslog fields. In addition, all fields except the message
 			are also made available as headers in the message, prefixed with <code>syslog_</code>.
+			The <classname>DefaultMessageConverter</classname> has a property <code>asMap</code>, when 
+			it is false, it will leave the message payload as the original complete syslog. default is true.
 		</para>
 		<section id="syslog-inbound-examplers">
 			<title>Example Configuration</title>
