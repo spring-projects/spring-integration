@@ -2287,7 +2287,7 @@
 		<xsd:attribute name="type" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation source="java:java.lang.Class"><![CDATA[
-					Fully qulified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
+					Fully qualified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
 					NOTE: This attribute is mutually-exclusive with 'ref'.
 				]]></xsd:documentation>
 			</xsd:annotation>
@@ -2405,7 +2405,7 @@
 		<xsd:attribute name="type" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation source="java:java.lang.Class"><![CDATA[
-					Fully qulified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
+					Fully qualified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

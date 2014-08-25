@@ -65,7 +65,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 
 	private final IntegrationWebSocketContainer webSocketContainer;
 
-	private final SubProtocolHandlerRegistry protocolHandlerContainer;
+	private final SubProtocolHandlerRegistry subProtocolHandlerRegistry;
 
 	private final boolean client;
 
@@ -83,7 +83,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 		Assert.notNull(protocolHandlerRegistry, "'protocolHandlerRegistry' must not be null");
 		this.webSocketContainer = webSocketContainer;
 		this.client = webSocketContainer instanceof ClientWebSocketContainer;
-		this.protocolHandlerContainer = protocolHandlerRegistry;
+		this.subProtocolHandlerRegistry = protocolHandlerRegistry;
 		List<String> subProtocols = protocolHandlerRegistry.getSubProtocols();
 		this.webSocketContainer.addSupportedProtocols(subProtocols.toArray(new String[subProtocols.size()]));
 	}
@@ -119,7 +119,9 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 		if (!CollectionUtils.isEmpty(this.messageConverters)) {
 			List<MessageConverter> converters = this.messageConverter.getConverters();
 			if (this.mergeWithDefaultConverters) {
-				for (ListIterator<MessageConverter> iterator = this.messageConverters.listIterator(); iterator.hasPrevious(); ) {
+				ListIterator<MessageConverter> iterator =
+						this.messageConverters.listIterator(this.messageConverters.size());
+				while (iterator.hasPrevious()) {
 					MessageConverter converter = iterator.previous();
 					converters.add(0, converter);
 				}
@@ -135,7 +137,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String sessionId = null;
 		if (!this.client) {
-			sessionId = this.protocolHandlerContainer.resolveSessionId(message);
+			sessionId = this.subProtocolHandlerRegistry.resolveSessionId(message);
 			if (sessionId == null) {
 				throw new IllegalArgumentException("The WebSocket 'sessionId' is required in the MessageHeaders");
 			}
@@ -146,7 +148,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 			headers.setLeaveMutable(true);
 			headers.setMessageTypeIfNotSet(SimpMessageType.MESSAGE);
 			Message<?> messageToSend = this.messageConverter.toMessage(message.getPayload(), headers.getMessageHeaders());
-			this.protocolHandlerContainer.findProtocolHandler(session).handleMessageToClient(session, messageToSend);
+			this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, messageToSend);
 		}
 		catch (SessionLimitExceededException ex) {
 			try {

@@ -73,7 +73,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 
 	private final IntegrationWebSocketContainer webSocketContainer;
 
-	private final SubProtocolHandlerRegistry protocolHandlerContainer;
+	private final SubProtocolHandlerRegistry subProtocolHandlerRegistry;
 
 	private final MessageChannel subProtocolHandlerChannel;
 
@@ -94,7 +94,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		Assert.notNull(webSocketContainer, "'webSocketContainer' must not be null");
 		Assert.notNull(protocolHandlerRegistry, "'protocolHandlerRegistry' must not be null");
 		this.webSocketContainer = webSocketContainer;
-		this.protocolHandlerContainer = protocolHandlerRegistry;
+		this.subProtocolHandlerRegistry = protocolHandlerRegistry;
 		this.subProtocolHandlerChannel = new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
@@ -108,11 +108,11 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 					sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
 				}
 				else {
-				   if (logger.isDebugEnabled()) {
-					   logger.debug("Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
-							   "'outputChannel'. They have to be emitted as 'ApplicationEvent's " +
-							   "from the 'SubProtocolHandler'. Received message: " + message);
-				   }
+					if (logger.isDebugEnabled()) {
+						logger.debug("Messages with non 'SimpMessageType.MESSAGE' type are ignored for sending to the " +
+								"'outputChannel'. They have to be emitted as 'ApplicationEvent's " +
+								"from the 'SubProtocolHandler'. Received message: " + message);
+					}
 				}
 			}
 
@@ -156,7 +156,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		if (!CollectionUtils.isEmpty(this.messageConverters)) {
 			List<MessageConverter> converters = this.messageConverter.getConverters();
 			if (this.mergeWithDefaultConverters) {
-				for (ListIterator<MessageConverter> iterator = this.messageConverters.listIterator(); iterator.hasPrevious(); ) {
+				ListIterator<MessageConverter> iterator =
+						this.messageConverters.listIterator(this.messageConverters.size());
+				while (iterator.hasPrevious()) {
 					MessageConverter converter = iterator.previous();
 					converters.add(0, converter);
 				}
@@ -170,13 +172,13 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 
 	@Override
 	public List<String> getSubProtocols() {
-		return this.protocolHandlerContainer.getSubProtocols();
+		return this.subProtocolHandlerRegistry.getSubProtocols();
 	}
 
 	@Override
 	public void afterSessionStarted(WebSocketSession session) throws Exception {
 		if (isActive()) {
-			this.protocolHandlerContainer.findProtocolHandler(session)
+			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.afterSessionStarted(session, this.subProtocolHandlerChannel);
 		}
 	}
@@ -184,7 +186,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	@Override
 	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) throws Exception {
 		if (isActive()) {
-			this.protocolHandlerContainer.findProtocolHandler(session)
+			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.afterSessionEnded(session, closeStatus, this.subProtocolHandlerChannel);
 		}
 	}
@@ -192,7 +194,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	@Override
 	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage) throws Exception {
 		if (isActive()) {
-			this.protocolHandlerContainer.findProtocolHandler(session)
+			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.handleMessageFromClient(session, webSocketMessage, this.subProtocolHandlerChannel);
 		}
 	}
