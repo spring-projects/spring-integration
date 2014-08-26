@@ -26,7 +26,6 @@ import java.util.concurrent.ScheduledFuture;
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Store;
 
 import org.aopalliance.aop.Advice;
 
@@ -63,6 +62,10 @@ import org.springframework.util.CollectionUtils;
 public class ImapIdleChannelAdapter extends MessageProducerSupport implements BeanClassLoaderAware,
 		ApplicationEventPublisherAware {
 
+	private static final int DEFAULT_RECONNECT_DELAY = 10000;
+
+	private static final int DEFAULT_CANCEL_IDLE_INTERVAL = 120000;
+
 	private final IdleTask idleTask = new IdleTask();
 
 	private volatile Executor sendingTaskExecutor;
@@ -77,13 +80,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private final ImapMailReceiver mailReceiver;
 
-	private volatile int reconnectDelay = 10000; // milliseconds
+	private volatile long reconnectDelay = DEFAULT_RECONNECT_DELAY; // milliseconds
 
 	private volatile ScheduledFuture<?> receivingTask;
 
-	private volatile ScheduledFuture<?> pingTask;
-
-	private volatile long connectionPingInterval = 10000;
+	private volatile long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
 
 	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
@@ -127,6 +128,24 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
 
+	/**
+	 * The time between connection attempts in milliseconds (default 10 seconds).
+	 * @param reconnectDelay the reconnectDelay to set
+	 */
+	public void setReconnectDelay(long reconnectDelay) {
+		this.reconnectDelay = reconnectDelay;
+	}
+
+	/**
+	 * IDLE commands will be terminated after this interval; useful in cases where a connection
+	 * might be silently dropped. A new IDLE will usually immediately be processed. Specified in
+	 * seconds; default 120.
+	 * @param cancelIdleInterval the cancelIdleInterval to set
+	 */
+	public void setCancelIdleInterval(long cancelIdleInterval) {
+		this.cancelIdleInterval = cancelIdleInterval * 1000;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "mail:imap-idle-channel-adapter";
@@ -153,15 +172,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		if (this.sendingTaskExecutor == null) {
 			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
 		}
+		this.mailReceiver.setCancelIdleInterval(this.cancelIdleInterval);
 		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
-		this.pingTask = scheduler.scheduleAtFixedRate(new PingTask(), this.connectionPingInterval);
 	}
 
 	@Override
 	// guarded by super#lifecycleLock
 	protected void doStop() {
 		this.receivingTask.cancel(true);
-		this.pingTask.cancel(true);
 		try {
 			this.mailReceiver.destroy();
 		}
@@ -286,21 +304,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("No application event publisher for exception: " + e.getMessage());
-			}
-		}
-	}
-
-	private class PingTask implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				Store store = mailReceiver.getStore();
-				if (store != null) {
-					store.isConnected();
-				}
-			}
-			catch (Exception ignore) {
 			}
 		}
 	}

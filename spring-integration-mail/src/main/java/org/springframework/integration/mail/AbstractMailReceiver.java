@@ -181,7 +181,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.shouldDeleteMessages;
 	}
 
-	protected Folder getFolder() {
+	public Folder getFolder() {
 		return this.folder;
 	}
 
@@ -222,8 +222,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	protected void openFolder() throws MessagingException {
-		this.openSession();
 		if (this.folder == null) {
+			openSession();
 			this.folder = obtainFolderInstance();
 		}
 		if (this.folder == null || !this.folder.exists()) {
