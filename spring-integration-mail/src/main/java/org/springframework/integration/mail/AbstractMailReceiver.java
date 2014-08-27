@@ -222,8 +222,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	protected void openFolder() throws MessagingException {
-		this.openSession();
 		if (this.folder == null) {
+			openSession();
 			this.folder = obtainFolderInstance();
 		}
 		if (this.folder == null || !this.folder.exists()) {
