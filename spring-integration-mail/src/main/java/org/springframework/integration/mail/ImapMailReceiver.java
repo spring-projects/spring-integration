@@ -54,6 +54,8 @@ import com.sun.mail.imap.IMAPMessage;
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
+	private static final int DEFAULT_CANCEL_IDLE_INTERVAL = 120000;
+
 	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
 
 	private final IdleCanceler idleCanceler = new IdleCanceler();
@@ -62,7 +64,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	private volatile SearchTermStrategy searchTermStrategy = new DefaultSearchTermStrategy();
 
-	private volatile long cancelIdleInterval;
+	private volatile long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
 
 	private volatile TaskScheduler scheduler;
 
@@ -114,17 +116,16 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
 
-
 	/**
 	 * IDLE commands will be terminated after this interval; useful in cases where a connection
-	 * might be silently dropped. A new IDLE will usually immediately be processed. DO NOT
-	 * SET DIRECTLY - set by the ImapIdleChannelAdapter.
+	 * might be silently dropped. A new IDLE will usually immediately be processed. Specified
+	 * in seconds; default 120 (2 minutes). RFC 2177 recommends an interval no larger than 29 minutes.
 	 * @param cancelIdleInterval the cancelIdleInterval to set
+	 * @since 3.0.5
 	 */
 	public void setCancelIdleInterval(long cancelIdleInterval) {
-		this.cancelIdleInterval = cancelIdleInterval;
+		this.cancelIdleInterval = cancelIdleInterval * 1000;
 	}
-
 
 	@Override
 	protected void onInit() throws Exception {

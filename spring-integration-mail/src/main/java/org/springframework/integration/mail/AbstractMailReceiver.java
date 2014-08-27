@@ -181,7 +181,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.shouldDeleteMessages;
 	}
 
-	public Folder getFolder() {
+	protected Folder getFolder() {
 		return this.folder;
 	}
 

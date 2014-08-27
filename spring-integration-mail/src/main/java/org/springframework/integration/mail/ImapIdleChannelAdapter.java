@@ -64,8 +64,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private static final int DEFAULT_RECONNECT_DELAY = 10000;
 
-	private static final int DEFAULT_CANCEL_IDLE_INTERVAL = 120000;
-
 	private final IdleTask idleTask = new IdleTask();
 
 	private volatile Executor sendingTaskExecutor;
@@ -83,8 +81,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	private volatile long reconnectDelay = DEFAULT_RECONNECT_DELAY; // milliseconds
 
 	private volatile ScheduledFuture<?> receivingTask;
-
-	private volatile long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
 
 	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
@@ -131,19 +127,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	/**
 	 * The time between connection attempts in milliseconds (default 10 seconds).
 	 * @param reconnectDelay the reconnectDelay to set
+	 * @since 3.0.5
 	 */
 	public void setReconnectDelay(long reconnectDelay) {
 		this.reconnectDelay = reconnectDelay;
-	}
-
-	/**
-	 * IDLE commands will be terminated after this interval; useful in cases where a connection
-	 * might be silently dropped. A new IDLE will usually immediately be processed. Specified in
-	 * seconds; default 120.
-	 * @param cancelIdleInterval the cancelIdleInterval to set
-	 */
-	public void setCancelIdleInterval(long cancelIdleInterval) {
-		this.cancelIdleInterval = cancelIdleInterval * 1000;
 	}
 
 	@Override
@@ -172,7 +159,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		if (this.sendingTaskExecutor == null) {
 			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
 		}
-		this.mailReceiver.setCancelIdleInterval(this.cancelIdleInterval);
 		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
 	}
 

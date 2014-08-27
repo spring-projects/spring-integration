@@ -58,17 +58,17 @@ import org.apache.commons.logging.Log;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.Expression;
@@ -80,6 +80,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.PoorMansMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.PollableChannel;
@@ -96,6 +97,9 @@ import com.sun.mail.imap.IMAPMessage;
  * @author Artem Bilan
  */
 public class ImapMailReceiverTests {
+
+	@Rule
+	public final LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	private final AtomicInteger failed = new AtomicInteger(0);
 
@@ -142,17 +146,16 @@ public class ImapMailReceiverTests {
 				}
 			}
 		});
+		receiver.setCancelIdleInterval(8);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		setUpScheduler(receiver, taskScheduler);
 		receiver.afterPropertiesSet();
 		Log logger = spy(TestUtils.getPropertyValue(receiver, "logger", Log.class));
 		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
-		doAnswer(new CallsRealMethods()).when(logger).debug("Canceling IDLE");
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
-		adapter.setCancelIdleInterval(8);
 		adapter.start();
 		assertNotNull(channel.receive(6000));
 		assertNotNull(channel.receive(6000)); // new message after idle
@@ -436,7 +439,7 @@ public class ImapMailReceiverTests {
 	@Test
 	@Ignore
 	public void testMessageHistory() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -488,11 +491,12 @@ public class ImapMailReceiverTests {
 		assertNotNull(componentHistoryRecord);
 		assertEquals("mail:imap-idle-channel-adapter", componentHistoryRecord.get("type"));
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
 	public void testIdleChannelAdapterException() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -563,11 +567,12 @@ public class ImapMailReceiverTests {
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
 	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -652,11 +657,12 @@ public class ImapMailReceiverTests {
 		assertNull(channel.receive(3000));
 		assertNotNull(channel.receive(6000));
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
 	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -729,6 +735,7 @@ public class ImapMailReceiverTests {
 		assertNotNull(channel.receive(5000));
 		assertTrue(idles.await(5, TimeUnit.SECONDS));
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
