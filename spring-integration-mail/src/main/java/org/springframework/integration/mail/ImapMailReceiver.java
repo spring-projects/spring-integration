@@ -16,6 +16,9 @@
 
 package org.springframework.integration.mail;
 
+import java.util.Date;
+import java.util.concurrent.ScheduledFuture;
+
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
@@ -29,6 +32,8 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.NotTerm;
 import javax.mail.search.SearchTerm;
 
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 import com.sun.mail.imap.IMAPFolder;
@@ -49,11 +54,21 @@ import com.sun.mail.imap.IMAPMessage;
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
+	private static final int DEFAULT_CANCEL_IDLE_INTERVAL = 120000;
+
+	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
+
+	private final IdleCanceler idleCanceler = new IdleCanceler();
+
 	private volatile boolean shouldMarkMessagesAsRead = true;
 
 	private volatile SearchTermStrategy searchTermStrategy = new DefaultSearchTermStrategy();
 
-	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
+	private volatile long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
+
+	private volatile TaskScheduler scheduler;
+
+	private volatile ScheduledFuture<?> pingTask;
 
 	public ImapMailReceiver() {
 		super();
@@ -102,6 +117,28 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	}
 
 	/**
+	 * IDLE commands will be terminated after this interval; useful in cases where a connection
+	 * might be silently dropped. A new IDLE will usually immediately be processed. Specified
+	 * in seconds; default 120 (2 minutes). RFC 2177 recommends an interval no larger than 29 minutes.
+	 * @param cancelIdleInterval the cancelIdleInterval to set
+	 * @since 3.0.5
+	 */
+	public void setCancelIdleInterval(long cancelIdleInterval) {
+		this.cancelIdleInterval = cancelIdleInterval * 1000;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.scheduler = getTaskScheduler();
+		if (this.scheduler == null) {
+			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+			scheduler.initialize();
+			this.scheduler = scheduler;
+		}
+	}
+
+	/**
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE
 	 * is supported (see RFC 2177 for more detail).
 	 *
@@ -123,10 +160,15 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 		imapFolder.addMessageCountListener(this.messageCountListener);
 		try {
+			this.pingTask = this.scheduler.schedule(this.idleCanceler,
+					new Date(System.currentTimeMillis() + this.cancelIdleInterval));
 			imapFolder.idle();
 		}
 		finally {
 			imapFolder.removeMessageCountListener(this.messageCountListener);
+			if (this.pingTask != null) {
+				this.pingTask.cancel(true);
+			}
 		}
 	}
 
@@ -168,23 +210,32 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 	}
 
+	private class IdleCanceler implements Runnable {
+		@Override
+		public void run() {
+			try {
+				IMAPFolder folder = (IMAPFolder) getFolder();
+				logger.debug("Canceling IDLE");
+				if (folder != null) {
+					folder.isOpen(); // resets idle state
+				}
+			}
+			catch (Exception ignore) {
+			}
+		}
+	}
 
 	/**
 	 * Callback used for handling the event-driven idle response.
 	 */
-	private static class SimpleMessageCountListener extends MessageCountAdapter {
+	private class SimpleMessageCountListener extends MessageCountAdapter {
 
 		@Override
 		public void messagesAdded(MessageCountEvent event) {
 			Message[] messages = event.getMessages();
-			for (Message message : messages) {
-				try {
-					// this will return the flow to the idle call
-					message.getLineCount();
-				}
-				catch (MessagingException e) {
-					// ignored;
-				}
+			if (messages.length > 0) {
+				// this will return the flow to the idle call
+				messages[0].getFolder().isOpen();
 			}
 		}
 	}
@@ -254,6 +305,5 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 
 	}
-
 
 }

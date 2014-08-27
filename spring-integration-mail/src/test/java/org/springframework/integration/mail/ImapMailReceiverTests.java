@@ -46,10 +46,19 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Store;
 import javax.mail.URLName;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.search.AndTerm;
+import javax.mail.search.FlagTerm;
+import javax.mail.search.FromTerm;
 import javax.mail.search.SearchTerm;
 
+import org.apache.commons.logging.Log;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -57,21 +66,25 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
+import org.springframework.integration.mail.PoorMansMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
 
@@ -85,7 +98,71 @@ import com.sun.mail.imap.IMAPMessage;
  */
 public class ImapMailReceiverTests {
 
+	@Rule
+	public final LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
+
 	private final AtomicInteger failed = new AtomicInteger(0);
+
+	private final static int imapIdlePort = SocketUtils.findAvailableServerSocket();
+
+	private final static ImapServer imapIdleServer = PoorMansMailServer.imap(imapIdlePort);
+
+
+	@BeforeClass
+	public static void setup() throws InterruptedException {
+		int n = 0;
+		while (n++ < 100 && (!imapIdleServer.isListening())) {
+			Thread.sleep(100);
+		}
+		assertTrue(n < 100);
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		imapIdleServer.stop();
+	}
+
+	@Test
+	public void testIdleWithServer() throws Exception {
+		Properties mailProps = new Properties();
+		mailProps.put("mail.debug", "true");
+		mailProps.put("mail.imap.connectionpool.debug", "true");
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdlePort + "/INBOX");
+		receiver.setJavaMailProperties(mailProps);
+		receiver.setMaxFetchSize(1);
+		receiver.setShouldDeleteMessages(false);
+		receiver.setShouldMarkMessagesAsRead(true);
+		receiver.setSearchTermStrategy(new SearchTermStrategy() {
+
+			@Override
+			public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
+				try {
+					FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
+					AndTerm andTerm = new AndTerm(fromTerm, new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+					return andTerm;
+				}
+				catch (AddressException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+		receiver.setCancelIdleInterval(8);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		setUpScheduler(receiver, taskScheduler);
+		receiver.afterPropertiesSet();
+		Log logger = spy(TestUtils.getPropertyValue(receiver, "logger", Log.class));
+		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		assertNotNull(channel.receive(6000));
+		assertNotNull(channel.receive(6000)); // new message after idle
+		assertNull(channel.receive(10000)); // no new message after second and third idle
+		verify(logger).debug("Canceling IDLE");
+		taskScheduler.shutdown();
+	}
 
 	@Test
 	public void receiveAndMarkAsReadDontDelete() throws Exception{
@@ -113,6 +190,7 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[]{msg1, msg2};
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
@@ -125,12 +203,14 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -187,6 +267,7 @@ public class ImapMailReceiverTests {
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
@@ -198,12 +279,14 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -233,18 +316,21 @@ public class ImapMailReceiverTests {
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -273,6 +359,7 @@ public class ImapMailReceiverTests {
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
@@ -284,12 +371,14 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -318,6 +407,7 @@ public class ImapMailReceiverTests {
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
@@ -329,12 +419,14 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -347,7 +439,7 @@ public class ImapMailReceiverTests {
 	@Test
 	@Ignore
 	public void testMessageHistory() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -365,6 +457,7 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[]{mailMessage};
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accesor = new DirectFieldAccessor((invocation.getMock()));
                 IMAPFolder folder = mock(IMAPFolder.class);
@@ -375,12 +468,14 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -396,11 +491,12 @@ public class ImapMailReceiverTests {
 		assertNotNull(componentHistoryRecord);
 		assertEquals("mail:imap-idle-channel-adapter", componentHistoryRecord.get("type"));
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
 	public void testIdleChannelAdapterException() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -431,12 +527,14 @@ public class ImapMailReceiverTests {
 		folderField.set(receiver, folder);
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return true;
 			}
 		}).when(folder).isOpen();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -451,12 +549,14 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[]{mailMessage};
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -467,11 +567,12 @@ public class ImapMailReceiverTests {
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
 	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -499,6 +600,7 @@ public class ImapMailReceiverTests {
 		storeField.set(receiver, store);
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return folder;
 			}
@@ -511,6 +613,7 @@ public class ImapMailReceiverTests {
 
 		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				/*
 				 * Return the message from first invocation of waitForMessages()
@@ -528,12 +631,14 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
 		}).when(receiver).fetchMessages(messages);
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Thread.sleep(5000);
 				shouldFindMessagesCounter.set(1);
@@ -552,11 +657,12 @@ public class ImapMailReceiverTests {
 		assertNull(channel.receive(3000));
 		assertNotNull(channel.receive(6000));
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
 	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
@@ -584,6 +690,7 @@ public class ImapMailReceiverTests {
 		storeField.set(receiver, store);
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return folder;
 			}
@@ -595,12 +702,14 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[]{mailMessage};
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -608,6 +717,7 @@ public class ImapMailReceiverTests {
 
 		final CountDownLatch idles = new CountDownLatch(2);
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				idles.countDown();
 				Thread.sleep(5000);
@@ -625,6 +735,7 @@ public class ImapMailReceiverTests {
 		assertNotNull(channel.receive(5000));
 		assertTrue(idles.await(5, TimeUnit.SECONDS));
 		adapter.stop();
+		context.close();
 	}
 
 	@Test
@@ -670,6 +781,7 @@ public class ImapMailReceiverTests {
 			receiver.afterPropertiesSet();
 
 			new Thread(new Runnable() {
+				@Override
 				public void run(){
 					try {
 						receiver.receive();
@@ -684,6 +796,7 @@ public class ImapMailReceiverTests {
 			}).start();
 
 			new Thread(new Runnable() {
+				@Override
 				public void run(){
 					try {
 						receiver.destroy();
@@ -716,6 +829,7 @@ public class ImapMailReceiverTests {
 
 		doAnswer(new Answer<Object> () {
 
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				OutputStream os = (OutputStream) invocation.getArguments()[0];
 				FileCopyUtils.copy(new ClassPathResource("test.mail").getInputStream(), os);
@@ -743,6 +857,15 @@ public class ImapMailReceiverTests {
 		exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
 		adapter.stop();
 		assertTrue(exec.isShutdown());
+	}
+
+	private void setUpScheduler(ImapMailReceiver mailReceiver, ThreadPoolTaskScheduler taskScheduler) {
+		taskScheduler.setPoolSize(5);
+		taskScheduler.initialize();
+		BeanFactory bf = mock(BeanFactory.class);
+		when(bf.containsBean("taskScheduler")).thenReturn(true);
+		when(bf.getBean("taskScheduler", TaskScheduler.class)).thenReturn(taskScheduler);
+		mailReceiver.setBeanFactory(bf);
 	}
 
 }
