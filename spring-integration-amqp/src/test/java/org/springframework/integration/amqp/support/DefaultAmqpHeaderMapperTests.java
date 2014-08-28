@@ -31,11 +31,11 @@ import org.junit.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.messaging.MessageHeaders;
 
 /**
@@ -47,7 +47,6 @@ import org.springframework.messaging.MessageHeaders;
  */
 public class DefaultAmqpHeaderMapperTests {
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
@@ -57,7 +56,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_ENCODING, "test.contentEncoding");
 		headerMap.put(AmqpHeaders.CONTENT_LENGTH, 99L);
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
-		byte[] testCorrelationId = new byte[] {1,2,3};
+		byte[] testCorrelationId = new byte[] {1, 2, 3};
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
 		headerMap.put(AmqpHeaders.DELIVERY_TAG, 1234L);
@@ -82,7 +81,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 		Set<String> headerKeys = amqpProperties.getHeaders().keySet();
 		for (String headerKey : headerKeys) {
-			if (headerKey.startsWith(AmqpHeaders.PREFIX)){
+			if (headerKey.startsWith(AmqpHeaders.PREFIX)) {
 				fail();
 			}
 		}
@@ -103,8 +102,6 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(testTimestamp, amqpProperties.getTimestamp());
 		assertEquals("test.type", amqpProperties.getType());
 		assertEquals("test.userId", amqpProperties.getUserId());
-		assertEquals("test.correlation", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER));
-		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER));
 
 		assertNull(amqpProperties.getHeaders().get(MessageHeaders.ERROR_CHANNEL));
 		assertNull(amqpProperties.getHeaders().get(MessageHeaders.REPLY_CHANNEL));
@@ -125,7 +122,6 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("text/html", amqpProperties.getContentType());
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
@@ -135,7 +131,7 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setContentEncoding("test.contentEncoding");
 		amqpProperties.setContentLength(99L);
 		amqpProperties.setContentType("test.contentType");
-		byte[] testCorrelationId = new byte[] {1,2,3};
+		byte[] testCorrelationId = new byte[] {1, 2, 3};
 		amqpProperties.setCorrelationId(testCorrelationId);
 		amqpProperties.setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
 		amqpProperties.setDeliveryTag(1234L);
@@ -151,8 +147,8 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setTimestamp(testTimestamp);
 		amqpProperties.setType("test.type");
 		amqpProperties.setUserId("test.userId");
-		amqpProperties.setHeader(AmqpHeaders.STACKED_CORRELATION_HEADER, "test.correlation");
-		amqpProperties.setHeader(AmqpHeaders.STACKED_REPLY_TO_HEADER, "test.replyTo2");
+		amqpProperties.setHeader(AmqpHeaders.SPRING_REPLY_CORRELATION, "test.correlation");
+		amqpProperties.setHeader(AmqpHeaders.SPRING_REPLY_TO_STACK, "test.replyTo2");
 		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
 		assertEquals("test.appId", headerMap.get(AmqpHeaders.APP_ID));
 		assertEquals("test.clusterId", headerMap.get(AmqpHeaders.CLUSTER_ID));
@@ -163,7 +159,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, headerMap.get(AmqpHeaders.DELIVERY_MODE));
 		assertEquals(1234L, headerMap.get(AmqpHeaders.DELIVERY_TAG));
 		assertEquals("test.expiration", headerMap.get(AmqpHeaders.EXPIRATION));
-		assertEquals(new Integer(42), headerMap.get(AmqpHeaders.MESSAGE_COUNT));
+		assertEquals(42, headerMap.get(AmqpHeaders.MESSAGE_COUNT));
 		assertEquals("test.messageId", headerMap.get(AmqpHeaders.MESSAGE_ID));
 		assertEquals("test.receivedExchange", headerMap.get(AmqpHeaders.RECEIVED_EXCHANGE));
 		assertEquals("test.receivedRoutingKey", headerMap.get(AmqpHeaders.RECEIVED_ROUTING_KEY));

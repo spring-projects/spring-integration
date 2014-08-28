@@ -18,6 +18,8 @@ package org.springframework.integration.amqp.inbound;
 
 import java.util.Map;
 
+import com.rabbitmq.client.Channel;
+
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
@@ -27,16 +29,14 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
@@ -45,6 +45,7 @@ import com.rabbitmq.client.Channel;
  * the AMQP 'replyTo'.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
@@ -60,8 +61,10 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
-		Assert.isNull(listenerContainer.getMessageListener(), "The listenerContainer provided to an AMQP inbound Gateway " +
-				"must not have a MessageListener configured since the adapter needs to configure its own listener implementation.");
+		Assert.isNull(listenerContainer.getMessageListener(),
+				"The listenerContainer provided to an AMQP inbound Gateway " +
+						"must not have a MessageListener configured since " +
+						"the adapter needs to configure its own listener implementation.");
 		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
 		this.amqpTemplate = new RabbitTemplate(this.messageListenerContainer.getConnectionFactory());
@@ -96,7 +99,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					headers.put(AmqpHeaders.CHANNEL, channel);
 				}
 				org.springframework.messaging.Message<?> request =
-						AmqpInboundGateway.this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
+						getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
 				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
 					// TODO: fallback to a reply address property of this gateway
@@ -105,6 +108,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 							"request Message being handled by the AMQP inbound gateway.");
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
 							new MessagePostProcessor() {
+
 								@Override
 								public Message postProcessMessage(Message message) throws AmqpException {
 									MessageProperties messageProperties = message.getMessageProperties();
@@ -124,6 +128,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 									}
 									return message;
 								}
+
 							});
 				}
 			}

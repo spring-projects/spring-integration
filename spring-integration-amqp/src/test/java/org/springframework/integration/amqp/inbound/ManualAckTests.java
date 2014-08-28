@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.inbound;
 
 import static org.junit.Assert.assertEquals;
@@ -24,6 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.rabbitmq.client.Channel;
+
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Queue;
@@ -31,28 +34,26 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.inbound.ManualAckTests.ManualAckConfig;
 import org.springframework.integration.amqp.rule.BrokerRunning;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * @author Gary Russell
@@ -105,7 +106,7 @@ public class ManualAckTests {
 	@EnableIntegration
 	@ComponentScan
 	@MessageEndpoint
-	public static class ManualAckConfig  {
+	public static class ManualAckConfig {
 
 		private int called;
 
@@ -158,6 +159,7 @@ public class ManualAckTests {
 		public RabbitAdmin admin() {
 			return new RabbitAdmin(connectionFactory());
 		}
+
 	}
 
 }

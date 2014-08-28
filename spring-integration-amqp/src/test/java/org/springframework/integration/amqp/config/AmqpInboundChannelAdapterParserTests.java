@@ -30,11 +30,11 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -71,7 +71,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		Object adapter = context.getBean("autoStartFalse.adapter");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(adapter, "phase"));
-		assertEquals(AcknowledgeMode.NONE, TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"));
+		assertEquals(AcknowledgeMode.NONE,
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"));
 		assertFalse(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 	}
 

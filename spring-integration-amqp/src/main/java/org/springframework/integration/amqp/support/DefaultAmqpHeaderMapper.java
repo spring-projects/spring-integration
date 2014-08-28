@@ -24,8 +24,8 @@ import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.StringUtils;
@@ -176,20 +176,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				}
 			}
 
-			@SuppressWarnings("deprecation")
-			Object replyCorrelation = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER);
-			if (replyCorrelation instanceof String) {
-				if (StringUtils.hasText((String) replyCorrelation)) {
-					headers.put(AmqpHeaders.SPRING_REPLY_CORRELATION, replyCorrelation);
-				}
-			}
-			@SuppressWarnings("deprecation")
-			Object replyToStack = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER);
-			if (replyToStack instanceof String) {
-				if (StringUtils.hasText((String) replyToStack)) {
-					headers.put(AmqpHeaders.SPRING_REPLY_TO_STACK, replyToStack);
-				}
-			}
 		}
 		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
@@ -202,14 +188,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	/**
 	 * Extract user-defined headers from an AMQP MessageProperties instance.
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
-		Map<String, Object> headers = amqpMessageProperties.getHeaders();
-		headers.remove(AmqpHeaders.STACKED_CORRELATION_HEADER);
-		headers.remove(AmqpHeaders.STACKED_REPLY_TO_HEADER);
-
-		return headers;
+		return amqpMessageProperties.getHeaders();
 	}
 
 	/**
@@ -342,15 +323,15 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * see INT-2713 for more details
 	 *
 	 */
-	private String extractContentTypeAsString(Map<String, Object> headers){
+	private String extractContentTypeAsString(Map<String, Object> headers) {
 		String contentTypeStringValue = null;
 
 		Object contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, Object.class);
 
-		if (contentType != null){
+		if (contentType != null) {
 			String contentTypeClassName = contentType.getClass().getName();
 
-			if (contentTypeClassName.equals("org.springframework.http.MediaType")){ // see INT-2713
+			if (contentTypeClassName.equals("org.springframework.http.MediaType")) { // see INT-2713
 				contentTypeStringValue = contentType.toString();
 			}
 			else if (contentType instanceof String) {
