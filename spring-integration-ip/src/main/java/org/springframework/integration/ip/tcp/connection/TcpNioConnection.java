@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,6 +60,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	private final ChannelOutputStream channelOutputStream;
 
 	private final ChannelInputStream channelInputStream = new ChannelInputStream();
+
+	private volatile OutputStream bufferedOutputStream;
 
 	private volatile boolean usingDirectBuffers;
 
@@ -133,10 +136,15 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
 		synchronized(this.socketChannel) {
+			if (this.bufferedOutputStream == null) {
+				int writeBufferSize = this.socketChannel.socket().getSendBufferSize();
+				this.bufferedOutputStream = new BufferedOutputStream(this.getChannelOutputStream(),
+						writeBufferSize > 0 ? writeBufferSize : 8192);
+			}
 			Object object = this.getMapper().fromMessage(message);
 			this.lastSend = System.currentTimeMillis();
 			try {
-				((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
+				((Serializer<Object>) this.getSerializer()).serialize(object, this.bufferedOutputStream);
 			}
 			catch (Exception e) {
 				this.publishConnectionExceptionEvent(e);

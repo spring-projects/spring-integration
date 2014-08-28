@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -23,8 +25,8 @@ import java.net.SocketTimeoutException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.messaging.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.messaging.Message;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.
@@ -36,6 +38,8 @@ import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamExceptio
 public class TcpNetConnection extends TcpConnectionSupport {
 
 	private final Socket socket;
+
+	private volatile OutputStream socketOutputStream;
 
 	private volatile long lastRead = System.currentTimeMillis();
 
@@ -72,16 +76,23 @@ public class TcpNetConnection extends TcpConnectionSupport {
 		super.close();
 	}
 
+	@Override
 	public boolean isOpen() {
 		return !this.socket.isClosed();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public synchronized void send(Message<?> message) throws Exception {
+		if (this.socketOutputStream == null) {
+			int writeBufferSize = this.socket.getSendBufferSize();
+			this.socketOutputStream = new BufferedOutputStream(socket.getOutputStream(),
+					writeBufferSize > 0 ? writeBufferSize : 8192);
+		}
 		Object object = this.getMapper().fromMessage(message);
 		this.lastSend = System.currentTimeMillis();
 		try {
-			((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
+			((Serializer<Object>) this.getSerializer()).serialize(object, this.socketOutputStream);
 		}
 		catch (Exception e) {
 			this.publishConnectionExceptionEvent(e);
@@ -91,14 +102,17 @@ public class TcpNetConnection extends TcpConnectionSupport {
 		this.afterSend(message);
 	}
 
+	@Override
 	public Object getPayload() throws Exception {
 		return this.getDeserializer().deserialize(this.socket.getInputStream());
 	}
 
+	@Override
 	public int getPort() {
 		return this.socket.getPort();
 	}
 
+	@Override
 	public Object getDeserializerStateKey() {
 		try {
 			return this.socket.getInputStream();
@@ -118,6 +132,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 	 * expires. If data is received on a single use socket with no listener,
 	 * a warning is logged.
 	 */
+	@Override
 	public void run() {
 		boolean singleUse = this.isSingleUse();
 		TcpListener listener = this.getListener();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -52,13 +54,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -208,6 +210,7 @@ public class CachingClientConnectionFactoryTests {
 		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
 		cachingFactory.stop();
 		Answer<Object> answer = new Answer<Object> () {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}};
@@ -345,7 +348,7 @@ public class CachingClientConnectionFactoryTests {
 		Socket socket = mock(Socket.class);
 		when(socket.isClosed()).thenReturn(true); // closed when next retrieved
 		OutputStream stream = mock(OutputStream.class);
-		doThrow(new IOException("Foo")).when(stream).write(Mockito.any(byte[].class));
+		doThrow(new IOException("Foo")).when(stream).write(any(byte[].class), anyInt(), anyInt());
 		when(socket.getOutputStream()).thenReturn(stream);
 		TcpNetConnection conn = new TcpNetConnection(socket, false, false, new ApplicationEventPublisher() {
 
@@ -409,6 +412,7 @@ public class CachingClientConnectionFactoryTests {
 		final List<String> connectionIds = new ArrayList<String>();
 		final AtomicBoolean okToRun = new AtomicBoolean(true);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				while (okToRun.get()) {
 					Message<?> m = inbound.receive(1000);
@@ -484,6 +488,7 @@ public class CachingClientConnectionFactoryTests {
 		when(factory2.isActive()).thenReturn(true);
 		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
