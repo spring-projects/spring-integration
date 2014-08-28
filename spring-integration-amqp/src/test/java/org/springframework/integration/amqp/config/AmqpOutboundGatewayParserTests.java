@@ -37,7 +37,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.amqp.AmqpHeaders;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;

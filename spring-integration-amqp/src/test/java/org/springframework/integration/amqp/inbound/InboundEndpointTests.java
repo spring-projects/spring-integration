@@ -28,11 +28,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-import com.rabbitmq.client.Channel;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import com.rabbitmq.client.Channel;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageProperties;
@@ -42,11 +43,11 @@ import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.CorrelationData;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;

@@ -18,20 +18,20 @@ package org.springframework.integration.amqp.inbound;
 
 import java.util.Map;
 
+import com.rabbitmq.client.Channel;
+
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.util.Assert;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into

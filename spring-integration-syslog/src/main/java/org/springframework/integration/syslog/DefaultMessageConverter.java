@@ -54,7 +54,7 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 
 	/**
 	 * Set false will leave the payload as the original complete syslog.
-	 * @param asMap
+	 * @param asMap boolean flag.
 	 */
 	public void setAsMap(boolean asMap) {
 		this.asMap = asMap;

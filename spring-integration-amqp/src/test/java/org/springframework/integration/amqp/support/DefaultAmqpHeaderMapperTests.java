@@ -35,7 +35,7 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.amqp.AmqpHeaders;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.MessageHeaders;
 
 /**
@@ -47,7 +47,6 @@ import org.springframework.messaging.MessageHeaders;
  */
 public class DefaultAmqpHeaderMapperTests {
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
@@ -103,8 +102,6 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(testTimestamp, amqpProperties.getTimestamp());
 		assertEquals("test.type", amqpProperties.getType());
 		assertEquals("test.userId", amqpProperties.getUserId());
-		assertEquals("test.correlation", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER));
-		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER));
 
 		assertNull(amqpProperties.getHeaders().get(MessageHeaders.ERROR_CHANNEL));
 		assertNull(amqpProperties.getHeaders().get(MessageHeaders.REPLY_CHANNEL));
@@ -125,7 +122,6 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("text/html", amqpProperties.getContentType());
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
@@ -151,8 +147,8 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setTimestamp(testTimestamp);
 		amqpProperties.setType("test.type");
 		amqpProperties.setUserId("test.userId");
-		amqpProperties.setHeader(AmqpHeaders.STACKED_CORRELATION_HEADER, "test.correlation");
-		amqpProperties.setHeader(AmqpHeaders.STACKED_REPLY_TO_HEADER, "test.replyTo2");
+		amqpProperties.setHeader(AmqpHeaders.SPRING_REPLY_CORRELATION, "test.correlation");
+		amqpProperties.setHeader(AmqpHeaders.SPRING_REPLY_TO_STACK, "test.replyTo2");
 		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
 		assertEquals("test.appId", headerMap.get(AmqpHeaders.APP_ID));
 		assertEquals("test.clusterId", headerMap.get(AmqpHeaders.CLUSTER_ID));

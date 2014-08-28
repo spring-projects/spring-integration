@@ -64,7 +64,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.amqp.AmqpHeaders;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
