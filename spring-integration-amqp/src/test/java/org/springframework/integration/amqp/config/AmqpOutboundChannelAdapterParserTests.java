@@ -48,6 +48,9 @@ import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
+
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -56,6 +59,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannel;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +68,6 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
@@ -83,9 +86,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
-
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
 
 /**
  * @author Mark Fisher
@@ -127,7 +127,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 	public void withHeaderMapperCustomHeaders() {
 		Object eventDrivenConsumer = context.getBean("withHeaderMapperCustomHeaders");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler", AmqpOutboundEndpoint.class);
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
+				AmqpOutboundEndpoint.class);
 		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
 
@@ -156,7 +157,11 @@ public class AmqpOutboundChannelAdapterParserTests {
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("requestChannel", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").setHeader("bar", "bar").setHeader("foobar", "foobar").build();
+		Message<?> message = MessageBuilder.withPayload("hello")
+				.setHeader("foo", "foo")
+				.setHeader("bar", "bar")
+				.setHeader("foobar", "foobar")
+				.build();
 		requestChannel.send(message);
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
@@ -174,7 +179,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 	@Test
 	public void parseWithPublisherConfirms() {
 		Object eventDrivenConsumer = context.getBean("withPublisherConfirms");
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler", AmqpOutboundEndpoint.class);
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
+				AmqpOutboundEndpoint.class);
 		NullChannel nullChannel = context.getBean(NullChannel.class);
 		MessageChannel ackChannel = context.getBean("ackChannel", MessageChannel.class);
 		assertSame(ackChannel, TestUtils.getPropertyValue(endpoint, "confirmAckChannel"));
@@ -231,14 +237,16 @@ public class AmqpOutboundChannelAdapterParserTests {
 				return null;
 			}
 		})
-				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
+				Mockito.any(org.springframework.amqp.core.Message.class),
 				Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("amqpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		requestChannel.send(message);
-		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
+				Mockito.any(org.springframework.amqp.core.Message.class),
 				Mockito.any(CorrelationData.class));
 	}
 
@@ -276,13 +284,14 @@ public class AmqpOutboundChannelAdapterParserTests {
 	@Test
 	public void testInt2718FailForOutboundAdapterChannelAttribute() {
 		try {
-			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterWithinChainParserTests-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterWithinChainParserTests-fail-context.xml",
+					this.getClass());
 			fail("Expected BeanDefinitionParsingException");
 		}
 		catch (BeansException e) {
 			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().contains("The 'channel' attribute isn't allowed for 'amqp:outbound-channel-adapter' " +
-					"when it is used as a nested element"));
+			assertTrue(e.getMessage().contains("The 'channel' attribute isn't allowed for " +
+					"'amqp:outbound-channel-adapter' when it is used as a nested element"));
 		}
 	}
 
@@ -298,7 +307,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 		MessageChannel requestChannel = context.getBean("toRabbitOnlyWithTemplateChannel", MessageChannel.class);
 		requestChannel.send(MessageBuilder.withPayload("test").build());
-		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq("default.test.exchange"), Mockito.eq("default.routing.key"),
+		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq("default.test.exchange"),
+				Mockito.eq("default.routing.key"),
 				Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
 	}
 
@@ -312,7 +322,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
 		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
 
-		MessageChannel requestChannel = context.getBean("withDefaultAmqpTemplateExchangeAndRoutingKey", MessageChannel.class);
+		MessageChannel requestChannel = context.getBean("withDefaultAmqpTemplateExchangeAndRoutingKey",
+				MessageChannel.class);
 		requestChannel.send(MessageBuilder.withPayload("test").build());
 		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq(""), Mockito.eq(""),
 				Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
@@ -337,7 +348,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 	@Test
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
 		try {
-			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterParserTests-headerMapper-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterParserTests-headerMapper-fail-context.xml",
+					this.getClass());
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
@@ -347,7 +359,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt2971AmqpOutboundChannelAdapterWithCustomHeaderMapper() {
-		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper, "headerMapper", AmqpHeaderMapper.class);
+		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
+				"headerMapper", AmqpHeaderMapper.class);
 		assertSame(this.context.getBean("customHeaderMapper"), headerMapper);
 	}
 
@@ -384,4 +397,5 @@ public class AmqpOutboundChannelAdapterParserTests {
 		}
 
 	}
+
 }

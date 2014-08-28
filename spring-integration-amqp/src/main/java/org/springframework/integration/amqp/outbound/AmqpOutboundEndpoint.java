@@ -26,6 +26,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationListener;
@@ -34,7 +35,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.NullChannel;
@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
-	implements RabbitTemplate.ConfirmCallback, ReturnCallback, ApplicationListener<ContextRefreshedEvent> {
+		implements RabbitTemplate.ConfirmCallback, ReturnCallback, ApplicationListener<ContextRefreshedEvent> {
 
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
@@ -238,7 +238,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			if (userCorrelationData != null) {
 				if (userCorrelationData instanceof CorrelationData) {
 					correlationData = (CorrelationData) userCorrelationData;
-				} else {
+				}
+				else {
 					correlationData = new CorrelationDataWrapper(requestMessage
 							.getHeaders().getId().toString(), userCorrelationData);
 				}
@@ -367,10 +368,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 				: this.getMessageBuilderFactory().withPayload(returnedObject);
 		Map<String, ?> headers = this.headerMapper.toHeadersFromReply(message.getMessageProperties());
 		builder.copyHeadersIfAbsent(headers)
-			.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
-			.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
-			.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
-			.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, routingKey);
+				.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
+				.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
+				.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
+				.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, routingKey);
 		this.returnChannel.send(builder.build());
 	}
 
