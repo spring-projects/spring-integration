@@ -24,8 +24,8 @@ import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.StringUtils;
@@ -323,15 +323,15 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * see INT-2713 for more details
 	 *
 	 */
-	private String extractContentTypeAsString(Map<String, Object> headers){
+	private String extractContentTypeAsString(Map<String, Object> headers) {
 		String contentTypeStringValue = null;
 
 		Object contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, Object.class);
 
-		if (contentType != null){
+		if (contentType != null) {
 			String contentTypeClassName = contentType.getClass().getName();
 
-			if (contentTypeClassName.equals("org.springframework.http.MediaType")){ // see INT-2713
+			if (contentTypeClassName.equals("org.springframework.http.MediaType")) { // see INT-2713
 				contentTypeStringValue = contentType.toString();
 			}
 			else if (contentType instanceof String) {

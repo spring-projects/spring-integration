@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.inbound;
 
 import static org.junit.Assert.assertEquals;
@@ -105,7 +106,7 @@ public class ManualAckTests {
 	@EnableIntegration
 	@ComponentScan
 	@MessageEndpoint
-	public static class ManualAckConfig  {
+	public static class ManualAckConfig {
 
 		private int called;
 
@@ -158,6 +159,7 @@ public class ManualAckTests {
 		public RabbitAdmin admin() {
 			return new RabbitAdmin(connectionFactory());
 		}
+
 	}
 
 }
