@@ -83,6 +83,8 @@ public @interface MessagingGateway {
 	 * to use for any of the interface methods that have a {@link java.util.concurrent.Future} return type.
 	 * This {@code Executor} will only be used for those async methods; the sync methods
 	 * will be invoked in the caller's thread.
+	 * Use {@code AnnotationAttributeValueConstants.NULL} to specify no async executor - for example
+	 * if your downstream flow returns a {@code Future<?>}.
 	 * @return the suggested executor bean name, if any
 	 */
 	String asyncExecutor() default "";
