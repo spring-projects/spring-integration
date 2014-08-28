@@ -61,7 +61,13 @@ public class GatewayParser implements BeanDefinitionParser {
 		gatewayAttributes.put("defaultRequestChannel", element.getAttribute(isNested ? "request-channel" : "default-request-channel"));
 		gatewayAttributes.put("defaultReplyChannel", element.getAttribute(isNested ? "reply-channel" : "default-reply-channel"));
 		gatewayAttributes.put("errorChannel", element.getAttribute("error-channel"));
-		gatewayAttributes.put("asyncExecutor", element.getAttribute("async-executor"));
+		String asyncExecutor = element.getAttribute("async-executor");
+		if (!element.hasAttribute("async-executor") || StringUtils.hasLength(asyncExecutor)) {
+			gatewayAttributes.put("asyncExecutor", asyncExecutor);
+		}
+		else {
+			gatewayAttributes.put("asyncExecutor", null);
+		}
 		gatewayAttributes.put("mapper", element.getAttribute("mapper"));
 		gatewayAttributes.put("reactorEnvironment", element.getAttribute("reactor-environment"));
 		gatewayAttributes.put("defaultReplyTimeout", element.getAttribute(isNested ? "reply-timeout" : "default-reply-timeout"));

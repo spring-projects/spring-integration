@@ -17,6 +17,8 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -32,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.gateway.TestService;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -93,6 +96,13 @@ public class GatewayParserTests {
 		Message<?> reply = result.get(1, TimeUnit.SECONDS);
 		assertEquals("foo", reply.getPayload());
 		assertEquals("testExecutor", reply.getHeaders().get("executor"));
+		assertNotNull(TestUtils.getPropertyValue(context.getBean("&async"), "asyncExecutor"));
+	}
+
+	@Test
+	public void testAsyncDisabledGateway() throws Exception {
+		Object service = context.getBean("&asyncOff");
+		assertNull(TestUtils.getPropertyValue(service, "asyncExecutor"));
 	}
 
 	@Test
@@ -104,10 +114,12 @@ public class GatewayParserTests {
 		Promise<Message<?>> result = service.promise("foo");
 		Message<?> reply = result.await(1, TimeUnit.SECONDS);
 		assertEquals("foo", reply.getPayload());
+		assertNotNull(TestUtils.getPropertyValue(context.getBean("&promise"), "asyncExecutor"));
 	}
 
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> request = requestChannel.receive();
 				Message<?> reply = MessageBuilder.fromMessage(request)
@@ -125,6 +137,7 @@ public class GatewayParserTests {
 
 		private volatile String beanName;
 
+		@Override
 		public void setBeanName(String beanName) {
 			this.beanName = beanName;
 		}
@@ -135,8 +148,15 @@ public class GatewayParserTests {
 			try {
 				Future<?> result = super.submit(task);
 				Message<?> message = (Message<?>) result.get(1, TimeUnit.SECONDS);
-				Message<?> modifiedMessage = MessageBuilder.fromMessage(message)
+				Message<?> modifiedMessage;
+				if (message == null) {
+					modifiedMessage = MessageBuilder.withPayload("foo")
+							.setHeader("executor", this.beanName).build();
+				}
+				else {
+					modifiedMessage = MessageBuilder.fromMessage(message)
 						.setHeader("executor", this.beanName).build();
+				}
 				return new AsyncResult(modifiedMessage);
 			}
 			catch (Exception e) {

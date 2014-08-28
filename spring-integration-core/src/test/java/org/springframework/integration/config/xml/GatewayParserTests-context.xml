@@ -36,6 +36,12 @@
 			 default-reply-channel="replyChannel"
 			 async-executor="testExecutor"/>
 
+	<gateway id="asyncOff"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor=""/>
+
 	<gateway id="promise"
 			 service-interface="org.springframework.integration.gateway.TestService"
 			 default-request-channel="requestChannel"
