@@ -58,14 +58,26 @@ public class GatewayParser implements BeanDefinitionParser {
 		final Map<String, Object> gatewayAttributes = new HashMap<String, Object>();
 		gatewayAttributes.put("name", element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
 		gatewayAttributes.put("defaultPayloadExpression", element.getAttribute("default-payload-expression"));
-		gatewayAttributes.put("defaultRequestChannel", element.getAttribute(isNested ? "request-channel" : "default-request-channel"));
-		gatewayAttributes.put("defaultReplyChannel", element.getAttribute(isNested ? "reply-channel" : "default-reply-channel"));
+		gatewayAttributes.put("defaultRequestChannel",
+				element.getAttribute(isNested ? "request-channel" : "default-request-channel"));
+		gatewayAttributes.put("defaultReplyChannel",
+				element.getAttribute(isNested ? "reply-channel" : "default-reply-channel"));
 		gatewayAttributes.put("errorChannel", element.getAttribute("error-channel"));
-		gatewayAttributes.put("asyncExecutor", element.getAttribute("async-executor"));
+
+		String asyncExecutor = element.getAttribute("async-executor");
+		if (!element.hasAttribute("async-executor") || StringUtils.hasLength(asyncExecutor)) {
+			gatewayAttributes.put("asyncExecutor", asyncExecutor);
+		}
+		else {
+			gatewayAttributes.put("asyncExecutor", null);
+		}
+
 		gatewayAttributes.put("mapper", element.getAttribute("mapper"));
 		gatewayAttributes.put("reactorEnvironment", element.getAttribute("reactor-environment"));
-		gatewayAttributes.put("defaultReplyTimeout", element.getAttribute(isNested ? "reply-timeout" : "default-reply-timeout"));
-		gatewayAttributes.put("defaultRequestTimeout", element.getAttribute(isNested ? "request-timeout" : "default-request-timeout"));
+		gatewayAttributes.put("defaultReplyTimeout",
+				element.getAttribute(isNested ? "reply-timeout" : "default-reply-timeout"));
+		gatewayAttributes.put("defaultRequestTimeout",
+				element.getAttribute(isNested ? "request-timeout" : "default-request-timeout"));
 
 
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
@@ -88,7 +100,8 @@ public class GatewayParser implements BeanDefinitionParser {
 				String methodName = methodElement.getAttribute("name");
 				BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 						GatewayMethodMetadata.class);
-				methodMetadataBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
+				methodMetadataBuilder.addPropertyValue("requestChannelName",
+						methodElement.getAttribute("request-channel"));
 				methodMetadataBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
 				methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
 				methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
@@ -97,7 +110,8 @@ public class GatewayParser implements BeanDefinitionParser {
 				Assert.state(!hasMapper || !StringUtils.hasText(element.getAttribute("payload-expression")),
 						"'payload-expression' is not allowed when a 'mapper' is provided");
 
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement, "payload-expression");
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement,
+						"payload-expression");
 
 				List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
 				if (!CollectionUtils.isEmpty(invocationHeaders)) {
@@ -106,7 +120,8 @@ public class GatewayParser implements BeanDefinitionParser {
 					Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
 					for (Element headerElement : invocationHeaders) {
 						BeanDefinition expressionDef = IntegrationNamespaceUtils
-								.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext, headerElement, true);
+								.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
+										headerElement, true);
 
 						headerExpressions.put(headerElement.getAttribute("name"), expressionDef);
 					}

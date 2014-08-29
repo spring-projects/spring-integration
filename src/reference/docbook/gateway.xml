@@ -442,13 +442,13 @@ of this chapter.
   <section id="async-gateway">
     <title>Asynchronous Gateway</title>
     <para>
-      As a pattern the Messaging Gateway is a very nice way to hide messaging-specific code while still exposing the full capabilities of the
+      As a pattern, the Messaging Gateway is a very nice way to hide messaging-specific code while still exposing the full capabilities of the
       messaging system. As you've seen, the <classname>GatewayProxyFactoryBean</classname> provides a convenient way to expose a Proxy over a service-interface
       thus giving you POJO-based access to a messaging system (based on objects in your own domain, or primitives/Strings, etc).  But when a
       gateway is exposed via simple POJO methods which return values it does imply that for each Request message (generated when the method is invoked)
       there must be a Reply message (generated when the method has returned). Since Messaging systems naturally are asynchronous you may not always be
       able to guarantee the contract where <emphasis>"for each request there will always be be a reply"</emphasis>. 
-      With Spring Integration 2.0 we are introducing support for an <emphasis>Asynchronous Gateway</emphasis> which is a convenient way to initiate
+      With Spring Integration 2.0 we introduced support for an <emphasis>Asynchronous Gateway</emphasis> which is a convenient way to initiate
       flows where you may not know if a reply is expected or how long will it take for replies to arrive.
       </para>
       <para>
@@ -462,14 +462,16 @@ of this chapter.
      service-interface="org.springframework.integration.sample.gateway.futures.MathServiceGateway"
      default-request-channel="requestChannel"/>]]></programlisting>
      <para>
-      However the Gateway Interface (service-interface) is a bit different.
+      However the Gateway Interface (service-interface) is a little different:
      </para>
       <programlisting language="java">public interface MathServiceGateway {
+      
   Future&lt;Integer&gt; multiplyByTwo(int i);
+  
 }</programlisting>
 
     <para>
-    As you can see from the example above the return type for the gateway method is a <classname>Future</classname>. When
+    As you can see from the example above, the return type for the gateway method is a <classname>Future</classname>. When
     <classname>GatewayProxyFactoryBean</classname> sees that the
     return type of the gateway method is a <classname>Future</classname>, it immediately switches to the async mode by utilizing
     an <classname>AsyncTaskExecutor</classname>. That is all. The call to such a method always returns immediately with a <classname>Future</classname> instance.
@@ -483,18 +485,85 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
     <ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/async-gateway">
     <emphasis>async-gateway</emphasis></ulink> sample distributed within the Spring Integration samples.
     </para>
+    <para>
+    <emphasis role="bold">ListenableFuture</emphasis>
+    </para>
+    <para>
+    Starting with <emphasis>version 4.1</emphasis>, async gateway methods can also return
+    <interfacename>ListenableFuture</interfacename> (introduced in Spring Framework 4.0). These
+    return types allow you to provide a callback which is invoked when the result is available
+    (or an exception occurs). When the gateway detects this return type, and the task executor
+    (see below) is an <interfacename>AsyncListenableTaskExecutor</interfacename>, the executor's
+    <code>submitListenable()</code> method is invoked.
+    </para>
+    <programlisting language="java"><![CDATA[ListenableFuture<String> result = this.asyncGateway.async("foo");
+result.addCallback(new ListenableFutureCallback<Thread>() {
 
+    @Override
+    public void onSuccess(Thread result) {
+        ...
+    }
+
+    @Override
+    public void onFailure(Throwable t) {
+        ...
+    }
+});]]></programlisting>
     <para><emphasis role="bold">Asynchronous Gateway and AsyncTaskExecutor</emphasis></para>
     <para>
-     By default <classname>GatewayProxyFactoryBean</classname> uses <classname>org.springframework.core.task.SimpleAsyncTaskExecutor</classname>
+     By default, the <classname>GatewayProxyFactoryBean</classname> uses <classname>org.springframework.core.task.SimpleAsyncTaskExecutor</classname>
      when submitting internal <classname>AsyncInvocationTask</classname> instances for any gateway method whose
-     return type is <classname>Future.class</classname>. However the <literal>async-executor</literal> attribute in the
+     return type is <classname>Future</classname>. However the <literal>async-executor</literal> attribute in the
      <literal>&lt;gateway/&gt;</literal> element's configuration allows you to provide a reference to any implementation of
      <classname>java.util.concurrent.Executor</classname> available within the Spring application context.
     </para>
+    <para>
+      The (default) <classname>SimpleAsyncTaskExecutor</classname> supports both
+      <interfacename>Future</interfacename> and <interfacename>ListenableFuture</interfacename>
+      return types, returning <classname>FutureTask</classname> or <classname>ListenableFutureTask</classname>
+      respectively. Even though there is a default executor, it is often useful to provide an external
+      one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's
+      bean name):
+     <para>
+    <programlisting language="java"><![CDATA[@Bean
+public AsyncTaskExecutor exec() {
+    SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
+    simpleAsyncTaskExecutor.setThreadNamePrefix("exec-");
+    return simpleAsyncTaskExecutor;
+}
+
+@MessagingGateway(asyncExecutor = "exec")
+public interface ExecGateway {
+
+    @Gateway(requestChannel = "gatewayChannel")
+    Future<?> doAsync(String foo);
+
+}]]></programlisting>
+     </para>
+      If you wish to return a different <interfacename>Future</interfacename>
+      implementation, you can provide a custom executor, or disable the executor altogether and
+      return the <interfacename>Future</interfacename> in the reply message payload from the downstream flow.
+      To disable the executor, simply set it to <code>null</code> in the
+      <classname>GatewayProxyFactoryBean</classname> (<code>setAsyncTaskExecutor(null)</code>). When configuring
+      the gateway with XML, use <code>async-executor=""</code>; when configuring using the
+      <classname>@MessagingGateway</classname> annotation, use:
+    </para>
+    <programlisting language="java"><![CDATA[@MessagingGateway(asyncExecutor = AnnotationConstants.NULL)
+public interface NoExecGateway {
+
+    @Gateway(requestChannel = "gatewayChannel")
+    Future<?> doAsync(String foo);
+
+}]]></programlisting>
+    <important>
+      If the return type is a specific concrete <interfacename>Future</interfacename> implementation
+      or some other subinterface that is not supported by the configured executor, the flow will
+      run on the caller's thread and the flow must return the required type in the reply message
+      payload.
+    </important>
 	<para><emphasis role="bold">Asynchronous Gateway and Reactor Promise</emphasis></para>
 	<para>
-		Starting with <emphasis>version 4.1</emphasis>, the <classname>GatewayProxyFactoryBean</classname> allows the
+		Also starting with <emphasis>version 4.1</emphasis>, the <classname>GatewayProxyFactoryBean</classname> allows the
 		use of a <classname>Reactor</classname> with gateway interface methods, utilizing a
 		<ulink url="https://github.com/reactor/reactor/wiki/Promises"><classname>Promise&lt;?&gt;</classname></ulink>
 		return type. The internal <classname>AsyncInvocationTask</classname> is wrapped in a

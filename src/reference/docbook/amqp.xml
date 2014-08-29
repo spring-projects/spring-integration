@@ -749,7 +749,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 			generic <code>*</code>, to avoid mapping of <emphasis>request</emphasis> headers to the reply.
 		</para>
 		<para>
-			Class <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/AmqpHeaders.html">AmqpHeaders</ulink></classname>
+			Class <classname>org.springframework.amqp.support.AmqpHeaders</classname>
 			identifies the default headers that will be used by the
 			<classname>DefaultAmqpHeaderMapper</classname>:
 		</para>

@@ -29,6 +29,11 @@ import java.util.concurrent.Future;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import reactor.core.Environment;
+import reactor.core.composable.Promise;
+import reactor.core.composable.spec.Promises;
+import reactor.function.Functions;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -38,6 +43,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
@@ -61,11 +67,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-
-import reactor.core.Environment;
-import reactor.core.composable.Promise;
-import reactor.core.composable.spec.Promises;
-import reactor.function.Functions;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -110,6 +111,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
 
 	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
+
+	private volatile Class<?> asyncSubmitType;
+
+	private volatile Class<?> asyncSubmitListenableType;
 
 	private volatile Environment reactorEnvironment;
 
@@ -214,9 +219,19 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
+	/**
+	 * Set the executor for use when the gateway method returns
+	 * {@link java.util.concurrent.Future} or {@link org.springframework.util.concurrent.ListenableFuture}.
+	 * Set it to null to disable the async processing, and any
+	 * {@link java.util.concurrent.Future} return types must be returned by the downstream flow.
+	 * @param executor The executor.
+	 */
 	public void setAsyncExecutor(Executor executor) {
-		Assert.notNull(executor, "executor must not be null");
-		this.asyncExecutor = (executor instanceof AsyncTaskExecutor) ? (AsyncTaskExecutor) executor
+		if (executor == null && logger.isInfoEnabled()) {
+			logger.info("A null executor disables the async gateway; " +
+					"methods returning Future<?> will run on the calling thread");
+		}
+		this.asyncExecutor = (executor instanceof AsyncTaskExecutor || executor == null) ? (AsyncTaskExecutor) executor
 				: new TaskExecutorAdapter(executor);
 	}
 
@@ -275,6 +290,21 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				this.gatewayMap.put(method, gateway);
 			}
 			this.serviceProxy = new ProxyFactory(proxyInterface, this).getProxy(this.beanClassLoader);
+			if (this.asyncExecutor != null) {
+				Callable<String> task = new Callable<String>() {
+
+					@Override
+					public String call() throws Exception {
+						return null;
+					}
+				};
+				Future<String> submitType = this.asyncExecutor.submit(task);
+				this.asyncSubmitType = submitType.getClass();
+				if (this.asyncExecutor instanceof AsyncListenableTaskExecutor) {
+					submitType = ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(task);
+					this.asyncSubmitListenableType = submitType.getClass();
+				}
+			}
 			this.start();
 			this.initialized = true;
 		}
@@ -309,8 +339,20 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	@Override
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		final Class<?> returnType = invocation.getMethod().getReturnType();
-		if (Future.class.isAssignableFrom(returnType)) {
-			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
+		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
+			if (returnType.isAssignableFrom(this.asyncSubmitType)) {
+				return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
+			}
+			else if (returnType.isAssignableFrom(asyncSubmitListenableType)) {
+				return ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(new AsyncInvocationTask(invocation));
+			}
+			else if (Future.class.isAssignableFrom(returnType)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
+							+ "running on calling thread; the downstream flow must return the required Future: "
+							+ returnType.getSimpleName());
+				}
+			}
 		}
 		if (Promise.class.isAssignableFrom(returnType)) {
 			if (this.reactorEnvironment == null) {
@@ -442,9 +484,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					boolean hasValue = StringUtils.hasText(value);
 
 					if (!(hasValue ^ StringUtils.hasText(expression))) {
-						throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a gateway's header.");
+						throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' " +
+								"is required on a gateway's header.");
 					}
-					headerExpressions.put(name, hasValue ? new LiteralExpression(value): PARSER.parseExpression(expression));
+					headerExpressions.put(name, hasValue
+							? new LiteralExpression(value)
+							: PARSER.parseExpression(expression));
 				}
 			}
 
@@ -476,7 +521,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				}
 			}
 		}
-		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions,
+		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
+				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
 				this.argsMapper, this.getMessageBuilderFactory());
 		if (StringUtils.hasText(payloadExpression)) {
@@ -506,9 +552,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (this.getBeanFactory() != null) {
 			gateway.setBeanFactory(this.getBeanFactory());
 		}
-		if (this.shouldTrack) {
-			gateway.setShouldTrack(this.shouldTrack);
-		}
+		gateway.setShouldTrack(this.shouldTrack);
 		gateway.afterPropertiesSet();
 		return gateway;
 	}
@@ -577,6 +621,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		private MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			this.setRequestMapper(messageMapper);
 		}
+
 	}
 
 
@@ -600,6 +645,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				throw new MessagingException("asynchronous gateway invocation failed", t);
 			}
 		}
+
 	}
 
 }
