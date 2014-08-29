@@ -20,7 +20,7 @@ package org.springframework.integration.annotation;
  * @since 4.1
  *
  */
-public class AnnotationAttributeValueConstants {
+public class AnnotationConstants {
 
 	public static final String NULL = "__NULL__";
 

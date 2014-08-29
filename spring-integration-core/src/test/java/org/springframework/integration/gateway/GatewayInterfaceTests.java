@@ -33,8 +33,11 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -50,7 +53,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.integration.annotation.AnnotationAttributeValueConstants;
+import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.IntegrationComponentScan;
@@ -72,6 +75,8 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * @author Oleg Zhurakousky
@@ -353,21 +358,43 @@ public class GatewayInterfaceTests {
 		assertEquals(param, result);
 	}
 
+	/*
+	 * Tests use current thread in payload and reply has the thread that actually
+	 * performed the send() on gatewayThreadChannel.
+	 */
 	@Test
 	public void testExecs() throws Exception {
 		assertSame(exec, TestUtils.getPropertyValue(execGatewayFB, "asyncExecutor"));
 		assertNull(TestUtils.getPropertyValue(noExecGatewayFB, "asyncExecutor"));
 
-		Future<?> result = this.int2634Gateway.test3("foo");
+		Future<Thread> result = this.int2634Gateway.test3(Thread.currentThread());
 		assertNotEquals(Thread.currentThread(), result.get());
-		assertThat(((Thread) result.get()).getName(), startsWith("SimpleAsync"));
+		assertThat(result.get().getName(), startsWith("SimpleAsync"));
 
-		result = this.execGateway.test1("foo");
+		result = this.execGateway.test1(Thread.currentThread());
 		assertNotEquals(Thread.currentThread(), result.get());
-		assertThat(((Thread) result.get()).getName(), startsWith("exec-"));
+		assertThat(result.get().getName(), startsWith("exec-"));
 
-		result = this.noExecGateway.test1("foo");
+		result = this.noExecGateway.test1(Thread.currentThread());
 		assertEquals(Thread.currentThread(), result.get());
+
+		ListenableFuture<Thread> result2 = this.execGateway.test2(Thread.currentThread());
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicReference<Thread> thread = new AtomicReference<Thread>();
+		result2.addCallback(new ListenableFutureCallback<Thread>() {
+
+			@Override
+			public void onSuccess(Thread result) {
+				thread.set(result);
+				latch.countDown();
+			}
+
+			@Override
+			public void onFailure(Throwable t) {
+			}
+		});
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(result2.get().getName(), startsWith("exec-"));
 	}
 
 
@@ -427,7 +454,8 @@ public class GatewayInterfaceTests {
 				@Override
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {
 					Object payload;
-					if (Thread.currentThread().getName().startsWith("main")) {
+					if (Thread.currentThread().equals(message.getPayload())) {
+						// running on calling thread - need to return a Future.
 						payload = new AsyncResult<Thread>(Thread.currentThread());
 					}
 					else {
@@ -461,7 +489,7 @@ public class GatewayInterfaceTests {
 		Object test2(@Payload Map<Object, ?> map);
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
-		Future<?> test3(String foo);
+		Future<Thread> test3(Thread caller);
 
 	}
 
@@ -469,15 +497,18 @@ public class GatewayInterfaceTests {
 	public interface ExecGateway {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
-		Future<?> test1(String foo);
+		Future<Thread> test1(Thread caller);
+
+		@Gateway(requestChannel = "gatewayThreadChannel")
+		ListenableFuture<Thread> test2(Thread caller);
 
 	}
 
-	@MessagingGateway(asyncExecutor = AnnotationAttributeValueConstants.NULL)
+	@MessagingGateway(asyncExecutor = AnnotationConstants.NULL)
 	public interface NoExecGateway {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
-		Future<?> test1(String foo);
+		Future<Thread> test1(Thread caller);
 
 	}
 
