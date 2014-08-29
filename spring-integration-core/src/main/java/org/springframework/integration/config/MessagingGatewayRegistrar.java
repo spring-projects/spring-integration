@@ -37,10 +37,11 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
@@ -133,7 +134,10 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		if (StringUtils.hasText(errorChannel)) {
 			gatewayProxyBuilder.addPropertyReference("errorChannel", errorChannel);
 		}
-		if (StringUtils.hasText(asyncExecutor)) {
+		if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
+			gatewayProxyBuilder.addPropertyValue("asyncExecutor", null);
+		}
+		else if (StringUtils.hasText(asyncExecutor)) {
 			gatewayProxyBuilder.addPropertyReference("asyncExecutor", asyncExecutor);
 		}
 		if (StringUtils.hasText(reactorEnvironment)) {

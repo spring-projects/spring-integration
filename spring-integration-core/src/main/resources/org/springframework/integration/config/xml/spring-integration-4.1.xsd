@@ -755,9 +755,17 @@
 					<xsd:documentation>
 							<![CDATA[
 					Provide a reference to an implementation of java.util.concurrent.Executor
-					to use for any of the interface methods that have a Future return type.
+					to use for any of the interface methods that have a Future or
+					ListenableFuture return type.
 					This Executor will only be used for those async methods; the sync methods
-					will be invoked in the caller's thread.
+					will be invoked on the caller's thread. By default, a SimpleAsyncTaskExecutor
+					is used. Most executors return a FutureTask or FutureListenableTask respectively
+					but a custom executor can return any Future. If the method return type is
+					not compatible with the executor the flow will run on the caller's thread and
+					the flow must return an appropriate Future. Finally, you can disable the
+					gateway ansync handling by setting this attribute to "". This allows the downstream
+					flow to return a Future that would otherwise have been compatible with the
+					default executor.
 							]]>
 					</xsd:documentation>
 				</xsd:annotation>

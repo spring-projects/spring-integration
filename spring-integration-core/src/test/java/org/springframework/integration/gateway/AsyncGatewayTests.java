@@ -17,25 +17,33 @@
 package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import reactor.core.Environment;
 import reactor.core.composable.Promise;
@@ -77,6 +85,97 @@ public class AsyncGatewayTests {
 		assertTrue(elapsed >= 200);
 		assertTrue(result instanceof Message<?>);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
+	}
+
+	@Test
+	public void listenableFutureWithMessageReturned() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		addThreadEnricher(requestChannel);
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		ListenableFuture<Message<?>> f = service.returnMessageListenable("foo");
+		long start = System.currentTimeMillis();
+		final AtomicReference<Message<?>> result = new AtomicReference<Message<?>>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		f.addCallback(new ListenableFutureCallback<Message<?>>() {
+
+			@Override
+			public void onSuccess(Message<?> msg) {
+				result.set(msg);
+				latch.countDown();
+			}
+
+			@Override
+			public void onFailure(Throwable t) {
+			}
+
+		});
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("foobar", result.get().getPayload());
+
+		Object thread = result.get().getHeaders().get("thread");
+		assertNotEquals(Thread.currentThread(), thread);
+	}
+
+	@Test
+	public void customFutureReturned() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		addThreadEnricher(requestChannel);
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		CustomFuture f = service.returnCustomFuture("foo");
+		String result = f.get(1000, TimeUnit.MILLISECONDS);
+		assertEquals("foobar", result);
+
+		assertEquals(Thread.currentThread(), f.thread);
+	}
+
+	@Test
+	public void nonAsyncFutureReturned() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		addThreadEnricher(requestChannel);
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+
+		proxyFactory.setAsyncExecutor(null);	// Not async - user flow returns Future<?>
+
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		CustomFuture f = (CustomFuture) service.returnCustomFutureWithTypeFuture("foo");
+		String result = f.get(1000, TimeUnit.MILLISECONDS);
+		assertEquals("foobar", result);
+
+		assertEquals(Thread.currentThread(), f.thread);
+	}
+
+	protected void addThreadEnricher(QueueChannel requestChannel) {
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				return MessageBuilder.fromMessage(message)
+						.setHeader("thread", Thread.currentThread())
+						.build();
+			}
+		});
 	}
 
 	@Test
@@ -239,15 +338,26 @@ public class AsyncGatewayTests {
 
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
+				String payload = input.getPayload() + "bar";
+				Message<?> reply = MessageBuilder.withPayload(payload)
+						.copyHeaders(input.getHeaders())
+						.build();
 				try {
 					Thread.sleep(200);
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return;
+				}
+				String header = (String) input.getHeaders().get("method");
+				if (header != null && header.startsWith("returnCustomFuture")) {
+					reply = MessageBuilder.withPayload(new CustomFuture(payload,
+							(Thread) input.getHeaders().get("thread")))
+							.copyHeaders(input.getHeaders())
+							.build();
 				}
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
@@ -263,11 +373,58 @@ public class AsyncGatewayTests {
 
 		Future<?> returnSomething(String s);
 
+		ListenableFuture<Message<?>> returnMessageListenable(String s);
+
+		@Gateway(headers=@GatewayHeader(name="method", expression="#gatewayMethod.name"))
+		CustomFuture returnCustomFuture(String s);
+
+		@Gateway(headers=@GatewayHeader(name="method", expression="#gatewayMethod.name"))
+		Future<?> returnCustomFutureWithTypeFuture(String s);
+
 		Promise<String> returnStringPromise(String s);
 
 		Promise<Message<?>> returnMessagePromise(String s);
 
 		Promise<?> returnSomethingPromise(String s);
+
+	}
+
+	private static class CustomFuture implements Future<String> {
+
+		private final String result;
+
+		private final Thread thread;
+
+		private CustomFuture(String result, Thread thread) {
+			this.result = result;
+			this.thread = thread;
+		}
+
+		@Override
+		public boolean cancel(boolean mayInterruptIfRunning) {
+			return false;
+		}
+
+		@Override
+		public boolean isCancelled() {
+			return false;
+		}
+
+		@Override
+		public boolean isDone() {
+			return true;
+		}
+
+		@Override
+		public String get() throws InterruptedException, ExecutionException {
+			return result;
+		}
+
+		@Override
+		public String get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
+				TimeoutException {
+			return result;
+		}
 
 	}
 
