@@ -9,6 +9,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistra
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.socket.sockjs.frame.SockJsMessageCodec;
 import org.springframework.web.socket.sockjs.transport.TransportHandler;
 
 /**
@@ -101,6 +102,9 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 			if (this.sockJsServiceOptions.taskScheduler != null) {
 				sockJsServiceRegistration.setTaskScheduler(this.sockJsServiceOptions.taskScheduler);
 			}
+			if (this.sockJsServiceOptions.messageCodec != null) {
+				sockJsServiceRegistration.setMessageCodec(this.sockJsServiceOptions.messageCodec);
+			}
 		}
 
 	}
@@ -128,40 +132,56 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 		private TransportHandler[] transportHandlers;
 
-		public void setTaskScheduler(TaskScheduler taskScheduler) {
+		private SockJsMessageCodec messageCodec;
+
+		public SockJsServiceOptions setTaskScheduler(TaskScheduler taskScheduler) {
 			this.taskScheduler = taskScheduler;
+			return this;
 		}
 
-		public void setClientLibraryUrl(String clientLibraryUrl) {
+		public SockJsServiceOptions setClientLibraryUrl(String clientLibraryUrl) {
 			this.clientLibraryUrl = clientLibraryUrl;
+			return this;
 		}
 
-		public void setStreamBytesLimit(int streamBytesLimit) {
+		public SockJsServiceOptions setStreamBytesLimit(int streamBytesLimit) {
 			this.streamBytesLimit = streamBytesLimit;
+			return this;
 		}
 
-		public void setSessionCookieNeeded(boolean sessionCookieNeeded) {
+		public SockJsServiceOptions setSessionCookieNeeded(boolean sessionCookieNeeded) {
 			this.sessionCookieNeeded = sessionCookieNeeded;
+			return this;
 		}
 
-		public void setHeartbeatTime(long heartbeatTime) {
+		public SockJsServiceOptions setHeartbeatTime(long heartbeatTime) {
 			this.heartbeatTime = heartbeatTime;
+			return this;
 		}
 
-		public void setDisconnectDelay(long disconnectDelay) {
+		public SockJsServiceOptions setDisconnectDelay(long disconnectDelay) {
 			this.disconnectDelay = disconnectDelay;
+			return this;
 		}
 
-		public void setHttpMessageCacheSize(int httpMessageCacheSize) {
+		public SockJsServiceOptions setHttpMessageCacheSize(int httpMessageCacheSize) {
 			this.httpMessageCacheSize = httpMessageCacheSize;
+			return this;
 		}
 
-		public void setWebSocketEnabled(boolean webSocketEnabled) {
+		public SockJsServiceOptions setWebSocketEnabled(boolean webSocketEnabled) {
 			this.webSocketEnabled = webSocketEnabled;
+			return this;
 		}
 
-		public void setTransportHandlers(TransportHandler... transportHandlers) {
+		public SockJsServiceOptions setTransportHandlers(TransportHandler... transportHandlers) {
 			this.transportHandlers = transportHandlers;
+			return this;
+		}
+
+		public SockJsServiceOptions setMessageCodec(SockJsMessageCodec messageCodec) {
+			this.messageCodec = messageCodec;
+			return this;
 		}
 
 	}

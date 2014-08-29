@@ -31,6 +31,7 @@ import org.springframework.util.xml.DomUtils;
 /**
  * The {@link AbstractSingleBeanDefinitionParser} implementation for
  * the {@code <websocket:client-container/>} element.
+ *
  * @author Artem Bilan
  * @since 4.1
  */
@@ -52,7 +53,7 @@ public class ClientWebSocketContainerParser extends AbstractSingleBeanDefinition
 				.addConstructorArgValue(element.getAttribute("uri"));
 		String uriVariables = element.getAttribute("uri-variables");
 		if (StringUtils.hasText(uriVariables)) {
-			builder.addConstructorArgValue(uriVariables);
+			builder.addConstructorArgValue(StringUtils.commaDelimitedListToStringArray(uriVariables));
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-buffer-size-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-time-limit");

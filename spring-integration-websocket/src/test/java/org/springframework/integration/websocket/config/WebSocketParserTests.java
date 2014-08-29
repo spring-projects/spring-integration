@@ -47,6 +47,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -54,6 +55,13 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
+import org.springframework.web.socket.server.HandshakeHandler;
+import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.socket.sockjs.SockJsService;
+import org.springframework.web.socket.sockjs.frame.SockJsMessageCodec;
+import org.springframework.web.socket.sockjs.transport.TransportHandler;
+import org.springframework.web.socket.sockjs.transport.TransportHandlingSockJsService;
+import org.springframework.web.socket.sockjs.transport.TransportType;
 
 /**
  * @author Artem Bilan
@@ -63,14 +71,26 @@ import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class WebSocketInboundChannelAdapterParserTests {
+public class WebSocketParserTests {
+
+	@Autowired
+	private HandlerMapping handlerMapping;
 
 	@Autowired
 	@Qualifier("serverWebSocketContainer")
 	private IntegrationWebSocketContainer serverWebSocketContainer;
 
 	@Autowired
-	private HandlerMapping handlerMapping;
+	private TaskScheduler taskScheduler;
+
+	@Autowired
+	private HandshakeHandler handshakeHandler;
+
+	@Autowired
+	private HandshakeInterceptor handshakeInterceptor;
+
+	@Autowired
+	private SockJsMessageCodec sockJsMessageCodec;
 
 	@Autowired
 	@Qualifier("defaultAdapter.adapter")
@@ -103,15 +123,42 @@ public class WebSocketInboundChannelAdapterParserTests {
 	private WebSocketClient webSocketClient;
 
 	@Test
-	public void testDefaultAdapter() {
+	public void testDefaultInboundChannelAdapterAndServerContainer() {
 		Map<?, ?> urlMap = TestUtils.getPropertyValue(this.handlerMapping, "urlMap", Map.class);
 		assertEquals(1, urlMap.size());
-		assertTrue(urlMap.containsKey("/ws"));
-		Object mappedHandler = urlMap.get("/ws");
+		assertTrue(urlMap.containsKey("/ws/**"));
+		Object mappedHandler = urlMap.get("/ws/**");
 		//WebSocketHttpRequestHandler -> ExceptionWebSocketHandlerDecorator - > LoggingWebSocketHandlerDecorator
 		// -> IntegrationWebSocketContainer$IntegrationWebSocketHandler
 		assertSame(TestUtils.getPropertyValue(this.serverWebSocketContainer, "webSocketHandler"),
-				TestUtils.getPropertyValue(mappedHandler, "wsHandler.delegate.delegate"));
+				TestUtils.getPropertyValue(mappedHandler, "webSocketHandler.delegate.delegate"));
+		assertSame(this.handshakeHandler,
+				TestUtils.getPropertyValue(this.serverWebSocketContainer, "handshakeHandler"));
+		HandshakeInterceptor[] interceptors =
+				TestUtils.getPropertyValue(this.serverWebSocketContainer, "interceptors", HandshakeInterceptor[].class);
+		assertEquals(1, interceptors.length);
+		assertSame(this.handshakeInterceptor, interceptors[0]);
+		assertEquals(100, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit"));
+		assertEquals(100000, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit"));
+
+		TransportHandlingSockJsService sockJsService =
+				TestUtils.getPropertyValue(mappedHandler, "sockJsService", TransportHandlingSockJsService.class);
+		assertSame(this.taskScheduler, sockJsService.getTaskScheduler());
+		assertSame(this.sockJsMessageCodec, sockJsService.getMessageCodec());
+		Map<TransportType, TransportHandler> transportHandlers = sockJsService.getTransportHandlers();
+
+		//If "handshake-handler" is provided, "transport-handlers" isn't allowed
+		assertEquals(8, transportHandlers.size());
+		assertSame(this.handshakeHandler,
+				TestUtils.getPropertyValue(transportHandlers.get(TransportType.WEBSOCKET), "handshakeHandler"));
+		assertEquals(4000L, sockJsService.getDisconnectDelay());
+		assertEquals(30000L, sockJsService.getHeartbeatTime());
+		assertEquals(10000, sockJsService.getHttpMessageCacheSize());
+		assertEquals(2000, sockJsService.getStreamBytesLimit());
+		assertEquals("https://foo.sock.js", sockJsService.getSockJsClientLibraryUrl());
+		assertFalse(sockJsService.isSessionCookieNeeded());
+		assertFalse(sockJsService.isWebSocketEnabled());
+
 		assertSame(this.serverWebSocketContainer,
 				TestUtils.getPropertyValue(this.defaultAdapter, "webSocketContainer"));
 		assertNull(TestUtils.getPropertyValue(this.defaultAdapter, "messageConverters"));
@@ -127,7 +174,7 @@ public class WebSocketInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testCustomAdapter() throws URISyntaxException {
+	public void testCustomInboundChannelAdapterAndClientContainer() throws URISyntaxException {
 		assertSame(this.clientInboundChannel, TestUtils.getPropertyValue(this.customAdapter, "outputChannel"));
 		assertSame(this.errorChannel, TestUtils.getPropertyValue(this.customAdapter, "errorChannel"));
 		assertSame(this.clientWebSocketContainer, TestUtils.getPropertyValue(this.customAdapter, "webSocketContainer"));
@@ -162,7 +209,7 @@ public class WebSocketInboundChannelAdapterParserTests {
 		assertSame(this.customAdapter, TestUtils.getPropertyValue(this.clientWebSocketContainer, "messageListener"));
 		assertEquals(100, TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendTimeLimit"));
 		assertEquals(1000, TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendBufferSizeLimit"));
-		assertEquals(new URI("ws://foo.bar/ws"),
+		assertEquals(new URI("ws://foo.bar/ws?service=user"),
 				TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.uri", URI.class));
 		assertSame(this.webSocketClient,
 				TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.client"));
