@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,15 @@ import org.springframework.xml.transform.StringSource;
 
 /**
  * Default implementation of {@link XmlPayloadConverter}. Supports
- * {@link Document}, {@link File} and {@link String} payloads.
- * 
+ * {@link Document}, {@link File}, {@link String}, {@link Node} and
+ * {@link DOMSource} payloads.
+ *
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
-	private DocumentBuilderFactory documentBuilderFactory;
+	private final DocumentBuilderFactory documentBuilderFactory;
 
 
 	public DefaultXmlPayloadConverter() {
@@ -53,9 +55,22 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 	}
 
 
+	@Override
 	public Document convertToDocument(Object object) {
 		if (object instanceof Document) {
 			return (Document) object;
+		}
+		if (object instanceof Node) {
+			return nodeToDocument((Node) object);
+		}
+		else if (object instanceof DOMSource) {
+			Node node = ((DOMSource) object).getNode();
+			if (node instanceof Document) {
+				return (Document) node;
+			}
+			else {
+				return nodeToDocument(node);
+			}
 		}
 		if (object instanceof File) {
 			try {
@@ -76,6 +91,13 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 		throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
 	}
 
+	protected Document nodeToDocument(Node node) {
+		Document document = getDocumentBuilder().newDocument();
+		document.appendChild(document.importNode(node, true));
+		return document;
+	}
+
+	@Override
 	public Node convertToNode(Object object) {
 		Node node = null;
 		if (object instanceof Node) {
@@ -90,6 +112,7 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 		return node;
 	}
 
+	@Override
 	public Source convertToSource(Object object) {
 		Source source = null;
 		if (object instanceof Source) {
