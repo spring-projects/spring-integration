@@ -336,7 +336,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateContentTypeAsMediaType(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Content-Type", new MediaType("text", "html"));
+		messageHeaders.put(MessageHeaders.CONTENT_TYPE, new MediaType("text", "html"));
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -608,7 +608,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals(2, messageHeaders.size());
 		assertNull(messageHeaders.get("Accept"));
 		assertEquals("abc", messageHeaders.get("foobar"));
-		assertEquals("text/html", messageHeaders.get("Content-Type").toString());
+		assertEquals("text/html", messageHeaders.get(MessageHeaders.CONTENT_TYPE).toString());
 	}
 
 	@Test

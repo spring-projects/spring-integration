@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.http.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -23,6 +24,8 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.Collections;
+import java.util.Map;
 
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
@@ -30,24 +33,25 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 
 /**
  * @author Oleg Zhurakousky
@@ -86,6 +90,9 @@ public class OutboundResponseTypeTests {
 
 	@Autowired
 	private MessageChannel invalidResponseTypeChannel;
+
+	@Autowired
+	private MessageChannel contentTypePropagationChannel;
 
 	private static int port = SocketUtils.findAvailableServerSocket();
 
@@ -177,9 +184,18 @@ public class OutboundResponseTypeTests {
 		}
 	}
 
+	@Test
+	public void testContentTypePropagation() throws Exception {
+		this.contentTypePropagationChannel
+				.send(new GenericMessage<Map<String, String>>(Collections.singletonMap("foo", "bar")));
+		assertEquals(MediaType.APPLICATION_JSON.toString(), httpHandler.requestHeaders.getFirst("Content-Type"));
+	}
+
 	static class MyHandler implements HttpHandler {
 
 		private String httpMethod = "POST";
+
+		private volatile Headers requestHeaders;
 
 		public void setHttpMethod(String httpMethod) {
 			this.httpMethod = httpMethod;
@@ -187,6 +203,7 @@ public class OutboundResponseTypeTests {
 
 		public void handle(HttpExchange t) throws IOException {
 			String requestMethod = t.getRequestMethod();
+			requestHeaders = t.getRequestHeaders();
 			String response = null;
 			if (requestMethod.equalsIgnoreCase(this.httpMethod)) {
 				response = httpMethod;

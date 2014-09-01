@@ -188,6 +188,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			CONNECTION,
 			CONTENT_LENGTH,
 			CONTENT_TYPE,
+			MessageHeaders.CONTENT_TYPE,
 			COOKIE,
 			DATE,
 			EXPECT,
@@ -223,6 +224,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			CONTENT_MD5,
 			CONTENT_RANGE,
 			CONTENT_TYPE,
+			MessageHeaders.CONTENT_TYPE,
 			CONTENT_DISPOSITION,
 			TRANSFER_ENCODING,
 			DATE,
@@ -380,7 +382,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		Set<String> headerNames = source.keySet();
 		for (String name : headerNames) {
 			if (this.shouldMapInboundHeader(name)) {
-				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
+				if (!containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) && !containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
 							this.userDefinedHeaderPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
@@ -396,6 +398,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 					if (value != null) {
 						if (logger.isDebugEnabled()) {
 							logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+						}
+						if (CONTENT_TYPE.equals(name)) {
+							name = MessageHeaders.CONTENT_TYPE;
 						}
 						this.setMessageHeader(target, name, value);
 					}
@@ -647,7 +652,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 						"Expected Number or String value for 'Content-Length' header value, but received: " + clazz);
 			}
 		}
-		else if (CONTENT_TYPE.equalsIgnoreCase(name)) {
+		else if (CONTENT_TYPE.equalsIgnoreCase(name) || MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
 			if (value instanceof MediaType) {
 				target.setContentType((MediaType) value);
 			}

@@ -40,6 +40,11 @@
 							   request-channel="invalidResponseTypeChannel"
 							   expected-response-type-expression="new java.util.Date()"/>
 
+	<int:chain input-channel="contentTypePropagationChannel" output-channel="nullChannel">
+		<int:object-to-json-transformer/>
+		<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"/>
+	</int:chain>
+
 
 	<util:list id="stringAndSerializingConverters">
 		<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter" />
