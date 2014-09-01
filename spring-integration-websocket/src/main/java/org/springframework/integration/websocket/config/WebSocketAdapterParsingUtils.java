@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -54,11 +53,13 @@ abstract class WebSocketAdapterParsingUtils {
 			for (String id : ids) {
 				protocolHandlerList.add(new RuntimeBeanReference(id));
 			}
-			BeanDefinition subProtocolHandlerRegistry =
+			BeanDefinitionBuilder protocolHandlerRegistryBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(SubProtocolHandlerRegistry.class)
-			.addConstructorArgValue(protocolHandlerList)
-			.addConstructorArgReference(defaultProtocolHandler).getBeanDefinition();
-			builder.addConstructorArgValue(subProtocolHandlerRegistry);
+					.addConstructorArgValue(protocolHandlerList);
+			if (hasDefaultProtocolHandler) {
+				protocolHandlerRegistryBuilder.addConstructorArgReference(defaultProtocolHandler);
+			}
+			builder.addConstructorArgValue(protocolHandlerRegistryBuilder.getBeanDefinition());
 		}
 
 		String messageConverters = element.getAttribute("message-converters");

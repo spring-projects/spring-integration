@@ -39,7 +39,7 @@
 		<constructor-arg value="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec"/>
 	</bean>
 
-	<int-websocket:inbound-channel-adapter id="defaultAdapter" container="serverWebSocketContainer"/>
+	<int-websocket:inbound-channel-adapter id="defaultInboundAdapter" container="serverWebSocketContainer"/>
 
 	<bean id="webSocketClient" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.web.socket.client.WebSocketClient"/>
@@ -67,7 +67,7 @@
 
 	<bean id="mapMessageConverter" class="org.springframework.integration.support.converter.MapMessageConverter"/>
 
-	<int-websocket:inbound-channel-adapter id="customAdapter" container="clientWebSocketContainer"
+	<int-websocket:inbound-channel-adapter id="customInboundAdapter" container="clientWebSocketContainer"
 										   auto-startup="false"
 										   payload-type="java.lang.Integer"
 										   default-protocol-handler="stompSubProtocolHandler"
@@ -80,5 +80,16 @@
 										   phase="200"/>
 
 	<int:channel id="clientInboundChannel"/>
+
+	<int-websocket:outbound-channel-adapter id="defaultOutboundAdapter" container="serverWebSocketContainer"/>
+
+	<int-websocket:outbound-channel-adapter id="customOutboundAdapter" container="clientWebSocketContainer"
+										   default-protocol-handler="stompSubProtocolHandler"
+										   protocol-handlers="passThruSubProtocolHandler"
+										   message-converters="simpleMessageConverter,mapMessageConverter"
+										   merge-with-default-converters="true"
+										   channel="clientOutboundChannel"/>
+
+	<int:channel id="clientOutboundChannel"/>
 
 </beans>
