@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,8 +167,8 @@ public class OutboundResponseTypeTests {
 			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
 			Throwable t = e.getCause();
 			assertThat(t, Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(t.getMessage(),
-					Matchers.containsString("'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'"));
+			assertThat(t.getMessage(), Matchers.containsString("'expectedResponseType' can be an instance of " +
+					"'Class<?>', 'String' or 'ParameterizedTypeReference<?>'"));
 		}
 	}
 
@@ -180,7 +180,8 @@ public class OutboundResponseTypeTests {
 		}
 		catch (BeansException e) {
 			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().contains("The 'expected-response-type' and 'expected-response-type-expression' are mutually exclusive"));
+			assertTrue(e.getMessage().contains("The 'expected-response-type' " +
+					"and 'expected-response-type-expression' are mutually exclusive"));
 		}
 	}
 
@@ -219,6 +220,7 @@ public class OutboundResponseTypeTests {
 			os.write(response.getBytes());
 			os.close();
 		}
+
 	}
 
 	public static class Port {
