@@ -43,8 +43,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] { String.class, ToStringFriendlyJsonNode.class,
-			ObjectNode.class, ArrayNode.class };
+	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] {String.class, ToStringFriendlyJsonNode.class,
+			ObjectNode.class, ArrayNode.class};
 
 	// Note: ObjectMapper is thread-safe
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -160,18 +160,14 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-
-			ToStringFriendlyJsonNode that = (ToStringFriendlyJsonNode) o;
-
-			return !(node != null ? !node.equals(that.node) : that.node != null);
-
+			return this == o ||
+					!(o == null || getClass() != o.getClass())
+							&& this.node.equals(((ToStringFriendlyJsonNode) o).node);
 		}
 
 		@Override
 		public int hashCode() {
-			return node != null ? node.toString().hashCode() : 0;
+			return this.node.toString().hashCode();
 		}
 
 	}
