@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,6 @@ package org.springframework.integration.json;
 
 import java.io.IOException;
 
-import org.springframework.expression.AccessException;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.PropertyAccessor;
-import org.springframework.expression.TypedValue;
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,10 +25,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.springframework.expression.AccessException;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TypedValue;
+import org.springframework.util.Assert;
+
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
  *
  * @author Eric Bottard
+ * @author Artem Bilan
+ * @since 3.0
  */
 public class JsonPropertyAccessor implements PropertyAccessor {
 
@@ -138,6 +140,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	public static class ToStringFriendlyJsonNode {
+
 		private final JsonNode node;
 
 		public ToStringFriendlyJsonNode(JsonNode node) {
@@ -153,8 +156,24 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			else {
 				return node.toString();
 			}
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			ToStringFriendlyJsonNode that = (ToStringFriendlyJsonNode) o;
+
+			return !(node != null ? !node.equals(that.node) : that.node != null);
 
 		}
+
+		@Override
+		public int hashCode() {
+			return node != null ? node.toString().hashCode() : 0;
+		}
+
 	}
 
 }
