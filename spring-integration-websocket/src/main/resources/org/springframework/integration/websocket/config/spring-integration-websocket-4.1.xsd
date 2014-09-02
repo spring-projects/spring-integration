@@ -362,6 +362,22 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="use-broker" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Flag to indicate if this adapter will send non-MESSAGE type WebSocketMessages
+								and messages with broker destinations to the `AbstractBrokerMessageHandler`
+								from the application context.
+								If the `AbstractBrokerMessageHandler` bean isn't present the warn log is emitted
+								and adapter behaviour is falling back to default like this attribute is 'false'.
+								This attribute is used only on server side. On client side it is ignored.
+								Defaults to 'false'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -427,8 +443,7 @@
 					Flag to indicate if the default converters should be registered after any custom
 					converters. This flag is used only if message-converters
 					are provided, otherwise all default converters will be registered.
-
-					Defaults to "false"
+					Defaults to 'false'.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>

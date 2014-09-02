@@ -18,16 +18,20 @@ package org.springframework.integration.websocket.server;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -49,14 +53,21 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
+import org.springframework.messaging.simp.broker.SubscriptionRegistry;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
+import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -82,9 +93,22 @@ public class WebSocketServerTests {
 	@Qualifier("webSocketInputChannel")
 	private PollableChannel webSocketInputChannel;
 
+	@Value("#{server.serverContext.getBean('simpleBrokerMessageHandler')}")
+	private SimpleBrokerMessageHandler brokerHandler;
+
 	@Test
 	public void testWebSocketOutboundMessageHandler() throws Exception {
-		this.webSocketOutputChannel.send(new GenericMessage<String>("Spring"));
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+		headers.setSubscriptionId("subs1");
+		headers.setDestination("/queue/foo");
+		Message<byte[]> message = MessageBuilder.withPayload(ByteBuffer.allocate(0).array()).setHeaders(headers).build();
+
+		headers = StompHeaderAccessor.create(StompCommand.SEND);
+		headers.setSubscriptionId("subs1");
+		Message<String> message2 = MessageBuilder.withPayload("Spring").setHeaders(headers).build();
+
+		this.webSocketOutputChannel.send(message);
+		this.webSocketOutputChannel.send(message2);
 
 		Message<?> received = this.webSocketInputChannel.receive(10000);
 		assertNotNull(received);
@@ -94,6 +118,16 @@ public class WebSocketServerTests {
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload, instanceOf(String.class));
 		assertEquals("Hello Spring", receivedPayload);
+
+		SubscriptionRegistry subscriptionRegistry = this.brokerHandler.getSubscriptionRegistry();
+		headers = StompHeaderAccessor.create(StompCommand.MESSAGE);
+		headers.setDestination("/queue/foo");
+		message = MessageBuilder.withPayload(ByteBuffer.allocate(0).array()).setHeaders(headers).build();
+		MultiValueMap<String, String> subscriptions = subscriptionRegistry.findSubscriptions(message);
+		assertFalse(subscriptions.isEmpty());
+		List<String> subscription = subscriptions.values().iterator().next();
+		assertEquals(1, subscription.size());
+		assertEquals("subs1", subscription.get(0));
 	}
 
 
@@ -153,7 +187,19 @@ public class WebSocketServerTests {
 
 	@Configuration
 	@EnableIntegration
-	static class ServerConfig {
+	@EnableWebSocketMessageBroker
+	static class ServerConfig extends AbstractWebSocketMessageBrokerConfigurer {
+
+		@Override
+		public void registerStompEndpoints(StompEndpointRegistry registry) {
+			registry.addEndpoint("/foo");
+		}
+
+		@Override
+		public void configureMessageBroker(MessageBrokerRegistry registry) {
+			registry.setApplicationDestinationPrefixes("/app/")
+					.enableSimpleBroker("/queue/", "/topic/");
+		}
 
 		@Bean
 		public ServerWebSocketContainer serverWebSocketContainer() {
@@ -181,6 +227,7 @@ public class WebSocketServerTests {
 					new WebSocketInboundChannelAdapter(serverWebSocketContainer(),
 							new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 			webSocketInboundChannelAdapter.setOutputChannel(webSocketInputChannel());
+			webSocketInboundChannelAdapter.setUseBroker(true);
 			return webSocketInboundChannelAdapter;
 		}
 

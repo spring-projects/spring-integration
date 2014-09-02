@@ -48,6 +48,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,6 +74,7 @@ import org.springframework.web.socket.sockjs.transport.TransportType;
 public class WebSocketParserTests {
 
 	@Autowired
+	@Qualifier("integrationWebSocketHandlerMapping")
 	private HandlerMapping handlerMapping;
 
 	@Autowired
@@ -94,6 +96,9 @@ public class WebSocketParserTests {
 	@Autowired
 	@Qualifier("defaultInboundAdapter.adapter")
 	private WebSocketInboundChannelAdapter defaultInboundAdapter;
+
+	@Autowired
+	private AbstractBrokerMessageHandler brokerHandler;
 
 	@Autowired
 	@Qualifier("clientWebSocketContainer")
@@ -128,7 +133,6 @@ public class WebSocketParserTests {
 	@Autowired
 	@Qualifier("customOutboundAdapter.handler")
 	private WebSocketOutboundMessageHandler customOutboundAdapter;
-
 
 	@Test
 	public void testDefaultInboundChannelAdapterAndServerContainer() {
@@ -174,6 +178,9 @@ public class WebSocketParserTests {
 				TestUtils.getPropertyValue(this.defaultInboundAdapter, "defaultConverters"));
 		assertEquals(String.class,
 				TestUtils.getPropertyValue(this.defaultInboundAdapter, "payloadType", AtomicReference.class).get());
+		assertTrue(TestUtils.getPropertyValue(this.defaultInboundAdapter, "useBroker", Boolean.class));
+		assertSame(this.brokerHandler, TestUtils.getPropertyValue(this.defaultInboundAdapter, "brokerHandler"));
+
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry = TestUtils.getPropertyValue(this.defaultInboundAdapter,
 				"subProtocolHandlerRegistry", SubProtocolHandlerRegistry.class);
 		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "defaultProtocolHandler"),

@@ -71,6 +71,7 @@ public class WebSocketInboundChannelAdapterParser extends AbstractSingleBeanDefi
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "payload-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "use-broker");
 	}
 
 }
