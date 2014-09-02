@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,6 +34,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Tests for {@link JsonPropertyAccessor}.
  *
  * @author Eric Bottard
+ * @author Artem Bilan
+ * @since 3.0
  */
 public class JsonPropertyAccessorTests {
 
@@ -48,8 +53,14 @@ public class JsonPropertyAccessorTests {
 	@Test
 	public void testSimpleLookup() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
-		Object actual = evaluate(json, "foo", Object.class);
-		assertEquals("bar", actual.toString());
+		Object value = evaluate(json, "foo", Object.class);
+		assertThat(value, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
+		assertEquals("bar", value.toString());
+		Object json2 = mapper.readTree("{\"foo\": \"bar\"}");
+		Object value2 = evaluate(json2, "foo", Object.class);
+		assertThat(value2, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
+		assertTrue(value.equals(value2));
+		assertEquals(value.hashCode(), value2.hashCode());
 	}
 
 	@Test(expected = SpelEvaluationException.class)

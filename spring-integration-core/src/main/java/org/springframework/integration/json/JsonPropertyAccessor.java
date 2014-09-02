@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
  *
  * @author Eric Bottard
+ * @author Artem Bilan
+ * @since 3.0
  */
 public class JsonPropertyAccessor implements PropertyAccessor {
 
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] { String.class, ToStringFriendlyJsonNode.class,
-			ObjectNode.class, ArrayNode.class };
+	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] {String.class, ToStringFriendlyJsonNode.class,
+			ObjectNode.class, ArrayNode.class};
 
 	// Note: ObjectMapper is thread-safe
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -138,6 +140,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	public static class ToStringFriendlyJsonNode {
+
 		private final JsonNode node;
 
 		public ToStringFriendlyJsonNode(JsonNode node) {
@@ -153,8 +156,20 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			else {
 				return node.toString();
 			}
-
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			return this == o
+					|| (!(o == null || getClass() != o.getClass())
+							&& this.node.equals(((ToStringFriendlyJsonNode) o).node));
+		}
+
+		@Override
+		public int hashCode() {
+			return this.node.toString().hashCode();
+		}
+
 	}
 
 }
