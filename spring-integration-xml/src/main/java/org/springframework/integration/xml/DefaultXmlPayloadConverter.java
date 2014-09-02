@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,9 @@ import org.springframework.xml.transform.StringSource;
 /**
  * Default implementation of {@link XmlPayloadConverter}. Supports
  * {@link Document}, {@link File} and {@link String} payloads.
- * 
+ *
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
@@ -56,6 +57,22 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 	public Document convertToDocument(Object object) {
 		if (object instanceof Document) {
 			return (Document) object;
+		}
+		if (object instanceof Node) {
+			Document document = getDocumentBuilder().newDocument();
+			document.appendChild(document.importNode((Node) object, true));
+			return document;
+		}
+		else if (object instanceof DOMSource) {
+			Node node = ((DOMSource) object).getNode();
+			if (node instanceof Document) {
+				return (Document) node;
+			}
+			else {
+				Document document = getDocumentBuilder().newDocument();
+				document.appendChild(document.importNode(node, true));
+				return document;
+			}
 		}
 		if (object instanceof File) {
 			try {

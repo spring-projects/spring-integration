@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml;
 
 import static org.junit.Assert.assertEquals;
@@ -25,22 +26,23 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 
-import org.junit.Assert;
-
 import org.custommonkey.xmlunit.XMLAssert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.messaging.MessagingException;
-import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import org.springframework.messaging.MessagingException;
+import org.springframework.xml.transform.StringSource;
 
 /**
  *
  * @author Jonas Partner
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  */
 public class DefaultXmlPayloadConverterTests {
 
@@ -90,7 +92,7 @@ public class DefaultXmlPayloadConverterTests {
 
 
 	@Test
-	public void testGetSourcePassingDocumet() throws Exception{
+	public void testGetSourcePassingDocument() throws Exception{
 		Source source = converter.convertToSource(testDocument);
 		assertEquals(DOMSource.class, source.getClass());
 	}
@@ -120,5 +122,25 @@ public class DefaultXmlPayloadConverterTests {
 		assertTrue("Wrong node returned", element == n);
     }
 
+	@Test
+	public void testConvertNodeToDocument() {
+		Node element = testDocument.getElementsByTagName("test").item(0);
+		Document doc = converter.convertToDocument(element);
+		NodeList childNodes = doc.getChildNodes();
+		assertEquals(1, childNodes.getLength());
+		assertEquals("test", childNodes.item(0).getNodeName());
+		assertEquals("hello", childNodes.item(0).getTextContent());
+	}
+
+	@Test
+	public void testConvertSourceToDocument() throws Exception{
+		Node element = testDocument.getElementsByTagName("test").item(0);
+		DOMSource domSource = new DOMSource(element);
+		Document doc = converter.convertToDocument(element);
+		NodeList childNodes = doc.getChildNodes();
+		assertEquals(1, childNodes.getLength());
+		assertEquals("test", childNodes.item(0).getNodeName());
+		assertEquals("hello", childNodes.item(0).getTextContent());
+	}
 
 }
