@@ -211,7 +211,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			WARNING
 	};
 
-	private static String[] HTTP_RESPONSE_HEADER_NAMES = new String[] {
+	private static final String[] HTTP_RESPONSE_HEADER_NAMES = new String[] {
 			ACCEPT_RANGES,
 			AGE,
 			ALLOW,
@@ -659,7 +659,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 						"Expected Number or String value for 'Content-Length' header value, but received: " + clazz);
 			}
 		}
-		else if (CONTENT_TYPE.equalsIgnoreCase(name) || MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
+		else if (MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
 			if (value instanceof MediaType) {
 				target.setContentType((MediaType) value);
 			}

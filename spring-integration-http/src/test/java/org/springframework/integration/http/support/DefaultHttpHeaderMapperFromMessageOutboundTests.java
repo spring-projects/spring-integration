@@ -312,7 +312,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateContentTypeWrongValue() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Content-Type", "foo");
+		messageHeaders.put(MessageHeaders.CONTENT_TYPE, "foo");
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
