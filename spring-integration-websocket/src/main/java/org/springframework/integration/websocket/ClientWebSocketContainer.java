@@ -71,11 +71,10 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	public void setHeadersMap(Map<String, String> headers) {
 		Assert.notNull(headers);
 		HttpHeaders httpHeaders = new HttpHeaders();
-		for (String key : headers.keySet()) {
-			String value = headers.get(key);
-			String[] values = StringUtils.commaDelimitedListToStringArray(value);
+		for (Map.Entry<String, String> entry : headers.entrySet()) {
+			String[] values = StringUtils.commaDelimitedListToStringArray(entry.getValue());
 			for (String v : values) {
-				httpHeaders.add(key, v);
+				httpHeaders.add(entry.getKey(), v);
 			}
 		}
 		setHeaders(httpHeaders);

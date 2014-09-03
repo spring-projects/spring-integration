@@ -70,7 +70,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	 * by the user by simply using {@link org.springframework.web.socket.config.annotation.EnableWebSocket}
 	 * <p>
 	 * In addition, checks if the {@code javax.servlet.Servlet} class is present on the classpath.
-	 * When Spring Integration WebSocket support is used only as an WebSocket client,
+	 * When Spring Integration WebSocket support is used only as a WebSocket client,
 	 * there is no reason to use and register the Spring WebSocket server components.
 	 * <p>
 	 * Note, there is no XML equivalent for

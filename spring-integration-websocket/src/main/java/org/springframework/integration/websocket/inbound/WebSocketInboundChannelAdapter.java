@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.ServerWebSocketContainer;
@@ -148,6 +147,16 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		this.payloadType.set(payloadType);
 	}
 
+	/**
+	 * Specify if this adapter should use an existing single {@link AbstractBrokerMessageHandler}
+	 * bean for {@code non-MESSAGE} {@link org.springframework.web.socket.WebSocketMessage}s
+	 * and to route messages with broker destinations.
+	 * Since only single {@link AbstractBrokerMessageHandler} bean is allowed in the current
+	 * application context, the algorithm to lookup the former by type, rather than applying
+	 * the bean reference.
+	 * This is used only on server side and is ignored from client side.
+	 * @param useBroker the boolean flag.
+	 */
 	public void setUseBroker(boolean useBroker) {
 		this.useBroker = useBroker;
 	}
@@ -181,8 +190,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 				}
 			}
 			if (this.brokerHandler == null) {
-				logger.warn("'AbstractBrokerMessageHandler' isn't present in the application context. The non-MESSAGE" +
-						"WebSocketMessages will be ignored.");
+				logger.warn("'AbstractBrokerMessageHandler' isn't present in the application context. " +
+						"The non-MESSAGE WebSocketMessages will be ignored.");
 			}
 		}
 	}
@@ -249,7 +258,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		if ((messageType == null || SimpMessageType.MESSAGE.equals(messageType))
 				&& !checkDestinationPrefix(headerAccessor.getDestination())) {
 			headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
-			sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+			sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
 		}
 		else {
 			if (this.brokerHandler != null) {
