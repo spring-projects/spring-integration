@@ -188,7 +188,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			CONNECTION,
 			CONTENT_LENGTH,
 			CONTENT_TYPE,
-			MessageHeaders.CONTENT_TYPE,
 			COOKIE,
 			DATE,
 			EXPECT,
@@ -224,7 +223,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			CONTENT_MD5,
 			CONTENT_RANGE,
 			CONTENT_TYPE,
-			MessageHeaders.CONTENT_TYPE,
 			CONTENT_DISPOSITION,
 			TRANSFER_ENCODING,
 			DATE,
@@ -266,6 +264,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private volatile String[] outboundHeaderNames = new String[0];
 
+	private volatile String[] outboundHeaderNamesWithContentType = new String[0];
+
 	private volatile String[] inboundHeaderNames = new String[0];
 
 	private volatile String[] excludedOutboundStandardRequestHeaderNames = new String[0];
@@ -289,6 +289,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
 		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
+		this.outboundHeaderNamesWithContentType = new String[this.outboundHeaderNames.length + 1];
+		System.arraycopy(this.outboundHeaderNames, 0, this.outboundHeaderNamesWithContentType, 0,
+				this.outboundHeaderNames.length);
+		this.outboundHeaderNamesWithContentType[this.outboundHeaderNamesWithContentType.length - 1]
+				= MessageHeaders.CONTENT_TYPE;
 	}
 
 	/**
@@ -351,7 +356,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				Object value = headers.get(name);
 				if (value != null) {
 					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) &&
-							!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
+							!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name) &&
+							!MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
 						// prefix the user-defined header names if not already prefixed
 
 						name = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
@@ -430,6 +436,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private boolean shouldMapOutboundHeader(String headerName) {
+		String[] outboundHeaderNames = this.outboundHeaderNames;
+
 		if (this.outboundHeaderNames == HTTP_RESPONSE_HEADER_NAMES) { // a default inbound mapper
 			/*
 			 * When using the default response header name list, suppress the
@@ -443,6 +451,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			}
 		}
 		else if (this.outboundHeaderNames == HTTP_REQUEST_HEADER_NAMES) { // a default outbound mapper
+			outboundHeaderNames = this.outboundHeaderNamesWithContentType;
 			/*
 			 * When using the default request header name list, suppress the
 			 * mapping of exclusions for specific headers.
@@ -454,7 +463,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				return false;
 			}
 		}
-		return this.shouldMapHeader(headerName, this.outboundHeaderNames);
+		return this.shouldMapHeader(headerName, outboundHeaderNames);
 	}
 
 	private boolean shouldMapInboundHeader(String headerName) {
