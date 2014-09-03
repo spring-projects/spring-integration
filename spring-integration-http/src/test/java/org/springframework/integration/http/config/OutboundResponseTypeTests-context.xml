@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-http="http://www.springframework.org/schema/integration/http"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/http
+	    http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util
+		http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<bean id="portBean" class="org.springframework.integration.http.config.OutboundResponseTypeTests$Port" />
+	<bean id="portBean" class="org.springframework.integration.http.config.OutboundResponseTypeTests$Port"/>
 
 	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="requestChannel"
@@ -40,10 +44,15 @@
 							   request-channel="invalidResponseTypeChannel"
 							   expected-response-type-expression="new java.util.Date()"/>
 
+	<int:chain input-channel="contentTypePropagationChannel" output-channel="nullChannel">
+		<int:object-to-json-transformer/>
+		<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"/>
+	</int:chain>
+
 
 	<util:list id="stringAndSerializingConverters">
-		<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter" />
-		<bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+		<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
+		<bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
 	</util:list>
 
 	<int:channel id="replyChannel">
