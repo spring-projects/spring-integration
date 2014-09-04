@@ -40,7 +40,7 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 
 	private static final Log logger = LogFactory.getLog(HttpIntegrationConfigurationInitializer.class);
 
-	private static boolean servletPresent = ClassUtils.isPresent("javax.servlet.Servlet",
+	private static final boolean servletPresent = ClassUtils.isPresent("javax.servlet.Servlet",
 			HttpIntegrationConfigurationInitializer.class.getClassLoader());
 
 	@Override
@@ -49,7 +49,8 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 			this.registerRequestMappingHandlerMappingIfNecessary((BeanDefinitionRegistry) beanFactory);
 		}
 		else {
-			logger.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory' isn't an instance of `BeanDefinitionRegistry`.");
+			logger.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory'" +
+					" isn't an instance of `BeanDefinitionRegistry`.");
 		}
 	}
 
@@ -64,12 +65,13 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 	 * the HTTP server components.
 	 */
 	private void registerRequestMappingHandlerMappingIfNecessary(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME) && servletPresent) {
+		if (servletPresent && !registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
 			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			requestMappingBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, 0);
-			registry.registerBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME, requestMappingBuilder.getBeanDefinition());
+			registry.registerBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME,
+					requestMappingBuilder.getBeanDefinition());
 		}
 	}
 

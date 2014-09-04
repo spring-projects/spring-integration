@@ -1,22 +1,456 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/websocket"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		xmlns:integration="http://www.springframework.org/schema/integration"
-		targetNamespace="http://www.springframework.org/schema/integration/websocket"
-		elementFormDefault="qualified"
-		attributeFormDefault="unqualified">
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/websocket"
+			elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.1.xsd"/>
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.1.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
 	Defines the configuration elements for Spring Integration's WebSocket adapters.
 		]]></xsd:documentation>
 	</xsd:annotation>
+
+	<xsd:element name="client-container">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures the 'ClientWebSocketContainer' bean.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="http-headers" minOccurs="0">
+					<xsd:complexType>
+						<xsd:complexContent>
+							<xsd:extension base="beans:mapType">
+								<xsd:attribute name="key-type" fixed="java.lang.String" use="prohibited"/>
+								<xsd:attribute name="value-type" fixed="java.util.List" use="prohibited"/>
+							</xsd:extension>
+						</xsd:complexContent>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="client" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The reference to a 'WebSocketClient' bean, which encapsulates the low-level
+						connection and WebSocketSession handling operations. Required.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.socket.client.WebSocketClient"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="uri" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The 'uri' or 'uriTemplate' to the target WebSocket service. If is used as 'uriTemplate'
+						with URI variable placeholders the 'uri-variables' attribute is required.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="uri-variables" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma-separated values for the URI variable placeholders within 'uri'.
+						See 'UriComponents.expand(Object... uriVariableValues)'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="origin" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The 'Origin' HTTP header value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-time-limit" default="10000">
+				<xsd:annotation>
+					<xsd:documentation>
+						The WebSocket session 'send' timeout limit.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="send-buffer-size-limit" default="524288">
+				<xsd:annotation>
+					<xsd:documentation>
+						The WebSocket session 'send' message size limit.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="server-container">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures the 'ServerWebSocketContainer' bean.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="sockjs" minOccurs="0">
+					<xsd:complexType>
+						<xsd:attribute name="client-library-url" type="xsd:string"
+								default="https://d1fxtkz8shb9d2.cloudfront.net/sockjs-0.3.4.min.js">
+							<xsd:annotation>
+								<xsd:documentation>
+									Transports with no native cross-domain communication (e.g. "eventsource",
+									"htmlfile") must get a simple page from the "foreign" domain in an invisible
+									iframe so that code in the iframe can run from a domain local to the SockJS
+									server. Since the iframe needs to load the SockJS javascript client library,
+									this property allows specifying where to load it from.
+
+									By default this is set to point to
+									"https://d1fxtkz8shb9d2.cloudfront.net/sockjs-0.3.4.min.js". However it can
+									also be set to point to a URL served by the application.
+
+									Note that it's possible to specify a relative URL in which case the URL
+									must be relative to the iframe URL. For example assuming a SockJS endpoint
+									mapped to "/sockjs", and resulting iframe URL "/sockjs/iframe.html", then the
+									The relative URL must start with "../../" to traverse up to the location
+									above the SockJS mapping. In case of a prefix-based Servlet mapping one more
+									traversal may be needed.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="stream-bytes-limit" default="131072">
+							<xsd:annotation>
+								<xsd:documentation>
+									Minimum number of bytes that can be send over a single HTTP streaming request before
+									it will be closed.
+									Defaults to 128K (i.e. 128 1024).
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:int xsd:string"/>
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="session-cookie-needed" default="true">
+							<xsd:annotation>
+								<xsd:documentation>
+									The "cookie_needed" value in the response from the SockJs "/info" endpoint.
+									This property indicates whether the use of a JSESSIONID cookie is required for the
+									application to function correctly,
+									e.g. for load balancing or in Java Servlet containers for the use of an HTTP
+									session.
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:boolean xsd:string"/>
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="heartbeat-time" default="25000">
+							<xsd:annotation>
+								<xsd:documentation>
+									The amount of time in milliseconds when the server has not sent any messages and
+									after which the server
+									should send a heartbeat frame to the client in order to keep the connection from
+									breaking.
+									The default value is 25,000 (25 seconds).
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:long xsd:string"/>
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="disconnect-delay" default="5000">
+							<xsd:annotation>
+								<xsd:documentation>
+									The amount of time in milliseconds before a client is considered disconnected after
+									not having
+									a receiving connection, i.e. an active connection over which the server can send
+									data to the client.
+									The default value is 5000.
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:long xsd:string"/>
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="message-cache-size" default="100">
+							<xsd:annotation>
+								<xsd:documentation>
+									The number of server-to-client messages that a session can cache while waiting for
+									the next HTTP polling request from the client.
+									The default size is 100.
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:int xsd:string"/>
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="websocket-enabled" default="true">
+							<xsd:annotation>
+								<xsd:documentation>
+									Some load balancers don't support websockets. Set this option to "false" to disable
+									the WebSocket transport on the server side.
+									The default value is "true".
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:boolean xsd:string"/>
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="scheduler" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>
+									The bean name of a TaskScheduler; a new ThreadPoolTaskScheduler instance will be
+									created if no value is provided.
+									This scheduler instance will be used for scheduling heart-beat messages.
+								</xsd:documentation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="org.springframework.scheduling.TaskScheduler"/>
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="message-codec" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>
+									The bean name of a SockJsMessageCodec to use for encoding and decoding SockJS
+									messages.
+									By default Jackson2SockJsMessageCodec is used requiring the Jackson library to be
+									present on the classpath.
+								</xsd:documentation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec"/>
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="transport-handlers" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>
+									List of 'org.springframework.web.socket.sockjs.transport.TransportHandler'
+									bean references.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="path" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						A path (or comma-separated paths) that maps a particular request to a 'WebSocketHandler'.
+						Exact path mapping URIs (such as "/myPath") are supported as well
+						as ant-style path patterns (such as /myPath/**).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="handshake-handler" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The reference to a 'HandshakeHandler' bean.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.socket.server.HandshakeHandler"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="handshake-interceptors" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						List of 'org.springframework.web.socket.server.HandshakeInterceptor' bean references.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-time-limit" default="10000">
+				<xsd:annotation>
+					<xsd:documentation>
+						The WebSocket session 'send' timeout limit.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="send-buffer-size-limit" default="524288">
+				<xsd:annotation>
+					<xsd:documentation>
+						The WebSocket session 'send' message size limit.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will send a WebSocket Message to the provided
+				'IntegrationWebSocketContainer'.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="webSocketAdapterType">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1"/>
+					</xsd:choice>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will receive WebSocket Messages from the provided
+				'IntegrationWebSocketContainer' forward converted messages to a Message Channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="webSocketAdapterType">
+					<xsd:attribute name="error-channel" use="optional" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Message Channel to which error Messages should be sent.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="send-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Maximum amount of time in milliseconds to wait when sending a message
+								to the channel if such channel may block.
+								For example, a Queue Channel can block until space is available
+								if its maximum capacity has been reached.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="payload-type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation source="java:java.lang.Class">
+								Fully qualified name of the java type for the target `payload`
+								to convert from the incoming WebSocketMessage.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="use-broker" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Flag to indicate if this adapter will send non-MESSAGE type WebSocketMessages
+								and messages with broker destinations to the `AbstractBrokerMessageHandler`
+								from the application context.
+								If the `AbstractBrokerMessageHandler` bean isn't present the warn log is emitted
+								and adapter behaviour is falling back to default like this attribute is 'false'.
+								This attribute is used only on server side. On client side it is ignored.
+								Defaults to 'false'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="webSocketAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Base type for the 'inbound-channel-adapter' and 'outbound-channel-adapter' elements.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="container" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The reference to the 'IntegrationWebSocketContainer' bean, which encapsulates the low-level
+					connection and WebSocketSession handling operations. Required.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+								type="org.springframework.integration.websocket.IntegrationWebSocketContainer"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default-protocol-handler" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Optional reference to a 'org.springframework.web.socket.messaging.SubProtocolHandler' instance.
+					It is used when the client did not request a sub-protocol or it is a single protocol-handler.
+					If this reference or 'protocol-handlers' list aren't provided the `PassThruSubProtocolHandler`
+					is used by default.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.socket.messaging.SubProtocolHandler"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="protocol-handlers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					List of 'org.springframework.web.socket.messaging.SubProtocolHandler' bean references
+					for this Channel Adapter. If only single bean reference is provided and 'default-protocol-handler'
+					isn't provided, that single 'SubProtocolHandler' will be presented as 'default-protocol-handler'.
+					If this attribute or 'default-protocol-handler' aren't provided the `PassThruSubProtocolHandler`
+					is used by default.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converters" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					List of 'org.springframework.messaging.converter.MessageConverter' bean references
+					for this Channel Adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="merge-with-default-converters" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate if the default converters should be registered after any custom
+					converters. This flag is used only if message-converters
+					are provided, otherwise all default converters will be registered.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+	</xsd:complexType>
 
 </xsd:schema>

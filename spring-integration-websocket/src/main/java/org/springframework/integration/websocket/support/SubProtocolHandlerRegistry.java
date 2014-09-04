@@ -85,7 +85,7 @@ public final class SubProtocolHandlerRegistry {
 		}
 		else {
 			this.defaultProtocolHandler = defaultProtocolHandler;
-			if (this.protocolHandlers.isEmpty()) {
+			if (this.protocolHandlers.isEmpty() && this.defaultProtocolHandler != null) {
 				List<String> protocols = this.defaultProtocolHandler.getSupportedProtocols();
 				for (String protocol : protocols) {
 					SubProtocolHandler replaced = this.protocolHandlers.put(protocol, this.defaultProtocolHandler);
