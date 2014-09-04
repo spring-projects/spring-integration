@@ -17,23 +17,21 @@
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMResult;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xml.transform.StringResult;
 
 /**
@@ -114,9 +112,7 @@ public class MarshallingTransformerParserTests  {
 		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		String actual = doc.getDocumentElement().getTextContent();
-		assertThat(actual, Matchers.containsString("[Payload"));
-		assertThat(actual, Matchers.containsString("=hello]"));
-		assertThat(actual, Matchers.containsString("[Headers="));
+		assertTrue(actual.matches("(?i).*\\[Payload.*=hello.*Headers=.*"));
 	}
 
 }
