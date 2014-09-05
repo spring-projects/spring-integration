@@ -27,6 +27,13 @@
 				More documentation to follow.
 			</para>
 		</section>
+		<section id="4.1-BoonJsonObjectMapper">
+			<title>BoonJsonObjectMapper</title>
+			<para>
+				The <emphasis>Boon</emphasis> <interfacename>JsonObjectMapper</interfacename> is now provided
+				for the JSON transformers. See <xref linkend="transformer"/> for more information.
+			</para>
+		</section>
 	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>
@@ -169,13 +176,6 @@
 				The new <code>template-channel-transacted</code> attribute has been introduced for AMQP
 				<classname>MessageChannel</classname>s.
 				See <xref linkend="amqp-channels"/> for more information.
-			</para>
-		</section>
-		<section id="4.1-json-transformers">
-			<title>BoonJsonObjectMapper</title>
-			<para>
-				The <emphasis>Boon</emphasis> <interfacename>JsonObjectMapper</interfacename> is now provided
-				for the JSON transformers. See <xref linkend="transformer"/> for more information.
 			</para>
 		</section>
 		<section id="4.1-syslog">
