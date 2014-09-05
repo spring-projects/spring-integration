@@ -63,10 +63,10 @@ subprojects { subproject ->
 		ftpServerVersion = '1.0.6'
 
 
-		springVersionDefault = '3.2.8.RELEASE'
+		springVersionDefault = '3.2.11.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
-		springAmqpVersion = '1.2.0.RELEASE'
+		springAmqpVersion = '1.2.2.RELEASE'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.1.0.RELEASE'
 		lettuceVersion = '2.3.3'
