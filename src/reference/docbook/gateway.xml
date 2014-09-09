@@ -497,10 +497,10 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
     <code>submitListenable()</code> method is invoked.
     </para>
     <programlisting language="java"><![CDATA[ListenableFuture<String> result = this.asyncGateway.async("foo");
-result.addCallback(new ListenableFutureCallback<Thread>() {
+result.addCallback(new ListenableFutureCallback<String>() {
 
     @Override
-    public void onSuccess(Thread result) {
+    public void onSuccess(String result) {
         ...
     }
 
