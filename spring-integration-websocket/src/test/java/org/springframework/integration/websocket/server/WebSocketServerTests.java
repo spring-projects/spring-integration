@@ -16,11 +16,13 @@
 
 package org.springframework.integration.websocket.server;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -28,10 +30,13 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -44,8 +49,8 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
-import org.springframework.integration.websocket.JettyWebSocketTestServer;
 import org.springframework.integration.websocket.ServerWebSocketContainer;
+import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter;
 import org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
@@ -64,7 +69,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -130,19 +135,37 @@ public class WebSocketServerTests {
 		assertEquals("subs1", subscription.get(0));
 	}
 
+	@Test
+	public void testBrokerIsNotPresented() throws Exception {
+		WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
+				new WebSocketInboundChannelAdapter(Mockito.mock(ServerWebSocketContainer.class));
+		webSocketInboundChannelAdapter.setOutputChannel(new DirectChannel());
+		webSocketInboundChannelAdapter.setUseBroker(true);
+		webSocketInboundChannelAdapter.setBeanFactory(Mockito.mock(BeanFactory.class));
+		webSocketInboundChannelAdapter.setApplicationContext(Mockito.mock(ApplicationContext.class));
+		try {
+			webSocketInboundChannelAdapter.afterPropertiesSet();
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("WebSocket Broker Relay isn't present in the application context;"));
+		}
+
+	}
 
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
 
 		@Bean
-		public JettyWebSocketTestServer server() {
-			return new JettyWebSocketTestServer(ServerConfig.class);
+		public TomcatWebSocketTestServer server() {
+			return new TomcatWebSocketTestServer(ServerConfig.class);
 		}
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
 		}
 
 		@Bean

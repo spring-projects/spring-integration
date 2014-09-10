@@ -41,7 +41,7 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
-import org.springframework.integration.websocket.JettyWebSocketTestServer;
+import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.integration.websocket.TestServerConfig;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
@@ -55,6 +55,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
@@ -124,13 +125,13 @@ public class WebSocketInboundChannelAdapterTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		public JettyWebSocketTestServer server() {
-			return new JettyWebSocketTestServer(TestServerConfig.class);
+		public TomcatWebSocketTestServer server() {
+			return new TomcatWebSocketTestServer(TestServerConfig.class);
 		}
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
 		}
 
 		@Bean

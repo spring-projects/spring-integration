@@ -25,7 +25,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -40,7 +39,7 @@ import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 /**
  * @author Artem Bilan
@@ -48,7 +47,7 @@ import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
  */
 public class ClientWebSocketContainerTests {
 
-	private final static JettyWebSocketTestServer server = new JettyWebSocketTestServer(TestServerConfig.class);
+	private final static TomcatWebSocketTestServer server = new TomcatWebSocketTestServer(TestServerConfig.class);
 
 	@BeforeClass
 	public static void setup() throws Exception {
@@ -63,7 +62,7 @@ public class ClientWebSocketContainerTests {
 	@Test
 	public void testClientWebSocketContainer() throws Exception {
 		ClientWebSocketContainer container =
-				new ClientWebSocketContainer(new JettyWebSocketClient(), server.getWsBaseUrl() + "/ws/websocket");
+				new ClientWebSocketContainer(new StandardWebSocketClient(), server.getWsBaseUrl() + "/ws/websocket");
 
 		TestWebSocketListener messageListener = new TestWebSocketListener();
 		container.setMessageListener(messageListener);
@@ -75,8 +74,7 @@ public class ClientWebSocketContainerTests {
 		assertTrue(session.isOpen());
 		assertEquals("v10.stomp", session.getAcceptedProtocol());
 
-		//TODO Jetty Server treats empty ByteBuffer as 'null' for PongMessage
-		session.sendMessage(new PingMessage(ByteBuffer.wrap("ping".getBytes())));
+		session.sendMessage(new PingMessage());
 
 		assertTrue(messageListener.messageLatch.await(10, TimeUnit.SECONDS));
 

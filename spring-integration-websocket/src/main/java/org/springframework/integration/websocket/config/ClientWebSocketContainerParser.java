@@ -50,11 +50,9 @@ public class ClientWebSocketContainerParser extends AbstractSingleBeanDefinition
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		builder.addConstructorArgReference(element.getAttribute("client"))
-				.addConstructorArgValue(element.getAttribute("uri"));
-		String uriVariables = element.getAttribute("uri-variables");
-		if (StringUtils.hasText(uriVariables)) {
-			builder.addConstructorArgValue(StringUtils.commaDelimitedListToStringArray(uriVariables));
-		}
+				.addConstructorArgValue(element.getAttribute("uri"))
+				.addConstructorArgValue(StringUtils.commaDelimitedListToStringArray(element.getAttribute("uri-variables")));
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-buffer-size-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-time-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "origin");

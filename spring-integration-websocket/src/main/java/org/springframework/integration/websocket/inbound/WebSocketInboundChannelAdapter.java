@@ -189,10 +189,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 					break;
 				}
 			}
-			if (this.brokerHandler == null) {
-				logger.warn("'AbstractBrokerMessageHandler' isn't present in the application context. " +
-						"The non-MESSAGE WebSocketMessages will be ignored.");
-			}
+			Assert.state(this.brokerHandler != null,
+					"WebSocket Broker Relay isn't present in the application context; " +
+							"it is required when 'useBroker = true'.");
 		}
 	}
 
