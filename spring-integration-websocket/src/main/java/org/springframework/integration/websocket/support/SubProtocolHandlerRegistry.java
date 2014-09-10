@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 
@@ -108,7 +109,7 @@ public final class SubProtocolHandlerRegistry {
 	public SubProtocolHandler findProtocolHandler(WebSocketSession session) {
 		SubProtocolHandler handler;
 		String protocol = session.getAcceptedProtocol();
-		if (protocol != null) {
+		if (StringUtils.hasText(protocol)) {
 			handler = this.protocolHandlers.get(protocol);
 			Assert.state(handler != null,
 					"No handler for sub-protocol '" + protocol + "', handlers = " + this.protocolHandlers);

@@ -105,6 +105,10 @@ public class WebSocketParserTests {
 	private IntegrationWebSocketContainer clientWebSocketContainer;
 
 	@Autowired
+	@Qualifier("simpleClientWebSocketContainer")
+	private IntegrationWebSocketContainer simpleClientWebSocketContainer;
+
+	@Autowired
 	@Qualifier("customInboundAdapter")
 	private WebSocketInboundChannelAdapter customInboundAdapter;
 
@@ -235,6 +239,19 @@ public class WebSocketParserTests {
 				WebSocketHttpHeaders.class);
 		assertEquals("FOO", headers.getOrigin());
 		assertEquals(Arrays.asList("BAR", "baz"), headers.get("FOO"));
+
+		assertEquals(10 * 1000, TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendTimeLimit"));
+		assertEquals(512 * 1024, TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendBufferSizeLimit"));
+		assertEquals(new URI("ws://foo.bar"),
+				TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.uri", URI.class));
+		assertSame(this.webSocketClient,
+				TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.client"));
+		assertEquals(Integer.MAX_VALUE,
+				TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.phase"));
+		assertFalse(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer,
+				"connectionManager.autoStartup", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "headers",
+				WebSocketHttpHeaders.class).isEmpty());
 	}
 
 	@Test
