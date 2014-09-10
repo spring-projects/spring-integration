@@ -181,7 +181,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		}
 		//The 'rometools' has been introduced since Spring Framework 4.1, hence we should check the version
 		// of Spring Framework using the class 'org.springframework.http.RequestEntity' from that version.
-		if ((spring41Present && romeToolsPresent) || romePresent) {
+		if ((spring41Present && romeToolsPresent) || (!spring41Present && romePresent)) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
