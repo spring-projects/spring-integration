@@ -376,7 +376,11 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" linkends="aggxml21-txt" /><![CDATA[
 		expire-groups-on-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
 
-		scheduler="taskScheduler" /> ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
+		scheduler="taskScheduler" > ]]><co id="aggxml23" linkends="aggxml23-txt" />
+
+		<![CDATA[<transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" />
+		<![CDATA[<transactional/> ]]><co id="aggxml25" linkends="aggxml25-txt" />
+		<![CDATA[
 
 <int:channel id="outputChannel"/>
 
@@ -610,6 +614,26 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				<code>group-timeout-expression</code> is not specified.
 			</para>
 	  </callout>
+	  <callout arearefs="aggxml24" id="aggxml24-txt">
+			<para>
+				Since <emphasis>version 4.1</emphasis>. Allows to start a transaction for the
+				<code>forceComplete</code> operation, which only can be initiated from the
+				<code>group-timeout(-expression)</code> or by <classname>MessageGroupStoreReaper</classname> and
+				isn't included to the normal <code>release/discard</code> operation. Only this sub-element or
+				<code>&lt;advice-chain/&gt;</code> is allowed.
+			</para>
+	  </callout>
+		<callout arearefs="aggxml25" id="aggxml25-txt">
+			<para>
+				Since <emphasis>version 4.1</emphasis>. Allows to configure any
+				<interfacename>Advice</interfacename> for the
+				<code>forceComplete</code> operation, which only can be initiated from the
+				<code>group-timeout(-expression)</code> or by <classname>MessageGroupStoreReaper</classname> and
+				isn't included to the normal <code>release/discard</code> operation. Only this sub-element or
+				<code>&lt;transactional/&gt;</code> is allowed. Transaction <interfacename>Advice</interfacename>
+				can be configured here as well using Spring <code>tx</code> namespace.
+			</para>
+		</callout>
 
     </calloutlist>
 

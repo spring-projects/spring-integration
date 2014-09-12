@@ -22,6 +22,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
@@ -78,6 +79,12 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("group-timeout", "group-timeout-expression",
 						parserContext, element, false);
 		builder.addPropertyValue("groupTimeoutExpression", expressionDef);
+
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
+
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
+				builder.getRawBeanDefinition(), parserContext, "forceReleaseAdviceChain");
 	}
 
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
