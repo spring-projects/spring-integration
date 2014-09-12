@@ -31,8 +31,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
 
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.fetcher.FeedFetcher;
+import com.rometools.fetcher.FeedFetcher;
+import com.rometools.rome.feed.synd.SyndEntry;
 
 /**
  * @author Oleg Zhurakousky
@@ -47,7 +47,8 @@ public class FeedEntryMessageSourceTests {
 
 	@Before
 	public void prepare() {
-		File metadataStoreFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "metadata-store.properties");
+		File metadataStoreFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/",
+				"metadata-store.properties");
 		if (metadataStoreFile.exists()) {
 			metadataStoreFile.delete();
 		}

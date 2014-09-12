@@ -67,31 +67,30 @@ subprojects { subproject ->
 	targetCompatibility=1.6
 
 	ext {
-		activeMqVersion = '5.9.0'
-		aspectjVersion = '1.8.0'
+		activeMqVersion = '5.10.0'
+		aspectjVersion = '1.8.2'
 		apacheSshdVersion = '0.10.1'
-		boonVersion = '0.22'
+		boonVersion = '0.25'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
-		httpClientVersion = '3.1'
-		derbyVersion = '10.10.1.1'
+		derbyVersion = '10.10.2.0'
 		eclipseLinkVersion = '2.4.2'
 		ftpServerVersion = '1.0.6'
-		groovyVersion = '2.3.1'
+		groovyVersion = '2.3.6'
 		guavaVersion = '16.0.1'
 		hamcrestVersion = '1.3'
-		hibernateVersion = '4.2.11.Final'
+		hibernateVersion = '4.3.6.Final'
 		hsqldbVersion = '2.3.2'
-		h2Version = '1.3.175'
-		jackson2Version = '2.3.2'
+		h2Version = '1.4.180'
+		jackson2Version = '2.4.2'
 		javaxActivationVersion = '1.1.1'
-		javaxMailVersion = '1.4.7'
-		jedisVersion = '2.4.2'
-		jettyVersion = '9.2.1.v20140609'
+		javaxMailVersion = '1.5.2'
+		jedisVersion = '2.5.2'
+		jettyVersion = '9.2.2.v20140723'
 		jmsApiVersion = '1.1-rev-1'
 		jpaApiVersion = '2.0.0'
-		jrubyVersion = '1.7.12'
+		jrubyVersion = '1.7.15'
 		jschVersion = '0.1.51'
 		jsonpathVersion = '0.9.1'
 		junitVersion = '4.11'
@@ -105,7 +104,6 @@ subprojects { subproject ->
 		reactorVersion = '1.1.4.RELEASE'
 		reactorSpringVersion = '1.1.3.RELEASE'
 		romeToolsVersion = '1.5.0'
-		romeVersion = '1.0.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
 		servletApiVersion = '3.1.0'
@@ -113,10 +111,10 @@ subprojects { subproject ->
 		smack3Version = '3.2.1'
 		smackVersion = '4.0.0'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.4.0.M1'
-		springDataMongoVersion = '1.5.0.RELEASE'
-		springDataRedisVersion = '1.3.0.RELEASE'
-		springGemfireVersion = '1.4.0.RELEASE'
-		springSecurityVersion = '3.2.4.RELEASE'
+		springDataMongoVersion = '1.6.0.RELEASE'
+		springDataRedisVersion = '1.4.0.RELEASE'
+		springGemfireVersion = '1.5.0.RELEASE'
+		springSecurityVersion = '3.2.5.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.1.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.0.RELEASE'
@@ -224,7 +222,6 @@ project('spring-integration-amqp') {
 	description = 'Spring Integration AMQP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-tx:$springVersion"
 		compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
 			exclude group: 'org.springframework', module: 'spring-aop'
 			exclude group: 'org.springframework', module: 'spring-context'
@@ -258,7 +255,6 @@ project('spring-integration-event') {
 	description = 'Spring Integration ApplicationEvent Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
 	}
 }
 
@@ -266,11 +262,7 @@ project('spring-integration-feed') {
 	description = 'Spring Integration RSS Feed Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
-		compile ("net.java.dev.rome:rome-fetcher:$romeVersion") {
-			exclude group: 'junit', module: 'junit'
-		}
-		compile "net.java.dev.rome:rome:$romeVersion"
+		compile "com.rometools:rome-fetcher:$romeToolsVersion"
 	}
 }
 
@@ -278,7 +270,6 @@ project('spring-integration-file') {
 	description = 'Spring Integration File Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
 		compile "commons-io:commons-io:$commonsIoVersion"
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
@@ -314,7 +305,6 @@ project('spring-integration-gemfire') {
 			exclude group: 'org.springframework', module: 'spring-core'
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
-		compile "org.springframework:spring-tx:$springVersion"
 		testCompile project(":spring-integration-stream")
 
 	}
@@ -336,16 +326,8 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
-		compile("net.java.dev.rome:rome-fetcher:$romeVersion") {
-			optional
-			exclude group: 'junit', module: 'junit'
-		}
-
-		compile("com.rometools:rome:$romeToolsVersion", optional) //For spring-web-4.1
-
+		compile("com.rometools:rome:$romeToolsVersion", optional)
 		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
-
-		testCompile "commons-httpclient:commons-httpclient:$httpClientVersion"
 	}
 }
 
@@ -353,7 +335,6 @@ project('spring-integration-ip') {
 	description = 'Spring Integration IP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
 		testCompile project(":spring-integration-stream")
 	}
 }
@@ -362,15 +343,13 @@ project('spring-integration-jdbc') {
 	description = 'Spring Integration JDBC Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
 		compile "com.google.guava:guava:$guavaVersion"
+
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
 		testCompile "org.apache.derby:derby:$derbyVersion"
 		testCompile "org.apache.derby:derbyclient:$derbyVersion"
-
 		testCompile "postgresql:postgresql:$postgresVersion"
 		testCompile "mysql:mysql-connector-java:$mysqlVersion"
 		testCompile "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
@@ -386,7 +365,6 @@ project('spring-integration-jms') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-jms:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
 		compile ("javax.jms:jms-api:$jmsApiVersion", provided)
 		testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
 		testCompile("org.apache.activemq:activemq-kahadb-store:$activeMqVersion") {
@@ -400,7 +378,6 @@ project('spring-integration-jmx') {
 	description = 'Spring Integration JMX Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
 	}
 }
@@ -409,9 +386,7 @@ project('spring-integration-jpa') {
 	description = 'Spring Integration JPA Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-orm:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.eclipse.persistence:javax.persistence:$jpaApiVersion"
 
 		testCompile "com.h2database:h2:$h2Version"
@@ -456,7 +431,6 @@ project('spring-integration-mongodb') {
 	description = 'Spring Integration MongoDB Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-tx:$springVersion"
 		compile("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") {
 			exclude group: 'org.springframework', module: 'spring-beans'
 			exclude group: 'org.springframework', module: 'spring-context'
@@ -479,7 +453,6 @@ project('spring-integration-redis') {
 	description = 'Spring Integration Redis Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-tx:$springVersion"
 		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
 			exclude group: 'org.springframework', module: 'spring-beans'
 			exclude group: 'org.springframework', module: 'spring-context'
@@ -496,8 +469,6 @@ project('spring-integration-rmi') {
 	description = 'Spring Integration RMI Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-aop:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
 	}
 }
 
@@ -515,8 +486,6 @@ project('spring-integration-security') {
 	description = 'Spring Integration Security Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-aop:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
 		compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
 			exclude group: 'org.springframework', module: 'spring-support'
 		}
@@ -529,7 +498,6 @@ project('spring-integration-security') {
 project('spring-integration-sftp') {
 	description = 'Spring Integration SFTP Support'
 	dependencies {
-		compile project(":spring-integration-core")
 		compile project(":spring-integration-file")
 		compile project(":spring-integration-stream")
 		compile "com.jcraft:jsch:$jschVersion"
@@ -543,7 +511,6 @@ project('spring-integration-stream') {
 	description = 'Spring Integration Stream Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
 	}
 }
 
@@ -565,7 +532,6 @@ project('spring-integration-test') {
 		compile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
-		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 	}
 }
@@ -615,7 +581,6 @@ project('spring-integration-ws') {
 	description = 'Spring Integration Web Services Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-expression:$springVersion"
 		compile "org.springframework:spring-oxm:$springVersion"
 		compile "org.springframework:spring-webmvc:$springVersion"
 		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
@@ -655,7 +620,6 @@ project('spring-integration-xml') {
 	description = 'Spring Integration XML Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-oxm:$springVersion"
 		compile ("org.springframework.ws:spring-xml:$springWsVersion") {
 			exclude group: 'org.springframework', module: 'spring-beans'
