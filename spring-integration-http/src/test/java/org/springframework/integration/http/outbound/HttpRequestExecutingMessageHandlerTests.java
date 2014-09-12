@@ -719,7 +719,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
 		channel.send(MessageBuilder.withPayload("test").build());
 		Mockito.verify(restTemplate).exchange(Mockito.eq(new URI("http://localhost/test1/%2f")), Mockito.eq(HttpMethod.POST),
-				Mockito.any(HttpEntity.class), Mockito.eq((Class<?>) null));
+				Mockito.any(HttpEntity.class), Mockito.<Class<Object>>eq(null));
 	}
 
 	@Test //INT-1029
@@ -733,7 +733,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Message<?> receive = output.receive();
 		assertEquals(HttpStatus.OK, ((ResponseEntity<?>) receive.getPayload()).getStatusCode());
 		Mockito.verify(restTemplate)
-				.exchange(Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http%20Outbound%20Gateway%20Within%20Chain")),
+				.exchange(Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http+Outbound+Gateway+Within+Chain")),
 						Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.eq(new ParameterizedTypeReference<List<String>>() {
 
 				}));

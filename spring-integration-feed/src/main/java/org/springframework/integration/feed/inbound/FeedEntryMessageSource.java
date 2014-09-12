@@ -36,13 +36,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.fetcher.FeedFetcher;
-import com.sun.syndication.fetcher.FetcherEvent;
-import com.sun.syndication.fetcher.FetcherListener;
-import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
-import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
+import com.rometools.fetcher.FeedFetcher;
+import com.rometools.fetcher.FetcherEvent;
+import com.rometools.fetcher.FetcherListener;
+import com.rometools.fetcher.impl.HashMapFeedInfoCache;
+import com.rometools.fetcher.impl.HttpURLFeedFetcher;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
 
 /**
  * This implementation of {@link MessageSource} will produce individual
@@ -81,7 +81,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	 * Creates a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
 	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
 	 * {@link FeedFetcher} via the alternate constructor.
-	 *
 	 * @param feedUrl The URL.
 	 * @param metadataKey The metadata key.
 	 */
@@ -91,7 +90,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	/**
 	 * Creates a FeedEntryMessageSource that will use the provided FeedFetcher to read from the given feed URL.
-	 *
 	 * @param feedUrl The URL.
 	 * @param metadataKey The metadata key.
 	 * @param feedFetcher The feed fetcher.
@@ -118,7 +116,8 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	@Override
 	public Message<SyndEntry> receive() {
-		Assert.isTrue(this.initialized, "'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
+		Assert.isTrue(this.initialized,
+				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
 		SyndEntry entry = doReceive();
 		if (entry == null) {
 			return null;
@@ -176,7 +175,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		return next;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void populateEntryList() {
 		SyndFeed syndFeed = this.getFeed();
 		if (syndFeed != null) {
@@ -244,7 +242,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	private class FeedQueueUpdatingFetcherListener implements FetcherListener {
 
 		/**
-		 * @see com.sun.syndication.fetcher.FetcherListener#fetcherEvent(com.sun.syndication.fetcher.FetcherEvent)
+		 * @see FetcherListener#fetcherEvent(FetcherEvent)
 		 */
 		@Override
 		public void fetcherEvent(final FetcherEvent event) {
