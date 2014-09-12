@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.handler.LoggingHandler.Level;
 import org.springframework.messaging.support.GenericMessage;
@@ -41,6 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -90,12 +92,12 @@ public class LoggingHandlerTests {
 		expression = spy(expression);
 		accessor.setPropertyValue("expression", expression);
 		when(log.isInfoEnabled()).thenReturn(false);
-		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
-		verify(expression, never()).getValue(Mockito.any(EvaluationContext.class), Mockito.any());
+		loggingHandler.handleMessage(new GenericMessage<>("foo"));
+		verify(expression, never()).getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class));
 
 		when(log.isInfoEnabled()).thenReturn(true);
-		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
-		verify(expression, times(1)).getValue(Mockito.any(EvaluationContext.class), Mockito.any());
+		loggingHandler.handleMessage(new GenericMessage<>("foo"));
+		verify(expression, times(1)).getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class));
 	}
 
 	@Test
@@ -106,12 +108,12 @@ public class LoggingHandlerTests {
 		log = spy(log);
 		accessor.setPropertyValue("messageLogger", log);
 		when(log.isInfoEnabled()).thenReturn(true);
-		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
+		loggingHandler.handleMessage(new GenericMessage<>("foo"));
 		verify(log, times(1)).info(Mockito.anyString());
 		verify(log, never()).warn(Mockito.anyString());
 
 		loggingHandler.setLevel(Level.WARN);
-		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
+		loggingHandler.handleMessage(new GenericMessage<>("foo"));
 		verify(log, times(1)).info(Mockito.anyString());
 		verify(log, times(1)).warn(Mockito.anyString());
 	}
@@ -134,6 +136,7 @@ public class LoggingHandlerTests {
 		public int getAge() {
 			return this.age;
 		}
+
 	}
 
 }
