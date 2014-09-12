@@ -203,5 +203,14 @@
 				See <xref linkend="async-gateway"/>.
 			</para>
 		</section>
+		<section id="4.1-aggregator-advice-chain">
+			<title>Aggregator Advice Chain</title>
+			<para>
+				<code>Aggregator</code>s and <code>Resequencer</code>s now support an
+				<code>&lt;expire-advice-chain/&gt;</code> and <code>&lt;expire-transactional/&gt;</code> sub-elements
+				to <emphasis>advise</emphasis> the <code>forceComplete</code> operation.
+				See <xref linkend="aggregator-config"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

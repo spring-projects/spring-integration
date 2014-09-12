@@ -376,7 +376,10 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" linkends="aggxml21-txt" /><![CDATA[
 		expire-groups-on-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
 
-		scheduler="taskScheduler" /> ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
+		scheduler="taskScheduler" > ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
+			<expire-transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" /><![CDATA[
+			<expire-advice-chain/> ]]><co id="aggxml25" linkends="aggxml25-txt" /><![CDATA[
+</aggregator>
 
 <int:channel id="outputChannel"/>
 
@@ -610,6 +613,26 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				<code>group-timeout-expression</code> is not specified.
 			</para>
 	  </callout>
+	  <callout arearefs="aggxml24" id="aggxml24-txt">
+			<para>
+				Since <emphasis>version 4.1</emphasis>. Allows a transaction to be started for the
+				<code>forceComplete</code> operation. It is initiated from a
+				<code>group-timeout(-expression)</code> or by a <classname>MessageGroupStoreReaper</classname> and
+				is not applied to the normal <code>add/release/discard</code> operations. Only this sub-element or
+				<code>&lt;expire-advice-chain/&gt;</code> is allowed.
+			</para>
+	  </callout>
+		<callout arearefs="aggxml25" id="aggxml25-txt">
+			<para>
+				Since <emphasis>version 4.1</emphasis>. Allows the configuration of any
+				<interfacename>Advice</interfacename> for the
+				<code>forceComplete</code> operation. It is initiated from a
+				<code>group-timeout(-expression)</code> or by a <classname>MessageGroupStoreReaper</classname> and
+				is not applied to the normal <code>add/release/discard</code> operations. Only this sub-element or
+				<code>&lt;expire-transactional/&gt;</code> is allowed. A transaction <interfacename>Advice</interfacename>
+				can also be configured here using the Spring <code>tx</code> namespace.
+			</para>
+		</callout>
 
     </calloutlist>
 

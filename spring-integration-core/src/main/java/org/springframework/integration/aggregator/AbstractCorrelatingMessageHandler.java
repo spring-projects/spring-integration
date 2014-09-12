@@ -24,9 +24,11 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 
+import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -116,6 +118,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private volatile Expression groupTimeoutExpression;
 
+	private volatile List<Advice> forceReleaseAdviceChain;
+
+	private MessageGroupProcessor forceReleaseProcessor = new ForceReleaseMessageGroupProcessor();
+
 	private EvaluationContext evaluationContext;
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
@@ -157,7 +163,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				forceComplete(group);
+				forceReleaseProcessor.processMessageGroup(group);
 			}
 		});
 	}
@@ -175,6 +181,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public void setGroupTimeoutExpression(Expression groupTimeoutExpression) {
 		this.groupTimeoutExpression = groupTimeoutExpression;
+	}
+
+	public void setForceReleaseAdviceChain(List<Advice> forceReleaseAdviceChain) {
+		Assert.notNull(forceReleaseAdviceChain, "forceReleaseAdviceChain must not be null");
+		this.forceReleaseAdviceChain = forceReleaseAdviceChain;
 	}
 
 	@Override
@@ -226,6 +237,20 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 * (checked in the setter).
 		 */
 		this.lockRegistrySet = true;
+		this.forceReleaseProcessor = createGroupTimeoutProcessor();
+	}
+
+	private MessageGroupProcessor createGroupTimeoutProcessor() {
+		MessageGroupProcessor processor = new ForceReleaseMessageGroupProcessor();
+
+		if (this.groupTimeoutExpression != null && !CollectionUtils.isEmpty(this.forceReleaseAdviceChain)) {
+			ProxyFactory proxyFactory = new ProxyFactory(processor);
+			for (Advice advice : this.forceReleaseAdviceChain) {
+				proxyFactory.addAdvice(advice);
+			}
+			return (MessageGroupProcessor) proxyFactory.getProxy(getApplicationContext().getClassLoader());
+		}
+		return processor;
 	}
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -409,7 +434,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 							@Override
 							public void run() {
 								try {
-									AbstractCorrelatingMessageHandler.this.forceComplete(messageGroup);
+									forceReleaseProcessor.processMessageGroup(messageGroup);
 								}
 								catch (MessageDeliveryException e) {
 									if (logger.isDebugEnabled()) {
@@ -427,7 +452,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(messageGroup.getGroupId()), scheduledFuture);
 			}
 			else {
-				forceComplete(messageGroup);
+				this.forceReleaseProcessor.processMessageGroup(messageGroup);
 			}
 		}
 	}
@@ -731,6 +756,16 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 			return false;
+		}
+
+	}
+
+	private class ForceReleaseMessageGroupProcessor implements MessageGroupProcessor {
+
+		@Override
+		public Object processMessageGroup(MessageGroup group) {
+			forceComplete(group);
+			return null;
 		}
 
 	}

@@ -21,7 +21,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,6 +41,40 @@ import org.springframework.messaging.MessageChannel;
  *
  */
 public class AggregatorWithCustomReleaseStrategyTests {
+
+	@Rule
+	public TestWatcher longTests = new TestWatcher() {
+
+		private static final String RUN_LONG_PROP = "RUN_LONG_INTEGRATION_TESTS";
+
+		private boolean shouldRun;
+
+		{
+			for(String value: new String[]{System.getenv(RUN_LONG_PROP), System.getProperty(RUN_LONG_PROP)}) {
+				if ("true".equalsIgnoreCase(value)) {
+					this.shouldRun = true;
+					break;
+				}
+			}
+		}
+
+		@Override
+		public Statement apply(Statement base, Description description) {
+			if (!this.shouldRun) {
+				return new Statement() {
+
+					@Override
+					public void evaluate() throws Throwable {
+						Assume.assumeTrue(false);
+					}
+				};
+			}
+			else {
+				return super.apply(base, description);
+			}
+		}
+
+	};
 
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 

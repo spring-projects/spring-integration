@@ -46,7 +46,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -237,7 +236,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			for (Advice advice : delayedAdviceChain) {
 				proxyFactory.addAdvice(advice);
 			}
-			return (MessageHandler) proxyFactory.getProxy(ClassUtils.getDefaultClassLoader());
+			return (MessageHandler) proxyFactory.getProxy(getApplicationContext().getClassLoader());
 		}
 		return releaseHandler;
 	}
