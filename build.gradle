@@ -63,8 +63,14 @@ subprojects { subproject ->
 		}
 	}
 
-	sourceCompatibility=1.6
-	targetCompatibility=1.6
+	compileJava {
+		sourceCompatibility = 1.6
+		targetCompatibility = 1.6
+	}
+
+	compileTestJava {
+		sourceCompatibility = 1.8
+	}
 
 	ext {
 		activeMqVersion = '5.10.0'
@@ -118,7 +124,7 @@ subprojects { subproject ->
 		springSecurityVersion = '3.2.5.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.2.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.1.RELEASE'
 		springWsVersion = '2.2.0.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
