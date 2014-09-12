@@ -31,7 +31,6 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -57,6 +56,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Kris Jacyna
  *
  * @since 2.1
  */
@@ -467,6 +467,54 @@ public class ContentEnricherTests {
 		assertFalse(enricher.isRunning());
 		enricher.start();
 		assertTrue(enricher.isRunning());
+	}
+	
+	/**
+	 * In this test a {@link Target} message is passed into a {@link ContentEnricher}.
+	 * The Enricher passes the message to a "request-channel" to a handler which throws
+	 * an exception. The {@link ContentEnricher} then uses the error flow and consults
+	 * the "error-channel" which returns a alternative {@link Target}.
+	 */
+	@Test
+	public void testErrorChannel() throws Exception {
+
+		final DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				throw new RuntimeException();
+			}
+		});
+		
+		final DirectChannel errorChannel  = new DirectChannel();
+		errorChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new Target("failed");
+			}
+		});
+		
+		final QueueChannel replyChannel = new QueueChannel();
+		
+		final ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+		enricher.setErrorChannel(errorChannel);
+
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		propertyExpressions.put("name", parser.parseExpression("payload.name + ' target'"));
+		
+		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.afterPropertiesSet();
+
+		final Target target = new Target("replace me");
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+		
+		enricher.handleMessage(requestMessage);
+		Message<?> reply = replyChannel.receive(0);
+		Target result = (Target) reply.getPayload();
+		assertEquals("failed target", result.getName());
 	}
 
 	@SuppressWarnings("unused")

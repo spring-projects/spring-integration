@@ -41,6 +41,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Liujiong
+ * @author Kris Jacyna
  * @since 2.1
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {
@@ -51,6 +52,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
