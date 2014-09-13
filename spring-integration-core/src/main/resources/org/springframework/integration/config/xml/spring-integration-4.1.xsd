@@ -1390,7 +1390,7 @@
 		<xsd:attribute name="error-channel" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Used when exceptions occur in a downstream flow and allow the return
+					Used when exceptions occur in a downstream flow and allows the return
 	 				of an alternative object to use for enrichment. If no "error-channel" 
 					reference is provided, this enricher will propagate Exceptions to the caller. 
 				</xsd:documentation>

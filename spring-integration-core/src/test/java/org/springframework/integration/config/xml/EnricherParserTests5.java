@@ -68,15 +68,13 @@ public class EnricherParserTests5 {
 		context.getBean("requestChannel", DirectChannel.class).subscribe(new ErrorThrower());
 		context.getBean("errChannel", DirectChannel.class).subscribe(new DefaultTargetProducer());
 		
-		final PollableChannel replyChannel = context.getBean("replyChannel", PollableChannel.class);
-		
 		Target original = new Target();
 		original.setName("John");
-		Message<?> request = MessageBuilder.withPayload(original).setReplyChannel(replyChannel).build();
+		Message<?> request = MessageBuilder.withPayload(original).build();
 		
 		context.getBean("inputChannel", DirectChannel.class).send(request);
 		
-		Message<?> reply = replyChannel.receive(0);
+		Message<?> reply = context.getBean("outputChannel", PollableChannel.class).receive(10000);
 		Target enriched = (Target) reply.getPayload();
 		assertEquals("Mr. Default", enriched.getName());
 	}

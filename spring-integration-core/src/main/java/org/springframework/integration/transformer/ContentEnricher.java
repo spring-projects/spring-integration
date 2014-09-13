@@ -173,7 +173,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 	
 	/**
-	 * Sets the content enricher's error channel. If set it will allow the return
+	 * Set the content enricher's error channel. If set it will allow the return
 	 * of an alternative object to use for enrichment if exceptions occur in the
 	 * downstream flow.
 	 * @param errorChannel The error channel.

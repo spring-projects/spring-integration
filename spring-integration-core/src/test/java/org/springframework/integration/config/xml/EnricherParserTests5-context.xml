@@ -13,13 +13,13 @@
 
 	<channel id="errChannel"/>
 
-	<channel id="replyChannel">
+	<channel id="outputChannel">
 		<queue />
 	</channel>
 
 	<enricher id="enricher" 
 			input-channel="inputChannel" request-channel="requestChannel" 
-			reply-channel="replyChannel" error-channel="errChannel">
+			output-channel="outputChannel" error-channel="errChannel">
 		<property name="name" expression="'Mr. ' + payload.name"/>
 	</enricher>
 
