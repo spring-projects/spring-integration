@@ -138,7 +138,6 @@
 			<para>
 				Add error-channel attribute, which will be used to handle an error flow if Execptions occur downstream of the
 				<code>request-channel</code>. This will enable you to return an alternative object to use for enrichment.
-				If no error-channel is set, then the current behaviour reamins where Exceptions are propegated to the caller.
 				See <xref linkend="content-enricher"/> for more information.
 			</para>
 		</section>

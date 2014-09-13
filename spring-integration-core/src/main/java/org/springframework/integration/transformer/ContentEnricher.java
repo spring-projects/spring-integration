@@ -274,6 +274,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 			Assert.state(this.requestChannel != null || this.requestChannelName != null,
 					"If the replyChannel is set, then the requestChannel must not be null");
 		}
+		if (this.errorChannel != null || this.errorChannelName != null) {
+			Assert.state(this.requestChannel != null || this.requestChannelName != null,
+					"If the errorChannel is set, then the requestChannel must not be null");
+		}
 		if (this.requestChannel != null || this.requestChannelName != null) {
 			this.gateway = new Gateway();
 			this.gateway.setRequestChannel(this.requestChannel);

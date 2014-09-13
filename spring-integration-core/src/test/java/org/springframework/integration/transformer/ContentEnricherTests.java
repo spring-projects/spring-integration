@@ -512,7 +512,7 @@ public class ContentEnricherTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		
 		enricher.handleMessage(requestMessage);
-		Message<?> reply = replyChannel.receive(0);
+		Message<?> reply = replyChannel.receive(10000);
 		Target result = (Target) reply.getPayload();
 		assertEquals("failed target", result.getName());
 	}
