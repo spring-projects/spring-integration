@@ -173,7 +173,7 @@
 			with id <code>integrationHeaderChannelRegistry</code> and configure the required default delay using
 			a constructor argument (milliseconds).
 		</para>
-		
+
 		<para>
 			Since <emphasis>version 4.1</emphasis>, you can set a property <code>removeOnGet</code>
 			to <code>true</code> on the <code>&lt;bean/&gt;</code> definition, and the mapping entry will be removed
@@ -212,7 +212,7 @@
 </int:header-enricher>
 
 <int:header-enricher input-channel="inputCustomTtl" output-channel="next">
-	<int:header-channels-to-string 
+	<int:header-channels-to-string
 		time-to-live-expression="headers['channelTTL'] ?: 120000" />
 </int:header-enricher>]]></programlisting>
 
@@ -295,12 +295,13 @@
               output-channel=""                           ]]><co id="payload-enricher05-co" linkends="payload-enricher05" /><![CDATA[
               request-payload-expression=""               ]]><co id="payload-enricher06-co" linkends="payload-enricher06" /><![CDATA[
               reply-channel=""                            ]]><co id="payload-enricher07-co" linkends="payload-enricher07" /><![CDATA[
-              send-timeout=""                             ]]><co id="payload-enricher08-co" linkends="payload-enricher08" /><![CDATA[
-              should-clone-payload="false">               ]]><co id="payload-enricher09-co" linkends="payload-enricher09" /><![CDATA[
-    <int:poller></int:poller>                             ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
-    <int:property name="" expression="" null-result-expression="'Could not determine the name'"/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
+              error-channel=""                            ]]><co id="payload-enricher08-co" linkends="payload-enricher08" /><![CDATA[
+              send-timeout=""                             ]]><co id="payload-enricher09-co" linkends="payload-enricher09" /><![CDATA[
+              should-clone-payload="false">               ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
+    <int:poller></int:poller>                             ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
+    <int:property name="" expression="" null-result-expression="'Could not determine the name'"/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
     <int:property name="" value="23" type="java.lang.Integer" null-result-expression="'0'"/>
-    <int:header name="" expression="" null-result-expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
+    <int:header name="" expression="" null-result-expression=""/>  ]]><co id="payload-enricher13-co" linkends="payload-enricher13" /><![CDATA[
     <int:header name="" value="" overwrite="" type="" null-result-expression=""/>
 </int:enricher>]]></programlisting>
 
@@ -381,7 +382,17 @@
 	                        <emphasis>Optional</emphasis>.
 	                    </para>
 	                </callout>
-	                <callout arearefs="payload-enricher08-co" id="payload-enricher08">
+					<callout arearefs="payload-enricher08-co" id="payload-enricher08">
+	                    <para>
+	                        Channel to which an <classname>ErrorMessage</classname> will be sent if an
+							<classname>Exception</classname> occurs downstream of the
+							<code>request-channel</code>. This enables you to return an alternative object to use
+							for enrichment. This is optional; if it is not set then <classname>Exception</classname>
+							is thrown to the caller.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher09-co" id="payload-enricher09">
 	                    <para>
 	                        Maximum amount of time in milliseconds to wait when
 	                        sending a message to the channel, if such channel may block.
@@ -400,7 +411,7 @@
 	                        <emphasis>Optional</emphasis>.
 	                    </para>
 	                </callout>
-	                <callout arearefs="payload-enricher09-co" id="payload-enricher09">
+	                <callout arearefs="payload-enricher10-co" id="payload-enricher10">
 	                    <para>
 	                        Boolean value indicating whether any payload that implements
 	                        <interfacename>Cloneable</interfacename> should be cloned
@@ -411,14 +422,14 @@
 	                        <emphasis>Optional</emphasis>.
 	                    </para>
 	                </callout>
-	                <callout arearefs="payload-enricher10-co" id="payload-enricher10">
+	                <callout arearefs="payload-enricher11-co" id="payload-enricher11">
 	                    <para>
 	                        Allows you to configure a Message Poller if this endpoint
 	                        is a Polling Consumer.
 	                        <emphasis>Optional</emphasis>.
 	                    </para>
 	                </callout>
-	                <callout arearefs="payload-enricher11-co" id="payload-enricher11">
+	                <callout arearefs="payload-enricher12-co" id="payload-enricher12">
 	                    <para>
                             Each <code>property</code> sub-element provides the
                             name of a property (via the mandatory <code>name</code>
@@ -452,7 +463,7 @@
                             returns null, it will be evaluated and the output of the evaluation will be returned instead.
 	                    </para>
 	                </callout>
-					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
+					<callout arearefs="payload-enricher13-co" id="payload-enricher13">
 	                    <para>
                             Each <code>header</code> sub-element provides the
                             name of a Message header (via the mandatory <code>name</code>

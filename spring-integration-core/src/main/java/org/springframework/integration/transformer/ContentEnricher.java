@@ -49,6 +49,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Liujiong
+ * @author Kris Jacyna
  * @since 2.1
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler
@@ -81,6 +82,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	private volatile MessageChannel replyChannel;
 
 	private volatile String replyChannelName;
+
+	private volatile MessageChannel errorChannel;
+
+	private volatile String errorChannelName;
 
 	private volatile Gateway gateway = null;
 
@@ -168,6 +173,22 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
+	 * Set the content enricher's error channel to allow the error handling flow to return
+	 * of an alternative object to use for enrichment if exceptions occur in the
+	 * downstream flow.
+	 * @param errorChannel The error channel.
+	 * @since 4.1
+	 */
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.errorChannel = errorChannel;
+	}
+
+	public void setErrorChannelName(String errorChannelName) {
+		Assert.hasText(errorChannelName, "'errorChannelName' must not be empty");
+		this.errorChannelName = errorChannelName;
+	}
+
+	/**
 	 * Set the timeout value for sending request messages. If not explicitly configured,
 	 * the default is one second.
 	 * @param requestTimeout the timeout value in milliseconds. Must not be null.
@@ -246,9 +267,16 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		Assert.state(!(this.replyChannelName != null && this.replyChannel != null),
 				"'replyChannelName' and 'replyChannel' are mutually exclusive.");
 
+		Assert.state(!(this.errorChannelName != null && this.errorChannel != null),
+				"'errorChannelName' and 'errorChannel' are mutually exclusive.");
+
 		if (this.replyChannel != null || this.replyChannelName != null) {
 			Assert.state(this.requestChannel != null || this.requestChannelName != null,
 					"If the replyChannel is set, then the requestChannel must not be null");
+		}
+		if (this.errorChannel != null || this.errorChannelName != null) {
+			Assert.state(this.requestChannel != null || this.requestChannelName != null,
+					"If the errorChannel is set, then the requestChannel must not be null");
 		}
 		if (this.requestChannel != null || this.requestChannelName != null) {
 			this.gateway = new Gateway();
@@ -267,6 +295,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 			this.gateway.setReplyChannel(replyChannel);
 			if (this.replyChannelName != null) {
 				this.gateway.setReplyChannelName(this.replyChannelName);
+			}
+
+			this.gateway.setErrorChannel(errorChannel);
+			if (this.errorChannelName != null) {
+				this.gateway.setErrorChannelName(this.errorChannelName);
 			}
 
 			if (this.getBeanFactory() != null) {

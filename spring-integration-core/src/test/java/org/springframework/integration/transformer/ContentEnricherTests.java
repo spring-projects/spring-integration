@@ -57,6 +57,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Kris Jacyna
  *
  * @since 2.1
  */
@@ -85,9 +86,9 @@ public class ContentEnricherTests {
 	public void replyChannelReplyTimingOut() throws Exception {
 
 		final long requestTimeout = 500L;
-		final long replyTimeout   = 700L;
+		final long replyTimeout = 700L;
 
-		final DirectChannel replyChannel   = new DirectChannel();
+		final DirectChannel replyChannel = new DirectChannel();
 		final QueueChannel requestChannel = new QueueChannel(1);
 
 		final ContentEnricher enricher = new ContentEnricher();
@@ -144,10 +145,11 @@ public class ContentEnricherTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
 		try {
-		    enricher.handleMessage(requestMessage);
+			enricher.handleMessage(requestMessage);
 		}
 		catch (ReplyRequiredException e) {
-			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.", e.getMessage());
+			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.",
+					e.getMessage());
 			return;
 		}
 
@@ -161,7 +163,7 @@ public class ContentEnricherTests {
 		final String requestChannelName = "Request_Channel";
 		final long requestTimeout = 200L;
 
-		QueueChannel replyChannel   = new QueueChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel requestChannel = new RendezvousChannel();
 		requestChannel.setBeanName(requestChannelName);
 
@@ -179,8 +181,7 @@ public class ContentEnricherTests {
 		}
 		catch (MessageDeliveryException e) {
 			assertEquals("failed to send message to channel '" + requestChannelName
-					   + "' within timeout: " + requestTimeout, e.getMessage());
-			return;
+					+ "' within timeout: " + requestTimeout, e.getMessage());
 		}
 
 	}
@@ -216,7 +217,7 @@ public class ContentEnricherTests {
 	@Test
 	public void setReplyChannelWithoutRequestChannel() {
 
-		QueueChannel replyChannel   = new QueueChannel();
+		QueueChannel replyChannel = new QueueChannel();
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(replyChannel);
@@ -287,8 +288,8 @@ public class ContentEnricherTests {
 	@Test
 	public void testContentEnricherWithNullRequestChannel() {
 
-	    ContentEnricher enricher = new ContentEnricher();
-	    enricher.setReplyChannel(new QueueChannel());
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setReplyChannel(new QueueChannel());
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
@@ -383,7 +384,7 @@ public class ContentEnricherTests {
 		enricher.afterPropertiesSet();
 
 		TargetUser target = new TargetUser();
-        target.setName("replace me");
+		target.setName("replace me");
 
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
@@ -416,12 +417,12 @@ public class ContentEnricherTests {
 		enricher.afterPropertiesSet();
 
 		UncloneableTargetUser target = new UncloneableTargetUser();
-        target.setName("replace me");
+		target.setName("replace me");
 
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
 		try {
-		enricher.handleMessage(requestMessage);
+			enricher.handleMessage(requestMessage);
 		}
 		catch (MessageHandlingException e) {
 			assertThat(e.getMessage(), containsString("Failed to clone payload object"));
@@ -467,6 +468,56 @@ public class ContentEnricherTests {
 		assertFalse(enricher.isRunning());
 		enricher.start();
 		assertTrue(enricher.isRunning());
+	}
+
+	/**
+	 * In this test a {@link Target} message is passed into a {@link ContentEnricher}.
+	 * The Enricher passes the message to a "request-channel" to a handler which throws
+	 * an exception. The {@link ContentEnricher} then uses the error flow and consults
+	 * the "error-channel" which returns a alternative {@link Target}.
+	 */
+	@Test
+	public void testErrorChannel() throws Exception {
+
+		final DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				throw new RuntimeException();
+			}
+
+		});
+
+		final DirectChannel errorChannel = new DirectChannel();
+		errorChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new Target("failed");
+			}
+
+		});
+
+		final QueueChannel replyChannel = new QueueChannel();
+
+		final ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+		enricher.setErrorChannel(errorChannel);
+
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		propertyExpressions.put("name", parser.parseExpression("payload.name + ' target'"));
+
+		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.afterPropertiesSet();
+
+		final Target target = new Target("replace me");
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+
+		enricher.handleMessage(requestMessage);
+		Message<?> reply = replyChannel.receive(10000);
+		Target result = (Target) reply.getPayload();
+		assertEquals("failed target", result.getName());
 	}
 
 	@SuppressWarnings("unused")
