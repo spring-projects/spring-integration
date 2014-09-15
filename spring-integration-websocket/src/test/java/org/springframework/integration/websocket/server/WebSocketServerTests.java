@@ -44,8 +44,8 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
-import org.springframework.integration.websocket.JettyWebSocketTestServer;
 import org.springframework.integration.websocket.ServerWebSocketContainer;
+import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter;
 import org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
@@ -64,7 +64,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -136,13 +136,13 @@ public class WebSocketServerTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		public JettyWebSocketTestServer server() {
-			return new JettyWebSocketTestServer(ServerConfig.class);
+		public TomcatWebSocketTestServer server() {
+			return new TomcatWebSocketTestServer(ServerConfig.class);
 		}
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
 		}
 
 		@Bean
