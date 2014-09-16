@@ -13,12 +13,15 @@
 
 package org.springframework.integration.jdbc;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.NotSerializableException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -31,8 +34,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Repeat;
@@ -70,6 +76,9 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Autowired
 	private PlatformTransactionManager transactionManager;
+
+	@Autowired
+	private MessageChannel routingSlip;
 
 	@Before
 	public void clear() {
@@ -218,6 +227,21 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
 		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 1000);
 
+	}
+
+	@Test
+	public void testWithRoutingSlip() {
+		try {
+			this.routingSlip.send(new GenericMessage<String>("foo"));
+			fail("MessageDeliveryException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getCause(), instanceOf(SerializationFailedException.class));
+			assertThat(e.getCause().getCause(), instanceOf(NotSerializableException.class));
+			assertThat(e.getMessage(),
+					containsString("org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy"));
+		}
 	}
 
 	public static class Service {

@@ -53,7 +53,6 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -655,7 +654,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			this.verifyResultCollectionConsistsOfMessages((Collection<?>) result);
 			partialSequence = (Collection<Message<?>>) result;
 		}
-		this.sendReplies(result, message);
+		this.sendOutputs(result, message);
 		return partialSequence;
 	}
 
@@ -663,59 +662,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Class<?> commonElementType = CollectionUtils.findCommonElementType(elements);
 		Assert.isAssignable(Message.class, commonElementType,
 				"The expected collection of Messages contains non-Message element: " + commonElementType);
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected void sendReplies(Object processorResult, Message message) {
-		Object replyChannelHeader = null;
-		if (message != null) {
-			replyChannelHeader = message.getHeaders().getReplyChannel();
-		}
-
-		Object replyChannel = getOutputChannel();
-		if (replyChannel == null) {
-			replyChannel = replyChannelHeader;
-		}
-		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");
-		if (processorResult instanceof Iterable<?> && shouldSendMultipleReplies((Iterable<?>) processorResult)) {
-			for (Object next : (Iterable<?>) processorResult) {
-				this.sendReplyMessage(next, replyChannel);
-			}
-		}
-		else {
-			this.sendReplyMessage(processorResult, replyChannel);
-		}
-	}
-
-	protected void sendReplyMessage(Object reply, Object replyChannel) {
-		if (replyChannel instanceof MessageChannel) {
-			if (reply instanceof Message<?>) {
-				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
-			}
-			else {
-				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, reply);
-			}
-		}
-		else if (replyChannel instanceof String) {
-			if (reply instanceof Message<?>) {
-				this.messagingTemplate.send((String) replyChannel, (Message<?>) reply);
-			}
-			else {
-				this.messagingTemplate.convertAndSend((String) replyChannel, reply);
-			}
-		}
-		else {
-			throw new MessagingException("replyChannel must be a MessageChannel or String");
-		}
-	}
-
-	protected boolean shouldSendMultipleReplies(Iterable<?> iter) {
-		for (Object next : iter) {
-			if (next instanceof Message<?>) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	protected Long obtainGroupTimeout(MessageGroup group) {

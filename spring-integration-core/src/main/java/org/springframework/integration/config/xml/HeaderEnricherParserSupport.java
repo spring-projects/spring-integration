@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +28,16 @@ import org.w3c.dom.NodeList;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
+import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -228,10 +232,20 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				parserContext.getReaderContext().error(
 						"The 'method' attribute cannot be used with the 'value' attribute.", element);
 			}
-			Object headerValue = (headerType != null) ?
-					new TypedStringValue(value, headerType) : value;
-			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-					.addConstructorArgValue(headerValue);
+			if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
+				List<String> routingSlipPath = new ManagedList<String>();
+				routingSlipPath.addAll(Arrays.asList(StringUtils.tokenizeToStringArray(value, ";")));
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(RoutingSlipHeaderValueMessageProcessor.class)
+								.addConstructorArgValue(routingSlipPath);
+			}
+			else {
+				Object headerValue = (headerType != null) ?
+						new TypedStringValue(value, headerType) : value;
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+						.addConstructorArgValue(headerValue);
+			}
 		}
 		else if (isExpression) {
 			if (hasMethod) {
