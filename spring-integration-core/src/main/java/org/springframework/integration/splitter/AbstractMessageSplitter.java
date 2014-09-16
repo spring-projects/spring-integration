@@ -22,13 +22,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import reactor.function.Function;
-
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+
+import reactor.function.Function;
 
 /**
  * Base class for Message-splitting handlers.
@@ -101,12 +101,11 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 				});
 	}
 
-	@SuppressWarnings( { "unchecked", "rawtypes" })
-	private AbstractIntegrationMessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId,
-			int sequenceNumber, int sequenceSize) {
-		AbstractIntegrationMessageBuilder builder;
+	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, MessageHeaders headers,
+			Object correlationId, int sequenceNumber, int sequenceSize) {
+		AbstractIntegrationMessageBuilder<?> builder;
 		if (item instanceof Message) {
-			builder = this.getMessageBuilderFactory().fromMessage((Message) item);
+			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) item);
 		}
 		else {
 			builder = this.getMessageBuilderFactory().withPayload(item);
@@ -119,10 +118,15 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	protected void produceReply(Object result, MessageHeaders requestHeaders) {
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
+	}
+
+	@Override
+	protected void produceReply(Object result, Message<?> requestMessage) {
 		Iterator<?> iterator = (Iterator<?>) result;
 		while (iterator.hasNext()) {
-			super.produceReply(iterator.next(), requestHeaders);
+			super.produceReply(iterator.next(), requestMessage);
 
 		}
 	}

@@ -1995,13 +1995,32 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="priority"  type="referenceOrValueHeaderType">
+			<xsd:element name="priority" type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
 						Shortcut to specify a value for the 'priority' header.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="routing-slip">
+				<xsd:annotation>
+					<xsd:documentation>
+						The 'RoutingSlip' header. Comma-separated value of message channel names
+						or bean names of 'org.springframework.integration.routingslip.RoutingSlip'
+						strategy implementations.
+						Important 'RoutingSlip' references have to be specified with '@' prefix.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:attribute name="value" type="xsd:string"/>
+					<xsd:attribute name="overwrite">
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:complexType>
+			</xsd:element>
+
 			<xsd:element name="header" type="userDefinedHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>

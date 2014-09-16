@@ -17,11 +17,14 @@
 package org.springframework.integration.handler;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -32,6 +35,7 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -117,8 +121,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			result = doInvokeAdvisedRequestHandler(message);
 		}
 		if (result != null) {
-			MessageHeaders requestHeaders = message.getHeaders();
-			this.handleResult(result, requestHeaders);
+			this.handleResult(result, message);
 		}
 		else if (this.requiresReply) {
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
@@ -133,20 +136,80 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		return this.advisedRequestHandler.handleRequestMessage(message);
 	}
 
-	private void handleResult(Object result, MessageHeaders requestHeaders) {
+	private void handleResult(Object result, Message<?> requestMessage) {
 		if (result instanceof Iterable<?> && this.shouldSplitReply((Iterable<?>) result)) {
 			for (Object o : (Iterable<?>) result) {
-				this.produceReply(o, requestHeaders);
+				this.produceReply(o, requestMessage);
 			}
 		}
 		else if (result != null) {
-			this.produceReply(result, requestHeaders);
+			this.produceReply(result, requestMessage);
 		}
 	}
 
-	protected void produceReply(Object reply, MessageHeaders requestHeaders) {
+	@SuppressWarnings("unchecked")
+	protected void produceReply(Object reply, Message<?> requestMessage) {
+		MessageHeaders requestHeaders = requestMessage.getHeaders();
+
+		Object replyChannel = null;
+
+		List<String> routingSlip = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, List.class);
+
+		if (routingSlip != null) {
+			Integer routingSlipIndexValue =
+					requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX, Integer.class);
+			if (routingSlipIndexValue == null) {
+				routingSlipIndexValue = 0;
+			}
+			AtomicInteger routingSlipIndex = new AtomicInteger(routingSlipIndexValue);
+			replyChannel = getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
+			if (replyChannel != null) {
+				//TODO Migrate to the SF MessageBuilder
+				AbstractIntegrationMessageBuilder<?> builder = null;
+				if (reply instanceof Message) {
+					builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
+				}
+				else if (reply instanceof AbstractIntegrationMessageBuilder) {
+					builder = (AbstractIntegrationMessageBuilder) reply;
+				}
+				else {
+					builder = this.getMessageBuilderFactory().withPayload(reply);
+				}
+				builder.setHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX, routingSlipIndex.get());
+				reply = builder;
+			}
+		}
+
+		if (replyChannel == null) {
+			replyChannel = requestHeaders.getReplyChannel();
+		}
+
 		Message<?> replyMessage = this.createReplyMessage(reply, requestHeaders);
-		this.sendReplyMessage(replyMessage, requestHeaders.getReplyChannel());
+		this.sendReplyMessage(replyMessage, replyChannel);
+	}
+
+	private String getReplyChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<String> routingSlipList,
+			AtomicInteger routingSlipIndex) {
+		if (routingSlipList.size() == routingSlipIndex.get()) {
+			return null;
+		}
+
+		String routingSlipValue = routingSlipList.get(routingSlipIndex.get());
+		if (routingSlipValue.startsWith("@")) {
+			RoutingSlip routingSlip = getBeanFactory().getBean(routingSlipValue.substring(1), RoutingSlip.class);
+			String nextPath = routingSlip.getNextPath(requestMessage, reply);
+			if (StringUtils.hasText(nextPath)) {
+				return nextPath;
+			}
+			else {
+				routingSlipIndex.incrementAndGet();
+				return getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlipList, routingSlipIndex);
+			}
+		}
+		else {
+			routingSlipIndex.incrementAndGet();
+			return routingSlipValue;
+		}
 	}
 
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {

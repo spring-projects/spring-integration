@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -254,6 +255,17 @@ public class HeaderEnricherTests {
 	public void testFailConfigUnexpectedSubElement() {
 		new ClassPathXmlApplicationContext("HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml", this.getClass());
 	}
+
+	@Test
+	public void testRoutingSlip() {
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("routingSlipInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+		assertNotNull(result);
+		assertEquals(Arrays.asList("fooChannel", "barChannel", "@bazRoutingSlip"),
+				new IntegrationMessageHeaderAccessor(result).getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP));
+	}
+
 
 	public static class TestBean {
 

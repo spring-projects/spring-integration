@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.transformer.HeaderEnricher;
@@ -229,7 +232,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						"The 'method' attribute cannot be used with the 'value' attribute.", element);
 			}
 			Object headerValue = (headerType != null) ?
-					new TypedStringValue(value, headerType) : value;
+					(IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)
+							? Collections.unmodifiableList(Arrays.asList(StringUtils.tokenizeToStringArray(value, ",")))
+							: new TypedStringValue(value, headerType)) : value;
 			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
 					.addConstructorArgValue(headerValue);
 		}

@@ -76,6 +76,10 @@
 		<priority expression="payload.priority"/>
 	</header-enricher>
 
+	<header-enricher input-channel="routingSlipInput">
+		<routing-slip value="fooChannel, barChannel, @bazRoutingSlip"/>
+	</header-enricher>
+
 	<header-enricher input-channel="payloadExpressionInput">
 		<header name="testHeader" expression="payload.name + 'bar'"/>
 	</header-enricher>
