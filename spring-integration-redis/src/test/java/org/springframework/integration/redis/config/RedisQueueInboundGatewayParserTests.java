@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -42,7 +41,7 @@ import reactor.util.Assert;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisQueueInboundGatewayParserTests extends RedisAvailableTests {
+public class RedisQueueInboundGatewayParserTests {
 
 	@Autowired
 	@Qualifier("inboundGateway")

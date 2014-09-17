@@ -26,12 +26,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,7 +45,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisQueueGatewayIntegrationTests {
+@DirtiesContext
+public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 
 	@Autowired
 	@Qualifier("redisConnectionFactory")
@@ -74,14 +79,14 @@ public class RedisQueueGatewayIntegrationTests {
 	private RedisQueueInboundGateway defaultInboundGateway;
 
 	@Test
+	@RedisAvailable
 	public void testRequestWithReply() throws Exception {
-		defaultInboundGateway.start();
 		sendChannel.send(new GenericMessage<String>("test1"));
 		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
-		defaultInboundGateway.stop();
 	}
 
 	@Test
+	@RedisAvailable
 	public void testInboundGatewayStop() throws Exception {
 		defaultInboundGateway.stop();
 		try {
@@ -90,19 +95,24 @@ public class RedisQueueGatewayIntegrationTests {
 		catch(Exception e) {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
+		finally {
+			defaultInboundGateway.start();
+		}
 	}
 
 	@Test
+	@RedisAvailable
 	public void testNullSerializer() throws Exception {
 		defaultInboundGateway.setSerializer(null);
-		defaultInboundGateway.start();
 		try {
 			sendChannel.send(new GenericMessage<String>("test1"));
 		}
 		catch(Exception e) {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
-		defaultInboundGateway.stop();
+		finally {
+			defaultInboundGateway.setSerializer(new StringRedisSerializer());
+		}
 	}
 
 }

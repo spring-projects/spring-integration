@@ -30,7 +30,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -43,7 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisQueueOutboundGatewayParserTests extends RedisAvailableTests {
+public class RedisQueueOutboundGatewayParserTests {
 
 	@Autowired
 	private RedisConnectionFactory connectionFactory;
@@ -72,7 +71,7 @@ public class RedisQueueOutboundGatewayParserTests extends RedisAvailableTests {
 
 	@Test
 	public void testDefaultConfig() throws Exception {
-		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "expectMessage", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
 		assertSame(serializer, TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
 		assertEquals(2, (int)TestUtils.getPropertyValue(this.defaultGateway, "order", Integer.class));

@@ -28,6 +28,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.messaging.Message;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.IdGenerator;
 
 /**
  * @author David Liu
@@ -39,7 +40,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private volatile String queueName;
 
-	private volatile boolean extractPayload = true;
+	private volatile boolean expectMessage = true;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
@@ -54,6 +55,8 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 	private static final String MESSAGESUFFIX = ".reply";
 
 	private BoundListOperations<String, Object> boundListOperations = null;
+
+	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
 
 	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
@@ -70,8 +73,8 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.timeout = timeout;
 	}
 
-	public void setExtractPayload(boolean extractPayload) {
-		this.extractPayload = extractPayload;
+	public void setExpectMessage(boolean expectMessage) {
+		this.expectMessage = expectMessage;
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -89,7 +92,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 	protected Object handleRequestMessage(Message<?> message) {
 		Object value = message;
 
-		if (this.extractPayload) {
+		if (this.expectMessage) {
 			value = message.getPayload();
 		}
 		if (!(value instanceof byte[])) {
@@ -100,7 +103,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 				value = ((RedisSerializer<Object>) serializer).serialize(value);
 			}
 		}
-		String uuid = generateRandomUUID();
+		String uuid = defaultIdGenerator.generateId().toString();
 
 		byte[] uuidByte;
 		if (!serializerExplicitlySet) {
@@ -123,8 +126,4 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		return null;
 	}
 
-	private String generateRandomUUID() {
-		AlternativeJdkIdGenerator alternativeJdkIdGenerator = new AlternativeJdkIdGenerator();
-		return alternativeJdkIdGenerator.generateId().toString();
-	}
 }

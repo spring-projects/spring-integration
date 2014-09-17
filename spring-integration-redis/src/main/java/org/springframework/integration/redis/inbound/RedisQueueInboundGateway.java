@@ -82,18 +82,18 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 
 	/**
-	 * @param queueName         Must not be an empty String
+	 * @param controlQueueName         Must not be an empty String
 	 * @param connectionFactory Must not be null
 	 */
-	public RedisQueueInboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
-		Assert.hasText(queueName, "'queueName' is required");
+	public RedisQueueInboundGateway(String controlQueueName, RedisConnectionFactory connectionFactory) {
+		Assert.hasText(controlQueueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		template = new RedisTemplate<String, byte[]>();
 		template.setConnectionFactory(connectionFactory);
 		template.setEnableDefaultSerializer(false);
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
-		this.boundListOperations = template.boundListOps(queueName);
+		this.boundListOperations = template.boundListOps(controlQueueName);
 	}
 
 
@@ -140,7 +140,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message
 	 * will be processed or this timeout is reached. Should be less then or equal to
 	 * {@link #receiveTimeout}
-	 * @since 4.0.3
 	 */
 	public void setStopTimeout(long stopTimeout) {
 		this.stopTimeout = stopTimeout;
@@ -197,7 +196,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		}
 	}
 
-	private void popMessageWithHeaderAndSend() {
+	private void receiveAndReply() {
 		byte[] value = null;
 		try {
 			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
@@ -343,7 +342,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			try {
 				while (RedisQueueInboundGateway.this.active) {
 					RedisQueueInboundGateway.this.listening = true;
-					RedisQueueInboundGateway.this.popMessageWithHeaderAndSend();
+					RedisQueueInboundGateway.this.receiveAndReply();
 				}
 			}
 			finally {

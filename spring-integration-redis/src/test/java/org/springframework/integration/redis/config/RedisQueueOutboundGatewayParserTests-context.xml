@@ -17,7 +17,7 @@
 										reply-timeout="2000"
 										order="2"
 										control-queue="si.test.queue"
-										extract-payload="true"
+										expect-message="true"
 										serializer="serializer"
 										auto-startup="false"
 										phase="3">
@@ -39,8 +39,9 @@
 		<int:queue/>
 	</int:channel>
 	
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		</constructor-arg>
 	</bean>
 
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>

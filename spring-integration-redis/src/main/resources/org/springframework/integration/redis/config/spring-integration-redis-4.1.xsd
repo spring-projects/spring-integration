@@ -411,8 +411,9 @@
 	<xsd:element name="queue-inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures a gateway that will publish an Redis Message to the provided Exchange
-				and expect a reply Message.
+				Configures a gateway that will adapts incoming Redis messages into Spring Integration Messages from control queue, 
+				find queuename to get request and implies where to send the reply. Then get request, process 
+				it and send reply.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -447,7 +448,7 @@
 			<xsd:attribute name="request-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Message Channel to which Messages should be sent in order to have them converted and published to an Redis Exchange.
+						Message Channel to which Messages should be sent in order to have them converted and published.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -636,7 +637,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+			<xsd:attribute name="expect-message" type="xsd:string" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
 						Specifies if the Message payload or the entire (serialized) Message will be send to the Redis queue.
@@ -679,7 +680,7 @@
 			<xsd:attribute name="reply-channel" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Message Channel where reply Messages will be expected.
+						Message Channel where reply Messages will be sended.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

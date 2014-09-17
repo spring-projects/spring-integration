@@ -49,11 +49,10 @@ public class RedisQueueOutboundGatewayParser extends AbstractConsumerEndpointPar
 		}
 		builder.addConstructorArgReference(connectionFactory);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel","outputChannel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
 		return builder;
 	}
 
