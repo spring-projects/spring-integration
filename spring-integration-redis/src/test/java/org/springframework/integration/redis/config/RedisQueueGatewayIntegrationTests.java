@@ -82,7 +82,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testRequestWithReply() throws Exception {
 		sendChannel.send(new GenericMessage<String>("test1"));
-		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive().getPayload());
+		Assert.assertEquals("test1".toUpperCase(), outputChannel.receive(10000).getPayload());
 	}
 
 	@Test

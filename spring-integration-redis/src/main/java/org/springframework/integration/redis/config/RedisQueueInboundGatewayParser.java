@@ -54,7 +54,7 @@ public class RedisQueueInboundGatewayParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message", "extractPayload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 	}

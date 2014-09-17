@@ -64,7 +64,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	private volatile boolean extractPayload = false;
+	private volatile boolean expectMessage = false;
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
@@ -116,8 +116,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	 * Message.
 	 * @param expectMessage Defaults to false
 	 */
-	public void setExtractPayload(boolean expectMessage) {
-		this.extractPayload = expectMessage;
+	public void setExpectMessage(boolean expectMessage) {
+		this.expectMessage = expectMessage;
 	}
 
 	/**
@@ -162,7 +162,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (this.extractPayload) {
+		if (this.expectMessage) {
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'expectMessage == true'.");
 		}
 		if (this.taskExecutor == null) {
@@ -217,7 +217,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			}
 			Object messageBody = null;
 			if (value != null) {
-				if (this.extractPayload) {
+				if (this.expectMessage) {
 					if (this.serializer != null) {
 						try {
 							messageBody = this.serializer.deserialize(value);

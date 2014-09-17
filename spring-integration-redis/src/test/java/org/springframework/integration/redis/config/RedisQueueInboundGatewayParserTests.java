@@ -60,7 +60,7 @@ public class RedisQueueInboundGatewayParserTests {
 
 	@Test
 	public void testDefaultConfig() throws Exception {
-		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "expectMessage", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
 		assertSame(serializer,TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
 		assertSame(receiveChannel,TestUtils.getPropertyValue(this.defaultGateway, "replyChannel", MessageChannel.class));

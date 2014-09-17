@@ -40,7 +40,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private volatile String queueName;
 
-	private volatile boolean expectMessage = true;
+	private volatile boolean extractPayload = true;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
@@ -73,8 +73,8 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.timeout = timeout;
 	}
 
-	public void setExpectMessage(boolean expectMessage) {
-		this.expectMessage = expectMessage;
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -92,7 +92,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 	protected Object handleRequestMessage(Message<?> message) {
 		Object value = message;
 
-		if (this.expectMessage) {
+		if (this.extractPayload) {
 			value = message.getPayload();
 		}
 		if (!(value instanceof byte[])) {
