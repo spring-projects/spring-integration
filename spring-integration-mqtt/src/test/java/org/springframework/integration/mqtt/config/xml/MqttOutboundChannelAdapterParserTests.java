@@ -68,8 +68,6 @@ public class MqttOutboundChannelAdapterParserTests {
 	@Test
 	public void testWithConverter() throws Exception {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withConverterHandler, "url"));
-		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "autoStartup", Boolean.class));
-		assertEquals(25, TestUtils.getPropertyValue(withConverterHandler, "phase"));
 		assertEquals("foo", TestUtils.getPropertyValue(withConverterHandler, "clientId"));
 		assertEquals("bar", TestUtils.getPropertyValue(withConverterHandler, "defaultTopic"));
 		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
@@ -90,8 +88,6 @@ public class MqttOutboundChannelAdapterParserTests {
 	@Test
 	public void testWithDefaultConverter() {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withDefaultConverterHandler, "url"));
-		assertFalse(TestUtils.getPropertyValue(withDefaultConverterHandler, "autoStartup", Boolean.class));
-		assertEquals(25, TestUtils.getPropertyValue(withDefaultConverterHandler, "phase"));
 		assertEquals("foo", TestUtils.getPropertyValue(withDefaultConverterHandler, "clientId"));
 		assertEquals("bar", TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultTopic"));
 		assertEquals(1, TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultQos"));

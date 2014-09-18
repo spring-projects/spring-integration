@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:scatter-gather id="scatterGather1" input-channel="input1" scatter-channel="scatterChannel"/>
+
+	<bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
+		<property name="messageGroupStore" value="#{@'scatterGather1.gatherer'.messageStore}"/>
+	</bean>
+
+	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+	<int:scatter-gather id="scatterGather2" input-channel="input2" gather-channel="gatherChannel" gather-timeout="100">
+		<int:scatterer id="myScatterer" apply-sequence="true">
+			<int:recipient channel="distributionChannel"/>
+		</int:scatterer>
+		<int:gatherer id="myGatherer" message-store="messageStore"/>
+	</int:scatter-gather>
+
+	<int:channel id="gatherChannel"/>
+
+	<int:channel id="distributionChannel"/>
+
+	<int:channel id="scatterChannel"/>
+
+
+	<!--Invalid configurations-->
+
+	<!--<int:scatter-gather input-channel="inputInvalid1"/>-->
+
+	<!--<int:scatter-gather input-channel="inputInvalid2" scatter-channel="scatterChannel">
+		<int:scatterer/>
+	</int:scatter-gather>-->
+
+
+</beans>

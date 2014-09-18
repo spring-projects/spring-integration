@@ -10,5 +10,6 @@
    <xi:include href="./aggregator.xml"/>
    <xi:include href="./resequencer.xml"/>
    <xi:include href="./chain.xml"/>
+   <xi:include href="./scatter-gather.xml"/>
 
 </chapter>

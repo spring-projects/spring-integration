@@ -304,7 +304,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return "aggregator";
 	}
 
-	protected MessageGroupStore getMessageStore() {
+	public MessageGroupStore getMessageStore() {
 		return messageStore;
 	}
 

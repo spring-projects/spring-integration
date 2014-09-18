@@ -680,8 +680,8 @@
 					<xsd:documentation>
 										<![CDATA[
 				An expression that will be used to generate the payload for all methods in the service interface
-				unless explicitly overridden by a method declaration. Variables include #args, #methodName, #methodString
-				and #methodObject; a bean resolver is also available, enabling expressions like "@someBean(#args)".
+				unless explicitly overridden by a method declaration. Variables include #args, #gatewayMethod;
+				a bean resolver is also available, enabling expressions like "@someBean(#args)".
 										]]>
 					</xsd:documentation>
 				</xsd:annotation>
@@ -762,7 +762,7 @@
 					but a custom executor can return any Future. If the method return type is
 					not compatible with the executor the flow will run on the caller's thread and
 					the flow must return an appropriate Future. Finally, you can disable the
-					gateway ansync handling by setting this attribute to "". This allows the downstream
+					gateway async handling by setting this attribute to "". This allows the downstream
 					flow to return a Future that would otherwise have been compatible with the
 					default executor.
 							]]>
@@ -1446,7 +1446,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Boolean value indicating whether any payload that implements Cloneable should be cloned
-					prior to sending the Message to the request chanenl for acquiring the enriching data.
+					prior to sending the Message to the request channel for acquiring the enriching data.
 					The cloned version would be used as the target payload for the ultimate reply.
 
 					If the payload does NOT implement 'Cloneable', then setting this
@@ -1800,7 +1800,7 @@
 	The java.util.concurrent.TimeUnit enum value. This can ONLY be used in combination
 	with the 'fixed-delay' or 'fixed-rate' attributes. If combined with either 'cron'
 	or a 'trigger' reference attribute, it will cause a failure. The minimal supported
-	granularity for a PeriodicTrigger is MILLISEONDS. Therefore, the only available options
+	granularity for a PeriodicTrigger is MILLISECONDS. Therefore, the only available options
 	are MILLISECONDS and SECONDS. If this value is not provided, then any 'fixed-delay' or
 	'fixed-rate' value will be interpreted as MILLISECONDS by default. Basically this enum
 	provides a convenience for SECONDS-based interval trigger values. For hourly, daily,
@@ -2885,7 +2885,7 @@
 
     <xsd:group name="routerCommonGroup">
         <xsd:sequence>
-            <xsd:element name="expression" type="innerExpressionType"        minOccurs="0" maxOccurs="1">
+            <xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                     <![CDATA[
@@ -2903,7 +2903,7 @@
                     ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mapping"    type="mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="mapping" type="mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                     <![CDATA[
@@ -2912,7 +2912,7 @@
                     ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any namespace="##other" processContents="strict"            minOccurs="0" maxOccurs="1" />
+            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
     </xsd:group>
 
@@ -3319,7 +3319,7 @@
 
                     If set to 'true', a MessagingException will be raised in case
                     the channel cannot be resolved. Setting this attribute to 'false',
-                    will cause any unresovable channels to be ignored.
+                    will cause any unresolvable channels to be ignored.
 
                     If not explicitly set, 'resolution-required' will
                     default to 'true'.
@@ -3699,7 +3699,7 @@
 				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
 						<xsd:documentation>
-						Alows you to configure a Wire Tap interceptor that will send a copy of the message to a
+						Allows you to configure a Wire Tap interceptor that will send a copy of the message to a
 						channel identified by 'channel' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
@@ -4210,6 +4210,80 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="scatter-gather">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+                Defines a Scatter-Gather.
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="scatter-gather-type">
+					<xsd:sequence>
+						<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="scatter-gather-type">
+		<xsd:annotation>
+			<xsd:documentation>
+				Base type for 'scatter-gather' elements.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice minOccurs="0" maxOccurs="2">
+			<xsd:element name="scatterer">
+				<xsd:complexType>
+					<xsd:complexContent>
+						<xsd:extension base="abstractRouterType">
+							<xsd:group ref="commonRecipientListRouterGroup"/>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="gatherer" type="aggregator-type"/>
+		</xsd:choice>
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					'id' value:
+					- Identifies the underlying Spring bean definition (AbstractEndpoint)
+					- as MessageHandler bean alias together with suffix '.handler'
+					- as a RecipientListRouter bean together with suffix '.scatterer'
+					- as a AggregatingMessageHandler bean together with suffix '.gatherer'
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="scatter-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the channel to send a message for 'auction' Scatter-Gather pattern variant.
+					Mutually exclusive with 'scatterer' sub-element.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="gather-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the channel to receive reply Messages for gathering.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="gather-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Allows to specify how long the Scatter-Gather will wait for reply Messages for gathering.
+					By default it will wait indefinitely. Value is specified in milliseconds.
+					It will be applied only if the 'gather-channel' is specified and it is some blocking channel,
+					e.g. 'QueueChannel'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
 	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
@@ -4276,7 +4350,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 					<xsd:attribute name="maximum" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-								The maxumum interval in milliseconds between attempts; caps an interval
+								The maximum interval in milliseconds between attempts; caps an interval
 								calculated using the multiplier. Default 30000.
 							]]></xsd:documentation>
 						</xsd:annotation>
@@ -4374,7 +4448,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	<xsd:attributeGroup name="transactionSyncAttributeGroup">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				Attributes provided in either a <transactional/> or <psedo-transactional/> poller
+				Attributes provided in either a <transactional/> or <pseudo-transactional/> poller
 				sub element.
 				Used to take action after the transaction completes (<transactional/>) or after
 				the channel.send() is complete (<pseudo-transactional/>).
@@ -4431,7 +4505,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="send-timeout">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					A timout used when sending expression evaluation results to the success or
+					A timeout used when sending expression evaluation results to the success or
 					failure channels. Only applies if the channel can block on a send, such as
 					a limited-capacity QueueChannel that is currently full.
 				]]></xsd:documentation>
