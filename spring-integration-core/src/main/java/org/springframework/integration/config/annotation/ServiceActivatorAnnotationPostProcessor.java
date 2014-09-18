@@ -19,8 +19,10 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
@@ -58,15 +60,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 			 		 * Return a reply-producing message handler so that we still get 'produced no reply' messages
 			 		 * and the super class will inject the advice chain to advise the handler method if needed.
 			 		 */
-					return new AbstractReplyProducingMessageHandler() {
-
-						@Override
-						protected Object handleRequestMessage(Message<?> requestMessage) {
-
-							((MessageHandler) target).handleMessage(requestMessage);
-							return null;
-						}
-					};
+					return new ReplyProducingMessageHandlerWrapper((MessageHandler) target);
 				}
 				else {
 					serviceActivator = new ServiceActivatingHandler(target);
@@ -87,6 +81,76 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		this.setOutputChannelIfPresent(annotations, serviceActivator);
 		return serviceActivator;
+	}
+
+	private class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
+			implements Lifecycle {
+
+		private final ReentrantLock lifecycleLock = new ReentrantLock();
+
+		private final MessageHandler target;
+
+		private volatile boolean running;
+
+		private ReplyProducingMessageHandlerWrapper(MessageHandler target) {
+			this.target = target;
+		}
+
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			this.target.handleMessage(requestMessage);
+			return null;
+		}
+
+		@Override
+		public void start() {
+			this.lifecycleLock.lock();
+			try {
+				if (!this.running) {
+					if (this.target instanceof Lifecycle) {
+						((Lifecycle) this.target).start();
+					}
+					this.running = true;
+					if (logger.isInfoEnabled()) {
+						logger.info("started " + this);
+					}
+				}
+			}
+			finally {
+				this.lifecycleLock.unlock();
+			}
+		}
+
+		@Override
+		public void stop() {
+			this.lifecycleLock.lock();
+			try {
+				if (this.running) {
+					if (this.target instanceof Lifecycle) {
+						((Lifecycle) this.target).stop();
+					}
+					this.running = false;
+					if (logger.isInfoEnabled()) {
+						logger.info("stopped " + this);
+					}
+				}
+			}
+			finally {
+				this.lifecycleLock.unlock();
+			}
+		}
+
+		@Override
+		public boolean isRunning() {
+			this.lifecycleLock.lock();
+			try {
+				return this.running;
+			}
+			finally {
+				this.lifecycleLock.unlock();
+			}
+		}
+
 	}
 
 }
