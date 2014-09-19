@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="output">
+		<queue/>
+	</channel>
+
+	<!--Auction scenario-->
+	<scatter-gather input-channel="inputAuction" output-channel="output" scatter-channel="auctionChannel">
+		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
+	</scatter-gather>
+
+	<publish-subscribe-channel id="auctionChannel" apply-sequence="true"/>
+
+	<bridge input-channel="auctionChannel" output-channel="serviceChannel1"/>
+
+	<bridge input-channel="auctionChannel" output-channel="serviceChannel1"/>
+
+	<bridge input-channel="auctionChannel" output-channel="serviceChannel1"/>
+
+	<service-activator input-channel="serviceChannel1" expression="T(java.lang.Math).random() * 10"/>
+
+	<!--Distribution scenario-->
+	<scatter-gather input-channel="inputDistribution" output-channel="output" gather-channel="gatherChannel">
+		<scatterer apply-sequence="true">
+			<recipient channel="distribution1Channel"/>
+			<recipient channel="distribution2Channel"/>
+			<recipient channel="distribution3Channel"/>
+		</scatterer>
+		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
+	</scatter-gather>
+
+	<channel id="gatherChannel">
+		<queue/>
+	</channel>
+
+	<bridge input-channel="distribution1Channel" output-channel="serviceChannel2"/>
+
+	<bridge input-channel="distribution2Channel" output-channel="serviceChannel2"/>
+
+	<bridge input-channel="distribution3Channel" output-channel="serviceChannel2"/>
+
+	<service-activator input-channel="serviceChannel2" output-channel="gatherChannel"
+					   expression="T(java.lang.Math).random() * 10"/>
+
+</beans:beans>

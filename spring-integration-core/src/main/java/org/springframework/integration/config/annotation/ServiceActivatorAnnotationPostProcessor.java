@@ -19,7 +19,6 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.Lifecycle;
@@ -86,11 +85,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 	private class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
 			implements Lifecycle {
 
-		private final ReentrantLock lifecycleLock = new ReentrantLock();
-
 		private final MessageHandler target;
-
-		private volatile boolean running;
 
 		private ReplyProducingMessageHandlerWrapper(MessageHandler target) {
 			this.target = target;
@@ -104,51 +99,22 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		@Override
 		public void start() {
-			this.lifecycleLock.lock();
-			try {
-				if (!this.running) {
-					if (this.target instanceof Lifecycle) {
-						((Lifecycle) this.target).start();
-					}
-					this.running = true;
-					if (logger.isInfoEnabled()) {
-						logger.info("started " + this);
-					}
-				}
+			if (this.target instanceof Lifecycle) {
+				((Lifecycle) this.target).start();
 			}
-			finally {
-				this.lifecycleLock.unlock();
-			}
+
 		}
 
 		@Override
 		public void stop() {
-			this.lifecycleLock.lock();
-			try {
-				if (this.running) {
-					if (this.target instanceof Lifecycle) {
-						((Lifecycle) this.target).stop();
-					}
-					this.running = false;
-					if (logger.isInfoEnabled()) {
-						logger.info("stopped " + this);
-					}
-				}
-			}
-			finally {
-				this.lifecycleLock.unlock();
+			if (this.target instanceof Lifecycle) {
+				((Lifecycle) this.target).stop();
 			}
 		}
 
 		@Override
 		public boolean isRunning() {
-			this.lifecycleLock.lock();
-			try {
-				return this.running;
-			}
-			finally {
-				this.lifecycleLock.unlock();
-			}
+			return !(this.target instanceof Lifecycle) || ((Lifecycle) this.target).isRunning();
 		}
 
 	}

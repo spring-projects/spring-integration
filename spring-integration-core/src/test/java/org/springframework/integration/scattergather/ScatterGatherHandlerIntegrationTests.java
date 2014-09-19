@@ -138,7 +138,7 @@ public class ScatterGatherHandlerIntegrationTests {
 			return new AggregatingMessageHandler(
 					new ExpressionEvaluatingMessageGroupProcessor("^[payload gt 5] ?: -1D"),
 					new SimpleMessageStore(),
-					new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID),
+					new HeaderAttributeCorrelationStrategy("FOO"),
 					new ExpressionEvaluatingReleaseStrategy("size() == 2"));
 		}
 
@@ -345,8 +345,6 @@ public class ScatterGatherHandlerIntegrationTests {
 
 			};
 		}
-
-
 
 	}
 

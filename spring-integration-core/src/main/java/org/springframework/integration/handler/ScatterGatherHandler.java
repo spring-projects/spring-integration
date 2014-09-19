@@ -16,8 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -42,21 +40,17 @@ import org.springframework.util.Assert;
  */
 public class ScatterGatherHandler extends AbstractMessageProducingHandler implements Lifecycle {
 
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
-
-	private final SubscribableChannel scatterChannel;
+	private final MessageChannel scatterChannel;
 
 	private final AggregatingMessageHandler gatherer;
 
 	private MessageChannel gatherChannel;
 
-	private volatile long gatherTimeout = -1;
+	private long gatherTimeout = -1;
 
-	private volatile AbstractEndpoint gatherEndpoint;
+	private AbstractEndpoint gatherEndpoint;
 
-	private volatile boolean running;
-
-	public ScatterGatherHandler(SubscribableChannel scatterChannel, AggregatingMessageHandler gatherer) {
+	public ScatterGatherHandler(MessageChannel scatterChannel, AggregatingMessageHandler gatherer) {
 		Assert.notNull(scatterChannel);
 		Assert.notNull(gatherer);
 		this.scatterChannel = scatterChannel;
@@ -121,51 +115,21 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 
 	@Override
 	public void start() {
-		this.lifecycleLock.lock();
-		try {
-			if (!this.running) {
-				if (this.gatherEndpoint != null) {
-					gatherEndpoint.start();
-				}
-				this.running = true;
-				if (logger.isInfoEnabled()) {
-					logger.info("started " + this);
-				}
-			}
-		}
-		finally {
-			this.lifecycleLock.unlock();
+		if (this.gatherEndpoint != null) {
+			gatherEndpoint.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		this.lifecycleLock.lock();
-		try {
-			if (this.running) {
-				if (this.gatherEndpoint != null) {
-					gatherEndpoint.start();
-				}
-				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
-			}
-		}
-		finally {
-			this.lifecycleLock.unlock();
+		if (this.gatherEndpoint != null) {
+			gatherEndpoint.start();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		this.lifecycleLock.lock();
-		try {
-			return this.running;
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
+		return this.gatherEndpoint == null || this.gatherEndpoint.isRunning();
 	}
 
 }
