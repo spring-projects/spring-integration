@@ -18,8 +18,10 @@ package org.springframework.integration.channel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.core.MessageSelector;
@@ -36,17 +38,20 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations {
 
-	private final BlockingQueue<Message<?>> queue;
+	private final Queue<Message<?>> queue;
+
+	protected final Semaphore queueSemaphore = new Semaphore(0);
 
 	/**
 	 * Create a channel with the specified queue.
 	 *
 	 * @param queue The queue.
 	 */
-	public QueueChannel(BlockingQueue<Message<?>> queue) {
+	public QueueChannel(Queue<Message<?>> queue) {
 		Assert.notNull(queue, "'queue' must not be null");
 		this.queue = queue;
 	}
@@ -76,14 +81,25 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	protected boolean doSend(Message<?> message, long timeout) {
 		Assert.notNull(message, "'message' must not be null");
 		try {
-			if (timeout > 0) {
-				return this.queue.offer(message, timeout, TimeUnit.MILLISECONDS);
+			if (this.queue instanceof BlockingQueue) {
+				BlockingQueue<Message<?>> blockingQueue = (BlockingQueue<Message<?>>) this.queue;
+				if (timeout > 0) {
+					return blockingQueue.offer(message, timeout, TimeUnit.MILLISECONDS);
+				}
+				if (timeout == 0) {
+					return blockingQueue.offer(message);
+				}
+				blockingQueue.put(message);
+				return true;
 			}
-			if (timeout == 0) {
-				return this.queue.offer(message);
+			else {
+				try {
+					return this.queue.offer(message);
+				}
+				finally {
+					this.queueSemaphore.release();
+				}
 			}
-			queue.put(message);
-			return true;
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -95,12 +111,32 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	protected Message<?> doReceive(long timeout) {
 		try {
 			if (timeout > 0) {
-				return queue.poll(timeout, TimeUnit.MILLISECONDS);
+				if (this.queue instanceof BlockingQueue) {
+					return ((BlockingQueue<Message<?>>) this.queue).poll(timeout, TimeUnit.MILLISECONDS);
+				}
+				else {
+					long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
+					long deadline = System.nanoTime() + nanos;
+					while (this.queue.size() == 0 && nanos > 0) {
+						this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS);
+						nanos = deadline - System.nanoTime();
+					}
+					return this.queue.poll();
+				}
 			}
 			if (timeout == 0) {
-				return queue.poll();
+				return this.queue.poll();
 			}
-			return queue.take();
+
+			if (this.queue instanceof BlockingQueue) {
+				return ((BlockingQueue<Message<?>>) this.queue).take();
+			}
+			else {
+				while (this.queue.size() == 0) {
+					this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS);
+				}
+				return this.queue.poll();
+			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -111,7 +147,15 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	@Override
 	public List<Message<?>> clear() {
 		List<Message<?>> clearedMessages = new ArrayList<Message<?>>();
-		this.queue.drainTo(clearedMessages);
+		if (this.queue instanceof BlockingQueue) {
+			((BlockingQueue<Message<?>>) this.queue).drainTo(clearedMessages);
+		}
+		else {
+			Message<?> message = null;
+			while ((message = this.queue.poll()) != null) {
+				clearedMessages.add(message);
+			}
+		}
 		return clearedMessages;
 	}
 
@@ -138,7 +182,13 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 	@Override
 	public int getRemainingCapacity() {
-		return this.queue.remainingCapacity();
+		if (this.queue instanceof BlockingQueue) {
+			return ((BlockingQueue<Message<?>>) this.queue).remainingCapacity();
+		}
+		else {
+			//Assume that underlying Queue implementation takes care of its size on "offer".
+			return Integer.MAX_VALUE;
+		}
 	}
 
 }
