@@ -37,6 +37,22 @@
 	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>
+		<section id="4.1-redis-queue-outbound-gateway">
+			<title>Redis Queue Outbound Gateway</title>
+			<para>
+				A Gateway <classname>RedisQueueOutboundGateway</classname> is now supported for sending redis 
+				message with control queue. 
+				See <xref linkend="redis-queue-outbound-gateway"/>.
+			</para>
+		</section>
+		<section id="4.1-redis-queue-inbound-gateway">
+			<title>Redis Queue Inbound Gateway</title>
+			<para>
+				A Gateway <classname>RedisQueueInboundGateway</classname> is now supported for processing redis 
+				message with control queue. 
+				See <xref linkend="redis-queue-inbound-gateway"/>.
+			</para>
+		</section>
 		<section id="4.1-amqp-inbound-missing-queues">
 			<title>AMQP Inbound Endpoints, Channel</title>
 			<para>
