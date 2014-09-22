@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -71,7 +72,7 @@ public class RedisQueueOutboundGatewayParserTests {
 
 	@Test
 	public void testDefaultConfig() throws Exception {
-		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
 		assertSame(serializer, TestUtils.getPropertyValue(this.defaultGateway, "serializer", RedisSerializer.class));
 		assertEquals(2, (int)TestUtils.getPropertyValue(this.defaultGateway, "order", Integer.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class RedisQueueOutboundGatewayParser extends AbstractConsumerEndpointPar
 		}
 		builder.addConstructorArgReference(connectionFactory);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel","outputChannel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");

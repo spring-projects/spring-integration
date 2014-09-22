@@ -17,7 +17,7 @@
 		reply-timeout="2000"
 		control-queue="si.test.queue"
 		task-executor="executor"
-		expect-message="true"
+		expect-message="false"
 		serializer="serializer"
 		auto-startup="false"
 		phase="3"/>

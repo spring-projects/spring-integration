@@ -17,7 +17,7 @@
 										reply-timeout="2000"
 										order="2"
 										control-queue="si.test.queue"
-										extract-payload="true"
+										extract-payload="false"
 										serializer="serializer"
 										auto-startup="false"
 										phase="3">
