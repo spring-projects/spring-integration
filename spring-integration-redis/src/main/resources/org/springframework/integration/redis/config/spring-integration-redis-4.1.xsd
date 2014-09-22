@@ -486,7 +486,6 @@
 
 						The "reply-timeout" attribute maps to the "sendTimeout" property of the
 						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
-
 						The attribute will default, if not specified, to '-1', meaning that
 						by default, the Gateway will wait indefinitely. The value is
 						specified in milliseconds.
