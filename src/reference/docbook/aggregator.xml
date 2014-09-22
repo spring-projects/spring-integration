@@ -882,8 +882,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 	</section>
 
   <section id="reaper">
-    <title id="reaper">Managing State in an Aggregator:
-    MessageGroupStore</title>
+    <title>Managing State in an Aggregator: MessageGroupStore</title>
 
     <para>Aggregator (and some other patterns in Spring Integration) is a
     stateful pattern that requires decisions to be made based on a group of
