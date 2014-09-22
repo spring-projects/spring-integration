@@ -234,7 +234,8 @@
 								</xsd:documentation>
 								<xsd:appinfo>
 									<tool:annotation kind="ref">
-										<tool:expected-type type="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec"/>
+										<tool:expected-type
+												type="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec"/>
 									</tool:annotation>
 								</xsd:appinfo>
 							</xsd:annotation>
@@ -357,7 +358,7 @@
 					<xsd:attribute name="payload-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation source="java:java.lang.Class">
-								Fully qualified name of the java type for the target `payload`
+								Fully qualified name of the java type for the target 'payload'
 								to convert from the incoming WebSocketMessage.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -365,11 +366,10 @@
 					<xsd:attribute name="use-broker" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
-								Flag to indicate if this adapter will send non-MESSAGE type WebSocketMessages
-								and messages with broker destinations to the `AbstractBrokerMessageHandler`
+								Flag to indicate if this adapter will send non-MESSAGE type 'WebSocketMessage's
+								and messages with broker destinations to the 'AbstractBrokerMessageHandler'
 								from the application context.
-								If the `AbstractBrokerMessageHandler` bean isn't present the warn log is emitted
-								and adapter behaviour is falling back to default like this attribute is 'false'.
+								The 'Broker Relay' configuration is required when 'use-broker' is 'true'.
 								This attribute is used only on server side. On client side it is ignored.
 								Defaults to 'false'.
 							</xsd:documentation>
@@ -441,7 +441,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Flag to indicate if the default converters should be registered after any custom
-					converters. This flag is used only if message-converters
+					converters. This flag is used only if 'message-converters'
 					are provided, otherwise all default converters will be registered.
 					Defaults to 'false'.
 				</xsd:documentation>
