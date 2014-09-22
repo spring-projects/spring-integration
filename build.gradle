@@ -71,6 +71,7 @@ subprojects { subproject ->
 		aspectjVersion = '1.8.2'
 		apacheSshdVersion = '0.10.1'
 		boonVersion = '0.25'
+		chronicleVersion = '3.2.2'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
@@ -249,6 +250,7 @@ project('spring-integration-core') {
 		compile("io.fastjson:boon:$boonVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
+		testCompile ("net.openhft:chronicle:$chronicleVersion")
 	}
 }
 

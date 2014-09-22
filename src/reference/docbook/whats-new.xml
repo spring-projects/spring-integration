@@ -203,5 +203,16 @@
 				See <xref linkend="async-gateway"/>.
 			</para>
 		</section>
+		<section id="4.1-queue-channel-queue.typ">
+			<title>QueueChannel: backed Queue type</title>
+			<para>
+				The <classname>QueueChannel</classname> backed <classname>Queue type</classname> has been changed
+				from <interfacename>BlockingQueue</interfacename> to the more generic
+				<interfacename>Queue</interfacename>. It allows to use any external
+				<interfacename>Queue</interfacename> implementation, for example Reactor's
+				<classname>PersistentQueue</classname>.
+				See <xref linkend="channel-configuration-queuechannel"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
