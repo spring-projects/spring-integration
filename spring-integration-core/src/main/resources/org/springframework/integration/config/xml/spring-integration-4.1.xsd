@@ -4302,6 +4302,104 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:element name="idempotent-receiver">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+                Defines an IdempotentReceiverInterceptor.
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="endpoint" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						Consumer Endpoint name(s) or patterns. To specify more than one name(pattern) use ',' 
+						(e.g. endpoint="xxx, xxx*, *xxx, *xxx*, xxx*yyy").
+						The endpoint 'id' is used to retrieve the target endpoint's
+						'MessageHandler' bean (using its '.handler' suffix),
+						for which the 'IdempotentReceiverInterceptor' will be applied.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="selector" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageSelector" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A 'MessageSelector' reference. Used to identify if the message should be accepted
+						by the target 'MessageHandler' endpoint.
+						Mutually exclusive with 'metadata-store' and 'key-strategy' or 'key-expression'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="metadata-store" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.metadata.ConcurrentMetadataStore" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The 'MetadataStore' reference. Used by the underlying
+						'org.springframework.integration.selector.MetadataStoreSelector'.
+						Mutually exclusive with 'selector'.
+						Optional. By default 'MetadataStoreSelector' uses an internal 'SimpleMetadataStore'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="key-strategy" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.metadata.MetadataKeyStrategy" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The 'MetadataKeyStrategy' reference. Used by the underlying
+						'org.springframework.integration.selector.MetadataStoreSelector'.
+						Evaluates an 'idempotentKey' from the request Message.
+						Mutually exclusive with 'selector' and 'key-expression'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="key-expression">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Expression to populate an 'org.springframework.integration.metadata.ExpressionMetadataKeyStrategy'.
+					Used by the underlying 'org.springframework.integration.selector.MetadataStoreSelector'.
+					Evaluates an 'idempotentKey' using the request Message as the evaluation context root object.
+					Mutually exclusive with 'selector' and 'key-strategy'.
+				]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="discard-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Identifies the channel to send a message when 'IdempotentReceiverInterceptor' doesn't accept
+						the message. When omitted, duplicate messages are forwarded to the handler with a
+						'DUPLICATE_MESSAGE' header.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="throw-exception-on-rejection" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Throw an exception if the 'IdempotentReceiverInterceptor' rejects the message (default false).
+						It is applied regardless of whether or not a discard channel is provided.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[

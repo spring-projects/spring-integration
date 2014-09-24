@@ -41,6 +41,17 @@
 				See <xref linkend="routing-slip"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-idempotent-receiver">
+			<title>Idempotent Receiver Pattern</title>
+			<para>
+				The <emphasis>Idempotent Receiver</emphasis> EIP implementation is now provided
+				via the <code>&lt;idempotent-receiver&gt;</code> component in XML, or the
+				<classname>IdempotentReceiverInterceptor</classname> and
+				<interfacename>IdempotentReceiver</interfacename> annotation when using Java
+				Configuration.
+				See <xref linkend="idempotent-receiver"/> and their JavaDocs for more information.
+			</para>
+		</section>
 		<section id="4.1-BoonJsonObjectMapper">
 			<title>BoonJsonObjectMapper</title>
 			<para>
