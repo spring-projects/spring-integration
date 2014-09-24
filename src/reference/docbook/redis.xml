@@ -939,10 +939,10 @@ the serialization of values, you may want to consider providing your own
 			</calloutlist>
 		</para>
 		<para>
-		   The <code>&lt;int-redis:redis-inbound-gateway&gt;</code> can be used to perform Redis command with control queue. For example:
-			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway id="defaultInboundGateway" control-queue="foo"/>]]></programlisting>
-			where the Message comes from <code>control-queue</code> gives queuename of the request and implies where to send reply, then <code>queue-inbound-gateway</code>
-			will get the request, process and send reply.
+			The <code>&lt;int-redis:redis-inbound-gateway&gt;</code> can be used to perform Redis command with control queue. For example:
+			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway id="defaultInboundGateway" control-queue="foo"/>]]>
+			</programlisting> where the Message comes from <code>control-queue</code> gives queuename of the request and implies where to 
+			send reply, then <code>queue-inbound-gateway</code> will get the request, process and send reply.
 		</para>
 	</section>
 	<section id="redis-lock-registry">

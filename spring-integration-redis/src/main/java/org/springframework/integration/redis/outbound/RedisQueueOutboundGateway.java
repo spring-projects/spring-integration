@@ -50,7 +50,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private static final int TIMEOUT = 1000;
 
-	private volatile int timeout = TIMEOUT;
+	private volatile int receiveTimeout = TIMEOUT;
 
 	private static final String QUEUE_NAME_SUFFIX = ".reply";
 
@@ -69,8 +69,8 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.template.afterPropertiesSet();
 	}
 
-	public void setTimeout(int timeout) {
-		this.timeout = timeout;
+	public void setReceiveTimeout(int timeout) {
+		this.receiveTimeout = timeout;
 	}
 
 	public void setExtractPayload(boolean extractPayload) {
@@ -115,7 +115,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.template.boundListOps(this.queueName).leftPush(uuidByte);
 		this.template.boundListOps(uuid).leftPush(value);
 		this.boundListOperations = template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
-		byte[] reply = (byte[]) this.boundListOperations.rightPop(this.timeout, TimeUnit.MILLISECONDS);
+		byte[] reply = (byte[]) this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		if(reply != null && reply.length > 0) {
 			Object replyMessage = this.serializer.deserialize(reply);
 			if (replyMessage == null) {
