@@ -600,7 +600,6 @@ project('spring-integration-websocket') {
 
 		compile ("org.springframework:spring-webmvc:$springVersion", optional)
 
-//		testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
 		testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
 	}
