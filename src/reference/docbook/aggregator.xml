@@ -376,11 +376,10 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" linkends="aggxml21-txt" /><![CDATA[
 		expire-groups-on-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
 
-		scheduler="taskScheduler" > ]]><co id="aggxml23" linkends="aggxml23-txt" />
-
-		<![CDATA[<transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" />
-		<![CDATA[<transactional/> ]]><co id="aggxml25" linkends="aggxml25-txt" />
-		<![CDATA[
+		scheduler="taskScheduler" > ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
+			<transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" /><![CDATA[
+			<advice-chain/> ]]><co id="aggxml25" linkends="aggxml25-txt" /><![CDATA[
+</aggregator>
 
 <int:channel id="outputChannel"/>
 

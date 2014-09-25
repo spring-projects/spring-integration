@@ -237,10 +237,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 * (checked in the setter).
 		 */
 		this.lockRegistrySet = true;
-		this.forceReleaseProcessor = createGroupTimroutProcessor();
+		this.forceReleaseProcessor = createGroupTimeoutProcessor();
 	}
 
-	private MessageGroupProcessor createGroupTimroutProcessor() {
+	private MessageGroupProcessor createGroupTimeoutProcessor() {
 		MessageGroupProcessor processor = new ForceReleaseMessageGroupProcessor();
 
 		if (this.groupTimeoutExpression != null && !CollectionUtils.isEmpty(this.forceReleaseAdviceChain)) {
