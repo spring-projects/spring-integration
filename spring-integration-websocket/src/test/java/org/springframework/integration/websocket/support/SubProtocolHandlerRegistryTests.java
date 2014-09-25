@@ -87,7 +87,7 @@ public class SubProtocolHandlerRegistryTests {
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry =
 				new SubProtocolHandlerRegistry(testProtocolHandler);
 		WebSocketSession session = mock(WebSocketSession.class);
-		when(session.getAcceptedProtocol()).thenReturn("foo", (String) null);
+		when(session.getAcceptedProtocol()).thenReturn("foo", "", null);
 
 		try {
 			subProtocolHandlerRegistry.findProtocolHandler(session);
@@ -99,6 +99,10 @@ public class SubProtocolHandlerRegistryTests {
 		}
 
 		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
+		assertNotNull(protocolHandler);
+		assertSame(protocolHandler, testProtocolHandler);
+
+		protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
 		assertNotNull(protocolHandler);
 		assertSame(protocolHandler, testProtocolHandler);
 	}

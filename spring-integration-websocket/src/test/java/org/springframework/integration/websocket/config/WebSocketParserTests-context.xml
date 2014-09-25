@@ -101,4 +101,8 @@
 
 	<int:channel id="clientOutboundChannel"/>
 
+	<int-websocket:client-container id="simpleClientWebSocketContainer"
+									client="webSocketClient"
+									uri="ws://foo.bar"/>
+
 </beans>
