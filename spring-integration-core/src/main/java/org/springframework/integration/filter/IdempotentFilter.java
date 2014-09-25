@@ -75,11 +75,11 @@ public class IdempotentFilter extends MessageFilter {
 		this(groupId, null, idempotentSelector, store);
 	}
 
-	private IdempotentFilter(String groupId, IdempotentKeyStrategy idempotentKeyStrategy,
-			IdempotentSelector idempotentSelector, MessageGroupStore store) {
+	private IdempotentFilter(final String groupId, final IdempotentKeyStrategy idempotentKeyStrategy,
+			final IdempotentSelector idempotentSelector, final MessageGroupStore store) {
 		super(new MessageSelector() {
 
-			IdempotentSelector selector = (idempotentSelector != null
+			private final IdempotentSelector selector = (idempotentSelector != null
 					? idempotentSelector
 					: new IdempotentSelector() {
 
@@ -95,7 +95,6 @@ public class IdempotentFilter extends MessageFilter {
 										}
 
 									}), idempotentKeyStrategy.getIdempotentKey(message));
-
 				}
 
 			});
