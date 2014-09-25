@@ -104,13 +104,12 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 
 	@Override
 	protected void handleMessageInternal(Message<?> requestMessage) throws Exception {
-		Message<?> scatterMessage = requestMessage;
 		if (this.gatherEndpoint == null) {
-			scatterMessage = getMessageBuilderFactory().fromMessage(requestMessage)
+			requestMessage = getMessageBuilderFactory().fromMessage(requestMessage)
 					.setReplyChannel(this.gatherChannel)
 					.build();
 		}
-		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
+		this.messagingTemplate.send(this.scatterChannel, requestMessage);
 	}
 
 	@Override
