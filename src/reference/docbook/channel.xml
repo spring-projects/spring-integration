@@ -306,9 +306,13 @@
 
     void postSend(Message<?> message, MessageChannel channel, boolean sent);
 
+    void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex);
+
     boolean preReceive(MessageChannel channel);
 
     Message<?> postReceive(Message<?> message, MessageChannel channel);
+
+    void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex);
 }]]></programlisting>
       After implementing the interface, registering the interceptor with a channel is just a matter of calling:
       <programlisting language="java">channel.addInterceptor(someChannelInterceptor);</programlisting>
@@ -362,6 +366,14 @@
         you cannot rely on the order beyond the fact that preSend will precede postSend and preReceive will
         precede postReceive.
       </tip>
+    </para>
+    <para>
+        Starting with <emphasis>Spring Framework 4.1</emphasis> and Spring Integration 4.1, the
+        <interfacename>ChannelInterceptor</interfacename> provides new methods - <code>afterSendCompletion()</code>
+        and <code>afterReceiveCompletion()</code>. They are invoked after <code>send()/receive()</code> calls,
+        regardless of any exception that is raised, thus allowing for resource cleanup. Note, the
+        Channel invokes these methods on the ChannelInterceptor List in the reverse order of the
+        initial <code>preSend()/preReceive()</code> calls.
     </para>
   </section>
 
