@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 
@@ -23,6 +25,7 @@ import org.springframework.messaging.PollableChannel;
  * Base class for all pollable channels.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel {
 
@@ -53,12 +56,20 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 */
 	@Override
 	public final Message<?> receive(long timeout) {
-		if (!this.getInterceptors().preReceive(this)) {
-			return null;
+		AtomicInteger receiveInterceptorIndex = new AtomicInteger(-1);
+		try {
+			if (!this.getInterceptors().preReceive(this, receiveInterceptorIndex)) {
+				return null;
+			}
+			Message<?> message = this.doReceive(timeout);
+			message = this.getInterceptors().postReceive(message, this);
+			this.getInterceptors().afterReceiveCompletion(message, this, null, receiveInterceptorIndex.get());
+			return message;
 		}
-		Message<?> message = this.doReceive(timeout);
-		message = this.getInterceptors().postReceive(message, this);
-		return message;
+		catch (RuntimeException e) {
+			this.getInterceptors().afterReceiveCompletion(null, this, e, receiveInterceptorIndex.get());
+			throw e;
+		}
 	}
 
 	/**

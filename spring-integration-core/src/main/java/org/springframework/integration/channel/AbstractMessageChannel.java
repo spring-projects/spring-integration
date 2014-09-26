@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
@@ -257,19 +258,24 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
+
+		AtomicInteger sendInterceptorIndex = new AtomicInteger(-1);
+		boolean sent = false;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			message = this.interceptors.preSend(message, this);
+			message = this.interceptors.preSend(message, this, sendInterceptorIndex);
 			if (message == null) {
 				return false;
 			}
-			boolean sent = this.doSend(message, timeout);
+			sent = this.doSend(message, timeout);
 			this.interceptors.postSend(message, this, sent);
+			this.interceptors.afterSendCompletion(message, this, sent, null, sendInterceptorIndex.get());
 			return sent;
 		}
 		catch (Exception e) {
+			this.interceptors.afterSendCompletion(message, this, sent, e, sendInterceptorIndex.get());
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
@@ -326,7 +332,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 
-
 		public boolean set(List<ChannelInterceptor> interceptors) {
 			synchronized (this.interceptors) {
 				this.interceptors.clear();
@@ -342,7 +347,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			this.interceptors.add(index, interceptor);
 		}
 
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel, AtomicInteger sendInterceptorIndex) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
 			}
@@ -350,8 +355,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(interceptor.getClass().getSimpleName()
+									+ " returned null from preSend, i.e. precluding the send.");
+						}
+						afterSendCompletion(null, channel, false, null, sendInterceptorIndex.get());
 						return null;
 					}
+					sendInterceptorIndex.incrementAndGet();
 				}
 			}
 			return message;
@@ -368,15 +379,30 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
-		public boolean preReceive(MessageChannel channel) {
+		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex,
+				int sendInterceptorIndex) {
+			for (int i = sendInterceptorIndex; i >= 0; i--) {
+				ChannelInterceptor interceptor = interceptors.get(i);
+				try {
+					interceptor.afterSendCompletion(message, channel, sent, ex);
+				}
+				catch (Throwable ex2) {
+					logger.error("Exception from afterSendCompletion in " + interceptor, ex2);
+				}
+			}
+		}
+
+		public boolean preReceive(MessageChannel channel, AtomicInteger receiveInterceptorIndex) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + channel + "'");
 			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					if (!interceptor.preReceive(channel)) {
+						afterReceiveCompletion(null, channel, null, receiveInterceptorIndex.get());
 						return false;
 					}
+					receiveInterceptorIndex.incrementAndGet();
 				}
 			}
 			return true;
@@ -398,6 +424,19 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 			}
 			return message;
+		}
+
+		public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex,
+				int receiveInterceptorIndex) {
+			for (int i = receiveInterceptorIndex; i >= 0; i--) {
+				ChannelInterceptor interceptor = interceptors.get(i);
+				try {
+					interceptor.afterReceiveCompletion(message, channel, ex);
+				}
+				catch (Throwable ex2) {
+					logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
+				}
+			}
 		}
 
 		public List<ChannelInterceptor> getInterceptors() {

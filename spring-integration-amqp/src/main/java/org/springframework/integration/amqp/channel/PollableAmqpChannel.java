@@ -16,6 +16,9 @@
 
 package org.springframework.integration.amqp.channel;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
@@ -31,6 +34,7 @@ import org.springframework.util.Assert;
  * name as the routing key.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class PollableAmqpChannel extends AbstractAmqpChannel implements PollableChannel {
@@ -93,21 +97,30 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	@Override
 	public Message<?> receive() {
-		if (!this.getInterceptors().preReceive(this)) {
- 			return null;
- 		}
-		Object object = this.getAmqpTemplate().receiveAndConvert(this.queueName);
-		if (object == null) {
-			return null;
+		AtomicInteger receiveInterceptorIndex = new AtomicInteger(-1);
+		try {
+			if (!this.getInterceptors().preReceive(this, receiveInterceptorIndex)) {
+				 return null;
+			 }
+			Object object = this.getAmqpTemplate().receiveAndConvert(this.queueName);
+			if (object == null) {
+				return null;
+			}
+			Message<?> replyMessage = null;
+			if (object instanceof Message<?>) {
+				replyMessage = (Message<?>) object;
+			}
+			else {
+				replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
+			}
+			replyMessage = this.getInterceptors().postReceive(replyMessage, this);
+			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, receiveInterceptorIndex.get());
+			return replyMessage;
 		}
-		Message<?> replyMessage = null;
-		if (object instanceof Message<?>) {
-			replyMessage = (Message<?>) object;
+		catch (RuntimeException e) {
+			this.getInterceptors().afterReceiveCompletion(null, this, e, receiveInterceptorIndex.get());
+			throw e;
 		}
-		else {
-			replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
-		}
-		return this.getInterceptors().postReceive(replyMessage, this) ;
 	}
 
 	@Override

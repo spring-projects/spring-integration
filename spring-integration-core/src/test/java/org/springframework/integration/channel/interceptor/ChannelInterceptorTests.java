@@ -17,6 +17,7 @@
 package org.springframework.integration.channel.interceptor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -55,12 +56,14 @@ public class ChannelInterceptorTests {
 
 	@Test
 	public void testPreSendInterceptorReturnsMessage() {
-		channel.addInterceptor(new PreSendReturnsMessageInterceptor());
+		PreSendReturnsMessageInterceptor interceptor = new PreSendReturnsMessageInterceptor();
+		channel.addInterceptor(interceptor);
 		channel.send(new GenericMessage<String>("test"));
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
 		assertEquals(1, result.getHeaders().get(PreSendReturnsMessageInterceptor.class.getSimpleName()));
+		assertTrue(interceptor.wasAfterCompletionInvoked());
 	}
 
 	@Test
@@ -131,13 +134,55 @@ public class ChannelInterceptorTests {
 	}
 
 	@Test
+	public void afterCompletionWithSendException() {
+		final AbstractMessageChannel testChannel = new AbstractMessageChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				throw new RuntimeException("Simulated exception");
+			}
+		};
+		AfterCompletionTestInterceptor interceptor1 = new AfterCompletionTestInterceptor();
+		AfterCompletionTestInterceptor interceptor2 = new AfterCompletionTestInterceptor();
+		testChannel.addInterceptor(interceptor1);
+		testChannel.addInterceptor(interceptor2);
+		try {
+			testChannel.send(MessageBuilder.withPayload("test").build());
+		}
+		catch (Exception ex) {
+			assertEquals("Simulated exception", ex.getCause().getMessage());
+		}
+		assertTrue(interceptor1.wasAfterCompletionInvoked());
+		assertTrue(interceptor2.wasAfterCompletionInvoked());
+	}
+
+	@Test
+	public void afterCompletionWithPreSendException() {
+		AfterCompletionTestInterceptor interceptor1 = new AfterCompletionTestInterceptor();
+		AfterCompletionTestInterceptor interceptor2 = new AfterCompletionTestInterceptor();
+		interceptor2.setExceptionToRaise(new RuntimeException("Simulated exception"));
+		this.channel.addInterceptor(interceptor1);
+		this.channel.addInterceptor(interceptor2);
+		try {
+			this.channel.send(MessageBuilder.withPayload("test").build());
+		}
+		catch (Exception ex) {
+			assertEquals("Simulated exception", ex.getCause().getMessage());
+		}
+		assertTrue(interceptor1.wasAfterCompletionInvoked());
+		assertFalse(interceptor2.wasAfterCompletionInvoked());
+	}
+
+	@Test
 	public void testPreReceiveInterceptorReturnsTrue() {
-		channel.addInterceptor(new PreReceiveReturnsTrueInterceptor());
+		PreReceiveReturnsTrueInterceptor interceptor = new PreReceiveReturnsTrueInterceptor();
+		channel.addInterceptor(interceptor);
 		Message<?> message = new GenericMessage<String>("test");
 		channel.send(message);
 		Message<?> result = channel.receive(0);
-		assertEquals(1, PreReceiveReturnsTrueInterceptor.counter.get());
+		assertEquals(1, interceptor.getCounter().get());
 		assertNotNull(result);
+		assertTrue(interceptor.wasAfterCompletionInvoked());
 	}
 
 	@Test
@@ -175,6 +220,25 @@ public class ChannelInterceptorTests {
 		assertEquals(2, invokedCount.get());
 		assertEquals(1, messageCount.get());
 	}
+
+	@Test
+	public void afterCompletionWithReceiveException() {
+		PreReceiveReturnsTrueInterceptor interceptor1 = new PreReceiveReturnsTrueInterceptor();
+		PreReceiveReturnsTrueInterceptor interceptor2 = new PreReceiveReturnsTrueInterceptor();
+		interceptor2.setExceptionToRaise(new RuntimeException("Simulated exception"));
+		channel.addInterceptor(interceptor1);
+		channel.addInterceptor(interceptor2);
+
+		try {
+			channel.receive(0);
+		}
+		catch (Exception ex) {
+			assertEquals("Simulated exception", ex.getMessage());
+		}
+		assertTrue(interceptor1.wasAfterCompletionInvoked());
+		assertFalse(interceptor2.wasAfterCompletionInvoked());
+	}
+
 	@Test
 	public void testInterceptorBeanWithPNamespace(){
 		ConfigurableApplicationContext ac =
@@ -195,12 +259,14 @@ public class ChannelInterceptorTests {
 
 		private static AtomicInteger counter = new AtomicInteger();
 
+		private volatile boolean afterCompletionInvoked;
+
 		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			assertNotNull(message);
-			Message<?> reply = MessageBuilder.fromMessage(message)
-					.setHeader(this.getClass().getSimpleName(), counter.incrementAndGet()).build();
-			return reply;
+			return MessageBuilder.fromMessage(message)
+					.setHeader(this.getClass().getSimpleName(), counter.incrementAndGet())
+					.build();
 		}
 		public String getFoo() {
 			return foo;
@@ -209,6 +275,16 @@ public class ChannelInterceptorTests {
 		public void setFoo(String foo) {
 			this.foo = foo;
 		}
+
+		public boolean wasAfterCompletionInvoked() {
+			return this.afterCompletionInvoked;
+		}
+
+		@Override
+		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+			this.afterCompletionInvoked = true;
+		}
+
 	}
 
 
@@ -228,15 +304,75 @@ public class ChannelInterceptorTests {
 		}
 	}
 
+	private static class AfterCompletionTestInterceptor extends ChannelInterceptorAdapter {
+
+		private AtomicInteger counter = new AtomicInteger();
+
+		private volatile boolean afterCompletionInvoked;
+
+		private RuntimeException exceptionToRaise;
+
+		public void setExceptionToRaise(RuntimeException exception) {
+			this.exceptionToRaise = exception;
+		}
+
+		public AtomicInteger getCounter() {
+			return this.counter;
+		}
+
+		public boolean wasAfterCompletionInvoked() {
+			return this.afterCompletionInvoked;
+		}
+
+		@Override
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+			assertNotNull(message);
+			counter.incrementAndGet();
+			if (this.exceptionToRaise != null) {
+				throw this.exceptionToRaise;
+			}
+			return message;
+		}
+
+		@Override
+		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+			this.afterCompletionInvoked = true;
+		}
+
+	}
 
 	private static class PreReceiveReturnsTrueInterceptor extends ChannelInterceptorAdapter {
 
-		private static AtomicInteger counter = new AtomicInteger();
+		private AtomicInteger counter = new AtomicInteger();
+
+		private volatile boolean afterCompletionInvoked;
+
+		private RuntimeException exceptionToRaise;
+
+		public void setExceptionToRaise(RuntimeException exception) {
+			this.exceptionToRaise = exception;
+		}
+
+		public AtomicInteger getCounter() {
+			return this.counter;
+		}
 
 		@Override
 		public boolean preReceive(MessageChannel channel) {
 			counter.incrementAndGet();
+			if (this.exceptionToRaise != null) {
+				throw this.exceptionToRaise;
+			}
 			return true;
+		}
+
+		public boolean wasAfterCompletionInvoked() {
+			return this.afterCompletionInvoked;
+		}
+
+		@Override
+		public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex) {
+			this.afterCompletionInvoked = true;
 		}
 	}
 
