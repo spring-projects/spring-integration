@@ -200,7 +200,7 @@
 						override the defaults. Default is DefaultMqttClientFactory.
 					]]></xsd:documentation>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mqtt.support.MqttMessageConverter" />
+						<tool:expected-type type="org.springframework.integration.mqtt.core.MqttPahoClientFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
