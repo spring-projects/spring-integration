@@ -6,31 +6,32 @@
 		<title>Introduction</title>
 		<para>
 			Starting with <emphasis>version 4.1</emphasis> Spring Integration has introduced
-			<emphasis>WebSocket</emphasis> adapters module. It is fully based on architecture, infrastructure and API
-			from Spring Framework's <emphasis>web-socket</emphasis> module. Therefore many of Spring WebSocket's
+			<emphasis>WebSocket</emphasis> support. It is based on architecture, infrastructure and API
+			from the Spring Framework's <emphasis>web-socket</emphasis> module. Therefore, many of Spring WebSocket's
 			components (e.g. <interfacename>SubProtocolHandler</interfacename> or
 			<interfacename>WebSocketClient</interfacename>) and configuration options (e.g.
-			<interfacename>@EnableWebSocketMessageBroker</interfacename>) can be reused with Spring Integration as is.
-			For more info, please, refer to the
+			<interfacename>@EnableWebSocketMessageBroker</interfacename>) can be reused within Spring Integration.
+			For more information, please, refer to the
 			<ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket"
-					>Spring Framework WebSocket Support</ulink> reference manual.
+					>Spring Framework WebSocket Support</ulink> chapter in the Spring Framework reference manual.
 		</para>
 		<note>
-			Since Spring Framework WebSocket infrastructure is based on <emphasis>Spring Messaging</emphasis>
-			foundation and provides some simple Messaging framework based on
+			Since the Spring Framework WebSocket infrastructure is based on the <emphasis>Spring Messaging</emphasis>
+			foundation and provides a basic Messaging framework based on the same
 			<interfacename>MessageChannel</interfacename>s, <interfacename>MessageHandler</interfacename>s
-			and some POJO-method annotation mappings hooks, the Spring Integration can be involved in the
-			WebSocket flow even without WebSocket adapters. For this purpose there is just enough to configure
+			that Spring Integration uses,
+			and some POJO-method annotation mappings, Spring Integration can be directly involved in a
+			WebSocket flow, even without WebSocket adapters. For this purpose you can simply configure a
 			Spring Integration <interfacename>@MessagingGateway</interfacename> with appropriate annotations:
 		</note>
 				<programlisting language="java"><![CDATA[@MessagingGateway
 @Controller
 public interface WebSocketGateway {
 
-	@MessageMapping("/greeting")
-	@SendToUser("/queue/answer")
-	@Gateway(requestChannel = "greetingChannel")
-	String greeting(String payload);
+    @MessageMapping("/greeting")
+    @SendToUser("/queue/answer")
+    @Gateway(requestChannel = "greetingChannel")
+    String greeting(String payload);
 
 }]]></programlisting>
 	</section>
@@ -38,18 +39,18 @@ public interface WebSocketGateway {
 	<section id="web-socket-overview">
 		<title>Overview</title>
 		<para>
-			Since WebSocket protocol is <emphasis>streaming</emphasis> by definition and we can
-			<emphasis>send</emphasis> and <emphasis>receive</emphasis> messages to/from WebSocket at the same time,
-			there is just need to get deal with appropriate <interfacename>WebSocketSession</interfacename>,
-			independently of client or server side. To encapsulate the connection management and
-			<interfacename>WebSocketSession</interfacename> registry the <classname>IntegrationWebSocketContainer</classname>
+			Since the WebSocket protocol is <emphasis>streaming</emphasis> by definition and we can
+			<emphasis>send</emphasis> and <emphasis>receive</emphasis> messages to/from a WebSocket at the same time,
+			we can simply deal with an appropriate <interfacename>WebSocketSession</interfacename>,
+			regardless of being on the client or server side. To encapsulate the connection management and
+			<interfacename>WebSocketSession</interfacename> registry, the <classname>IntegrationWebSocketContainer</classname>
 			is provided with <classname>ClientWebSocketContainer</classname> and <classname>ServerWebSocketContainer</classname>
-			implementations respectively. Thanks to <ulink url="https://www.jcp.org/en/jsr/detail?id=356">WebSocket API</ulink>
-			and its implementation in the Spring Framework with many extensions, the same classes are used from server
-			side as well as from client side (from Java perspective, of course). Hence most connection and
+			implementations. Thanks to the <ulink url="https://www.jcp.org/en/jsr/detail?id=356">WebSocket API</ulink>
+			and its implementation in the Spring Framework, with many extensions, the same classes are used on the server
+			side as well as the client side (from a Java perspective, of course). Hence most connection and
 			<interfacename>WebSocketSession</interfacename> registry options are the same on both sides. That allows us
-			to reuse many configuration cases and infrastructure hooks to build WebSocket applications as on server
-			side as well as on client side:
+			to reuse many configuration items and infrastructure hooks to build WebSocket applications on the server
+			side as well as on the client side:
 			<programlisting language="java"><![CDATA[//Client side
 @Bean
 public WebSocketClient webSocketClient() {
@@ -69,23 +70,24 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 		</para>
 		<para>
 			The <classname>IntegrationWebSocketContainer</classname> is designed to achieve
-			<emphasis>bidirectional</emphasis> messaging interaction and can be shared between Inbound and Outbound
-			Channel Adapters (see bellow), can be referenced only from one of them (if we are interested only in
-			one-way (sending or receiving) WebSocket messaging). It can be presented even without any Channel
-			Adapter, but in this case <classname>IntegrationWebSocketContainer</classname> plays only as a
-			<interfacename>WebSocketSession</interfacename> registry role.
+			<emphasis>bidirectional</emphasis> messaging and can be shared between Inbound and Outbound
+			Channel Adapters (see below), can be referenced only from one of them (when using
+			one-way - sending or receiving - WebSocket messaging). It can be used without any Channel
+			Adapter, but in this case, <classname>IntegrationWebSocketContainer</classname> only plays a role
+			as the <interfacename>WebSocketSession</interfacename> registry.
 		</para>
 		<note>
 			The <classname>ServerWebSocketContainer</classname> implements <interfacename>WebSocketConfigurer</interfacename>
 			to register an internal <classname>IntegrationWebSocketContainer.IntegrationWebSocketHandler</classname>
-			as an <code>Endpoint</code> under provided <code>paths</code> and other server WebSocket options (like
-			<interfacename>HandshakeHandler</interfacename> or <code>SockJS fallback</code>) within
-			<classname>ServletWebSocketHandlerRegistry</classname> for target vendor WebSocket Container. This
-			registration is achieved with infrastructural <classname>WebSocketIntegrationConfigurationInitializer</classname>
-			component, which do the same as <interfacename>@EnableWebSocket</interfacename> annotation. From here
-			using just <interfacename>@EnableIntegration</interfacename> (or any Spring Integration Namespace)
+			as an <code>Endpoint</code> under the provided <code>paths</code> and other server WebSocket options (such as
+			<interfacename>HandshakeHandler</interfacename> or <code>SockJS fallback</code>) within the
+			<classname>ServletWebSocketHandlerRegistry</classname> for the target vendor WebSocket Container. This
+			registration is achieved with an infrastructural <classname>WebSocketIntegrationConfigurationInitializer</classname>
+			component, which does the same as the <interfacename>@EnableWebSocket</interfacename> annotation. This means that
+			using just <interfacename>@EnableIntegration</interfacename> (or any Spring Integration Namespace in the
+			application context)
 			you can omit the <interfacename>@EnableWebSocket</interfacename> declaration, because all WebSocket
-			Endpoints are detected by Spring Integration infrastructure.
+			Endpoints are detected by the Spring Integration infrastructure.
 		</note>
 	</section>
 
@@ -93,9 +95,9 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 		<title>WebSocket Inbound Channel Adapter</title>
 		<para>
 			The <classname>WebSocketInboundChannelAdapter</classname> implements the receiving part of
-			<interfacename>WebSocketSession</interfacename> interaction. It must be supplied with
-			<classname>IntegrationWebSocketContainer</classname>, where the adapter registers itself as a
-			<interfacename>WebSocketListener</interfacename> to handle incoming messages and some common
+			<interfacename>WebSocketSession</interfacename> interaction. It must be supplied with a
+			<classname>IntegrationWebSocketContainer</classname>, and the adapter registers itself as a
+			<interfacename>WebSocketListener</interfacename> to handle incoming messages and
 			<interfacename>WebSocketSession</interfacename> events.
 		</para>
 		<note>
@@ -103,39 +105,39 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 			<classname>IntegrationWebSocketContainer</classname>.
 		</note>
 		<para>
-			In case of WebSocket <emphasis>sub-protocol</emphasis>s interests, the
+			For WebSocket <emphasis>sub-protocol</emphasis>s, the
 			<classname>WebSocketInboundChannelAdapter</classname> can be configured with
 			<classname>SubProtocolHandlerRegistry</classname> as the second constructor argument. The adapter delegates
-			all "hard" work to that <classname>SubProtocolHandlerRegistry</classname> to determine appropriate
-			<interfacename>SubProtocolHandler</interfacename> by accepted <interfacename>WebSocketSession</interfacename>
-			and convert <interfacename>WebSocketMessage</interfacename> to the <interfacename>Message</interfacename>
+			to the <classname>SubProtocolHandlerRegistry</classname> to determine the appropriate
+			<interfacename>SubProtocolHandler</interfacename> for the accepted <interfacename>WebSocketSession</interfacename>
+			and to convert <interfacename>WebSocketMessage</interfacename> to a <interfacename>Message</interfacename>
 			according to the sub-protocol implementation.
 		</para>
 		<note>
-			By default the <classname>WebSocketInboundChannelAdapter</classname> relies just only on the raw
-			<classname>PassThruSubProtocolHandler</classname> implementation, which converts
-			<interfacename>WebSocketMessage</interfacename> to the <interfacename>Message</interfacename> as is.
+			By default, the <classname>WebSocketInboundChannelAdapter</classname> relies just only on the raw
+			<classname>PassThruSubProtocolHandler</classname> implementation, which simply converts the
+			<interfacename>WebSocketMessage</interfacename> to a <interfacename>Message</interfacename>.
 		</note>
 		<para>
 			The <classname>WebSocketInboundChannelAdapter</classname> accepts and sends to the underlying integration
-			flow only <interfacename>Message</interfacename>s with <code>SimpMessageType.MESSAGE</code> or empty
-			<code>simpMessageType</code> header. All other <interfacename>Message</interfacename> types can be handled
+			flow only <interfacename>Message</interfacename>s with <code>SimpMessageType.MESSAGE</code> or an empty
+			<code>simpMessageType</code> header. All other <interfacename>Message</interfacename> types are handled
 			through the <interfacename>ApplicationEvent</interfacename>s emitted from a
 			<interfacename>SubProtocolHandler</interfacename> implementation (e.g.
 			<classname>StompSubProtocolHandler</classname>).
 		</para>
 		<para>
-			On the server side <classname>WebSocketInboundChannelAdapter</classname> can be configured with
+			On the server side <classname>WebSocketInboundChannelAdapter</classname> can be configured with the
 			<code>useBroker = true</code> option, if the <interfacename>@EnableWebSocketMessageBroker</interfacename>
-			configuration is presented. In this case all <code>non-MESSAGE</code> <interfacename>Message</interfacename>
-			types are delegated to the provided <classname>AbstractBrokerMessageHandler</classname>. In addition, if
+			configuration is present. In this case all <code>non-MESSAGE</code> <interfacename>Message</interfacename>
+			types are delegated to the provided <classname>AbstractBrokerMessageHandler</classname>. In addition, if the
 			Broker Relay is configured with destination prefixes, those Messages, which match to the Broker
-			destinations, are routed to the <classname>AbstractBrokerMessageHandler</classname>, but not to the
+			destinations, are routed to the <classname>AbstractBrokerMessageHandler</classname>, instead of to the
 			<code>outputChannel</code> of the <classname>WebSocketInboundChannelAdapter</classname>.
 		</para>
 		<note>
-			Spring's WebSocket Support allows to configure only one Broker Relay, hence we don't require an
-			<classname>AbstractBrokerMessageHandler</classname> injection, but just detect it from the
+			Spring's WebSocket Support allows the configuration of only one Broker Relay, hence we don't require an
+			<classname>AbstractBrokerMessageHandler</classname> reference, it is detected in the
 			Application Context.
 		</note>
 		<para>
@@ -148,34 +150,34 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 		<para>
 			The <classname>WebSocketOutboundChannelAdapter</classname> accepts Spring Integration messages from its
 			<interfacename>MessageChannel</interfacename>, determines the
-			<interfacename>WebSocketSession</interfacename> <code>id</code> from <classname>MessageHeaders</classname>,
-			retrieve <interfacename>WebSocketSession</interfacename> from the provided
-			<classname>IntegrationWebSocketContainer</classname> and delegates the "hard" conversion and sending
+			<interfacename>WebSocketSession</interfacename> <code>id</code> from the <classname>MessageHeaders</classname>,
+			retrieves the <interfacename>WebSocketSession</interfacename> from the provided
+			<classname>IntegrationWebSocketContainer</classname> and delegates the conversion and sending
 			<interfacename>WebSocketMessage</interfacename> work to the appropriate
 			<interfacename>SubProtocolHandler</interfacename> from the provided
 			<classname>SubProtocolHandlerRegistry</classname>.
 		</para>
 		<para>
-			On the client side the <interfacename>WebSocketSession</interfacename> <code>id</code> Message header isn't
-			required, because <classname>ClientWebSocketContainer</classname> gets deal only with single connection and
+			On the client side, the <interfacename>WebSocketSession</interfacename> <code>id</code> message header isn't
+			required, because <classname>ClientWebSocketContainer</classname> deals only with a single connection and
 			its <interfacename>WebSocketSession</interfacename> respectively.
 		</para>
 		<para>
-			In case of STOMP sub-protocol this adapter should be configured with
-			<classname>StompSubProtocolHandler</classname>. After that you can send to this adapter
-			any STOMP message type, using <code>StompHeaderAccessor.create(StompCommand...)</code> and
-			<classname>MessageBuilder</classname>, or just using <code>HeaderEnricher</code> (see
+			To use the STOMP sub-protocol, this adapter should be configured with a
+			<classname>StompSubProtocolHandler</classname>. Then you can send
+			any STOMP message type to this adapter, using <code>StompHeaderAccessor.create(StompCommand...)</code> and
+			a <classname>MessageBuilder</classname>, or just using a <code>HeaderEnricher</code> (see
 			<xref linkend="header-enricher"/>).
 		</para>
 		<para>
-			More configuration option see bellow.
+			For more configuration option see below.
 		</para>
 	</section>
 
 	<section id="web-sockets-namespace">
 		<title>WebSockets Namespace Support</title>
 		<para>
-			Spring Integration <emphasis>WebSocket</emphasis> namespace includes several components described bellow.
+			Spring Integration <emphasis>WebSocket</emphasis> namespace includes several components described below.
 			To include it in your configuration, simply provide the following namespace declaration in your
 			application context configuration file:
 		</para>
@@ -195,7 +197,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
     ...
 </beans>]]></programlisting>
 		<para>
-			<emphasis>&lt;int-websocket:client-container&gt;</emphasis>
+			<emphasis role="bold">&lt;int-websocket:client-container&gt;</emphasis>
 		</para>
 		<programlisting language="xml"><![CDATA[<int-websocket:client-container
 					id="" ]]><co id="ws-c-c-id" linkends="ws-c-c-id-l"/><![CDATA[
@@ -225,15 +227,16 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				</callout>
 				<callout arearefs="ws-c-c-uri" id="ws-c-c-uri-l">
 					<para>
-						The <code>uri</code> or <code>uriTemplate</code> to the target WebSocket service. If is used as
-						<code>uriTemplate</code> with URI variable placeholders the <code>uri-variables</code>
+						The <code>uri</code> or <code>uriTemplate</code> to the target WebSocket service. If it is used as
+						a <code>uriTemplate</code> with URI variable placeholders, the <code>uri-variables</code>
 						attribute is required.
 					</para>
 				</callout>
 				<callout arearefs="ws-c-c-uri-variables" id="ws-c-c-uri-variables-l">
 					<para>
-						Comma-separated values for the URI variable placeholders within <code>uri</code> attribute
-						value. See <code>UriComponents.expand(Object... uriVariableValues)</code>.
+						Comma-separated values for the URI variable placeholders within the <code>uri</code> attribute
+						value. The values are replaced into the placeholders according
+						to the order in the <code>uri</code>. See <code>UriComponents.expand(Object... uriVariableValues)</code>.
 					</para>
 				</callout>
 				<callout arearefs="ws-c-c-origin" id="ws-c-c-origin-l">
@@ -243,18 +246,18 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				</callout>
 				<callout arearefs="ws-c-c-send-time-limit" id="ws-c-c-send-time-limit-l">
 					<para>
-						The WebSocket session 'send' timeout limit. Default to <code>10000</code>.
+						The WebSocket session 'send' timeout limit. Defaults to <code>10000</code>.
 					</para>
 				</callout>
 				<callout arearefs="ws-c-c-send-buffer" id="ws-c-c-send-buffer-l">
 					<para>
-						The WebSocket session 'send' message size limit. Default to <code>524288</code>.
+						The WebSocket session 'send' message size limit. Defaults to <code>524288</code>.
 					</para>
 				</callout>
 				<callout arearefs="ws-c-c-auto-startup" id="ws-c-c-auto-startup-l">
 					<para>
 						Boolean value indicating whether this endpoint should start automatically.
-						Default to <code>false</code>, assuming that this container will be started from the
+						Defaults to <code>false</code>, assuming that this container will be started from the
 						<xref linkend="web-socket-inbound-adapter"/>.
 					</para>
 				</callout>
@@ -268,7 +271,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				</callout>
 				<callout arearefs="ws-c-c-headers" id="ws-c-c-headers-l">
 					<para>
-						The <interfacename>Map</interfacename> of <code>HttpHeaders</code> to be used with the
+						A <interfacename>Map</interfacename> of <code>HttpHeaders</code> to be used with the
 						Handshake request.
 					</para>
 				</callout>
@@ -276,7 +279,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 		</para>
 
 		<para>
-			<emphasis>&lt;int-websocket:server-container&gt;</emphasis>
+			<emphasis role="bold">&lt;int-websocket:server-container&gt;</emphasis>
 		</para>
 		<programlisting language="xml"><![CDATA[<int-websocket:server-container
 					id="" ]]><co id="ws-s-c-id" linkends="ws-s-c-id-l"/><![CDATA[
@@ -356,7 +359,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				<callout arearefs="ws-s-c-sockjs-stream" id="ws-s-c-sockjs-stream-l">
 					<para>
 						Minimum number of bytes that can be send over a single HTTP streaming request before
-						it will be closed. Defaults to <code>128K</code> (i.e. 128 1024).
+						it will be closed. Defaults to <code>128K</code> (i.e. 128*1024 bytes).
 					</para>
 				</callout>
 				<callout arearefs="ws-s-c-sockjs-cookie" id="ws-s-c-sockjs-cookie-l">
@@ -419,7 +422,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 		</para>
 
 		<para>
-			<emphasis>&lt;int-websocket:outbound-channel-adapter&gt;</emphasis>
+			<emphasis role="bold">&lt;int-websocket:outbound-channel-adapter&gt;</emphasis>
 		</para>
 		<para>
 			<programlisting language="xml"><![CDATA[<int-websocket:outbound-channel-adapter
@@ -445,9 +448,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				</callout>
 				<callout arearefs="ws-o-a-channel" id="ws-o-a-channel-l">
 					<para>
-						Identifies channel attached to this adapter. Depending on the type of the adapter
-						this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where
-						messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+						Identifies the channel attached to this adapter.
 					</para>
 				</callout>
 				<callout arearefs="ws-o-a-container" id="ws-o-a-container-l">
@@ -467,11 +468,11 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				<callout arearefs="ws-o-a-handlers" id="ws-o-a-handlers-l">
 					<para>
 						List of <interfacename>SubProtocolHandler</interfacename> bean references
-						for this Channel Adapter. If only single bean reference is provided and
+						for this Channel Adapter. If only a single bean reference is provided and a
 						<code>default-protocol-handler</code> isn't provided, that single
-						<interfacename>SubProtocolHandler</interfacename> will be presented as
+						<interfacename>SubProtocolHandler</interfacename> will be used as the
 						<code>default-protocol-handler</code>. If this attribute or
-						<code>default-protocol-handler</code> aren't provided the
+						<code>default-protocol-handler</code> aren't provided, the
 						<classname>PassThruSubProtocolHandler</classname> is used by default.
 					</para>
 				</callout>
@@ -488,7 +489,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 						are provided, otherwise all default converters will be registered.
 						Defaults to <code>false</code>. The default converters are (in the order):
 						<classname>StringMessageConverter</classname>, <classname>ByteArrayMessageConverter</classname>
-						and <classname>MappingJackson2MessageConverter</classname> if Jackson library is present in
+						and <classname>MappingJackson2MessageConverter</classname> if the Jackson library is present on
 						the classpath.
 					</para>
 				</callout>
@@ -510,7 +511,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 		</para>
 
 		<para>
-			<emphasis>&lt;int-websocket:inbound-channel-adapter&gt;</emphasis>
+			<emphasis role="bold">&lt;int-websocket:inbound-channel-adapter&gt;</emphasis>
 		</para>
 		<para>
 			<programlisting language="xml"><![CDATA[<int-websocket:inbound-channel-adapter
@@ -538,7 +539,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				</callout>
 				<callout arearefs="ws-i-a-channel" id="ws-i-a-channel-l">
 					<para>
-						See the same option on the <code>&lt;int-websocket:outbound-channel-adapter&gt;</code>.
+						Identifies the channel attached to this adapter.
 					</para>
 				</callout>
 				<callout arearefs="ws-i-a-error" id="ws-i-a-error-l">
@@ -575,7 +576,7 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 				<callout arearefs="ws-i-a-timeout" id="ws-i-a-timeout-l">
 					<para>
 						Maximum amount of time in milliseconds to wait when sending a message
-						to the channel if such channel may block.
+						to the channel if the channel may block.
 						For example, a <classname>QueueChannel</classname> can block until space is available
 						if its maximum capacity has been reached.
 					</para>
@@ -592,10 +593,10 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 						Flag to indicate if this adapter will send <code>non-MESSAGE</code>
 						<interfacename>WebSocketMessage</interfacename>s and messages with broker destinations to the
 						<classname>AbstractBrokerMessageHandler</classname> from the application context.
-						If the <classname>AbstractBrokerMessageHandler</classname> bean isn't present the warn log
-						is emitted and adapter behaviour is falling back to default like this attribute is
+						If an <classname>AbstractBrokerMessageHandler</classname> bean isn't present a warning log
+						is emitted and the adapter behaviour falls back to default as if this attribute is
 						<code>false</code>.
-						This attribute is used only on server side. On client side it is ignored.
+						This attribute is used only on the server side. On the client side, it is ignored.
 						Defaults to <code>false</code>.
 					</para>
 				</callout>
