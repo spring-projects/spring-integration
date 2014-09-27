@@ -22,6 +22,8 @@ import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
@@ -42,6 +44,10 @@ import org.springframework.util.Assert;
 public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations {
 
 	private final Queue<Message<?>> queue;
+
+	protected final ReentrantLock queueLock = new ReentrantLock();
+
+	protected final Condition queueNotEmpty = this.queueLock.newCondition();
 
 	/**
 	 * Create a channel with the specified queue.
@@ -80,7 +86,6 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		try {
 			if (this.queue instanceof BlockingQueue) {
 				BlockingQueue<Message<?>> blockingQueue = (BlockingQueue<Message<?>>) this.queue;
-
 				if (timeout > 0) {
 					return blockingQueue.offer(message, timeout, TimeUnit.MILLISECONDS);
 				}
@@ -89,11 +94,16 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 				}
 				blockingQueue.put(message);
 				return true;
-
-
 			}
 			else {
-				return this.queue.add(message);
+				this.queueLock.lockInterruptibly();
+				try {
+					return this.queue.offer(message);
+				}
+				finally {
+					this.queueNotEmpty.signalAll();
+					this.queueLock.unlock();
+				}
 			}
 		}
 		catch (InterruptedException e) {
@@ -111,30 +121,36 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 				}
 				else {
 					long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
-					long deadline = System.nanoTime() + nanos;
-					Message<?> message = null;
-					while ((message = this.queue.poll()) == null){
-						if (Thread.interrupted() || System.nanoTime() > deadline) {
-							break;
+					this.queueLock.lockInterruptibly();
+					try {
+						while (this.queue.size() == 0 && nanos > 0) {
+							nanos = this.queueNotEmpty.awaitNanos(nanos);
 						}
+						return this.queue.poll();
 					}
-					return message;
+					finally {
+						this.queueLock.unlock();
+					}
 				}
 			}
 			if (timeout == 0) {
 				return this.queue.poll();
 			}
+
 			if (this.queue instanceof BlockingQueue) {
 				return ((BlockingQueue<Message<?>>) this.queue).take();
 			}
 			else {
-				Message<?> message = null;
-				while ((message = this.queue.poll()) == null) {
-					if (Thread.interrupted()) {
-						break;
+				this.queueLock.lockInterruptibly();
+				try {
+					while (this.queue.size() == 0) {
+						this.queueNotEmpty.await();
 					}
+					return this.queue.poll();
 				}
-				return message;
+				finally {
+					this.queueLock.unlock();
+				}
 			}
 		}
 		catch (InterruptedException e) {
