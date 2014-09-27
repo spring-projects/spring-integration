@@ -593,9 +593,8 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 						Flag to indicate if this adapter will send <code>non-MESSAGE</code>
 						<interfacename>WebSocketMessage</interfacename>s and messages with broker destinations to the
 						<classname>AbstractBrokerMessageHandler</classname> from the application context.
-						If an <classname>AbstractBrokerMessageHandler</classname> bean isn't present a warning log
-						is emitted and the adapter behaviour falls back to default as if this attribute is
-						<code>false</code>.
+						The <code>Broker Relay</code> configuration is required when this attribute is
+						<code>true</code>.
 						This attribute is used only on the server side. On the client side, it is ignored.
 						Defaults to <code>false</code>.
 					</para>

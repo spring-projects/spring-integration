@@ -369,8 +369,7 @@
 								Flag to indicate if this adapter will send non-MESSAGE type 'WebSocketMessage's
 								and messages with broker destinations to the 'AbstractBrokerMessageHandler'
 								from the application context.
-								If the 'AbstractBrokerMessageHandler' bean isn't present the warn log is emitted
-								and adapter behaviour is falling back to default like this attribute is 'false'.
+								The 'Broker Relay' configuration is required when 'use-broker' is 'true'.
 								This attribute is used only on server side. On client side it is ignored.
 								Defaults to 'false'.
 							</xsd:documentation>

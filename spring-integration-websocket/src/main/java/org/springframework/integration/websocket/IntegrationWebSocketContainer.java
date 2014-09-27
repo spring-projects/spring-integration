@@ -26,9 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.util.Assert;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.SubProtocolCapable;
@@ -36,7 +33,6 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
-import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 /**
  * The high-level 'connection factory pattern' contract over low-level Web-Socket
@@ -59,7 +55,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
  * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
  * @see org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler
  */
-public abstract class IntegrationWebSocketContainer implements ApplicationEventPublisherAware, DisposableBean {
+public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -75,19 +71,12 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 
 	private volatile int sendBufferSizeLimit = 512 * 1024;
 
-	private ApplicationEventPublisher eventPublisher;
-
 	public void setSendTimeLimit(int sendTimeLimit) {
 		this.sendTimeLimit = sendTimeLimit;
 	}
 
 	public void setSendBufferSizeLimit(int sendBufferSizeLimit) {
 		this.sendBufferSizeLimit = sendBufferSizeLimit;
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.eventPublisher = applicationEventPublisher;
 	}
 
 	public void setMessageListener(WebSocketListener messageListener) {
@@ -146,15 +135,6 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 		this.sessions.clear();
 	}
 
-	private void publishEvent(ApplicationEvent event) {
-		try {
-			this.eventPublisher.publishEvent(event);
-		}
-		catch (Throwable ex) {
-			logger.error("Error while publishing " + event, ex);
-		}
-	}
-
 	/**
 	 * An internal {@link WebSocketHandler} implementation to be used with native
 	 * Web-Socket containers.
@@ -192,9 +172,6 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 				if (IntegrationWebSocketContainer.this.messageListener != null) {
 					IntegrationWebSocketContainer.this.messageListener.afterSessionEnded(session, closeStatus);
 				}
-				else if (IntegrationWebSocketContainer.this.eventPublisher != null) {
-					publishEvent(new SessionDisconnectEvent(this, session.getId(), closeStatus));
-				}
 			}
 		}
 
@@ -203,10 +180,8 @@ public abstract class IntegrationWebSocketContainer implements ApplicationEventP
 			WebSocketSession removed = IntegrationWebSocketContainer.this.sessions.remove(session.getId());
 			if (removed != null) {
 				IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-				if (IntegrationWebSocketContainer.this.eventPublisher != null) {
-					publishEvent(new SessionErrorEvent(this, session.getId(), exception));
-				}
 			}
+			throw new Exception(exception);
 		}
 
 		@Override
