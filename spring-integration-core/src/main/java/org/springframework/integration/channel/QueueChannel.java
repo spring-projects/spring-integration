@@ -21,9 +21,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
@@ -45,9 +44,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 	private final Queue<Message<?>> queue;
 
-	protected final ReentrantLock queueLock = new ReentrantLock();
-
-	protected final Condition queueNotEmpty = this.queueLock.newCondition();
+	protected final Semaphore queueSemaphore = new Semaphore(0);
 
 	/**
 	 * Create a channel with the specified queue.
@@ -96,13 +93,11 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 				return true;
 			}
 			else {
-				this.queueLock.lockInterruptibly();
 				try {
 					return this.queue.offer(message);
 				}
 				finally {
-					this.queueNotEmpty.signalAll();
-					this.queueLock.unlock();
+					this.queueSemaphore.release();
 				}
 			}
 		}
@@ -120,17 +115,10 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 					return ((BlockingQueue<Message<?>>) this.queue).poll(timeout, TimeUnit.MILLISECONDS);
 				}
 				else {
-					long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
-					this.queueLock.lockInterruptibly();
-					try {
-						while (this.queue.size() == 0 && nanos > 0) {
-							nanos = this.queueNotEmpty.awaitNanos(nanos);
-						}
-						return this.queue.poll();
+					if (this.queue.size() == 0) {
+						 this.queueSemaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
 					}
-					finally {
-						this.queueLock.unlock();
-					}
+					return this.queue.poll();
 				}
 			}
 			if (timeout == 0) {
@@ -141,16 +129,12 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 				return ((BlockingQueue<Message<?>>) this.queue).take();
 			}
 			else {
-				this.queueLock.lockInterruptibly();
-				try {
-					while (this.queue.size() == 0) {
-						this.queueNotEmpty.await();
+				while (this.queue.size() == 0) {
+					if (this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS) && this.queue.size() > 0) {
+						break;
 					}
-					return this.queue.poll();
 				}
-				finally {
-					this.queueLock.unlock();
-				}
+				return this.queue.poll();
 			}
 		}
 		catch (InterruptedException e) {

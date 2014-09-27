@@ -270,6 +270,28 @@ public class QueueChannelTests {
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertTrue(messageReceived.get());
 
+		final CountDownLatch latch1 = new CountDownLatch(2);
+
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				while (true) {
+					Message<?> message = channel.receive(100);
+					if (message != null) {
+						latch1.countDown();
+						if (latch1.getCount() == 0) {
+							break;
+						}
+					}
+				}
+			}
+		});
+		thread.start();
+
+		Thread.sleep(200);
+		channel.send(new GenericMessage<String>("testing"));
+		channel.send(new GenericMessage<String>("testing"));
+		assertTrue(latch1.await(1000, TimeUnit.MILLISECONDS));
+
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -313,6 +335,22 @@ public class QueueChannelTests {
 		clearedMessages = channel.clear();
 		assertNotNull(clearedMessages);
 		assertEquals(0, clearedMessages.size());
+
+		// Test on artificial infinite wait
+		// channel.receive();
+
+		// Distributed scenario
+		final CountDownLatch latch4 = new CountDownLatch(1);
+		new Thread(new Runnable() {
+			public void run() {
+				Message<?> message = channel.receive();
+				if (message != null) {
+					latch4.countDown();
+				}
+			}
+		}).start();
+		queue.add(new GenericMessage<String>("foo"));
+		assertTrue(latch4.await(1000, TimeUnit.MILLISECONDS));
 	}
 
 }
