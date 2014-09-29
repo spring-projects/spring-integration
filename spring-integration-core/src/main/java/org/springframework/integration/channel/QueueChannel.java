@@ -115,8 +115,11 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 					return ((BlockingQueue<Message<?>>) this.queue).poll(timeout, TimeUnit.MILLISECONDS);
 				}
 				else {
-					if (this.queue.size() == 0) {
-						 this.queueSemaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+					long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
+					long deadline = System.nanoTime() + nanos;
+					while (this.queue.size() == 0 && nanos > 0) {
+						this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS);
+						nanos = deadline - System.nanoTime();
 					}
 					return this.queue.poll();
 				}
@@ -130,9 +133,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 			}
 			else {
 				while (this.queue.size() == 0) {
-					if (this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS) && this.queue.size() > 0) {
-						break;
-					}
+					this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS);
 				}
 				return this.queue.poll();
 			}
