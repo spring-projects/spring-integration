@@ -16,10 +16,8 @@
 
 package org.springframework.integration.scattergather.config;
 
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -29,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -53,6 +52,9 @@ public class ScatterGatherTests {
 	@Autowired
 	private MessageChannel inputDistribution;
 
+	@Autowired
+	private RequestReplyExchanger syncScatterGatherGateway;
+
 	@Test
 	public void testAuction() {
 		this.inputAuction.send(new GenericMessage<String>("foo"));
@@ -68,6 +70,14 @@ public class ScatterGatherTests {
 		this.inputDistribution.send(new GenericMessage<String>("foo"));
 		Message<?> bestQuoteMessage = this.output.receive(10000);
 		assertNotNull(bestQuoteMessage);
+		Object payload = bestQuoteMessage.getPayload();
+		assertThat(payload, instanceOf(List.class));
+		assertThat(((List) payload).size(), greaterThanOrEqualTo(1));
+	}
+
+	@Test
+	public void testSyncScatterGather() {
+		Message<?> bestQuoteMessage = syncScatterGatherGateway.exchange(new GenericMessage<String>("foo"));
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(List.class));
 		assertThat(((List) payload).size(), greaterThanOrEqualTo(1));

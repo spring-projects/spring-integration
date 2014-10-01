@@ -2,8 +2,9 @@
 <beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns="http://www.springframework.org/schema/integration"
+			 xmlns:task="http://www.springframework.org/schema/task"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+	   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<channel id="output">
 		<queue/>
@@ -14,7 +15,9 @@
 		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
 
-	<publish-subscribe-channel id="auctionChannel" apply-sequence="true"/>
+	<task:executor id="threadPoolTaskExecutor" pool-size="10"/>
+
+	<publish-subscribe-channel id="auctionChannel" apply-sequence="true" task-executor="threadPoolTaskExecutor"/>
 
 	<bridge input-channel="auctionChannel" output-channel="serviceChannel1"/>
 
@@ -46,5 +49,13 @@
 
 	<service-activator input-channel="serviceChannel2" output-channel="gatherChannel"
 					   expression="T(java.lang.Math).random() * 10"/>
+
+	<!--Sync scenario-->
+
+	<gateway id="syncScatterGatherGateway" default-request-channel="syncAuction"/>
+
+	<scatter-gather input-channel="syncAuction" scatter-channel="auctionChannel">
+		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
+	</scatter-gather>
 
 </beans:beans>

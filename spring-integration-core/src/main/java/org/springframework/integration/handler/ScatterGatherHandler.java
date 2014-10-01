@@ -19,12 +19,16 @@ package org.springframework.integration.handler;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -50,6 +54,9 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 
 	private AbstractEndpoint gatherEndpoint;
 
+	private HeaderChannelRegistry replyChannelRegistry;
+
+
 	public ScatterGatherHandler(MessageChannel scatterChannel, AggregatingMessageHandler gatherer) {
 		Assert.notNull(scatterChannel);
 		Assert.notNull(gatherer);
@@ -57,11 +64,11 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 		this.gatherer = gatherer;
 	}
 
-	public ScatterGatherHandler(RecipientListRouter scatterRouter, AggregatingMessageHandler gatherer) {
-		Assert.notNull(scatterRouter);
+	public ScatterGatherHandler(RecipientListRouter scatterer, AggregatingMessageHandler gatherer) {
+		Assert.notNull(scatterer);
 		Assert.notNull(gatherer);
 		this.gatherer = gatherer;
-		this.scatterChannel = new FixedSubscriberChannel(scatterRouter);
+		this.scatterChannel = new FixedSubscriberChannel(scatterer);
 	}
 
 	public void setGatherChannel(MessageChannel gatherChannel) {
@@ -73,7 +80,8 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 	}
 
 	@Override
-	protected void onInit() {
+	protected void onInit() throws Exception {
+		super.onInit();
 		if (this.gatherChannel == null) {
 			this.gatherChannel = new FixedSubscriberChannel(this.gatherer);
 		}
@@ -96,20 +104,55 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				messagingTemplate.send(getOutputChannel(), message);
+				sendReply(message);
 			}
 
 		}));
+
+		this.replyChannelRegistry = getBeanFactory()
+				.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+						HeaderChannelRegistry.class);
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> requestMessage) throws Exception {
-		if (this.gatherEndpoint == null) {
-			requestMessage = getMessageBuilderFactory().fromMessage(requestMessage)
-					.setReplyChannel(this.gatherChannel)
-					.build();
+		Message<?> scatterMessage = requestMessage;
+		AbstractIntegrationMessageBuilder<?> scatterMessageBuilder = null;
+
+		if (requestMessage.getHeaders().getReplyChannel() != null) {
+			Object originalReplyChannelName = this.replyChannelRegistry
+					.channelToChannelName(requestMessage.getHeaders().getReplyChannel());
+			scatterMessageBuilder = getMessageBuilderFactory().fromMessage(requestMessage)
+					.setHeader("originalReplyChannel", originalReplyChannelName);
 		}
-		this.messagingTemplate.send(this.scatterChannel, requestMessage);
+
+		if (this.gatherEndpoint == null) {
+			if (scatterMessageBuilder == null) {
+				scatterMessageBuilder = getMessageBuilderFactory().fromMessage(requestMessage);
+			}
+			scatterMessage = scatterMessageBuilder.setReplyChannel(this.gatherChannel).build();
+		}
+
+		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
+	}
+
+	private void sendReply(Message message) {
+		Object replyChannelHeader = message.getHeaders().get("originalReplyChannel");
+
+		Object replyChannel = getOutputChannel();
+		if (replyChannel == null) {
+			replyChannel = replyChannelHeader;
+		}
+		if (replyChannel instanceof MessageChannel) {
+			this.messagingTemplate.send((MessageChannel) replyChannel, message);
+		}
+		else if (replyChannel instanceof String) {
+			this.messagingTemplate.send((String) replyChannel, message);
+		}
+		else {
+			throw new MessageDeliveryException(message,
+					"a non-null reply channel value of type MessageChannel or String is required");
+		}
 	}
 
 	@Override
