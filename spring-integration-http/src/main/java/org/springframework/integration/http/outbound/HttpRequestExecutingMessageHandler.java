@@ -397,6 +397,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String uri = this.uriExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(uri, "URI Expression evaluation cannot result in null");
+		URI realUri = null;
 		try {
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
 
@@ -412,7 +413,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
 			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
 			UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
-			URI realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
+			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 			ResponseEntity<?> httpResponse;
 			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
 				httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);
@@ -445,7 +446,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			throw e;
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + uri + "]", e);
+			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI ["
+					+ (realUri == null ? uri : realUri.toString())
+					+ "]", e);
 		}
 	}
 

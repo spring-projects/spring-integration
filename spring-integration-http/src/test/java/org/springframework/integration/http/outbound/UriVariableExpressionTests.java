@@ -16,7 +16,9 @@
 
 package org.springframework.integration.http.outbound;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -71,6 +73,7 @@ public class UriVariableExpressionTests {
 		}
 		catch (Exception e) {
 			assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getMessage(), containsString("http://test/bar"));
 		}
 		assertEquals("http://test/bar", uriHolder.get().toString());
 	}
