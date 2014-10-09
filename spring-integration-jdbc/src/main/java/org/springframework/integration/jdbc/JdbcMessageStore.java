@@ -19,6 +19,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,9 +30,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
@@ -77,13 +76,11 @@ import org.springframework.util.StringUtils;
  * @author Matt Stine
  * @author Gunnar Hillert
  * @author Will Schipp
- *
+ * @author Artem Bilan
  * @since 2.0
  */
 @ManagedResource
 public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean {
-
-	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
 
 	/**
 	 * Default value for the table prefix property.
@@ -181,6 +178,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
+	private final MessageMapper mapper = new MessageMapper();
+
 	private volatile String region = "DEFAULT";
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -192,8 +191,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile SerializingConverter serializer;
 
 	private volatile LobHandler lobHandler = new DefaultLobHandler();
-
-	private volatile MessageMapper mapper = new MessageMapper();
 
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
 
@@ -426,9 +423,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 
-		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region }, mapper);
-
-		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key, region},
+		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] {key, region},
 				new RowCallbackHandler() {
 					@Override
 					public void processRow(ResultSet rs) throws SQLException {
@@ -443,24 +438,17 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				});
 
 		if (createDate.get() == null && updateDate.get() == null) {
-			if (logger.isWarnEnabled()) {
-				for (Message<?> message : messages) {
-					logger.warn("Missing group row for message id: " + message.getHeaders().getId());
-				}
-			}
 			return new SimpleMessageGroup(groupId);
 		}
 
-		long timestamp = createDate.get().getTime();
-		boolean complete = completeFlag.get();
-
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(Collections.<Message<?>>emptyList(), groupId,
+				createDate.get().getTime(), completeFlag.get());
 		messageGroup.setLastModified(updateDate.get().getTime());
+		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceRef.get());
 
-		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
-		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
-
-		return messageGroup;
+		PersistentMessageGroup persistentMessageGroup = new PersistentMessageGroup(messageGroup);
+		persistentMessageGroup.setSize(messageGroupSize(key));
+		return persistentMessageGroup;
 	}
 
 	@Override
@@ -564,6 +552,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			this.removeMessageFromGroup(groupId, polledMessage);
 		}
 		return polledMessage;
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		return jdbcTemplate.queryForObject(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), this.mapper, getKey(groupId),
+				region);
+	}
+
+	@Override
+	protected Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		return this.jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY),
+				new Object[] { getKey(groupId), this.region }, this.mapper);
 	}
 
 	@Override

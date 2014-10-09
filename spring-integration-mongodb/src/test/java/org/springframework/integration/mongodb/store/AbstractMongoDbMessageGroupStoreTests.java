@@ -15,14 +15,17 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.mongodb.MongoClient;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -35,11 +38,12 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import com.mongodb.MongoClient;
 
 /**
  * @author Oleg Zhurakousky
@@ -56,7 +60,6 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store = getMessageGroupStore();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
-		assertTrue(messageGroup instanceof SimpleMessageGroup);
 		assertEquals(0, messageGroup.size());
 	}
 
@@ -441,26 +444,47 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(config, this.getClass());
-		context.refresh();
 
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
 
-		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1).build();
-		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1).build();
+		Message<?> m1 = MessageBuilder.withPayload("1")
+				.setSequenceNumber(1)
+				.setSequenceSize(10)
+				.setCorrelationId(1)
+				.build();
+		Message<?> m2 = MessageBuilder.withPayload("2")
+				.setSequenceNumber(2)
+				.setSequenceSize(10)
+				.setCorrelationId(1)
+				.build();
 		input.send(m1);
 		assertNull(output.receive(1000));
 		input.send(m2);
 		assertNull(output.receive(1000));
+
+		for (int i = 3; i < 10; i++) {
+			input.send(MessageBuilder.withPayload("" + i)
+					.setSequenceNumber(i)
+					.setSequenceSize(10)
+					.setCorrelationId(1)
+					.build());
+		}
+
 		context.close();
 
 		context = new ClassPathXmlApplicationContext(config, this.getClass());
 		input = context.getBean("inputChannel", MessageChannel.class);
 		output = context.getBean("outputChannel", QueueChannel.class);
 
-		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
-		input.send(m3);
+		Message<?> m10 = MessageBuilder.withPayload("10")
+				.setSequenceNumber(10)
+				.setSequenceSize(10)
+				.setCorrelationId(1)
+				.build();
+		input.send(m10);
 		assertNotNull(output.receive(2000));
+		context.close();
 	}
 
 	@Test

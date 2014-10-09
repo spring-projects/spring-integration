@@ -13,7 +13,10 @@
 
 package org.springframework.integration.store;
 
+import java.util.AbstractCollection;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 import org.apache.commons.logging.Log;
@@ -21,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -32,9 +36,8 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
- *
+ * @author Artem Bilan
  * @since 2.0
- *
  */
 @ManagedResource
 public abstract class AbstractMessageGroupStore implements MessageGroupStore, Iterable<MessageGroup>,
@@ -46,8 +49,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	private volatile boolean timeoutOnIdle;
 
-	private volatile BeanFactory beanFactory;
-
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public AbstractMessageGroupStore() {
@@ -56,8 +57,7 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -155,10 +155,7 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 		throw new UnsupportedOperationException("Not yet implemented for this store");
 	}
 
-	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
-	}
+	protected abstract Collection<Message<?>> getMessagesForGroup(Object groupId);
 
 	private void expire(MessageGroup group) {
 
@@ -178,6 +175,170 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 		if (exception != null) {
 			throw exception;
 		}
+	}
+
+	protected class PersistentMessageGroup implements MessageGroup {
+
+		private final Collection<Message<?>> messages = new PersistentCollection();
+
+		private final MessageGroup original;
+
+		private volatile Message<?> oneMessage;
+
+		private volatile int size;
+
+		public PersistentMessageGroup(MessageGroup original) {
+			this.original = original;
+		}
+
+		public void setSize(int size) {
+			this.size = size;
+		}
+
+		@Override
+		public Collection<Message<?>> getMessages() {
+			return Collections.unmodifiableCollection(this.messages);
+		}
+
+		@Override
+		public Message<?> getOne() {
+			if (this.oneMessage == null) {
+				synchronized (this) {
+					if (this.oneMessage == null) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Lazy loading of one message for messageGroup: " + this.original.getGroupId());
+						}
+						System.out.println("Lazy loading of one message for messageGroup: " + this.original.getGroupId());
+						this.oneMessage = getOneMessageFromGroup(this.original.getGroupId());
+					}
+				}
+			}
+			return this.oneMessage;
+		}
+
+		@Override
+		public int getSequenceSize() {
+			if (size() == 0) {
+				return 0;
+			}
+			else {
+				Message<?> message = getOne();
+				if (message != null) {
+					return message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
+				}
+				else {
+					return 0;
+				}
+			}
+		}
+
+		@Override
+		public int size() {
+			if (this.size == 0) {
+				synchronized (this) {
+					if (this.size == 0) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Lazy loading of group size for messageGroup: " + this.original.getGroupId());
+						}
+						System.out.println("Lazy loading of group size for messageGroup: " + this.original.getGroupId());
+						this.size = messageGroupSize(this.original.getGroupId());
+					}
+				}
+			}
+			return this.size;
+		}
+
+		@Override
+		public Object getGroupId() {
+			return this.original.getGroupId();
+		}
+
+		@Override
+		public boolean canAdd(Message<?> message) {
+			return this.original.canAdd(message);
+		}
+
+		@Override
+		public int getLastReleasedMessageSequenceNumber() {
+			return this.original.getLastReleasedMessageSequenceNumber();
+		}
+
+		@Override
+		public boolean isComplete() {
+			return this.original.isComplete();
+		}
+
+		@Override
+		public void complete() {
+			this.original.complete();
+		}
+
+		@Override
+		public long getTimestamp() {
+			return this.original.getTimestamp();
+		}
+
+		@Override
+		public long getLastModified() {
+			return this.original.getLastModified();
+		}
+
+
+		private class PersistentCollection extends AbstractCollection<Message<?>> {
+
+			private volatile Collection<Message<?>> collection;
+
+			private void load() {
+				if (this.collection == null) {
+					synchronized (this) {
+						if (this.collection == null) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Lazy loading of messages for messageGroup: " + original.getGroupId());
+							}
+							System.out.println("Lazy loading of messages for messageGroup: " + original.getGroupId());
+							this.collection = getMessagesForGroup(original.getGroupId());
+						}
+					}
+				}
+			}
+
+			@Override
+			public boolean contains(Object o) {
+				load();
+				return this.collection.contains(o);
+			}
+
+			@Override
+			public Object[] toArray() {
+				load();
+				return this.collection.toArray();
+			}
+
+			@Override
+			public <T> T[] toArray(T[] a) {
+				load();
+				return this.collection.toArray(a);
+			}
+
+			@Override
+			public boolean containsAll(Collection<?> c) {
+				load();
+				return this.collection.containsAll(c);
+			}
+
+			@Override
+			public Iterator<Message<?>> iterator() {
+				load();
+				return this.collection.iterator();
+			}
+
+			@Override
+			public int size() {
+				return PersistentMessageGroup.this.size();
+			}
+
+		}
+
 	}
 
 }

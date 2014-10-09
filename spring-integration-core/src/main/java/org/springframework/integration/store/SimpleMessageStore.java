@@ -346,4 +346,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		return this.getMessageGroup(groupId).getOne();
 	}
 
+	@Override
+	protected Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		return getMessageGroup(groupId).getMessages();
+	}
+
 }
