@@ -16,7 +16,7 @@
 										requires-reply="true"
 										reply-timeout="2000"
 										order="2"
-										control-queue="si.test.queue"
+										queue="si.test.queue"
 										extract-payload="false"
 										serializer="serializer"
 										auto-startup="false"

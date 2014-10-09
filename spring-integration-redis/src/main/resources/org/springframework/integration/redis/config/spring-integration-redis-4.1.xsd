@@ -424,7 +424,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="control-queue" type="xsd:string" use="required">
+			<xsd:attribute name="queue" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
 						Redis control-queue tell the inbound gateway where to find the request (and implies where to send the reply).
@@ -528,6 +528,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						When true, specifies that gateway will return only payload of the message. ohterwise it
+						will return the whole Message. default is false.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
@@ -610,7 +618,7 @@
 				minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="control-queue" type="xsd:string">
+			<xsd:attribute name="queue" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						Redis control-queue tell the inbound gateway where to find the request (and implies where to send the reply).

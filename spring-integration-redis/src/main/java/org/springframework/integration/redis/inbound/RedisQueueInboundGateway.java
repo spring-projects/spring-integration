@@ -76,8 +76,9 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile boolean listening;
 
-
 	private volatile RedisTemplate<String, byte[]> template = null;
+
+	private volatile boolean extractPayload = false;
 
 
 
@@ -96,6 +97,9 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		this.boundListOperations = template.boundListOps(controlQueueName);
 	}
 
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -215,19 +219,14 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 				handlePopException(e);
 				return;
 			}
-			Object messageBody = null;
+			Message<Object> requestMessage = null;
 			if (value != null) {
 				if (this.expectMessage) {
-					if (this.serializer != null) {
-						try {
-							messageBody = this.serializer.deserialize(value);
-						}
-						catch (Exception e) {
-							throw new MessagingException("Deserialization of Message failed.", e);
-						}
+					try {
+						requestMessage = (Message<Object>) this.serializer.deserialize(value);
 					}
-					else {
-						messageBody = value;
+					catch (Exception e) {
+						throw new MessagingException("Deserialization of Message failed.", e);
 					}
 				}
 				else {
@@ -235,22 +234,30 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 					if (this.serializer != null) {
 						payload = this.serializer.deserialize(value);
 					}
-					messageBody = this.getMessageBuilderFactory().withPayload(payload).build();
+					requestMessage = this.getMessageBuilderFactory().withPayload(payload).build();
 				}
-				Message<?> replyMessage = this.sendAndReceiveMessage(messageBody);
+				Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
 				if (replyMessage != null) {
-					if (!(replyMessage.getPayload() instanceof byte[])) {
-						if (replyMessage.getPayload() instanceof String && !serializerExplicitlySet) {
-							value = stringSerializer.serialize((String) replyMessage.getPayload());
+					if (this.extractPayload == true) {
+						if (!(replyMessage.getPayload() instanceof byte[])) {
+							if (replyMessage.getPayload() instanceof String && !serializerExplicitlySet) {
+								value = stringSerializer.serialize((String) replyMessage.getPayload());
+							}
+							else {
+								value = ((RedisSerializer<Object>) serializer).serialize(replyMessage.getPayload());
+							}
 						}
 						else {
-							value = ((RedisSerializer<Object>) serializer).serialize(replyMessage.getPayload());
+							value = (byte[]) replyMessage.getPayload();
 						}
+						template.boundListOps(uuid + ".reply").leftPush(value);
 					}
 					else {
-						value = (byte[]) replyMessage.getPayload();
+						if (this.serializer != null) {
+							value = ((RedisSerializer<Object>) serializer).serialize(replyMessage);
+							template.boundListOps(uuid + ".reply").leftPush(value);
+						}
 					}
-					template.boundListOps(uuid + ".reply").leftPush(value);
 				}
 			}
 		}

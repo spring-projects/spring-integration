@@ -15,11 +15,12 @@
 		reply-channel="receiveChannel"
 		request-timeout="3000"
 		reply-timeout="2000"
-		control-queue="si.test.queue"
+		queue="si.test.queue"
 		task-executor="executor"
 		expect-message="false"
 		serializer="serializer"
 		auto-startup="false"
+		extract-payload="true"
 		phase="3"/>
 	
 	<int:channel id="si.test.queue">

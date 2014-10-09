@@ -54,9 +54,9 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private static final String QUEUE_NAME_SUFFIX = ".reply";
 
-	private BoundListOperations<String, Object> boundListOperations = null;
-
 	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
+
+	private final BoundListOperations<String, Object> boundListOps;
 
 	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
@@ -67,6 +67,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.template.setEnableDefaultSerializer(false);
 		this.template.setKeySerializer(new StringRedisSerializer());
 		this.template.afterPropertiesSet();
+		this.boundListOps = this.template.boundListOps(this.queueName);
 	}
 
 	public void setReceiveTimeout(int timeout) {
@@ -105,17 +106,11 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		}
 		String uuid = defaultIdGenerator.generateId().toString();
 
-		byte[] uuidByte;
-		if (!serializerExplicitlySet) {
-			uuidByte = stringSerializer.serialize(uuid);
-		}
-		else {
-			uuidByte = ((RedisSerializer<Object>) serializer).serialize(uuid);
-		}
-		this.template.boundListOps(this.queueName).leftPush(uuidByte);
+		byte[] uuidByte = uuid.getBytes();
+		this.boundListOps.leftPush(uuidByte);
 		this.template.boundListOps(uuid).leftPush(value);
-		this.boundListOperations = template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
-		byte[] reply = (byte[]) this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+		BoundListOperations<String, Object> boundListOperations = template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
+		byte[] reply = (byte[]) boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		if(reply != null && reply.length > 0) {
 			Object replyMessage = this.serializer.deserialize(reply);
 			if (replyMessage == null) {

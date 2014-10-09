@@ -40,7 +40,7 @@ public class RedisQueueInboundGatewayParser extends AbstractSingleBeanDefinition
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgValue(element.getAttribute("control-queue"));
+		builder.addConstructorArgValue(element.getAttribute("queue"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "redisConnectionFactory";
@@ -57,6 +57,7 @@ public class RedisQueueInboundGatewayParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 	}
 
 }
