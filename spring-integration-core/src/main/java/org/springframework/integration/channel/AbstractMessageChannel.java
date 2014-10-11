@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -50,11 +51,13 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
 
+	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
+
+	private final Comparator<Object> orderComparator = new OrderComparator();
+
 	private volatile boolean shouldTrack = false;
 
 	private volatile Class<?>[] datatypes = new Class<?>[0];
-
-	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
 	private volatile String fullChannelName;
 
@@ -96,7 +99,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
-		Collections.sort(interceptors, new OrderComparator());
+		Collections.sort(interceptors, this.orderComparator);
 		this.interceptors.set(interceptors);
 	}
 

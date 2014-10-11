@@ -13,9 +13,9 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +80,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Enrique Rodríguez
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler
@@ -89,6 +90,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
+
+	private final Comparator<Message<?>> sequenceNumberComparator = new SequenceNumberComparator();
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<UUID, ScheduledFuture<?>>();
 
@@ -554,11 +557,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence){
-		List<Message<?>> sorted = new ArrayList<Message<?>>(partialSequence);
-		Collections.sort(sorted, new SequenceNumberComparator());
-
-		Message<?> lastReleasedMessage = sorted.get(partialSequence.size() - 1);
-
+		Message<?> lastReleasedMessage = Collections.max(partialSequence, this.sequenceNumberComparator);
 		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
 

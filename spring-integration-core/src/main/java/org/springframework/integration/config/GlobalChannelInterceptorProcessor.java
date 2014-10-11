@@ -153,7 +153,7 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
-		Collections.sort(tempInterceptors, comparator);
+		Collections.sort(tempInterceptors, this.comparator);
 		if (!tempInterceptors.isEmpty()) {
 			for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
 				ChannelInterceptor channelInterceptor = tempInterceptors.get(i).getChannelInterceptor();
