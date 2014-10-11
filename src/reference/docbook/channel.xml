@@ -557,11 +557,6 @@ payload to an Integer.
 	  is polled from a <classname>QueueChannel</classname>, it is removed from the Message Store.
       </para>
       <para>
-      By default any <classname>QueueChannel</classname> only stores its Messages in an in-memory Queue
-      and can therefore lead to the lost message scenario mentioned above. However Spring Integration
-      provides a <classname>JdbcMessageStore</classname> to allow a <classname>QueueChannel</classname> to be backed by an RDBMS.
-      </para>
-      <para>
       You can configure a Message Store for any <classname>QueueChannel</classname> by adding the
       <code>message-store</code> attribute as shown in the next example.
 
@@ -593,6 +588,21 @@ payload to an Integer.
         is a <interfacename>ChannelPriorityMessageStore</interfacename> the messages will be received in
         FIFO within priority order. The notion of priority is determined by the message store implementation.
       </para>
+	  <para>
+		  Another option to customize the QueueChannel environment is provided by the <code>ref</code> attribute of the
+		  <code>&lt;int:queue&gt;</code> sub-element. This attribute implies the reference to any
+		  <interfacename>java.util.Queue</interfacename> implementation. One of the good implementation is provided
+		  by the <ulink url="https://github.com/reactor/reactor">Project Reactor</ulink> and its
+		  <classname>reactor.queue.PersistentQueue</classname> implementation for the
+		  <ulink url="https://github.com/OpenHFT/Chronicle-Queue">IndexedChronicle</ulink>:
+	  </para>
+		<programlisting language="java"><![CDATA[@Bean
+public QueueChannel reactorQueue() {
+    return new QueueChannel(new PersistentQueueSpec<Message<?>>()
+                    .codec(new JavaSerializationCodec<Message<?>>())
+                    .basePath(System.getProperty("java.io.tmpdir") + "/reactor-queue")
+                    .get());
+}]]></programlisting>
     </section>
 
     <section id="channel-configuration-pubsubchannel">

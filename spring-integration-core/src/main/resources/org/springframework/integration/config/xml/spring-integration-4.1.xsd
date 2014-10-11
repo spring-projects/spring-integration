@@ -241,13 +241,12 @@
 		<xsd:attribute name="ref" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Reference to a BlockingQueue that can be used to buffer the messages. This attribute is
-					mutually
-					exclusive with the "message-store" attribute (only one can be specified).
+					Reference to a Queue that can be used to buffer the messages. This attribute is
+					mutually exclusive with the "message-store" attribute (only one can be specified).
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="java.util.concurrent.BlockingQueue" />
+						<tool:expected-type type="java.util.Queue" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
