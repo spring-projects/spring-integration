@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.store;
 
 import java.util.Collections;
@@ -44,6 +45,15 @@ import org.springframework.util.Assert;
  *
  */
 public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore implements PriorityCapableChannelMessageStore {
+
+	private final Comparator<String> keysComparator = new Comparator<String>() {
+
+		@Override
+		public int compare(String s1, String s2) {
+			return s2.compareTo(s1);
+		}
+
+	};
 
 	public RedisChannelPriorityMessageStore(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory);
@@ -111,13 +121,7 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore i
 			Assert.isInstanceOf(String.class, key);
 			list.add((String) key);
 		}
-		Collections.sort(list, new Comparator<String>() {
-
-			@Override
-			public int compare(String s1, String s2) {
-				return s2.compareTo(s1);
-			}
-		});
+		Collections.sort(list, this.keysComparator);
 		return list;
 	}
 
