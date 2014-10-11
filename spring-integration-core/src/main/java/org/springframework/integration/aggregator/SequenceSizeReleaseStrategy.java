@@ -16,11 +16,9 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,12 +34,13 @@ import org.springframework.integration.store.MessageGroup;
  * @author Dave Syer
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Enrique Rodríguez
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 	private static final Log logger = LogFactory.getLog(SequenceSizeReleaseStrategy.class);
 
-	private volatile Comparator<Message<?>> comparator = new SequenceNumberComparator();
+	private final Comparator<Message<?>> comparator = new SequenceNumberComparator();
 
 	private volatile boolean releasePartialSequences;
 
@@ -74,10 +73,8 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Considering partial release of group [" + messageGroup + "]");
 			}
-			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
-			Collections.sort(sorted, comparator);
-			
-			int nextSequenceNumber = sorted.get(0).getHeaders().getSequenceNumber();
+			Message<?> minMessage = Collections.min(messages, this.comparator);
+			int nextSequenceNumber = minMessage.getHeaders().getSequenceNumber();
 			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 			
 			if (nextSequenceNumber - lastReleasedMessageSequence == 1){
