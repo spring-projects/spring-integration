@@ -33,8 +33,11 @@ import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.TestSftpServer;
 import org.springframework.integration.sftp.TestSftpServerConfig;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -113,6 +116,31 @@ public class SftpRemoteFileTemplateTests {
 			}
 		});
 		assertFalse(template.exists("foo"));
+	}
+
+	@Test
+	public void testSftpSessionFactoryResolver() {
+		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(new SftpSessionFactoryResolver<LsEntry>());
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("ftp_host", "localhost").setHeader("ftp_username", "foo").
+				setHeader("ftp_password", "foo").setHeader("ftp_port", sftpServer.getPort()).build();
+		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+		fileNameGenerator.setExpression("'foobar.txt'");
+		template.setFileNameGenerator(fileNameGenerator);
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setUseTemporaryFileName(false);
+
+		template.send(message, FileExistsMode.IGNORE);
+
+		template.execute(new SessionCallback<LsEntry, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<LsEntry> session) throws IOException {
+				return session.mkdir("foo/");
+			}
+
+		});
+		template.append(message);
+		assertTrue(template.exists("foo/foobar.txt"));
 	}
 
 }

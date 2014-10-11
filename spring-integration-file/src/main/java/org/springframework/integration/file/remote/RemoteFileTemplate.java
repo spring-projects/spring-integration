@@ -34,8 +34,10 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.session.DefaultSessionFactoryResolver;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.remote.session.SessionFactoryResolver;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
@@ -61,7 +63,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
-	protected final SessionFactory<F> sessionFactory;
+	protected SessionFactory<F> sessionFactory;
 
 	private volatile String temporaryFileSuffix =".writing";
 
@@ -87,9 +89,22 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private volatile BeanFactory beanFactory;
 
+	private final SessionFactoryResolver<F> resolver;
+
 	public RemoteFileTemplate(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
+		resolver = null;
+	}
+
+	public RemoteFileTemplate(SessionFactoryResolver<F> resolver) {
+		if(resolver == null) {
+			this.resolver = new DefaultSessionFactoryResolver<F>();
+		}
+		else {
+			this.resolver = resolver;
+		}
+		sessionFactory = null;
 	}
 
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
@@ -200,6 +215,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	private String send(final Message<?> message, final String subDirectory, final FileExistsMode mode) {
+		if(resolver != null) {
+			SessionFactory<F> tmpSessionFactory = this.resolver.resolve(message);
+			if(tmpSessionFactory != null) {
+				this.sessionFactory = tmpSessionFactory;
+			}
+		}
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 		Assert.isTrue(!FileExistsMode.APPEND.equals(mode) || !this.useTemporaryFileName,
 				"Cannot append when using a temporary file name");

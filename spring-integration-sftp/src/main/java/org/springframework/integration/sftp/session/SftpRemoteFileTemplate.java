@@ -22,6 +22,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.remote.session.SessionFactoryResolver;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -39,6 +40,10 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<LsEntry> {
 
 	public SftpRemoteFileTemplate(SessionFactory<LsEntry> sessionFactory) {
 		super(sessionFactory);
+	}
+
+	public SftpRemoteFileTemplate(SessionFactoryResolver<LsEntry> resolver) {
+		super(resolver);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -29,13 +29,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
+import org.springframework.integration.file.remote.session.DefaultSessionFactoryResolver;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.TestFtpServer;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -54,6 +59,9 @@ public class FtpRemoteFileTemplateTests {
 
 	@Autowired
 	private DefaultFtpSessionFactory sessionFactory;
+
+	@Autowired
+	private ApplicationContext ctx;
 
 	@Before
 	@After
@@ -108,5 +116,55 @@ public class FtpRemoteFileTemplateTests {
 		});
 		assertFalse(template.exists("foo"));
 	}
+
+	@Test
+	public void testFtpSessionFactoryResolver() {
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("ftp_host", "localhost").
+				setHeader("ftp_username", "foo").setHeader("ftp_password", "foo").setHeader("ftp_port", sessionFactory.port).build();
+		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+		fileNameGenerator.setExpression("'foobar.txt'");
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(new FtpSessionFactoryResolver<FTPFile>());
+		template.setFileNameGenerator(fileNameGenerator);
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setUseTemporaryFileName(false);
+		template.send(message,"foo/",FileExistsMode.IGNORE);
+		template.execute(new SessionCallback<FTPFile, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<FTPFile> session) throws IOException {
+				session.mkdir("foo/");
+				return session.mkdir("foo/foo/");
+			}
+
+		});
+		template.send(message,"foo/",FileExistsMode.REPLACE);
+		assertTrue(template.exists("foo/foo/foobar.txt"));
+	}
+
+	@Test
+	public void testDefaultSessionFactoryResolver() {
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("sessionFactory", "ftpSessionFactory").build();
+		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+		fileNameGenerator.setExpression("'foobar.txt'");
+		DefaultSessionFactoryResolver<FTPFile> resolver = new DefaultSessionFactoryResolver<FTPFile>();
+		resolver.setBeanFactory(ctx);
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(resolver);
+		template.setFileNameGenerator(fileNameGenerator);
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setUseTemporaryFileName(false);
+		template.send(message,"foo/",FileExistsMode.IGNORE);
+		template.execute(new SessionCallback<FTPFile, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<FTPFile> session) throws IOException {
+				session.mkdir("foo/");
+				return session.mkdir("foo/foo/");
+			}
+
+		});
+		template.send(message,"foo/",FileExistsMode.REPLACE);
+		assertTrue(template.exists("foo/foo/foobar.txt"));
+	}
+
 
 }
