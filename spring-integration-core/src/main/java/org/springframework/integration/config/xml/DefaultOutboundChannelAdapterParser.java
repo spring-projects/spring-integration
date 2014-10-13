@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -27,6 +28,7 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;outbound-channel-adapter/&gt; element.
@@ -39,20 +41,32 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanComponentDefinition innerConsumerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		Object source = parserContext.extractSource(element);
+		BeanComponentDefinition innerConsumerDefinition =
+				IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 
 		String consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
 		String methodName = element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE);
 		String consumerExpressionString = element.getAttribute(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
+		Element scriptElement = DomUtils.getChildElementByTagName(element, "script");
 
 		boolean isInnerConsumer = innerConsumerDefinition != null;
 		boolean isRef = StringUtils.hasText(consumerRef);
 		boolean isExpression = StringUtils.hasText(consumerExpressionString);
 		boolean hasMethod = StringUtils.hasText(methodName);
+		boolean hasScript = scriptElement != null;
 
-		if (!(isInnerConsumer ^ (isRef ^ isExpression))) {
+		if (!isInnerConsumer & !isRef & !isExpression & !hasScript) {
 			parserContext.getReaderContext().error(
-					"Exactly one of the 'ref', 'expression' or inner bean is required.", element);
+					"Exactly one of the 'ref', 'expression', <script> or inner bean is required.", source);
+		}
+
+		if (hasScript) {
+			if (isRef | isExpression) {
+				parserContext.getReaderContext().error(
+						"Neither 'ref' nor 'expression' are permitted when an inner script element is configured.",
+						source);
+			}
 		}
 
 		if (hasMethod & isExpression) {
@@ -67,6 +81,13 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(consumerExpressionString);
 			consumerBuilder.addConstructorArgValue(expressionDef);
+		}
+		else if (hasScript) {
+			consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
+			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement,
+					consumerBuilder.getBeanDefinition());
+			consumerBuilder.addConstructorArgValue(scriptBeanDefinition);
+			consumerBuilder.addConstructorArgValue("processMessage");
 		}
 		else {
 			consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);

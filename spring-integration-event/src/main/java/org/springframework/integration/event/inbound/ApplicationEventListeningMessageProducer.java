@@ -63,9 +63,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * In addition, this method re-registers the current instance as a {@link ApplicationListener}
 	 * with the {@link ApplicationEventMulticaster} which clears the listener cache. The cache will be
 	 * refreshed on the next appropriate {@link ApplicationEvent}.
-	 *
 	 * @param eventTypes The event types.
-	 *
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
@@ -104,8 +102,15 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 				this.sendMessage((Message<?>) event.getSource());
 			}
 			else {
-				Object payload = this.evaluatePayloadExpression(event);
-				this.sendMessage(this.getMessageBuilderFactory().withPayload(payload).build());
+				Message<?> message = null;
+				Object result = this.evaluatePayloadExpression(event);
+				if (result instanceof Message) {
+					message = (Message<?>) result;
+				}
+				else {
+					message = this.getMessageBuilderFactory().withPayload(result).build();
+				}
+				this.sendMessage(message);
 			}
 		}
 	}

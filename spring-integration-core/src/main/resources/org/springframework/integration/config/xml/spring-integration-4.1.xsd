@@ -1152,11 +1152,11 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="outboundChannelAdapterType">
-		<xsd:all>
+		<xsd:choice minOccurs="0" maxOccurs="3">
 			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
-			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
-		</xsd:all>
+			<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
+		</xsd:choice>
 		<xsd:attributeGroup ref="channelAdapterAttributes" />
 		<xsd:attribute name="order">
 			<xsd:annotation>
@@ -1171,9 +1171,9 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="outboundChannelAdapterTypeChain">
-		<xsd:all>
-			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-		</xsd:all>
+		<xsd:choice minOccurs="0">
+			<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
+		</xsd:choice>
 		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 

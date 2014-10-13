@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.gemstone.gemfire.cache.query.CqEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,6 +30,8 @@ import org.springframework.integration.endpoint.ExpressionMessageProducerSupport
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
+import com.gemstone.gemfire.cache.query.CqEvent;
+
 /**
  * Responds to a Gemfire continuous query (set using the #query field) that is
  * constantly evaluated against a cache
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
  *
  * @author Josh Long
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -55,12 +57,11 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 
 	private boolean durable;
 
-	private volatile Set<CqEventType> supportedEventTypes = new HashSet<CqEventType>(Arrays.asList(CqEventType.CREATED,
-			CqEventType.UPDATED));
+	private volatile Set<CqEventType> supportedEventTypes =
+			new HashSet<CqEventType>(Arrays.asList(CqEventType.CREATED, CqEventType.UPDATED));
 
 	/**
-	 *
-	 * @param queryListenerContainer a {@link org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer}
+	 * @param queryListenerContainer a {@link ContinuousQueryListenerContainer}
 	 * @param query the query string
 	 */
 	public ContinuousQueryMessageProducer(ContinuousQueryListenerContainer queryListenerContainer, String query) {
@@ -71,7 +72,6 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 	}
 
 	/**
-	 *
 	 * @param queryName optional query name
 	 */
 	public void setQueryName(String queryName) {
@@ -79,7 +79,6 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 	}
 
 	/**
-	 *
 	 * @param durable true if the query is a durable subscription
 	 */
 	public void setDurable(boolean durable) {
@@ -110,10 +109,7 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 
 	/*
 	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.springframework.data.gemfire.listener.QueryListener#onEvent(com.gemstone
-	 * .gemfire.cache.query.CqEvent)
+	 * @see org.springframework.data.gemfire.listener.QueryListener#onEvent(com.gemstone.gemfire.cache.query.CqEvent)
 	 */
 	@Override
 	public void onEvent(CqEvent event) {
@@ -122,9 +118,15 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getQueryOperation()
 						.toString(), event.getKey()));
 			}
-			Message<?> cqEventMessage = this.getMessageBuilderFactory().withPayload(evaluatePayloadExpression(event))
-					.build();
-			sendMessage(cqEventMessage);
+			Message<?> message = null;
+			Object object = evaluatePayloadExpression(event);
+			if (object instanceof Message) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory().withPayload(object).build();
+			}
+			sendMessage(message);
 		}
 	}
 

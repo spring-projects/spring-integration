@@ -92,7 +92,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	 * @return the {@link #clientSession}, if established.
 	 */
 	@Override
-	public WebSocketSession getSession(String sessionId) throws Exception {
+	public WebSocketSession getSession(String sessionId) {
 		if (this.isRunning()) {
 			try {
 				this.connectionLatch.await(10, TimeUnit.SECONDS);
