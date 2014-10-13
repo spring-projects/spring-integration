@@ -35,6 +35,7 @@ import org.springframework.integration.websocket.support.SubProtocolHandlerRegis
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
@@ -47,6 +48,7 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
@@ -59,6 +61,8 @@ import org.springframework.web.socket.WebSocketSession;
  * @since 4.1
  */
 public class WebSocketInboundChannelAdapter extends MessageProducerSupport implements WebSocketListener {
+
+	private static final byte[] EMPTY_PAYLOAD = new byte[0];
 
 	private final List<MessageConverter> defaultConverters = new ArrayList<MessageConverter>(3);
 
@@ -111,7 +115,12 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				handleMessageAndSend(message);
+				try {
+					handleMessageAndSend(message);
+				}
+				catch (Exception e) {
+					throw new MessageHandlingException(message, e);
+				}
 			}
 
 		});
@@ -249,18 +258,29 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		return this.active;
 	}
 
-	private void handleMessageAndSend(Message<?> message) {
-		Object payload = this.messageConverter.fromMessage(message,
-				this.payloadType.get());
+	private void handleMessageAndSend(Message<?> message) throws Exception {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
 		SimpMessageType messageType = headerAccessor.getMessageType();
-		if ((messageType == null || SimpMessageType.MESSAGE.equals(messageType))
+		if ((messageType == null || SimpMessageType.MESSAGE.equals(messageType)
+				|| (SimpMessageType.CONNECT.equals(messageType) && !this.useBroker))
 				&& !checkDestinationPrefix(headerAccessor.getDestination())) {
-			headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
-			sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+			if (SimpMessageType.CONNECT.equals(messageType)) {
+				String sessionId = headerAccessor.getSessionId();
+				SimpMessageHeaderAccessor connectAck = SimpMessageHeaderAccessor.create(SimpMessageType.CONNECT_ACK);
+				connectAck.setSessionId(sessionId);
+				connectAck.setHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER, message);
+				Message<byte[]> ackMessage = MessageBuilder.createMessage(EMPTY_PAYLOAD, connectAck.getMessageHeaders());
+				WebSocketSession session = this.webSocketContainer.getSession(sessionId);
+				this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, ackMessage);
+			}
+			else {
+				headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
+				Object payload = this.messageConverter.fromMessage(message, this.payloadType.get());
+				sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+			}
 		}
 		else {
-			if (this.brokerHandler != null) {
+			if (this.useBroker) {
 				this.brokerHandler.handleMessage(message);
 			}
 			else if (logger.isDebugEnabled()) {
@@ -273,7 +293,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	}
 
 	private boolean checkDestinationPrefix(String destination) {
-		if (this.brokerHandler != null) {
+		if (this.useBroker) {
 			Collection<String> destinationPrefixes = this.brokerHandler.getDestinationPrefixes();
 			if ((destination == null) || CollectionUtils.isEmpty(destinationPrefixes)) {
 				return false;

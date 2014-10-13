@@ -22,14 +22,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import groovy.lang.GroovyObject;
-import groovy.lang.MissingPropertyException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -38,19 +37,22 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import groovy.lang.GroovyObject;
+import groovy.lang.MissingPropertyException;
 
 /**
  * @author Mark Fisher
@@ -80,6 +82,12 @@ public class GroovyServiceActivatorTests {
 
 	@Autowired
 	private MyGroovyCustomizer groovyCustomizer;
+
+	@Autowired
+	private AtomicBoolean invoked;
+
+	@Autowired
+	private MessageChannel outboundChannelAdapterWithGroovy;
 
 
 	@Test
@@ -191,6 +199,12 @@ public class GroovyServiceActivatorTests {
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void variablesAndScriptVariableGenerator() throws Exception{
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
+	}
+
+	@Test
+	public void testGroovyScriptForOutboundChannelAdapter() {
+		this.outboundChannelAdapterWithGroovy.send(new GenericMessage<String>("foo"));
+		assertTrue(this.invoked.get());
 	}
 
 

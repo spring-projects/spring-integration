@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.CacheClosedException;
@@ -41,6 +42,7 @@ import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
  *
  * @author Mark Fisher
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -131,8 +133,15 @@ public class CacheListeningMessageProducer extends ExpressionMessageProducerSupp
 
 		}
 
-		private void publish(Object payload) {
-			sendMessage(CacheListeningMessageProducer.this.getMessageBuilderFactory().withPayload(payload).build());
+		private void publish(Object object) {
+			Message<?> message = null;
+			if (object instanceof Message) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory().withPayload(object).build();
+			}
+			sendMessage(message);
 		}
 	}
 

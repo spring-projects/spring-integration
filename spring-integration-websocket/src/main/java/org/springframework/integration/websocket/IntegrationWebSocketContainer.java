@@ -109,7 +109,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		return Collections.unmodifiableMap(this.sessions);
 	}
 
-	public WebSocketSession getSession(String sessionId) throws Exception {
+	public WebSocketSession getSession(String sessionId) {
 		WebSocketSession session = this.sessions.get(sessionId);
 		Assert.notNull(session, "Session not found for id '" + sessionId + "'");
 		return session;

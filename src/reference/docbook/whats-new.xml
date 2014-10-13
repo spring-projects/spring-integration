@@ -212,5 +212,14 @@
 				See <xref linkend="aggregator-config"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-script-outbound-channel-adapter">
+			<title>Outbound Channel Adapter and Scripts</title>
+			<para>
+				The <code>&lt;int:outbound-channel-adapter/&gt;</code> now supports the <code>&lt;script/&gt;</code>
+				sub-element. The underlying script must have a <code>void</code>
+				return type or return <code>null</code>.
+				See <xref linkend="groovy"/> and <xref linkend="scripting"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

@@ -135,6 +135,12 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
 			destinations, are routed to the <classname>AbstractBrokerMessageHandler</classname>, instead of to the
 			<code>outputChannel</code> of the <classname>WebSocketInboundChannelAdapter</classname>.
 		</para>
+		<para>
+			If <code>useBroker = false</code> and received message is of <code>SimpMessageType.CONNECT</code> type,
+			the <classname>WebSocketInboundChannelAdapter</classname> sends <code>SimpMessageType.CONNECT_ACK</code>
+			message to the <interfacename>WebSocketSession</interfacename> immediately without sending it to the
+			channel.
+		</para>
 		<note>
 			Spring's WebSocket Support allows the configuration of only one Broker Relay, hence we don't require an
 			<classname>AbstractBrokerMessageHandler</classname> reference, it is detected in the
