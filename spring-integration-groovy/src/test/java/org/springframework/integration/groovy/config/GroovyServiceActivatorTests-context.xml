@@ -61,5 +61,12 @@
         </groovy:script>
     </service-activator>
 
+	<beans:bean id="invoked" class="java.util.concurrent.atomic.AtomicBoolean"/>
+
+	<outbound-channel-adapter id="outboundChannelAdapterWithGroovy">
+		<groovy:script>
+			invoked.set(true)
+		</groovy:script>
+	</outbound-channel-adapter>
 
 </beans:beans>
