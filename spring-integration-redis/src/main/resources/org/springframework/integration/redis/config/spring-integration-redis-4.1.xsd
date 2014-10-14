@@ -517,17 +517,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="expect-message" type="xsd:string" default="false">
-				<xsd:annotation>
-					<xsd:documentation>
-						When true, specifies that the 'byte[]' from a Redis message should be deserialized
-						as an entire Spring Integration Message. Otherwise the data becomes just the
-						payload of the message (deserialized or not).
-						If this attribute is 'true', the 'serializer' must not be an empty String.
-						Default is 'false'.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="extract-payload" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>

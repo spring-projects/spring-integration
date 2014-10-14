@@ -17,7 +17,6 @@
 		reply-timeout="2000"
 		queue="si.test.queue"
 		task-executor="executor"
-		expect-message="false"
 		serializer="serializer"
 		auto-startup="false"
 		extract-payload="true"

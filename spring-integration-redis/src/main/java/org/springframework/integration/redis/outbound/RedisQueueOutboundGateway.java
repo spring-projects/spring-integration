@@ -116,7 +116,12 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 			if (replyMessage == null) {
 				return null;
 			}
-			return this.getMessageBuilderFactory().withPayload(replyMessage).build();
+			if (this.extractPayload) {
+				return this.getMessageBuilderFactory().withPayload(replyMessage).build();
+			}
+			else {
+				return replyMessage;
+			}
 		}
 		return null;
 	}

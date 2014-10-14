@@ -64,8 +64,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	private volatile boolean expectMessage = false;
-
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
 	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
@@ -111,18 +109,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		this.serializerExplicitlySet = true;
 	}
 
-	/**
-	 * When data is retrieved from the Redis queue, does the returned data represent
-	 * just the payload for a Message, or does the data represent a serialized
-	 * {@link Message}?. {@code expectMessage} defaults to false. This means
-	 * the retrieved data will be used as the payload for a new Spring Integration
-	 * Message. Otherwise, the data is deserialized as Spring Integration
-	 * Message.
-	 * @param expectMessage Defaults to false
-	 */
-	public void setExpectMessage(boolean expectMessage) {
-		this.expectMessage = expectMessage;
-	}
 
 	/**
 	 * This timeout (milliseconds) is used when retrieving elements from the queue
@@ -153,12 +139,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		this.taskExecutor = taskExecutor;
 	}
 
-	@Override
-	public void setErrorChannel(MessageChannel errorChannel) {
-		super.setErrorChannel(errorChannel);
-		this.errorChannel = errorChannel;
-	}
-
 	public void setRecoveryInterval(long recoveryInterval) {
 		this.recoveryInterval = recoveryInterval;
 	}
@@ -166,8 +146,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (this.expectMessage) {
-			Assert.notNull(this.serializer, "'serializer' has to be provided where 'expectMessage == true'.");
+		if (this.extractPayload == false) {
+			Assert.notNull(this.serializer, "'serializer' has to be provided where 'extractPayload == false'.");
 		}
 		if (this.taskExecutor == null) {
 			String beanName = this.getComponentName();
@@ -221,7 +201,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			}
 			Message<Object> requestMessage = null;
 			if (value != null) {
-				if (this.expectMessage) {
+				if (this.extractPayload == false) {
 					try {
 						requestMessage = (Message<Object>) this.serializer.deserialize(value);
 					}
