@@ -22,6 +22,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
@@ -58,7 +59,8 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE = "send-partial-result-on-expiry";
 
-	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor, ParserContext parserContext){
+	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor,
+			ParserContext parserContext) {
 		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
 				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
 				element, builder, processor, parserContext);
@@ -72,12 +74,19 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "lock-registry");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "empty-group-min-timeout", "minimumTimeoutForEmptyGroups");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "empty-group-min-timeout",
+				"minimumTimeoutForEmptyGroups");
 
 		BeanDefinition expressionDef =
-				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("group-timeout", "group-timeout-expression",
-						parserContext, element, false);
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("group-timeout",
+						"group-timeout-expression", parserContext, element, false);
 		builder.addPropertyValue("groupTimeoutExpression", expressionDef);
+
+		Element txElement = DomUtils.getChildElementByTagName(element, "expire-transactional");
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "expire-advice-chain");
+
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
+				builder.getRawBeanDefinition(), parserContext, "forceReleaseAdviceChain");
 	}
 
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
@@ -92,8 +101,8 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		final boolean hasExpression = StringUtils.hasText(expression);
 
 		if (hasBeanRef && hasExpression) {
-			parserContext.getReaderContext().error("Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
-					"' attribute is allowed.", element);
+			parserContext.getReaderContext().error("Exactly one of the '" + beanRefAttribute + "' or '"
+					+ expressionAttribute + "' attribute is allowed.", element);
 		}
 
 		BeanMetadataElement adapter = null;
@@ -126,4 +135,5 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		}
 		return builder.getBeanDefinition();
 	}
+
 }

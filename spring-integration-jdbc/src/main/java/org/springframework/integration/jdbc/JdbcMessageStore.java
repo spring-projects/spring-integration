@@ -308,7 +308,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		return jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT), Integer.class, region);
+		return jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT), Long.class, region);
 	}
 
 	@Override
@@ -334,7 +334,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		final long createdDate = System.currentTimeMillis();
 		Message<T> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
+				.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 		// using reflection to set ID since it is immutable through MessageHeaders
@@ -452,7 +452,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 
 		long timestamp = createDate.get().getTime();
-		boolean complete = completeFlag.get().booleanValue();
+		boolean complete = completeFlag.get();
 
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
 		messageGroup.setLastModified(updateDate.get().getTime());
@@ -710,8 +710,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		@Override
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
-			return message;
+			return (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 		}
+
 	}
+
 }
