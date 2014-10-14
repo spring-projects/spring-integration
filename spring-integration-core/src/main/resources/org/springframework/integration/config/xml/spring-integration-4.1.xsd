@@ -3441,8 +3441,8 @@
 							'transactional' or 'advice-chain' are applied only to 'forceComplete' operation.
 						</xsd:documentation>
 					</xsd:annotation>
-					<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
-					<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="expire-transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="expire-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="correlation-strategy" type="xsd:string">
 					<xsd:annotation>

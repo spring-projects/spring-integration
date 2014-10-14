@@ -207,7 +207,7 @@
 			<title>Aggregator Advice Chain</title>
 			<para>
 				<code>Aggregator</code>s and <code>Resequencer</code>s now support an
-				<code>&lt;advice-chain/&gt;</code> and <code>&lt;transactional/&gt;</code> sub-elements
+				<code>&lt;expire-advice-chain/&gt;</code> and <code>&lt;expire-transactional/&gt;</code> sub-elements
 				to <emphasis>advice</emphasis> the <code>forceComplete</code> operation.
 				See <xref linkend="aggregator-config"/> for more information.
 			</para>

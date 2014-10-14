@@ -377,8 +377,8 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		expire-groups-on-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
 
 		scheduler="taskScheduler" > ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
-			<transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" /><![CDATA[
-			<advice-chain/> ]]><co id="aggxml25" linkends="aggxml25-txt" /><![CDATA[
+			<expire-transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" /><![CDATA[
+			<expire-advice-chain/> ]]><co id="aggxml25" linkends="aggxml25-txt" /><![CDATA[
 </aggregator>
 
 <int:channel id="outputChannel"/>
@@ -619,7 +619,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				<code>forceComplete</code> operation, which only can be initiated from the
 				<code>group-timeout(-expression)</code> or by <classname>MessageGroupStoreReaper</classname> and
 				isn't included to the normal <code>release/discard</code> operation. Only this sub-element or
-				<code>&lt;advice-chain/&gt;</code> is allowed.
+				<code>&lt;expire-advice-chain/&gt;</code> is allowed.
 			</para>
 	  </callout>
 		<callout arearefs="aggxml25" id="aggxml25-txt">
@@ -629,7 +629,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 				<code>forceComplete</code> operation, which only can be initiated from the
 				<code>group-timeout(-expression)</code> or by <classname>MessageGroupStoreReaper</classname> and
 				isn't included to the normal <code>release/discard</code> operation. Only this sub-element or
-				<code>&lt;transactional/&gt;</code> is allowed. Transaction <interfacename>Advice</interfacename>
+				<code>&lt;expire-transactional/&gt;</code> is allowed. Transaction <interfacename>Advice</interfacename>
 				can be configured here as well using Spring <code>tx</code> namespace.
 			</para>
 		</callout>

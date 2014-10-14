@@ -62,7 +62,6 @@ public class AggregatorIntegrationTests {
 	public void testTransactionalAggregatorGroupTimeout() throws InterruptedException {
 		this.transactionalAggregatorInput.send(new GenericMessage<Integer>(1, stubHeaders(1, 2, 1)));
 
-//		Thread.sleep(1000);
 		assertTrue(RollbackTxSync.latch.await(20, TimeUnit.SECONDS));
 
 		//As far as we have been within TX, the message group should still be in the MessageStore
