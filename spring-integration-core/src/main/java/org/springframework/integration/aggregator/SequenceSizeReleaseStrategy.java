@@ -77,10 +77,9 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Considering partial release of group [" + messageGroup + "]");
 			}
-			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
-			Collections.sort(sorted, comparator);
+			Message<?> minMessage = Collections.min(messages, comparator);
 
-			int nextSequenceNumber = new IntegrationMessageHeaderAccessor(sorted.get(0)).getSequenceNumber();
+			int nextSequenceNumber = new IntegrationMessageHeaderAccessor(minMessage).getSequenceNumber();
 			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 
 			if (nextSequenceNumber - lastReleasedMessageSequence == 1){

@@ -588,11 +588,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence) {
-		List<Message<?>> sorted = new ArrayList<Message<?>>(partialSequence);
-		Collections.sort(sorted, new SequenceNumberComparator());
-
-		Message<?> lastReleasedMessage = sorted.get(partialSequence.size() - 1);
-
+		Message<?> lastReleasedMessage = Collections.max(partialSequence, new SequenceNumberComparator());
 		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
 
