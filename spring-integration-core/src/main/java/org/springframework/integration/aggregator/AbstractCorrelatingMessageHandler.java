@@ -291,13 +291,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	/**
 	 * Expire (completely remove) a group if it is completed due to timeout.
-	 * Subclasses setting this to false MUST handle null in the messages
-	 * argument to {@link #afterRelease(MessageGroup, Collection)}.
-	 * Default true.
-	 * @param expireGroupsUponTimeout the expireGroupsOnTimeout to set
+	 * Default true
+	 * @param expireGroupsUponTimeout the expireGroupsUponTimeout to set
 	 * @since 4.1
 	 */
-	protected void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
+	public void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
 		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
 	}
 
@@ -535,8 +533,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 							expireGroup(correlationKey, groupNow);
 						}
 						if (!this.expireGroupsUponTimeout) {
-							afterRelease(groupNow, null);
+							afterRelease(groupNow, groupNow.getMessages());
 							removeGroup = false;
+							this.messageStore.completeGroup(correlationKey); // late messages immediately discarded
 						}
 					}
 					else {

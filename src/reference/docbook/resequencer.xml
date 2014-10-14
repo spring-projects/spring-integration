@@ -58,7 +58,8 @@
 
   group-timeout="60000" ]]><co id="resxml19" /><![CDATA[
   group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="resxml20" /><![CDATA[
-  scheduler="taskScheduler" /> ]]><co id="resxml21" /></programlisting>
+  scheduler="taskScheduler" /> ]]><co id="resxml21" /><![CDATA[
+  expire-group-upon-timeout="false" /> ]]><co id="resxml22" /></programlisting>
     <para><calloutlist>
         <callout arearefs="resxml1-co" id="resxml1">
           <para>The id of the resequencer is
@@ -191,6 +192,19 @@
 		<callout arearefs="resxml21">
 			<para>
 				See <xref linkend="aggregator-xml"/>.
+			</para>
+		</callout>
+		<callout arearefs="aggxml22" id="aggxml22-txt">
+			<para>
+				When a group is completed due to a timeout (or by a <classname>MessageGroupStoreReaper</classname>), the
+				empty group's metadata
+				is retained by default. Late arriving messages will be immediately discarded. Set this
+				to <code>true</code> to remove the group completely; then, late arriving messages will start a new group
+				and won't be discarded until the group again times out. The new group will never be released normally
+				because of the "hole" in the sequence range that caused the timeout.
+				Empty groups can be expired (completely removed) later using a
+				<classname>MessageGroupStoreReaper</classname> together with the <code>empty-group-min-timeout</code>
+				attribute. Default: 'false'.
 			</para>
 		</callout>
       </calloutlist></para>

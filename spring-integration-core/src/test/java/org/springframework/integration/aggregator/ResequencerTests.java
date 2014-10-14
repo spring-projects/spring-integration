@@ -31,6 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
@@ -38,6 +40,7 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Marius Bogoevici
@@ -243,10 +246,10 @@ public class ResequencerTests {
 				new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber()));
 		Collections.sort(sequence);
 		assertEquals("[1, 2]", sequence.toString());
-		// when sending the last message, the whole sequence must have been sent
+		// Once a group is expired, late messages are discarded immediately by default
 		this.resequencer.handleMessage(message3);
 		reply3 = discardChannel.receive(0);
-		assertNull(reply3);
+		assertNotNull(reply3);
 	}
 
 	@Test
@@ -320,6 +323,63 @@ public class ResequencerTests {
 		Message<?> message1 = createMessage("123", correlationId, 1, 1, replyChannel);
 		resequencer.handleMessage(message1);
 		assertEquals(0, store.getMessageGroup(correlationId).size());
+	}
+
+	@Test
+	public void testTimeoutDefaultExpiry() throws InterruptedException {
+		this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("100"));
+		this.resequencer.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		this.resequencer.setTaskScheduler(taskScheduler);
+		QueueChannel discardChannel = new QueueChannel();
+		this.resequencer.setDiscardChannel(discardChannel);
+		QueueChannel replyChannel = new QueueChannel();
+		this.resequencer.setOutputChannel(replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, null);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, null);
+		this.resequencer.handleMessage(message3);
+		this.resequencer.handleMessage(message2);
+		Message<?> out1 = replyChannel.receive(0);
+		assertNull(out1);
+		out1 = discardChannel.receive(1000);
+		assertNotNull(out1);
+		Message<?> out2 = discardChannel.receive(0);
+		assertNotNull(out2);
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
+		this.resequencer.handleMessage(message1);
+		Message<?> out3 = discardChannel.receive(0);
+		assertNotNull(out3);
+	}
+
+	@Test
+	public void testTimeoutDontExpire() throws InterruptedException {
+		this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("100"));
+		this.resequencer.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		this.resequencer.setTaskScheduler(taskScheduler);
+		QueueChannel discardChannel = new QueueChannel();
+		this.resequencer.setDiscardChannel(discardChannel);
+		QueueChannel replyChannel = new QueueChannel();
+		this.resequencer.setOutputChannel(replyChannel);
+		this.resequencer.setExpireGroupsUponTimeout(true);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, null);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, null);
+		this.resequencer.handleMessage(message3);
+		this.resequencer.handleMessage(message2);
+		Message<?> out1 = replyChannel.receive(0);
+		assertNull(out1);
+		out1 = discardChannel.receive(1000);
+		assertNotNull(out1);
+		Message<?> out2 = discardChannel.receive(0);
+		assertNotNull(out2);
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
+		this.resequencer.handleMessage(message1);
+		Message<?> out3 = discardChannel.receive(0);
+		assertNull(out3);
+		out3 = discardChannel.receive(1000);
+		assertNotNull(out3);
 	}
 
 	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,
