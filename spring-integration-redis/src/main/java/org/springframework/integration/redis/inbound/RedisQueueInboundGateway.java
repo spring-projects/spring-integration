@@ -146,7 +146,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (this.extractPayload == false) {
+		if (!this.extractPayload) {
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'extractPayload == false'.");
 		}
 		if (this.taskExecutor == null) {
@@ -201,20 +201,20 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			}
 			Message<Object> requestMessage = null;
 			if (value != null) {
-				if (this.extractPayload == false) {
+				if (this.extractPayload) {
+					Object payload = value;
+					if (this.serializer != null) {
+						payload = this.serializer.deserialize(value);
+					}
+					requestMessage = this.getMessageBuilderFactory().withPayload(payload).build();
+				}
+				else {
 					try {
 						requestMessage = (Message<Object>) this.serializer.deserialize(value);
 					}
 					catch (Exception e) {
 						throw new MessagingException("Deserialization of Message failed.", e);
 					}
-				}
-				else {
-					Object payload = value;
-					if (this.serializer != null) {
-						payload = this.serializer.deserialize(value);
-					}
-					requestMessage = this.getMessageBuilderFactory().withPayload(payload).build();
 				}
 				Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
 				if (replyMessage != null) {
