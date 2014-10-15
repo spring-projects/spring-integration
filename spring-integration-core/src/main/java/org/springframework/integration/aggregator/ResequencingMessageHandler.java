@@ -63,6 +63,11 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
+		afterRelease(messageGroup, completedMessages, false);
+	}
+
+	@Override
+	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages, boolean timeout) {
 
 		int size = messageGroup.getMessages().size();
 		int sequenceSize = 0;
@@ -81,6 +86,9 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 				for (Message<?> msg : completedMessages) {
 					this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), msg);
 				}
+			}
+			if (timeout) {
+				this.messageStore.completeGroup(messageGroup.getGroupId());
 			}
 		}
 	}

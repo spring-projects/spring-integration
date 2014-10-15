@@ -483,6 +483,17 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 */
 	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
+	/**
+	 * Subclasses may override if special action is needed because the group was released or discarded
+	 * due to a timeout. By default, {@link #afterRelease(MessageGroup, Collection)} is invoked.
+	 * @param group The group.
+	 * @param completedMessages The completed messages.
+	 * @param timeout True if the release/discard was due to a timeout.
+	 */
+	protected void  afterRelease(MessageGroup group, Collection<Message<?>> completedMessages, boolean timeout) {
+		afterRelease(group, completedMessages);
+	}
+
 	protected void forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
@@ -533,9 +544,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 							expireGroup(correlationKey, groupNow);
 						}
 						if (!this.expireGroupsUponTimeout) {
-							afterRelease(groupNow, groupNow.getMessages());
+							afterRelease(groupNow, groupNow.getMessages(), true);
 							removeGroup = false;
-							this.messageStore.completeGroup(correlationKey); // late messages immediately discarded
 						}
 					}
 					else {
