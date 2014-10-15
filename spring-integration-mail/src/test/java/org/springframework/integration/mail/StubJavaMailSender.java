@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,11 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 
 /**
  * @author Marius Bogoevici
+ * @author Gary Russell
  */
 public class StubJavaMailSender implements JavaMailSender {
 
-	private MimeMessage uniqueMessage;
+	private final MimeMessage uniqueMessage;
 
 	private final List<MimeMessage> sentMimeMessages = new ArrayList<MimeMessage>();
 
@@ -53,35 +54,43 @@ public class StubJavaMailSender implements JavaMailSender {
 		return this.sentSimpleMailMessages;
 	}
 
+	@Override
 	public MimeMessage createMimeMessage() {
 		return this.uniqueMessage;
 	}
 
+	@Override
 	public MimeMessage createMimeMessage(InputStream contentStream) throws MailException {
 		return this.uniqueMessage;
 	}
 
+	@Override
 	public void send(MimeMessage mimeMessage) throws MailException {
 		this.sentMimeMessages.add(mimeMessage);
 	}
 
-	public void send(MimeMessage[] mimeMessages) throws MailException {
+	@Override
+	public void send(MimeMessage... mimeMessages) throws MailException {
 		this.sentMimeMessages.addAll(Arrays.asList(mimeMessages));
 	}
 
+	@Override
 	public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
 		throw new UnsupportedOperationException("MimeMessagePreparator not supported");
 	}
 
-	public void send(MimeMessagePreparator[] mimeMessagePreparators) throws MailException {
+	@Override
+	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
 	    throw new UnsupportedOperationException("MimeMessagePreparator not supported");
 	}
 
+	@Override
 	public void send(SimpleMailMessage simpleMessage) throws MailException {
 		this.sentSimpleMailMessages.add(simpleMessage);
 	}
 
-	public void send(SimpleMailMessage[] simpleMessages) throws MailException {
+	@Override
+	public void send(SimpleMailMessage... simpleMessages) throws MailException {
 		this.sentSimpleMailMessages.addAll(Arrays.asList(simpleMessages));
 	}
 

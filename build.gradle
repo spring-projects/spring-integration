@@ -118,7 +118,7 @@ subprojects { subproject ->
 		springSecurityVersion = '3.2.5.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.1.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.2.BUILD-SNAPSHOT'
 		springWsVersion = '2.2.0.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
@@ -241,6 +241,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
+		compile ("org.springframework:spring-context-support:$springVersion", optional) // override the reactor version
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile "org.projectreactor:reactor-core:$reactorVersion"
 		compile("org.projectreactor.spring:reactor-spring-context:$reactorSpringVersion", optional)
