@@ -44,8 +44,6 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 
 	private static final String EXPIRE_GROUPS_UPON_COMPLETION = "expire-groups-upon-completion";
 
-	private static final String EXPIRE_GROUPS_UPON_TIMEOUT = "expire-groups-upon-timeout";
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanComponentDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element,
@@ -90,7 +88,6 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		this.doParse(builder, element, processor, parserContext);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_TIMEOUT);
 
 		return builder;
 	}

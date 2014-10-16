@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
@@ -22,10 +23,9 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
@@ -37,6 +37,8 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Marius Bogoevici
@@ -45,6 +47,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Oleg Zhurakousky
  * @author Stefan Ferstl
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class ResequencerParserTests {
 
@@ -108,6 +111,7 @@ public class ResequencerParserTests {
 		ResequencingMessageHandler resequencer = getPropertyValue(endpoint, "handler", ResequencingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate ReleaseStrategy",
 				context.getBean("testReleaseStrategy"), getPropertyValue(resequencer, "releaseStrategy"));
+		assertFalse(TestUtils.getPropertyValue(resequencer, "expireGroupsUponTimeout", Boolean.class));
 	}
 
 	@Test
@@ -128,6 +132,7 @@ public class ResequencerParserTests {
 		effectiveReleaseStrategy.canRelease(new SimpleMessageGroup("test"));
 		assertEquals("The ResequencerEndpoint was not invoked the expected number of times;",
 				currentInvocationCount + 1, expectedReleaseStrategy.invocationCount);
+		assertTrue(TestUtils.getPropertyValue(resequencer, "expireGroupsUponTimeout", Boolean.class));
 	}
 
 	@Test
@@ -161,6 +166,7 @@ public class ResequencerParserTests {
 
 	static class TestCorrelationStrategy implements CorrelationStrategy {
 
+		@Override
 		public Object getCorrelationKey(Message<?> message) {
 			return "test";
 		}
@@ -174,6 +180,7 @@ public class ResequencerParserTests {
 	}
 
 	static class TestReleaseStrategy implements ReleaseStrategy {
+		@Override
 		public boolean canRelease(MessageGroup group) {
 			return true;
 		}

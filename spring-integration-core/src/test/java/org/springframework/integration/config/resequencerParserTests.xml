@@ -53,6 +53,7 @@
 
 	<resequencer id="resequencerWithReleaseStrategyRefAndMethod"
 		input-channel="inputChannel6"
+		expire-groups-upon-timeout="true"
 		release-strategy="testReleaseStrategyPojo"
 		release-strategy-method="bar"/>
 

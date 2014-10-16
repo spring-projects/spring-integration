@@ -59,6 +59,8 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE = "send-partial-result-on-expiry";
 
+	private static final String EXPIRE_GROUPS_UPON_TIMEOUT = "expire-groups-upon-timeout";
+
 	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor,
 			ParserContext parserContext) {
 		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
@@ -87,6 +89,8 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
 				builder.getRawBeanDefinition(), parserContext, "forceReleaseAdviceChain");
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_TIMEOUT);
 	}
 
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
