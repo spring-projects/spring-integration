@@ -232,7 +232,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		}
 	}
 
-	private MessageChannel getRequestChannel() {
+	protected MessageChannel getRequestChannel() {
 		if (this.requestChannelName != null) {
 			synchronized (this) {
 				if (this.requestChannelName != null) {
@@ -252,7 +252,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		return this.requestChannel;
 	}
 
-	private MessageChannel getReplyChannel() {
+	protected MessageChannel getReplyChannel() {
 		if (this.replyChannelName != null) {
 			synchronized (this) {
 				if (this.replyChannelName != null) {
@@ -272,7 +272,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		return this.replyChannel;
 	}
 
-	private MessageChannel getErrorChannel() {
+	protected MessageChannel getErrorChannel() {
 		if (this.errorChannelName != null) {
 			synchronized (this) {
 				if (this.errorChannelName != null) {

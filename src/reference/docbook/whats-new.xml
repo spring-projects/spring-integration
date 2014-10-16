@@ -34,6 +34,22 @@
 				for the JSON transformers. See <xref linkend="transformer"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-redis-queue-outbound-gateway">
+			<title>Redis Queue Outbound Gateway</title>
+			<para>
+				A Gateway <classname>RedisQueueOutboundGateway</classname> is used to send request 
+				to request queue and wait reply in reply queue.
+				See <xref linkend="redis-queue-outbound-gateway"/>.
+			</para>
+		</section>
+		<section id="4.1-redis-queue-inbound-gateway">
+			<title>Redis Queue Inbound Gateway</title>
+			<para>
+				A Gateway <classname>RedisQueueInboundGateway</classname> adapts incoming Redis messages
+				from request queue, and send the reply to the reply queue.
+				See <xref linkend="redis-queue-inbound-gateway"/>.
+			</para>
+		</section>
 	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>

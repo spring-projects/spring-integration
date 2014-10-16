@@ -699,7 +699,7 @@ the serialization of values, you may want to consider providing your own
 				<callout arearefs="redis-o-g-requires-reply">
 					<para>
 						Specify whether this outbound gateway must return a non-null value. This value is
-						<code>false</code> by default, otherwise a ReplyRequiredException will be thrown when
+						<code>true</code> by default. A ReplyRequiredException will be thrown when
 						the Redis returns a <code>null</code> value.
 					</para>
 				</callout>
@@ -773,6 +773,176 @@ the serialization of values, you may want to consider providing your own
 		  result depends on command type, for example <code>MGET</code> returns a <code>List&lt;byte[]&gt;</code>.
 			For more information about commands, their arguments and result type see
 		  <ulink url="http://redis.io/commands">Redis Specification</ulink>.
+		</para>
+	</section>
+	<section id="redis-queue-outbound-gateway">
+	<title>Redis Queue Outbound Gateway</title>
+		<para>
+			Since <emphasis>Spring Integration 4.1</emphasis>, the Redis Queue outbound Gateway is available to
+			send queuename to get the request to control queue, then send request and wait for the reply using
+			<code>RedisConnection#execute</code>
+			method:
+			<programlisting language="xml"><![CDATA[<int-redis:queue-outbound-gateway
+		request-channel="" ]]><co id="redis-q-o-g-request-channel"/><![CDATA[
+		reply-channel="" ]]><co id="redis-q-o-g-reply-channel"/><![CDATA[
+		requires-reply="" ]]><co id="redis-q-o-g-requires-reply"/><![CDATA[
+		reply-timeout="" ]]><co id="redis-q-o-g-reply-timeout"/><![CDATA[
+		connection-factory="" ]]><co id="redis-q-o-g-connectionFactory"/><![CDATA[
+		queue="" ]]><co id="redis-q-o-g-queue"/><![CDATA[
+		order="" ]]><co id="redis-q-o-g-order"/><![CDATA[
+		serializer="" ]]><co id="redis-q-o-g-serializer"/><![CDATA[
+		extract-payload="" ]]><co id="redis-q-o-g-extract-payload"/>
+			</programlisting>
+			<calloutlist>
+				<callout arearefs="redis-q-o-g-request-channel">
+					<para>
+						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename>s.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-reply-channel">
+					<para>
+						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename>s.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-requires-reply">
+					<para>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						<code>false</code> by default, otherwise a ReplyRequiredException will be thrown when
+						the Redis returns a <code>null</code> value.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-reply-timeout">
+					<para>
+						The timeout in milliseconds to wait until the reply message will be sent or not. Typically is
+						applied for queue-based limited reply-channels.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-connectionFactory">
+					<para>
+						A reference to a <interfacename>RedisConnectionFactory</interfacename>bean.
+						Defaults to <code>redisConnectionFactory</code>. Mutually exclusive with 'redis-template' attribute.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-queue">
+					<para>
+						The name of the Redis control-queue to which outbound gateway will send queuename to get the request.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-order">
+					<para>
+						The order for this outbound gateway when multiple gateway are registered thereby
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-serializer">
+					<para>
+						  The <interfacename>RedisSerializer</interfacename> bean reference. Can be an empty string, which means 'no serializer'.
+				          In this case the raw <code>byte[]</code> from the inbound Redis message is sent to the <code>channel</code> as the
+				          <interfacename>Message</interfacename> payload. By default it is a <classname>JdkSerializationRedisSerializer</classname>.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-o-g-extract-payload">
+					<para>
+						 Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename>s.
+						 If this attribute is set to <code>true</code>, the <code>serializer</code> can't be an empty string because messages
+				   		 require some form of deserialization (JDK serialization by default).
+					</para>
+				</callout>
+			</calloutlist>
+		</para>
+		<para>
+		   The <code>&lt;int-redis:redis-outbound-gateway&gt;</code> can be used as a common component to perform any desired
+		   Redis operation with control queue. For example:
+			<programlisting language="xml"><![CDATA[<int-redis:queue-outbound-gateway id="defaultOutboundGateway" request-channel="sendChannel"
+			 queue="foo" reply-timeout="2000" requires-reply="true" reply-channel="outputChannel"/>]]></programlisting>
+			where the Message comes from <code>request-channel</code>, send request queuename to <code>queue</code>, then send request and get reply, 
+			then send to <code>reply-channel</code>.
+		</para>
+	</section>
+	<section id="redis-queue-inbound-gateway">
+	<title>Redis Queue Inbound Gateway</title>
+		<para>
+			Since <emphasis>Spring Integration 4.1</emphasis>, the Redis Queue Inbound Gateway adapts incoming Redis messages 
+			into Spring Integration Messages from control queue, find queuename to get request and implies where to send the reply. Then get request, process 
+			it and send reply.
+			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway
+		request-channel="" ]]><co id="redis-q-i-g-request-channel"/><![CDATA[
+		reply-channel="" ]]><co id="redis-q-i-g-reply-channel"/><![CDATA[
+		executor="" ]]><co id="redis-q-i-g-task-executor"/><![CDATA[
+		reply-timeout="" ]]><co id="redis-q-i-g-reply-timeout"/><![CDATA[
+		connection-factory="" ]]><co id="redis-q-i-g-connectionFactory"/><![CDATA[
+		queue="" ]]><co id="redis-q-i-g-queue"/><![CDATA[
+		order="" ]]><co id="redis-q-i-g-order"/><![CDATA[
+		serializer="" ]]><co id="redis-q-i-g-serializer"/><![CDATA[
+		receive-timeout="" ]]><co id="redis-q-i-g-receive-timeout"/><![CDATA[
+		expect-message="" ]]><co id="redis-q-i-g-expect-message"/>
+			</programlisting>
+			<calloutlist>
+				<callout arearefs="redis-q-i-g-request-channel">
+					<para>
+						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename>s.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-reply-channel">
+					<para>
+						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename>s.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-task-executor">
+					<para>
+						A reference to a Spring <interfacename>TaskExecutor</interfacename> (or standard JDK 1.5+ <interfacename>Executor</interfacename>)
+				   bean. It is used for the underlying listening task. By default a <classname>SimpleAsyncTaskExecutor</classname>
+				   is used.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-reply-timeout">
+					<para>
+						The timeout in milliseconds to wait until the reply message will be sent or not. Typically is
+						applied for queue-based limited reply-channels.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-connectionFactory">
+					<para>
+						A reference to a <interfacename>RedisConnectionFactory</interfacename>bean.
+						Defaults to <code>redisConnectionFactory</code>. Mutually exclusive with 'redis-template' attribute.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-queue">
+					<para>
+						The name of the Redis control-queue tell the inbound gateway queuename to find the request (and implies where to send the reply).
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-order">
+					<para>
+						The order for this inbound gateway when multiple gateway are registered thereby
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-serializer">
+					<para>
+						  The <interfacename>RedisSerializer</interfacename> bean reference. Can be an empty string, which means 'no serializer'.
+				          In this case the raw <code>byte[]</code> from the inbound Redis message is sent to the <code>channel</code> as the
+				          <interfacename>Message</interfacename> payload. By default it is a <classname>StringRedisSerializer</classname>.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-receive-timeout">
+					<para>
+						The timeout in milliseconds to wait until the receive message will be get or not. Typically is
+						applied for queue-based limited request-channels.
+					</para>
+				</callout>
+				<callout arearefs="redis-q-i-g-expect-message">
+					<para>
+						 Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename>s.
+						 If this attribute is set to <code>true</code>, the <code>serializer</code> can't be an empty string because messages
+				   		 require some form of deserialization (JDK serialization by default).
+					</para>
+				</callout>
+			</calloutlist>
+		</para>
+		<para>
+			The <code>&lt;int-redis:redis-inbound-gateway&gt;</code> can be used to perform Redis command with control queue. For example:
+			<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-gateway id="defaultInboundGateway" queue="foo"/>]]>
+			</programlisting> where the Message comes from <code>queue</code> gives queuename of the request and implies where to 
+			send reply, then <code>queue-inbound-gateway</code> will get the request, process and send reply.
 		</para>
 	</section>
 	<section id="redis-lock-registry">
