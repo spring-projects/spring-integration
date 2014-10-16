@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,12 +28,19 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
+import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSlipRouteStrategy;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
@@ -52,6 +59,10 @@ import org.springframework.util.xml.DomUtils;
  * @since 2.0
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
+
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
+
+	private static final TemplateParserContext EXPRESSION_PARSER_CONTEXT = new TemplateParserContext();
 
 	private final Map<String, String> elementToNameMap = new HashMap<String, String>();
 
@@ -233,7 +244,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 			Object headerValue = (headerType != null) ?
 					(IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)
-							? Collections.unmodifiableList(Arrays.asList(StringUtils.tokenizeToStringArray(value, ",")))
+							? populateRoutingSlipValue(value, parserContext)
 							: new TypedStringValue(value, headerType)) : value;
 			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
 					.addConstructorArgValue(headerValue);
@@ -295,6 +306,26 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			valueProcessorBuilder.addPropertyValue("overwrite", overwrite);
 		}
 		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
+	}
+
+	private List<String> populateRoutingSlipValue(String value, ParserContext parserContext) {
+		String[] values = StringUtils.tokenizeToStringArray(value, ";");
+		List<String> routingSlip = new ArrayList<String>(values.length);
+		for (String s : values) {
+			if (s.startsWith("#{")) {
+				Expression expression = PARSER.parseExpression(s, EXPRESSION_PARSER_CONTEXT);
+				AbstractBeanDefinition expressionDefinition =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluationRoutingSlipRouteStrategy.class)
+						.addConstructorArgValue(expression).getBeanDefinition();
+				String name = BeanDefinitionReaderUtils.registerWithGeneratedName(expressionDefinition,
+						parserContext.getRegistry());
+				routingSlip.add("@" + name);
+			}
+			else {
+				routingSlip.add(s);
+			}
+		}
+		return Collections.<String>unmodifiableList(routingSlip);
 	}
 
 	/**

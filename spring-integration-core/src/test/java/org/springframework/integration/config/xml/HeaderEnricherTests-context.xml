@@ -77,7 +77,7 @@
 	</header-enricher>
 
 	<header-enricher input-channel="routingSlipInput">
-		<routing-slip value="fooChannel, barChannel, @bazRoutingSlip"/>
+		<routing-slip value="fooChannel; barChannel; @bazRoutingSlip"/>
 	</header-enricher>
 
 	<header-enricher input-channel="payloadExpressionInput">

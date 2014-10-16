@@ -9,20 +9,32 @@
 
 	<message-history/>
 
-	<beans:bean id="theRoutingSlip" class="org.springframework.integration.routingslip.RoutingSlipTests$TestRoutingSlip"/>
+	<beans:bean id="routingSlipRoutingPojo"
+				class="org.springframework.integration.routingslip.RoutingSlipTests$TestRoutingSlipRoutePojo"/>
+
+	<beans:bean id="routingSlipRoutingStrategy"
+				class="org.springframework.integration.routingslip.RoutingSlipTests$TestRoutingSlipRouteStrategy"/>
 
 	<header-enricher input-channel="input" output-channel="process">
-		<routing-slip value="fooChannel, @theRoutingSlip, baxChannel"/>
+		<routing-slip value="channel1; #{@routingSlipRoutingPojo.get(request, reply)}; @routingSlipRoutingStrategy;
+				#{request.headers[myRoutingSlipChannel]}; channel6"/>
 	</header-enricher>
 
 	<bridge input-channel="process"/>
 
-	<bridge input-channel="fooChannel"/>
+	<bridge input-channel="channel1"/>
 
-	<bridge input-channel="barChannel"/>
+	<bridge input-channel="channel2"/>
 
-	<bridge input-channel="bazChannel"/>
+	<bridge input-channel="channel3"/>
 
-	<bridge input-channel="baxChannel"/>
+	<bridge input-channel="channel4"/>
+
+	<chain input-channel="channel5">
+		<header-filter header-names="myRoutingSlipChannel"/>
+	</chain>
+
+	<bridge input-channel="channel6"/>
+
 
 </beans:beans>

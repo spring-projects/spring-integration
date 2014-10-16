@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,14 +50,16 @@ public class RoutingSlipTests {
 	@Test
 	public void testRoutingSlip() {
 		PollableChannel replyChannel = new QueueChannel();
-		Message<String> request = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
+		Message<String> request = MessageBuilder.withPayload("test").setReplyChannel(replyChannel)
+				.setHeader("myRoutingSlipChannel", "channel5").build();
 		this.input.send(request);
 		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull(reply);
-		assertEquals(3, new IntegrationMessageHeaderAccessor(reply)
+		assertEquals(5, new IntegrationMessageHeaderAccessor(reply)
 				.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX));
 		MessageHistory messageHistory = MessageHistory.read(reply);
-		String[] channelNames = {"input", "process", "fooChannel", "barChannel", "bazChannel", "baxChannel"};
+		String[] channelNames =
+				{"input", "process", "channel1", "channel2", "channel3", "channel4", "channel5", "channel6"};
 		int i = 0;
 		for (Properties properties : messageHistory) {
 			assertEquals(channelNames[i++], properties.getProperty("name"));
@@ -66,20 +67,30 @@ public class RoutingSlipTests {
 		assertEquals(channelNames.length, i);
 	}
 
-	public static class TestRoutingSlip implements RoutingSlip {
+	public static class TestRoutingSlipRoutePojo {
 
-		final String[] channels = {"barChannel", "bazChannel"};
+		final String[] channels = {"channel2", "channel3"};
 
 		private int i = 0;
 
-		@Override
-		public String getNextPath(Message<?> requestMessage, Object reply) {
+		public String get(Message<?> requestMessage, Object reply) {
 			try {
 				return this.channels[i++];
 			}
 			catch (Exception e) {
 				return null;
 			}
+		}
+
+	}
+
+	public static class TestRoutingSlipRouteStrategy implements RoutingSlipRouteStrategy {
+
+		private AtomicBoolean invoked = new AtomicBoolean();
+
+		@Override
+		public String getNextPath(Message<?> requestMessage, Object reply) {
+			return !invoked.getAndSet(true) ? "channel4" : null;
 		}
 
 	}

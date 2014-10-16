@@ -16,12 +16,23 @@
 
 package org.springframework.integration.handler;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.beans.BeansException;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -57,6 +68,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		this.outputChannelName = outputChannelName;
 	}
 
+	/**
+	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
+	 * @param channelResolver The channel resolver.
+	 */
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.messagingTemplate.setDestinationResolver(channelResolver);
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
@@ -84,6 +104,158 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 		return outputChannel;
+	}
+
+	protected void sendReplies(Object result, Message<?> requestMessage) {
+		if (result instanceof Iterable<?> && shouldSplitReply((Iterable<?>) result)) {
+			for (Object o : (Iterable<?>) result) {
+				this.produceReply(o, requestMessage);
+			}
+		}
+		else if (result != null) {
+			this.produceReply(result, requestMessage);
+		}
+	}
+
+	protected boolean shouldSplitReply(Iterable<?> reply) {
+		for (Object next : reply) {
+			if (next instanceof Message<?> || next instanceof AbstractIntegrationMessageBuilder<?>) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void produceReply(Object reply, Message<?> requestMessage) {
+		MessageHeaders requestHeaders = requestMessage.getHeaders();
+
+		Object replyChannel = null;
+		if (getOutputChannel() == null) {
+			List<String> routingSlip = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, List.class);
+
+			if (routingSlip != null) {
+				Integer routingSlipIndexValue =
+						requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX, Integer.class);
+				if (routingSlipIndexValue == null) {
+					routingSlipIndexValue = 0;
+				}
+				AtomicInteger routingSlipIndex = new AtomicInteger(routingSlipIndexValue);
+				replyChannel = getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
+				if (replyChannel != null) {
+					//TODO Migrate to the SF MessageBuilder
+					AbstractIntegrationMessageBuilder<?> builder = null;
+					if (reply instanceof Message) {
+						builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
+					}
+					else if (reply instanceof AbstractIntegrationMessageBuilder) {
+						builder = (AbstractIntegrationMessageBuilder) reply;
+					}
+					else {
+						builder = this.getMessageBuilderFactory().withPayload(reply);
+					}
+					builder.setHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX, routingSlipIndex.get());
+					reply = builder;
+				}
+			}
+
+			if (replyChannel == null) {
+				replyChannel = requestHeaders.getReplyChannel();
+			}
+		}
+
+		Message<?> replyMessage = createReplyMessage(reply, requestHeaders);
+		sendReplyMessage(replyMessage, replyChannel);
+	}
+
+	private String getReplyChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<String> routingSlipList,
+			AtomicInteger routingSlipIndex) {
+		if (routingSlipList.size() == routingSlipIndex.get()) {
+			return null;
+		}
+
+		String routingSlipValue = routingSlipList.get(routingSlipIndex.get());
+		if (routingSlipValue.startsWith("@")) {
+			RoutingSlipRouteStrategy routingSlip =
+					getBeanFactory().getBean(routingSlipValue.substring(1), RoutingSlipRouteStrategy.class);
+			String nextPath = routingSlip.getNextPath(requestMessage, reply);
+			if (StringUtils.hasText(nextPath)) {
+				return nextPath;
+			}
+			else {
+				routingSlipIndex.incrementAndGet();
+				return getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlipList, routingSlipIndex);
+			}
+		}
+		else {
+			routingSlipIndex.incrementAndGet();
+			return routingSlipValue;
+		}
+	}
+
+	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
+		AbstractIntegrationMessageBuilder<?> builder = null;
+		if (reply instanceof Message<?>) {
+			if (!this.shouldCopyRequestHeaders()) {
+				return (Message<?>) reply;
+			}
+			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
+		}
+		else if (reply instanceof AbstractIntegrationMessageBuilder) {
+			builder = (AbstractIntegrationMessageBuilder<?>) reply;
+		}
+		else {
+			builder = this.getMessageBuilderFactory().withPayload(reply);
+		}
+		if (this.shouldCopyRequestHeaders()) {
+			builder.copyHeadersIfAbsent(requestHeaders);
+		}
+		return builder.build();
+	}
+
+	/**
+	 * Send a reply Message. The 'replyChannel' will be considered only if this handler's
+	 * 'outputChannel' is <code>null</code>. In that case, the 'replyChannel' value must not also be
+	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
+	 * @param reply the reply Message to send
+	 * @param replyChannel the 'replyChannel' value from the original request
+	 */
+	private void sendReplyMessage(Object reply, Object replyChannel) {
+		MessageChannel outputChannel = getOutputChannel();
+		if (outputChannel != null) {
+			replyChannel = outputChannel;
+		}
+		if (replyChannel == null) {
+			throw new DestinationResolutionException("no output-channel or replyChannel header available");
+		}
+
+		if (replyChannel instanceof MessageChannel) {
+			if (reply instanceof Message<?>) {
+				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
+			}
+			else {
+				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, reply);
+			}
+		}
+		else if (replyChannel instanceof String) {
+			if (reply instanceof Message<?>) {
+				this.messagingTemplate.send((String) replyChannel, (Message<?>) reply);
+			}
+			else {
+				this.messagingTemplate.convertAndSend((String) replyChannel, reply);
+			}
+		}
+		else {
+			throw new MessagingException("replyChannel must be a MessageChannel or String");
+		}
+	}
+
+	/**
+	 * Subclasses may override this. True by default.
+	 * @return true if the request headers should be copied.
+	 */
+	protected boolean shouldCopyRequestHeaders() {
+		return true;
 	}
 
 }
