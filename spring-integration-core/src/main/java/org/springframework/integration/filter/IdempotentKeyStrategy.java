@@ -24,6 +24,6 @@ import org.springframework.messaging.Message;
  */
 public interface IdempotentKeyStrategy {
 
-	Object getIdempotentKey(Message<?> message);
+	String getIdempotentKey(Message<?> message);
 
 }

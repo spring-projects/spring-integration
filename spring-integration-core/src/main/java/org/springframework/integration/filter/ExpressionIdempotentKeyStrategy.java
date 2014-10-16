@@ -33,12 +33,12 @@ public class ExpressionIdempotentKeyStrategy implements IdempotentKeyStrategy, B
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-	private final MessageProcessor<?> processor;
+	private final MessageProcessor<String> processor;
 
 	private final String expressionString;
 
 	public ExpressionIdempotentKeyStrategy(String expressionString) {
-		processor = new ExpressionEvaluatingMessageProcessor<Object>(PARSER.parseExpression(expressionString));
+		processor = new ExpressionEvaluatingMessageProcessor<String>(PARSER.parseExpression(expressionString));
 		this.expressionString = expressionString;
 	}
 
@@ -48,7 +48,7 @@ public class ExpressionIdempotentKeyStrategy implements IdempotentKeyStrategy, B
 	}
 
 	@Override
-	public Object getIdempotentKey(Message<?> message) {
+	public String getIdempotentKey(Message<?> message) {
 		return this.processor.processMessage(message);
 	}
 
