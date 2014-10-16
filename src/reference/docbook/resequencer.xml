@@ -194,7 +194,7 @@
 				See <xref linkend="aggregator-xml"/>.
 			</para>
 		</callout>
-		<callout arearefs="aggxml22" id="aggxml22-txt">
+		<callout arearefs="resxml22" id="resxml22-txt">
 			<para>
 				When a group is completed due to a timeout (or by a <classname>MessageGroupStoreReaper</classname>), the
 				empty group's metadata
