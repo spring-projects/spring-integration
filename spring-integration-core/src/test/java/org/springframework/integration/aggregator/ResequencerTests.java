@@ -340,11 +340,11 @@ public class ResequencerTests {
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, null);
 		this.resequencer.handleMessage(message3);
 		this.resequencer.handleMessage(message2);
-		Message<?> out1 = replyChannel.receive(0);
+		Message<?> out1 = replyChannel.receive(10);
 		assertNull(out1);
 		out1 = discardChannel.receive(1000);
 		assertNotNull(out1);
-		Message<?> out2 = discardChannel.receive(0);
+		Message<?> out2 = discardChannel.receive(10);
 		assertNotNull(out2);
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
 		this.resequencer.handleMessage(message1);
@@ -372,7 +372,7 @@ public class ResequencerTests {
 		assertNull(out1);
 		out1 = discardChannel.receive(1000);
 		assertNotNull(out1);
-		Message<?> out2 = discardChannel.receive(0);
+		Message<?> out2 = discardChannel.receive(10);
 		assertNotNull(out2);
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
 		this.resequencer.handleMessage(message1);

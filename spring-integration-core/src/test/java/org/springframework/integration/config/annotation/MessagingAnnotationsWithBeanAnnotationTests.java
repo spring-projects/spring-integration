@@ -91,7 +91,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	public void testMessagingAnnotationsFlow() {
 		this.sourcePollingChannelAdapter.start();
 		for (int i = 0; i < 10; i++) {
-			Message<?> receive = this.discardChannel.receive(1000);
+			Message<?> receive = this.discardChannel.receive(10000);
 			assertNotNull(receive);
 			assertTrue(((Integer) receive.getPayload()) % 2 == 0);
 		}
