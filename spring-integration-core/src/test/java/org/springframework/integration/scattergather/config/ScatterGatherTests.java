@@ -53,7 +53,7 @@ public class ScatterGatherTests {
 	private MessageChannel inputDistribution;
 
 	@Autowired
-	private RequestReplyExchanger syncScatterGatherGateway;
+	private RequestReplyExchanger gateway;
 
 	@Test
 	public void testAuction() {
@@ -76,8 +76,8 @@ public class ScatterGatherTests {
 	}
 
 	@Test
-	public void testSyncScatterGather() {
-		Message<?> bestQuoteMessage = syncScatterGatherGateway.exchange(new GenericMessage<String>("foo"));
+	public void testGatewayScatterGather() {
+		Message<?> bestQuoteMessage = this.gateway.exchange(new GenericMessage<String>("foo"));
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(List.class));
 		assertThat(((List) payload).size(), greaterThanOrEqualTo(1));

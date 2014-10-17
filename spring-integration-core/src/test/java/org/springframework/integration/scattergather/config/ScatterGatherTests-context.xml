@@ -52,9 +52,9 @@
 
 	<!--Sync scenario-->
 
-	<gateway id="syncScatterGatherGateway" default-request-channel="syncAuction"/>
+	<gateway id="gateway" default-request-channel="gatewayAuction"/>
 
-	<scatter-gather input-channel="syncAuction" scatter-channel="auctionChannel">
+	<scatter-gather input-channel="gatewayAuction" scatter-channel="auctionChannel">
 		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
 

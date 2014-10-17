@@ -19,17 +19,18 @@ package org.springframework.integration.handler;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.router.RecipientListRouter;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -42,7 +43,9 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 4.1
  */
-public class ScatterGatherHandler extends AbstractMessageProducingHandler implements Lifecycle {
+public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+
+	private static final String GATHER_RESULT_CHANNEL = "gatherResultChannel";
 
 	private final MessageChannel scatterChannel;
 
@@ -80,8 +83,7 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
+	protected void doInit() {
 		if (this.gatherChannel == null) {
 			this.gatherChannel = new FixedSubscriberChannel(this.gatherer);
 		}
@@ -100,11 +102,25 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 			this.gatherEndpoint.setBeanFactory(this.getBeanFactory());
 			this.gatherEndpoint.afterPropertiesSet();
 		}
+
 		this.gatherer.setOutputChannel(new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				sendReply(message);
+				MessageHeaders headers = message.getHeaders();
+				if (headers.containsKey(GATHER_RESULT_CHANNEL)) {
+					Object gatherResultChannel = headers.get(GATHER_RESULT_CHANNEL);
+					if (gatherResultChannel instanceof MessageChannel) {
+						messagingTemplate.send((MessageChannel) gatherResultChannel, message);
+					}
+					else if (gatherResultChannel instanceof String) {
+						messagingTemplate.send((String) gatherResultChannel, message);
+					}
+				}
+				else {
+					throw new MessageDeliveryException(message,
+							"The 'gatherResultChannel' header is required to delivery gather result.");
+				}
 			}
 
 		}));
@@ -115,44 +131,33 @@ public class ScatterGatherHandler extends AbstractMessageProducingHandler implem
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> requestMessage) throws Exception {
-		Message<?> scatterMessage = requestMessage;
-		AbstractIntegrationMessageBuilder<?> scatterMessageBuilder = null;
+	protected Object handleRequestMessage(Message<?> requestMessage) {
+		PollableChannel gatherResultChannel = new QueueChannel();
 
-		if (requestMessage.getHeaders().getReplyChannel() != null) {
-			Object originalReplyChannelName = this.replyChannelRegistry
-					.channelToChannelName(requestMessage.getHeaders().getReplyChannel());
-			scatterMessageBuilder = getMessageBuilderFactory().fromMessage(requestMessage)
-					.setHeader("originalReplyChannel", originalReplyChannelName);
-		}
+		Object gatherResultChannelName = this.replyChannelRegistry.channelToChannelName(gatherResultChannel);
 
-		if (this.gatherEndpoint == null) {
-			if (scatterMessageBuilder == null) {
-				scatterMessageBuilder = getMessageBuilderFactory().fromMessage(requestMessage);
-			}
-			scatterMessage = scatterMessageBuilder.setReplyChannel(this.gatherChannel).build();
-		}
+		Message<?> scatterMessage = getMessageBuilderFactory()
+				.fromMessage(requestMessage)
+				.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannelName)
+				.setReplyChannel(this.gatherChannel)
+				.build();
 
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
+
+		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
+		if (gatherResult != null) {
+			return getMessageBuilderFactory().fromMessage(gatherResult)
+					.copyHeaders(requestMessage.getHeaders())
+					.removeHeader(GATHER_RESULT_CHANNEL)
+					.build();
+		}
+
+		return null;
 	}
 
-	private void sendReply(Message message) {
-		Object replyChannelHeader = message.getHeaders().get("originalReplyChannel");
-
-		Object replyChannel = getOutputChannel();
-		if (replyChannel == null) {
-			replyChannel = replyChannelHeader;
-		}
-		if (replyChannel instanceof MessageChannel) {
-			this.messagingTemplate.send((MessageChannel) replyChannel, message);
-		}
-		else if (replyChannel instanceof String) {
-			this.messagingTemplate.send((String) replyChannel, message);
-		}
-		else {
-			throw new MessageDeliveryException(message,
-					"a non-null reply channel value of type MessageChannel or String is required");
-		}
+	@Override
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
 	}
 
 	@Override

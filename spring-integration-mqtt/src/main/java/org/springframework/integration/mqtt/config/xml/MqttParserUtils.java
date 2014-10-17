@@ -57,8 +57,6 @@ public final class MqttParserUtils {
 			}
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "converter");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 	}
 

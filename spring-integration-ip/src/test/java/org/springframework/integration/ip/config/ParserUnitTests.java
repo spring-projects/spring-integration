@@ -496,8 +496,6 @@ public class ParserUnitTests {
 		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
 		assertTrue(cfC2.isLookupHost());
 		assertEquals(24, dfa.getPropertyValue("order"));
-		assertFalse(tcpOutboundGateway.isAutoStartup());
-		assertEquals(127, tcpOutboundGateway.getPhase());
 	}
 
 	@Test
