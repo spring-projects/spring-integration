@@ -230,5 +230,12 @@
 				See <xref linkend="resequencer"/>.
 			</para>
 		</section>
+		<section id="4.1-Optional-Parameter">
+			<title>Optional POJO method parameter</title>
+			<para>
+				Now Spring Integration consistently handles the Java 8's <classname>Optional</classname> type.
+				See <xref linkend="service-activator-namespace"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
