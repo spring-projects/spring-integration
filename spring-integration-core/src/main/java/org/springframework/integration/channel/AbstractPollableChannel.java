@@ -16,10 +16,12 @@
 
 package org.springframework.integration.channel;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
  * Base class for all pollable channels.
@@ -56,18 +58,18 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 */
 	@Override
 	public final Message<?> receive(long timeout) {
-		AtomicInteger receiveInterceptorIndex = new AtomicInteger(-1);
+		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
 		try {
-			if (!this.getInterceptors().preReceive(this, receiveInterceptorIndex)) {
+			if (!this.getInterceptors().preReceive(this, interceptorStack)) {
 				return null;
 			}
 			Message<?> message = this.doReceive(timeout);
 			message = this.getInterceptors().postReceive(message, this);
-			this.getInterceptors().afterReceiveCompletion(message, this, null, receiveInterceptorIndex.get());
+			this.getInterceptors().afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
 		catch (RuntimeException e) {
-			this.getInterceptors().afterReceiveCompletion(null, this, e, receiveInterceptorIndex.get());
+			this.getInterceptors().afterReceiveCompletion(null, this, e, interceptorStack);
 			throw e;
 		}
 	}

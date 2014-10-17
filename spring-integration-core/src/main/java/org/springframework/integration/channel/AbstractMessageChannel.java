@@ -16,11 +16,13 @@
 
 package org.springframework.integration.channel;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
@@ -259,23 +261,23 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 
-		AtomicInteger sendInterceptorIndex = new AtomicInteger(-1);
+		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
 		boolean sent = false;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			message = this.interceptors.preSend(message, this, sendInterceptorIndex);
+			message = this.interceptors.preSend(message, this, interceptorStack);
 			if (message == null) {
 				return false;
 			}
 			sent = this.doSend(message, timeout);
 			this.interceptors.postSend(message, this, sent);
-			this.interceptors.afterSendCompletion(message, this, sent, null, sendInterceptorIndex.get());
+			this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
 			return sent;
 		}
 		catch (Exception e) {
-			this.interceptors.afterSendCompletion(message, this, sent, e, sendInterceptorIndex.get());
+			this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
@@ -347,7 +349,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			this.interceptors.add(index, interceptor);
 		}
 
-		public Message<?> preSend(Message<?> message, MessageChannel channel, AtomicInteger sendInterceptorIndex) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel,
+				Deque<ChannelInterceptor> interceptorStack) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
 			}
@@ -359,10 +362,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 							logger.debug(interceptor.getClass().getSimpleName()
 									+ " returned null from preSend, i.e. precluding the send.");
 						}
-						afterSendCompletion(null, channel, false, null, sendInterceptorIndex.get());
+						afterSendCompletion(null, channel, false, null, interceptorStack);
 						return null;
 					}
-					sendInterceptorIndex.incrementAndGet();
+					interceptorStack.add(interceptor);
 				}
 			}
 			return message;
@@ -380,9 +383,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex,
-				int sendInterceptorIndex) {
-			for (int i = sendInterceptorIndex; i >= 0; i--) {
-				ChannelInterceptor interceptor = interceptors.get(i);
+				Deque<ChannelInterceptor> interceptorStack) {
+			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
+				ChannelInterceptor interceptor = iterator.next();
 				try {
 					interceptor.afterSendCompletion(message, channel, sent, ex);
 				}
@@ -392,17 +395,17 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
-		public boolean preReceive(MessageChannel channel, AtomicInteger receiveInterceptorIndex) {
+		public boolean preReceive(MessageChannel channel, Deque<ChannelInterceptor> interceptorStack) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + channel + "'");
 			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					if (!interceptor.preReceive(channel)) {
-						afterReceiveCompletion(null, channel, null, receiveInterceptorIndex.get());
+						afterReceiveCompletion(null, channel, null, interceptorStack);
 						return false;
 					}
-					receiveInterceptorIndex.incrementAndGet();
+					interceptorStack.add(interceptor);
 				}
 			}
 			return true;
@@ -427,9 +430,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex,
-				int receiveInterceptorIndex) {
-			for (int i = receiveInterceptorIndex; i >= 0; i--) {
-				ChannelInterceptor interceptor = interceptors.get(i);
+				Deque<ChannelInterceptor> interceptorStack) {
+			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
+				ChannelInterceptor interceptor = iterator.next();
 				try {
 					interceptor.afterReceiveCompletion(message, channel, ex);
 				}

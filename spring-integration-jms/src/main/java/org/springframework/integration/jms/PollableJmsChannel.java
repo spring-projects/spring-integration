@@ -16,12 +16,13 @@
 
 package org.springframework.integration.jms;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
  * @author Mark Fisher
@@ -43,9 +44,9 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 	}
 
 	public Message<?> receive() {
-		AtomicInteger receiveInterceptorIndex = new AtomicInteger(-1);
+		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
 		try {
-			if (!this.getInterceptors().preReceive(this, receiveInterceptorIndex)) {
+			if (!this.getInterceptors().preReceive(this, interceptorStack)) {
 				 return null;
 			 }
 			Object object;
@@ -67,11 +68,11 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 				replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
 			}
 			replyMessage = this.getInterceptors().postReceive(replyMessage, this);
-			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, receiveInterceptorIndex.get());
+			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, interceptorStack);
 			return replyMessage;
 		}
 		catch (RuntimeException e) {
-			this.getInterceptors().afterReceiveCompletion(null, this, e, receiveInterceptorIndex.get());
+			this.getInterceptors().afterReceiveCompletion(null, this, e, interceptorStack);
 			throw e;
 		}
 	}

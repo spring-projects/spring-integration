@@ -16,9 +16,9 @@
 
 package org.springframework.integration.amqp.channel;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
@@ -26,6 +26,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 
 /**
@@ -97,9 +98,9 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	@Override
 	public Message<?> receive() {
-		AtomicInteger receiveInterceptorIndex = new AtomicInteger(-1);
+		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
 		try {
-			if (!this.getInterceptors().preReceive(this, receiveInterceptorIndex)) {
+			if (!this.getInterceptors().preReceive(this, interceptorStack)) {
 				 return null;
 			 }
 			Object object = this.getAmqpTemplate().receiveAndConvert(this.queueName);
@@ -114,11 +115,11 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 				replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
 			}
 			replyMessage = this.getInterceptors().postReceive(replyMessage, this);
-			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, receiveInterceptorIndex.get());
+			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, interceptorStack);
 			return replyMessage;
 		}
 		catch (RuntimeException e) {
-			this.getInterceptors().afterReceiveCompletion(null, this, e, receiveInterceptorIndex.get());
+			this.getInterceptors().afterReceiveCompletion(null, this, e, interceptorStack);
 			throw e;
 		}
 	}
