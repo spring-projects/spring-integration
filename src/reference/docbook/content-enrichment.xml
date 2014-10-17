@@ -63,18 +63,22 @@
 		<int:reply-channel ref="quoteReplyChannel"/>
 		<int:correlation-id value="123"/>
 		<int:priority value="HIGHEST"/>
+		<routing-slip value="channel1; @routingSlipRoutingStrategy; #{request.headers[myRoutingSlipChannel]}"/>
 		<int:header name="bar" ref="someBean"/>
 </int:header-enricher>]]></programlisting>
 
 		<para>
 			In the above configuration you can clearly see that for well-known
 			headers such as <code>errorChannel</code>, <code>correlationId</code>,
-			<code>priority</code>, <code>replyChannel</code>etc., instead of
-			using generic <emphasis>&lt;header&gt;</emphasis> sub-elements where
+			<code>priority</code>, <code>replyChannel</code>, <code>routing-slip</code> etc.,
+			instead of using generic <emphasis>&lt;header&gt;</emphasis> sub-elements where
 			you would have to provide both header 'name' and 'value', you can use
 			convenient sub-elements to set those values directly.
 		</para>
-
+		<para>
+			Starting with <emphasis>version 4.1</emphasis> the <emphasis>Header Enricher</emphasis>
+			provides <code>routing-slip</code> sub-elements. See <xref linkend="routing-slip"/> for more information.
+		</para>
 	    <para>
 	    	<emphasis role="bold">POJO Support</emphasis>
 	    </para>

@@ -123,10 +123,10 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	protected void produceReply(Object result, Message<?> requestMessage) {
+	protected void produceOutput(Object result, Message<?> requestMessage) {
 		Iterator<?> iterator = (Iterator<?>) result;
 		while (iterator.hasNext()) {
-			super.produceReply(iterator.next(), requestMessage);
+			super.produceOutput(iterator.next(), requestMessage);
 
 		}
 	}

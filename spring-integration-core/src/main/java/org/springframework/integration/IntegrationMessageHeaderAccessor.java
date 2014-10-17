@@ -17,8 +17,8 @@
 package org.springframework.integration;
 
 import java.util.Date;
-import java.util.List;
 
+import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
@@ -49,8 +49,6 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public static final String POSTPROCESS_RESULT = "postProcessResult";
 
 	public static final String ROUTING_SLIP = "routingSlip";
-
-	public static final String ROUTING_SLIP_INDEX = "routingSlipIndex";
 
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
@@ -101,13 +99,12 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 			}
 			else if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
 					|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)
-					|| IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)
-					|| IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX.equals(headerName)) {
+					|| IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)) {
 				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an Integer.");
 			}
 			else if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
-				Assert.isTrue(List.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
+				Assert.isTrue(RoutingSlip.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an List.");
 			}
 		}

@@ -16,14 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.List;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
+import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +44,7 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 		this.addElementToHeaderMapping("correlation-id", IntegrationMessageHeaderAccessor.CORRELATION_ID);
 		this.addElementToHeaderMapping("expiration-date", IntegrationMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
 		this.addElementToHeaderMapping("priority", IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
-		this.addElementToHeaderMapping("routing-slip", IntegrationMessageHeaderAccessor.ROUTING_SLIP, List.class);
+		this.addElementToHeaderMapping("routing-slip", IntegrationMessageHeaderAccessor.ROUTING_SLIP, RoutingSlip.class);
 	}
 
 	@Override

@@ -41,6 +41,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSlipRouteStrategy;
+import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
@@ -308,9 +309,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
 	}
 
-	private List<String> populateRoutingSlipValue(String value, ParserContext parserContext) {
+	private RoutingSlip populateRoutingSlipValue(String value, ParserContext parserContext) {
 		String[] values = StringUtils.tokenizeToStringArray(value, ";");
-		List<String> routingSlip = new ArrayList<String>(values.length);
+		List<String> routingSlipPath = new ArrayList<String>(values.length);
 		for (String s : values) {
 			if (s.startsWith("#{")) {
 				Expression expression = PARSER.parseExpression(s, EXPRESSION_PARSER_CONTEXT);
@@ -319,13 +320,13 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						.addConstructorArgValue(expression).getBeanDefinition();
 				String name = BeanDefinitionReaderUtils.registerWithGeneratedName(expressionDefinition,
 						parserContext.getRegistry());
-				routingSlip.add("@" + name);
+				routingSlipPath.add("@" + name);
 			}
 			else {
-				routingSlip.add(s);
+				routingSlipPath.add(s);
 			}
 		}
-		return Collections.<String>unmodifiableList(routingSlip);
+		return new RoutingSlip(Collections.<String>unmodifiableList(routingSlipPath));
 	}
 
 	/**

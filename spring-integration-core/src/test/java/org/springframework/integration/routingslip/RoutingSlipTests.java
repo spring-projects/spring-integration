@@ -18,6 +18,7 @@ package org.springframework.integration.routingslip;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,8 +56,8 @@ public class RoutingSlipTests {
 		this.input.send(request);
 		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull(reply);
-		assertEquals(5, new IntegrationMessageHeaderAccessor(reply)
-				.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP_INDEX));
+		RoutingSlip routingSlip = reply.getHeaders().get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, RoutingSlip.class);
+		assertTrue(routingSlip.end());
 		MessageHistory messageHistory = MessageHistory.read(reply);
 		String[] channelNames =
 				{"input", "process", "channel1", "channel2", "channel3", "channel4", "channel5", "channel6"};

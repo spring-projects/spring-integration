@@ -230,7 +230,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 
 		@Override
 		public boolean send(Message<?> message) {
-			produceReply(message, message);
+			produceOutput(message, message);
 			return true;
 		}
 

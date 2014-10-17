@@ -654,7 +654,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			this.verifyResultCollectionConsistsOfMessages((Collection<?>) result);
 			partialSequence = (Collection<Message<?>>) result;
 		}
-		this.sendReplies(result, message);
+		this.sendOutputs(result, message);
 		return partialSequence;
 	}
 

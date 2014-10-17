@@ -102,7 +102,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			result = doInvokeAdvisedRequestHandler(message);
 		}
 		if (result != null) {
-			this.sendReplies(result, message);
+			this.sendOutputs(result, message);
 		}
 		else if (this.requiresReply) {
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +

@@ -51,6 +51,13 @@
 				See <xref linkend="polling-consumer"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-Routing-Slip">
+			<title>Routing Slip Pattern</title>
+			<para>
+				The <emphasis>Routing Slip</emphasis> EIP pattern implementation is now provided.
+				See <xref linkend="routing-slip"/> for more information.
+			</para>
+		</section>
 	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>

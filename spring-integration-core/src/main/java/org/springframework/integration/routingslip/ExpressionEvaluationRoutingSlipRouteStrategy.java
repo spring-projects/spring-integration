@@ -24,6 +24,28 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
 import org.springframework.messaging.Message;
 
 /**
+ * The {@link Expression} based {@link RoutingSlipRouteStrategy} implementation.
+ * The {@code requestMessage} and {@code reply} object are wrapped
+ * to the {@link RequestAndReply} which is used as a {@link EvaluationContext} {@code rootObject}.
+ * This is necessary to avoid a creation of a new {@link EvaluationContext} on each invocation
+ * when additional parameter can be populated as expression variable, but {@link EvaluationContext}
+ * isn't thread-safe.
+ * <p>
+ * The {@link ExpressionEvaluationRoutingSlipRouteStrategy} can be used directly as a regular bean
+ * in the {@code ApplicationContext} and its {@code beanName} can be used from {@code routingSlip}
+ * header configuration.
+ * <p>
+ * This class is used internally from {@code HeaderEnricherParser} to populate {@code routingSlip}
+ * header value item, when the {@code value} from configuration contains expression definitions:
+ * <pre class="code">
+ * {@code
+ * <header-enricher>
+ *     <routing-slip
+ *           value="channel1; #{@routingSlipPojo.get(request, reply)}; #{request.headers[foo]}"/>
+ * </header-enricher>
+ * }
+ * </pre>
+ *
  * @author Artem Bilan
  * @since 4.1
  */
