@@ -37,9 +37,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -271,9 +269,9 @@ public class HeaderEnricherTests {
 		Object routingSlip = new IntegrationMessageHeaderAccessor(result)
 				.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP);
 		assertNotNull(routingSlip);
-		assertThat(routingSlip, instanceOf(RoutingSlip.class));
+		assertThat(routingSlip, instanceOf(Map.class));
 		assertEquals(Arrays.asList("fooChannel", "barChannel", "@bazRoutingSlip"),
-				TestUtils.getPropertyValue(routingSlip, "path"));
+				((Map) routingSlip).keySet().iterator().next());
 	}
 
 

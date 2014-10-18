@@ -20,6 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,23 +52,28 @@ public class RoutingSlipTests {
 	private MessageChannel input;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testRoutingSlip() {
 		PollableChannel replyChannel = new QueueChannel();
-		Message<String> request = MessageBuilder.withPayload("test").setReplyChannel(replyChannel)
+		Message<List<String>> request = MessageBuilder.withPayload(Arrays.asList("test1", "test2"))
+				.setReplyChannel(replyChannel)
 				.setHeader("myRoutingSlipChannel", "channel5").build();
 		this.input.send(request);
 		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull(reply);
-		RoutingSlip routingSlip = reply.getHeaders().get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, RoutingSlip.class);
-		assertTrue(routingSlip.end());
-		MessageHistory messageHistory = MessageHistory.read(reply);
-		String[] channelNames =
-				{"input", "process", "channel1", "channel2", "channel3", "channel4", "channel5", "channel6"};
-		int i = 0;
-		for (Properties properties : messageHistory) {
-			assertEquals(channelNames[i++], properties.getProperty("name"));
+		List<Message<?>> messages = (List<Message<?>>) reply.getPayload();
+		for (Message<?> message : messages) {
+			Map<List<String>, Integer> routingSlip = message.getHeaders()
+					.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+			assertEquals(routingSlip.keySet().iterator().next().size(), routingSlip.values().iterator().next().intValue());
+			MessageHistory messageHistory = MessageHistory.read(message);
+			List<String> channelNames = Arrays.asList("input", "split", "process", "channel1", "channel2",
+					"channel3", "channel4", "channel5", "aggregate");
+			int i = 0;
+			for (Properties properties : messageHistory) {
+				assertTrue(channelNames.contains(properties.getProperty("name")));
+			}
 		}
-		assertEquals(channelNames.length, i);
 	}
 
 	public static class TestRoutingSlipRoutePojo {

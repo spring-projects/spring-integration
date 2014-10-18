@@ -16,11 +16,15 @@
 
 package org.springframework.integration.handler;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.beans.BeansException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -130,10 +134,30 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
-			RoutingSlip routingSlip = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, RoutingSlip.class);
+			@SuppressWarnings("unchecked")
+			Map<List<String>, Integer> routingSlipHeader =
+					requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 
-			if (routingSlip != null) {
-				replyChannel = getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip);
+			if (routingSlipHeader != null) {
+				List<String> routingSlip = routingSlipHeader.keySet().iterator().next();
+				AtomicInteger routingSlipIndex = new AtomicInteger(routingSlipHeader.values().iterator().next());
+				replyChannel = getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
+				if (replyChannel != null) {
+					//TODO Migrate to the SF MessageBuilder
+					AbstractIntegrationMessageBuilder<?> builder = null;
+					if (reply instanceof Message) {
+						builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
+					}
+					else if (reply instanceof AbstractIntegrationMessageBuilder) {
+						builder = (AbstractIntegrationMessageBuilder) reply;
+					}
+					else {
+						builder = this.getMessageBuilderFactory().withPayload(reply);
+					}
+					builder.setHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+							Collections.singletonMap(routingSlip, routingSlipIndex.get()));
+					reply = builder;
+				}
 			}
 
 			if (replyChannel == null) {
@@ -145,12 +169,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		sendOutput(replyMessage, replyChannel);
 	}
 
-	private String getReplyChannelFromRoutingSlip(Object reply, Message<?> requestMessage, RoutingSlip routingSlip) {
-		if (routingSlip.end()) {
+	private String getReplyChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<String> routingSlip,
+			AtomicInteger routingSlipIndex) {
+		if (routingSlip.size() == routingSlipIndex.get()) {
 			return null;
 		}
 
-		String pathValue = routingSlip.get();
+		String pathValue = routingSlip.get(routingSlipIndex.get());
 		if (pathValue.startsWith("@")) {
 			RoutingSlipRouteStrategy routingSlipRouteStrategy =
 					getBeanFactory().getBean(pathValue.substring(1), RoutingSlipRouteStrategy.class);
@@ -159,12 +184,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				return nextPath;
 			}
 			else {
-				routingSlip.move();
-				return getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip);
+				routingSlipIndex.incrementAndGet();
+				return getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
 			}
 		}
 		else {
-			routingSlip.move();
+			routingSlipIndex.incrementAndGet();
 			return pathValue;
 		}
 	}

@@ -2,12 +2,15 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:task="http://www.springframework.org/schema/task"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<message-history/>
+
+	<task:executor id="executor"/>
 
 	<beans:bean id="routingSlipRoutingPojo"
 				class="org.springframework.integration.routingslip.RoutingSlipTests$TestRoutingSlipRoutePojo"/>
@@ -15,10 +18,16 @@
 	<beans:bean id="routingSlipRoutingStrategy"
 				class="org.springframework.integration.routingslip.RoutingSlipTests$TestRoutingSlipRouteStrategy"/>
 
-	<header-enricher input-channel="input" output-channel="process">
+	<header-enricher input-channel="input" output-channel="split">
 		<routing-slip value="channel1; #{@routingSlipRoutingPojo.get(request, reply)}; @routingSlipRoutingStrategy;
-				#{request.headers[myRoutingSlipChannel]}; channel6"/>
+				#{request.headers[myRoutingSlipChannel]}; aggregate"/>
 	</header-enricher>
+
+	<splitter input-channel="split" output-channel="process"/>
+
+	<channel id="process">
+		<dispatcher task-executor="executor"/>
+	</channel>
 
 	<bridge input-channel="process"/>
 
@@ -34,7 +43,6 @@
 		<header-filter header-names="myRoutingSlipChannel"/>
 	</chain>
 
-	<bridge input-channel="channel6"/>
-
+	<aggregator input-channel="aggregate" expression="new java.util.ArrayList(#root)"/>
 
 </beans:beans>

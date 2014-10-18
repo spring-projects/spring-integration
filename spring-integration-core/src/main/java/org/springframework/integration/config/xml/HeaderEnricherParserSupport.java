@@ -41,7 +41,6 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSlipRouteStrategy;
-import org.springframework.integration.routingslip.RoutingSlip;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
@@ -309,7 +308,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
 	}
 
-	private RoutingSlip populateRoutingSlipValue(String value, ParserContext parserContext) {
+	private Map<List<String>, Integer> populateRoutingSlipValue(String value, ParserContext parserContext) {
 		String[] values = StringUtils.tokenizeToStringArray(value, ";");
 		List<String> routingSlipPath = new ArrayList<String>(values.length);
 		for (String s : values) {
@@ -326,7 +325,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				routingSlipPath.add(s);
 			}
 		}
-		return new RoutingSlip(Collections.<String>unmodifiableList(routingSlipPath));
+		return Collections.singletonMap(Collections.unmodifiableList(routingSlipPath), 0);
 	}
 
 	/**
