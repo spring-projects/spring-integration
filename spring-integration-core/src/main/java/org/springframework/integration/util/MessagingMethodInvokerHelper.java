@@ -738,7 +738,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					+ "disabled or header name is not explicitly provided via @Header annotation.");
 			String headerRetrievalExpression = "headers['" + headerName + "']";
 			String fullHeaderExpression = headerRetrievalExpression + relativeExpression;
-			String fallbackExpression = (annotationAttributes.getBoolean("required"))
+			String fallbackExpression = (annotationAttributes.getBoolean("required")
+					&& !methodParameter.getParameterType().getName().equals("java.util.Optional"))
 					? "T(org.springframework.util.Assert).isTrue(false, 'required header not available: "
 					+ headerName + "')"
 					: "null";

@@ -70,7 +70,7 @@ public class StubJavaMailSender implements JavaMailSender {
 	}
 
 	@Override
-	public void send(MimeMessage... mimeMessages) throws MailException {
+	public void send(MimeMessage[] mimeMessages) throws MailException {
 		this.sentMimeMessages.addAll(Arrays.asList(mimeMessages));
 	}
 
@@ -80,7 +80,7 @@ public class StubJavaMailSender implements JavaMailSender {
 	}
 
 	@Override
-	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
+	public void send(MimeMessagePreparator[] mimeMessagePreparators) throws MailException {
 	    throw new UnsupportedOperationException("MimeMessagePreparator not supported");
 	}
 
@@ -90,7 +90,7 @@ public class StubJavaMailSender implements JavaMailSender {
 	}
 
 	@Override
-	public void send(SimpleMailMessage... simpleMessages) throws MailException {
+	public void send(SimpleMailMessage[] simpleMessages) throws MailException {
 		this.sentSimpleMailMessages.addAll(Arrays.asList(simpleMessages));
 	}
 

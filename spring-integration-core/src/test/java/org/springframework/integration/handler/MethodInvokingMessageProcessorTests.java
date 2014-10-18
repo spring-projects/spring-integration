@@ -26,7 +26,9 @@ import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -40,7 +42,6 @@ import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -48,6 +49,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 
 
@@ -58,6 +60,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Dave Syer
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class MethodInvokingMessageProcessorTests {
@@ -515,6 +518,36 @@ public class MethodInvokingMessageProcessorTests {
 		assertNotNull(bean.lastArg);
 		assertEquals(String.class, bean.lastArg.getClass());
 		assertEquals("true", bean.lastArg);
+	}
+
+	@Test
+	public void testOptionalArgs() throws Exception {
+		class Foo {
+
+			private final Map<String, Object> arguments = new LinkedHashMap<String, Object>();
+
+			public void optionalHeaders(Optional<String> foo, @Header(value="foo", required=false) String foo1,
+					@Header(value="foo") Optional<String> foo2) {
+				this.arguments.put("foo", (foo.isPresent() ? foo.get() : null));
+				this.arguments.put("foo1", foo1);
+				this.arguments.put("foo2", (foo2.isPresent() ? foo2.get() : null));
+			}
+
+		}
+
+		Foo targetObject = new Foo();
+
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+
+		helper.process(new GenericMessage<>(Optional.empty()));
+		assertNull(targetObject.arguments.get("foo"));
+		assertNull(targetObject.arguments.get("foo1"));
+		assertNull(targetObject.arguments.get("foo2"));
+
+		helper.process(MessageBuilder.withPayload("foo").setHeader("foo", "FOO").build());
+		assertEquals("foo", targetObject.arguments.get("foo"));
+		assertEquals("FOO", targetObject.arguments.get("foo1"));
+		assertEquals("FOO", targetObject.arguments.get("foo2"));
 	}
 
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {

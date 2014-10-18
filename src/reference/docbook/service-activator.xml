@@ -53,7 +53,26 @@
        not worrying about the contents of the message. Think of it as a NULL JMS message. An example use-case for such an
        implementation could be a simple counter/monitor of messages deposited on the input channel.
     </note>
-    <para>
+      <para>
+          Starting with <emphasis>version 4.1</emphasis> the framework correct converts Message properties
+          (<code>payload</code> and <code>headers</code>) to the Java 8 <classname>Optional</classname> POJO method
+          parameters:
+          <programlisting language="java"><![CDATA[public class MyBean {
+    public String computeValue(Optional<String> payload,
+               @Header(value="foo", required=false) String foo1,
+               @Header(value="foo") Optional<String> foo2) {
+        if (payload.isPresent()) {
+            String value = payload.get();
+            ...
+        }
+        else {
+           ...
+       }
+    }
+
+}]]></programlisting>
+      </para>
+      <para>
       Using a "ref" attribute is generally recommended if the custom Service Activator handler implementation can be reused
       in other <code>&lt;service-activator&gt;</code> definitions. However if the custom Service Activator handler implementation
       is only used within a single definition of the <code>&lt;service-activator&gt;</code>, you can provide an inner bean definition:
