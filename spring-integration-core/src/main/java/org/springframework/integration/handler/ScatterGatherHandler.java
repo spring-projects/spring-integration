@@ -146,18 +146,10 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
 		if (gatherResult != null) {
-			return getMessageBuilderFactory().fromMessage(gatherResult)
-					.copyHeaders(requestMessage.getHeaders())
-					.removeHeader(GATHER_RESULT_CHANNEL)
-					.build();
+			return gatherResult.getPayload();
 		}
 
 		return null;
-	}
-
-	@Override
-	protected boolean shouldCopyRequestHeaders() {
-		return false;
 	}
 
 	@Override
