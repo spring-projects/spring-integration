@@ -59,6 +59,15 @@
         <listitem>Polling internal (pollable) Message Channels</listitem>
         <listitem>Polling internal services (E.g. repeatedly execute methods on a Java class)</listitem>
     </itemizedlist>
+    <note>
+        AOP Advice classes can be applied to pollers, in an <code>advice-chain</code>. An example being a
+        transaction advice to start a transaction. Starting with <emphasis>version 4.1</emphasis> a
+        <classname>PollSkipAdvice</classname> is provided. Pollers use triggers to determine the time
+        of the next poll. The <classname>PollSkipAdvice</classname> can be used to suppress (skip) a
+        poll, perhaps because there is some downstream condition that would prevent the message to
+        be processed properly. To use this advice, you have to provide it with an implementation
+        of a <interfacename>PollSkipStrategy</interfacename>.
+    </note>
     <para>
         This chapter is meant to only give a high-level overview regarding Polling Consumers
         and how they fit into the concept of message channels - <xref linkend="channel"/> and
