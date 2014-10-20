@@ -63,14 +63,17 @@ subprojects { subproject ->
 		}
 	}
 
+
 	compileJava {
 		sourceCompatibility = 1.6
 		targetCompatibility = 1.6
 	}
 
 	compileTestJava {
-		sourceCompatibility = 1.8
+		sourceCompatibility = 1.6
+		targetCompatibility = 1.6
 	}
+
 
 	ext {
 		activeMqVersion = '5.10.0'
@@ -243,6 +246,12 @@ project('spring-integration-amqp') {
 
 project('spring-integration-core') {
 	description = 'Spring Integration Core'
+
+	compileTestJava {
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+	}
+
 	dependencies {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
