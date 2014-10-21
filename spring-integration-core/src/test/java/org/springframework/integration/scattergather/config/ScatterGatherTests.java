@@ -62,7 +62,7 @@ public class ScatterGatherTests {
 		assertNotNull(bestQuoteMessage);
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(List.class));
-		assertThat(((List) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class ScatterGatherTests {
 		assertNotNull(bestQuoteMessage);
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(List.class));
-		assertThat(((List) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class ScatterGatherTests {
 		Message<?> bestQuoteMessage = this.gateway.exchange(new GenericMessage<String>("foo"));
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(List.class));
-		assertThat(((List) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
 	}
 
 }

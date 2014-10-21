@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.ScatterGatherHandler;
@@ -57,8 +58,12 @@ public class ScatterGatherParserTests {
 		assertSame(this.beanFactory.getBean("scatterChannel"),
 				TestUtils.getPropertyValue(scatterGather, "scatterChannel"));
 		assertTrue(this.beanFactory.containsBean("scatterGather1.gatherer"));
-		assertSame(this.beanFactory.getBean("scatterGather1.gatherer"),
-				TestUtils.getPropertyValue(scatterGather, "gatherer"));
+		AggregatingMessageHandler gatherer =
+				this.beanFactory.getBean("scatterGather1.gatherer", AggregatingMessageHandler.class);
+		assertSame(gatherer, TestUtils.getPropertyValue(scatterGather, "gatherer"));
+
+		Object reaper = this.beanFactory.getBean("reaper");
+		assertSame(gatherer.getMessageStore(), TestUtils.getPropertyValue(reaper, "messageGroupStore"));
 	}
 
 	@Test

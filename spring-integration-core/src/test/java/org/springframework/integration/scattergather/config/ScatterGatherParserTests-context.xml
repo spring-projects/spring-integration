@@ -7,6 +7,10 @@
 
 	<int:scatter-gather id="scatterGather1" input-channel="input1" scatter-channel="scatterChannel"/>
 
+	<bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
+		<property name="messageGroupStore" value="#{@'scatterGather1.gatherer'.messageStore}"/>
+	</bean>
+
 	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 	<int:scatter-gather id="scatterGather2" input-channel="input2" gather-channel="gatherChannel" gather-timeout="100">

@@ -16,11 +16,13 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -49,7 +51,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	private final MessageChannel scatterChannel;
 
-	private final AggregatingMessageHandler gatherer;
+	private final MessageHandler gatherer;
 
 	private MessageChannel gatherChannel;
 
@@ -60,18 +62,22 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	private HeaderChannelRegistry replyChannelRegistry;
 
 
-	public ScatterGatherHandler(MessageChannel scatterChannel, AggregatingMessageHandler gatherer) {
+	public ScatterGatherHandler(MessageChannel scatterChannel, MessageHandler gatherer) {
 		Assert.notNull(scatterChannel);
 		Assert.notNull(gatherer);
+		Class<?> gathererClass = AopUtils.getTargetClass(gatherer);
+		Assert.isAssignable(AggregatingMessageHandler.class, gathererClass,
+				"the 'gatherer' must be an AggregatingMessageHandler instance");
 		this.scatterChannel = scatterChannel;
 		this.gatherer = gatherer;
 	}
 
-	public ScatterGatherHandler(RecipientListRouter scatterer, AggregatingMessageHandler gatherer) {
+	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
+		this(new FixedSubscriberChannel(scatterer), gatherer);
 		Assert.notNull(scatterer);
-		Assert.notNull(gatherer);
-		this.gatherer = gatherer;
-		this.scatterChannel = new FixedSubscriberChannel(scatterer);
+		Class<?> scatterClass = AopUtils.getTargetClass(scatterer);
+		Assert.isAssignable(RecipientListRouter.class, scatterClass,
+				"the 'scatterer' must be a RecipientListRouter instance");
 	}
 
 	public void setGatherChannel(MessageChannel gatherChannel) {
@@ -103,7 +109,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 			this.gatherEndpoint.afterPropertiesSet();
 		}
 
-		this.gatherer.setOutputChannel(new FixedSubscriberChannel(new MessageHandler() {
+		((MessageProducer) this.gatherer).setOutputChannel(new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {

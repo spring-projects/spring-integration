@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.scattergather;
+package org.springframework.integration.monitor;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.lessThan;
@@ -25,6 +25,8 @@ import static org.junit.Assert.assertThat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
+
+import javax.management.MBeanServer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,8 +49,10 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.ScatterGatherHandler;
+import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -119,7 +123,13 @@ public class ScatterGatherHandlerIntegrationTests {
 
 	@Configuration
 	@EnableIntegration
+	@EnableIntegrationMBeanExport(server = "mBeanServer")
 	public static class ContextConfiguration {
+
+		@Bean
+		public static MBeanServerFactoryBean mBeanServer() {
+			return new MBeanServerFactoryBean();
+		}
 
 		@Bean
 		public PollableChannel output() {
@@ -134,7 +144,7 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		public AggregatingMessageHandler gatherer1() {
+		public MessageHandler gatherer1() {
 			return new AggregatingMessageHandler(
 					new ExpressionEvaluatingMessageGroupProcessor("^[payload gt 5] ?: -1D"),
 					new SimpleMessageStore(),
@@ -198,7 +208,7 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		public RecipientListRouter distributor() {
+		public MessageHandler distributor() {
 			RecipientListRouter router = new RecipientListRouter();
 			router.setApplySequence(true);
 			router.setChannels(Arrays.asList(distributionChannel1(), distributionChannel2(), distributionChannel3()));
@@ -275,7 +285,7 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		public AggregatingMessageHandler gatherer2() {
+		public MessageHandler gatherer2() {
 			return new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor(),
 					new SimpleMessageStore(),
 					new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID),

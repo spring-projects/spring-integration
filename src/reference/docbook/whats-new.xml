@@ -27,6 +27,13 @@
 				See <xref linkend="web-sockets"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-scatter-gather">
+			<title>Scatter-Gather EIP pattern</title>
+			<para>
+				The <emphasis>Scatter-Gather</emphasis> EIP pattern is now implemented.
+				See <xref linkend="scatter-gather"/> for more information.
+			</para>
+		</section>
 		<section id="4.1-BoonJsonObjectMapper">
 			<title>BoonJsonObjectMapper</title>
 			<para>
