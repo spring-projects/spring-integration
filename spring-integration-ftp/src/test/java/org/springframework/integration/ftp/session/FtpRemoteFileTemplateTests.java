@@ -18,8 +18,14 @@ package org.springframework.integration.ftp.session;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -35,7 +41,9 @@ import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.TestFtpServer;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -107,6 +115,31 @@ public class FtpRemoteFileTemplateTests {
 			}
 		});
 		assertFalse(template.exists("foo"));
+	}
+
+	@Test
+	public void testFileCloseOnBadConnect() throws Exception {
+		@SuppressWarnings("unchecked")
+		SessionFactory<FTPFile> sessionFactory = mock(SessionFactory.class);
+		when(sessionFactory.getSession()).thenThrow(new RuntimeException("bar"));
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(sessionFactory);
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo"));
+		template.afterPropertiesSet();
+		File file = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
+		FileOutputStream fileOutputStream = new FileOutputStream(file);
+		fileOutputStream.write("foo".getBytes());
+		fileOutputStream.close();
+		try {
+			template.send(new GenericMessage<File>(file));
+			fail("exception expected");
+		}
+		catch(MessagingException e) {
+			assertEquals("bar", e.getCause().getMessage());
+		}
+		File newFile = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
+		assertTrue(file.renameTo(newFile));
+		file.delete();
+		newFile.delete();
 	}
 
 }

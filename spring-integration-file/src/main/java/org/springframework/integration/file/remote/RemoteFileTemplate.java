@@ -205,48 +205,57 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				"Cannot append when using a temporary file name");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
-			return this.execute(new SessionCallback<F, String>() {
+			try {
+				return this.execute(new SessionCallback<F, String>() {
 
-				@Override
-				public String doInSession(Session<F> session) throws IOException {
-					String fileName = inputStreamHolder.getName();
-					try {
-						String remoteDirectory = RemoteFileTemplate.this.directoryExpressionProcessor
-								.processMessage(message);
-						remoteDirectory = RemoteFileTemplate.this.normalizeDirectoryPath(remoteDirectory);
-						if (StringUtils.hasText(subDirectory)) {
-							if (subDirectory.startsWith(RemoteFileTemplate.this.remoteFileSeparator)) {
-								remoteDirectory += subDirectory.substring(1);
-							}
-							else {
-								remoteDirectory += RemoteFileTemplate.this.normalizeDirectoryPath(subDirectory);
-							}
-						}
-						String temporaryRemoteDirectory = remoteDirectory;
-						if (RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor != null) {
-							temporaryRemoteDirectory = RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor
+					@Override
+					public String doInSession(Session<F> session) throws IOException {
+						String fileName = inputStreamHolder.getName();
+						try {
+							String remoteDirectory = RemoteFileTemplate.this.directoryExpressionProcessor
 									.processMessage(message);
+							remoteDirectory = RemoteFileTemplate.this.normalizeDirectoryPath(remoteDirectory);
+							if (StringUtils.hasText(subDirectory)) {
+								if (subDirectory.startsWith(RemoteFileTemplate.this.remoteFileSeparator)) {
+									remoteDirectory += subDirectory.substring(1);
+								}
+								else {
+									remoteDirectory += RemoteFileTemplate.this.normalizeDirectoryPath(subDirectory);
+								}
+							}
+							String temporaryRemoteDirectory = remoteDirectory;
+							if (RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor != null) {
+								temporaryRemoteDirectory = RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor
+										.processMessage(message);
+							}
+							fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
+							RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
+									temporaryRemoteDirectory, remoteDirectory, fileName, session, mode);
+							return remoteDirectory + fileName;
 						}
-						fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
-						RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
-								temporaryRemoteDirectory, remoteDirectory, fileName, session, mode);
-						return remoteDirectory + fileName;
+						catch (FileNotFoundException e) {
+							throw new MessageDeliveryException(message, "File [" + inputStreamHolder.getName()
+									+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
+						}
+						catch (IOException e) {
+							throw new MessageDeliveryException(message, "Failed to transfer file ["
+									+ inputStreamHolder.getName() + " -> " + fileName
+									+ "] from local directory to remote directory.", e);
+						}
+						catch (Exception e) {
+							throw new MessageDeliveryException(message, "Error handling message for file ["
+									+ inputStreamHolder.getName() + " -> " + fileName + "]", e);
+						}
 					}
-					catch (FileNotFoundException e) {
-						throw new MessageDeliveryException(message, "File [" + inputStreamHolder.getName()
-								+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
-					}
-					catch (IOException e) {
-						throw new MessageDeliveryException(message, "Failed to transfer file ["
-								+ inputStreamHolder.getName() + " -> " + fileName
-								+ "] from local directory to remote directory.", e);
-					}
-					catch (Exception e) {
-						throw new MessageDeliveryException(message, "Error handling message for file ["
-								+ inputStreamHolder.getName() + " -> " + fileName + "]", e);
-					}
+				});
+			}
+			finally {
+				try {
+					inputStreamHolder.getStream().close();
 				}
-			});
+				catch (IOException e) {
+				}
+			}
 		}
 		else {
 			// A null holder means a File payload that does not exist.
