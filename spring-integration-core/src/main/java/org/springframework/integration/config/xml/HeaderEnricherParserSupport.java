@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,16 +27,13 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
-import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSlipRouteStrategy;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
@@ -235,7 +233,8 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						"The 'method' attribute cannot be used with the 'value' attribute.", element);
 			}
 			if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
-				List<String> routingSlipPath = populateRoutingSlipValue(value, parserContext);
+				List<String> routingSlipPath = new ManagedList<String>();
+				routingSlipPath.addAll(Arrays.asList(StringUtils.tokenizeToStringArray(value, ";")));
 				valueProcessorBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(RoutingSlipHeaderValueMessageProcessor.class)
 								.addConstructorArgValue(routingSlipPath);
@@ -305,26 +304,6 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			valueProcessorBuilder.addPropertyValue("overwrite", overwrite);
 		}
 		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
-	}
-
-	private List<String> populateRoutingSlipValue(String value, ParserContext parserContext) {
-		String[] values = StringUtils.tokenizeToStringArray(value, ";");
-		List<String> routingSlipPath = new ManagedList<String>(values.length);
-		for (String s : values) {
-			if (s.startsWith("#{")) {
-				String expression = s.substring(2, s.length() - 1);
-				AbstractBeanDefinition expressionDefinition =
-						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluationRoutingSlipRouteStrategy.class)
-						.addConstructorArgValue(expression).getBeanDefinition();
-				String name = BeanDefinitionReaderUtils.registerWithGeneratedName(expressionDefinition,
-						parserContext.getRegistry());
-				routingSlipPath.add("@" + name);
-			}
-			else {
-				routingSlipPath.add(s);
-			}
-		}
-		return routingSlipPath;
 	}
 
 	/**

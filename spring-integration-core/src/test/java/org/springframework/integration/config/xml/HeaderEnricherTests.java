@@ -23,9 +23,9 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSlipRouteStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
@@ -270,8 +271,12 @@ public class HeaderEnricherTests {
 				.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP);
 		assertNotNull(routingSlip);
 		assertThat(routingSlip, instanceOf(Map.class));
-		assertEquals(Arrays.asList("fooChannel", "barChannel", "@bazRoutingSlip"),
-				((Map) routingSlip).keySet().iterator().next());
+		@SuppressWarnings("unchecked")
+		List<Object> routingSlipPath = (List<Object>) ((Map) routingSlip).keySet().iterator().next();
+
+		assertEquals("fooChannel", routingSlipPath.get(0));
+		assertThat(routingSlipPath.get(1), instanceOf(ExpressionEvaluationRoutingSlipRouteStrategy.class));
+		assertEquals("bazRoutingSlip", routingSlipPath.get(2));
 	}
 
 

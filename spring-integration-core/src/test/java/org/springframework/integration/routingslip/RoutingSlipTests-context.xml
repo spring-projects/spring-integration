@@ -35,8 +35,8 @@
 
 	<header-enricher input-channel="input" output-channel="split">
 		<routing-slip
-				value="${myRoutePath1}; #{@routingSlipRoutingPojo.get(request, reply)};
-							@routingSlipRoutingStrategy; #{${myRoutePath2}}; aggregate"/>
+				value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
+							routingSlipRoutingStrategy; ${myRoutePath2}; aggregate"/>
 	</header-enricher>
 
 	<splitter input-channel="split" output-channel="process"/>

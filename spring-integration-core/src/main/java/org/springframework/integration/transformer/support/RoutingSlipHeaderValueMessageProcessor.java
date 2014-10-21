@@ -16,30 +16,79 @@
 
 package org.springframework.integration.transformer.support;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSlipRouteStrategy;
+import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
  * @since 4.1
  */
-public class RoutingSlipHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Map<List<String>, Integer>> {
+public class RoutingSlipHeaderValueMessageProcessor
+		extends AbstractHeaderValueMessageProcessor<Map<List<Object>, Integer>>
+		implements BeanFactoryAware, IntegrationEvaluationContextAware {
 
-	private final Map<List<String>, Integer> routingSlip;
+	private final List<String> routingSlipPath;
+
+	private EvaluationContext evaluationContext;
+
+	private volatile Map<List<Object>, Integer> routingSlip;
+
+	private BeanFactory beanFactory;
 
 	public RoutingSlipHeaderValueMessageProcessor(String... routingSlipPath) {
 		Assert.noNullElements(routingSlipPath);
-		this.routingSlip = Collections.singletonMap(Collections.unmodifiableList(Arrays.asList(routingSlipPath)), 0);
+		this.routingSlipPath = Arrays.asList(routingSlipPath);
 	}
 
 	@Override
-	public Map<List<String>, Integer> processMessage(Message<?> message) {
-		return this.routingSlip;
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+	@Override
+	public Map<List<Object>, Integer> processMessage(Message<?> message) {
+		if (this.routingSlip == null) {
+			synchronized (this) {
+				if (this.routingSlip == null) {
+					List<Object> routingSlipValues = new ArrayList<Object>(this.routingSlipPath.size());
+					for (String path : this.routingSlipPath) {
+						if (this.beanFactory.containsBean(path)) {
+							Object bean = this.beanFactory.getBean(path);
+							Assert.state(bean instanceof MessageChannel || bean instanceof RoutingSlipRouteStrategy,
+									"The RotingSlip can contain only bean names of MessageChannel or " +
+											"RoutingSlipRouteStrategy: " + bean);
+							routingSlipValues.add(path);
+						}
+						else {
+							ExpressionEvaluationRoutingSlipRouteStrategy strategy = new
+									ExpressionEvaluationRoutingSlipRouteStrategy(path);
+							strategy.setIntegrationEvaluationContext(this.evaluationContext);
+							routingSlipValues.add(strategy);
+						}
+					}
+					this.routingSlip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
+				}
+			}
+		}
+		return this.routingSlip;
+	}
 }

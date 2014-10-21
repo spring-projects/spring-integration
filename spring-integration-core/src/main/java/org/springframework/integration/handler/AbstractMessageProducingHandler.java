@@ -135,13 +135,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
 			@SuppressWarnings("unchecked")
-			Map<List<String>, Integer> routingSlipHeader =
+			Map<List<Object>, Integer> routingSlipHeader =
 					requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 
 			if (routingSlipHeader != null) {
-				List<String> routingSlip = routingSlipHeader.keySet().iterator().next();
+				List<Object> routingSlip = routingSlipHeader.keySet().iterator().next();
 				AtomicInteger routingSlipIndex = new AtomicInteger(routingSlipHeader.values().iterator().next());
-				replyChannel = getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
+				replyChannel = getOutputChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
 				if (replyChannel != null) {
 					//TODO Migrate to the SF MessageBuilder
 					AbstractIntegrationMessageBuilder<?> builder = null;
@@ -169,28 +169,39 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		sendOutput(replyMessage, replyChannel);
 	}
 
-	private String getReplyChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<String> routingSlip,
+	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<Object> routingSlip,
 			AtomicInteger routingSlipIndex) {
 		if (routingSlip.size() == routingSlipIndex.get()) {
 			return null;
 		}
 
-		String pathValue = routingSlip.get(routingSlipIndex.get());
-		if (pathValue.startsWith("@")) {
-			RoutingSlipRouteStrategy routingSlipRouteStrategy =
-					getBeanFactory().getBean(pathValue.substring(1), RoutingSlipRouteStrategy.class);
-			String nextPath = routingSlipRouteStrategy.getNextPath(requestMessage, reply);
+		Object path = routingSlip.get(routingSlipIndex.get());
+		Object routingSlipPathValue = null;
+
+		if (path instanceof String) {
+			routingSlipPathValue = getBeanFactory().getBean((String) path);
+		}
+		else if (path instanceof RoutingSlipRouteStrategy) {
+			routingSlipPathValue = path;
+		}
+		else {
+			throw new IllegalArgumentException("The RoutingSlip 'path' can be of " +
+					"String or RoutingSlipRouteStrategy type, but gotten: " + path);
+		}
+
+		if (routingSlipPathValue instanceof MessageChannel) {
+			routingSlipIndex.incrementAndGet();
+			return routingSlipPathValue;
+		}
+		else {
+			String nextPath = ((RoutingSlipRouteStrategy) routingSlipPathValue).getNextPath(requestMessage, reply);
 			if (StringUtils.hasText(nextPath)) {
 				return nextPath;
 			}
 			else {
 				routingSlipIndex.incrementAndGet();
-				return getReplyChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
+				return getOutputChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
 			}
-		}
-		else {
-			routingSlipIndex.incrementAndGet();
-			return pathValue;
 		}
 	}
 

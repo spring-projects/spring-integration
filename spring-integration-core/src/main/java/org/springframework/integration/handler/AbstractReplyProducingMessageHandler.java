@@ -83,7 +83,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
 		}
-		this.doInit();
+		doInit();
 	}
 
 	protected void doInit() {
@@ -96,17 +96,17 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected final void handleMessageInternal(Message<?> message) {
 		Object result;
 		if (this.advisedRequestHandler == null) {
-			result = this.handleRequestMessage(message);
+			result = handleRequestMessage(message);
 		}
 		else {
 			result = doInvokeAdvisedRequestHandler(message);
 		}
 		if (result != null) {
-			this.sendOutputs(result, message);
+			sendOutputs(result, message);
 		}
 		else if (this.requiresReply) {
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
-					this.getComponentName() + "', and its 'requiresReply' property is set to true.");
+					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
 		else if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
