@@ -34,6 +34,16 @@
 				for the JSON transformers. See <xref linkend="transformer"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-PollSkipAdvice">
+			<title>PollSkipAdvice</title>
+			<para>
+				The <classname>PollSkipAdvice</classname> is now provided to be used within
+				<code>&lt;advice-chain&gt;</code> of the <code>&lt;poller&gt;</code> to determine if the current
+				<emphasis>poll</emphasis> should be suppressed (skipped) by some condition implemented with
+				<interfacename>PollSkipStrategy</interfacename>.
+				See <xref linkend="polling-consumer"/> for more information.
+			</para>
+		</section>
 	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>
