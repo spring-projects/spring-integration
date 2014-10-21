@@ -3,10 +3,25 @@
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:task="http://www.springframework.org/schema/task"
+			 xmlns:context="http://www.springframework.org/schema/context"
+			 xmlns:util="http://www.springframework.org/schema/util"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:properties id="properties">
+		<beans:prop key="myRoutePath1">channel1</beans:prop>
+		<beans:prop key="myRoutePath2">request.headers[myRoutingSlipChannel]</beans:prop>
+	</util:properties>
+
+	<context:property-placeholder properties-ref="properties"/>
 
 	<message-history/>
 
@@ -19,8 +34,9 @@
 				class="org.springframework.integration.routingslip.RoutingSlipTests$TestRoutingSlipRouteStrategy"/>
 
 	<header-enricher input-channel="input" output-channel="split">
-		<routing-slip value="channel1; #{@routingSlipRoutingPojo.get(request, reply)}; @routingSlipRoutingStrategy;
-				#{request.headers[myRoutingSlipChannel]}; aggregate"/>
+		<routing-slip
+				value="${myRoutePath1}; #{@routingSlipRoutingPojo.get(request, reply)};
+							@routingSlipRoutingStrategy; #{${myRoutePath2}}; aggregate"/>
 	</header-enricher>
 
 	<splitter input-channel="split" output-channel="process"/>

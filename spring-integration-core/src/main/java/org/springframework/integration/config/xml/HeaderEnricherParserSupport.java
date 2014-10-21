@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +29,9 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.common.TemplateParserContext;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
@@ -44,6 +39,7 @@ import org.springframework.integration.routingslip.ExpressionEvaluationRoutingSl
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
+import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -59,10 +55,6 @@ import org.springframework.util.xml.DomUtils;
  * @since 2.0
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
-
-	private static final ExpressionParser PARSER = new SpelExpressionParser();
-
-	private static final TemplateParserContext EXPRESSION_PARSER_CONTEXT = new TemplateParserContext();
 
 	private final Map<String, String> elementToNameMap = new HashMap<String, String>();
 
@@ -242,12 +234,19 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				parserContext.getReaderContext().error(
 						"The 'method' attribute cannot be used with the 'value' attribute.", element);
 			}
-			Object headerValue = (headerType != null) ?
-					(IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)
-							? populateRoutingSlipValue(value, parserContext)
-							: new TypedStringValue(value, headerType)) : value;
-			valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-					.addConstructorArgValue(headerValue);
+			if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
+				List<String> routingSlipPath = populateRoutingSlipValue(value, parserContext);
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(RoutingSlipHeaderValueMessageProcessor.class)
+								.addConstructorArgValue(routingSlipPath);
+			}
+			else {
+				Object headerValue = (headerType != null) ?
+						new TypedStringValue(value, headerType) : value;
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+						.addConstructorArgValue(headerValue);
+			}
 		}
 		else if (isExpression) {
 			if (hasMethod) {
@@ -308,12 +307,12 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
 	}
 
-	private Map<List<String>, Integer> populateRoutingSlipValue(String value, ParserContext parserContext) {
+	private List<String> populateRoutingSlipValue(String value, ParserContext parserContext) {
 		String[] values = StringUtils.tokenizeToStringArray(value, ";");
-		List<String> routingSlipPath = new ArrayList<String>(values.length);
+		List<String> routingSlipPath = new ManagedList<String>(values.length);
 		for (String s : values) {
 			if (s.startsWith("#{")) {
-				Expression expression = PARSER.parseExpression(s, EXPRESSION_PARSER_CONTEXT);
+				String expression = s.substring(2, s.length() - 1);
 				AbstractBeanDefinition expressionDefinition =
 						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluationRoutingSlipRouteStrategy.class)
 						.addConstructorArgValue(expression).getBeanDefinition();
@@ -325,7 +324,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				routingSlipPath.add(s);
 			}
 		}
-		return Collections.singletonMap(Collections.unmodifiableList(routingSlipPath), 0);
+		return routingSlipPath;
 	}
 
 	/**
