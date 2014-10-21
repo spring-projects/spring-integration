@@ -165,13 +165,14 @@ public class ConsumerEndpointFactoryBean
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			/*
-			 *  ARPMHs advise the handleRequesMessage method internally and already have the advice chain injected.
+			 *  ARPMHs advise the handleRequestMessage method internally and already have the advice chain injected.
 			 *  So we only advise handlers that are not reply-producing. If the handler is already advised,
 			 *  add the configured advices to its chain, otherwise create a proxy.
 			 */
-			if (!(this.handler instanceof AbstractReplyProducingMessageHandler)) {
-				if (AopUtils.isAopProxy(this.handler) && this.handler instanceof Advised) {
-					Class<?> targetClass = AopUtils.getTargetClass(this.handler);
+			Class<?> targetClass = AopUtils.getTargetClass(this.handler);
+
+			if (!(AbstractReplyProducingMessageHandler.class.isAssignableFrom(targetClass))) {
+				if (AopUtils.isAopProxy(this.handler)) {
 					for (Advice advice : this.adviceChain) {
 						NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
 						handlerAdvice.addMethodName("handleMessage");

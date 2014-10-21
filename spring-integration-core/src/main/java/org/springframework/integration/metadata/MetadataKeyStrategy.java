@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.filter;
+package org.springframework.integration.metadata;
 
 import org.springframework.messaging.Message;
 
 /**
+ * The strategy to extract a {@code key} for the {@code MetadataStore}
+ * from the provided {@link Message}.
+ *
  * @author Artem Bilan
  * @since 4.1
  */
-public interface IdempotentKeyStrategy {
+public interface MetadataKeyStrategy {
 
-	String getIdempotentKey(Message<?> message);
+	String getKey(Message<?> message);
 
 }

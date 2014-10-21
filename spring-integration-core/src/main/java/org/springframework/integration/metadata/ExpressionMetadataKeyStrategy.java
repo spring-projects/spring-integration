@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.filter;
+package org.springframework.integration.metadata;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,10 +26,13 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 
 /**
+ * The expression based {@link MetadataKeyStrategy} implementation.
+ * The provided {@link Message} is used as a evaluation context root object.
+ *
  * @author Artem Bilan
  * @since 4.1
  */
-public class ExpressionIdempotentKeyStrategy implements IdempotentKeyStrategy, BeanFactoryAware {
+public class ExpressionMetadataKeyStrategy implements MetadataKeyStrategy, BeanFactoryAware {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
@@ -37,8 +40,8 @@ public class ExpressionIdempotentKeyStrategy implements IdempotentKeyStrategy, B
 
 	private final String expressionString;
 
-	public ExpressionIdempotentKeyStrategy(String expressionString) {
-		processor = new ExpressionEvaluatingMessageProcessor<String>(PARSER.parseExpression(expressionString));
+	public ExpressionMetadataKeyStrategy(String expressionString) {
+		this.processor = new ExpressionEvaluatingMessageProcessor<String>(PARSER.parseExpression(expressionString));
 		this.expressionString = expressionString;
 	}
 
@@ -48,7 +51,7 @@ public class ExpressionIdempotentKeyStrategy implements IdempotentKeyStrategy, B
 	}
 
 	@Override
-	public String getIdempotentKey(Message<?> message) {
+	public String getKey(Message<?> message) {
 		return this.processor.processMessage(message);
 	}
 
