@@ -202,6 +202,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				this.session = Session.getInstance(this.javaMailProperties);
 			}
 		}
+	}
+
+	private void connectStoreIfNecessary() throws MessagingException {
 		if (this.store == null) {
 			if (this.url != null) {
 				this.store = this.session.getStore(this.url);
@@ -224,7 +227,11 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	protected void openFolder() throws MessagingException {
 		if (this.folder == null) {
 			openSession();
+			connectStoreIfNecessary();
 			this.folder = obtainFolderInstance();
+		}
+		else {
+			connectStoreIfNecessary();
 		}
 		if (this.folder == null || !this.folder.exists()) {
 			throw new IllegalStateException("no such folder [" + this.url.getFile() + "]");
