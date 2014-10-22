@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 
@@ -140,7 +141,8 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			}
 			Set<String> headerNames = headers.keySet();
 			for (String headerName : headerNames) {
-				if (StringUtils.hasText(headerName) && !headerName.startsWith(JmsHeaders.PREFIX)) {
+				if (StringUtils.hasText(headerName) && !headerName.startsWith(JmsHeaders.PREFIX)
+						&& jmsMessage.getObjectProperty(headerName) == null) {
 					Object value = headers.get(headerName);
 					if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
 						try {

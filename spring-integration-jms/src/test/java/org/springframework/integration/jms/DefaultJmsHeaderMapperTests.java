@@ -16,23 +16,34 @@
 
 package org.springframework.integration.jms;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 import java.util.Date;
 import java.util.Map;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
+import org.springframework.jms.support.converter.MessageType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Mark Fisher
@@ -495,6 +506,43 @@ public class DefaultJmsHeaderMapperTests {
 		assertNull(headers.get(JmsHeaders.REDELIVERED));
 		assertNotNull(headers.get("foo"));
 		assertEquals("bar", headers.get("foo"));
+	}
+
+
+	@Test
+	public void testJsonHeaderMapping() throws JMSException {
+
+		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		converter.setTargetType(MessageType.TEXT);
+		converter.setTypeIdPropertyName("javatype");
+
+		Session session = Mockito.mock(Session.class);
+
+		Mockito.doAnswer(new Answer<TextMessage>() {
+
+			@Override
+			public TextMessage answer(InvocationOnMock invocation) throws Throwable {
+				return new StubTextMessage((String) invocation.getArguments()[0]);
+			}
+
+		}).when(session).createTextMessage(Mockito.anyString());
+
+		javax.jms.Message request = converter.toMessage(new Foo(), session);
+
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		Map<String, Object> headers = mapper.toHeaders(request);
+
+		javax.jms.Message reply = converter.toMessage("foo", session);
+		mapper.fromHeaders(new MessageHeaders(headers), reply);
+
+		Object result = converter.fromMessage(reply);
+		assertThat(result, instanceOf(String.class));
+	}
+
+
+	@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "javatype")
+	private static class Foo {
+
 	}
 
 }
