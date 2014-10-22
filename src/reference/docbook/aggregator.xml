@@ -168,13 +168,13 @@
 
       <itemizedlist>
         <listitem>
-          <para>if the argument is a <interfacename>java.util.List&lt;T&gt;</interfacename>, and the
-          parameter type T is assignable to <interfacename>Message</interfacename>, then the whole list of
+          <para>if the argument is a <interfacename>java.util.Collection&lt;T&gt;</interfacename>, and the
+          parameter type <code>T</code> is assignable to <interfacename>Message</interfacename>, then the whole list of
           messages accumulated for aggregation will be sent to the aggregator</para>
         </listitem>
 
         <listitem>
-          <para>if the argument is a non-parameterized <interfacename>java.util.List</interfacename> or the
+          <para>if the argument is a non-parameterized <interfacename>java.util.Collection</interfacename> or the
           parameter type is not assignable to <interfacename>Message</interfacename>, then the method will
           receive the payloads of the accumulated messages</para>
         </listitem>
@@ -193,6 +193,22 @@
         XML or annotation support for configuring it in the application.</para>
       </note>
 
+        <important>
+            The <code>SimpleMessageGroup.getMessages()</code> returns <code>unmodifiableCollection</code>,
+            therefore, if your aggregating POJO is based on the <code>Collection&lt;Message&gt;</code>, it will be
+            exactly that <interfacename>Collection</interfacename>, and in the case of
+            <classname>SimpleMessageStore</classname> usage for the Aggregator, that original
+            <code>Collection&lt;Message&gt;</code> will be clear after releasing the group.
+            Hence the <code>Collection&lt;Message&gt;</code> variable in the POJO will be empty too.
+            It is recommended to build a new <interfacename>Collection</interfacename>
+            (<code>new ArrayList&lt;Message&gt;(messages)</code>) if there are plans to use the entire list of
+            messages in the further logic, e.g. produce from aggregator a message with <code>payload</code>
+            as a <code>Collection&lt;Message&gt;</code> of all messages from the group.
+            The Framework doesn't copy those messages to a new collection to avoid undesired extra object creation.
+            And since <emphasis>version 4.1</emphasis> the persistence
+            <interfacename>MessageGroupStore</interfacename>s provide <emphasis>Lazy-Load</emphasis> algorithm
+            for <interfacename>MessageGroup</interfacename> and its messages. See <xref linkend="message-store"/>.
+        </important>
     </section>
 
     <section>

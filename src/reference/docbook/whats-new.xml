@@ -272,5 +272,13 @@
 				See <xref linkend="channel-configuration-queuechannel"/>.
 			</para>
 		</section>
+		<section id="4.1-message-store-lazy-load">
+			<title>MessageGroupStore: Lazy-Load implementation</title>
+			<para>
+				The persistence <interfacename>MessageGroupStore</interfacename>s now retrieve MessageGroups
+				and their messages from the store with the <emphasis>Lazy-Load</emphasis> manner.
+				See <xref linkend="message-store"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

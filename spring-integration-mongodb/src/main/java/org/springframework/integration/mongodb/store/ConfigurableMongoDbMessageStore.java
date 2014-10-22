@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -141,35 +142,39 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 
 	@Override
-	public MessageGroup getMessageGroup(Object groupId) {
+	public MessageGroup getMessageGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		Query query = groupOrderQuery(groupId);
-		List<MessageDocument> messageDocuments = this.mongoTemplate.find(query, MessageDocument.class,
-				this.collectionName);
+		return this.mongoTemplate.executeInSession(new DbCallback<MessageGroup>() {
 
-		long createdTime = 0;
-		long lastModifiedTime = 0;
-		int lastReleasedSequence = 0;
-		boolean complete = false;
+			@Override
+			public MessageGroup doInDB(DB db) throws MongoException, DataAccessException {
+				Query query = groupOrderQuery(groupId);
+				MessageDocument document = mongoTemplate.findOne(query, MessageDocument.class, collectionName);
 
-		if (messageDocuments.size() > 0) {
-			MessageDocument document = messageDocuments.get(0);
-			createdTime = document.getCreatedTime();
-			lastModifiedTime = document.getLastModifiedTime();
-			complete = document.isComplete();
-			lastReleasedSequence = document.getLastReleasedSequence();
-		}
+				long createdTime = 0;
+				long lastModifiedTime = 0;
+				int lastReleasedSequence = 0;
+				boolean complete = false;
 
-		List<Message<?>> messages = new ArrayList<Message<?>>();
-		for (MessageDocument document : messageDocuments) {
-			messages.add(document.getMessage());
-		}
-		SimpleMessageGroup group = new SimpleMessageGroup(messages, groupId, createdTime, complete);
-		group.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
-		group.setLastModified(lastModifiedTime);
+				if (document != null) {
+					createdTime = document.getCreatedTime();
+					lastModifiedTime = document.getLastModifiedTime();
+					complete = document.isComplete();
+					lastReleasedSequence = document.getLastReleasedSequence();
+				}
 
-		return group;
+				SimpleMessageGroup group =
+						new SimpleMessageGroup(Collections.<Message<?>>emptyList(), groupId, createdTime, complete);
+				group.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+				group.setLastModified(lastModifiedTime);
+
+				PersistentMessageGroup persistentMessageGroup = new PersistentMessageGroup(group);
+				persistentMessageGroup.setSize(messageGroupSize(groupId));
+				return persistentMessageGroup;
+			}
+
+		});
 	}
 
 	@Override
@@ -330,7 +335,28 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = groupOrderQuery(groupId);
+		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		if (messageDocument != null) {
+			return messageDocument.getMessage();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = groupOrderQuery(groupId);
+		List<MessageDocument> documents = this.mongoTemplate.find(query, MessageDocument.class, this.collectionName);
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+
+		for (MessageDocument document : documents) {
+			messages.add(document.getMessage());
+		}
+		return messages;
 	}
 
 	private void expire(MessageGroup group) {
