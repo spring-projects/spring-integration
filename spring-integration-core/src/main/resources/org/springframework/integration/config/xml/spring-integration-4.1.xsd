@@ -2006,10 +2006,8 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						The 'RoutingSlip' header. semicolon-separated value of message channel names,
-						or bean names of 'org.springframework.integration.routingslip.RoutingSlipRouteStrategy
-						or SpEL expression like '#{request.headers[nextPathHeader]}'
-						strategy implementations.
-						Important: 'RoutingSlipRouteStrategy' references have to be specified with '@' prefix.
+						or bean names of 'org.springframework.integration.routingslip.RoutingSlipRouteStrategy'
+						or SpEL expression like 'request.headers[nextPathHeader]'.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:complexType>

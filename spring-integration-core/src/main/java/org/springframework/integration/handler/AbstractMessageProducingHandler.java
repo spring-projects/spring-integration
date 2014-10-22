@@ -134,13 +134,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
-			@SuppressWarnings("unchecked")
-			Map<List<Object>, Integer> routingSlipHeader =
-					requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
-
+			Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 			if (routingSlipHeader != null) {
-				List<Object> routingSlip = routingSlipHeader.keySet().iterator().next();
-				AtomicInteger routingSlipIndex = new AtomicInteger(routingSlipHeader.values().iterator().next());
+				Assert.isTrue(routingSlipHeader.size() == 1, "The RoutingSlip header value must be a SingletonMap");
+				Object key = routingSlipHeader.keySet().iterator().next();
+				Object value = routingSlipHeader.values().iterator().next();
+				Assert.isInstanceOf(List.class, key, "The RoutingSlip key must be List");
+				Assert.isInstanceOf(Integer.class, value, "The RoutingSlip value must be Integer");
+				List<?> routingSlip = (List<?>) key;
+				AtomicInteger routingSlipIndex = new AtomicInteger((Integer) value);
 				replyChannel = getOutputChannelFromRoutingSlip(reply, requestMessage, routingSlip, routingSlipIndex);
 				if (replyChannel != null) {
 					//TODO Migrate to the SF MessageBuilder
@@ -149,7 +151,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 						builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
 					}
 					else if (reply instanceof AbstractIntegrationMessageBuilder) {
-						builder = (AbstractIntegrationMessageBuilder) reply;
+						builder = (AbstractIntegrationMessageBuilder<?>) reply;
 					}
 					else {
 						builder = this.getMessageBuilderFactory().withPayload(reply);
@@ -169,7 +171,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		sendOutput(replyMessage, replyChannel);
 	}
 
-	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<Object> routingSlip,
+	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
 			AtomicInteger routingSlipIndex) {
 		if (routingSlip.size() == routingSlipIndex.get()) {
 			return null;
@@ -226,7 +228,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	/**
-	 * Send a output Message. The 'replyChannel' will be considered only if this handler's
+	 * Send an output Message. The 'replyChannel' will be considered only if this handler's
 	 * 'outputChannel' is <code>null</code>. In that case, the 'replyChannel' value must not also be
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param output the output object to send

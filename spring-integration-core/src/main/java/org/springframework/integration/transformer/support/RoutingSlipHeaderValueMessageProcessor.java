@@ -57,6 +57,7 @@ public class RoutingSlipHeaderValueMessageProcessor
 	private BeanFactory beanFactory;
 
 	public RoutingSlipHeaderValueMessageProcessor(String... routingSlipPath) {
+		Assert.notNull(routingSlipPath);
 		Assert.noNullElements(routingSlipPath);
 		this.routingSlipPath = Arrays.asList(routingSlipPath);
 	}
@@ -81,7 +82,7 @@ public class RoutingSlipHeaderValueMessageProcessor
 						if (this.beanFactory.containsBean(path)) {
 							Object bean = this.beanFactory.getBean(path);
 							Assert.state(bean instanceof MessageChannel || bean instanceof RoutingSlipRouteStrategy,
-									"The RotingSlip can contain only bean names of MessageChannel or " +
+									"The RoutingSlip can contain only bean names of MessageChannel or " +
 											"RoutingSlipRouteStrategy: " + bean);
 							routingSlipValues.add(path);
 						}

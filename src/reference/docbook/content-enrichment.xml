@@ -63,7 +63,7 @@
 		<int:reply-channel ref="quoteReplyChannel"/>
 		<int:correlation-id value="123"/>
 		<int:priority value="HIGHEST"/>
-		<routing-slip value="channel1; @routingSlipRoutingStrategy; #{request.headers[myRoutingSlipChannel]}"/>
+		<routing-slip value="channel1; routingSlipRoutingStrategy; request.headers[myRoutingSlipChannel]"/>
 		<int:header name="bar" ref="someBean"/>
 </int:header-enricher>]]></programlisting>
 
@@ -77,7 +77,7 @@
 		</para>
 		<para>
 			Starting with <emphasis>version 4.1</emphasis> the <emphasis>Header Enricher</emphasis>
-			provides <code>routing-slip</code> sub-elements. See <xref linkend="routing-slip"/> for more information.
+			provides <code>routing-slip</code> sub-element. See <xref linkend="routing-slip"/> for more information.
 		</para>
 	    <para>
 	    	<emphasis role="bold">POJO Support</emphasis>
