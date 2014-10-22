@@ -272,5 +272,14 @@
 				See <xref linkend="channel-configuration-queuechannel"/>.
 			</para>
 		</section>
+		<section id="4.1-channel-interceptor">
+			<title>ChannelInterceptor Changes</title>
+			<para>
+				The <interfacename>ChannelInterceptor</interfacename> now support additional
+				<code>afterSendCompletion()</code> and <code>afterReceiveCompletion()</code> methods.
+				See <xref linkend="channel-interceptors"/>.
+			</para>
+		</section>
+
 	</section>
 </chapter>

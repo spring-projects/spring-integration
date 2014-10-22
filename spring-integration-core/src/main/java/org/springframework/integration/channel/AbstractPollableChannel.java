@@ -16,13 +16,18 @@
 
 package org.springframework.integration.channel;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
  * Base class for all pollable channels.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel {
 
@@ -53,12 +58,29 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 */
 	@Override
 	public final Message<?> receive(long timeout) {
-		if (!this.getInterceptors().preReceive(this)) {
-			return null;
+		ChannelInterceptorList interceptorList = this.getInterceptors();
+		Deque<ChannelInterceptor> interceptorStack = null;
+		try {
+			if (interceptorList.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+
+				if (!interceptorList.preReceive(this, interceptorStack)) {
+					return null;
+				}
+			}
+			Message<?> message = this.doReceive(timeout);
+			message = interceptorList.postReceive(message, this);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			}
+			return message;
 		}
-		Message<?> message = this.doReceive(timeout);
-		message = this.getInterceptors().postReceive(message, this);
-		return message;
+		catch (RuntimeException e) {
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+			}
+			throw e;
+		}
 	}
 
 	/**

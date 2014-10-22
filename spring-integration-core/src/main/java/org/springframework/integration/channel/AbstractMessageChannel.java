@@ -16,8 +16,11 @@
 
 package org.springframework.integration.channel;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -257,19 +260,31 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
+
+		Deque<ChannelInterceptor> interceptorStack = null;
+		boolean sent = false;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			message = this.interceptors.preSend(message, this);
-			if (message == null) {
-				return false;
+			if (this.interceptors.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+				message = this.interceptors.preSend(message, this, interceptorStack);
+				if (message == null) {
+					return false;
+				}
 			}
-			boolean sent = this.doSend(message, timeout);
+			sent = this.doSend(message, timeout);
 			this.interceptors.postSend(message, this, sent);
+			if (interceptorStack != null) {
+				this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
+			}
 			return sent;
 		}
 		catch (Exception e) {
+			if (interceptorStack != null) {
+				this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
+			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
@@ -326,7 +341,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 
-
 		public boolean set(List<ChannelInterceptor> interceptors) {
 			synchronized (this.interceptors) {
 				this.interceptors.clear();
@@ -342,7 +356,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			this.interceptors.add(index, interceptor);
 		}
 
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel,
+				Deque<ChannelInterceptor> interceptorStack) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
 			}
@@ -350,8 +365,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(interceptor.getClass().getSimpleName()
+									+ " returned null from preSend, i.e. precluding the send.");
+						}
+						afterSendCompletion(null, channel, false, null, interceptorStack);
 						return null;
 					}
+					interceptorStack.add(interceptor);
 				}
 			}
 			return message;
@@ -368,15 +389,30 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
-		public boolean preReceive(MessageChannel channel) {
+		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex,
+				Deque<ChannelInterceptor> interceptorStack) {
+			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
+				ChannelInterceptor interceptor = iterator.next();
+				try {
+					interceptor.afterSendCompletion(message, channel, sent, ex);
+				}
+				catch (Throwable ex2) {
+					logger.error("Exception from afterSendCompletion in " + interceptor, ex2);
+				}
+			}
+		}
+
+		public boolean preReceive(MessageChannel channel, Deque<ChannelInterceptor> interceptorStack) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + channel + "'");
 			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					if (!interceptor.preReceive(channel)) {
+						afterReceiveCompletion(null, channel, null, interceptorStack);
 						return false;
 					}
+					interceptorStack.add(interceptor);
 				}
 			}
 			return true;
@@ -398,6 +434,19 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 			}
 			return message;
+		}
+
+		public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex,
+				Deque<ChannelInterceptor> interceptorStack) {
+			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
+				ChannelInterceptor interceptor = iterator.next();
+				try {
+					interceptor.afterReceiveCompletion(message, channel, ex);
+				}
+				catch (Throwable ex2) {
+					logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
+				}
+			}
 		}
 
 		public List<ChannelInterceptor> getInterceptors() {

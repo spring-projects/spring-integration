@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 package org.springframework.integration.jms;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel {
@@ -39,28 +44,46 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 	}
 
 	public Message<?> receive() {
-		if (!this.getInterceptors().preReceive(this)) {
- 			return null;
- 		}
-		Object object;
-		if (this.messageSelector == null) {
-			object = this.getJmsTemplate().receiveAndConvert();
-		}
-		else {
-			object = this.getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
-		}
+		ChannelInterceptorList interceptorList = getInterceptors();
+		Deque<ChannelInterceptor> interceptorStack = null;
+		try {
+			if (interceptorList.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 
-		if (object == null) {
-			return null;
+				if (!interceptorList.preReceive(this, interceptorStack)) {
+					return null;
+				}
+			}
+			Object object;
+			if (this.messageSelector == null) {
+				object = getJmsTemplate().receiveAndConvert();
+			}
+			else {
+				object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
+			}
+
+			if (object == null) {
+				return null;
+			}
+			Message<?> message = null;
+			if (object instanceof Message<?>) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory().withPayload(object).build();
+			}
+			message = interceptorList.postReceive(message, this);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			}
+			return message;
 		}
-		Message<?> replyMessage = null;
-		if (object instanceof Message<?>) {
-			replyMessage = (Message<?>) object;
+		catch (RuntimeException e) {
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+			}
+			throw e;
 		}
-		else {
-			replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
-		}
-		return this.getInterceptors().postReceive(replyMessage, this) ;
 	}
 
 	public Message<?> receive(long timeout) {

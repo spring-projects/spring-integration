@@ -16,6 +16,9 @@
 
 package org.springframework.integration.amqp.channel;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
@@ -23,6 +26,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 
 /**
@@ -31,6 +35,7 @@ import org.springframework.util.Assert;
  * name as the routing key.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class PollableAmqpChannel extends AbstractAmqpChannel implements PollableChannel {
@@ -93,21 +98,39 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	@Override
 	public Message<?> receive() {
-		if (!this.getInterceptors().preReceive(this)) {
- 			return null;
- 		}
-		Object object = this.getAmqpTemplate().receiveAndConvert(this.queueName);
-		if (object == null) {
-			return null;
+		ChannelInterceptorList interceptorList = getInterceptors();
+		Deque<ChannelInterceptor> interceptorStack = null;
+		try {
+			if (interceptorList.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+
+				if (!interceptorList.preReceive(this, interceptorStack)) {
+					 return null;
+				}
+			}
+			Object object = getAmqpTemplate().receiveAndConvert(this.queueName);
+			if (object == null) {
+				return null;
+			}
+			Message<?> message = null;
+			if (object instanceof Message<?>) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory().withPayload(object).build();
+			}
+			message = interceptorList.postReceive(message, this);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			}
+			return message;
 		}
-		Message<?> replyMessage = null;
-		if (object instanceof Message<?>) {
-			replyMessage = (Message<?>) object;
+		catch (RuntimeException e) {
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+			}
+			throw e;
 		}
-		else {
-			replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
-		}
-		return this.getInterceptors().postReceive(replyMessage, this) ;
 	}
 
 	@Override
