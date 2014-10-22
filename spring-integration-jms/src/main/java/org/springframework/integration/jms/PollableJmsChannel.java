@@ -44,35 +44,44 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 	}
 
 	public Message<?> receive() {
-		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
+		ChannelInterceptorList interceptorList = getInterceptors();
+		Deque<ChannelInterceptor> interceptorStack = null;
 		try {
-			if (!this.getInterceptors().preReceive(this, interceptorStack)) {
-				 return null;
-			 }
+			if (interceptorList.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+
+				if (!interceptorList.preReceive(this, interceptorStack)) {
+					return null;
+				}
+			}
 			Object object;
 			if (this.messageSelector == null) {
-				object = this.getJmsTemplate().receiveAndConvert();
+				object = getJmsTemplate().receiveAndConvert();
 			}
 			else {
-				object = this.getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
+				object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
 			}
 
 			if (object == null) {
 				return null;
 			}
-			Message<?> replyMessage = null;
+			Message<?> message = null;
 			if (object instanceof Message<?>) {
-				replyMessage = (Message<?>) object;
+				message = (Message<?>) object;
 			}
 			else {
-				replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
+				message = getMessageBuilderFactory().withPayload(object).build();
 			}
-			replyMessage = this.getInterceptors().postReceive(replyMessage, this);
-			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, interceptorStack);
-			return replyMessage;
+			message = interceptorList.postReceive(message, this);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			}
+			return message;
 		}
 		catch (RuntimeException e) {
-			this.getInterceptors().afterReceiveCompletion(null, this, e, interceptorStack);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+			}
 			throw e;
 		}
 	}

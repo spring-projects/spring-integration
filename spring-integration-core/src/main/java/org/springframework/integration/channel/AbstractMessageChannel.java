@@ -261,23 +261,30 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 
-		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
+		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			message = this.interceptors.preSend(message, this, interceptorStack);
-			if (message == null) {
-				return false;
+			if (this.interceptors.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+				message = this.interceptors.preSend(message, this, interceptorStack);
+				if (message == null) {
+					return false;
+				}
 			}
 			sent = this.doSend(message, timeout);
 			this.interceptors.postSend(message, this, sent);
-			this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
+			if (interceptorStack != null) {
+				this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
+			}
 			return sent;
 		}
 		catch (Exception e) {
-			this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
+			if (interceptorStack != null) {
+				this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
+			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}

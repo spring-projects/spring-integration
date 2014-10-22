@@ -58,18 +58,27 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 */
 	@Override
 	public final Message<?> receive(long timeout) {
-		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
+		ChannelInterceptorList interceptorList = this.getInterceptors();
+		Deque<ChannelInterceptor> interceptorStack = null;
 		try {
-			if (!this.getInterceptors().preReceive(this, interceptorStack)) {
-				return null;
+			if (interceptorList.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+
+				if (!interceptorList.preReceive(this, interceptorStack)) {
+					return null;
+				}
 			}
 			Message<?> message = this.doReceive(timeout);
-			message = this.getInterceptors().postReceive(message, this);
-			this.getInterceptors().afterReceiveCompletion(message, this, null, interceptorStack);
+			message = interceptorList.postReceive(message, this);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			}
 			return message;
 		}
 		catch (RuntimeException e) {
-			this.getInterceptors().afterReceiveCompletion(null, this, e, interceptorStack);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+			}
 			throw e;
 		}
 	}

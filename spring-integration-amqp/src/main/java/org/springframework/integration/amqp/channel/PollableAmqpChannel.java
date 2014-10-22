@@ -98,28 +98,37 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	@Override
 	public Message<?> receive() {
-		Deque<ChannelInterceptor> interceptorStack = new ArrayDeque<ChannelInterceptor>();
+		ChannelInterceptorList interceptorList = getInterceptors();
+		Deque<ChannelInterceptor> interceptorStack = null;
 		try {
-			if (!this.getInterceptors().preReceive(this, interceptorStack)) {
-				 return null;
-			 }
-			Object object = this.getAmqpTemplate().receiveAndConvert(this.queueName);
+			if (interceptorList.getInterceptors().size() > 0) {
+				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+
+				if (!interceptorList.preReceive(this, interceptorStack)) {
+					 return null;
+				}
+			}
+			Object object = getAmqpTemplate().receiveAndConvert(this.queueName);
 			if (object == null) {
 				return null;
 			}
-			Message<?> replyMessage = null;
+			Message<?> message = null;
 			if (object instanceof Message<?>) {
-				replyMessage = (Message<?>) object;
+				message = (Message<?>) object;
 			}
 			else {
-				replyMessage = this.getMessageBuilderFactory().withPayload(object).build();
+				message = getMessageBuilderFactory().withPayload(object).build();
 			}
-			replyMessage = this.getInterceptors().postReceive(replyMessage, this);
-			this.getInterceptors().afterReceiveCompletion(replyMessage, this, null, interceptorStack);
-			return replyMessage;
+			message = interceptorList.postReceive(message, this);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			}
+			return message;
 		}
 		catch (RuntimeException e) {
-			this.getInterceptors().afterReceiveCompletion(null, this, e, interceptorStack);
+			if (interceptorStack != null) {
+				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+			}
 			throw e;
 		}
 	}
