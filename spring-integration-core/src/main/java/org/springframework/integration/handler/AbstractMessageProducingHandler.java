@@ -173,7 +173,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
 			AtomicInteger routingSlipIndex) {
-		if (routingSlip.size() == routingSlipIndex.get()) {
+		if (routingSlipIndex.get() >= routingSlip.size()) {
 			return null;
 		}
 

@@ -31,14 +31,14 @@ import org.springframework.messaging.Message;
  * when additional parameter can be populated as expression variable, but {@link EvaluationContext}
  * isn't thread-safe.
  * <p>
- * The {@link ExpressionEvaluationRoutingSlipRouteStrategy} can be used directly as a regular bean
+ * The {@link ExpressionEvaluatingRoutingSlipRouteStrategy} can be used directly as a regular bean
  * in the {@code ApplicationContext} and its {@code beanName} can be used from {@code routingSlip}
  * header configuration.
  * <p>
- * Usage of {@link ExpressionEvaluationRoutingSlipRouteStrategy} as a regular bean definition is
+ * Usage of {@link ExpressionEvaluatingRoutingSlipRouteStrategy} as a regular bean definition is
  * a recommended way in case of distributed environment, when message with {@code routingSlip}
  * header can be sent across the network. One of this case is a {@code QueueChannel} with
- * persistent {@code MessageStore}, when {@link ExpressionEvaluationRoutingSlipRouteStrategy}
+ * persistent {@code MessageStore}, when {@link ExpressionEvaluatingRoutingSlipRouteStrategy}
  * instance as a header value will be non-serializable.
  * <p>
  * This class is used internally from {@code RoutingSlipHeaderValueMessageProcessor}
@@ -56,7 +56,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 4.1
  */
-public class ExpressionEvaluationRoutingSlipRouteStrategy
+public class ExpressionEvaluatingRoutingSlipRouteStrategy
 		implements RoutingSlipRouteStrategy, IntegrationEvaluationContextAware {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
@@ -65,11 +65,11 @@ public class ExpressionEvaluationRoutingSlipRouteStrategy
 
 	private EvaluationContext evaluationContext;
 
-	public ExpressionEvaluationRoutingSlipRouteStrategy(String expression) {
+	public ExpressionEvaluatingRoutingSlipRouteStrategy(String expression) {
 		this(PARSER.parseExpression(expression));
 	}
 
-	public ExpressionEvaluationRoutingSlipRouteStrategy(Expression expression) {
+	public ExpressionEvaluatingRoutingSlipRouteStrategy(Expression expression) {
 		this.expression = expression;
 	}
 
@@ -80,7 +80,8 @@ public class ExpressionEvaluationRoutingSlipRouteStrategy
 
 	@Override
 	public String getNextPath(Message<?> requestMessage, Object reply) {
-		return this.expression.getValue(this.evaluationContext, new RequestAndReply(requestMessage, reply), String.class);
+		return this.expression.getValue(this.evaluationContext, new RequestAndReply(requestMessage, reply),
+				String.class);
 	}
 
 	public static class RequestAndReply {
@@ -103,6 +104,11 @@ public class ExpressionEvaluationRoutingSlipRouteStrategy
 			return reply;
 		}
 
+	}
+
+	@Override
+	public String toString() {
+		return "ExpressionEvaluatingRoutingSlipRouteStrategy for: [" + this.expression.getExpressionString() + "]";
 	}
 
 }
