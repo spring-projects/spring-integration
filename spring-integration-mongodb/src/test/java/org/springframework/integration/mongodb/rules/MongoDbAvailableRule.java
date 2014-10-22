@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mongodb.rules;
 
-import com.mongodb.MongoClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.rules.MethodRule;
@@ -24,6 +23,8 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 
 /**
  * A {@link MethodRule} implementation that checks for a running MongoDB process.
@@ -36,6 +37,7 @@ public final class MongoDbAvailableRule implements MethodRule {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	@Override
 	public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
 		return new Statement() {
 			@Override
@@ -43,7 +45,8 @@ public final class MongoDbAvailableRule implements MethodRule {
 				MongoDbAvailable mongoAvailable = method.getAnnotation(MongoDbAvailable.class);
 				if (mongoAvailable != null) {
 					try {
-						Mongo mongo = new MongoClient();
+						MongoClientOptions options = new MongoClientOptions.Builder().connectTimeout(500).build();
+						Mongo mongo = new MongoClient("127.0.0.1", options);
 						mongo.getDatabaseNames();
 					}
 					catch (Exception e) {
