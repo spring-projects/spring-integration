@@ -35,13 +35,20 @@ import org.springframework.messaging.Message;
  * in the {@code ApplicationContext} and its {@code beanName} can be used from {@code routingSlip}
  * header configuration.
  * <p>
- * This class is used internally from {@code HeaderEnricherParser} to populate {@code routingSlip}
- * header value item, when the {@code value} from configuration contains expression definitions:
+ * Usage of {@link ExpressionEvaluationRoutingSlipRouteStrategy} as a regular bean definition is
+ * a recommended way in case of distributed environment, when message with {@code routingSlip}
+ * header can be sent across the network. One of this case is a {@code QueueChannel} with
+ * persistent {@code MessageStore}, when {@link ExpressionEvaluationRoutingSlipRouteStrategy}
+ * instance as a header value will be non-serializable.
+ * <p>
+ * This class is used internally from {@code RoutingSlipHeaderValueMessageProcessor}
+ * to populate {@code routingSlip} header value item, when the {@code value}
+ * from configuration contains expression definitions:
  * <pre class="code">
  * {@code
  * <header-enricher>
  *     <routing-slip
- *           value="channel1; #{@routingSlipPojo.get(request, reply)}; #{request.headers[foo]}"/>
+ *           value="channel1; @routingSlipPojo.get(request, reply); request.headers[foo]"/>
  * </header-enricher>
  * }
  * </pre>

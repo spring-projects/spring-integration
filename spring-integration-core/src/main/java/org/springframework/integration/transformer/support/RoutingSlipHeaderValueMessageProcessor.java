@@ -34,6 +34,13 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
+ * The {@code RoutingSlip} {@link HeaderValueMessageProcessor} specific implementation.
+ * Accepts the {@code routingSlipPath} array, checks each of them against
+ * {@link BeanFactory} on the first {@link #processMessage} invocation.
+ * Converts those items, which aren't beans in the application context, to the
+ * {@link ExpressionEvaluationRoutingSlipRouteStrategy} and return a {@code singletonMap}
+ * with the {@code path} as {@code key} and {@code 0} as initial {@code routingSlipIndex}.
+ *
  * @author Artem Bilan
  * @since 4.1
  */
