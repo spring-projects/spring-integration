@@ -15,7 +15,6 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.messaging.Message;
@@ -67,6 +66,8 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		afterRelease(messageGroup, completedMessages, false);
 	}
 
+	@Override
+	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages, boolean timeout) {
 		int size = messageGroup.size();
 		int sequenceSize = messageGroup.getSequenceSize();
 

@@ -125,4 +125,17 @@
 			property to <code>true</code>.
 		</para>
 	</caution>
+
+    <para>
+        <emphasis>Persistence MessageGroupStore and Lazy-Load</emphasis>
+    </para>
+
+    <para>
+        Starting with <emphasis>version 4.1</emphasis> all persistence <interfacename>MessageGroupStore</interfacename>s
+        retrieve <interfacename>MessageGroup</interfacename>s and their <code>messages</code> from the store with the
+        <emphasis>Lazy-Load</emphasis> manner. In most cases it is useful for the Correlation
+        <interfacename>MessageHandler</interfacename>s, when it would be an overhead to load entire
+        <interfacename>MessageGroup</interfacename> from the store on each correlation operation.
+    </para>
+
 </section>
