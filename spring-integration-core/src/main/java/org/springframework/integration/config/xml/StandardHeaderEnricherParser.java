@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Map;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -43,10 +45,12 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 		this.addElementToHeaderMapping("correlation-id", IntegrationMessageHeaderAccessor.CORRELATION_ID);
 		this.addElementToHeaderMapping("expiration-date", IntegrationMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
 		this.addElementToHeaderMapping("priority", IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
+		this.addElementToHeaderMapping("routing-slip", IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 	}
 
 	@Override
-	protected void postProcessHeaderEnricher(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	protected void postProcessHeaderEnricher(BeanDefinitionBuilder builder, Element element,
+			ParserContext parserContext) {
 		String ref = element.getAttribute("ref");
 		String method = element.getAttribute("method");
 		if (StringUtils.hasText(ref) || StringUtils.hasText(method)) {
@@ -56,7 +60,8 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 						parserContext.extractSource(element));
 				return;
 			}
-			BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageProcessor.class);
+			BeanDefinitionBuilder processorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageProcessor.class);
 			processorBuilder.addConstructorArgReference(ref);
 			processorBuilder.addConstructorArgValue(method);
 			builder.addPropertyValue("messageProcessor", processorBuilder.getBeanDefinition());

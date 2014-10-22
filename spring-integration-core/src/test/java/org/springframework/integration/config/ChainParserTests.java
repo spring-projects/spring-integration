@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -278,7 +278,8 @@ public class ChainParserTests {
 
 	@Test // INT-1165
 	public void chainWithSendTimeout() {
-		long sendTimeout = TestUtils.getPropertyValue(this.chainWithSendTimeout, "sendTimeout", Long.class);
+		long sendTimeout = TestUtils.getPropertyValue(this.chainWithSendTimeout, "messagingTemplate.sendTimeout",
+				Long.class);
 		assertEquals(9876, sendTimeout);
 	}
 
@@ -343,7 +344,7 @@ public class ChainParserTests {
 		assertEquals(256, chainEndpoint.getPhase());
 
 		MessageHandlerChain handlerChain = ctx.getBean("chain.handler", MessageHandlerChain.class);
-		assertEquals(3000L, TestUtils.getPropertyValue(handlerChain, "sendTimeout"));
+		assertEquals(3000L, TestUtils.getPropertyValue(handlerChain, "messagingTemplate.sendTimeout"));
 		assertEquals(false, TestUtils.getPropertyValue(handlerChain, "running"));
 		//INT-3108
 		MessageHandler serviceActivator = ctx.getBean("chain$child.sa-within-chain.handler", MessageHandler.class);

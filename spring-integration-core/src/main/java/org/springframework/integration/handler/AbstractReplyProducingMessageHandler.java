@@ -22,13 +22,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.core.DestinationResolutionException;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -63,15 +57,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.requiresReply = requiresReply;
 	}
 
-	/**
-	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
-	 * @param channelResolver The channel resolver.
-	 */
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.messagingTemplate.setDestinationResolver(channelResolver);
-	}
-
 
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notNull(adviceChain, "adviceChain cannot be null");
@@ -98,7 +83,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
 		}
-		this.doInit();
+		doInit();
 	}
 
 	protected void doInit() {
@@ -111,18 +96,17 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected final void handleMessageInternal(Message<?> message) {
 		Object result;
 		if (this.advisedRequestHandler == null) {
-			result = this.handleRequestMessage(message);
+			result = handleRequestMessage(message);
 		}
 		else {
 			result = doInvokeAdvisedRequestHandler(message);
 		}
 		if (result != null) {
-			MessageHeaders requestHeaders = message.getHeaders();
-			this.handleResult(result, requestHeaders);
+			sendOutputs(result, message);
 		}
 		else if (this.requiresReply) {
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
-					this.getComponentName() + "', and its 'requiresReply' property is set to true.");
+					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
 		else if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
@@ -131,102 +115,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	protected Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		return this.advisedRequestHandler.handleRequestMessage(message);
-	}
-
-	private void handleResult(Object result, MessageHeaders requestHeaders) {
-		if (result instanceof Iterable<?> && this.shouldSplitReply((Iterable<?>) result)) {
-			for (Object o : (Iterable<?>) result) {
-				this.produceReply(o, requestHeaders);
-			}
-		}
-		else if (result != null) {
-			this.produceReply(result, requestHeaders);
-		}
-	}
-
-	protected void produceReply(Object reply, MessageHeaders requestHeaders) {
-		Message<?> replyMessage = this.createReplyMessage(reply, requestHeaders);
-		this.sendReplyMessage(replyMessage, requestHeaders.getReplyChannel());
-	}
-
-	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
-		AbstractIntegrationMessageBuilder<?> builder = null;
-		if (reply instanceof Message<?>) {
-			if (!this.shouldCopyRequestHeaders()) {
-				return (Message<?>) reply;
-			}
-			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
-		}
-		else if (reply instanceof AbstractIntegrationMessageBuilder) {
-			builder = (AbstractIntegrationMessageBuilder<?>) reply;
-		}
-		else {
-			builder = this.getMessageBuilderFactory().withPayload(reply);
-		}
-		if (this.shouldCopyRequestHeaders()) {
-			builder.copyHeadersIfAbsent(requestHeaders);
-		}
-		return builder.build();
-	}
-
-	/**
-	 * Send a reply Message. The 'replyChannelHeaderValue' will be considered only if this handler's
-	 * 'outputChannel' is <code>null</code>. In that case, the header value must not also be
-	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
-	 * @param replyMessage the reply Message to send
-	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
-	 */
-	private void sendReplyMessage(Message<?> replyMessage, Object replyChannelHeaderValue) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
-		}
-
-		MessageChannel outputChannel = getOutputChannel();
-		if (outputChannel != null) {
-			this.sendMessage(replyMessage, outputChannel);
-		}
-		else if (replyChannelHeaderValue != null) {
-			this.sendMessage(replyMessage, replyChannelHeaderValue);
-		}
-		else {
-			throw new DestinationResolutionException("no output-channel or replyChannel header available");
-		}
-	}
-
-	/**
-	 * Send the message to the given channel. The channel must be a String or
-	 * {@link MessageChannel} instance, never <code>null</code>.
-	 * @param message The message.
-	 * @param channel The channel to which to send the message.
-	 */
-	private void sendMessage(final Message<?> message, final Object channel) {
-		if (channel instanceof MessageChannel) {
-			this.messagingTemplate.send((MessageChannel) channel, message);
-		}
-		else if (channel instanceof String) {
-			this.messagingTemplate.send((String) channel, message);
-		}
-		else {
-			throw new MessageDeliveryException(message,
-					"a non-null reply channel value of type MessageChannel or String is required");
-		}
-	}
-
-	private boolean shouldSplitReply(Iterable<?> reply) {
-		for (Object next : reply) {
-			if (next instanceof Message<?> || next instanceof AbstractIntegrationMessageBuilder<?>) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Subclasses may override this. True by default.
-	 * @return true if the request headers should be copied.
-	 */
-	protected boolean shouldCopyRequestHeaders() {
-		return true;
 	}
 
 	/**

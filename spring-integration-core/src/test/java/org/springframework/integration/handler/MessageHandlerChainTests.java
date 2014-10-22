@@ -86,7 +86,7 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setOutputChannel(outputChannel);
 		chain.handleMessage(message);
-		Mockito.verify(outputChannel).send(Mockito.eq(message), Mockito.eq(-1L));
+		Mockito.verify(outputChannel).send(Mockito.eq(message));
 	}
 
 	@Test(expected = IllegalArgumentException.class)

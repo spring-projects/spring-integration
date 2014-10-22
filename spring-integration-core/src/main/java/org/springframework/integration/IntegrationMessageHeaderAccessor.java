@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageHeaderAccessor;
@@ -26,6 +28,7 @@ import org.springframework.util.Assert;
  * Adds standard SI Headers.
  *
  * @author Andy Wilkinson
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -44,6 +47,8 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public static final String SEQUENCE_DETAILS = "sequenceDetails";
 
 	public static final String POSTPROCESS_RESULT = "postProcessResult";
+
+	public static final String ROUTING_SLIP = "routingSlip";
 
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
@@ -93,14 +98,16 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 						+ "' header value must be a Date or Long.");
 			}
 			else if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
-					|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)) {
+					|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)
+					|| IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)) {
 				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an Integer.");
 			}
-			else if (IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)) {
-				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be an Integer.");
+			else if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
+				Assert.isTrue(Map.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
+						+ "' header value must be an List.");
 			}
 		}
 	}
+
 }

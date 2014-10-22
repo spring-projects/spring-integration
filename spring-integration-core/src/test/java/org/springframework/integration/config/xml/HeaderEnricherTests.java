@@ -16,13 +16,16 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -34,6 +37,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
@@ -119,7 +123,7 @@ public class HeaderEnricherTests {
 		assertNotNull(result);
 		Object correlationId = new IntegrationMessageHeaderAccessor(result).getCorrelationId();
 		assertEquals(Long.class, correlationId.getClass());
-		assertEquals(new Long(123), correlationId);
+		assertEquals(123L, correlationId);
 	}
 
 	@Test
@@ -128,7 +132,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(123), new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+		assertEquals(123, new IntegrationMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test
@@ -162,7 +166,8 @@ public class HeaderEnricherTests {
 	public void priorityExpression() {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("priorityExpressionInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<Map<String, String>>(Collections.singletonMap("priority", "-10")));
+		Message<?> result = template.sendAndReceive(channel,
+				new GenericMessage<Map<String, String>>(Collections.singletonMap("priority", "-10")));
 		assertNotNull(result);
 		assertEquals(new Integer(-10), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
@@ -205,7 +210,7 @@ public class HeaderEnricherTests {
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(Long.class, result.getHeaders().get("number").getClass());
-		assertEquals(new Long(12345), result.getHeaders().get("number"));
+		assertEquals(12345L, result.getHeaders().get("number"));
 	}
 
 	@Test
@@ -252,8 +257,28 @@ public class HeaderEnricherTests {
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void testFailConfigUnexpectedSubElement() {
-		new ClassPathXmlApplicationContext("HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml",
+				this.getClass());
 	}
+
+	@Test
+	public void testRoutingSlip() {
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("routingSlipInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+		assertNotNull(result);
+		Object routingSlip = new IntegrationMessageHeaderAccessor(result)
+				.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP);
+		assertNotNull(routingSlip);
+		assertThat(routingSlip, instanceOf(Map.class));
+		@SuppressWarnings("unchecked")
+		List<Object> routingSlipPath = (List<Object>) ((Map) routingSlip).keySet().iterator().next();
+
+		assertEquals("fooChannel", routingSlipPath.get(0));
+		assertThat(routingSlipPath.get(1), instanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class));
+		assertEquals("bazRoutingSlip", routingSlipPath.get(2));
+	}
+
 
 	public static class TestBean {
 
@@ -274,9 +299,8 @@ public class HeaderEnricherTests {
 
 			TestBean testBean = (TestBean) o;
 
-			if (name != null ? !name.equals(testBean.name) : testBean.name != null) return false;
+			return !(name != null ? !name.equals(testBean.name) : testBean.name != null);
 
-			return true;
 		}
 
 		@Override
