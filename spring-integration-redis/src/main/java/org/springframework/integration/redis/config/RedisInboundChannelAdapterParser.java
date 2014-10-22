@@ -25,6 +25,7 @@ import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -50,6 +51,8 @@ public class RedisInboundChannelAdapterParser extends AbstractChannelAdapterPars
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer", true);
 
+		Element pollerElement = DomUtils.getChildElementByTagName(element, "transactional");
+		builder.addPropertyValue("adviceChain", IntegrationNamespaceUtils.configureAdviceChain(null, pollerElement, null, parserContext));
 		return builder.getBeanDefinition();
 	}
 

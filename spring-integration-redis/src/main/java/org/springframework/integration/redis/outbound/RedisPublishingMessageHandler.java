@@ -56,6 +56,10 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 		this.template.afterPropertiesSet();
 	}
 
+	public RedisTemplate<?, ?> getTemplate() {
+		return template;
+	}
+
 	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
