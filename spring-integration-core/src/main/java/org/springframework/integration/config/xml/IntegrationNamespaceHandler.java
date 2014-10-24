@@ -82,6 +82,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("handler-retry-advice", retryParser);
 		registerBeanDefinitionParser("retry-advice", retryParser);
 		registerBeanDefinitionParser("scatter-gather", new ScatterGatherParser());
+		registerBeanDefinitionParser("idempotent-receiver", new IdempotentReceiverInterceptorParser());
 	}
 
 }

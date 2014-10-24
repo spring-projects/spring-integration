@@ -50,6 +50,8 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String ROUTING_SLIP = "routingSlip";
 
+	public static final String DUPLICATE_MESSAGE = "duplicateMessage";
+
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
 	}
@@ -106,6 +108,10 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 			else if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
 				Assert.isTrue(Map.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an List.");
+			}
+			else if (IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE.equals(headerName)) {
+				Assert.isTrue(Boolean.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
+						+ "' header value must be an Boolean.");
 			}
 		}
 	}

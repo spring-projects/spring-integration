@@ -582,4 +582,10 @@ public class MyAdvisedFilter {
 			the transaction, you would put the transaction advice first.
 		</para>
 	</section>
+	<section id="idempotent-receiver">
+		<title>Idempotent Receiver EIP Pattern</title>
+		<para>
+			TBD
+		</para>
+	</section>
 </section>
