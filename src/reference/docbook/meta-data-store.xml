@@ -47,8 +47,8 @@
 		<classname>RedisMetadataStore</classname> implement <interfacename>ConcurrentMetadataStore</interfacename>.
 		These provide for atomic updates and can be used across multiple component or application instances.
 	</para>
-	<section id="idempotent-receiver">
-		<title>Idempotent Receiver</title>
+	<section id="idempotent-receiver-pattern">
+		<title>Idempotent Receiver and Metadata Store</title>
 		<para>
 			The <emphasis>Metadata Store</emphasis> is useful for implementing the
 			EIP <ulink url="http://eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink> pattern, when
@@ -69,6 +69,9 @@
 		<para>
 			The <code>value</code> of the idempotent entry may be some expiration date, after which that entry should
 			be removed from <emphasis>Metadata Store</emphasis> by some scheduled reaper.
+		</para>
+		<para>
+			Also see <xref linkend="idempotent-receiver"/>.
 		</para>
 	</section>
 
