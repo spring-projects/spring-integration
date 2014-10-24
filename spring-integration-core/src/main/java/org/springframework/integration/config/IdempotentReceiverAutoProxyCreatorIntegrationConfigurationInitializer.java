@@ -20,12 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -65,6 +68,22 @@ public class IdempotentReceiverAutoProxyCreatorIntegrationConfigurationInitializ
 					Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
 					idempotentEndpoint.put(beanName, beanFactory.resolveEmbeddedValue(endpoint));
 					idempotentEndpointsMapping.add(idempotentEndpoint);
+				}
+			}
+			else if (beanDefinition instanceof AnnotatedBeanDefinition) {
+				if (beanDefinition.getSource() instanceof MethodMetadata) {
+					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
+					String annotationType = IdempotentReceiver.class.getName();
+					if (beanMethod.isAnnotated(annotationType)) {
+						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value");
+						if (value != null) {
+							String interceptor = (String) value;
+							Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
+							String endpoint = beanDefinition.getFactoryBeanName() + "." + beanName + ".*";
+							idempotentEndpoint.put(interceptor, endpoint);
+							idempotentEndpointsMapping.add(idempotentEndpoint);
+						}
+					}
 				}
 			}
 		}
