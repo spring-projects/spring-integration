@@ -31,7 +31,6 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentMap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +71,7 @@ public class IdempotentReceiverParserTests {
 
 	@Autowired
 	private IdempotentReceiverInterceptor selectorInterceptor;
+
 	@Autowired
 	private MessageSelector selector;
 

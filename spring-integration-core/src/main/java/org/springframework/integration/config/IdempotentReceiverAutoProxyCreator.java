@@ -17,10 +17,11 @@
 package org.springframework.integration.config;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
@@ -56,6 +57,7 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 		initIdempotentEndpointsIfNecessary();
 
 		if (MessageHandler.class.isAssignableFrom(beanClass)) {
+			List<Advisor> interceptors = new ArrayList<Advisor>();
 			for (Map.Entry<String, List<String>> entry : this.idempotentEndpoints.entrySet()) {
 				List<String> mappedNames = entry.getValue();
 				for (String mappedName : mappedNames) {
@@ -68,9 +70,12 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 						pointcut.setMappedName("handleMessage");
 						idempotentReceiverInterceptor.setPointcut(pointcut);
 						idempotentReceiverInterceptor.setBeanFactory(getBeanFactory());
-						return new Object[] {idempotentReceiverInterceptor};
+						interceptors.add(idempotentReceiverInterceptor);
 					}
 				}
+			}
+			if (!interceptors.isEmpty()) {
+				return interceptors.toArray();
 			}
 		}
 		return DO_NOT_PROXY;
@@ -80,7 +85,7 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 		if (this.idempotentEndpoints == null) {
 			synchronized (this) {
 				if (this.idempotentEndpoints == null) {
-					this.idempotentEndpoints = new HashMap<String, List<String>>();
+					this.idempotentEndpoints = new LinkedHashMap<String, List<String>>();
 					for (Map<String, String> mapping : this.idempotentEndpointsMapping) {
 						Assert.isTrue(mapping.size() == 1, "The 'idempotentEndpointMapping' must be a SingletonMap");
 						String interceptor = mapping.keySet().iterator().next();

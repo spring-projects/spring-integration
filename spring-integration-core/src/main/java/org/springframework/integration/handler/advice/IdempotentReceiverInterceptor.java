@@ -30,6 +30,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -56,7 +57,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 4.1
  * @see org.springframework.integration.selector.MetadataStoreSelector
- * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorIntegrationConfigurationInitializer
+ * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer
  */
 public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFactoryAware {
 
@@ -70,7 +71,7 @@ public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFac
 
 	private volatile boolean throwExceptionOnRejection;
 
-	private MessageBuilderFactory messageBuilderFactory;
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public IdempotentReceiverInterceptor(MessageSelector messageSelector) {
 		Assert.notNull(messageSelector);
@@ -86,11 +87,12 @@ public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFac
 	}
 
 	/**
-	 * Specify whether this intercept should throw a
+	 * Specify whether this interceptor should throw a
 	 * {@link MessageRejectedException} when its selector does not accept a
 	 * Message. The default value is <code>false</code> meaning that rejected
-	 * Messages will be quietly dropped or sent to the discard channel if
-	 * available. Typically this value would not be <code>true</code> when
+	 * Messages will be enriched with {@link IntegrationMessageHeaderAccessor#DUPLICATE_MESSAGE}
+	 * header and returned as normal to the {@code invocation.proceed()}.
+	 * Typically this value would not be <code>true</code> when
 	 * a discard channel is provided, but if so, it will still apply
 	 * (in such a case, the Message will be sent to the discard channel,
 	 * and <em>then</em> the exception will be thrown).
@@ -103,10 +105,15 @@ public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFac
 
 	/**
 	 * Specify a channel where rejected Messages should be sent. If the discard
-	 * channel is null (the default), rejected Messages will be dropped. However,
+	 * channel is null (the default), rejected Messages will be enriched with
+	 * {@link IntegrationMessageHeaderAccessor#DUPLICATE_MESSAGE} header
+	 * and returned as normal to the {@code invocation.proceed()}. However,
 	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
 	 * trigger an exception. That value is evaluated regardless of the presence
 	 * of a discard channel.
+	 * <p>
+	 * If there is needed just silently 'drop' rejected messages configure the
+	 * {@link #discardChannel} to the {@code nullChannel}.
 	 * @param discardChannel The discard channel.
 	 * @see #setThrowExceptionOnRejection(boolean)
 	 */

@@ -42,8 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @since 4.1
  */
-public class IdempotentReceiverAutoProxyCreatorIntegrationConfigurationInitializer
-		implements IntegrationConfigurationInitializer {
+public class IdempotentReceiverAutoProxyCreatorInitializer implements IntegrationConfigurationInitializer {
 
 	public static final String IDEMPOTENT_ENDPOINTS_MAPPING = "IDEMPOTENT_ENDPOINTS_MAPPING";
 
@@ -77,11 +76,18 @@ public class IdempotentReceiverAutoProxyCreatorIntegrationConfigurationInitializ
 					if (beanMethod.isAnnotated(annotationType)) {
 						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value");
 						if (value != null) {
-							String interceptor = (String) value;
-							Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
+							String[] interceptors = (String[]) value;
+							/* MessageHandler beans, populated from the @Bean methods, have the complex id,
+							   including @Configuration bean name, method name and Messaging annotation name.
+							   Therefore we should provide here some pattern  closer to the real MessageHandler
+							   bean name.
+							*/
 							String endpoint = beanDefinition.getFactoryBeanName() + "." + beanName + ".*";
-							idempotentEndpoint.put(interceptor, endpoint);
-							idempotentEndpointsMapping.add(idempotentEndpoint);
+							for (String interceptor : interceptors) {
+								Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
+								idempotentEndpoint.put(interceptor, endpoint);
+								idempotentEndpointsMapping.add(idempotentEndpoint);
+							}
 						}
 					}
 				}

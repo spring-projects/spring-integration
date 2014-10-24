@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorIntegrationConfigurationInitializer;
+import org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.metadata.ExpressionMetadataKeyStrategy;
 import org.springframework.integration.selector.MetadataStoreSelector;
@@ -102,7 +102,7 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		AbstractBeanDefinition interceptorBeanDefinition = builder.getBeanDefinition();
 		interceptorBeanDefinition.setAttribute(
-				IdempotentReceiverAutoProxyCreatorIntegrationConfigurationInitializer.IDEMPOTENT_ENDPOINTS_MAPPING,
+				IdempotentReceiverAutoProxyCreatorInitializer.IDEMPOTENT_ENDPOINTS_MAPPING,
 				endpoints);
 		return interceptorBeanDefinition;
 	}

@@ -11,11 +11,18 @@
 
 	<beans:bean id="store" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 
+	<beans:bean id="store2" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
+
 	<idempotent-receiver id="idempotentReceiverInterceptor"
-						 endpoint="my*"
+						 endpoint="my*, output"
 						 metadata-store="store"
 						 key-expression="payload"
 						 throw-exception-on-rejection="true"/>
+
+	<idempotent-receiver id="idempotentReceiverInterceptor2"
+						 endpoint="myService2"
+						 metadata-store="store2"
+						 key-expression="payload.toUpperCase()"/>
 
 	<channel id="output">
 		<queue/>
@@ -27,5 +34,6 @@
 		</request-handler-advice-chain>
 	</service-activator>
 
+	<service-activator id="myService2" input-channel="input2" output-channel="output" expression="payload"/>
 
 </beans:beans>

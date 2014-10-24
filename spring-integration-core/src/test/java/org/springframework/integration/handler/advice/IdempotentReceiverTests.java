@@ -66,10 +66,16 @@ public class IdempotentReceiverTests {
 	private MessageChannel input;
 
 	@Autowired
+	private MessageChannel input2;
+
+	@Autowired
 	private PollableChannel output;
 
 	@Autowired
 	private MetadataStore store;
+
+	@Autowired
+	private MetadataStore store2;
 
 	@Autowired
 	private IdempotentReceiverInterceptor idempotentReceiverInterceptor;
@@ -82,13 +88,9 @@ public class IdempotentReceiverTests {
 		ConcurrentMetadataStore store = new SimpleMetadataStore();
 		ExpressionMetadataKeyStrategy idempotentKeyStrategy = new ExpressionMetadataKeyStrategy("payload");
 		BeanFactory beanFactory = Mockito.mock(BeanFactory.class);
-		Mockito.doAnswer(invocation -> new DefaultMessageBuilderFactory())
-				.when(beanFactory)
-				.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, MessageBuilderFactory.class);
 		idempotentKeyStrategy.setBeanFactory(beanFactory);
 		IdempotentReceiverInterceptor idempotentReceiverInterceptor =
 				new IdempotentReceiverInterceptor(new MetadataStoreSelector(idempotentKeyStrategy, store));
-		idempotentReceiverInterceptor.setBeanFactory(beanFactory);
 		idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
 
 		AtomicReference<Message<?>> handled = new AtomicReference<>();
@@ -141,7 +143,20 @@ public class IdempotentReceiverTests {
 		assertNotNull(receive);
 		assertEquals(2, this.fooAdvice.adviceCalled);
 		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
-		assertEquals(1, TestUtils.getPropertyValue(store, "metadata", Map.class).size());
+		assertEquals(1, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
+
+		message = new GenericMessage<>("bar");
+		for (int i = 0; i < 2; i++) {
+			this.input2.send(message);
+			receive = this.output.receive(10000);
+			assertNotNull(receive);
+		}
+
+		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+		assertEquals(2, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
+		assertNotNull(this.store.get("bar"));
+		assertEquals(1, TestUtils.getPropertyValue(this.store2, "metadata", Map.class).size());
+		assertNotNull(this.store2.get("BAR"));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

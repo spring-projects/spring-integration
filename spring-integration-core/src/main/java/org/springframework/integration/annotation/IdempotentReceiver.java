@@ -38,8 +38,8 @@ public @interface IdempotentReceiver {
 
 	/**
 	 * @return the {@link org.springframework.integration.handler.advice.IdempotentReceiverInterceptor}
-	 * bean reference.
+	 * bean references.
 	 */
-	String value();
+	String[] value();
 
 }
