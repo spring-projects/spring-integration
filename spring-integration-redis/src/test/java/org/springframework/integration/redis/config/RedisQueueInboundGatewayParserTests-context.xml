@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+
+	<int-redis:queue-inbound-gateway id="inboundGateway"
+		request-channel="requestChannel"
+		connection-factory="redisConnectionFactory"
+		reply-channel="receiveChannel"
+		request-timeout="3000"
+		reply-timeout="2000"
+		queue="si.test.queue"
+		task-executor="executor"
+		serializer="serializer"
+		auto-startup="false"
+		extract-payload="false"
+		phase="3"/>
+
+	<int:channel id="si.test.queue">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="requestChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="receiveChannel">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		</constructor-arg>
+	</bean>
+
+	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+
+	<task:executor id="executor" pool-size="10"/>
+
+</beans>

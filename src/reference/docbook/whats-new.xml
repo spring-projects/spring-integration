@@ -59,6 +59,14 @@
 				for the JSON transformers. See <xref linkend="transformer"/> for more information.
 			</para>
 		</section>
+		<section id="4.1-redis-queue-gateways">
+			<title>Redis Queue Gateways</title>
+			<para>
+				The <code>&lt;redis-queue-inbound-gateway&gt;</code> and
+				<code>&lt;redis-queue-outbound-gateway&gt;</code> components are now provided.
+				See <xref linkend="redis-queue-inbound-gateway"/> and <xref linkend="redis-queue-outbound-gateway"/>.
+			</para>
+		</section>
 		<section id="4.1-PollSkipAdvice">
 			<title>PollSkipAdvice</title>
 			<para>

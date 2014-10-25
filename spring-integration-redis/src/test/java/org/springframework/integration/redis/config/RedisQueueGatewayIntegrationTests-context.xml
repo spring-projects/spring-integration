@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+
+	<bean id="redisConnectionFactory"
+		  class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+	</bean>
+
+	<int:channel id="sendChannel"/>
+
+	<int:channel id="outputChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="requestChannel"/>
+
+	<int-redis:queue-outbound-gateway id="outboundGateway"
+									  request-channel="sendChannel"
+									  queue="foo"
+									  reply-timeout="2000"
+									  requires-reply="true"
+									  reply-channel="outputChannel"
+									  serializer="serializer"/>
+
+
+	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+
+	<int-redis:queue-inbound-gateway id="inboundGateway"
+									 queue="foo"
+									 request-channel="requestChannel"
+									 serializer="serializer"
+									 reply-timeout="20001"
+									 request-timeout="20000"/>
+
+	<int:service-activator input-channel="requestChannel" expression="payload.toUpperCase()"/>
+
+</beans>

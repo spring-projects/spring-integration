@@ -67,10 +67,6 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 		if (StringUtils.hasText(errorChannel)) {
 			builder.addPropertyReference("errorChannel", errorChannel);
 		}
-		String autoStartup = element.getAttribute("auto-startup");
-		if (StringUtils.hasText(autoStartup)) {
-			builder.addPropertyValue("autoStartup", autoStartup);
-		}
 		this.doPostProcess(builder, element);
 	}
 
