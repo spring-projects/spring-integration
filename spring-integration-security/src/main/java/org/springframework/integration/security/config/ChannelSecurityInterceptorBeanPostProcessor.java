@@ -25,15 +25,10 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
  * A {@link BeanPostProcessor} that proxies {@link MessageChannel}s to apply a {@link ChannelSecurityInterceptor}.
@@ -42,21 +37,12 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
+public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProcessor {
 
-	private volatile Collection<ChannelSecurityInterceptor> securityInterceptors;
+	private final Collection<ChannelSecurityInterceptor> securityInterceptors;
 
-	private ListableBeanFactory beanFactory;
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory);
-		this.beanFactory = (ListableBeanFactory) beanFactory;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		this.securityInterceptors = this.beanFactory.getBeansOfType(ChannelSecurityInterceptor.class).values();
+	public ChannelSecurityInterceptorBeanPostProcessor(Collection<ChannelSecurityInterceptor> securityInterceptors) {
+		this.securityInterceptors = securityInterceptors;
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -65,7 +51,7 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MessageChannel) {
-			for (ChannelSecurityInterceptor securityInterceptor : securityInterceptors) {
+			for (ChannelSecurityInterceptor securityInterceptor : this.securityInterceptors) {
 				ChannelSecurityMetadataSource channelSecurityMetadataSource =
 						(ChannelSecurityMetadataSource) securityInterceptor.obtainSecurityMetadataSource();
 				if (this.shouldProxy(beanName, channelSecurityMetadataSource)) {
@@ -92,4 +78,5 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 		}
 		return false;
 	}
+
 }

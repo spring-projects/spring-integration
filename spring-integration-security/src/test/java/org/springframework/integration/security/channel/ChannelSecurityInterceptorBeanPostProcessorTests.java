@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,74 +19,55 @@ package org.springframework.integration.security.channel;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.security.config.ChannelSecurityInterceptorBeanPostProcessor;
 import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ChannelSecurityInterceptorBeanPostProcessorTests {
 
 	@Test
 	public void securedChannelIsProxied() throws Exception {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
-		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
+		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"),
+				new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
 
-		final ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
+		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
 
-		ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
-		Mockito.doAnswer(new Answer<Map<String, ChannelSecurityInterceptor>>() {
-
-			@Override
-			public Map<String, ChannelSecurityInterceptor> answer(InvocationOnMock invocation) throws Throwable {
-				return Collections.singletonMap("interceptor", interceptor);
-			}
-		}).when(beanFactory).getBeansOfType(ChannelSecurityInterceptor.class);
-
-		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor();
-		postProcessor.setBeanFactory(beanFactory);
-		postProcessor.afterPropertiesSet();
+		ChannelSecurityInterceptorBeanPostProcessor postProcessor =
+				new ChannelSecurityInterceptorBeanPostProcessor(Arrays.asList(interceptor));
 
 		QueueChannel securedChannel = new QueueChannel();
 		securedChannel.setBeanName("securedChannel");
-		MessageChannel postProcessedChannel = (MessageChannel) postProcessor.postProcessAfterInitialization(securedChannel, "securedChannel");
+		MessageChannel postProcessedChannel =
+				(MessageChannel) postProcessor.postProcessAfterInitialization(securedChannel, "securedChannel");
 		assertTrue(AopUtils.isAopProxy(postProcessedChannel));
 	}
 
 	@Test
 	public void nonsecuredChannelIsNotProxied() throws Exception {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
-		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
-		final ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
+		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"),
+				new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
 
-		ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
-		Mockito.doAnswer(new Answer<Map<String, ChannelSecurityInterceptor>>() {
+		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
 
-			@Override
-			public Map<String, ChannelSecurityInterceptor> answer(InvocationOnMock invocation) throws Throwable {
-				return Collections.singletonMap("interceptor", interceptor);
-			}
-		}).when(beanFactory).getBeansOfType(ChannelSecurityInterceptor.class);
-
-		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor();
-		postProcessor.setBeanFactory(beanFactory);
-		postProcessor.afterPropertiesSet();
+		ChannelSecurityInterceptorBeanPostProcessor postProcessor =
+				new ChannelSecurityInterceptorBeanPostProcessor(Arrays.asList(interceptor));
 
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		MessageChannel postProcessedChannel = (MessageChannel) postProcessor.postProcessAfterInitialization(channel, "testChannel");
+		MessageChannel postProcessedChannel =
+				(MessageChannel) postProcessor.postProcessAfterInitialization(channel, "testChannel");
 		assertFalse(AopUtils.isAopProxy(postProcessedChannel));
 	}
 
