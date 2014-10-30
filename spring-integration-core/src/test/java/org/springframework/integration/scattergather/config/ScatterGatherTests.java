@@ -55,6 +55,9 @@ public class ScatterGatherTests {
 	@Autowired
 	private RequestReplyExchanger gateway;
 
+	@Autowired
+	private MessageChannel scatterGatherWithinChain;
+
 	@Test
 	public void testAuction() {
 		this.inputAuction.send(new GenericMessage<String>("foo"));
@@ -81,6 +84,15 @@ public class ScatterGatherTests {
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(List.class));
 		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+	}
+
+	@Test
+	public void testWithinChain() {
+		this.scatterGatherWithinChain.send(new GenericMessage<String>("foo"));
+		for (int i = 0; i < 3; i++) {
+			Message<?> result = this.output.receive(10000);
+			assertNotNull(result);
+		}
 	}
 
 }

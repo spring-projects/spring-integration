@@ -58,4 +58,9 @@
 		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
 
+	<chain input-channel="scatterGatherWithinChain" output-channel="output">
+		<scatter-gather scatter-channel="auctionChannel"/>
+		<splitter/>
+	</chain>
+
 </beans:beans>

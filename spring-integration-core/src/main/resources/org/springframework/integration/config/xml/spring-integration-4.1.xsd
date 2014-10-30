@@ -1731,6 +1731,7 @@
 					<xsd:element name="claim-check-in" type="claimCheckInTypeChain"/>
 					<xsd:element name="claim-check-out" type="claimCheckOutTypeChain"/>
 					<xsd:element name="control-bus" type="control-bus-type"/>
+					<xsd:element name="scatter-gather" type="scatter-gather-type"/>
 					<xsd:element name="chain">
 						<xsd:complexType>
 							<xsd:sequence>
