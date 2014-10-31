@@ -706,5 +706,19 @@ public class ContextConfiguration {
 		<code>id</code> attribute). <interfacename>MessageSource</interfacename>s are registered with a bean id
 		<code>somePolledAdapter.source</code>, again where 'somePolledAdapter' is the id of the adapter.
 	</para>
+	<para>
+		The above only applies to the framework component itself. If you use an inner bean definition such as this:
+	</para>
+<programlisting language="xml"><![CDATA[<int:service-activator id="exampleServiceActivator" input-channel="inChannel"
+            output-channel = "outChannel" method="foo">
+    <beans:bean class="org.foo.ExampleServiceActivator"/>
+</int:service-activator>]]></programlisting>
+	<para>
+		the bean is treated like any inner bean declared that way and is not registered with the application context. If you wish
+		to access this bean in some other manner, declare it at the top level with an <code>id</code> and use the <code>ref</code>
+		attribute instead. See the
+		<ulink url="http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans"
+		>Spring Documentation</ulink> for more information.
+	</para>
   </section>
 </section>
