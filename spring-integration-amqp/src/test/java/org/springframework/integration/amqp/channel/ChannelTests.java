@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.channel;
 
 import static org.junit.Assert.assertEquals;
@@ -34,7 +35,6 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.amqp.rule.BrokerRunning;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -62,9 +62,6 @@ public class ChannelTests {
 	@Autowired
 	private CachingConnectionFactory factory;
 
-	@Autowired
-	private ConfigurableApplicationContext context;
-
 	@Test
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
@@ -85,7 +82,7 @@ public class ChannelTests {
 		factory.destroy();
 		channel.send(new GenericMessage<String>("bar"));
 		latch.await(10, TimeUnit.SECONDS);
-		context.close();
+		channel.destroy();
 		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
 	}
 
