@@ -5,39 +5,44 @@
 	<section id="scatter-gather-introduction">
 		<title>Introduction</title>
 		<para>
-			Starting with <emphasis>version 4.1</emphasis> the Spring Integration provides the
-			<ulink url="http://www.eaipatterns.com/BroadcastAggregate.html/">Scatter-Gather</ulink>
-			Enterprise Integration Pattern implementation. It is a compound endpoint, which goal is to send a message
-			to the recipients and aggregate results. Quoting EIP Book, it is a component for scenarios like
-			<emphasis>best quote</emphasis>, when we need to request an info from several suppliers
+			Starting with <emphasis>version 4.1</emphasis>, Spring Integration provides an implementation
+			of the <ulink url="http://www.eaipatterns.com/BroadcastAggregate.html/">Scatter-Gather</ulink>
+			Enterprise Integration Pattern. It is a compound endpoint, where the goal is to send a message
+			to the recipients and aggregate the results. Quoting the EIP Book, it is a component for scenarios like
+			<emphasis>best quote</emphasis>, when we need to request information from several suppliers
 			and decide which one provides us with the best term for the requested item.
 		</para>
 		<para>
-			The <classname>ScatterGatherHandler</classname> is a <emphasis>request-reply</emphasis> combination of the
+			Previously, the pattern could be configured using discrete components, this enhancement brings
+			more convenient configuration.
+		</para>
+		<para>
+			The <classname>ScatterGatherHandler</classname> is a <emphasis>request-reply</emphasis> endpoint
+			that combines a 
 			<classname>PublishSubscribeChannel</classname> (or <classname>RecipientListRouter</classname>)
-			and <classname>AggregatingMessageHandler</classname>. The request message is send to the
-			<code>scatter</code> channel and <classname>ScatterGatherHandler</classname> waits for the reply
-			from the aggregator to send it further to the <code>outputChannel</code>.
+			and an <classname>AggregatingMessageHandler</classname>. The request message is sent to the
+			<code>scatter</code> channel and the <classname>ScatterGatherHandler</classname> waits for the reply
+			from the aggregator to sends to the <code>outputChannel</code>.
 		</para>
 	</section>
 
 	<section id="scatter-gather-functionality">
 		<title>Functionality</title>
 		<para>
-			The <code>Scatter-Gather</code> suggests two scenarios - <emphasis>Auction</emphasis> and
-			<emphasis>Distribution</emphasis>. In both cases the <code>aggregation</code> function is the same and
+			The <code>Scatter-Gather</code> pattern suggests two scenarios - <emphasis>Auction</emphasis> and
+			<emphasis>Distribution</emphasis>. In both cases, the <code>aggregation</code> function is the same and
 			provides all options available for the <classname>AggregatingMessageHandler</classname>. Actually the
-			<classname>ScatterGatherHandler</classname> just requires <classname>AggregatingMessageHandler</classname>
+			<classname>ScatterGatherHandler</classname> just requires an <classname>AggregatingMessageHandler</classname>
 			as a constructor argument. See <xref linkend="aggregator"/> for more information.
 		</para>
 		<para><emphasis>Auction</emphasis></para>
 		<para>
-			The <emphasis>Auction</emphasis> <code>Scatter-Gather</code> variant presumes the
-			<code>publish-subscribe</code> logic for the request message, when in classical case the
-			<code>scatter</code> channel is <classname>PublishSubscribeChannel</classname> with
-			<code>apply-sequence="true"</code>. However this channel can be any
-			<interfacename>MessageChannel</interfacename> implementation as it is with <code>request-channel</code>
-			in the <code>ContentEnricher</code> (see <xref linkend="content-enricher"/>), but in this case end-user
+			The <emphasis>Auction</emphasis> <code>Scatter-Gather</code> variant uses
+			<code>publish-subscribe</code> logic for the request message, where the
+			<code>scatter</code> channel is a <classname>PublishSubscribeChannel</classname> with
+			<code>apply-sequence="true"</code>. However, this channel can be any
+			<interfacename>MessageChannel</interfacename> implementation as is the case with the <code>request-channel</code>
+			in the <code>ContentEnricher</code> (see <xref linkend="content-enricher"/>) but, in this case, the end-user
 			should support his own custom <code>correlationStrategy</code> for the <code>aggregation</code> function.
 		</para>
 		<para><emphasis>Distribution</emphasis></para>
@@ -46,32 +51,34 @@
 			<classname>RecipientListRouter</classname> (see <xref linkend="router-implementations-recipientlistrouter"/>)
 			with all available options for the <classname>RecipientListRouter</classname>. This is the second
 			<classname>ScatterGatherHandler</classname> constructor argument. If you want to rely just on the default
-			<code>correlationStrategy</code> for the <code>recipient-list-router</code> and the next
-			<code>aggregator</code> you	should specify <code>apply-sequence="true"</code>. Otherwise the custom
+			<code>correlationStrategy</code> for the <code>recipient-list-router</code> and the
+			<code>aggregator</code>, you	should specify <code>apply-sequence="true"</code>. Otherwise, a custom
 			<code>correlationStrategy</code> should be supplied for the <code>aggregator</code>.
-			Unlike the <classname>PublishSubscribeChannel</classname> (<emphasis>Auction</emphasis>), having the
-			<code>recipient-list-router</code> <code>selector</code> option we can <emphasis>filter</emphasis>
-			target suppliers from message to message. Anyway with <code>apply-sequence="true"</code> the default
-			<code>sequenceSize</code> will be supplied and <code>aggregator</code> will be able to release group
-			correctly.The <emphasis>Distribution</emphasis> is mutually exclusive with <emphasis>Auction</emphasis>.
+			Unlike the <classname>PublishSubscribeChannel</classname> (<emphasis>Auction</emphasis>) variant, having a
+			<code>recipient-list-router</code> <code>selector</code> option, we can <emphasis>filter</emphasis>
+			target suppliers based on the message. With <code>apply-sequence="true"</code> the default
+			<code>sequenceSize</code> will be supplied and the <code>aggregator</code> will be able to release the group
+			correctly.The <emphasis>Distribution</emphasis> option is mutually exclusive with the <emphasis>Auction</emphasis>
+			option.
 		</para>
 		<para>
-			In both cases the request (<emphasis>scatter</emphasis>) message is enriched with the
-			<code>gatherResultChannel</code> <classname>QueueChannel</classname> header to wait a reply message from
+			In both cases, the request (<emphasis>scatter</emphasis>) message is enriched with the
+			<code>gatherResultChannel</code> <classname>QueueChannel</classname> header, to wait for a reply message from
 			the <code>aggregator</code>.
 		</para>
 		<para>
-			By default default all suppliers should send their result to the <code>replyChannel</code> from header,
-			however the <code>gatherChannel</code> option is also provided, assuming that suppliers will send their
+			By default, all suppliers should send their result to the <code>replyChannel</code> header
+			(usually by omitting the <code>output-channel</code> from the ultimate endpoint).
+			However, the <code>gatherChannel</code> option is also provided, allowing suppliers to send their
 			reply to that channel for the aggregation.
 		</para>
 	</section>
 
 	<section id="scatter-gather-namespace">
-		<title>Configuring a Scatter-Gather</title>
+		<title>Configuring a Scatter-Gather Endpoint</title>
 		<para>
-			For Java and Annotations configuration the bean definition for the <code>Scatter-Gather</code>
-			transparently:
+			For Java and Annotation configuration, the bean definition for the <code>Scatter-Gather</code>
+			is:
 		</para>
 		<programlisting language="java"><![CDATA[@Bean
 public MessageHandler distributor() {
@@ -100,14 +107,14 @@ public MessageHandler scatterGatherDistribution() {
 	return handler;
 }]]></programlisting>
 		<para>
-			We configure here the <classname>RecipientListRouter</classname> <code>distributor</code> bean, with the
-			<code>applySequence="true"</code> option and the list of recipient channels. The next bean is for
-			<classname>AggregatingMessageHandler</classname>. In the end we inject both those beans to the
-			<classname>ScatterGatherHandler</classname> bean definition and mark it with
-			<classname>@ServiceActivator</classname> to wire the Scatter-Gather component to the integration flow.
+			Here, we configure the <classname>RecipientListRouter</classname> <code>distributor</code> bean, with
+			<code>applySequence="true"</code> and the list of recipient channels. The next bean is for an
+			<classname>AggregatingMessageHandler</classname>. Finally, we inject both those beans into the
+			<classname>ScatterGatherHandler</classname> bean definition and mark it as a
+			<classname>@ServiceActivator</classname> to wire the Scatter-Gather component into the integration flow.
 		</para>
 		<para>
-			The whole list of <code>&lt;scatter-gather&gt;</code> option for the xml configuration:
+			Configuring the <code>&lt;scatter-gather&gt;</code> endpoint using the XML namespace:
 		</para>
 		<programlisting language="xml"><![CDATA[<scatter-gather
 		id="" ]]><co id="sg1" linkends="sg1-txt" /><![CDATA[
@@ -131,15 +138,15 @@ public MessageHandler scatterGatherDistribution() {
 					The <classname>ScatterGatherHandler</classname> bean is registered with <code>id + '.handler'</code>
 					alias. The <classname>RecipientListRouter</classname> - with <code>id + '.scatterer'</code>.
 					And the <classname>AggregatingMessageHandler</classname> with <code>id + '.gatherer'</code>.
-					<emphasis>Optional</emphasis> (default is generated value by <interfacename>BeanFactory</interfacename>).
+					<emphasis>Optional</emphasis> (a default id is generated value by <interfacename>BeanFactory</interfacename>).
 				</para>
 			</callout>
 
 			<callout arearefs="sg2" id="sg2-txt">
 				<para>Lifecycle attribute signaling if the Endpoint should be started during Application Context
-					startup. In addition the <classname>ScatterGatherHandler</classname> also implements
+					initialization. In addition, the <classname>ScatterGatherHandler</classname> also implements
 					<interfacename>Lifecycle</interfacename> and starts/stops the <code>gatherEndpoint</code>, which
-					is created internally if <code>gather-channel</code> is provided.
+					is created internally if a <code>gather-channel</code> is provided.
 					<emphasis>Optional</emphasis> (default is <code>true</code>).</para>
 			</callout>
 
@@ -170,7 +177,7 @@ public MessageHandler scatterGatherDistribution() {
 			</callout>
 
 			<callout arearefs="sg7" id="sg7-txt">
-				<para>Order of this component when more than one handle is subscribed to the same DirectChannel
+				<para>Order of this component when more than one handler is subscribed to the same DirectChannel
 					(use for load balancing purposes).
 					<emphasis>Optional</emphasis>.</para>
 			</callout>
@@ -189,8 +196,8 @@ public MessageHandler scatterGatherDistribution() {
 				<para>The timeout interval to wait when sending a reply
 					<interfacename>Message</interfacename> to the <code>output-channel</code>.
 					By default the send will block for one second.
-					It is applied only if the output channel has some 'sending' limitations, e.g. <classname>QueueChannel</classname>
-					with a fixed 'capacity'. In this case a <classname>MessageDeliveryException</classname> is thrown.
+					It applies only if the output channel has some 'sending' limitations, e.g. a <classname>QueueChannel</classname>
+					with a fixed 'capacity' and is full. In this case, a <classname>MessageDeliveryException</classname> is thrown.
 					The <code>send-timeout</code> is ignored in case of <classname>AbstractSubscribableChannel</classname> implementations.
 					In case of <code>group-timeout(-expression)</code> the <classname>MessageDeliveryException</classname>
 					from the scheduled expire task leads this task to be rescheduled.
@@ -200,7 +207,7 @@ public MessageHandler scatterGatherDistribution() {
 			<callout arearefs="sg10" id="sg10-txt">
 				<para>Allows you to specify how long the Scatter-Gather will wait for the reply message
 					before returning. By default it will wait indefinitely. 'null' is returned
-					if the gateway times out.
+					if the reply times out.
 					<emphasis>Optional</emphasis>. Defaults to <code>-1</code> - indefinitely.</para>
 			</callout>
 
