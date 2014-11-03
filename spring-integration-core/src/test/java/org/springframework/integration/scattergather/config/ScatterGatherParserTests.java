@@ -64,6 +64,7 @@ public class ScatterGatherParserTests {
 
 		Object reaper = this.beanFactory.getBean("reaper");
 		assertSame(gatherer.getMessageStore(), TestUtils.getPropertyValue(reaper, "messageGroupStore"));
+		assertTrue(TestUtils.getPropertyValue(scatterGather, "requiresReply", Boolean.class));
 	}
 
 	@Test
