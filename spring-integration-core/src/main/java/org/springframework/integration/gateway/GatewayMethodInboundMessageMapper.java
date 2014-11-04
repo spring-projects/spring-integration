@@ -139,6 +139,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		this.payloadExpression = PARSER.parseExpression(expressionString);
 	}
 
+	@Override
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.beanFactory = beanFactory;
@@ -146,7 +147,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		}
 	}
 
- 	public Message<?> toMessage(Object[] arguments) {
+	@Override
+	public Message<?> toMessage(Object[] arguments) {
 		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length != this.parameterList.size()) {
 			String prefix = (arguments.length < this.parameterList.size()) ? "Not enough" : "Too many";
@@ -275,7 +277,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				Object argumentValue = arguments[i];
 				MethodParameter methodParameter = GatewayMethodInboundMessageMapper.this.parameterList.get(i);
 				Annotation annotation =
-						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations());
+						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(), false);
 				if (annotation != null) {
 					if (annotation.annotationType().equals(org.springframework.integration.annotation.Payload.class)
 							|| annotation.annotationType().equals(Payload.class)) {

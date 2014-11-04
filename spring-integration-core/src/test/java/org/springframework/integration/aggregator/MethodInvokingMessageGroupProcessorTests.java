@@ -56,7 +56,7 @@ import org.springframework.messaging.support.GenericMessage;
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
 
-	private List<Message<?>> messagesUpForProcessing = new ArrayList<Message<?>>(3);
+	private final List<Message<?>> messagesUpForProcessing = new ArrayList<Message<?>>(3);
 
 	@Mock
 	private MessageGroup messageGroupMock;
@@ -137,11 +137,37 @@ public class MethodInvokingMessageGroupProcessorTests {
 	}
 
 	@Test
-	public void shouldFindAnnotatedPayloads() throws Exception {
+	public void shouldFindListPayloads() throws Exception {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
-			public String and(@Payloads List<Integer> flags, @Header("foo") List<Integer> header) {
+			public String and(List<Integer> flags, @Header("foo") List<Integer> header) {
+				List<Integer> result = new ArrayList<Integer>();
+				for (int flag : flags) {
+					result.add(flag);
+				}
+				for (int flag : header) {
+					result.add(flag);
+				}
+				return result.toString();
+			}
+		}
+
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
+		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+	}
+
+	@Test
+	public void shouldFindAnnotatedPayloadsWithNoType() throws Exception {
+
+		@SuppressWarnings("unused")
+		class SimpleAggregator {
+			public String and(@Payloads List<?> rawFlags, @Header("foo") List<Integer> header) {
+				@SuppressWarnings("unchecked")
+				List<Integer> flags = (List<Integer>) rawFlags;
 				List<Integer> result = new ArrayList<Integer>();
 				for (int flag : flags) {
 					result.add(flag);
@@ -242,6 +268,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
+			@Override
 			public Iterator<?> convert(ArrayList<?> source) {
 				return source.iterator();
 			}
@@ -523,6 +550,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			this.greeting = greeting;
 		}
 
+		@Override
 		@Aggregator
 		public String sayHello(List<String> names) {
 			return greeting + " " + names.get(0);

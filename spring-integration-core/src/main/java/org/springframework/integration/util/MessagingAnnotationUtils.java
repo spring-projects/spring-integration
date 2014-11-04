@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.annotation.Payloads;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -97,14 +98,15 @@ public final class MessagingAnnotationUtils {
 
 	/**
 	 * Find the one of {@link Payload}, {@link Header} or {@link Headers} annotation from
-	 * the provided {@code annotations} array.
+	 * the provided {@code annotations} array. Optionally also detects {@link Payloads}.
 	 * @param annotations the annotations to scan.
+	 * @param payloads true if @Payloads should be detected.
 	 * @return the matched annotation or {@code null}.
 	 * @throws MessagingException if more than one of {@link Payload}, {@link Header}
 	 * or {@link Headers} annotations are presented.
 	 */
 	@SuppressWarnings("deprecation")
-	public static Annotation findMessagePartAnnotation(Annotation[] annotations) {
+	public static Annotation findMessagePartAnnotation(Annotation[] annotations, boolean payloads) {
 		if (annotations == null || annotations.length == 0) {
 			return null;
 		}
@@ -116,7 +118,8 @@ public final class MessagingAnnotationUtils {
 					|| type.equals(org.springframework.integration.annotation.Header.class)
 					|| type.equals(Header.class)
 					|| type.equals(org.springframework.integration.annotation.Headers.class)
-					|| type.equals(Headers.class)) {
+					|| type.equals(Headers.class)
+					|| (payloads && type.equals(Payloads.class))) {
 				if (match != null) {
 					throw new MessagingException("At most one parameter annotation can be provided "
 							+ "for message mapping, but found two: [" + match.annotationType().getName() + "] and ["

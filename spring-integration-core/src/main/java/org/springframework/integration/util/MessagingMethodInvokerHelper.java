@@ -605,7 +605,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				TypeDescriptor parameterTypeDescriptor = new TypeDescriptor(methodParameter);
 				Class<?> parameterType = parameterTypeDescriptor.getObjectType();
 				Annotation mappingAnnotation =
-						MessagingAnnotationUtils.findMessagePartAnnotation(parameterAnnotations[i]);
+						MessagingAnnotationUtils.findMessagePartAnnotation(parameterAnnotations[i], true);
 				if (mappingAnnotation != null) {
 					Class<? extends Annotation> annotationType = mappingAnnotation.annotationType();
 					if (annotationType.equals(org.springframework.integration.annotation.Payload.class)
