@@ -196,9 +196,11 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			}
 		}
 		else {
-			Assert.state(this.confirmAckChannel == null || this.confirmAckChannel instanceof NullChannel,
+			NullChannel nullChannel = extractTypeIfPossible(this.confirmAckChannel, NullChannel.class);
+			Assert.state(this.confirmAckChannel == null || nullChannel != null,
 					"A 'confirmCorrelationExpression' is required when specifying a 'confirmAckChannel'");
-			Assert.state(this.confirmNackChannel == null || this.confirmNackChannel instanceof NullChannel,
+			nullChannel = extractTypeIfPossible(this.confirmNackChannel, NullChannel.class);
+			Assert.state(this.confirmNackChannel == null || nullChannel != null,
 					"A 'confirmCorrelationExpression' is required when specifying a 'confirmNackChannel'");
 		}
 		if (this.returnChannel != null) {

@@ -21,6 +21,8 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.TargetSource;
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -227,6 +229,28 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 */
 	protected <T> T getIntegrationProperty(String key, Class<T> tClass) {
 		return this.defaultConversionService.convert(this.integrationProperties.getProperty(key), tClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
+		if (targetObject == null) {
+			return null;
+		}
+		if (expectedType.isAssignableFrom(targetObject.getClass())) {
+			return (T) targetObject;
+		}
+		if (targetObject instanceof Advised) {
+			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
+			if (targetSource == null) {
+				return null;
+			}
+			try {
+				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
+			} catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+		return null;
 	}
 
 	@Override
