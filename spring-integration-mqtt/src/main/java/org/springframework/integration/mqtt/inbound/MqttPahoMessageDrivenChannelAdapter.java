@@ -119,28 +119,30 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	protected void doStop() {
 		this.cancelReconnect();
 		super.doStop();
-		try {
-			this.client.unsubscribe(this.getTopic())
-					.waitForCompletion(this.completionTimeout);
+		if (this.client != null) {
+			try {
+				this.client.unsubscribe(this.getTopic())
+						.waitForCompletion(this.completionTimeout);
+			}
+			catch (MqttException e) {
+				logger.error("Exception while unsubscribing", e);
+			}
+			try {
+				this.client.disconnect()
+						.waitForCompletion(this.completionTimeout);
+			}
+			catch (MqttException e) {
+				logger.error("Exception while disconnecting", e);
+			}
+			try {
+				this.client.close();
+			}
+			catch (MqttException e) {
+				logger.error("Exception while closing", e);
+			}
+			this.connected = false;
+			this.client = null;
 		}
-		catch (MqttException e) {
-			logger.error("Exception while unsubscribing", e);
-		}
-		try {
-			this.client.disconnect()
-					.waitForCompletion(this.completionTimeout);
-		}
-		catch (MqttException e) {
-			logger.error("Exception while disconnecting", e);
-		}
-		try {
-			this.client.close();
-		}
-		catch (MqttException e) {
-			logger.error("Exception while closing", e);
-		}
-		this.connected = false;
-		this.client = null;
 	}
 
 	@Override

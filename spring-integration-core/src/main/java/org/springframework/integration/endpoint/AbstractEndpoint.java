@@ -35,6 +35,7 @@ import org.springframework.scheduling.TaskScheduler;
  *
  * @author Mark Fisher
  * @author Kris Jacyna
+ * @author Gary Russell
  */
 public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle {
 
@@ -57,20 +58,24 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		this.phase = phase;
 	}
 
+	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
 	}
 
 	// SmartLifecycle implementation
 
+	@Override
 	public final boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	@Override
 	public final int getPhase() {
 		return this.phase;
 	}
 
+	@Override
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();
 		try {
@@ -81,6 +86,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		}
 	}
 
+	@Override
 	public final void start() {
 		this.lifecycleLock.lock();
 		try {
@@ -97,6 +103,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		}
 	}
 
+	@Override
 	public final void stop() {
 		this.lifecycleLock.lock();
 		try {
@@ -113,10 +120,17 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		}
 	}
 
+	@Override
 	public final void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
-			doStop(callback);
+			if (this.running) {
+				doStop(callback);
+				this.running = false;
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
+			}
 		}
 		finally {
 			this.lifecycleLock.unlock();
@@ -128,8 +142,8 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 	 * @param callback the Runnable to invoke.
 	 */
 	protected void doStop(Runnable callback) {
-	    doStop();
-	    callback.run();
+		doStop();
+		callback.run();
 	}
 
 	/**
