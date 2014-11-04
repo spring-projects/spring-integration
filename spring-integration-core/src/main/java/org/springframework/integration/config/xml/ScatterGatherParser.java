@@ -111,6 +111,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "gather-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "gather-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 
 		return builder;
 	}

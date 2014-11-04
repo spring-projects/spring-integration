@@ -18,7 +18,7 @@
 		</para>
 		<para>
 			The <classname>ScatterGatherHandler</classname> is a <emphasis>request-reply</emphasis> endpoint
-			that combines a 
+			that combines a
 			<classname>PublishSubscribeChannel</classname> (or <classname>RecipientListRouter</classname>)
 			and an <classname>AggregatingMessageHandler</classname>. The request message is sent to the
 			<code>scatter</code> channel and the <classname>ScatterGatherHandler</classname> waits for the reply
@@ -52,14 +52,14 @@
 			with all available options for the <classname>RecipientListRouter</classname>. This is the second
 			<classname>ScatterGatherHandler</classname> constructor argument. If you want to rely just on the default
 			<code>correlationStrategy</code> for the <code>recipient-list-router</code> and the
-			<code>aggregator</code>, you	should specify <code>apply-sequence="true"</code>. Otherwise, a custom
+			<code>aggregator</code>, you should specify <code>apply-sequence="true"</code>. Otherwise, a custom
 			<code>correlationStrategy</code> should be supplied for the <code>aggregator</code>.
 			Unlike the <classname>PublishSubscribeChannel</classname> (<emphasis>Auction</emphasis>) variant, having a
 			<code>recipient-list-router</code> <code>selector</code> option, we can <emphasis>filter</emphasis>
 			target suppliers based on the message. With <code>apply-sequence="true"</code> the default
 			<code>sequenceSize</code> will be supplied and the <code>aggregator</code> will be able to release the group
-			correctly.The <emphasis>Distribution</emphasis> option is mutually exclusive with the <emphasis>Auction</emphasis>
-			option.
+			correctly. The <emphasis>Distribution</emphasis> option is mutually exclusive with the
+			<emphasis>Auction</emphasis> option.
 		</para>
 		<para>
 			In both cases, the request (<emphasis>scatter</emphasis>) message is enriched with the
@@ -126,9 +126,10 @@ public MessageHandler scatterGatherDistribution() {
 		order="" ]]><co id="sg7" linkends="sg7-txt" /><![CDATA[
 		phase="" ]]><co id="sg8" linkends="sg8-txt" /><![CDATA[
 		send-timeout="" ]]><co id="sg9" linkends="sg9-txt" /><![CDATA[
-		gather-timeout="" >]]><co id="sg10" linkends="sg10-txt" /><![CDATA[
-			<scatterer/> ]]><co id="sg11" linkends="sg11-txt" /><![CDATA[
-			<gatherer/> ]]><co id="sg12" linkends="sg12-txt" /><![CDATA[
+		gather-timeout="" ]]><co id="sg10" linkends="sg10-txt" /><![CDATA[
+		requires-reply="" >]]><co id="sg11" linkends="sg11-txt" /><![CDATA[
+			<scatterer/> ]]><co id="sg12" linkends="sg12-txt" /><![CDATA[
+			<gatherer/> ]]><co id="sg13" linkends="sg13-txt" /><![CDATA[
 </scatter-gather>]]></programlisting>
 
 		<calloutlist>
@@ -212,6 +213,16 @@ public MessageHandler scatterGatherDistribution() {
 			</callout>
 
 			<callout arearefs="sg11" id="sg11-txt">
+				<para>
+					Specify whether the Scatter-Gather must return a non-null value. This value is
+					<code>true</code> by default, hence a <classname>ReplyRequiredException</classname> will be thrown
+					when the underlying aggregator returns a null value after <code>gather-timeout</code>.
+					Note, if the <code>null</code> is a case, the <code>gather-timeout</code> should be specified
+					to avoid indefinite wait.
+				</para>
+			</callout>
+
+			<callout arearefs="sg12" id="sg12-txt">
 				<para>The <code>&lt;recipient-list-router&gt;</code> options.
 					<emphasis>Optional</emphasis>. Mutually exclusive with <code>scatter-channel</code>
 					attribute.</para>
