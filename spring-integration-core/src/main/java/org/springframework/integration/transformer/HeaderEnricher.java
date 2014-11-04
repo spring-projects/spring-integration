@@ -157,12 +157,14 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 			if (processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 				((BeanFactoryAware) processor).setBeanFactory(this.getBeanFactory());
 			}
-			Boolean processerOverwrite = processor.isOverwrite();
-			if (processerOverwrite != null) {
-				shouldOverwrite |= processerOverwrite;
+			Boolean processorOverwrite = processor.isOverwrite();
+			if (processorOverwrite != null) {
+				shouldOverwrite |= processorOverwrite;
 			}
 		}
-		if (this.messageProcessor != null && this.messageProcessor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
+		if (this.messageProcessor != null
+				&& this.messageProcessor instanceof BeanFactoryAware
+				&& this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
 		}
 		if (!shouldOverwrite && !this.shouldSkipNulls) {
