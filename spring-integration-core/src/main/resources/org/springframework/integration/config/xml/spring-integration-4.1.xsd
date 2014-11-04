@@ -4296,8 +4296,16 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				<xsd:documentation>
 					Allows to specify how long the Scatter-Gather will wait for reply Messages for gathering.
 					By default it will wait indefinitely. Value is specified in milliseconds.
-					It will be applied only if the 'gather-channel' is specified and it is some blocking channel,
-					e.g. 'QueueChannel'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify whether the Scatter-Gather must return a non-null value. This value is
+					'true' by default, hence a ReplyRequiredException will be thrown when
+					the underlying aggregator returns a null value after 'gather-timeout'.
+					Note, if the 'null' is a case, the 'gather-timeout' should be specified to avoid indefinite wait.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
