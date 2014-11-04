@@ -985,7 +985,7 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             <para>
                 Note that these methods can be used for simple changes (updating a single route or adding/removing a
                 route). However, if you want to remove one route and add another, the updates are not atomic. This
-                means the routing table may be in an indeterminate state betweent the updates. Starting with
+                means the routing table may be in an indeterminate state between the updates. Starting with
                 <emphasis>version 4.0</emphasis>, you can now use the control bus to update the entire routing
                 table atomically.
             </para>
@@ -1002,10 +1002,10 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
                       Notice that the parameter is a properties object; this allows the use of the inbuilt
                       <code>StringToPropertiesConverter</code> by a control bus command, for example:
                       <programlisting>"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')"</programlisting>
-                      - note that each mapping is separted by a newline character (<code>\n</code>). For programmatic
+                      - note that each mapping is separated by a newline character (<code>\n</code>). For programmatic
                       changes to the map, it is recommended that the <code>setChannelMappings</code> method
                       is used instead, for type-safety. Any non-String keys or values passed into
-                      <code>replaceChannelMappings</code> are ingnored.
+                      <code>replaceChannelMappings</code> are ignored.
                   </para>
                 </listitem>
             </itemizedlist>
@@ -1018,15 +1018,184 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             </para>
             <note>
                 <para>
-                    For more information about Spring Integration's JMX suppor, please see chapter <emphasis><xref linkend="jmx" endterm="jmx.title"/></emphasis>.
+                    For more information about Spring Integration's JMX support, please see chapter
+                    <emphasis><xref linkend="jmx" endterm="jmx.title"/></emphasis>.
                 </para>
             </note>
         </section>
         <section id="routing-slip">
             <title>Routing Slip</title>
             <para>
-                TBD
+                Starting with <emphasis>version 4.1</emphasis> the Spring Integration provides an implementation
+                of the <ulink url="http://www.eaipatterns.com/RoutingTable.html">Routing Slip</ulink>
+                Enterprise Integration Pattern. It is presented as a <code>routingSlip</code> message header and
+                involved in the <code>produceOutput</code> operation from the
+                <classname>AbstractMessageProducingHandler</classname>, when the <code>outputChannel</code> isn't
+                specified for the endpoint. This pattern is useful in complex, dynamic, cases when it can become
+                difficult to configure multiple routers to determine message flow. When a message arrives at an
+                endpoint that has no <code>output-channel</code>, the <code>routingSlip</code> is consulted
+                to determine the next channel to which the message will be sent. When the routing slip is exhausted,
+                the normal <code>replyChannel</code> processing resumes.
             </para>
+            <para>
+                The configuration for the <emphasis>Routing Slip</emphasis> is presented as a
+                <code>HeaderEnricher</code> option - a <emphasis>semicolon-separated</emphasis> Routing Slip
+                <code>path</code>:
+            </para>
+            <programlisting language="xml"><![CDATA[<util:properties id="properties">
+		<beans:prop key="myRoutePath1">channel1</beans:prop>
+		<beans:prop key="myRoutePath2">request.headers[myRoutingSlipChannel]</beans:prop>
+	</util:properties>
+
+	<context:property-placeholder properties-ref="properties"/>
+
+	<header-enricher input-channel="input" output-channel="process">
+		<routing-slip
+				value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
+							routingSlipRoutingStrategy; ${myRoutePath2}; finishChannel"/>
+	</header-enricher>]]></programlisting>
+            <para>
+                In this sample we have:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The <code>&lt;context:property-placeholder&gt;</code> configuration to demonstrate that the
+                        items in the Routing Slip <code>path</code> can be specified as resolvable keys;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The <code>&lt;header-enricher&gt;</code> <code>&lt;routing-slip&gt;</code> sub-element is
+                        used to populate the <classname>RoutingSlipHeaderValueMessageProcessor</classname> to the
+                        <classname>HeaderEnricher</classname> handler;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The <classname>RoutingSlipHeaderValueMessageProcessor</classname> accepts the String array of
+                        resolved Routing Slip <code>path</code> and returns from the <code>processMessage()</code>
+                        a <code>singletonMap</code> with the <code>path</code> as <code>key</code> and <code>0</code>
+                        as initial <code>routingSlipIndex</code>.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                The Routing Slip <code>path</code> can contains <interfacename>MessageChannel</interfacename> bean
+                names, the <interfacename>RoutingSlipRouteStrategy</interfacename> bean names and also Spring
+                expressions (SpEL). The <classname>RoutingSlipHeaderValueMessageProcessor</classname> checks each
+                Routing Slip <code>path</code> item against <interfacename>BeanFactory</interfacename> on the
+                first <code>processMessage</code> invocation. Converts those items, which aren't beans in the
+                application context, to the <classname>ExpressionEvaluatingRoutingSlipRouteStrategy</classname>.
+            </para>
+            <para>
+                Since <emphasis>Routing Slip</emphasis> is involved in the <code>getOutputChannel</code> process we
+                have a <emphasis>request-reply</emphasis> context there, therefore the
+                <interfacename>RoutingSlipRouteStrategy</interfacename> has been introduced to determine the next
+                <code>outputChannel</code> by the <code>requestMessage</code>, as well as by the <code>reply</code>
+                object. The implementation of this strategy should be presented as a bean in the application context
+                and its bean name should be used in the Routing Slip <code>path</code>. The
+                <classname>ExpressionEvaluatingRoutingSlipRouteStrategy</classname> implementation is presented. It
+                accepts the SpEL expression, when an internal
+                <classname>ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply</classname> object is used as
+                a <emphasis>root object</emphasis> of evaluation context. It is necessary to avoid an overhead of the
+                <interfacename>EvaluationContext</interfacename> creation on each
+                <code>ExpressionEvaluatingRoutingSlipRouteStrategy.getNextPath()</code> invocation. It is a simple
+                Java Bean with two properties - <code>Message&lt;?&gt; request</code> and <code>Object reply</code>.
+                With this expression implementation we can specify Routing Slip <code>path</code> items as a SpEL
+                (<code>@routingSlipRoutingPojo.get(request, reply)</code>, <code>request.headers[myRoutingSlipChannel]</code>)
+                and avoid a bean definition for the <interfacename>RoutingSlipRouteStrategy</interfacename>.
+            </para>
+            <important>
+                <para>
+                    If <emphasis>Routing Slip</emphasis> is involved in the distributed environment - cross-JVM
+                    application, <code>request-reply</code> through the Message Broker (<xref linkend="amqp"/>,
+                    <xref linkend="jms"/>), persistence <interfacename>MessageStore</interfacename>
+                    (<xref linkend="message-store"/>) is used in the integration flow, etc., - it isn't recommended
+                    to use <emphasis>inline</emphasis> expressions for the Routing Slip <code>path</code>. Framework
+                    (<classname>RoutingSlipHeaderValueMessageProcessor</classname>) converts them to the
+                    <classname>ExpressionEvaluatingRoutingSlipRouteStrategy</classname> objects and they are used in
+                    the <code>routingSlip</code> message header. Since this class isn't
+                    <interfacename>Serializable</interfacename> (and it can't be, because it depends on the
+                    <interfacename>BeanFactory</interfacename>) the entire Message becomes non-serializable and in
+                    any distributed operation we end up with <classname>NotSerializableException</classname>.
+                    To overcome that there is just enough to register
+                    <classname>ExpressionEvaluatingRoutingSlipRouteStrategy</classname> bean with desired SpEL and
+                    use its bean name in the Routing Slip <code>path</code> configuration.
+                </para>
+            </important>
+            <para>
+                From the Java configuration it's enough to populate
+                <classname>RoutingSlipHeaderValueMessageProcessor</classname> bean to the
+                <classname>HeaderEnricher</classname> bean definition:
+            </para>
+            <programlisting language="java"><![CDATA[@Bean
+public HeaderValueMessageProcessor<?> routingSlipHeader() {
+	return new RoutingSlipHeaderValueMessageProcessor("myRoutePath1",
+			"@routingSlipRoutingPojo.get(request, reply)",
+			"routingSlipRoutingStrategy",
+			"request.headers[myRoutingSlipChannel]",
+			"finishChannel");
+}
+@Bean
+@Transformer(inputChannel = "routingSlipHeaderChannel")
+public HeaderEnricher headerEnricher() {
+	return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+			routingSlipHeader()));
+}]]></programlisting>
+            <para>
+               The <emphasis>Routing Slip</emphasis> algorithm works like:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The <code>routingSlipIndex</code> is used to get a value from the Routing Slip
+                        <code>path</code> list;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If the value by <code>routingSlipIndex</code> is <classname>String</classname>, the last one
+                        is used to get a bean from <interfacename>BeanFactory</interfacename>;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If a returned bean is an instance of <interfacename>MessageChannel</interfacename>, it is used
+                        as next <code>outputChannel</code> and the <code>routingSlipIndex</code> is incremented and
+                        populated to the reply message header alongside with the unchanged Routing Slip
+                        <code>path</code>;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If a bean is an instance of <interfacename>RoutingSlipRouteStrategy</interfacename> and its
+                        <code>getNextPath</code> doesn't return an empty String, that result is used a bean name for
+                        the next <code>outputChannel</code>. The <code>routingSlipIndex</code> remains unchanged;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If <code>RoutingSlipRouteStrategy.getNextPath</code> returns an empty String,
+                        the <code>routingSlipIndex</code> is incremented and the
+                        <code>getOutputChannelFromRoutingSlip</code> is invoked recursively for the next Routing Slip
+                        <code>path</code> item;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If the next Routing Slip <code>path</code> item isn't String it must be only an instance of
+                        <interfacename>RoutingSlipRouteStrategy</interfacename>;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        When the <code>routingSlipIndex</code> is out of bound of Routing Slip <code>path</code>
+                        list, the algorithm moves to the default behavior for the standard <code>replyChannel</code>
+                        header.
+                    </para>
+                </listitem>
+            </itemizedlist>
         </section>
     </section>
 </section>
