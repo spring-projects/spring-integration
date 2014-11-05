@@ -583,9 +583,144 @@ public class MyAdvisedFilter {
 		</para>
 	</section>
 	<section id="idempotent-receiver">
-		<title>Idempotent Receiver EIP Pattern</title>
+		<title>Idempotent Receiver Enterprise Integration Pattern</title>
 		<para>
-			TBD
+			Starting with <emphasis>version 4.1</emphasis>, Spring Integration provides an implementation
+			of the <ulink url="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink>
+			Enterprise Integration Pattern. It is a <emphasis>functional</emphasis> pattern and the whole
+			<emphasis>idempotency</emphasis> logic should be implemented in the application, however to simplify the
+			decision-making, the <classname>IdempotentReceiverInterceptor</classname> component is provided. This is
+			an AOP <interfacename>Advice</interfacename>, which is applied to the
+			<code>MessageHandler.handleMessage()</code> method and can <code>filter</code> a request message or mark it as
+			a <code>duplicate</code>, according to its configuration.
 		</para>
+		<para>
+			Previously, users could have implemented this pattern,
+			by using a custom MessageSelector in a <code>&lt;filter/&gt;</code> (<xref linkend="filter"/>), for example.
+			However, since this pattern is really behavior of an endpoint rather than being an endpoint itself,
+			the Idempotent Receiver implementation doesn't provide an <emphasis>endpoint</emphasis> component; rather,
+			it is applied to endpoints declared in the application.
+		</para>
+		<para>
+			The logic of the <classname>IdempotentReceiverInterceptor</classname> is based on the provided
+			<interfacename>MessageSelector</interfacename> and, if the message isn't accepted by that selector, it
+			will be enriched with the <code>duplicateMessage</code> header set to  <code>true</code>. The target
+			<interfacename>MessageHandler</interfacename> (or downstream flow) can consult this header to implement the
+			correct <emphasis>idempotency</emphasis> logic. If the <classname>IdempotentReceiverInterceptor</classname>
+			is configured with a <code>discardChannel</code> and/or <code>throwExceptionOnRejection = true</code>, the
+			<emphasis>duplicate</emphasis> Message won't be sent to the target
+			<code>MessageHandler.handleMessage()</code>, but discarded. If you simply want to discard (do nothing with)
+			the <emphasis>duplicate</emphasis> Message, the <code>discardChannel</code> should be configured with a
+			<classname>NullChannel</classname>, such as the default <code>nullChannel</code> bean.
+		</para>
+		<para>
+			To maintain <emphasis>state</emphasis> between messages and provide the ability to compare messages for the
+			idempotency, the <classname>MetadataStoreSelector</classname> is provided. It accepts a
+			<interfacename>MetadataKeyStrategy</interfacename> implementation (which creates a lookup key
+			based on the <classname>Message</classname>) and an optional
+			<interfacename>ConcurrentMetadataStore</interfacename> (<xref linkend="metadata-store"/>).
+			See the <classname>MetadataStoreSelector</classname> JavaDocs for more information. An
+			<classname>ExpressionMetadataKeyStrategy</classname> implementation is provided, allowing
+			simple SpEL expressions to be used to determine the key from the message.
+		</para>
+		<para>
+			For convenience, the <classname>MetadataStoreSelector</classname> options are configurable directly on
+			the <code>&lt;idempotent-receiver&gt;</code> component:
+		</para>
+		<programlisting language="xml"><![CDATA[<idempotent-receiver
+		id="" ]]><co id="iri1" linkends="iri1-txt" /><![CDATA[
+		endpoint="" ]]><co id="iri2" linkends="iri2-txt" /><![CDATA[
+		selector="" ]]><co id="iri3" linkends="iri3-txt" /><![CDATA[
+		discard-channel="" ]]><co id="iri4" linkends="iri4-txt" /><![CDATA[
+		metadata-store="" ]]><co id="iri5" linkends="iri5-txt" /><![CDATA[
+		key-strategy="" ]]><co id="iri6" linkends="iri6-txt" /><![CDATA[
+		key-expression="" ]]><co id="iri7" linkends="iri7-txt" /><![CDATA[
+		throw-exception-on-rejection="" /> ]]><co id="iri8" linkends="iri8-txt" /></programlisting>
 	</section>
+	<calloutlist>
+		<callout arearefs="iri1" id="iri1-txt">
+			<para>The id of the <classname>IdempotentReceiverInterceptor</classname> bean.
+				<emphasis>Optional</emphasis>.</para>
+		</callout>
+
+		<callout arearefs="iri2" id="iri2-txt">
+			<para>
+				Consumer Endpoint name(s) or pattern(s) to which this interceptor will be applied.
+				Separate names (patterns) with commas (<code>,</code>)
+				e.g. <code>endpoint="aaa, bbb*, *ccc, *ddd*, eee*fff"</code>.
+				Endpoint bean names matching these patterns are then used to retrieve the target endpoint's
+				<interfacename>MessageHandler</interfacename> bean (using its <code>.handler</code> suffix),
+				and the <classname>IdempotentReceiverInterceptor</classname> will be applied to those beans.
+				<emphasis>Required</emphasis>.</para>
+		</callout>
+
+		<callout arearefs="iri3" id="iri3-txt">
+			<para>
+				A <interfacename>MessageSelector</interfacename> bean reference.
+				Mutually exclusive with <code>metadata-store</code> and
+				<code>key-strategy (key-expression)</code>.
+			</para>
+		</callout>
+
+		<callout arearefs="iri4" id="iri4-txt">
+			<para>
+				Identifies the channel to which to send a message when the <classname>IdempotentReceiverInterceptor</classname>
+				doesn't accept it. When omitted, duplicate messages are forwarded to the handler with a
+				<code>duplicateMessage</code> header. <emphasis>Optional</emphasis>.
+			</para>
+		</callout>
+
+		<callout arearefs="iri5" id="iri5-txt">
+			<para>A <interfacename>ConcurrentMetadataStore</interfacename> reference. Used by the underlying
+				<classname>MetadataStoreSelector</classname>. Mutually exclusive with <code>selector</code>.
+				<emphasis>Optional</emphasis>.
+				The default <classname>MetadataStoreSelector</classname> uses an internal
+				<classname>SimpleMetadataStore</classname> which does not maintain state across
+				application executions.</para>
+		</callout>
+
+		<callout arearefs="iri6" id="iri6-txt">
+			<para>
+				A <interfacename>MetadataKeyStrategy</interfacename> reference. Used by the underlying
+				<classname>MetadataStoreSelector</classname>.
+				Evaluates an <code>idempotentKey</code> from the request Message.
+				Mutually exclusive with <code>selector</code> and <code>key-expression</code>.
+			</para>
+		</callout>
+
+		<callout arearefs="iri7" id="iri7-txt">
+			<para>
+				A SpEL expression to populate an <classname>ExpressionMetadataKeyStrategy</classname>.
+				Used by the underlying <classname>MetadataStoreSelector</classname>.
+				Evaluates an <code>idempotentKey</code> using the request Message as the evaluation context root object.
+				Mutually exclusive with <code>selector</code> and <code>key-strategy</code>.
+			</para>
+		</callout>
+
+		<callout arearefs="iri8" id="iri8-txt">
+			<para>
+				Throw an exception if the <classname>IdempotentReceiverInterceptor</classname> rejects the message
+				defaults to <code>false</code>.
+				It is applied regardless of whether or not a <code>discard-channel</code> is provided.
+			</para>
+		</callout>
+	</calloutlist>
+	<para>
+		For Java configuration, the method level <classname>IdempotentReceiver</classname> annotation is provided. It
+		is used to mark a <code>@Bean</code> that has a Messaging annotation (<code>@ServiceActivator</code>,
+		<code>@Router</code> etc.) to specify which <classname>IdempotentReceiverInterceptor</classname>s will be
+		applied to this endpoint:
+	</para>
+	<programlisting language="java"><![CDATA[@Bean
+public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
+   return new IdempotentReceiverInterceptor(new MetadataStoreSelector(m ->
+                                                    m.getHeaders().get(INVOICE_NBR_HEADER)));
+}
+
+@Bean
+@ServiceActivator(inputChannel = "input", outputChannel = "output")
+@IdempotentReceiver("idempotentReceiverInterceptor")
+public MessageHandler myService() {
+    ....
+}]]></programlisting>
 </section>
