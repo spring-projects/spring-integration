@@ -146,10 +146,11 @@ public class HeaderChannelRegistryTests {
 	public void testExpire() throws Exception {
 		DefaultHeaderChannelRegistry registry = new DefaultHeaderChannelRegistry(50);
 		registry.setTaskScheduler(this.taskScheduler);
-		registry.start();
-		Thread.sleep(200);
 		String id = (String) registry.channelToChannelName(new DirectChannel());
-		Thread.sleep(300);
+		int n = 0;
+		while (n++ < 100 && registry.channelNameToChannel(id) != null) {
+			Thread.sleep(100);
+		}
 		assertNull(registry.channelNameToChannel(id));
 		registry.stop();
 	}
