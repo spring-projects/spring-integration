@@ -26,7 +26,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.messaging.Message;
@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  */
 public class RoutingSlipHeaderValueMessageProcessor
 		extends AbstractHeaderValueMessageProcessor<Map<List<Object>, Integer>>
-		implements BeanFactoryAware, IntegrationEvaluationContextAware {
+		implements BeanFactoryAware {
 
 	private final List<String> routingSlipPath;
 
@@ -64,12 +64,9 @@ public class RoutingSlipHeaderValueMessageProcessor
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
-	}
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);
 	}
 
 	@Override

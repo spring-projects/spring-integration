@@ -1125,23 +1125,19 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
                 </para>
             </important>
             <para>
-                From the Java configuration it's enough to populate
-                <classname>RoutingSlipHeaderValueMessageProcessor</classname> bean to the
+                From the Java configuration it's enough to populate a
+                <classname>RoutingSlipHeaderValueMessageProcessor</classname> instance to the
                 <classname>HeaderEnricher</classname> bean definition:
             </para>
             <programlisting language="java"><![CDATA[@Bean
-public HeaderValueMessageProcessor<?> routingSlipHeader() {
-	return new RoutingSlipHeaderValueMessageProcessor("myRoutePath1",
-			"@routingSlipRoutingPojo.get(request, reply)",
-			"routingSlipRoutingStrategy",
-			"request.headers[myRoutingSlipChannel]",
-			"finishChannel");
-}
-@Bean
 @Transformer(inputChannel = "routingSlipHeaderChannel")
 public HeaderEnricher headerEnricher() {
 	return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
-			routingSlipHeader()));
+			new RoutingSlipHeaderValueMessageProcessor("myRoutePath1",
+			    "@routingSlipRoutingPojo.get(request, reply)",
+			    "routingSlipRoutingStrategy",
+			    "request.headers[myRoutingSlipChannel]",
+			    "finishChannel")));
 }]]></programlisting>
             <para>
                The <emphasis>Routing Slip</emphasis> algorithm works like:
