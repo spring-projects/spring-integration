@@ -398,7 +398,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     <calloutlist>
       <callout arearefs="aggxml01" id="aggxml01-txt">
         <para>The id of the aggregator is
-        <emphasis>0ptional</emphasis>.</para>
+        <emphasis>Optional</emphasis>.</para>
       </callout>
 
       <callout arearefs="aggxml02" id="aggxml02-txt">

@@ -4352,7 +4352,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-						The 'MetadataStore' reference. Used by the underlying
+						The 'ConcurrentMetadataStore' reference. Used by the underlying
 						'org.springframework.integration.selector.MetadataStoreSelector'.
 						Mutually exclusive with 'selector'.
 						Optional. By default 'MetadataStoreSelector' uses an internal 'SimpleMetadataStore'.
