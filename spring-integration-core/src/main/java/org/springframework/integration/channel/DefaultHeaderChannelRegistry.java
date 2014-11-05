@@ -65,7 +65,9 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	private volatile int phase;
 
-	private volatile boolean autoStartup = true;
+	private volatile boolean autoStartup = false;
+
+	private volatile boolean explicitlyStopped;
 
 	/**
 	 * Constructs a registry with the default delay for channel expiry.
@@ -111,20 +113,36 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		super.setTaskScheduler(taskScheduler);
 	}
 
+	/**
+	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
+	 */
+	@Deprecated
 	@Override
 	public int getPhase() {
 		return this.phase;
 	}
 
+	/**
+	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
+	 */
+	@Deprecated
 	public final void setPhase(int phase) {
 		this.phase = phase;
 	}
 
+	/**
+	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
+	 */
+	@Deprecated
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	/**
+	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
+	 */
+	@Deprecated
 	public final void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
@@ -156,6 +174,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		if (this.reaperScheduledFuture != null) {
 			this.reaperScheduledFuture.cancel(true);
 		}
+		this.explicitlyStopped = true;
 	}
 
 	@Override
@@ -176,6 +195,9 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public Object channelToChannelName(Object channel, long timeToLive) {
+		if (!this.running && !this.explicitlyStopped && this.getTaskScheduler() != null) {
+			start();
+		}
 		if (channel != null && channel instanceof MessageChannel) {
 			String name = this.uuid + DefaultHeaderChannelRegistry.id.incrementAndGet();
 			channels.put(name, new MessageChannelWrapper((MessageChannel) channel,
