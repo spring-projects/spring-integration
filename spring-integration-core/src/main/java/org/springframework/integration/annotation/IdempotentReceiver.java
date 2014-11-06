@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A {@code @Bean} that has a MessagingAnnotation (@code @ServiceActivator, @Router etc.)
+ * A {@code method} that has a MessagingAnnotation (@code @ServiceActivator, @Router etc.)
  * that also has this annotation, has an
  * {@link org.springframework.integration.handler.advice.IdempotentReceiverInterceptor} applied
  * to the associated {@link org.springframework.messaging.MessageHandler#handleMessage} method.
