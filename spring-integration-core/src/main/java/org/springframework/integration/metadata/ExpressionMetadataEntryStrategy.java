@@ -26,13 +26,13 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 
 /**
- * The expression based {@link MetadataKeyStrategy} implementation.
+ * The expression based {@link MetadataEntryStrategy} implementation.
  * The provided {@link Message} is used as the evaluation context root object.
  *
  * @author Artem Bilan
  * @since 4.1
  */
-public class ExpressionMetadataKeyStrategy implements MetadataKeyStrategy, BeanFactoryAware {
+public class ExpressionMetadataEntryStrategy implements MetadataEntryStrategy, BeanFactoryAware {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
@@ -40,7 +40,7 @@ public class ExpressionMetadataKeyStrategy implements MetadataKeyStrategy, BeanF
 
 	private final String expressionString;
 
-	public ExpressionMetadataKeyStrategy(String expressionString) {
+	public ExpressionMetadataEntryStrategy(String expressionString) {
 		this.processor = new ExpressionEvaluatingMessageProcessor<String>(PARSER.parseExpression(expressionString));
 		this.expressionString = expressionString;
 	}
@@ -51,7 +51,7 @@ public class ExpressionMetadataKeyStrategy implements MetadataKeyStrategy, BeanF
 	}
 
 	@Override
-	public String getKey(Message<?> message) {
+	public String getEntry(Message<?> message) {
 		return this.processor.processMessage(message);
 	}
 

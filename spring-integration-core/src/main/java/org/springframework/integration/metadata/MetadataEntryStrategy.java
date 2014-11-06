@@ -19,14 +19,14 @@ package org.springframework.integration.metadata;
 import org.springframework.messaging.Message;
 
 /**
- * The strategy to extract a {@code key} for the {@code MetadataStore}
+ * The strategy to extract a {@code key} or {@code value} for the {@code MetadataStore}
  * from the provided {@link Message}.
  *
  * @author Artem Bilan
  * @since 4.1
  */
-public interface MetadataKeyStrategy {
+public interface MetadataEntryStrategy {
 
-	String getKey(Message<?> message);
+	String getEntry(Message<?> message);
 
 }

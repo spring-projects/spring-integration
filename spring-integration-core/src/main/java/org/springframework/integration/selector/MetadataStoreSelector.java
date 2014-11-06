@@ -18,18 +18,18 @@ package org.springframework.integration.selector;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.metadata.MetadataKeyStrategy;
+import org.springframework.integration.metadata.MetadataEntryStrategy;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * The {@link MessageSelector} implementation using a {@link ConcurrentMetadataStore}
- * and {@link MetadataKeyStrategy}.
+ * and {@link org.springframework.integration.metadata.MetadataEntryStrategy}.
  * <p>
  * The {@link #accept} method extracts {@code metadataKey} from the provided {@code message}
- * using {@link MetadataKeyStrategy} and uses the {@code timestamp} header as the {@code value}
- * (hex).
+ * using {@link MetadataEntryStrategy} and uses the {@code timestamp} header as the {@code value}
+ * (hex) by default. The {@link #valueStrategy} can be provided to override the default behaviour.
  * <p>
  * The successful result of the {@link #accept} method is based on the
  * {@link ConcurrentMetadataStore#putIfAbsent} return value. {@code true} is returned
@@ -52,23 +52,38 @@ public class MetadataStoreSelector implements MessageSelector {
 
 	private final ConcurrentMetadataStore metadataStore;
 
-	private final MetadataKeyStrategy keyStrategy;
+	private final MetadataEntryStrategy keyStrategy;
 
-	public MetadataStoreSelector(MetadataKeyStrategy keyStrategy) {
-		this(keyStrategy, new SimpleMetadataStore());
+	private final MetadataEntryStrategy valueStrategy;
+
+	public MetadataStoreSelector(MetadataEntryStrategy keyStrategy) {
+		this(keyStrategy, (MetadataEntryStrategy) null);
 	}
 
-	public MetadataStoreSelector(MetadataKeyStrategy keyStrategy, ConcurrentMetadataStore metadataStore) {
-		Assert.notNull(metadataStore);
+	public MetadataStoreSelector(MetadataEntryStrategy keyStrategy, MetadataEntryStrategy valueStrategy) {
+		this(keyStrategy, valueStrategy, new SimpleMetadataStore());
+	}
+
+	public MetadataStoreSelector(MetadataEntryStrategy keyStrategy, ConcurrentMetadataStore metadataStore) {
+		this(keyStrategy, null, metadataStore);
+	}
+
+	public MetadataStoreSelector(MetadataEntryStrategy keyStrategy, MetadataEntryStrategy valueStrategy,
+			ConcurrentMetadataStore metadataStore) {
 		Assert.notNull(keyStrategy);
+		Assert.notNull(metadataStore);
 		this.metadataStore = metadataStore;
 		this.keyStrategy = keyStrategy;
+		this.valueStrategy = valueStrategy;
 	}
+
 
 	@Override
 	public boolean accept(Message<?> message) {
-		String key = this.keyStrategy.getKey(message);
-		String value = Long.toString(message.getHeaders().getTimestamp());
+		String key = this.keyStrategy.getEntry(message);
+		String value = (this.valueStrategy != null)
+				? this.valueStrategy.getEntry(message)
+				: Long.toString(message.getHeaders().getTimestamp());
 
 		return this.metadataStore.putIfAbsent(key, value) == null;
 	}

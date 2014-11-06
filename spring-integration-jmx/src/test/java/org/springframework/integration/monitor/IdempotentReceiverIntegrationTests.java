@@ -43,7 +43,7 @@ import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvi
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.metadata.MetadataKeyStrategy;
+import org.springframework.integration.metadata.MetadataEntryStrategy;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
@@ -90,7 +90,8 @@ public class IdempotentReceiverIntegrationTests {
 		assertNotNull(receive);
 		assertEquals(1, this.adviceCalled.get());
 		assertEquals(1, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
-		assertNotNull(this.store.get("foo"));
+		String foo = this.store.get("foo");
+		assertEquals("FOO", foo);
 
 		try {
 			this.input.send(message);
@@ -126,13 +127,18 @@ public class IdempotentReceiverIntegrationTests {
 		@Bean
 		public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
 			IdempotentReceiverInterceptor idempotentReceiverInterceptor =
-					new IdempotentReceiverInterceptor(new MetadataStoreSelector(new MetadataKeyStrategy() {
+					new IdempotentReceiverInterceptor(new MetadataStoreSelector(new MetadataEntryStrategy() {
 
 						@Override
-						public String getKey(Message<?> message) {
+						public String getEntry(Message<?> message) {
 							return message.getPayload().toString();
 						}
 
+					}, new MetadataEntryStrategy() {
+						@Override
+						public String getEntry(Message<?> message) {
+							return message.getPayload().toString().toUpperCase();
+						}
 					}, store()));
 			idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
 			return idempotentReceiverInterceptor;
