@@ -48,7 +48,7 @@ public class RoutingSlipHeaderValueMessageProcessor
 		extends AbstractHeaderValueMessageProcessor<Map<List<Object>, Integer>>
 		implements BeanFactoryAware {
 
-	private final List<String> routingSlipPath;
+	private final List<Object> routingSlipPath;
 
 	private EvaluationContext evaluationContext;
 
@@ -56,9 +56,18 @@ public class RoutingSlipHeaderValueMessageProcessor
 
 	private BeanFactory beanFactory;
 
-	public RoutingSlipHeaderValueMessageProcessor(String... routingSlipPath) {
+	public RoutingSlipHeaderValueMessageProcessor(Object... routingSlipPath) {
 		Assert.notNull(routingSlipPath);
 		Assert.noNullElements(routingSlipPath);
+		for (Object entry : routingSlipPath) {
+			if (!(entry instanceof String
+					|| entry instanceof MessageChannel
+					|| entry instanceof RoutingSlipRouteStrategy)) {
+				throw new IllegalArgumentException("The RoutingSlip can contain " +
+						"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
+						"or MessageChannel and RoutingSlipRouteStrategy instances: " + entry);
+			}
+		}
 		this.routingSlipPath = Arrays.asList(routingSlipPath);
 	}
 
@@ -75,20 +84,29 @@ public class RoutingSlipHeaderValueMessageProcessor
 			synchronized (this) {
 				if (this.routingSlip == null) {
 					List<Object> routingSlipValues = new ArrayList<Object>(this.routingSlipPath.size());
-					for (String path : this.routingSlipPath) {
-						if (this.beanFactory.containsBean(path)) {
-							Object bean = this.beanFactory.getBean(path);
-							Assert.state(bean instanceof MessageChannel || bean instanceof RoutingSlipRouteStrategy,
-									"The RoutingSlip can contain only bean names of MessageChannel or " +
-											"RoutingSlipRouteStrategy: " + bean);
-							routingSlipValues.add(path);
+					for (Object path : this.routingSlipPath) {
+						if (path instanceof String) {
+							String entry = (String) path;
+							if (this.beanFactory.containsBean(entry)) {
+								Object bean = this.beanFactory.getBean(entry);
+								if (!(bean instanceof MessageChannel
+										|| bean instanceof RoutingSlipRouteStrategy)) {
+									throw new IllegalArgumentException("The RoutingSlip can contain " +
+											"only bean names of MessageChannel or RoutingSlipRouteStrategy: " + bean);
+								}
+								routingSlipValues.add(entry);
+							}
+							else {
+								ExpressionEvaluatingRoutingSlipRouteStrategy strategy = new
+										ExpressionEvaluatingRoutingSlipRouteStrategy(entry);
+								strategy.setIntegrationEvaluationContext(this.evaluationContext);
+								routingSlipValues.add(strategy);
+							}
 						}
 						else {
-							ExpressionEvaluatingRoutingSlipRouteStrategy strategy = new
-									ExpressionEvaluatingRoutingSlipRouteStrategy(path);
-							strategy.setIntegrationEvaluationContext(this.evaluationContext);
-							routingSlipValues.add(strategy);
+							routingSlipValues.add(path);
 						}
+
 					}
 					this.routingSlip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
 				}

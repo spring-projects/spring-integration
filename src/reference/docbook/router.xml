@@ -1196,5 +1196,46 @@ public HeaderEnricher headerEnricher() {
                 </listitem>
             </itemizedlist>
         </section>
+        <section id="process-manager">
+            <title>Process Manager Enterprise Integration Pattern</title>
+            <para>
+                The EIP also defines the
+                <ulink url="http://www.eaipatterns.com/ProcessManager.html">Process Manager</ulink> pattern.
+                This pattern can now easily be implemented using custom <emphasis>Process Manager</emphasis> logic
+                encapsulated in a
+                <interfacename>RoutingSlipRouteStrategy</interfacename> within the routing slip.
+                In addition to a bean name, the <interfacename>RoutingSlipRouteStrategy</interfacename> can return any
+                <interfacename>MessageChannel</interfacename> object; and there is no requirement that this
+                <interfacename>MessageChannel</interfacename> instance is a bean in the application context.
+                This way, we can provide powerful dynamic routing logic, when there is no prediction which
+                channel should be used; a <interfacename>MessageChannel</interfacename> can be created
+                within the <interfacename>RoutingSlipRouteStrategy</interfacename> and returned. A
+                <classname>FixedSubscriberChannel</classname> with an associated <interfacename>MessageHandler</interfacename>
+                implementation is good combination for such cases. For example we can route to a
+                <ulink url="https://github.com/reactor/reactor/wiki/Streams">Reactor Stream</ulink>:
+            </para>
+            <programlisting language="java"><![CDATA[@Bean
+public PollableChannel resultsChannel() {
+	return new QueueChannel();
+}
+@Bean
+public RoutingSlipRouteStrategy routeStrategy() {
+	return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
+			? new FixedSubscriberChannel(m ->
+			Streams.defer((String) m.getPayload())
+					.env(this.reactorEnv)
+					.get()
+					.map(String::toUpperCase)
+					.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+					.flush())
+			: new FixedSubscriberChannel(m ->
+			Streams.defer((Integer) m.getPayload())
+					.env(this.reactorEnv)
+					.get()
+					.map(v -> v * 2)
+					.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+					.flush());
+}]]></programlisting>
+        </section>
     </section>
 </section>

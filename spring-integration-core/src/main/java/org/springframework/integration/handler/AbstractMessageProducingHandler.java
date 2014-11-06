@@ -196,8 +196,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			return routingSlipPathValue;
 		}
 		else {
-			String nextPath = ((RoutingSlipRouteStrategy) routingSlipPathValue).getNextPath(requestMessage, reply);
-			if (StringUtils.hasText(nextPath)) {
+			Object nextPath = ((RoutingSlipRouteStrategy) routingSlipPathValue).getNextPath(requestMessage, reply);
+			if (nextPath != null && (!(nextPath instanceof String) || StringUtils.hasText((String) nextPath))) {
 				return nextPath;
 			}
 			else {
