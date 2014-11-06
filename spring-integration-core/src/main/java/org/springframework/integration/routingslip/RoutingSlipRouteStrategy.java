@@ -26,6 +26,6 @@ import org.springframework.messaging.Message;
  */
 public interface RoutingSlipRouteStrategy {
 
-	String getNextPath(Message<?> requestMessage, Object reply);
+	Object getNextPath(Message<?> requestMessage, Object reply);
 
 }

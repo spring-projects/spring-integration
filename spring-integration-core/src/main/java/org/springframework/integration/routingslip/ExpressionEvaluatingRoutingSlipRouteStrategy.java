@@ -79,7 +79,7 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 	}
 
 	@Override
-	public String getNextPath(Message<?> requestMessage, Object reply) {
+	public Object getNextPath(Message<?> requestMessage, Object reply) {
 		return this.expression.getValue(this.evaluationContext, new RequestAndReply(requestMessage, reply),
 				String.class);
 	}

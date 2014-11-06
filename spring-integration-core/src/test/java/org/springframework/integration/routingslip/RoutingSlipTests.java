@@ -16,11 +16,17 @@
 
 package org.springframework.integration.routingslip;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -30,26 +36,54 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.HeaderEnricher;
+import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.GenericXmlContextLoader;
+
+import reactor.core.Environment;
+import reactor.core.composable.spec.Streams;
+import reactor.spring.context.config.EnableReactor;
 
 /**
  * @author Artem Bilan
  * @since 4.1
  */
-@ContextConfiguration
+@ContextConfiguration(loader = GenericXmlContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class RoutingSlipTests {
 
 	@Autowired
 	private MessageChannel input;
+
+	@Autowired
+	private MessageChannel routingSlipHeaderChannel;
+
+	@Autowired
+	private PollableChannel resultsChannel;
+
+	@Autowired
+	private MessageChannel invalidRoutingSlipChannel;
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -76,6 +110,31 @@ public class RoutingSlipTests {
 		}
 	}
 
+	@Test
+	public void testDynamicRoutingSlipRoutStrategy() {
+		this.routingSlipHeaderChannel.send(new GenericMessage<>("foo"));
+		Message<?> result = this.resultsChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals("FOO", result.getPayload());
+
+		this.routingSlipHeaderChannel.send(new GenericMessage<>(2));
+		result = this.resultsChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals(4, result.getPayload());
+	}
+
+	@Test
+	public void testInvalidRoutingSlipRoutStrategy() {
+		try {
+			this.invalidRoutingSlipChannel.send(new GenericMessage<>("foo"));
+			fail("MessagingException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessagingException.class));
+			assertThat(e.getMessage(), containsString("replyChannel must be a MessageChannel or String"));
+		}
+	}
+
 	public static class TestRoutingSlipRoutePojo {
 
 		final String[] channels = {"channel2", "channel3"};
@@ -98,8 +157,77 @@ public class RoutingSlipTests {
 		private AtomicBoolean invoked = new AtomicBoolean();
 
 		@Override
-		public String getNextPath(Message<?> requestMessage, Object reply) {
+		public Object getNextPath(Message<?> requestMessage, Object reply) {
 			return !invoked.getAndSet(true) ? "channel4" : null;
+		}
+
+	}
+
+	@Configuration
+	@EnableReactor
+	@EnableIntegration
+	public static class RoutingSlipConfiguration {
+
+		@Autowired
+		private Environment reactorEnv;
+
+		@Bean
+		public MessagingTemplate messagingTemplate() {
+			return new MessagingTemplate();
+		}
+
+		@Bean
+		public PollableChannel resultsChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public RoutingSlipRouteStrategy routeStrategy() {
+			return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
+					? new FixedSubscriberChannel(m ->
+					Streams.defer((String) m.getPayload())
+							.env(this.reactorEnv)
+							.get()
+							.map(String::toUpperCase)
+							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+							.flush())
+					: new FixedSubscriberChannel(m ->
+					Streams.defer((Integer) m.getPayload())
+							.env(this.reactorEnv)
+							.get()
+							.map(v -> v * 2)
+							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+							.flush());
+		}
+
+		@Bean
+		public MessageChannel routingSlipHeaderChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@BridgeTo
+		public MessageChannel processChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@Transformer(inputChannel = "routingSlipHeaderChannel", outputChannel = "processChannel")
+		public HeaderEnricher headerEnricher() {
+			return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+					new RoutingSlipHeaderValueMessageProcessor(routeStrategy())));
+		}
+
+		@Bean
+		public MessageChannel invalidRoutingSlipChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@Transformer(inputChannel = "invalidRoutingSlipChannel", outputChannel = "processChannel")
+		public HeaderEnricher headerEnricher2() {
+			return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+					new RoutingSlipHeaderValueMessageProcessor((RoutingSlipRouteStrategy) (message, r) -> new Date())));
 		}
 
 	}
