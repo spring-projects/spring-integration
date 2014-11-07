@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 /**
  * An inbound Channel Adapter that implements {@link ApplicationListener} and
  * passes Spring {@link ApplicationEvent ApplicationEvents} within messages.
- * If a {@link #setPayloadExpression(String) payloadExpression} is provided, it will be evaluated against
+ * If a {@link #setPayloadExpression payloadExpression} is provided, it will be evaluated against
  * the ApplicationEvent instance to create the Message payload. Otherwise, the event itself will be the payload.
  *
  * @author Mark Fisher

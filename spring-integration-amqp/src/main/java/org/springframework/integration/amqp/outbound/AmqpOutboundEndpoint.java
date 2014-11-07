@@ -70,9 +70,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	private volatile String routingKey;
 
-	private volatile String exchangeNameExpression;
+	private volatile Expression exchangeNameExpression;
 
-	private volatile String routingKeyExpression;
+	private volatile Expression routingKeyExpression;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> routingKeyGenerator;
 
@@ -80,7 +80,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
-	private volatile String confirmCorrelationExpression;
+	private volatile Expression confirmCorrelationExpression;
 
 	private volatile ExpressionEvaluatingMessageProcessor<Object> correlationDataGenerator;
 
@@ -109,7 +109,22 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.exchangeName = exchangeName;
 	}
 
+	/**
+	 * @deprecated in favor of {@link #setExpressionExchangeName}. Will be changed in the future release
+	 * to make it for {@link Expression} attribute.
+	 * @param exchangeNameExpression the expression to set
+	 */
+	@Deprecated
 	public void setExchangeNameExpression(String exchangeNameExpression) {
+		Assert.hasText(exchangeNameExpression);
+		this.exchangeNameExpression = expressionParser.parseExpression(exchangeNameExpression);
+	}
+
+	/**
+	 * Temporary, will be changed to the {@link #setExchangeNameExpression} in the future release.
+	 * @param exchangeNameExpression the expression to set
+	 */
+	public void setExpressionExchangeName(Expression exchangeNameExpression) {
 		this.exchangeNameExpression = exchangeNameExpression;
 	}
 
@@ -118,7 +133,22 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.routingKey = routingKey;
 	}
 
+	/**
+	 * @deprecated in favor of {@link #setExpressionRoutingKey}. Will be changed in the future release
+	 * to make it for {@link Expression} attribute.
+	 * @param routingKeyExpression the expression to set.
+	 */
+	@Deprecated
 	public void setRoutingKeyExpression(String routingKeyExpression) {
+		Assert.hasText(routingKeyExpression);
+		setExpressionRoutingKey(expressionParser.parseExpression(routingKeyExpression));
+	}
+
+	/**
+	 * Temporary, will be changed to the {@code setRoutingKeyExpression} in the future release.
+	 * @param routingKeyExpression the expression to set
+	 */
+	public void setExpressionRoutingKey(Expression routingKeyExpression) {
 		this.routingKeyExpression = routingKeyExpression;
 	}
 
@@ -126,7 +156,18 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.expectReply = expectReply;
 	}
 
+	/**
+	 * @deprecated in favor of {@link #setExpressionConfirmCorrelation}. Will be changed in the future release
+	 * to make it for {@link Expression} attribute.
+	 * @param confirmCorrelationExpression the expression to set.
+	 */
+	@Deprecated
 	public void setConfirmCorrelationExpression(String confirmCorrelationExpression) {
+		Assert.hasText(confirmCorrelationExpression);
+		setExpressionConfirmCorrelation(expressionParser.parseExpression(confirmCorrelationExpression));
+	}
+
+	public void setExpressionConfirmCorrelation(Expression confirmCorrelationExpression) {
 		this.confirmCorrelationExpression = confirmCorrelationExpression;
 	}
 
@@ -169,25 +210,25 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		Assert.state(this.confirmCorrelationExpression == null || !this.expectReply,
 				"Confirm correlation expression does not apply to a gateway");
 		BeanFactory beanFactory = this.getBeanFactory();
-		if (exchangeNameExpression != null) {
-			Expression expression = expressionParser.parseExpression(this.exchangeNameExpression);
-			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
+		if (this.exchangeNameExpression != null) {
+			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(this.exchangeNameExpression,
+					String.class);
 			if (beanFactory != null) {
 				this.exchangeNameGenerator.setBeanFactory(beanFactory);
 			}
 		}
 		Assert.state(routingKeyExpression == null || routingKey == null,
 				"Either a routingKey or a routingKeyExpression can be provided, but not both");
-		if (routingKeyExpression != null) {
-			Expression expression = expressionParser.parseExpression(this.routingKeyExpression);
-			this.routingKeyGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
+		if (this.routingKeyExpression != null) {
+			this.routingKeyGenerator = new ExpressionEvaluatingMessageProcessor<String>(this.routingKeyExpression,
+					String.class);
 			if (beanFactory != null) {
 				this.routingKeyGenerator.setBeanFactory(beanFactory);
 			}
 		}
 		if (this.confirmCorrelationExpression != null) {
-			Expression expression = expressionParser.parseExpression(this.confirmCorrelationExpression);
-			this.correlationDataGenerator = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
+			this.correlationDataGenerator =
+					new ExpressionEvaluatingMessageProcessor<Object>(this.confirmCorrelationExpression, Object.class);
 			Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
 					"RabbitTemplate implementation is required for publisher confirms");
 			((RabbitTemplate) this.amqpTemplate).setConfirmCallback(this);
