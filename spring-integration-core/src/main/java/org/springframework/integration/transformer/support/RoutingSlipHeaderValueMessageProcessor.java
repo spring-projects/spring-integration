@@ -59,6 +59,15 @@ public class RoutingSlipHeaderValueMessageProcessor
 	public RoutingSlipHeaderValueMessageProcessor(Object... routingSlipPath) {
 		Assert.notNull(routingSlipPath);
 		Assert.noNullElements(routingSlipPath);
+		for (Object entry : routingSlipPath) {
+			if (!(entry instanceof String
+					|| entry instanceof MessageChannel
+					|| entry instanceof RoutingSlipRouteStrategy)) {
+				throw new IllegalArgumentException("The RoutingSlip can contain " +
+						"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
+						"or MessageChannel and RoutingSlipRouteStrategy instances: " + entry);
+			}
+		}
 		this.routingSlipPath = Arrays.asList(routingSlipPath);
 	}
 
@@ -80,9 +89,11 @@ public class RoutingSlipHeaderValueMessageProcessor
 							String entry = (String) path;
 							if (this.beanFactory.containsBean(entry)) {
 								Object bean = this.beanFactory.getBean(entry);
-								Assert.state(bean instanceof MessageChannel || bean instanceof RoutingSlipRouteStrategy,
-										"The RoutingSlip can contain only bean names of MessageChannel or " +
-												"RoutingSlipRouteStrategy: " + bean);
+								if (!(bean instanceof MessageChannel
+										|| bean instanceof RoutingSlipRouteStrategy)) {
+									throw new IllegalArgumentException("The RoutingSlip can contain " +
+											"only bean names of MessageChannel or RoutingSlipRouteStrategy: " + bean);
+								}
 								routingSlipValues.add(entry);
 							}
 							else {

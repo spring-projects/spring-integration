@@ -34,6 +34,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -196,7 +197,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			Object nextPath = ((RoutingSlipRouteStrategy) routingSlipPathValue).getNextPath(requestMessage, reply);
-			if (nextPath != null) {
+			if (nextPath != null && (!(nextPath instanceof String) || StringUtils.hasText((String) nextPath))) {
 				return nextPath;
 			}
 			else {

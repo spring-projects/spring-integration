@@ -1196,5 +1196,46 @@ public HeaderEnricher headerEnricher() {
                 </listitem>
             </itemizedlist>
         </section>
+        <section id="process-manager">
+            <title>Process Manager Enterprise Integration Pattern</title>
+            <para>
+                The EIP defines the separate
+                <ulink url="http://www.eaipatterns.com/ProcessManager.html">Process Manager</ulink>, but Spring
+                Integration doesn't provide a direct implementation for that. Having the
+                <interfacename>RoutingSlipRouteStrategy</interfacename> we achieve the same solution, when
+                <emphasis>Process Manager</emphasis> logic is encapsulated in the custom implementation. Alongside
+                with bean name, the <interfacename>RoutingSlipRouteStrategy</interfacename> can return
+                <interfacename>MessageChannel</interfacename> object as well, and their is no requirements, that this
+                <interfacename>MessageChannel</interfacename> instance should be a bean in the application context.
+                With that we can provide more powerful dynamic routing logic, when there is no predictions which
+                channel from application we should use, and we just create <interfacename>MessageChannel</interfacename>
+                from the <interfacename>RoutingSlipRouteStrategy</interfacename> and return it. The
+                <classname>FixedSubscriberChannel</classname> with inline <interfacename>MessageHandler</interfacename>
+                implementation is good combination for such cases. For example we can route to the
+                <ulink url="https://github.com/reactor/reactor/wiki/Streams">Reactor Stream</ulink>:
+            </para>
+            <programlisting language="java"><![CDATA[@Bean
+public PollableChannel resultsChannel() {
+	return new QueueChannel();
+}
+@Bean
+public RoutingSlipRouteStrategy routeStrategy() {
+	return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
+			? new FixedSubscriberChannel(m ->
+			Streams.defer((String) m.getPayload())
+					.env(this.reactorEnv)
+					.get()
+					.map(String::toUpperCase)
+					.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+					.flush())
+			: new FixedSubscriberChannel(m ->
+			Streams.defer((Integer) m.getPayload())
+					.env(this.reactorEnv)
+					.get()
+					.map(v -> v * 2)
+					.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+					.flush());
+}]]></programlisting>
+        </section>
     </section>
 </section>

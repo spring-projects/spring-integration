@@ -126,6 +126,17 @@ public class RoutingSlipTests {
 	@Test
 	public void testInvalidRoutingSlipRoutStrategy() {
 		try {
+			new RoutingSlipHeaderValueMessageProcessor(new Date());
+			fail("IllegalArgumentException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+			assertThat(e.getMessage(),
+					containsString("The RoutingSlip can contain " +
+							"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
+							"or MessageChannel and RoutingSlipRouteStrategy instances"));
+		}
+		try {
 			this.invalidRoutingSlipChannel.send(new GenericMessage<>("foo"));
 			fail("MessagingException expected");
 		}
