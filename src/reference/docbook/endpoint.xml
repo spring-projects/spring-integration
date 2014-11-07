@@ -593,8 +593,21 @@ any transaction configuration essentially allowing you to enhance the behavior o
       To register a Converter all you need is to implement
       <interfacename>org.springframework.core.convert.converter.Converter</interfacename>,
 		<interfacename>org.springframework.core.convert.converter.GenericConverter</interfacename> or
-		<interfacename>org.springframework.core.convert.converter.ConverterFactory</interfacename> and define it via
-      convenient namespace support:
+		<interfacename>org.springframework.core.convert.converter.ConverterFactory</interfacename>.
+    </para>
+    <para>
+      The <classname>Converter</classname> implementation is the simplest and converts
+      from a single type to another. For more sophistication, such as converting to a class hierarchy, you would
+      implement a <classname>GenericConverter</classname> and possibly a <classname>ConditionalConverter</classname>.
+      These give you complete access to the <emphasis>from</emphasis> and <emphasis>to</emphasis> type descriptors
+      enabling complex conversions. For example, if you have an abstract class <classname>Foo</classname> that is
+      the target of your conversion (parameter type, channel data type etc) and you have two concrete implementations
+      <classname>Bar</classname> and <classname>Baz</classname> and you wish to convert to one or the other based
+      on the input type, the <classname>GenericConverter</classname> would be a good fit. Refer to the JavaDocs for
+      these interfaces for more information.
+    </para>
+    <para>
+      When you have implemented your converter, you can register it with convenient namespace support:
       <programlisting language="xml"><![CDATA[<int:converter ref="sampleConverter"/>
 
 <bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
