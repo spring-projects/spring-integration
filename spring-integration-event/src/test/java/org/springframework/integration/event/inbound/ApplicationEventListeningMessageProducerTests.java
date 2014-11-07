@@ -134,6 +134,7 @@ public class ApplicationEventListeningMessageProducerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void payloadExpressionEvaluatedAgainstApplicationEvent() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();

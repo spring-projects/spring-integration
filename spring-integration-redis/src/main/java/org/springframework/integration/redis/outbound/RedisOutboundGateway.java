@@ -78,9 +78,23 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.argumentsSerializer = (RedisSerializer<Object>) serializer;
 	}
 
+	/**
+	 * @deprecated in favor of {@link #setExpressionCommand}. Will be changed in a future release
+	 * to use an {@link Expression} parameter.
+	 * @param commandExpression the expression to set.
+	 */
+	@Deprecated
 	public void setCommandExpression(String commandExpression) {
 		Assert.hasText(commandExpression, "'commandExpression' must not be an empty string");
-		this.commandExpression = PARSER.parseExpression(commandExpression);
+		setExpressionCommand(PARSER.parseExpression(commandExpression));
+	}
+
+	/**
+	 * Temporary, will be changed to {@link #setCommandExpression} in a future release.
+	 * @param commandExpression the expression to set.
+	 */
+	public void setExpressionCommand(Expression commandExpression) {
+		this.commandExpression = commandExpression;
 	}
 
 	public void setArgumentsStrategy(ArgumentsStrategy argumentsStrategy) {

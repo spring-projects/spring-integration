@@ -85,6 +85,7 @@ public class ContinuousQueryMessageProducerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testPayloadExpression() {
 		CqEvent cqEvent = event(Operation.CREATE, "hello");
 		cqMessageProducer.setPayloadExpression("newValue.toUpperCase() + ', WORLD'");
