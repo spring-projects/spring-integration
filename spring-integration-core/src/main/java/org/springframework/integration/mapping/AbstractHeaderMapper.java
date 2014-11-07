@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -196,7 +197,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	private void populateUserDefinedHeaders(Map<String, Object> headers, T target) {
 		for (String headerName : headers.keySet()) {
 			Object value = headers.get(headerName);
-			if (value != null) {
+			if (value != null && !isMessageChannel(headerName, value)) {
 				try {
 					if (!headerName.startsWith(this.standardHeaderPrefix)) {
 						String key = this.createTargetPropertyName(headerName, true);
@@ -210,6 +211,16 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 				}
 			}
 		}
+	}
+
+	private boolean isMessageChannel(String headerName, Object headerValue) {
+		if (MessageChannel.class.isAssignableFrom(headerValue.getClass())) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Cannot map a MessageChannel in header " + headerName);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/**
