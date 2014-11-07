@@ -270,6 +270,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testMoveWithExpression() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
@@ -295,6 +296,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testMoveWithMkDirs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway

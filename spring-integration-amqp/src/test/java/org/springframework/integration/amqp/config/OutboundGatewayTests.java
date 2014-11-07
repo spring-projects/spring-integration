@@ -53,7 +53,8 @@ import org.springframework.util.ClassUtils;
  */
 public class OutboundGatewayTests {
 
-	private final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+	private final ClassPathXmlApplicationContext context =
+			new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 
 	@Test
 	public void testVanillaConfiguration() throws Exception {
@@ -65,11 +66,12 @@ public class OutboundGatewayTests {
 	public void testExpressionBasedConfiguration() throws Exception {
 		assertTrue(context.getBeanFactory().containsBeanDefinition("expression"));
 		Object target = context.getBean("expression");
-		assertNotNull(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"), "routingKeyGenerator"));
+		assertNotNull(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"),
+				"routingKeyGenerator"));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings({"unchecked", "deprecation"})
 	public void testExpressionsBeanResolver() throws Exception {
 		ApplicationContext context = mock(ApplicationContext.class);
 		doAnswer(new Answer<Object>() {
@@ -82,11 +84,13 @@ public class OutboundGatewayTests {
 		when(context.getBean(ClassUtils.forName("org.springframework.integration.config.SpelPropertyAccessorRegistrar",
 				context.getClassLoader())))
 				.thenThrow(NoSuchBeanDefinitionException.class);
-		IntegrationEvaluationContextFactoryBean integrationEvaluationContextFactoryBean = new IntegrationEvaluationContextFactoryBean();
+		IntegrationEvaluationContextFactoryBean integrationEvaluationContextFactoryBean =
+				new IntegrationEvaluationContextFactoryBean();
 		integrationEvaluationContextFactoryBean.setApplicationContext(context);
 		integrationEvaluationContextFactoryBean.afterPropertiesSet();
 		StandardEvaluationContext evalContext = integrationEvaluationContextFactoryBean.getObject();
-		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class))
+		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				StandardEvaluationContext.class))
 			.thenReturn(evalContext);
 		RabbitTemplate template = mock(RabbitTemplate.class);
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);

@@ -17,6 +17,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageProducerSupport} sub-class that provides {@linkplain #payloadExpression}
@@ -30,19 +31,29 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
  */
 public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport implements IntegrationEvaluationContextAware {
 
-	private final SpelExpressionParser parser = new SpelExpressionParser();
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private volatile Expression payloadExpression;
 
 	private volatile EvaluationContext evaluationContext;
 
+	/**
+	 * @deprecated in favor of {@link #setExpressionPayload}. Will be changed in the future release
+	 * to make it for {@link Expression} attribute.
+	 * @param payloadExpression the expression to set.
+	 */
+	@Deprecated
 	public void setPayloadExpression(String payloadExpression) {
-		if (payloadExpression == null) {
-			this.payloadExpression = null;
-		}
-		else {
-			this.payloadExpression = this.parser.parseExpression(payloadExpression);
-		}
+		Assert.hasText(payloadExpression);
+		setExpressionPayload(PARSER.parseExpression(payloadExpression));
+	}
+
+	/**
+	 * Temporary, will be changed to the {@link #setPayloadExpression} in the future release.
+	 * @param payloadExpression the expression to set.
+	 */
+	public void setExpressionPayload(Expression payloadExpression) {
+		this.payloadExpression = payloadExpression;
 	}
 
 	@Override

@@ -40,6 +40,7 @@ import com.gemstone.gemfire.cache.Region;
 public class CacheListeningMessageProducerTests {
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void receiveNewValuePayloadForCreateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -66,6 +67,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -96,6 +98,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void receiveOldValuePayloadForDestroyEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -125,6 +128,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void receiveOldValuePayloadForInvalidateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();

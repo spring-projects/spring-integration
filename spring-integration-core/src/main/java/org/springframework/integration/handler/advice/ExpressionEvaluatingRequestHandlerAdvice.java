@@ -67,9 +67,17 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		this.onSuccessExpression = new SpelExpressionParser().parseExpression(onSuccessExpression);
 	}
 
+	public void setOnSuccessExpression(Expression onSuccessExpression) {
+		this.onSuccessExpression = onSuccessExpression;
+	}
+
 	public void setOnFailureExpression(String onFailureExpression) {
 		Assert.notNull(onFailureExpression, "'onFailureExpression' must not be null");
 		this.onFailureExpression = new SpelExpressionParser().parseExpression(onFailureExpression);
+	}
+
+	public void setOnFailureExpression(Expression onFailureExpression) {
+		this.onFailureExpression = onFailureExpression;
 	}
 
 	public void setSuccessChannel(MessageChannel successChannel) {
