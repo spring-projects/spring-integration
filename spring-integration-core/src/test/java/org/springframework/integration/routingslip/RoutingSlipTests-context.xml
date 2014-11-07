@@ -61,4 +61,6 @@
 
 	<aggregator input-channel="aggregate" expression="new java.util.ArrayList(#root)"/>
 
+	<beans:bean class="org.springframework.integration.routingslip.RoutingSlipTests$RoutingSlipConfiguration"/>
+
 </beans:beans>

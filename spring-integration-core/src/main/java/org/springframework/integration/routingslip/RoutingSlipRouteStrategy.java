@@ -20,12 +20,15 @@ import org.springframework.messaging.Message;
 
 /**
  * The {@code RoutingSlip} strategy to determine the next {@code replyChannel}.
+ * <p>
+ * This strategy is called repeatedly until null or empty String is returned.
  *
  * @author Artem Bilan
  * @since 4.1
+ * @see org.springframework.integration.handler.AbstractMessageProducingHandler
  */
 public interface RoutingSlipRouteStrategy {
 
-	String getNextPath(Message<?> requestMessage, Object reply);
+	Object getNextPath(Message<?> requestMessage, Object reply);
 
 }
