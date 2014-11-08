@@ -112,7 +112,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	/**
 	 * @deprecated in favor of {@link #setExpressionExchangeName}. Will be changed in a future release
 	 * to use an {@link Expression} parameter.
-	 * @param exchangeNameExpression the expression to set
+	 * @param exchangeNameExpression the expression to set.
 	 */
 	@Deprecated
 	public void setExchangeNameExpression(String exchangeNameExpression) {
@@ -122,7 +122,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	/**
 	 * Temporary, will be changed to {@link #setExchangeNameExpression} in a future release.
-	 * @param exchangeNameExpression the expression to set
+	 * @param exchangeNameExpression the expression to set.
 	 */
 	public void setExpressionExchangeName(Expression exchangeNameExpression) {
 		this.exchangeNameExpression = exchangeNameExpression;
@@ -146,7 +146,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	/**
 	 * Temporary, will be changed to {@code setRoutingKeyExpression} in a future release.
-	 * @param routingKeyExpression the expression to set
+	 * @param routingKeyExpression the expression to set.
 	 */
 	public void setExpressionRoutingKey(Expression routingKeyExpression) {
 		this.routingKeyExpression = routingKeyExpression;
@@ -167,6 +167,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		setExpressionConfirmCorrelation(expressionParser.parseExpression(confirmCorrelationExpression));
 	}
 
+	/**
+	 * Temporary, will be changed to {@code setConfirmCorrelationExpression} in a future release.
+	 * @param confirmCorrelationExpression the expression to set.
+	 */
 	public void setExpressionConfirmCorrelation(Expression confirmCorrelationExpression) {
 		this.confirmCorrelationExpression = confirmCorrelationExpression;
 	}
