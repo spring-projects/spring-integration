@@ -124,6 +124,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	/**
 	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
+	 * @param phase - the phase to set.
 	 */
 	@Deprecated
 	public final void setPhase(int phase) {
@@ -141,6 +142,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	/**
 	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
+	 * @param autoStartup the boolean flag to specify {@code autoStartup} behaviour.
 	 */
 	@Deprecated
 	public final void setAutoStartup(boolean autoStartup) {

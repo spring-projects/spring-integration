@@ -25,10 +25,10 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link MessageSelector} implementation using a {@link ConcurrentMetadataStore}
- * and {@link MessageProcessor<String>}.
+ * and {@link MessageProcessor}.
  * <p>
  * The {@link #accept} method extracts {@code metadataKey} from the provided {@code message}
- * using {@link MessageProcessor<String>} and uses the {@code timestamp} header as the {@code value}
+ * using {@link MessageProcessor} and uses the {@code timestamp} header as the {@code value}
  * (hex) by default. The {@link #valueStrategy} can be provided to override the default behaviour.
  * <p>
  * The successful result of the {@link #accept} method is based on the

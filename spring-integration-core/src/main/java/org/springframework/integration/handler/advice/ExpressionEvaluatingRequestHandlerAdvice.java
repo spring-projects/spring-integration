@@ -33,8 +33,9 @@ import org.springframework.util.Assert;
  * Used to advise {@link MessageHandler}s.
  * Two expressions 'onSuccessExpression' and 'onFailureExpression' are evaluated when
  * appropriate. If the evaluation returns a result, a message is sent to the onSuccessChannel
- * or onFailureChannel as appropriate; the message is the input message with a header
- * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#POSTPROCESS_RESULT} containing the evaluation result.
+ * or onFailureChannel as appropriate; the message is an {@link AdviceMessage}
+ * containing the evaluation result in its payload and the {@code inputMessage} property containing
+ * the original message that was sent to the endpoint.
  * The failure expression is NOT evaluated if the success expression throws an exception.
  *
  * @author Gary Russell
