@@ -616,12 +616,13 @@ public class MyAdvisedFilter {
 		<para>
 			To maintain <emphasis>state</emphasis> between messages and provide the ability to compare messages for the
 			idempotency, the <classname>MetadataStoreSelector</classname> is provided. It accepts a
-			<interfacename>MetadataEntryStrategy</interfacename> implementation (which creates a lookup key
+			<interfacename>MessageProcessor</interfacename> implementation (which creates a lookup key
 			based on the <classname>Message</classname>) and an optional
 			<interfacename>ConcurrentMetadataStore</interfacename> (<xref linkend="metadata-store"/>).
-			See the <classname>MetadataStoreSelector</classname> JavaDocs for more information. An
-			<classname>ExpressionMetadataEntryStrategy</classname> implementation is provided, allowing
-			simple SpEL expressions to be used to determine the key from the message.
+			See the <classname>MetadataStoreSelector</classname> JavaDocs for more information.
+			The <code>value</code> for <interfacename>ConcurrentMetadataStore</interfacename> also can be customized
+			using additional <interfacename>MessageProcessor</interfacename>. By default
+			<classname>MetadataStoreSelector</classname> uses <code>timestamp</code> message header.
 		</para>
 		<para>
 			For convenience, the <classname>MetadataStoreSelector</classname> options are configurable directly on
@@ -635,7 +636,9 @@ public class MyAdvisedFilter {
 		metadata-store="" ]]><co id="iri5" linkends="iri5-txt" /><![CDATA[
 		key-strategy="" ]]><co id="iri6" linkends="iri6-txt" /><![CDATA[
 		key-expression="" ]]><co id="iri7" linkends="iri7-txt" /><![CDATA[
-		throw-exception-on-rejection="" /> ]]><co id="iri8" linkends="iri8-txt" /></programlisting>
+		value-strategy="" ]]><co id="iri8" linkends="iri8-txt" /><![CDATA[
+		value-expression="" ]]><co id="iri9" linkends="iri9-txt" /><![CDATA[
+		throw-exception-on-rejection="" /> ]]><co id="iri10" linkends="iri10-txt" /></programlisting>
 	</section>
 	<calloutlist>
 		<callout arearefs="iri1" id="iri1-txt">
@@ -681,7 +684,7 @@ public class MyAdvisedFilter {
 
 		<callout arearefs="iri6" id="iri6-txt">
 			<para>
-				A <interfacename>MetadataEntryStrategy</interfacename> reference. Used by the underlying
+				A <interfacename>MessageProcessor</interfacename> reference. Used by the underlying
 				<classname>MetadataStoreSelector</classname>.
 				Evaluates an <code>idempotentKey</code> from the request Message.
 				Mutually exclusive with <code>selector</code> and <code>key-expression</code>.
@@ -690,7 +693,7 @@ public class MyAdvisedFilter {
 
 		<callout arearefs="iri7" id="iri7-txt">
 			<para>
-				A SpEL expression to populate an <classname>ExpressionMetadataEntryStrategy</classname>.
+				A SpEL expression to populate an <classname>ExpressionEvaluatingMessageProcessor</classname>.
 				Used by the underlying <classname>MetadataStoreSelector</classname>.
 				Evaluates an <code>idempotentKey</code> using the request Message as the evaluation context root object.
 				Mutually exclusive with <code>selector</code> and <code>key-strategy</code>.
@@ -698,6 +701,25 @@ public class MyAdvisedFilter {
 		</callout>
 
 		<callout arearefs="iri8" id="iri8-txt">
+			<para>
+				A <interfacename>MessageProcessor</interfacename> reference. Used by the underlying
+				<classname>MetadataStoreSelector</classname>.
+				Evaluates a <code>value</code> for the <code>idempotentKey</code> from the request Message.
+				Mutually exclusive with <code>selector</code> and <code>value-expression</code>.
+			</para>
+		</callout>
+
+		<callout arearefs="iri8" id="iri8-txt">
+			<para>
+				A SpEL expression to populate an <classname>ExpressionEvaluatingMessageProcessor</classname>.
+				Used by the underlying <classname>MetadataStoreSelector</classname>.
+				Evaluates a <code>value</code> for the <code>idempotentKey</code> using the request Message
+				as the evaluation context root object.
+				Mutually exclusive with <code>selector</code> and <code>value-strategy</code>.
+			</para>
+		</callout>
+
+		<callout arearefs="iri10" id="iri10-txt">
 			<para>
 				Throw an exception if the <classname>IdempotentReceiverInterceptor</classname> rejects the message
 				defaults to <code>false</code>.
@@ -707,7 +729,7 @@ public class MyAdvisedFilter {
 	</calloutlist>
 	<para>
 		For Java configuration, the method level <classname>IdempotentReceiver</classname> annotation is provided. It
-		is used to mark a <code>@Bean</code> that has a Messaging annotation (<code>@ServiceActivator</code>,
+		is used to mark a <code>method</code> that has a Messaging annotation (<code>@ServiceActivator</code>,
 		<code>@Router</code> etc.) to specify which <classname>IdempotentReceiverInterceptor</classname>s will be
 		applied to this endpoint:
 	</para>

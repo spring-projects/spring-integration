@@ -33,10 +33,11 @@ import org.mockito.Mockito;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.metadata.ExpressionMetadataEntryStrategy;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
@@ -83,7 +84,8 @@ public class IdempotentReceiverTests {
 	@Test
 	public void testIdempotentReceiverInterceptor() {
 		ConcurrentMetadataStore store = new SimpleMetadataStore();
-		ExpressionMetadataEntryStrategy idempotentKeyStrategy = new ExpressionMetadataEntryStrategy("payload");
+		ExpressionEvaluatingMessageProcessor<String> idempotentKeyStrategy =
+				new ExpressionEvaluatingMessageProcessor<>(new SpelExpressionParser().parseExpression("payload"));
 		BeanFactory beanFactory = Mockito.mock(BeanFactory.class);
 		idempotentKeyStrategy.setBeanFactory(beanFactory);
 		IdempotentReceiverInterceptor idempotentReceiverInterceptor =

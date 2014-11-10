@@ -46,9 +46,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
-import org.springframework.integration.metadata.ExpressionMetadataEntryStrategy;
-import org.springframework.integration.metadata.MetadataEntryStrategy;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.messaging.MessageChannel;
@@ -79,10 +79,10 @@ public class IdempotentReceiverParserTests {
 	private IdempotentReceiverInterceptor strategyInterceptor;
 
 	@Autowired
-	private MetadataEntryStrategy keyStrategy;
+	private MessageProcessor<String> keyStrategy;
 
 	@Autowired
-	private MetadataEntryStrategy valueStrategy;
+	private MessageProcessor<String> valueStrategy;
 
 	@Autowired
 	@Qualifier("nullChannel")
@@ -133,7 +133,7 @@ public class IdempotentReceiverParserTests {
 		assertThat(messageSelector, instanceOf(MetadataStoreSelector.class));
 		assertSame(this.store, getPropertyValue(messageSelector, "metadataStore"));
 		Object keyStrategy = getPropertyValue(messageSelector, "keyStrategy");
-		assertThat(keyStrategy, instanceOf(ExpressionMetadataEntryStrategy.class));
+		assertThat(keyStrategy, instanceOf(ExpressionEvaluatingMessageProcessor.class));
 		assertThat(keyStrategy.toString(), containsString("headers.foo"));
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> idempotentEndpoints =

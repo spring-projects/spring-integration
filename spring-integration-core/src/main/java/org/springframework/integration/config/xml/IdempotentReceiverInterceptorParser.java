@@ -25,9 +25,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
-import org.springframework.integration.metadata.ExpressionMetadataEntryStrategy;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.util.StringUtils;
@@ -66,8 +67,8 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 
 		if (hasSelector & (hasStore | hasKeyStrategy | hasKeyExpression | hasValueStrategy | hasValueExpression)) {
 			parserContext.getReaderContext().error("The 'selector' attribute is mutually exclusive with " +
-							"'metadata-store', 'key-strategy', 'key-expression', 'value-strategy' " +
-							"or 'value-expression'", source);
+					"'metadata-store', 'key-strategy', 'key-expression', 'value-strategy' " +
+					"or 'value-expression'", source);
 		}
 
 		if (hasKeyStrategy & hasKeyExpression) {
@@ -97,8 +98,12 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 			}
 			else {
 				keyStrategyBeanDefinition =
-						BeanDefinitionBuilder.genericBeanDefinition(ExpressionMetadataEntryStrategy.class)
-								.addConstructorArgValue(keyExpression)
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageProcessor.class)
+								.addConstructorArgValue(
+										BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class).
+												addConstructorArgValue(keyExpression)
+												.getBeanDefinition()
+								)
 								.getBeanDefinition();
 			}
 			selectorBuilder.addConstructorArgValue(keyStrategyBeanDefinition);
@@ -109,8 +114,12 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 			}
 			else if (hasValueExpression) {
 				valueStrategyBeanDefinition =
-						BeanDefinitionBuilder.genericBeanDefinition(ExpressionMetadataEntryStrategy.class)
-								.addConstructorArgValue(valueExpression)
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageProcessor.class)
+								.addConstructorArgValue(
+										BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class).
+												addConstructorArgValue(valueExpression)
+												.getBeanDefinition()
+								)
 								.getBeanDefinition();
 			}
 			selectorBuilder.addConstructorArgValue(valueStrategyBeanDefinition);
