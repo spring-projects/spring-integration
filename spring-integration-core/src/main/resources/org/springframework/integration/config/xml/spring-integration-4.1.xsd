@@ -4364,11 +4364,11 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.metadata.MetadataKeyStrategy" />
+							<tool:expected-type type="org.springframework.integration.handler.MessageProcessor" />
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-						The 'MetadataKeyStrategy' reference. Used by the underlying
+						The 'MessageProcessor' reference. Used by the underlying
 						'org.springframework.integration.selector.MetadataStoreSelector'.
 						Evaluates an 'idempotentKey' from the request Message.
 						Mutually exclusive with 'selector' and 'key-expression'.
@@ -4378,10 +4378,37 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:attribute name="key-expression">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-					Expression to populate an 'org.springframework.integration.metadata.ExpressionMetadataKeyStrategy'.
+					Expression to populate an 'ExpressionEvaluatingMessageProcessor'.
 					Used by the underlying 'org.springframework.integration.selector.MetadataStoreSelector'.
 					Evaluates an 'idempotentKey' using the request Message as the evaluation context root object.
 					Mutually exclusive with 'selector' and 'key-strategy'.
+				]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="value-strategy" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.handler.MessageProcessor" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The 'MessageProcessor' reference. Used by the underlying
+						'org.springframework.integration.selector.MetadataStoreSelector'.
+						Evaluates a 'value' for the 'idempotentKey' from the request Message.
+						Mutually exclusive with 'selector' and 'value-expression'.
+						By default 'MetadataStoreSelector' uses 'timestamp' message header as a Metadata 'value'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="value-expression">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Expression to populate an 'ExpressionEvaluatingMessageProcessor'.
+					Used by the underlying 'org.springframework.integration.selector.MetadataStoreSelector'.
+					Evaluates a 'value' for the 'idempotentKey' using the request Message as the evaluation context
+					root object.
+					Mutually exclusive with 'selector' and 'value-strategy'.
 				]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

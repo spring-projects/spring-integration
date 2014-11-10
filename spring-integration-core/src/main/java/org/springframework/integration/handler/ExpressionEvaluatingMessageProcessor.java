@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
  * with the Message itself as the root object within the evaluation context.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProcessor<T> {
@@ -37,18 +38,15 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression.
-	 *
 	 * @param expression The expression.
 	 */
 	public ExpressionEvaluatingMessageProcessor(Expression expression) {
 		this(expression, null);
 	}
 
-
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression
 	 * and expected type for its evaluation result.
-	 *
 	 * @param expression The expression.
 	 * @param expectedType The expected type.
 	 */
@@ -63,17 +61,20 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 		}
 	}
 
-
 	/**
 	 * Processes the Message by evaluating the expression with that Message as the
 	 * root object. The expression evaluation result Object will be returned.
-	 *
 	 * @param message The message.
 	 * @return The result of processing the message.
 	 */
 	@Override
 	public T processMessage(Message<?> message) {
 		return this.evaluateExpression(this.expression, message, this.expectedType);
+	}
+
+	@Override
+	public String toString() {
+		return "ExpressionEvaluatingMessageProcessor for: [" + this.expression.getExpressionString() + "]";
 	}
 
 }

@@ -46,9 +46,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
-import org.springframework.integration.metadata.ExpressionMetadataKeyStrategy;
-import org.springframework.integration.metadata.MetadataKeyStrategy;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.messaging.MessageChannel;
@@ -79,7 +79,10 @@ public class IdempotentReceiverParserTests {
 	private IdempotentReceiverInterceptor strategyInterceptor;
 
 	@Autowired
-	private MetadataKeyStrategy keyStrategy;
+	private MessageProcessor<String> keyStrategy;
+
+	@Autowired
+	private MessageProcessor<String> valueStrategy;
 
 	@Autowired
 	@Qualifier("nullChannel")
@@ -113,6 +116,7 @@ public class IdempotentReceiverParserTests {
 		Object messageSelector = getPropertyValue(this.strategyInterceptor, "messageSelector");
 		assertThat(messageSelector, instanceOf(MetadataStoreSelector.class));
 		assertSame(this.keyStrategy, getPropertyValue(messageSelector, "keyStrategy"));
+		assertSame(this.valueStrategy, getPropertyValue(messageSelector, "valueStrategy"));
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> idempotentEndpoints =
 				(Map<String, List<String>>) getPropertyValue(this.idempotentReceiverAutoProxyCreator,
@@ -129,7 +133,7 @@ public class IdempotentReceiverParserTests {
 		assertThat(messageSelector, instanceOf(MetadataStoreSelector.class));
 		assertSame(this.store, getPropertyValue(messageSelector, "metadataStore"));
 		Object keyStrategy = getPropertyValue(messageSelector, "keyStrategy");
-		assertThat(keyStrategy, instanceOf(ExpressionMetadataKeyStrategy.class));
+		assertThat(keyStrategy, instanceOf(ExpressionEvaluatingMessageProcessor.class));
 		assertThat(keyStrategy.toString(), containsString("headers.foo"));
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> idempotentEndpoints =
@@ -176,45 +180,83 @@ public class IdempotentReceiverParserTests {
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage(),
 					containsString("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy' or 'key-expression'"));
+							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'"));
 		}
 	}
 
 	@Test
-	public void testSelectorAndStrategy() throws Exception {
+	public void testSelectorAndKeyStrategy() throws Exception {
 		try {
-			bootStrap("selector-and-strategy");
+			bootStrap("selector-and-key-strategy");
 			fail("BeanDefinitionParsingException expected");
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage(),
 					containsString("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy' or 'key-expression'"));
+							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'"));
 		}
 	}
 
 	@Test
-	public void testSelectorAndExpression() throws Exception {
+	public void testSelectorAndKeyExpression() throws Exception {
 		try {
-			bootStrap("selector-and-expression");
+			bootStrap("selector-and-key-expression");
 			fail("BeanDefinitionParsingException expected");
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage(),
 					containsString("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy' or 'key-expression'"));
+							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'"));
 		}
 	}
 
 	@Test
-	public void testStrategyAndExpression() throws Exception {
+	public void testSelectorAndValueStrategy() throws Exception {
 		try {
-			bootStrap("strategy-and-expression");
+			bootStrap("selector-and-value-strategy");
+			fail("BeanDefinitionParsingException expected");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertThat(e.getMessage(),
+					containsString("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'"));
+		}
+	}
+
+	@Test
+	public void testSelectorAndValueExpression() throws Exception {
+		try {
+			bootStrap("selector-and-value-expression");
+			fail("BeanDefinitionParsingException expected");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertThat(e.getMessage(),
+					containsString("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+							"'key-strategy', 'key-expression', 'value-strategy' or 'value-expression'"));
+		}
+	}
+
+	@Test
+	public void testKeyStrategyAndKeyExpression() throws Exception {
+		try {
+			bootStrap("key-strategy-and-key-expression");
 			fail("BeanDefinitionParsingException expected");
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage(),
 					containsString("The 'key-strategy' and 'key-expression' attributes are mutually exclusive"));
+		}
+	}
+
+	@Test
+	public void testValueStrategyAndValueExpression() throws Exception {
+		try {
+			bootStrap("value-strategy-and-value-expression");
+			fail("BeanDefinitionParsingException expected");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertThat(e.getMessage(),
+					containsString("The 'value-strategy' and 'value-expression' attributes are mutually exclusive"));
 		}
 	}
 

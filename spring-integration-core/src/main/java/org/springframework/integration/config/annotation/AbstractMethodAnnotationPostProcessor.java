@@ -27,6 +27,9 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
+import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +41,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
@@ -129,6 +133,28 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String handlerBeanName = generateHandlerBeanName(beanName, method);
 			this.beanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+		}
+
+		if (AnnotatedElementUtils.isAnnotated(method, IdempotentReceiver.class.getName())
+				&& !AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			String[] interceptors = AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value();
+			for (String interceptor : interceptors) {
+				DefaultBeanFactoryPointcutAdvisor advisor = new DefaultBeanFactoryPointcutAdvisor();
+				advisor.setAdviceBeanName(interceptor);
+				NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
+				pointcut.setMappedName("handleMessage");
+				advisor.setPointcut(pointcut);
+				advisor.setBeanFactory(this.beanFactory);
+
+				if (handler instanceof Advised) {
+					((Advised) handler).addAdvisor(advisor);
+				}
+				else {
+					ProxyFactory proxyFactory = new ProxyFactory(bean);
+					proxyFactory.addAdvisor(advisor);
+					handler = (MessageHandler) proxyFactory.getProxy(this.beanFactory.getBeanClassLoader());
+				}
+			}
 		}
 
 		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);

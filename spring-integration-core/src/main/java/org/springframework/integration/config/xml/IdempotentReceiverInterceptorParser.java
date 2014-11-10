@@ -22,11 +22,14 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
-import org.springframework.integration.metadata.ExpressionMetadataKeyStrategy;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.util.StringUtils;
 
@@ -46,25 +49,35 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 		boolean hasSelector = StringUtils.hasText(selector);
 		String store = element.getAttribute("metadata-store");
 		boolean hasStore = StringUtils.hasText(store);
-		String strategy = element.getAttribute("key-strategy");
-		boolean hasStrategy = StringUtils.hasText(strategy);
-		String expression = element.getAttribute("key-expression");
-		boolean hasExpression = StringUtils.hasText(expression);
+		String keyStrategy = element.getAttribute("key-strategy");
+		boolean hasKeyStrategy = StringUtils.hasText(keyStrategy);
+		String keyExpression = element.getAttribute("key-expression");
+		boolean hasKeyExpression = StringUtils.hasText(keyExpression);
+		String valueStrategy = element.getAttribute("value-strategy");
+		boolean hasValueStrategy = StringUtils.hasText(valueStrategy);
+		String valueExpression = element.getAttribute("value-expression");
+		boolean hasValueExpression = StringUtils.hasText(valueExpression);
 
 		String endpoints = element.getAttribute("endpoint");
 
-		if (!hasSelector & !(hasStrategy | hasExpression)) {
+		if (!hasSelector & !(hasKeyStrategy | hasKeyExpression)) {
 			parserContext.getReaderContext().error("One of the 'selector', 'key-strategy' or 'key-expression' " +
 					"attributes must be provided", source);
 		}
 
-		if (hasSelector & (hasStore | hasStrategy | hasExpression)) {
+		if (hasSelector & (hasStore | hasKeyStrategy | hasKeyExpression | hasValueStrategy | hasValueExpression)) {
 			parserContext.getReaderContext().error("The 'selector' attribute is mutually exclusive with " +
-					"'metadata-store', 'key-strategy' or 'key-expression'", source);
+					"'metadata-store', 'key-strategy', 'key-expression', 'value-strategy' " +
+					"or 'value-expression'", source);
 		}
 
-		if (hasStrategy & hasExpression) {
+		if (hasKeyStrategy & hasKeyExpression) {
 			parserContext.getReaderContext().error("The 'key-strategy' and 'key-expression' attributes " +
+					"are mutually exclusive", source);
+		}
+
+		if (hasValueStrategy & hasValueExpression) {
+			parserContext.getReaderContext().error("The 'value-strategy' and 'value-expression' attributes " +
 					"are mutually exclusive", source);
 		}
 
@@ -79,19 +92,43 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 		else {
 			BeanDefinitionBuilder selectorBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(MetadataStoreSelector.class);
-			BeanMetadataElement strategyBeanDefinition = null;
-			if (hasStrategy) {
-				strategyBeanDefinition = new RuntimeBeanReference(strategy);
+			BeanMetadataElement keyStrategyBeanDefinition = null;
+			if (hasKeyStrategy) {
+				keyStrategyBeanDefinition = new RuntimeBeanReference(keyStrategy);
 			}
 			else {
-				strategyBeanDefinition =
-						BeanDefinitionBuilder.genericBeanDefinition(ExpressionMetadataKeyStrategy.class)
-								.addConstructorArgValue(expression)
+				keyStrategyBeanDefinition =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageProcessor.class)
+								.addConstructorArgValue(
+										BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class).
+												addConstructorArgValue(keyExpression)
+												.getBeanDefinition()
+								)
 								.getBeanDefinition();
 			}
-			selectorBuilder.addConstructorArgValue(strategyBeanDefinition);
+			selectorBuilder.addConstructorArgValue(keyStrategyBeanDefinition);
+
+			BeanMetadataElement valueStrategyBeanDefinition = null;
+			if (hasValueStrategy) {
+				valueStrategyBeanDefinition = new RuntimeBeanReference(valueStrategy);
+			}
+			else if (hasValueExpression) {
+				valueStrategyBeanDefinition =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageProcessor.class)
+								.addConstructorArgValue(
+										BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class).
+												addConstructorArgValue(valueExpression)
+												.getBeanDefinition()
+								)
+								.getBeanDefinition();
+			}
+			selectorBuilder.addConstructorArgValue(valueStrategyBeanDefinition);
+
 			if (hasStore) {
 				selectorBuilder.addConstructorArgReference(store);
+			}
+			else {
+				selectorBuilder.addConstructorArgValue(new RootBeanDefinition(SimpleMetadataStore.class));
 			}
 			selectorBeanDefinition = selectorBuilder.getBeanDefinition();
 		}
