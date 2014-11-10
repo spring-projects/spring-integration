@@ -46,6 +46,10 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String SEQUENCE_DETAILS = "sequenceDetails";
 
+	/**
+	 * @deprecated Not used; will be removed in 4.2.
+	 */
+	@Deprecated
 	public static final String POSTPROCESS_RESULT = "postProcessResult";
 
 	public static final String ROUTING_SLIP = "routingSlip";
@@ -107,7 +111,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 			}
 			else if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
 				Assert.isTrue(Map.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be an List.");
+						+ "' header value must be a Map.");
 			}
 			else if (IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE.equals(headerName)) {
 				Assert.isTrue(Boolean.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
