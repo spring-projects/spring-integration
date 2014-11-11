@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 
 /**
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.
@@ -31,8 +32,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  */
 public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
-
 	@Override
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
@@ -40,8 +39,7 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-				".TcpOutboundGateway");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TcpOutboundGateway.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
@@ -52,10 +50,6 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				IpAdapterParserUtils.REMOTE_TIMEOUT);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.REPLY_TIMEOUT, "sendTimeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				IntegrationNamespaceUtils.AUTO_STARTUP);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				IntegrationNamespaceUtils.PHASE);
 		return builder;
 	}
 

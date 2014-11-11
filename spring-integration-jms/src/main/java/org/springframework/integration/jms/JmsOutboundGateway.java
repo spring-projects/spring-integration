@@ -42,7 +42,7 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -72,7 +72,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements SmartLifecycle, MessageListener {
+public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements Lifecycle, MessageListener {
 
 	private volatile Destination requestDestination;
 
@@ -123,8 +123,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile boolean useReplyContainer;
 
 	private final Object initializationMonitor = new Object();
-
-	private volatile boolean autoStartup;
 
 	private volatile boolean active;
 
@@ -452,18 +450,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
 		return this.destinationResolver.resolveDestinationName(
 				session, replyDestinationName, this.replyPubSubDomain);
-	}
-
-	public int getPhase() {
-		return Integer.MAX_VALUE;
-	}
-
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
 	}
 
 	@Override
