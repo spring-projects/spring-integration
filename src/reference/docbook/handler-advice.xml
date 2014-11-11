@@ -718,7 +718,7 @@ public class MyAdvisedFilter {
 			</para>
 		</callout>
 
-		<callout arearefs="iri8" id="iri8-txt">
+		<callout arearefs="iri9" id="iri9-txt">
 			<para>
 				A SpEL expression to populate an <classname>ExpressionEvaluatingMessageProcessor</classname>.
 				Used by the underlying <classname>MetadataStoreSelector</classname>.
