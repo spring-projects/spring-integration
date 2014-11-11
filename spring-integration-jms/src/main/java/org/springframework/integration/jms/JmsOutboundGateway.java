@@ -42,7 +42,7 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
-import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
@@ -73,7 +73,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements Lifecycle, MessageListener {
+public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements SmartLifecycle, MessageListener {
 
 	private volatile Destination requestDestination;
 
@@ -124,6 +124,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile boolean useReplyContainer;
 
 	private final Object initializationMonitor = new Object();
+
+	private volatile boolean autoStartup;
 
 	private volatile boolean active;
 
@@ -482,6 +484,23 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
+	@Deprecated
+	public int getPhase() {
+		return Integer.MAX_VALUE;
+	}
+
+	@Override
+	@Deprecated
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Deprecated
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	@Override
 	protected void doInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
@@ -624,6 +643,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	@Override
 	public boolean isRunning() {
 		return this.active;
+	}
+
+	@Override
+	@Deprecated
+	public void stop(Runnable callback) {
+		this.stop();
+		callback.run();
 	}
 
 	@Override
