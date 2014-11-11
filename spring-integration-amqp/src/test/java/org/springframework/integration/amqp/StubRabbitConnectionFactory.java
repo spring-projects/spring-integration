@@ -537,6 +537,40 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public void basicPublish(String arg0, String arg1, boolean arg2, BasicProperties arg3, byte[] arg4)
 				throws IOException {
 		}
+
+		@Override
+		public void exchangeDeclareNoWait(String exchange, String type, boolean durable, boolean autoDelete,
+				boolean internal, Map<String, Object> arguments) throws IOException {
+		}
+
+		@Override
+		public void exchangeDeleteNoWait(String exchange, boolean ifUnused) throws IOException {
+		}
+
+		@Override
+		public void exchangeBindNoWait(String destination, String source, String routingKey,
+				Map<String, Object> arguments) throws IOException {
+		}
+
+		@Override
+		public void exchangeUnbindNoWait(String destination, String source, String routingKey,
+				Map<String, Object> arguments) throws IOException {
+		}
+
+		@Override
+		public void queueDeclareNoWait(String queue, boolean durable, boolean exclusive, boolean autoDelete,
+				Map<String, Object> arguments) throws IOException {
+		}
+
+		@Override
+		public void queueDeleteNoWait(String queue, boolean ifUnused, boolean ifEmpty) throws IOException {
+		}
+
+		@Override
+		public void queueBindNoWait(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+				throws IOException {
+		}
+
 	}
 
 }
