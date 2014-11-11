@@ -484,15 +484,18 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
+	@Deprecated
 	public int getPhase() {
 		return Integer.MAX_VALUE;
 	}
 
 	@Override
+	@Deprecated
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	@Deprecated
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
@@ -643,6 +646,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
+	@Deprecated
 	public void stop(Runnable callback) {
 		this.stop();
 		callback.run();

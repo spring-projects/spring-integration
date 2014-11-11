@@ -233,24 +233,29 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
+	@Deprecated
 	public int getPhase() {
 		return this.phase;
 	}
 
 	@Override
+	@Deprecated
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
 	@Override
+	@Deprecated
 	public void stop(Runnable callback) {
 		this.connectionFactory.stop(callback);
 	}
 
+	@Deprecated
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
+	@Deprecated
 	public void setPhase(int phase) {
 		this.phase = phase;
 	}

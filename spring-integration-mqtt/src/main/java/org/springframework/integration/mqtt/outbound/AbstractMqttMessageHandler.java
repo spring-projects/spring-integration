@@ -119,24 +119,29 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	@Override
+	@Deprecated
 	public int getPhase() {
 		return this.phase;
 	}
 
+	@Deprecated
 	public void setPhase(int phase) {
 		this.phase = phase;
 	}
 
+	@Deprecated
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
 	@Override
+	@Deprecated
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
 	@Override
+	@Deprecated
 	public void stop(Runnable callback) {
 		this.stop();
 		callback.run();

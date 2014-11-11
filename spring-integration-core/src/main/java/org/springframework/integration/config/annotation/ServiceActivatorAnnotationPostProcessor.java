@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
@@ -57,15 +58,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 			 		 * Return a reply-producing message handler so that we still get 'produced no reply' messages
 			 		 * and the super class will inject the advice chain to advise the handler method if needed.
 			 		 */
-					return new AbstractReplyProducingMessageHandler() {
-
-						@Override
-						protected Object handleRequestMessage(Message<?> requestMessage) {
-
-							((MessageHandler) target).handleMessage(requestMessage);
-							return null;
-						}
-					};
+					return new ReplyProducingMessageHandlerWrapper((MessageHandler) target);
 				}
 				else {
 					serviceActivator = new ServiceActivatingHandler(target);
@@ -86,6 +79,43 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		this.setOutputChannelIfPresent(annotations, serviceActivator);
 		return serviceActivator;
+	}
+
+	private class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
+			implements Lifecycle {
+
+		private final MessageHandler target;
+
+		private ReplyProducingMessageHandlerWrapper(MessageHandler target) {
+			this.target = target;
+		}
+
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			this.target.handleMessage(requestMessage);
+			return null;
+		}
+
+		@Override
+		public void start() {
+			if (this.target instanceof Lifecycle) {
+				((Lifecycle) this.target).start();
+			}
+
+		}
+
+		@Override
+		public void stop() {
+			if (this.target instanceof Lifecycle) {
+				((Lifecycle) this.target).stop();
+			}
+		}
+
+		@Override
+		public boolean isRunning() {
+			return !(this.target instanceof Lifecycle) || ((Lifecycle) this.target).isRunning();
+		}
+
 	}
 
 }
