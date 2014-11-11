@@ -18,7 +18,7 @@ package org.springframework.integration.mqtt.outbound;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements SmartLifecycle {
+public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
 	private final String url;
 
@@ -51,8 +51,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	private boolean running;
 
 	private volatile int phase;
-
-	private volatile boolean autoStartup;
 
 	public AbstractMqttMessageHandler(String url, String clientId) {
 		Assert.hasText(url, "'url' cannot be null or empty");
@@ -116,30 +114,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	@Override
 	public boolean isRunning() {
 		return this.running;
-	}
-
-	@Override
-	public int getPhase() {
-		return this.phase;
-	}
-
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.stop();
-		callback.run();
 	}
 
 	@Override

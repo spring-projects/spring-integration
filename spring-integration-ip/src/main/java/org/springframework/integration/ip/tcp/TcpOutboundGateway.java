@@ -22,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
@@ -44,13 +44,14 @@ import org.springframework.util.Assert;
  * (or times out). Asynchronous requests/responses over the same connection are not
  * supported - use a pair of outbound/inbound adapters for that use case.
  * <p>
- * {@link SmartLifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}
+ * {@link Lifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}
  *
  *
  * @author Gary Russell
  * @since 2.0
  */
-public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler implements TcpSender, TcpListener, SmartLifecycle {
+public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
+		implements TcpSender, TcpListener, Lifecycle {
 
 	private volatile AbstractClientConnectionFactory connectionFactory;
 
@@ -63,10 +64,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile boolean remoteTimeoutSet = false;
 
 	private volatile long requestTimeout = 10000;
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase;
 
 	/**
 	 * @param requestTimeout the requestTimeout to set
@@ -230,29 +227,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	@Override
 	public boolean isRunning() {
 		return this.connectionFactory.isRunning();
-	}
-
-	@Override
-	public int getPhase() {
-		return this.phase;
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.connectionFactory.stop(callback);
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
-	public void setPhase(int phase) {
-		this.phase = phase;
 	}
 
 	/**
