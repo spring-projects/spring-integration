@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,60 +13,79 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.support;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.*;
+
 import org.springframework.messaging.Message;
 
 /**
  * @author Soby Chacko
  * @author Rajasekar Elango
+ * @author Ilayaperumal Gopinathan
  * @since 0.5
  */
-public class KafkaProducerContext<K,V> implements BeanFactoryAware {
+public class KafkaProducerContext<K, V> {
+
 	private static final Log LOGGER = LogFactory.getLog(KafkaProducerContext.class);
-	private Map<String, ProducerConfiguration<K,V>> topicsConfiguration;
+
+	private volatile Map<String, ProducerConfiguration<K, V>> producerConfigurations;
+
+	private volatile ProducerConfiguration<K, V> theProducerConfiguration;
+
 	private Properties producerProperties;
 
 	public void send(final Message<?> message) throws Exception {
-		final ProducerConfiguration<K,V> producerConfiguration =
-						getTopicConfiguration(message.getHeaders().get("topic", String.class));
-
-		if (producerConfiguration != null) {
-			producerConfiguration.send(message);
+		if (message.getHeaders().containsKey("topic")) {
+			ProducerConfiguration<K, V> producerConfiguration =
+					getTopicConfiguration(message.getHeaders().get("topic", String.class));
+			if (producerConfiguration != null) {
+				producerConfiguration.send(message);
+			}
+		}
+		// if there is a single producer configuration then use that config to send message.
+		else if (this.theProducerConfiguration != null) {
+			this.theProducerConfiguration.send(message);
+		}
+		else {
+			throw new IllegalStateException("Could not send messages as there are multiple producer configurations " +
+					"with no topic information found from the message header.");
 		}
 	}
 
 	public ProducerConfiguration<K, V> getTopicConfiguration(final String topic) {
-		final Collection<ProducerConfiguration<K,V>> topics = topicsConfiguration.values();
+		if (this.theProducerConfiguration != null) {
+			if (topic.matches(this.theProducerConfiguration.getProducerMetadata().getTopic())) {
+				return this.theProducerConfiguration;
+			}
+		}
 
-		for (final ProducerConfiguration<K,V> producerConfiguration : topics){
-			if (topic.matches(producerConfiguration.getProducerMetadata().getTopic())){
+		Collection<ProducerConfiguration<K, V>> topics = this.producerConfigurations.values();
+
+		for (final ProducerConfiguration<K, V> producerConfiguration : topics) {
+			if (topic.matches(producerConfiguration.getProducerMetadata().getTopic())) {
 				return producerConfiguration;
 			}
 		}
-		LOGGER.error("No producer-configuration defined for topic " + topic + ". cannot send message");
+		LOGGER.error("No producer-configuration defined for topic " + topic + ". Cannot send message");
 		return null;
 	}
 
-	public Map<String, ProducerConfiguration<K,V>> getTopicsConfiguration() {
-		return topicsConfiguration;
+	public Map<String, ProducerConfiguration<K, V>> getProducerConfigurations() {
+		return this.producerConfigurations;
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
-		topicsConfiguration =
-				(Map<String, ProducerConfiguration<K,V>>) (Object)
-				((ListableBeanFactory)beanFactory).getBeansOfType(ProducerConfiguration.class);
+	public void setProducerConfigurations(Map<String, ProducerConfiguration<K, V>> producerConfigurations) {
+		this.producerConfigurations = producerConfigurations;
+		if (this.producerConfigurations.size() == 1) {
+			this.theProducerConfiguration = this.producerConfigurations.values().iterator().next();
+		}
 	}
 
 	/**
@@ -81,6 +100,7 @@ public class KafkaProducerContext<K,V> implements BeanFactoryAware {
 	 * @return Returns the producerProperties.
 	 */
 	public Properties getProducerProperties() {
-		return producerProperties;
+		return this.producerProperties;
 	}
+
 }

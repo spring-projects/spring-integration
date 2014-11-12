@@ -49,7 +49,7 @@ public class KafkaOutboundAdapterParserTests<K, V> {
 		Assert.assertEquals(messageHandler.getOrder(), 3);
 		final KafkaProducerContext<K, V> producerContext = messageHandler.getKafkaProducerContext();
 		Assert.assertNotNull(producerContext);
-		Assert.assertEquals(producerContext.getTopicsConfiguration().size(), 2);
+		Assert.assertEquals(producerContext.getProducerConfigurations().size(), 2);
 	}
 
 }

@@ -37,7 +37,6 @@ public class KafkaProducerContextTests {
 	public void testTopicRegexForProducerConfiguration(){
 
 		final KafkaProducerContext kafkaProducerContext = new KafkaProducerContext();
-		final ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
 
         final ProducerMetadata<String, String> producerMetadata = Mockito.mock(ProducerMetadata.class);
 
@@ -48,12 +47,9 @@ public class KafkaProducerContextTests {
 
 		final ProducerConfiguration<String, String> producerConfiguration = new ProducerConfiguration<String, String>(producerMetadata, producer);
 
-
 		final Map<String, ProducerConfiguration> topicConfigurations = new HashMap<String, ProducerConfiguration>();
 		topicConfigurations.put(testRegex, producerConfiguration);
-
-		Mockito.when(beanFactory.getBeansOfType(ProducerConfiguration.class)).thenReturn(topicConfigurations);
-		kafkaProducerContext.setBeanFactory(beanFactory);
+		kafkaProducerContext.setProducerConfigurations(topicConfigurations);
 
 		Assert.assertNotNull(kafkaProducerContext.getTopicConfiguration("test1"));
 		Assert.assertNotNull(kafkaProducerContext.getTopicConfiguration("test2"));
