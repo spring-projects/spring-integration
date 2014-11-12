@@ -135,7 +135,7 @@
 									<xsd:attribute name="value-encoder" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation>
-												Custom implemenation of a Kafka Encoder for encoding message values.
+												Custom implementation of a Kafka Encoder for encoding message values.
 											</xsd:documentation>
 										</xsd:annotation>
 									</xsd:attribute>
@@ -143,7 +143,7 @@
 												   type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation>
-												Custom implemenation of a Kafka Encoder for encoding message keys.
+												Custom implementation of a Kafka Encoder for encoding message keys.
 											</xsd:documentation>
 										</xsd:annotation>
 									</xsd:attribute>

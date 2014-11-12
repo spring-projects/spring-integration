@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
-       xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
 
 	<bean id="producerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
@@ -15,17 +18,26 @@
 		</property>
 	</bean>
 
+	<util:properties id="placeholderProperties">
+		<prop key="brokerList1">localhost:9092</prop>
+		<prop key="brokerList2">localhost:9091</prop>
+		<prop key="topic1">test1</prop>
+		<prop key="topic2">test2</prop>
+	</util:properties>
+
+	<context:property-placeholder properties-ref="placeholderProperties"/>
+
     <int-kafka:producer-context id="producerContext" producer-properties="producerProperties">
         <int-kafka:producer-configurations>
-            <int-kafka:producer-configuration broker-list="localhost:9092"
+            <int-kafka:producer-configuration broker-list="${brokerList1}"
                                            key-class-type="java.lang.String"
                                            value-class-type="java.lang.String"
                                            key-encoder="valueEncoder"
                                            value-encoder="valueEncoder"
-                                           topic="test1"
+                                           topic="${topic1}"
                                            compression-codec="default"/>
-            <int-kafka:producer-configuration broker-list="localhost:9092"
-                                           topic="test2"
+            <int-kafka:producer-configuration broker-list="${brokerList2}"
+                                           topic="${topic2}"
                                            compression-codec="default"/>
         </int-kafka:producer-configurations>
     </int-kafka:producer-context>
