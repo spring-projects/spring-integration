@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -42,6 +44,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
@@ -231,6 +234,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -255,6 +259,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -274,6 +279,7 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -293,6 +299,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -326,6 +333,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -357,6 +365,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -418,6 +427,7 @@ public class DelayHandlerTests {
 	public void testDoubleOnApplicationEvent() throws Exception {
 		this.delayHandler = Mockito.spy(this.delayHandler);
 		Mockito.doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -435,6 +445,25 @@ public class DelayHandlerTests {
 		this.delayHandler.setIgnoreExpressionFailures(false);
 		this.startDelayerHandler();
 		this.delayHandler.handleMessage(new GenericMessage<String>("test"));
+	}
+
+	@Test //INT-3560
+	/*
+	 It's difficult to test it from real ctx, because any async process from 'inbound-channel-adapter'
+	 can't achieve the DelayHandler before the main thread emits 'ContextRefreshedEvent'.
+	 */
+	public void testRescheduleAndHandleAtTheSameTime() throws Exception {
+		QueueChannel results = new QueueChannel();
+		delayHandler.setOutputChannel(results);
+		this.delayHandler.setDefaultDelay(100);
+		startDelayerHandler();
+
+		this.input.send(new GenericMessage<String>("foo"));
+		this.delayHandler.reschedulePersistedMessages();
+		Message<?> message = results.receive(10000);
+		assertNotNull(message);
+		message = results.receive(500);
+		assertNull(message);
 	}
 
 	private void waitForLatch(long timeout) {
@@ -456,6 +485,7 @@ public class DelayHandlerTests {
 
 		private volatile Thread lastThread;
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.lastMessage = message;
 			this.lastThread = Thread.currentThread();
