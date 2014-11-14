@@ -17,7 +17,9 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -37,6 +39,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -435,6 +438,25 @@ public class DelayHandlerTests {
 		this.delayHandler.setIgnoreExpressionFailures(false);
 		this.startDelayerHandler();
 		this.delayHandler.handleMessage(new GenericMessage<String>("test"));
+	}
+
+	@Test //INT-3560
+	/*
+	 It's difficult to test it from real ctx, because any async process from 'inbound-channel-adapter'
+	 can't achieve the DelayHandler before the main thread emits 'ContextRefreshedEvent'.
+	 */
+	public void testRescheduleAndHandleAtTheSameTime() throws Exception {
+		QueueChannel results = new QueueChannel();
+		delayHandler.setOutputChannel(results);
+		this.delayHandler.setDefaultDelay(100);
+		startDelayerHandler();
+
+		this.input.send(new GenericMessage<>("foo"));
+		this.delayHandler.reschedulePersistedMessages();
+		Message<?> message = results.receive(10000);
+		assertNotNull(message);
+		message = results.receive(500);
+		assertNull(message);
 	}
 
 	private void waitForLatch(long timeout) {

@@ -30,13 +30,13 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
@@ -81,7 +81,7 @@ import org.springframework.util.CollectionUtils;
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
 		ApplicationListener<ContextRefreshedEvent> {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
 	private final String messageGroupId;
 
@@ -325,10 +325,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		final Message<?> messageToSchedule = delayedMessage;
 
 		this.getTaskScheduler().schedule(new Runnable() {
+
 			@Override
 			public void run() {
 				releaseMessage(messageToSchedule);
 			}
+
 		}, new Date(messageWrapper.getRequestDate() + delay));
 	}
 
@@ -337,8 +339,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void doReleaseMessage(Message<?> message) {
-		if (this.messageStore instanceof SimpleMessageStore
-				|| ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null) {
+		if (removeDelayedMessageFromMessageStore(message)) {
 			this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
 			this.handleMessageInternal(message);
 		}
@@ -347,6 +348,17 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 				logger.debug("No message in the Message Store to release: " + message +
 						". Likely another instance has already released it.");
 			}
+		}
+	}
+
+	private boolean removeDelayedMessageFromMessageStore(Message<?> message) {
+		if (this.messageStore instanceof SimpleMessageStore) {
+			SimpleMessageGroup messageGroup =
+					(SimpleMessageGroup) this.messageStore.getMessageGroup(this.messageGroupId);
+			return messageGroup.remove(message);
+		}
+		else {
+			return ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null;
 		}
 	}
 
@@ -363,10 +375,11 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * This behavior is dictated by the avoidance of invocation thread overload.
 	 */
 	@Override
-	public void reschedulePersistedMessages() {
+	public synchronized void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
 			this.getTaskScheduler().schedule(new Runnable() {
+
 				@Override
 				public void run() {
 					long delay = determineDelayForMessage(message);
@@ -377,6 +390,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						releaseMessage(message);
 					}
 				}
+
 			}, new Date());
 		}
 	}
