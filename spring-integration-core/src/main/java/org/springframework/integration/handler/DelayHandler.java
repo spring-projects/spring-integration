@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,7 +35,6 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -85,8 +85,7 @@ import org.springframework.util.CollectionUtils;
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
 		ApplicationListener<ContextRefreshedEvent> {
 
-	private static final ExpressionParser expressionParser =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
 	private final String messageGroupId;
 
@@ -377,10 +376,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	@Override
 	public void reschedulePersistedMessages() {
-		for (ScheduledFuture<?> scheduledFuture : this.delayTasks.values()) {
-			scheduledFuture.cancel(true);
+		Iterator<Map.Entry<UUID, ScheduledFuture<?>>> iterator = this.delayTasks.entrySet().iterator();
+		while (iterator.hasNext()) {
+			iterator.next().getValue().cancel(true);
+			iterator.remove();
 		}
-		this.delayTasks.clear();
+
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
 			this.getTaskScheduler().schedule(new Runnable() {
