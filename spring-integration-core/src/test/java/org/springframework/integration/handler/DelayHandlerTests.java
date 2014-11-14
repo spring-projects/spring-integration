@@ -449,12 +449,13 @@ public class DelayHandlerTests {
 		QueueChannel results = new QueueChannel();
 		delayHandler.setOutputChannel(results);
 		this.delayHandler.setDefaultDelay(100);
-		delayHandler.afterPropertiesSet();
+		startDelayerHandler();
+
 		this.input.send(new GenericMessage<>("foo"));
-		delayHandler.onApplicationEvent(new ContextRefreshedEvent(TestUtils.createTestApplicationContext()));
+		this.delayHandler.reschedulePersistedMessages();
 		Message<?> message = results.receive(10000);
 		assertNotNull(message);
-		message = results.receive(1000);
+		message = results.receive(500);
 		assertNull(message);
 	}
 
