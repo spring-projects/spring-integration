@@ -72,7 +72,7 @@ public class GroovyControlBusIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload(scriptSource.getScriptAsString()).build();
 		this.controlBus.send(message);
 
-		assertNotNull(this.output.receive(1000));
-		assertNotNull(this.output.receive(1000));
+		assertNotNull(this.output.receive(10000));
+		assertNotNull(this.output.receive(10000));
 	}
 }

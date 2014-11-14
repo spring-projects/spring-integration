@@ -17,11 +17,12 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.aopalliance.aop.Advice;
@@ -87,7 +88,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private final String messageGroupId;
 
-	private final Queue<UUID> delayedMessages = new LinkedBlockingQueue<UUID>(Integer.MAX_VALUE);
+	private final Set<UUID> delayedMessages = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
 	private volatile long defaultDelay;
 
