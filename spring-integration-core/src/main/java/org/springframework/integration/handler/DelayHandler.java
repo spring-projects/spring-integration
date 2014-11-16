@@ -17,12 +17,13 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.aopalliance.aop.Advice;
@@ -88,7 +89,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private final String messageGroupId;
 
-	private final Set<UUID> delayedMessages = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+	private final Map<UUID, ScheduledFuture<?>> delayTasks = new HashMap<UUID, ScheduledFuture<?>>();
 
 	private volatile long defaultDelay;
 
@@ -323,13 +324,17 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			messageWrapper = new DelayedMessageWrapper(message, System.currentTimeMillis());
-			delayedMessage = this.getMessageBuilderFactory().withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
+			delayedMessage = this.getMessageBuilderFactory()
+					.withPayload(messageWrapper)
+					.copyHeaders(message.getHeaders())
+					.build();
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
 
 		final Message<?> messageToSchedule = delayedMessage;
 
-		this.getTaskScheduler().schedule(
+
+		ScheduledFuture<?> schedule = this.getTaskScheduler().schedule(
 				new Runnable() {
 
 					@Override
@@ -339,7 +344,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 				},
 				new Date(messageWrapper.getRequestDate() + delay));
-		this.delayedMessages.add(message.getHeaders().getId());
+		this.delayTasks.put(message.getHeaders().getId(), schedule);
 	}
 
 	private void releaseMessage(Message<?> message) {
@@ -350,7 +355,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		if (this.messageStore instanceof SimpleMessageStore
 				|| ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null) {
 			this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
-			this.delayedMessages.remove(message.getHeaders().getId());
+			this.delayTasks.remove(message.getHeaders().getId());
 			this.handleMessageInternal(message);
 		}
 		else {
@@ -375,23 +380,28 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	@Override
 	public synchronized void reschedulePersistedMessages() {
+		Iterator<Map.Entry<UUID, ScheduledFuture<?>>> iterator = this.delayTasks.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<UUID, ScheduledFuture<?>> entry = iterator.next();
+			entry.getValue().cancel(true);
+			iterator.remove();
+		}
+
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
 			DelayedMessageWrapper messageWrapper = (DelayedMessageWrapper) message.getPayload();
-			if (!this.delayedMessages.contains(messageWrapper.original.getHeaders().getId())) {
-				this.getTaskScheduler().schedule(new Runnable() {
-					@Override
-					public void run() {
-						long delay = determineDelayForMessage(message);
-						if (delay > 0) {
-							releaseMessageAfterDelay(message, delay);
-						}
-						else {
-							releaseMessage(message);
-						}
+			this.getTaskScheduler().schedule(new Runnable() {
+				@Override
+				public void run() {
+					long delay = determineDelayForMessage(message);
+					if (delay > 0) {
+						releaseMessageAfterDelay(message, delay);
 					}
-				}, new Date());
-			}
+					else {
+						releaseMessage(message);
+					}
+				}
+			}, new Date());
 		}
 	}
 
