@@ -26,6 +26,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
@@ -59,19 +60,14 @@ public class ProducerConfiguration<K, V> {
 		return this.producer;
 	}
 
-	public void send(final Message<?> message) throws Exception {
+	public void send(String topic, Object messageKey, final Message<?> message) throws Exception {
 		final V v = getPayload(message);
 
-		String topic = message.getHeaders().containsKey("topic")
-				? message.getHeaders().get("topic", String.class)
-				: this.producerMetadata.getTopic();
+		if (!StringUtils.hasText(topic)) {
+			topic = this.producerMetadata.getTopic();
+		}
 
-		if (message.getHeaders().containsKey("messageKey")) {
-			this.producer.send(new KeyedMessage<K, V>(topic, getKey(message), v));
-		}
-		else {
-			this.producer.send(new KeyedMessage<K, V>(topic, v));
-		}
+		this.producer.send(new KeyedMessage<K, V>(topic, (messageKey != null ? getKey(messageKey) : null), v));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -86,13 +82,12 @@ public class ProducerConfiguration<K, V> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private K getKey(final Message<?> message) throws Exception {
-		final Object key = message.getHeaders().get("messageKey");
-
+	private K getKey(Object messageKey) throws Exception {
 		if (this.producerMetadata.getKeyEncoder() instanceof DefaultEncoder) {
-			return (K) getByteStream(key);
+			return (K) getByteStream(messageKey);
 		}
-		return message.getHeaders().get("messageKey", this.producerMetadata.getKeyClassType());
+
+		return (K) messageKey;
 	}
 
 	private static boolean isRawByteArray(final Object obj) {
