@@ -18,7 +18,6 @@ package org.springframework.integration.kafka.support;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -34,6 +33,7 @@ import org.springframework.messaging.Message;
  * @author Rajasekar Elango
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 0.5
  */
 public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponent, BeanNameAware {
@@ -45,8 +45,6 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 	private volatile Map<String, ProducerConfiguration<K, V>> producerConfigurations;
 
 	private volatile ProducerConfiguration<K, V> theProducerConfiguration;
-
-	private Properties producerProperties;
 
 	private String beanName = "not_specified";
 
@@ -81,21 +79,6 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 		if (this.producerConfigurations.size() == 1) {
 			this.theProducerConfiguration = this.producerConfigurations.values().iterator().next();
 		}
-	}
-
-	/**
-	 * @param producerProperties
-	 *            The producerProperties to set.
-	 */
-	public void setProducerProperties(Properties producerProperties) {
-		this.producerProperties = producerProperties;
-	}
-
-	/**
-	 * @return the producerProperties.
-	 */
-	public Properties getProducerProperties() {
-		return this.producerProperties;
 	}
 
 	/**
@@ -199,21 +182,19 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 		callback.run();
 	}
 
-	public void send(final Message<?> message) throws Exception {
+	public void send(String topic, Object messageKey, final Message<?> message) throws Exception {
 		if (!running.get()) {
 			start();
 		}
 
-		if (message.getHeaders().containsKey("topic")) {
-			ProducerConfiguration<K, V> producerConfiguration =
-					getTopicConfiguration(message.getHeaders().get("topic", String.class));
-			if (producerConfiguration != null) {
-				producerConfiguration.send(message);
-			}
+		ProducerConfiguration<K,V> producerConfiguration = getTopicConfiguration(topic);
+
+		if (producerConfiguration != null) {
+			producerConfiguration.send(topic, messageKey, message);
 		}
 		// if there is a single producer configuration then use that config to send message.
 		else if (this.theProducerConfiguration != null) {
-			this.theProducerConfiguration.send(message);
+			this.theProducerConfiguration.send(null, messageKey, message);
 		}
 		else {
 			throw new IllegalStateException("Could not send messages as there are multiple producer configurations " +

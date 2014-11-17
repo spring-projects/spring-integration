@@ -23,9 +23,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import kafka.admin.AdminUtils;
+import kafka.consumer.ConsumerConfig;
+import kafka.serializer.Decoder;
+import kafka.serializer.Encoder;
+
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.kafka.rule.KafkaRunning;
 import org.springframework.integration.kafka.serializer.common.StringDecoder;
 import org.springframework.integration.kafka.serializer.common.StringEncoder;
@@ -34,6 +43,7 @@ import org.springframework.integration.kafka.support.ConsumerConfiguration;
 import org.springframework.integration.kafka.support.ConsumerConnectionProvider;
 import org.springframework.integration.kafka.support.ConsumerMetadata;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
+import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.MessageLeftOverTracker;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
@@ -42,10 +52,6 @@ import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-
-import kafka.consumer.ConsumerConfig;
-import kafka.serializer.Decoder;
-import kafka.serializer.Encoder;
 
 /**
  * @author Gary Russell
@@ -58,6 +64,15 @@ public class OutboundTests {
 
 	@ClassRule
 	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
+
+	@AfterClass
+	public static void tearDown() {
+		try {
+			AdminUtils.deleteTopic(kafkaRunning.getZkClient(), TOPIC);
+		}
+		catch (Exception e) {
+		}
+	}
 
 	@Test
 	public void testAsyncProducerFlushed() throws Exception {
@@ -83,14 +98,29 @@ public class OutboundTests {
 		KafkaProducerMessageHandler<String, String> handler = new KafkaProducerMessageHandler<String, String>(kafkaProducerContext);
 
 		handler.handleMessage(MessageBuilder.withPayload("foo")
-				.setHeader("messagekey", "3")
-				.setHeader("topic", TOPIC)
+				.setHeader(KafkaHeaders.MESSAGE_KEY, "3")
+				.setHeader(KafkaHeaders.TOPIC, TOPIC)
+				.build());
+
+		SpelExpressionParser parser = new SpelExpressionParser();
+		handler.setMessageKeyExpression(parser.parseExpression("headers.foo"));
+		handler.setTopicExpression(parser.parseExpression("headers.bar"));
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		handler.setIntegrationEvaluationContext(evaluationContext);
+		handler.handleMessage(MessageBuilder.withPayload("bar")
+				.setHeader("foo", "3")
+				.setHeader("bar", TOPIC)
 				.build());
 
 		kafkaProducerContext.stop();
 
 		Message<Map<String, Map<Integer, List<Object>>>> received = consumerContext.receive();
 		assertNotNull(received);
+		if (((Map<?,?>) received.getPayload()).size() < 2) {
+			received = consumerContext.receive();
+			assertNotNull(received);
+		}
 		consumerContext.destroy();
 	}
 

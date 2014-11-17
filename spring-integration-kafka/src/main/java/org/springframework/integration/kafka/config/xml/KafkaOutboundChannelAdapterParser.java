@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,26 @@
  */
 package org.springframework.integration.kafka.config.xml;
 
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  *
  * @author Soby Chacko
+ * @author Artem Bilan
  * @since 0.5
  *
  */
 public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+
 	@Override
 	protected AbstractBeanDefinition parseConsumer(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder kafkaProducerMessageHandlerBuilder =
@@ -41,6 +46,21 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 			kafkaProducerMessageHandlerBuilder.addConstructorArgReference(kafkaServerBeanName);
 		}
 
+		BeanDefinition topicExpressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("topic", "topic-expression",
+						parserContext, element, false);
+		if (topicExpressionDef != null) {
+			kafkaProducerMessageHandlerBuilder.addPropertyValue("topicExpression", topicExpressionDef);
+		}
+
+		BeanDefinition messageKeyExpressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("message-key",
+						"message-key-expression", parserContext, element, false);
+		if (messageKeyExpressionDef != null) {
+			kafkaProducerMessageHandlerBuilder.addPropertyValue("messageKeyExpression", messageKeyExpressionDef);
+		}
+
 		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
 	}
+
 }

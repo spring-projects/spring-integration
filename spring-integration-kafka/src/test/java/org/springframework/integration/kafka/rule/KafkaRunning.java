@@ -15,17 +15,18 @@
  */
 package org.springframework.integration.kafka.rule;
 
-import java.io.IOException;
-import java.net.Socket;
-
-import javax.net.SocketFactory;
-
+import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assume;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import org.springframework.integration.kafka.core.ZookeeperConnectDefaults;
+
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
 
 /**
  * <p>
@@ -44,9 +45,7 @@ import org.junit.runners.model.Statement;
  */
 public class KafkaRunning extends TestWatcher {
 
-	public static final int KAFKA_PORT = 9092;
-
-	public static final int ZOOKEEPER_PORT = 2181;
+	private static final String ZOOKEEPER_CONNECT_STRING = ZookeeperConnectDefaults.ZK_CONNECT;
 
 	private static final Log logger = LogFactory.getLog(KafkaRunning.class);
 
@@ -57,36 +56,23 @@ public class KafkaRunning extends TestWatcher {
 		return new KafkaRunning();
 	}
 
+	private ZkClient zkClient;
+
+	public ZkClient getZkClient() {
+		return zkClient;
+	}
+
 	@Override
 	public Statement apply(Statement base, Description description) {
-
-		Socket kSocket = null;
-		Socket zSocket = null;
 		try {
-			kSocket = SocketFactory.getDefault().createSocket("localhost", KAFKA_PORT);
-			kSocket.getInputStream();
-			zSocket = SocketFactory.getDefault().createSocket("localhost", ZOOKEEPER_PORT);
-			zSocket.getInputStream();
+			this.zkClient = new ZkClient(ZOOKEEPER_CONNECT_STRING, 1000, 1000, ZKStringSerializer$.MODULE$);
+			if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
+				throw new IllegalStateException("No running Kafka brokers");
+			}
 		}
-		catch (final Exception e) {
+		catch (Exception e) {
 			logger.warn("Not executing tests because basic connectivity test failed");
 			Assume.assumeNoException(e);
-		}
-		finally {
-			if (kSocket != null) {
-				try {
-					kSocket.close();
-				}
-				catch (IOException e) {
-				}
-			}
-			if (zSocket != null) {
-				try {
-					zSocket.close();
-				}
-				catch (IOException e) {
-				}
-			}
 		}
 
 		return super.apply(base, description);

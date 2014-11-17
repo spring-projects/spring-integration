@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/kafka"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
 			xmlns:integration="http://www.springframework.org/schema/integration"
 			targetNamespace="http://www.springframework.org/schema/integration/kafka"
@@ -26,16 +26,11 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="zk-connect" use="optional">
+			<xsd:attribute name="zk-connect" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
                         Indicates the Kafka server URL
                     ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.String"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="zk-connection-timeout" use="optional">
@@ -43,48 +38,31 @@
 					<xsd:documentation><![CDATA[
                         Indicates the Kafka consumer zkConnectionTimeout value
                     ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.Integer"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
 			</xsd:attribute>
 
-			<xsd:attribute name="zk-session-timeout" use="optional">
+			<xsd:attribute name="zk-session-timeout" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
                         Indicates the Kafka consumer group id
                     ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.String"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="zk-sync-time" use="optional">
+			<xsd:attribute name="zk-sync-time" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
                         Indicates the Kafka consumer group id
                     ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.String"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="auto-commit-interval" use="optional">
+			<xsd:attribute name="auto-commit-interval" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
                         Indicates the Kafka consumer group id
                     ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.String"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -120,79 +98,91 @@
 											</xsd:documentation>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="broker-list" use="required">
+									<xsd:attribute name="broker-list" use="required" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
                                                 list of comma separated kafka brokers.
                                             ]]></xsd:documentation>
-											<xsd:appinfo>
-												<tool:annotation kind="direct">
-													<tool:expected-type type="java.lang.String"/>
-												</tool:annotation>
-											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
 									<xsd:attribute name="value-encoder" use="optional" type="xsd:string">
 										<xsd:annotation>
-											<xsd:documentation>
-												Custom implementation of a Kafka Encoder for encoding message values.
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-									<xsd:attribute name="key-encoder" use="optional"
-												   type="xsd:string">
-										<xsd:annotation>
-											<xsd:documentation>
-												Custom implementation of a Kafka Encoder for encoding message keys.
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-									<xsd:attribute name="key-class-type" use="optional"
-												   type="xsd:string">
-										<xsd:annotation>
-											<xsd:documentation>
-												Class type used for the key
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-									<xsd:attribute name="value-class-type" use="optional"
-												   type="xsd:string">
-										<xsd:annotation>
-											<xsd:documentation>
-												Class type used for the value
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-									<xsd:attribute name="compression-codec" use="optional">
-										<xsd:annotation>
-											<xsd:documentation><![CDATA[
-                                                Indicates the type of compression codec used for message compression.
-                                            ]]></xsd:documentation>
 											<xsd:appinfo>
-												<tool:annotation kind="direct">
-													<tool:expected-type type="java.lang.String"/>
+												<xsd:documentation>
+													Custom implementation of a Kafka Encoder for encoding message values.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="kafka.serializer.Encoder"/>
 												</tool:annotation>
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="partitioner" use="optional"
-												   type="xsd:string">
+									<xsd:attribute name="key-encoder" use="optional" type="xsd:string">
 										<xsd:annotation>
-											<xsd:documentation>
-												Custom Kafka key partitioner.
-											</xsd:documentation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Custom implementation of a Kafka Encoder for encoding message keys.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="kafka.serializer.Encoder"/>
+												</tool:annotation>
+											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="async" use="optional"
-												   type="xsd:boolean">
+									<xsd:attribute name="key-class-type" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Class type used for the key
+												</xsd:documentation>
+												<tool:annotation kind="direct">
+													<tool:expected-type type="java.lang.Class"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="value-class-type" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Class type used for the value
+												</xsd:documentation>
+												<tool:annotation kind="direct">
+													<tool:expected-type type="java.lang.Class"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="compression-codec" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:documentation><![CDATA[
+                                                Indicates the type of compression codec used for message compression.
+                                            ]]></xsd:documentation>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="partitioner" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Custom Kafka key partitioner.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="kafka.producer.Partitioner"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="async" use="optional">
 										<xsd:annotation>
 											<xsd:documentation>
 												Indicates if this producer is async or not.
 											</xsd:documentation>
 										</xsd:annotation>
+										<xsd:simpleType>
+											<xsd:union memberTypes="xsd:boolean xsd:string"/>
+										</xsd:simpleType>
 									</xsd:attribute>
-									<xsd:attribute name="batch-num-messages" use="optional"
-												   type="xsd:string">
+									<xsd:attribute name="batch-num-messages" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation>
 												number of messages to batch at this producer.
@@ -206,12 +196,16 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="producer-properties" use="optional"
-						   type="xsd:string">
+			<xsd:attribute name="producer-properties" use="optional" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
-						Kafka producer properties to use for all producers
-					</xsd:documentation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Kafka producer properties to use for all producers
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Properties"/>
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
@@ -252,14 +246,9 @@
 											<xsd:complexType>
 												<xsd:attribute name="pattern" type="xsd:string" use="required">
 													<xsd:annotation>
-														<xsd:documentation><![CDATA[
-			                                                   Regex pattern to match topic
-			                                           ]]></xsd:documentation>
-														<xsd:appinfo>
-															<tool:annotation kind="direct">
-																<tool:expected-type type="java.lang.String"/>
-															</tool:annotation>
-														</xsd:appinfo>
+														<xsd:documentation>
+															Regex pattern to match topic
+			                                           </xsd:documentation>
 													</xsd:annotation>
 												</xsd:attribute>
 												<xsd:attribute name="streams" type="xsd:string" use="required">
@@ -267,11 +256,6 @@
 														<xsd:documentation><![CDATA[
 			                                                   Number of streams (threads) to use to consume messages
 			                                           ]]></xsd:documentation>
-														<xsd:appinfo>
-															<tool:annotation kind="direct">
-																<tool:expected-type type="java.lang.String"/>
-															</tool:annotation>
-														</xsd:appinfo>
 													</xsd:annotation>
 												</xsd:attribute>
 												<xsd:attribute name="exclude" use="optional" default="false">
@@ -281,11 +265,6 @@
 			                                                   If exclude is true, it uses blacklist to exclude topics matching given pattern.
 			                                                   Default value is false.
 			                                           ]]></xsd:documentation>
-														<xsd:appinfo>
-															<tool:annotation kind="direct">
-																<tool:expected-type type="java.lang.String"/>
-															</tool:annotation>
-														</xsd:appinfo>
 													</xsd:annotation>
 													<xsd:simpleType>
 														<xsd:union memberTypes="xsd:boolean xsd:string"/>
@@ -294,44 +273,42 @@
 											</xsd:complexType>
 										</xsd:element>
 									</xsd:choice>
-									<xsd:attribute name="max-messages" use="optional">
+									<xsd:attribute name="max-messages" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
                                                        Indicates max messages to aggregate in a single call to receive
                                                ]]></xsd:documentation>
-											<xsd:appinfo>
-												<tool:annotation kind="direct">
-													<tool:expected-type type="java.lang.String"/>
-												</tool:annotation>
-											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="group-id" use="required">
+									<xsd:attribute name="group-id" use="required" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
                                                    Indicates the Kafka consumer group id
                                            ]]></xsd:documentation>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="value-decoder" use="optional" type="xsd:string">
+										<xsd:annotation>
 											<xsd:appinfo>
-												<tool:annotation kind="direct">
-													<tool:expected-type type="java.lang.String"/>
+												<xsd:documentation>
+													Custom implementation of a Kafka Decoder for values.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="kafka.serializer.Decoder"/>
 												</tool:annotation>
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="value-decoder" use="optional"
-												   type="xsd:string">
+									<xsd:attribute name="key-decoder" use="optional" type="xsd:string">
 										<xsd:annotation>
-											<xsd:documentation>
-												Kafka Server Bean Name
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-									<xsd:attribute name="key-decoder" use="optional"
-												   type="xsd:string">
-										<xsd:annotation>
-											<xsd:documentation>
-												Kafka Server Bean Name
-											</xsd:documentation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Custom implementation of a Kafka Decoder for keys.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="kafka.serializer.Decoder"/>
+												</tool:annotation>
+											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
 								</xsd:complexType>
@@ -342,32 +319,30 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="consumer-timeout" use="optional">
+			<xsd:attribute name="consumer-timeout" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
                            Indicates the Kafka consumer timeout ms
                    ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.String"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="zookeeper-connect" use="required"
-						   type="xsd:string">
+			<xsd:attribute name="zookeeper-connect" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						Kafka Server Bean Name
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="consumer-properties" use="optional"
-						   type="xsd:string">
+			<xsd:attribute name="consumer-properties" use="optional" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
-						Kafka consumer properties to use for all consumers
-					</xsd:documentation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Kafka consumer properties to use for all consumers
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Properties"/>
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -402,23 +377,23 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="group-id" use="optional">
+			<xsd:attribute name="group-id" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
                                        Indicates the Kafka consumer group id
                                ]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.String"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="kafka-consumer-context-ref" use="required" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
-						Kafka Server Bean Name
-					</xsd:documentation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Kafka consumer context reference.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.support.KafkaConsumerContext"/>
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -439,9 +414,48 @@
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="kafka-producer-context-ref" use="required" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
-						Kafka producer context reference.
-					</xsd:documentation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Kafka producer context reference.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.support.KafkaProducerContext"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="topic" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the name of the Kafka topic.
+								This attribute is mutually exclusive with 'topic-expression' attribute.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="topic-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the expression to determine the name of the Kafka topic
+								against the Message at runtime.
+								This attribute is mutually exclusive with 'topic' attribute.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the Key for the Kafka message.
+								This attribute is mutually exclusive with 'message-key-expression' attribute.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-key-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the expression to determine the Key for Kafka message
+								against the Message at runtime.
+								This attribute is mutually exclusive with 'message-key' attribute.
+							]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="order">
@@ -451,7 +465,11 @@
 						subscriber to a SubscribableChannel.
 					</xsd:documentation>
 				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
 </xsd:schema>
