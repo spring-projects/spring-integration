@@ -210,6 +210,8 @@ subprojects { subproject ->
 		if (name ==~ /(springIo.*)|(testAll)/) {
 			systemProperty 'RUN_LONG_INTEGRATION_TESTS', 'true'
 		}
+
+		environment 'SI_FATAL_WHEN_NO_BEANFACTORY', 'true'
 	}
 
 	task sourcesJar(type: Jar) {
