@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.transformer;
+package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,8 +31,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
- * Also in JMX - changes here should be reflected there.
- *
  * @author Mark Fisher
  * @author Gary Russell
  */
@@ -56,14 +54,14 @@ public class TransformerContextTests {
 		reply = output.receive(0);
 		assertEquals("FOO", reply.getPayload());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doSend", st[6].getMethodName()); // no MethodInvokerHelper
+		assertEquals("doSend", st[18].getMethodName()); // no MethodInvokerHelper
 
 		input = context.getBean("directRef", MessageChannel.class);
 		input.send(new GenericMessage<String>("foo"));
 		reply = output.receive(0);
 		assertEquals("FOO", reply.getPayload());
 		st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doSend", st[6].getMethodName()); // no MethodInvokerHelper
+		assertEquals("doSend", st[18].getMethodName()); // no MethodInvokerHelper
 		context.close();
 	}
 
