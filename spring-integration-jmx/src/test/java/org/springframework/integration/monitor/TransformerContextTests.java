@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.transformer;
+package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -31,8 +31,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
- * Also in JMX - changes here should be reflected there.
- *
  * @author Mark Fisher
  * @author Gary Russell
  */
@@ -40,9 +38,11 @@ public class TransformerContextTests {
 
 	private static volatile int adviceCalled;
 
+	private static volatile int bazCalled;
+
 	@Test
 	public void methodInvokingTransformer() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"transformerContextTests.xml", this.getClass());
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		PollableChannel output = context.getBean("output", PollableChannel.class);
@@ -55,15 +55,19 @@ public class TransformerContextTests {
 		input.send(new GenericMessage<String>("foo"));
 		reply = output.receive(0);
 		assertEquals("FOO", reply.getPayload());
-		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName()); // close to the metal
 
 		input = context.getBean("directRef", MessageChannel.class);
 		input.send(new GenericMessage<String>("foo"));
 		reply = output.receive(0);
 		assertEquals("FOO", reply.getPayload());
-		st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName()); // SpEL
+		assertEquals(2, adviceCalled);
+
+		input = context.getBean("service", MessageChannel.class);
+		input.send(new GenericMessage<String>("foo"));
+		assertEquals(1, bazCalled);
+		assertEquals(3, adviceCalled);
+
+		context.close();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
@@ -87,4 +91,17 @@ public class TransformerContextTests {
 		}
 
 	}
+
+	public static class BazService {
+
+		public void qux() {
+			bazCalled++;
+		}
+
+		public String upperCase(String input) {
+			return input.toUpperCase();
+		}
+
+	}
+
 }

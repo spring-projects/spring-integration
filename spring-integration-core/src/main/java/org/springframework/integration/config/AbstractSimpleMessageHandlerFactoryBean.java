@@ -19,6 +19,7 @@ import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -31,6 +32,7 @@ import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -73,6 +75,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		this.order = order;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -94,6 +97,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		this.componentName = componentName;
 	}
 
+	@Override
 	public H getObject() throws Exception {
 		if (this.handler == null) {
 			this.handler = this.createHandlerInternal();
@@ -115,12 +119,25 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
 				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
 			}
-			if (this.handler instanceof IntegrationObjectSupport && this.componentName != null) {
-				((IntegrationObjectSupport) this.handler).setComponentName(this.componentName);
+			Object actualHandler = extractTarget(this.handler);
+			if (actualHandler == null) {
+				actualHandler = this.handler;
 			}
-			if (!CollectionUtils.isEmpty(this.adviceChain) &&
-					this.handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
+			if (actualHandler instanceof IntegrationObjectSupport && this.componentName != null) {
+				((IntegrationObjectSupport) actualHandler).setComponentName(this.componentName);
+			}
+			if (!CollectionUtils.isEmpty(this.adviceChain)) {
+				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
+					((AbstractReplyProducingMessageHandler) actualHandler).setAdviceChain(this.adviceChain);
+				}
+				else if (logger.isDebugEnabled()) {
+					String name = this.componentName;
+					if (name == null && actualHandler instanceof NamedComponent) {
+						name = ((NamedComponent) actualHandler).getComponentName();
+					}
+					logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
+						+ (name == null ? "" : (", " + name)) + ".");
+				}
 			}
 			if (this.handler instanceof Orderable && this.order != null) {
 				((Orderable) this.handler).setOrder(this.order);
@@ -140,6 +157,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	protected abstract H createHandler();
 
+	@Override
 	public Class<? extends MessageHandler> getObjectType() {
 		if (this.handler != null) {
 			return this.handler.getClass();
@@ -147,8 +165,26 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return MessageHandler.class;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
+	}
+
+	private Object extractTarget(Object object) {
+		if (!(object instanceof Advised)) {
+			return object;
+		}
+		Advised advised = (Advised) object;
+		if (advised.getTargetSource() == null) {
+			return null;
+		}
+		try {
+			return extractTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			logger.error("Could not extract target", e);
+			return null;
+		}
 	}
 
 }
