@@ -19,6 +19,7 @@ import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -29,6 +30,7 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -118,17 +120,24 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
 				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
 			}
-			if (this.handler instanceof IntegrationObjectSupport && this.componentName != null) {
-				((IntegrationObjectSupport) this.handler).setComponentName(this.componentName);
+			Object actualHandler = extractTarget(this.handler);
+			if (actualHandler == null) {
+				actualHandler = this.handler;
 			}
-			if (!CollectionUtils.isEmpty(this.adviceChain) &&
-					this.handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
+			if (actualHandler instanceof IntegrationObjectSupport && this.componentName != null) {
+				((IntegrationObjectSupport) actualHandler).setComponentName(this.componentName);
 			}
-			else if(!(this.handler instanceof AbstractReplyProducingMessageHandler)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("adviceChain can only be set to AbstractReplyProducingMessageHandler or its subclass, "
-					+ ((IntegrationObjectSupport) this.handler).getComponentName() + " doesn't support it.");
+			if (!CollectionUtils.isEmpty(this.adviceChain)) {
+				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
+					((AbstractReplyProducingMessageHandler) actualHandler).setAdviceChain(this.adviceChain);
+				}
+				else if (logger.isDebugEnabled()) {
+					String name = this.componentName;
+					if (name == null && actualHandler instanceof NamedComponent) {
+						name = ((NamedComponent) actualHandler).getComponentName();
+					}
+					logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
+						+ (name == null ? "" : (", " + name)) + ".");
 				}
 			}
 			if (this.handler instanceof Orderable && this.order != null) {
@@ -160,6 +169,23 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	@Override
 	public boolean isSingleton() {
 		return true;
+	}
+
+	private Object extractTarget(Object object) {
+		if (!(object instanceof Advised)) {
+			return object;
+		}
+		Advised advised = (Advised) object;
+		if (advised.getTargetSource() == null) {
+			return null;
+		}
+		try {
+			return extractTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			logger.error("Could not extract target", e);
+			return null;
+		}
 	}
 
 }
