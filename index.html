@@ -46,6 +46,7 @@ maintainable, testable code.
 [Pivotal Recognized in DZone's 2014 Guide to Enterprise Integration.](https://spring.io/blog/2014/11/12/pivotal-recognized-in-dzone-s-2014-guide-to-enterprise-integration)
 
 Check out the new [Java DSL for configuring your integration flows with a fluent Java API](https://spring.io/blog/2014/11/24/spring-integration-java-dsl-1-0-ga-released) and the [line-by-line tutorial using a DSL version of the classic 'Cafe' application.](https://spring.io/blog/2014/11/25/spring-integration-java-dsl-line-by-line-tutorial)
+We also added a DSL version to the [quick start below.](#qsdsl)
 
 
 
@@ -148,7 +149,7 @@ public interface TempConverter {
 		xpath-expression="/*[local-name()='FahrenheitToCelsiusResponse']/*[local-name()='FahrenheitToCelsiusResult']"/>
 </int:chain>
 ````
-
+<a name="qsdsl"></a>
 And here is the same application (web service part) using the [new Java DSL](https://spring.io/blog/2014/11/24/spring-integration-java-dsl-1-0-ga-released) (and Spring Boot):
 
 ````java
