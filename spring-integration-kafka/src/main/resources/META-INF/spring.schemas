@@ -1,2 +1,3 @@
 http\://www.springframework.org/schema/integration/kafka/spring-integration-kafka-1.0.xsd=org/springframework/integration/config/xml/spring-integration-kafka-1.0.xsd
 http\://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd=org/springframework/integration/config/xml/spring-integration-kafka-1.0.xsd
+http\://www.springframework.org/schema/integration/spring-integration-4.0.xsd=org/springframework/integration/config/xml/spring-integration-4.0.xsd
