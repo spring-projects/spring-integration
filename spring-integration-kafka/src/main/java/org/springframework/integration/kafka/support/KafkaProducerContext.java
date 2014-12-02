@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,28 @@ package org.springframework.integration.kafka.support;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 
 /**
  * @author Soby Chacko
  * @author Rajasekar Elango
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @since 0.5
  */
-public class KafkaProducerContext<K, V> {
+public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponent, BeanNameAware {
 
-	private static final Log LOGGER = LogFactory.getLog(KafkaProducerContext.class);
+	private static final Log logger = LogFactory.getLog(KafkaProducerContext.class);
+
+	private final AtomicBoolean running = new AtomicBoolean();
 
 	private volatile Map<String, ProducerConfiguration<K, V>> producerConfigurations;
 
@@ -41,23 +48,11 @@ public class KafkaProducerContext<K, V> {
 
 	private Properties producerProperties;
 
-	public void send(final Message<?> message) throws Exception {
-		if (message.getHeaders().containsKey("topic")) {
-			ProducerConfiguration<K, V> producerConfiguration =
-					getTopicConfiguration(message.getHeaders().get("topic", String.class));
-			if (producerConfiguration != null) {
-				producerConfiguration.send(message);
-			}
-		}
-		// if there is a single producer configuration then use that config to send message.
-		else if (this.theProducerConfiguration != null) {
-			this.theProducerConfiguration.send(message);
-		}
-		else {
-			throw new IllegalStateException("Could not send messages as there are multiple producer configurations " +
-					"with no topic information found from the message header.");
-		}
-	}
+	private String beanName = "not_specified";
+
+	private int phase = 0;
+
+	private boolean autoStartup = true;
 
 	public ProducerConfiguration<K, V> getTopicConfiguration(final String topic) {
 		if (this.theProducerConfiguration != null) {
@@ -73,7 +68,7 @@ public class KafkaProducerContext<K, V> {
 				return producerConfiguration;
 			}
 		}
-		LOGGER.error("No producer-configuration defined for topic " + topic + ". Cannot send message");
+		logger.error("No producer-configuration defined for topic " + topic + ". Cannot send message");
 		return null;
 	}
 
@@ -97,10 +92,133 @@ public class KafkaProducerContext<K, V> {
 	}
 
 	/**
-	 * @return Returns the producerProperties.
+	 * @return the producerProperties.
 	 */
 	public Properties getProducerProperties() {
 		return this.producerProperties;
+	}
+
+	/**
+	 * @return the component type.
+	 * @since 1.0
+	 */
+	@Override
+	public String getComponentType() {
+		return "kafka:producer-context";
+	}
+
+	/**
+	 * @param name the bean name.
+	 * @since 1.0
+	 */
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
+	/**
+	 * @param phase the phase to set.
+	 * @see SmartLifecycle
+	 * @since 1.0
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
+	 * @param autoStartup the autoStartup to set.
+	 * @see SmartLifecycle
+	 * @since 1.0
+	 */
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	/**
+	 * @return the component name.
+	 * @since 1.0
+	 */
+	@Override
+	public String getComponentName() {
+		return this.beanName;
+	}
+
+	protected void doStart() {
+	}
+
+	protected void doStop() {
+		if (this.producerConfigurations != null) {
+			for (ProducerConfiguration<?, ?> producerConfiguration : this.producerConfigurations.values()) {
+				producerConfiguration.stop();
+			}
+		}
+	}
+
+	@Override
+	public final void start() {
+		if (this.running.compareAndSet(false, true)) {
+			doStart();
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug(getComponentType() + ":" + getComponentName() + " is already running");
+			}
+		}
+	}
+
+	@Override
+	public final void stop() {
+		if (this.running.compareAndSet(true, false)) {
+			doStop();
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug(getComponentType() + ":" + getComponentName() + " is not running");
+			}
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running.get();
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		stop();
+		callback.run();
+	}
+
+	public void send(final Message<?> message) throws Exception {
+		if (!running.get()) {
+			start();
+		}
+
+		if (message.getHeaders().containsKey("topic")) {
+			ProducerConfiguration<K, V> producerConfiguration =
+					getTopicConfiguration(message.getHeaders().get("topic", String.class));
+			if (producerConfiguration != null) {
+				producerConfiguration.send(message);
+			}
+		}
+		// if there is a single producer configuration then use that config to send message.
+		else if (this.theProducerConfiguration != null) {
+			this.theProducerConfiguration.send(message);
+		}
+		else {
+			throw new IllegalStateException("Could not send messages as there are multiple producer configurations " +
+					"with no topic information found from the message header.");
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Soby Chacko
+ * @author Gary Russell
  * @since 0.5
  */
 public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler {
@@ -39,4 +40,10 @@ public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler {
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		kafkaProducerContext.send(message);
 	}
+
+	@Override
+	public String getComponentType() {
+		return "kafka:outbound-channel-adapter";
+	}
+
 }

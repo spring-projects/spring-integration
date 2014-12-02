@@ -214,6 +214,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 

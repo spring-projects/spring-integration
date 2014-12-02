@@ -45,6 +45,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Rajasekar Elango
  * @author Artem Bilan
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @since 0.5
  */
 public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionParser {
@@ -78,10 +79,6 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 					"value-decoder");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerMetadataBuilder, consumerConfiguration,
 					"key-decoder");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(consumerMetadataBuilder, consumerConfiguration,
-					"key-class-type");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(consumerMetadataBuilder, consumerConfiguration,
-					"value-class-type");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(consumerConfigurationBuilder, consumerConfiguration,
 					"max-messages");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(consumerMetadataBuilder, parentElem,
