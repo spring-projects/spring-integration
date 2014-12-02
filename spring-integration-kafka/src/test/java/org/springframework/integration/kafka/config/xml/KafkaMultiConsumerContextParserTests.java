@@ -16,10 +16,13 @@
 package org.springframework.integration.kafka.config.xml;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.kafka.rule.KafkaRunning;
 import org.springframework.integration.kafka.support.ConsumerConfiguration;
 import org.springframework.integration.kafka.support.ConsumerMetadata;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
@@ -28,10 +31,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class KafkaMultiConsumerContextParserTests<K,V> {
+
+	@ClassRule
+	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
 
 	@Autowired
 	private ApplicationContext appContext;

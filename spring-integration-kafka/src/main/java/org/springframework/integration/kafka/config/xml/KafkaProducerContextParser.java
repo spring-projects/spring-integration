@@ -37,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
 /**
  * @author Soby Chacko
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @since 0.5
  */
 public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionParser {
@@ -50,8 +51,17 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 	protected void doParse(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+
 		final Element topics = DomUtils.getChildElementByTagName(element, "producer-configurations");
 		parseProducerConfigurations(topics, parserContext, builder, element);
+	}
+
+
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !"producer-properties".equals(attributeName) && super.isEligibleAttribute(attributeName);
 	}
 
 	private void parseProducerConfigurations(Element topics, ParserContext parserContext,
@@ -59,8 +69,6 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 		Map<String, BeanMetadataElement> producerConfigurationsMap = new ManagedMap<String, BeanMetadataElement>();
 
 		for (Element producerConfiguration : DomUtils.getChildElementsByTagName(topics, "producer-configuration")) {
-			BeanDefinitionBuilder producerConfigurationBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ProducerConfiguration.class);
 
 			BeanDefinitionBuilder producerMetadataBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ProducerMetadata.class);
@@ -100,11 +108,11 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 
 			AbstractBeanDefinition producerFactoryBeanDefinition = producerFactoryBuilder.getBeanDefinition();
 
-			producerConfigurationBuilder.addConstructorArgValue(producerMetadataBeanDefinition);
-			producerConfigurationBuilder.addConstructorArgValue(producerFactoryBeanDefinition);
-
 			AbstractBeanDefinition producerConfigurationBeanDefinition =
-					producerConfigurationBuilder.getBeanDefinition();
+					BeanDefinitionBuilder.genericBeanDefinition(ProducerConfiguration.class)
+							.addConstructorArgValue(producerMetadataBeanDefinition)
+							.addConstructorArgValue(producerFactoryBeanDefinition)
+							.getBeanDefinition();
 			producerConfigurationsMap.put(producerConfiguration.getAttribute("topic"),
 					producerConfigurationBeanDefinition);
 		}

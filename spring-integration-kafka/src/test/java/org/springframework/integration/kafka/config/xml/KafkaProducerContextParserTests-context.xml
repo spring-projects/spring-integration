@@ -27,7 +27,8 @@
 
 	<context:property-placeholder properties-ref="placeholderProperties"/>
 
-    <int-kafka:producer-context id="producerContext" producer-properties="producerProperties">
+    <int-kafka:producer-context id="producerContext" producer-properties="producerProperties"
+               auto-startup="false" phase="123">
         <int-kafka:producer-configurations>
             <int-kafka:producer-configuration broker-list="${brokerList1}"
                                            key-class-type="java.lang.String"

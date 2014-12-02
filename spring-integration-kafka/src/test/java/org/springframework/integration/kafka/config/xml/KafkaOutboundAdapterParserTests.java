@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.integration.kafka.config.xml;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,17 +24,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
+import org.springframework.integration.kafka.rule.KafkaRunning;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Soby Chacko
+ * @author Gary Russell
  * @since 0.5
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class KafkaOutboundAdapterParserTests<K, V> {
+
+	@ClassRule
+	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
 
 	@Autowired
 	private ApplicationContext appContext;
