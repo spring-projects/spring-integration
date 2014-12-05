@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertNotNull;
@@ -25,31 +26,37 @@ import static org.mockito.Mockito.times;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.config.TestErrorHandler;
-import org.springframework.messaging.MessageHandler;
+import org.springframework.integration.core.LifecycleMessageSource;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  */
 public class PollingLifecycleTests {
+
 	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+
 	private TestErrorHandler errorHandler = new TestErrorHandler();
 
 	@Before
@@ -58,7 +65,7 @@ public class PollingLifecycleTests {
 	}
 
 	@Test
-	public void ensurePollerTaskStops() throws Exception{
+	public void ensurePollerTaskStops() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		QueueChannel channel = new QueueChannel();
 		channel.send(new GenericMessage<String>("foo"));
@@ -89,7 +96,7 @@ public class PollingLifecycleTests {
 	}
 
 	@Test
-	public void ensurePollerTaskStopsForAdapter() throws Exception{
+	public void ensurePollerTaskStopsForAdapter() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		QueueChannel channel = new QueueChannel();
 
@@ -118,7 +125,7 @@ public class PollingLifecycleTests {
 	}
 
 	@Test
-	public void ensurePollerTaskStopsForAdapterWithInterruptible() throws Exception{
+	public void ensurePollerTaskStopsForAdapterWithInterruptible() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
 		QueueChannel channel = new QueueChannel();
 
@@ -136,7 +143,8 @@ public class PollingLifecycleTests {
 						Thread.sleep(1000);
 						latch.countDown();
 					}
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					coughtInterrupted.run();
 				}
 
@@ -156,4 +164,51 @@ public class PollingLifecycleTests {
 		Thread.sleep(1000);
 		Mockito.verify(coughtInterrupted, times(1)).run();
 	}
+
+	@Test
+	public void testAdapterLifecycleIsPropagatedToMessageSource() throws Exception {
+		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
+		adapterFactory.setOutputChannel(new NullChannel());
+		adapterFactory.setBeanFactory(mock(ConfigurableBeanFactory.class));
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
+		adapterFactory.setPollerMetadata(pollerMetadata);
+
+		final AtomicBoolean startInvoked = new AtomicBoolean();
+
+		final AtomicBoolean stopInvoked = new AtomicBoolean();
+
+		adapterFactory.setSource(new LifecycleMessageSource<Object>() {
+
+			@Override
+			public void start() {
+				startInvoked.set(true);
+			}
+
+			@Override
+			public void stop() {
+				stopInvoked.set(true);
+			}
+
+			@Override
+			public boolean isRunning() {
+				return false;
+			}
+
+			@Override
+			public Message<Object> receive() {
+				return null;
+			}
+
+		});
+
+		SourcePollingChannelAdapter adapter = adapterFactory.getObject();
+		adapter.setTaskScheduler(this.taskScheduler);
+		adapter.start();
+		adapter.stop();
+
+		assertTrue(startInvoked.get());
+		assertTrue(stopInvoked.get());
+	}
+
 }
