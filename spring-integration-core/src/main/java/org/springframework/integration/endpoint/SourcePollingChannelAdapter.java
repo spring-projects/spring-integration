@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.core.LifecycleMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -90,6 +92,24 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		return (this.source instanceof NamedComponent) ?
 				((NamedComponent) this.source).getComponentType() : "inbound-channel-adapter";
 	}
+
+	@Override
+	protected void doStart() {
+		if (this.source instanceof LifecycleMessageSource) {
+			((Lifecycle) this.source).start();
+		}
+		super.doStart();
+	}
+
+
+	@Override
+	protected void doStop() {
+		if (this.source instanceof LifecycleMessageSource) {
+			((Lifecycle) this.source).stop();
+		}
+		super.doStop();
+	}
+
 
 	@Override
 	protected void onInit() {
