@@ -20,16 +20,19 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 
 /**
- * A MessageProcessor implementation that invokes a method on a target Object. The Method instance or method name may be
- * provided as a constructor argument. If a method name is provided, and more than one declared method has that name,
- * the method-selection will be dynamic, based on the underlying SpEL method resolution. Alternatively, an annotation
- * type may be provided so that the candidates for SpEL's method resolution are determined by the presence of that
+ * A MessageProcessor implementation that invokes a method on a target Object.
+ * The Method instance or method name may be provided as a constructor argument.
+ * If a method name is provided, and more than one declared method has that name,
+ * the method-selection will be dynamic, based on the underlying SpEL method resolution.
+ * Alternatively, an annotation type may be provided so that the candidates for
+ * SpEL's method resolution are determined by the presence of that
  * annotation rather than the method name.
  *
  * @author Dave Syer
@@ -37,7 +40,7 @@ import org.springframework.messaging.MessageHandlingException;
  *
  * @since 2.0
  */
-public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<T> {
+public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<T> implements Lifecycle {
 
 	private final MessagingMethodInvokerHelper<T> delegate;
 
@@ -67,6 +70,21 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		delegate.setBeanFactory(beanFactory);
+	}
+
+	@Override
+	public void start() {
+		this.delegate.start();
+	}
+
+	@Override
+	public void stop() {
+		this.delegate.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.delegate.isRunning();
 	}
 
 	@Override

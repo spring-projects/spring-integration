@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,33 @@
 
 package org.springframework.integration.transformer;
 
+import org.springframework.context.Lifecycle;
+
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-public class TestBean {
+public class TestBean implements Lifecycle {
+
+	private boolean running;
 
 	public String upperCase(String input) {
 		return input.toUpperCase();
+	}
+
+	@Override
+	public void start() {
+		this.running = true;
+	}
+
+	@Override
+	public void stop() {
+		this.running = false;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
 	}
 
 }

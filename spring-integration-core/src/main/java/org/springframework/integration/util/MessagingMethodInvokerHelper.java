@@ -40,6 +40,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -60,17 +61,20 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
 /**
- * A helper class for processors that invoke a method on a target Object using a combination of message payload(s) and
- * headers as arguments. The Method instance or method name may be provided as a constructor argument. If a method name
- * is provided, and more than one declared method has that name, the method-selection will be dynamic, based on the
- * underlying SpEL method resolution. Alternatively, an annotation type may be provided so that the candidates for
- * SpEL's method resolution are determined by the presence of that annotation rather than the method name.
+ * A helper class for processors that invoke a method on a target Object using
+ * a combination of message payload(s) and headers as arguments.
+ * The Method instance or method name may be provided as a constructor argument.
+ * If a method name is provided, and more than one declared method has that name,
+ * the method-selection will be dynamic, based on the underlying SpEL method resolution.
+ * Alternatively, an annotation type may be provided so that the candidates for SpEL's
+ * method resolution are determined by the presence of that annotation rather than the method name.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -82,7 +86,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator {
+public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator  implements Lifecycle {
 
 	private static final String CANDIDATE_METHODS = "CANDIDATE_METHODS";
 
@@ -91,6 +95,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final Object targetObject;
+
 	private volatile String displayString;
 
 	private volatile boolean requiresReply;
@@ -150,6 +155,25 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	@Override
 	public String toString() {
 		return this.displayString;
+	}
+
+	@Override
+	public void start() {
+		if (this.targetObject instanceof Lifecycle) {
+			((Lifecycle) this.targetObject).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.targetObject instanceof Lifecycle) {
+			((Lifecycle) this.targetObject).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.targetObject instanceof Lifecycle) || ((Lifecycle) this.targetObject).isRunning();
 	}
 
 	/*
@@ -327,6 +351,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					return;
 				}
 				if (methodName != null && !methodName.equals(method.getName())) {
+					return;
+				}
+				if (methodName == null
+						&& ObjectUtils.containsElement(new String[] {"start", "stop", "isRunning"}, method.getName())) {
 					return;
 				}
 				if (annotationType != null && AnnotationUtils.findAnnotation(method, annotationType) != null) {
@@ -531,7 +559,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		return (method.getName().equals("clone") && method.getParameterTypes().length == 0);
 	}
-
 
 	/**
 	 * Helper class for generating and exposing metadata for a candidate handler method. The metadata includes the SpEL

@@ -13,7 +13,7 @@
 		<queue capacity="50"/>
 	</channel>
 
-	<filter input-channel="input"
+	<filter id="pojoFilter" input-channel="input"
 			ref="testBean"
 			method="acceptStringWithMoreThanThreeChars"
 			output-channel="output"/>

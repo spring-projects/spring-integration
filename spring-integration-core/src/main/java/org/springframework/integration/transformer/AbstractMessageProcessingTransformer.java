@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
@@ -31,8 +32,10 @@ import org.springframework.util.Assert;
  * Base class for Message Transformers that delegate to a {@link MessageProcessor}.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-public abstract class AbstractMessageProcessingTransformer implements Transformer, BeanFactoryAware {
+public abstract class AbstractMessageProcessingTransformer
+		implements Transformer, BeanFactoryAware, Lifecycle {
 
 	private final MessageProcessor<?> messageProcessor;
 
@@ -57,6 +60,25 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+	}
+
+	@Override
+	public void start() {
+		if (this.messageProcessor instanceof Lifecycle) {
+			((Lifecycle) this.messageProcessor).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.messageProcessor instanceof Lifecycle) {
+			((Lifecycle) this.messageProcessor).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.messageProcessor instanceof Lifecycle) || ((Lifecycle) this.messageProcessor).isRunning();
 	}
 
 	@Override

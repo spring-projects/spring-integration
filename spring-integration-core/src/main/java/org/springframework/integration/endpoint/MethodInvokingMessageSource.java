@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -30,8 +31,10 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements InitializingBean {
+public class MethodInvokingMessageSource extends AbstractMessageSource<Object>
+		implements InitializingBean, Lifecycle {
 
 	private volatile Object object;
 
@@ -83,6 +86,25 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 			this.method.setAccessible(true);
 			this.initialized = true;
 		}
+	}
+
+	@Override
+	public void start() {
+		if (this.object instanceof Lifecycle) {
+			((Lifecycle) this.object).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.object instanceof Lifecycle) {
+			((Lifecycle) this.object).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.object instanceof Lifecycle) || ((Lifecycle) this.object).isRunning();
 	}
 
 	@Override
