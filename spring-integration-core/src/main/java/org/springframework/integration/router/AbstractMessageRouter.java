@@ -191,8 +191,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 				this.messagingTemplate.send(this.defaultOutputChannel, message);
 			}
 			else {
-				throw new MessageDeliveryException(message,
-						"no channel resolved by router and no default output channel defined");
+				throw new MessageDeliveryException(message, "No channel resolved by router '" + this.getComponentName()
+						+ "' and no 'defaultOutputChannel' defined.");
 			}
 		}
 	}

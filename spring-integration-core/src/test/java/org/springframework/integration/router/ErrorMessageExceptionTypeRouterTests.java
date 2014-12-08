@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 
 package org.springframework.integration.router;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +40,7 @@ import org.springframework.messaging.support.ErrorMessage;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class ErrorMessageExceptionTypeRouterTests {
 
@@ -143,7 +148,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		assertNull(messageHandlingExceptionChannel.receive(0));
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void noMatchAndNoDefaultChannel() {
 		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
@@ -156,7 +161,15 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		router.setResolutionRequired(true);
-		router.handleMessage(message);
+		router.setBeanName("fooRouter");
+		try {
+			router.handleMessage(message);
+			fail("MessageDeliveryException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getMessage(), containsString("'fooRouter'"));
+		}
 	}
 
 	@Test
