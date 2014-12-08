@@ -6,7 +6,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<message-history tracked-components="publishedChannel,input,*AnnotationTestService*"/>
+	<message-history tracked-components="publishedChannel,input,annotationTestService*"/>
 
 	<annotation-config default-publisher-channel="publishedChannel"/>
 

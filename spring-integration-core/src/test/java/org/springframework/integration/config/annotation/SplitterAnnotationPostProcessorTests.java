@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,28 @@
 package org.springframework.integration.config.annotation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class SplitterAnnotationPostProcessorTests {
 
@@ -73,17 +78,44 @@ public class SplitterAnnotationPostProcessorTests {
 		assertNotNull(message4);
 		assertEquals("test", message4.getPayload());
 		assertNull(outputChannel.receive(0));
+
+		AbstractEndpoint endpoint = context.getBean(AbstractEndpoint.class);
+
+		assertTrue(splitter.isRunning());
+		endpoint.stop();
+		assertFalse(splitter.isRunning());
+		endpoint.start();
+		assertTrue(splitter.isRunning());
+
 		context.stop();
 	}
 
 
 	@MessageEndpoint
-	public static class TestSplitter {
+	public static class TestSplitter implements Lifecycle {
 
-		@Splitter(inputChannel="input", outputChannel="output")
+		private boolean running;
+
+		@Splitter(inputChannel = "input", outputChannel = "output")
 		public String[] split(String s) {
 			return s.split("\\.");
 		}
+
+		@Override
+		public void start() {
+			this.running = true;
+		}
+
+		@Override
+		public void stop() {
+			this.running = false;
+		}
+
+		@Override
+		public boolean isRunning() {
+			return this.running;
+		}
+
 	}
 
 }

@@ -17,11 +17,17 @@
 package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.filter.*;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
@@ -29,42 +35,64 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Also in JMX - changes here should be reflected there.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class TransformerContextTests {
 
 	private static volatile int adviceCalled;
 
+	@Autowired
+	private MessageChannel input;
+
+	@Autowired
+	private MessageChannel direct;
+
+	@Autowired
+	private MessageChannel directRef;
+
+	@Autowired
+	private PollableChannel output;
+
+	@Autowired
+	private AbstractEndpoint pojoTransformer;
+
+	@Autowired
+	private TestBean testBean;
+
 	@Test
 	public void methodInvokingTransformer() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"transformerContextTests.xml", this.getClass());
-		MessageChannel input = context.getBean("input", MessageChannel.class);
-		PollableChannel output = context.getBean("output", PollableChannel.class);
-		input.send(new GenericMessage<String>("foo"));
-		Message<?> reply = output.receive(0);
+		this.input.send(new GenericMessage<String>("foo"));
+		Message<?> reply = this.output.receive(0);
 		assertEquals("FOO", reply.getPayload());
 		assertEquals(1, adviceCalled);
 
-		input = context.getBean("direct", MessageChannel.class);
-		input.send(new GenericMessage<String>("foo"));
-		reply = output.receive(0);
+		this.direct.send(new GenericMessage<String>("foo"));
+		reply = this.output.receive(0);
 		assertEquals("FOO", reply.getPayload());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
 		assertEquals("doSend", st[6].getMethodName()); // no MethodInvokerHelper
 
-		input = context.getBean("directRef", MessageChannel.class);
-		input.send(new GenericMessage<String>("foo"));
-		reply = output.receive(0);
+		this.directRef.send(new GenericMessage<String>("foo"));
+		reply = this.output.receive(0);
 		assertEquals("FOO", reply.getPayload());
 		st = (StackTraceElement[]) reply.getHeaders().get("callStack");
 		assertEquals("doSend", st[6].getMethodName()); // no MethodInvokerHelper
-		context.close();
+
+		assertTrue(this.testBean.isRunning());
+		this.pojoTransformer.stop();
+		assertFalse(this.testBean.isRunning());
+		this.pojoTransformer.start();
+		assertTrue(this.testBean.isRunning());
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

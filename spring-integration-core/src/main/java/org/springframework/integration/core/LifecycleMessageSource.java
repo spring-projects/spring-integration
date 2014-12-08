@@ -24,6 +24,8 @@ import org.springframework.context.Lifecycle;
  *
  * @author Artem Bilan
  * @since 4.0.6
+ * @deprecated since 4.2 in favor of direct {@link Lifecycle} usage.
  */
+@Deprecated
 public interface LifecycleMessageSource<T> extends MessageSource<T>, Lifecycle {
 }

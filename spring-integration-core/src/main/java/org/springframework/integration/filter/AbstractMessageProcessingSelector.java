@@ -19,6 +19,7 @@ package org.springframework.integration.filter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
@@ -31,8 +32,10 @@ import org.springframework.util.Assert;
  * a {@link MessageProcessor}.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-public abstract class AbstractMessageProcessingSelector implements MessageSelector, BeanFactoryAware {
+public abstract class AbstractMessageProcessingSelector
+		implements MessageSelector, BeanFactoryAware, Lifecycle {
 
 	private final MessageProcessor<Boolean> messageProcessor;
 
@@ -60,6 +63,25 @@ public abstract class AbstractMessageProcessingSelector implements MessageSelect
 		Assert.notNull(result, "result must not be null");
 		Assert.isAssignable(Boolean.class, result.getClass(), "a boolean result is required");
 		return (Boolean) result;
+	}
+
+	@Override
+	public void start() {
+		if (this.messageProcessor instanceof Lifecycle) {
+			((Lifecycle) this.messageProcessor).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.messageProcessor instanceof Lifecycle) {
+			((Lifecycle) this.messageProcessor).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.messageProcessor instanceof Lifecycle) || ((Lifecycle) this.messageProcessor).isRunning();
 	}
 
 }

@@ -34,11 +34,11 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.config.TestErrorHandler;
-import org.springframework.integration.core.LifecycleMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
@@ -178,7 +178,8 @@ public class PollingLifecycleTests {
 
 		final AtomicBoolean stopInvoked = new AtomicBoolean();
 
-		adapterFactory.setSource(new LifecycleMessageSource<Object>() {
+		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
+		source.setObject(new Lifecycle() {
 
 			@Override
 			public void start() {
@@ -195,12 +196,10 @@ public class PollingLifecycleTests {
 				return false;
 			}
 
-			@Override
-			public Message<Object> receive() {
-				return null;
-			}
-
 		});
+		source.setMethodName("isRunning");
+
+		adapterFactory.setSource(source);
 
 		SourcePollingChannelAdapter adapter = adapterFactory.getObject();
 		adapter.setTaskScheduler(this.taskScheduler);
