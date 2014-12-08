@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -28,7 +29,7 @@ import org.springframework.messaging.MessageHandlingException;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
+public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private final MessageProcessor<?> processor;
 
@@ -63,6 +64,25 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 		if (this.processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.processor).setBeanFactory(this.getBeanFactory());
 		}
+	}
+
+	@Override
+	public void start() {
+		if (this.processor instanceof Lifecycle) {
+			((Lifecycle) this.processor).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.processor instanceof Lifecycle) {
+			((Lifecycle) this.processor).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.processor instanceof Lifecycle) || ((Lifecycle) this.processor).isRunning();
 	}
 
 	@Override

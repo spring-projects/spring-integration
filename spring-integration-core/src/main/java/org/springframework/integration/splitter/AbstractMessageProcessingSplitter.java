@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.splitter;
 import java.util.Collection;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.messaging.Message;
 import org.springframework.integration.handler.AbstractMessageProcessor;
@@ -30,9 +31,11 @@ import org.springframework.util.Assert;
  * {@link MessageProcessor} instance.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
-abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter {
+abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
+		implements Lifecycle {
 
 	private final MessageProcessor<Collection<?>> messageProcessor;
 
@@ -56,6 +59,25 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 	@Override
 	protected final Object splitMessage(Message<?> message) {
 		return this.messageProcessor.processMessage(message);
+	}
+
+	@Override
+	public void start() {
+		if (this.messageProcessor instanceof Lifecycle) {
+			((Lifecycle) this.messageProcessor).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.messageProcessor instanceof Lifecycle) {
+			((Lifecycle) this.messageProcessor).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.messageProcessor instanceof Lifecycle) || ((Lifecycle) this.messageProcessor).isRunning();
 	}
 
 }

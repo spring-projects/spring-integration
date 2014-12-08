@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.core.LifecycleMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -95,7 +94,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected void doStart() {
-		if (this.source instanceof LifecycleMessageSource) {
+		if (this.source instanceof Lifecycle) {
 			((Lifecycle) this.source).start();
 		}
 		super.doStart();
@@ -104,7 +103,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected void doStop() {
-		if (this.source instanceof LifecycleMessageSource) {
+		if (this.source instanceof Lifecycle) {
 			((Lifecycle) this.source).stop();
 		}
 		super.doStop();
