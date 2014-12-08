@@ -16,13 +16,22 @@
 
 package org.springframework.integration.file.filters;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 import org.junit.Test;
+
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Gary Russell
@@ -30,6 +39,35 @@ import org.junit.Test;
  *
  */
 public class AcceptOnceFileListFilterTests {
+
+	@Test
+	// This test used to take 34 seconds to run; now 25 milliseconds.
+	public void testPerformance_INT3572() {
+		StopWatch watch = new StopWatch();
+		watch.start();
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
+		for (int i = 0; i < 100000; i++) {
+			filter.accept("" + i);
+		}
+		watch.stop();
+		assertTrue(watch.getTotalTimeMillis() < 5000);
+	}
+
+	@Test
+	public void testCapacity() {
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>(2);
+		assertTrue(filter.accept("foo"));
+		assertTrue(filter.accept("bar"));
+		assertFalse(filter.accept("foo"));
+		assertTrue(filter.accept("baz"));
+		assertTrue(filter.accept("foo"));
+		Queue<?> seen = TestUtils.getPropertyValue(filter, "seen", Queue.class);
+		assertEquals(2, seen.size());
+		Set<?> seenSet = TestUtils.getPropertyValue(filter, "seenSet", Set.class);
+		assertEquals(2, seenSet.size());
+		assertThat(seen, contains("baz", "foo"));
+		assertThat(seenSet, containsInAnyOrder("foo", "baz"));
+	}
 
 	@Test
 	public void testRollback() {
