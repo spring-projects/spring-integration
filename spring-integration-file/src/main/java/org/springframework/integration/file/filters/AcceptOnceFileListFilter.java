@@ -16,8 +16,10 @@
 
 package org.springframework.integration.file.filters;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -35,6 +37,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F> {
 
 	private final Queue<F> seen;
+
+	private final Set<F> seenSet = new HashSet<F>();
 
 	private final Object monitor = new Object();
 
@@ -54,20 +58,24 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	 * Creates an AcceptOnceFileListFilter based on an unbounded queue.
 	 */
 	public AcceptOnceFileListFilter() {
-		this.seen = new LinkedBlockingQueue<F>();
+		this.seen = null;
 	}
 
 
 	@Override
 	public boolean accept(F file) {
 		synchronized (this.monitor) {
-			if (this.seen.contains(file)) {
+			if (this.seenSet.contains(file)) {
 				return false;
 			}
-			if (!this.seen.offer(file)) {
-				this.seen.poll();
-				this.seen.add(file);
+			if (this.seen != null) {
+				if (!this.seen.offer(file)) {
+					F removed = this.seen.poll();
+					this.seenSet.remove(removed);
+					this.seen.add(file);
+				}
 			}
+			this.seenSet.add(file);
 			return true;
 		}
 	}
@@ -78,13 +86,18 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	 */
 	@Override
 	public void rollback(F file, List<F> files) {
-		boolean rollingBack = false;
-		for (F fileToRollback : files) {
-			if (fileToRollback.equals(file)) {
-				rollingBack = true;
-			}
-			if (rollingBack) {
-				this.seen.remove(fileToRollback);
+		synchronized (this.monitor) {
+			boolean rollingBack = false;
+			for (F fileToRollback : files) {
+				if (fileToRollback.equals(file)) {
+					rollingBack = true;
+				}
+				if (rollingBack) {
+					this.seenSet.remove(fileToRollback);
+					if (this.seen != null) {
+						this.seen.remove(fileToRollback);
+					}
+				}
 			}
 		}
 	}
