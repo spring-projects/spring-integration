@@ -148,7 +148,18 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					List<Annotation> annotations = entry.getValue();
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotationType);
 					if (postProcessor != null && postProcessor.shouldCreateEndpoint(method, annotations)) {
-						Object result = postProcessor.postProcess(bean, beanName, method, annotations);
+						Method targetMethod = method;
+						if (AopUtils.isJdkDynamicProxy(bean)) {
+							try {
+								targetMethod = bean.getClass().getMethod(method.getName(), method.getParameterTypes());
+							}
+							catch (NoSuchMethodException e) {
+								throw new IllegalArgumentException("Service methods must be extracted to the service "
+										+ "interface for JdkDynamicProxy. The affected bean is: '" + beanName + "' "
+										+ "and its method: '"  + method + "'", e);
+							}
+						}
+						Object result = postProcessor.postProcess(bean, beanName, targetMethod, annotations);
 						if (result != null && result instanceof AbstractEndpoint) {
 							AbstractEndpoint endpoint = (AbstractEndpoint) result;
 							String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",

@@ -16,14 +16,18 @@
 
 package org.springframework.integration.router.config;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -68,6 +72,12 @@ public class RouterWithMappingTests {
 	@Autowired
 	private PollableChannel defaultChannelForPojo;
 
+	@Autowired
+	private AbstractEndpoint pojoRouterEndpoint;
+
+	@Autowired
+	private TestRouter testBean;
+
 	@Test
 	public void expressionRouter() {
 		Message<?> message1 = MessageBuilder.withPayload(new TestBean("foo")).build();
@@ -110,6 +120,12 @@ public class RouterWithMappingTests {
 		assertNotNull(defaultChannelForPojo.receive(0));
 		assertNull(fooChannelForPojo.receive(0));
 		assertNull(barChannelForPojo.receive(0));
+
+		assertTrue(this.testBean.isRunning());
+		this.pojoRouterEndpoint.stop();
+		assertFalse(this.testBean.isRunning());
+		this.pojoRouterEndpoint.start();
+		assertTrue(this.testBean.isRunning());
 	}
 
 	private static class TestBean {
@@ -126,12 +142,29 @@ public class RouterWithMappingTests {
 	}
 
 
-	@SuppressWarnings("unused")
-	private static class TestRouter {
+	private static class TestRouter implements Lifecycle {
+
+		private boolean running;
 
 		public String route(TestBean bean) {
 			return bean.getName();
 		}
+
+		@Override
+		public void start() {
+			this.running = true;
+		}
+
+		@Override
+		public void stop() {
+			this.running = false;
+		}
+
+		@Override
+		public boolean isRunning() {
+			return this.running;
+		}
+
 	}
 
 }

@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
@@ -30,8 +31,9 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
-public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler {
+public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private final Transformer transformer;
 
@@ -60,6 +62,25 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 		if (this.getBeanFactory() != null && this.transformer instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.transformer).setBeanFactory(this.getBeanFactory());
 		}
+	}
+
+	@Override
+	public void start() {
+		if (this.transformer instanceof Lifecycle) {
+			((Lifecycle) this.transformer).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.transformer instanceof Lifecycle) {
+			((Lifecycle) this.transformer).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.transformer instanceof Lifecycle) || ((Lifecycle) this.transformer).isRunning();
 	}
 
 	@Override

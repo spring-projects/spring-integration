@@ -18,6 +18,7 @@ package org.springframework.integration.filter;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingPostProcessingMessageHandler;
@@ -41,7 +42,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author David Liu
  */
-public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler {
+public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler implements Lifecycle {
 
 	private final MessageSelector selector;
 
@@ -120,6 +121,25 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 		if (this.selector instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());
 		}
+	}
+
+	@Override
+	public void start() {
+		if (this.selector instanceof Lifecycle) {
+			((Lifecycle) this.selector).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.selector instanceof Lifecycle) {
+			((Lifecycle) this.selector).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.selector instanceof Lifecycle) || ((Lifecycle) this.selector).isRunning();
 	}
 
 	@Override

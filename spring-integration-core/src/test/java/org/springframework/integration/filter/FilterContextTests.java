@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,41 +17,59 @@
 package org.springframework.integration.filter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class FilterContextTests {
+
+	@Autowired
+	private MessageChannel input;
+
+	@Autowired
+	private PollableChannel output;
+
+	@Autowired
+	private AbstractEndpoint pojoFilter;
+
+	@Autowired
+	private TestBean testBean;
 
 	@Test
 	public void methodInvokingFilterRejects() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"filterContextTests.xml", this.getClass());
-		MessageChannel input = (MessageChannel) context.getBean("input");
-		PollableChannel output = (PollableChannel) context.getBean("output");
-		input.send(new GenericMessage<String>("foo"));
-		Message<?> reply = output.receive(0);
+		this.input.send(new GenericMessage<String>("foo"));
+		Message<?> reply = this.output.receive(0);
 		assertNull(reply);
+
+		assertTrue(this.testBean.isRunning());
+		this.pojoFilter.stop();
+		assertFalse(this.testBean.isRunning());
+		this.pojoFilter.start();
+		assertTrue(this.testBean.isRunning());
 	}
 
 	@Test
 	public void methodInvokingFilterAccepts() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"filterContextTests.xml", this.getClass());
-		MessageChannel input = (MessageChannel) context.getBean("input");
-		PollableChannel output = (PollableChannel) context.getBean("output");
-		input.send(new GenericMessage<String>("foobar"));
-		Message<?> reply = output.receive(0);
+		this.input.send(new GenericMessage<String>("foobar"));
+		Message<?> reply = this.output.receive(0);
 		assertEquals("foobar", reply.getPayload());
 	}
 
