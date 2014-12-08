@@ -9,7 +9,7 @@
 	</para>
 	<para>
 		To recap, <emphasis role="bold">Inbound Channel Adapters</emphasis> are used for one-way integration
-		bringing data into the messagng application. <emphasis role="bold">Outbound Channel Adapters</emphasis>
+		bringing data into the messaging application. <emphasis role="bold">Outbound Channel Adapters</emphasis>
 		are used for one-way integration to send data out of the messaging application.
 		<emphasis role="bold">Inbound Gateways</emphasis> are used for a bidirectional integration flow where
 		some other system invokes the messaging application and receives a reply.
@@ -142,10 +142,10 @@
 					<entry><xref linkend="redis-outbound-channel-adapter" /> and
 						   <xref linkend="redis-queue-outbound-channel-adapter" /> and
 						   <xref linkend="redis-store-outbound-channel-adapter" /></entry>
-					<entry>N</entry>
+					<entry><xref linkend="redis-queue-inbound-gateway" /></entry>
 					<entry><xref linkend="redis-outbound-gateway" /> and
-						<xref linkend="redis-queue-outbound-gateway" /> and
-						<xref linkend="redis-queue-inbound-gateway" /></entry>
+						<xref linkend="redis-queue-outbound-gateway" />
+						</entry>
 				</row>
 				<row>
 					<entry><emphasis role="bold">Resource</emphasis></entry>
@@ -209,6 +209,13 @@
 					<entry>N</entry>
 					<entry><xref linkend="webservices-inbound" /></entry>
 					<entry><xref linkend="webservices-outbound" /></entry>
+				</row>
+				<row>
+					<entry><emphasis role="bold">Web Sockets</emphasis></entry>
+					<entry><xref linkend="web-socket-inbound-adapter" /></entry>
+					<entry><xref linkend="web-socket-outbound-adapter" /></entry>
+					<entry>N</entry>
+					<entry>N</entry>
 				</row>
 				<row>
 					<entry><emphasis role="bold">XMPP</emphasis></entry>
