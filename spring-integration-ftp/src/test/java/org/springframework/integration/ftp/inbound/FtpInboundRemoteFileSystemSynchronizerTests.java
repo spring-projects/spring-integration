@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
-import java.util.Queue;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -112,8 +111,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		Expression expression = expressionParser.parseExpression("#this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
 
-		FtpInboundFileSynchronizingMessageSource ms =
-				new FtpInboundFileSynchronizingMessageSource(synchronizer);
+		FtpInboundFileSynchronizingMessageSource ms = new FtpInboundFileSynchronizingMessageSource(synchronizer);
 
 		ms.setAutoCreateLocalDirectory(true);
 
@@ -141,7 +139,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		assertTrue(new File("test/A.TEST.a").exists());
 		assertTrue(new File("test/B.TEST.a").exists());
 
-		TestUtils.getPropertyValue(ms, "localFileListFilter.seen", Queue.class).clear();
+		TestUtils.getPropertyValue(ms, "localFileListFilter.seenSet", Collection.class).clear();
 
 		new File("test/A.TEST.a").delete();
 		new File("test/B.TEST.a").delete();
@@ -154,7 +152,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 
-		private final Collection<Object> ftpFiles = new ArrayList<Object>();
+		private final Collection<FTPFile> ftpFiles = new ArrayList<FTPFile>();
 
 		private void init() {
 			String[] files = new File("remote-test-dir").list();
@@ -183,9 +181,10 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 				String[] files = new File("remote-test-dir").list();
 				for (String fileName : files) {
-					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName) , Mockito.any(OutputStream.class))).thenReturn(true);
+					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName),
+							Mockito.any(OutputStream.class))).thenReturn(true);
 				}
-				when(ftpClient.listFiles("remote-test-dir")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));
+				when(ftpClient.listFiles("remote-test-dir")).thenReturn(ftpFiles.toArray(new FTPFile[ftpFiles.size()]));
 				when(ftpClient.deleteFile(Mockito.anyString())).thenReturn(true);
 				return ftpClient;
 			} catch (Exception e) {
@@ -193,4 +192,5 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 			}
 		}
 	}
+
 }

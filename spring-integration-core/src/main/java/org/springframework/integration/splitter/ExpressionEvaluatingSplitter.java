@@ -16,8 +16,6 @@
 
 package org.springframework.integration.splitter;
 
-import java.util.List;
-
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
@@ -35,7 +33,7 @@ public class ExpressionEvaluatingSplitter extends AbstractMessageProcessingSplit
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public ExpressionEvaluatingSplitter(Expression expression) {
-		super(new ExpressionEvaluatingMessageProcessor(expression, List.class));
+		super(new ExpressionEvaluatingMessageProcessor(expression));
 	}
 
 }

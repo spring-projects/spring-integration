@@ -32,8 +32,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
-import java.util.Queue;
 import java.util.Vector;
 
 import org.hamcrest.Matchers;
@@ -84,7 +84,6 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	@Test
 	public void testCopyFileToLocalDir() throws Exception {
-		this.cleanup();
 		File localDirectoy = new File("test");
 		assertFalse(localDirectoy.exists());
 
@@ -109,8 +108,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setFilter(filter);
 		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 
-		SftpInboundFileSynchronizingMessageSource ms =
-				new SftpInboundFileSynchronizingMessageSource(synchronizer);
+		SftpInboundFileSynchronizingMessageSource ms = new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectoy);
 		ms.setBeanFactory(mock(BeanFactory.class));
@@ -136,7 +134,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());
 
-		TestUtils.getPropertyValue(ms, "localFileListFilter.seen", Queue.class).clear();
+		TestUtils.getPropertyValue(ms, "localFileListFilter.seenSet", Collection.class).clear();
 
 		new File("test/a.test").delete();
 		new File("test/b.test").delete();
@@ -177,7 +175,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 				String[] files = new File("remote-test-dir").list();
 				for (String fileName : files) {
-					when(channel.get("remote-test-dir/"+fileName)).thenReturn(new FileInputStream("remote-test-dir/" + fileName));
+					when(channel.get("remote-test-dir/"+fileName))
+							.thenReturn(new FileInputStream("remote-test-dir/" + fileName));
 				}
 				when(channel.ls("remote-test-dir")).thenReturn(sftpEntries);
 
