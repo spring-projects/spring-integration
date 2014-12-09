@@ -21,4 +21,6 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.splitter.SpelSplitterIntegrationTests$TestBean"/>
 
+	<splitter input-channel="spelIteratorInput" expression="@testBean.splitIterator(payload)" output-channel="output"/>
+
 </beans:beans>

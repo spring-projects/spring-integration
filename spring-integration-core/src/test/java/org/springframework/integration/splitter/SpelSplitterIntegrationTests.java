@@ -57,6 +57,9 @@ public class SpelSplitterIntegrationTests {
 	private MessageChannel iteratorInput;
 
 	@Autowired
+	private MessageChannel spelIteratorInput;
+
+	@Autowired
 	private PollableChannel output;
 
 	@Test
@@ -108,6 +111,28 @@ public class SpelSplitterIntegrationTests {
 	@Test
 	public void iteratorSplitter() {
 		this.iteratorInput.send(new GenericMessage<String>("a,b,c,d"));
+		Message<?> a = output.receive(0);
+		Message<?> b = output.receive(0);
+		Message<?> c = output.receive(0);
+		Message<?> d = output.receive(0);
+		assertEquals("a", a.getPayload());
+		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(a).getSequenceSize());
+		assertEquals("b", b.getPayload());
+		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(b).getSequenceSize());
+		assertEquals("c", c.getPayload());
+		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(c).getSequenceSize());
+		assertEquals("d", d.getPayload());
+		assertEquals(new Integer(4), new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
+		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(d).getSequenceSize());
+		assertNull(output.receive(0));
+	}
+
+	@Test
+	public void spelIteratorSplitter() {
+		this.spelIteratorInput.send(new GenericMessage<String>("a,b,c,d"));
 		Message<?> a = output.receive(0);
 		Message<?> b = output.receive(0);
 		Message<?> c = output.receive(0);
