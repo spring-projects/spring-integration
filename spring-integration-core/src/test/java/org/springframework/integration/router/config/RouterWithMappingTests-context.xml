@@ -38,7 +38,7 @@
 		<queue capacity="1" />
 	</channel>
 
-	<router input-channel="pojoRouter" ref="testBean"
+	<router id="pojoRouterEndpoint" input-channel="pojoRouter" ref="testBean"
 			default-output-channel="defaultChannelForPojo"
 			resolution-required="false">
 		<mapping value="foo" channel="fooChannelForPojo"/>
