@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.rules;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
@@ -50,10 +52,17 @@ public class RedisAvailableTests {
 	}
 
 	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
-		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
-				RedisConnection.class);
+		RedisConnection connection = null;
 
 		int n = 0;
+		while (n++ < 100 &&
+				(connection =
+				TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection .class)) == null) {
+			Thread.sleep(100);
+		}
+		assertNotNull("RedisMessageListenerContainer Failed to Connect", connection);
+
+		n = 0;
 		while (n++ < 100 && !connection.isSubscribed()) {
 			Thread.sleep(100);
 		}
