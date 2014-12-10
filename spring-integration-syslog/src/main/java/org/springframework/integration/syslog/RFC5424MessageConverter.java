@@ -19,7 +19,6 @@ package org.springframework.integration.syslog;
 import java.util.Map;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.syslog.RFC5424SyslogParser.LogField;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -42,7 +41,7 @@ public class RFC5424MessageConverter extends DefaultMessageConverter {
 	 * Construct an instance with a default {@link RFC5424SyslogParser}.
 	 */
 	public RFC5424MessageConverter() {
-		this.parser = new RFC5424SyslogParser();
+		this(new RFC5424SyslogParser());
 	}
 
 	/**
@@ -73,13 +72,13 @@ public class RFC5424MessageConverter extends DefaultMessageConverter {
 		}
 		else {
 			map = (Map<String, ?>) message.getPayload();
-			originalContent = map.get(LogField.UNDECODED);
+			originalContent = map.get(SyslogHeaders.UNDECODED);
 			if (originalContent == null) {
 				originalContent = map;
 			}
 		}
 
-		AbstractIntegrationMessageBuilder<Object> builder = this.getMessageBuilderFactory().withPayload(
+		AbstractIntegrationMessageBuilder<Object> builder = getMessageBuilderFactory().withPayload(
 				asMap() ? map : originalContent);
 		if (!asMap() && isMap) {
 			builder.copyHeaders(map);

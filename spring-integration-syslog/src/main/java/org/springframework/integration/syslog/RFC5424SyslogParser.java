@@ -23,6 +23,9 @@ import java.util.Map;
 import org.springframework.util.Assert;
 
 /**
+ * Parse for RFC 5424 syslog messages; when used with TCP, requires the use
+ * of a {@code RFC6587SyslogDeserializer} which decodes the framing.
+ *
  * @author Duncan McIntyre
  * @author Gary Russell
  * @since 1.4.1
@@ -38,15 +41,16 @@ public class RFC5424SyslogParser {
 
 
 	/**
-	 * Construct a default parser; do not retain the origina unless there is
-	 * an error.
+	 * Construct a default parser; do not retain the original message content unless there
+	 * is an error.
 	 */
 	public RFC5424SyslogParser() {
 		this(false);
 	}
 
 	/**
-	 * @param retainOriginal when true, include the original content intact in the map.
+	 * @param retainOriginal when true, include the original message content intact in the
+	 * map.
 	 */
 	public RFC5424SyslogParser(boolean retainOriginal) {
 		this.retainOriginal = retainOriginal;
@@ -55,12 +59,13 @@ public class RFC5424SyslogParser {
 	public Map<String, ?> parse(String line, int octetCount, boolean shortRead) {
 
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
+
 		Reader r = new Reader(line);
 
 		try {
 			if (shortRead) {
 				int n = line.length() - 1;
-				while (n >=0 && line.charAt(n) == 0x00) {
+				while (n >= 0 && line.charAt(n) == 0x00) {
 					n--;
 				}
 				line = line.substring(0, n);
@@ -93,49 +98,49 @@ public class RFC5424SyslogParser {
 
 			int severity = pri & 0x7;
 			int facility = pri >> 3;
-			map.put(LogField.FACILITY.label(), facility);
+			map.put(SyslogHeaders.FACILITY, facility);
 
-			map.put(LogField.SEVERITY.label(), severity);
-			map.put(LogField.SEVERITY_TEXT.label(), Severity.parseInt(severity).label());
+			map.put(SyslogHeaders.SEVERITY, severity);
+			map.put(SyslogHeaders.SEVERITY_TEXT, Severity.parseInt(severity).label());
 
 			if (timestamp != null) {
-				map.put(LogField.TIMESTAMP.label(), timestamp);
+				map.put(SyslogHeaders.TIMESTAMP, timestamp);
 			}
 
 			if (host != null) {
-				map.put(LogField.HOST.label(), host);
+				map.put(SyslogHeaders.HOST, host);
 			}
 			if (app != null) {
-				map.put(LogField.APP_NAME.label(), app);
+				map.put(SyslogHeaders.APP_NAME, app);
 			}
 			if (procId != null) {
-				map.put(LogField.PROCID.label(), procId);
+				map.put(SyslogHeaders.PROCID, procId);
 			}
 			if (msgId != null) {
-				map.put(LogField.MSGID.label(), msgId);
+				map.put(SyslogHeaders.MSGID, msgId);
 			}
-			map.put(LogField.VERSION.label(), version);
+			map.put(SyslogHeaders.VERSION, version);
 
 			if (structuredData != null) {
-				map.put(LogField.STRUCTURED_DATA.label(), structuredData);
+				map.put(SyslogHeaders.STRUCTURED_DATA, structuredData);
 			}
 
-			map.put(LogField.MESSAGE.label(), message);
-			map.put(LogField.DECODE_ERRORS.label(), "false");
+			map.put(SyslogHeaders.MESSAGE, message);
+			map.put(SyslogHeaders.DECODE_ERRORS, "false");
 
 			if (this.retainOriginal) {
-				map.put(LogField.UNDECODED.label(), line);
+				map.put(SyslogHeaders.UNDECODED, line);
 			}
 		}
 		catch(IllegalStateException e) {
-			map.put(LogField.DECODE_ERRORS.label(), "true");
-			map.put(LogField.ERRORS.label(), e.getMessage());
-			map.put(LogField.UNDECODED.label(), line);
+			map.put(SyslogHeaders.DECODE_ERRORS, "true");
+			map.put(SyslogHeaders.ERRORS, e.getMessage());
+			map.put(SyslogHeaders.UNDECODED, line);
 		}
 		catch(StringIndexOutOfBoundsException sob) {
-			map.put(LogField.DECODE_ERRORS.label(), "true");
-			map.put(LogField.ERRORS.label(), "Unexpected end of message: " + sob.getMessage());
-			map.put(LogField.UNDECODED.label(), line);
+			map.put(SyslogHeaders.DECODE_ERRORS, "true");
+			map.put(SyslogHeaders.ERRORS, "Unexpected end of message: " + sob.getMessage());
+			map.put(SyslogHeaders.UNDECODED, line);
 		}
 		return map;
 	}
@@ -309,51 +314,6 @@ public class RFC5424SyslogParser {
 		}
 	}
 
-	/**
-	 * An enumeration of all the fields produced by the system
-	 *
-	 */
-	public enum LogField {
-		// These correspond to generic syslog elements
-		HOST("syslog_HOST"),
-		FACILITY("syslog_FACILITY"),
-		SEVERITY("syslog_SEVERITY"),
-		TIMESTAMP("syslog_TIMESTAMP"),
-		MESSAGE("syslog_MESSAGE"),
-
-		// RFC5424
-		APP_NAME("syslog_APP_NAME"),
-		PROCID("syslog_PROCID"),
-		MSGID("syslog_MSGID"),
-		VERSION("syslog_VERSION"),
-		STRUCTURED_DATA("syslog_STRUCTURED_DATA"),
-
-		// Text versions of syslog numeric values
-		SEVERITY_TEXT("syslog_SEVERITY_TEXT"),
-
-		// Additional fields
-		SOURCE_TYPE("syslog_SOURCE_TYPE"),
-		SOURCE("syslog_SOURCE"),
-
-		// full line when parse errors
-		UNDECODED("syslog_UNDECODED"),
-
-		DECODE_ERRORS("syslog_DECODE_ERRORS"),
-		ERRORS("syslog_ERRORS")
-		;
-
-		private final String label;
-
-		private LogField(String label) {
-			this.label = label;
-		}
-
-		public String label() {
-			return label;
-		}
-
-	}
-
 	public enum Severity {
 
 		DEBUG(7, "DEBUG"),
@@ -368,6 +328,7 @@ public class RFC5424SyslogParser {
 		UNDEFINED(-1, "UNDEFINED");
 
 		private final int level;
+
 		private final String label;
 
 		private Severity(int level, String label) {

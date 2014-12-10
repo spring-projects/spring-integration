@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.integration.syslog.RFC5424SyslogParser.LogField;
+import org.springframework.integration.syslog.SyslogHeaders;
 
 /**
  * @author Duncan McIntyre
@@ -47,15 +47,15 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(VALID_FRAMED_ENTRY.getBytes()));
 
-		assertEquals(1, map.get(LogField.FACILITY.label()));
-		assertEquals(6, map.get(LogField.SEVERITY.label()));
-		assertEquals(1, map.get(LogField.VERSION.label()));
-		assertEquals("2014-06-20T09:14:07+00:00", map.get(LogField.TIMESTAMP.label()));
-		assertEquals("loggregator", map.get(LogField.HOST.label()));
-		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(LogField.APP_NAME.label()));
-		assertEquals("DEA", map.get(LogField.PROCID.label()));
-		assertEquals("-", map.get(LogField.MSGID.label()));
-		assertEquals("Removing instance", map.get(LogField.MESSAGE.label()));
+		assertEquals(1, map.get(SyslogHeaders.FACILITY));
+		assertEquals(6, map.get(SyslogHeaders.SEVERITY));
+		assertEquals(1, map.get(SyslogHeaders.VERSION));
+		assertEquals("2014-06-20T09:14:07+00:00", map.get(SyslogHeaders.TIMESTAMP));
+		assertEquals("loggregator", map.get(SyslogHeaders.HOST));
+		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(SyslogHeaders.APP_NAME));
+		assertEquals("DEA", map.get(SyslogHeaders.PROCID));
+		assertEquals("-", map.get(SyslogHeaders.MSGID));
+		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
 	}
 
 	@Test
@@ -65,15 +65,15 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(VALID_UNFRAMED_ENTRY.getBytes()));
 
-		assertEquals(1, map.get(LogField.FACILITY.label()));
-		assertEquals(6, map.get(LogField.SEVERITY.label()));
-		assertEquals(1, map.get(LogField.VERSION.label()));
-		assertEquals("2014-06-20T09:14:07+00:00", map.get(LogField.TIMESTAMP.label()));
-		assertEquals("loggregator", map.get(LogField.HOST.label()));
-		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(LogField.APP_NAME.label()));
-		assertEquals("DEA", map.get(LogField.PROCID.label()));
-		assertEquals("-", map.get(LogField.MSGID.label()));
-		assertEquals("Removing instance", map.get(LogField.MESSAGE.label()));
+		assertEquals(1, map.get(SyslogHeaders.FACILITY));
+		assertEquals(6, map.get(SyslogHeaders.SEVERITY));
+		assertEquals(1, map.get(SyslogHeaders.VERSION));
+		assertEquals("2014-06-20T09:14:07+00:00", map.get(SyslogHeaders.TIMESTAMP));
+		assertEquals("loggregator", map.get(SyslogHeaders.HOST));
+		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(SyslogHeaders.APP_NAME));
+		assertEquals("DEA", map.get(SyslogHeaders.PROCID));
+		assertEquals("-", map.get(SyslogHeaders.MSGID));
+		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
 	}
 
 	@Test
@@ -83,16 +83,16 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SD_ENTRY_1.getBytes()));
 
-		assertEquals(1, map.get(LogField.FACILITY.label()));
-		assertEquals(6, map.get(LogField.SEVERITY.label()));
-		assertEquals(1, map.get(LogField.VERSION.label()));
-		assertEquals("2014-06-20T09:14:07+00:00", map.get(LogField.TIMESTAMP.label()));
-		assertEquals("loggregator", map.get(LogField.HOST.label()));
-		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(LogField.APP_NAME.label()));
-		assertEquals("DEA", map.get(LogField.PROCID.label()));
-		assertEquals("-", map.get(LogField.MSGID.label()));
-		assertEquals("Removing instance", map.get(LogField.MESSAGE.label()));
-		assertEquals(1, ((List<?>) map.get(LogField.STRUCTURED_DATA.label())).size());
+		assertEquals(1, map.get(SyslogHeaders.FACILITY));
+		assertEquals(6, map.get(SyslogHeaders.SEVERITY));
+		assertEquals(1, map.get(SyslogHeaders.VERSION));
+		assertEquals("2014-06-20T09:14:07+00:00", map.get(SyslogHeaders.TIMESTAMP));
+		assertEquals("loggregator", map.get(SyslogHeaders.HOST));
+		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(SyslogHeaders.APP_NAME));
+		assertEquals("DEA", map.get(SyslogHeaders.PROCID));
+		assertEquals("-", map.get(SyslogHeaders.MSGID));
+		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
+		assertEquals(1, ((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size());
 	}
 
 	@Test
@@ -102,9 +102,9 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SD_ENTRY_2.getBytes()));
 
-		assertEquals("false", map.get(LogField.DECODE_ERRORS.label()));
-		assertEquals("Removing instance", map.get(LogField.MESSAGE.label()));
-		assertEquals(2, ((List<?>) map.get(LogField.STRUCTURED_DATA.label())).size());
+		assertEquals("false", map.get(SyslogHeaders.DECODE_ERRORS));
+		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
+		assertEquals(2, ((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size());
 	}
 
 	@Test
@@ -114,8 +114,8 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SD_ENTRY_3.getBytes()));
 
-		assertEquals("false", map.get(LogField.DECODE_ERRORS.label()));
-		assertEquals("Removing instance", map.get(LogField.MESSAGE.label()));
+		assertEquals("false", map.get(SyslogHeaders.DECODE_ERRORS));
+		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SHORT_FRAMED_ENTRY.getBytes()));
 
-		assertEquals("true", map.get(LogField.DECODE_ERRORS.label()));
+		assertEquals("true", map.get(SyslogHeaders.DECODE_ERRORS));
 	}
 
 }

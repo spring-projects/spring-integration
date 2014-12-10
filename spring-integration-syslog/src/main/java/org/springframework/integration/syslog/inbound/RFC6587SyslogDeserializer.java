@@ -46,7 +46,6 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 	/**
 	 * Construct an instance using a {@link ByteArrayLfSerializer} for
 	 * non-transparent frames.
-	 * @param delimitedDeserializer the Deserializer.
 	 */
 	public RFC6587SyslogDeserializer() {
 		this.delimitedDeserializer = new ByteArrayLfSerializer();
