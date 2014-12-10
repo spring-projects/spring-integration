@@ -143,6 +143,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.javaMailProperties = javaMailProperties;
 	}
 
+	protected Properties getJavaMailProperties() {
+		return javaMailProperties;
+	}
+
 	/**
 	 * Optional, sets the Authenticator to be used to obtain a session. This will not be used if
 	 * {@link AbstractMailReceiver#setSession} has been used to configure the {@link Session} directly.

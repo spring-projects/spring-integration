@@ -299,6 +299,15 @@
 				See <xref linkend="channel-interceptors"/>.
 			</para>
 		</section>
+		<section id="4.1-mail-peek">
+			<title>IMAP PEEK</title>
+			<para>
+				Since <emphasis>version 4.1.1</emphasis> there is a change of behavior if you explicitly
+				set the javamail property <code>mail.[protocol].peek</code> to <code>false</code>
+				(where <code>[protocol]</code> is <code>imap</code> or <code>imaps</code>).
+				See <xref linkend="imap-peek"/>.
+			</para>
+		</section>
 
 	</section>
 </chapter>

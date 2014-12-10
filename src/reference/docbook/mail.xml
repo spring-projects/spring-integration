@@ -171,8 +171,17 @@ For example:
 In the above example instead of relying on the default <classname>SearchTermStrategy</classname> the
 <classname>TestSearchTermStrategy</classname> will be used instead
     </para>
+    <important id="imap-peek">
+    <title>Important: IMAP PEEK</title>
+    Starting with <emphasis>version 4.1.1</emphasis>, the IMAP mail receiver will use the <code>mail.imap.peek</code>
+    or <code>mail.imaps.peek</code>
+    javamail property, if specified. Previously, the receiver ignored the property and always set the PEEK flag. Now,
+    if you explicitly set this property to <code>false</code>, the message will be marked as <code>\Seen</code>
+    regardless of the setting of <code>shouldMarkMessagesRead</code>. If not specified, the previous behavior
+    is retained (peek is <code>true</code>).
+    </important>
 
-    <para><emphasis>IMAP IDLE and lost connection</emphasis></para>
+    <para><emphasis role="bold">IMAP IDLE and lost connection</emphasis></para>
 
     <para>
     When using IMAP IDLE channel adapter there might be situations where connection to the server may be lost
