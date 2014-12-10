@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -74,7 +75,8 @@ public class ImapIdleChannelAdapterParserTests {
 		Object url = receiverAccessor.getPropertyValue("url");
 		assertEquals(new URLName("imap:foo"), url);
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals(0, properties.size());
+		// mail.imap(s).peek properties
+		assertEquals(2, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
@@ -94,7 +96,8 @@ public class ImapIdleChannelAdapterParserTests {
 		Object url = receiverAccessor.getPropertyValue("url");
 		assertEquals(new URLName("imap:foo"), url);
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals(0, properties.size());
+		// mail.imap(s).peek properties
+		assertEquals(2, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 		assertSame(context.getBean("errorChannel"), adapterAccessor.getPropertyValue("errorChannel"));
@@ -113,7 +116,8 @@ public class ImapIdleChannelAdapterParserTests {
 		Object url = receiverAccessor.getPropertyValue("url");
 		assertEquals(new URLName("imap:foo"), url);
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals(0, properties.size());
+		// mail.imap(s).peek properties
+		assertEquals(2, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 	}
@@ -132,7 +136,8 @@ public class ImapIdleChannelAdapterParserTests {
 		Object url = receiverAccessor.getPropertyValue("url");
 		assertEquals(new URLName("imap:foo"), url);
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals(0, properties.size());
+		// mail.imap(s).peek properties
+		assertEquals(2, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 	}
@@ -176,7 +181,8 @@ public class ImapIdleChannelAdapterParserTests {
 		Object url = receiverAccessor.getPropertyValue("url");
 		assertEquals(new URLName("imap:foo"), url);
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals(0, properties.size());
+		// mail.imap(s).peek properties
+		assertEquals(2, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 		assertNull(adapterAccessor.getPropertyValue("errorChannel"));

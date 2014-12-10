@@ -17,6 +17,7 @@
 package org.springframework.integration.mail;
 
 import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.Flags;
@@ -37,7 +38,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IMAPMessage;
 
 /**
  * A {@link MailReceiver} implementation for receiving mail messages from a
@@ -51,6 +51,7 @@ import com.sun.mail.imap.IMAPMessage;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
@@ -136,6 +137,13 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			scheduler.initialize();
 			this.scheduler = scheduler;
 		}
+		Properties javaMailProperties = getJavaMailProperties();
+		for (String name : new String[]{"imap", "imaps"}) {
+			String peek = "mail." + name + ".peek";
+			if (javaMailProperties.getProperty(peek) == null) {
+				javaMailProperties.setProperty(peek, "true");
+			}
+		}
 	}
 
 	/**
@@ -189,11 +197,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
 		Folder folder = this.getFolder();
 		if (folder.isOpen()) {
-			Message[] messages = searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
-			for (Message message : messages) {
-				((IMAPMessage) message).setPeek(true);
-			}
-			return messages;
+			return searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
 		}
 		throw new MessagingException("Folder is closed");
 	}
@@ -214,7 +218,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		@Override
 		public void run() {
 			try {
-				IMAPFolder folder = (IMAPFolder) getFolder();
+				Folder folder = getFolder();
 				logger.debug("Canceling IDLE");
 				if (folder != null) {
 					folder.isOpen(); // resets idle state
