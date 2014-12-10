@@ -39,12 +39,10 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -53,6 +51,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -234,6 +234,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -258,6 +259,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -277,6 +279,7 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -296,6 +299,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -329,6 +333,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -360,6 +365,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -421,6 +427,7 @@ public class DelayHandlerTests {
 	public void testDoubleOnApplicationEvent() throws Exception {
 		this.delayHandler = Mockito.spy(this.delayHandler);
 		Mockito.doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -451,7 +458,7 @@ public class DelayHandlerTests {
 		this.delayHandler.setDefaultDelay(100);
 		startDelayerHandler();
 
-		this.input.send(new GenericMessage<>("foo"));
+		this.input.send(new GenericMessage<String>("foo"));
 		this.delayHandler.reschedulePersistedMessages();
 		Message<?> message = results.receive(10000);
 		assertNotNull(message);
@@ -478,6 +485,7 @@ public class DelayHandlerTests {
 
 		private volatile Thread lastThread;
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.lastMessage = message;
 			this.lastThread = Thread.currentThread();
