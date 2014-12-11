@@ -29,6 +29,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +45,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.syslog.DefaultMessageConverter;
+import org.springframework.integration.syslog.RFC5424MessageConverter;
 import org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterFactoryBean;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
@@ -109,7 +113,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
-		doAnswer(new Answer<Void>(){
+		doAnswer(new Answer<Void>() {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -160,6 +164,93 @@ public class SyslogReceivingChannelAdapterTests {
 		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
 		assertEquals("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE",
 				new String((byte[]) message.getPayload(), "UTF-8"));
+		adapter.stop();
+	}
+
+	@Test
+	public void testTcpRFC5424() throws Exception {
+		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
+				SyslogReceivingChannelAdapterFactoryBean.Protocol.tcp);
+		int port = SocketUtils.findAvailableServerSocket(1514);
+		PollableChannel outputChannel = new QueueChannel();
+		factory.setOutputChannel(outputChannel);
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+		final CountDownLatch latch = new CountDownLatch(2);
+		doAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				latch.countDown();
+				return null;
+			}
+		}).when(publisher).publishEvent(any(ApplicationEvent.class));
+		factory.setBeanFactory(mock(BeanFactory.class));
+		AbstractServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(port);
+		connectionFactory.setDeserializer(new RFC6587SyslogDeserializer());
+		connectionFactory.setApplicationEventPublisher(publisher);
+		factory.setConnectionFactory(connectionFactory);
+		factory.setConverter(new RFC5424MessageConverter());
+		factory.afterPropertiesSet();
+		factory.start();
+		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
+		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
+		doReturn(true).when(logger).isDebugEnabled();
+		final CountDownLatch sawLog = new CountDownLatch(1);
+		doAnswer(new Answer<Void>(){
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				if (((String) invocation.getArguments()[0]).contains("Error on syslog socket")) {
+					sawLog.countDown();
+				}
+				invocation.callRealMethod();
+				return null;
+			}
+		}).when(logger).debug(anyString());
+		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		Thread.sleep(1000);
+		byte[] buf = ("253 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
+				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
+				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
+				.getBytes("UTF-8");
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.getOutputStream().write(buf);
+		socket.close();
+		assertTrue(sawLog.await(10, TimeUnit.SECONDS));
+		@SuppressWarnings("unchecked")
+		Message<Map<String, ?>> message = (Message<Map<String, ?>>) outputChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("loggregator", message.getPayload().get("syslog_HOST"));
+		adapter.stop();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void testUdpRFC5424() throws Exception {
+		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
+				SyslogReceivingChannelAdapterFactoryBean.Protocol.udp);
+		int port = SocketUtils.findAvailableUdpSocket(1514);
+		factory.setPort(port);
+		PollableChannel outputChannel = new QueueChannel();
+		factory.setOutputChannel(outputChannel);
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.setConverter(new RFC5424MessageConverter());
+		factory.afterPropertiesSet();
+		factory.start();
+		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
+		Thread.sleep(1000);
+		byte[] buf = ("<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
+				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
+				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
+				.getBytes("UTF-8");
+		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
+		DatagramSocket socket = new DatagramSocket();
+		socket.send(packet);
+		socket.close();
+		@SuppressWarnings("unchecked")
+		Message<Map<String, ?>> message = (Message<Map<String, ?>>) outputChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("loggregator", message.getPayload().get("syslog_HOST"));
 		adapter.stop();
 	}
 

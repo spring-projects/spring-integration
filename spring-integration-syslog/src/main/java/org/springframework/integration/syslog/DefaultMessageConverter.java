@@ -59,6 +59,10 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 		this.asMap = asMap;
 	}
 
+	protected boolean asMap() {
+		return asMap;
+	}
+
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);

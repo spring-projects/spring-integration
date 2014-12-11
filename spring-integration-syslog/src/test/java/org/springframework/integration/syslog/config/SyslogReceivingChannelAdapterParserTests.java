@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.syslog.MessageConverter;
+import org.springframework.integration.syslog.RFC5424MessageConverter;
 import org.springframework.integration.syslog.inbound.TcpSyslogReceivingChannelAdapter;
 import org.springframework.integration.syslog.inbound.UdpSyslogReceivingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
@@ -80,6 +80,9 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Autowired
 	private PassThruConverter converter;
+
+	@Autowired
+	private RFC5424MessageConverter rfc5424;
 
 	@Autowired @Qualifier("bar.adapter")
 	private TcpSyslogReceivingChannelAdapter adapter2;
@@ -152,7 +155,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 		assertFalse(fullBoatTcp.isAutoStartup());
 		assertEquals(123, fullBoatTcp.getPhase());
 		assertEquals(456L, TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout"));
-		assertSame(converter, TestUtils.getPropertyValue(fullBoatTcp, "converter"));
+		assertSame(rfc5424, TestUtils.getPropertyValue(fullBoatTcp, "converter"));
 		assertSame(errors, TestUtils.getPropertyValue(fullBoatTcp, "errorChannel"));
 		assertSame(cf, TestUtils.getPropertyValue(fullBoatTcp, "connectionFactory"));
 	}
