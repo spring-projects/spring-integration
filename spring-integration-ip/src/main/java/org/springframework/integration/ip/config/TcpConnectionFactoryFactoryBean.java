@@ -107,7 +107,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile boolean applySequence;
 
-	private volatile long readDelay;
+	private volatile Long readDelay;
 
 	private volatile TcpSSLContextSupport sslContextSupport;
 
@@ -191,7 +191,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setBeanName(this.beanName);
 		factory.setTcpSocketSupport(this.socketSupport);
 		factory.setApplicationEventPublisher(this.applicationEventPublisher);
-		factory.setReadDelay(this.readDelay);
+		if (this.readDelay != null) {
+			factory.setReadDelay(this.readDelay);
+		}
 	}
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
