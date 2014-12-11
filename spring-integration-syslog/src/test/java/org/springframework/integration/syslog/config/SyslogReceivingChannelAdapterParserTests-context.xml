@@ -54,9 +54,18 @@
 		connection-factory="cf"
 		auto-startup="false"
 		phase="123"
-		converter="converter"
+		converter="rfc5424"
 		send-timeout="456"
 		error-channel="errors" />
 
-	<int-ip:tcp-connection-factory id="cf" type="server" port="1514" />
+	<int-ip:tcp-connection-factory id="cf" 
+		using-nio="true"
+		type="server"
+		port="1514" 
+		deserializer="rfc6587" />
+
+	<bean id="rfc5424" class="org.springframework.integration.syslog.RFC5424MessageConverter" />
+
+	<bean id="rfc6587" class="org.springframework.integration.syslog.inbound.RFC6587SyslogDeserializer" />
+
 </beans>
