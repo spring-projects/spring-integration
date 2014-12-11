@@ -93,6 +93,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 		this.lastSend = System.currentTimeMillis();
 		try {
 			((Serializer<Object>) this.getSerializer()).serialize(object, this.socketOutputStream);
+			this.socketOutputStream.flush();
 		}
 		catch (Exception e) {
 			this.publishConnectionExceptionEvent(e);
@@ -125,7 +126,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 	/**
 	 * If there is no listener, and this connection is not for single use,
 	 * this method exits. When there is a listener, the method runs in a
-	 * loop reading input from the connections's stream, data is converted
+	 * loop reading input from the connection's stream, data is converted
 	 * to an object using the {@link Deserializer} and the listener's
 	 * {@link TcpListener#onMessage(Message)} method is called. For single use
 	 * connections with no listener, the socket is closed after its timeout

@@ -581,7 +581,7 @@
     <para>
       Normally, inbound adapters use a type="server" connection
       factory, which listens for incoming connection requests.
-      In some cases, it is desireable to establish the connection
+      In some cases, it is desirable to establish the connection
       in reverse, whereby the inbound adapter connects to an
       external server and then waits for inbound messages on that
       connection.
@@ -650,7 +650,7 @@
       As with inbound adapters, inbound gateways normally use a
       type="server" connection
       factory, which listens for incoming connection requests.
-      In some cases, it is desireable to establish the connection
+      In some cases, it is desirable to establish the connection
       in reverse, whereby the inbound gateway connects to an
       external server and then waits for, and replies to, inbound
       messages on that connection.
