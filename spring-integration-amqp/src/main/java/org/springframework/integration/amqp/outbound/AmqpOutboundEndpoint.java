@@ -30,6 +30,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -56,7 +57,8 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
-		implements RabbitTemplate.ConfirmCallback, ReturnCallback, ApplicationListener<ContextRefreshedEvent> {
+		implements RabbitTemplate.ConfirmCallback, ReturnCallback,
+		ApplicationListener<ContextRefreshedEvent>, Lifecycle {
 
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
@@ -272,6 +274,22 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 				}
 			}
 		}
+	}
+
+	@Override
+	public void start() {
+	}
+
+	@Override
+	public void stop() {
+		if (this.amqpTemplate instanceof Lifecycle) {
+			((Lifecycle) this.amqpTemplate).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !(this.amqpTemplate instanceof Lifecycle) || ((Lifecycle) this.amqpTemplate).isRunning();
 	}
 
 	@Override
