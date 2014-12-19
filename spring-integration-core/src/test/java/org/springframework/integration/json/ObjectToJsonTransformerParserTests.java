@@ -16,19 +16,23 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -41,8 +45,11 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Mark Fisher
@@ -69,6 +76,9 @@ public class ObjectToJsonTransformerParserTests {
 
 	@Autowired
 	private volatile MessageChannel boonJsonNodeInput;
+
+	@Autowired
+	private EvaluationContext evaluationContext;
 
 	@Test
 	public void testContentType(){
@@ -182,6 +192,15 @@ public class ObjectToJsonTransformerParserTests {
 
 		Expression expression = new SpelExpressionParser().parseExpression("[firstName] == 'John' and [age] == 42");
 		assertTrue(expression.getValue(new StandardEvaluationContext(), payload, Boolean.class));
+	}
+
+	@Test
+	public void testReflectionBeforeJsonString() {
+		Expression exp = new SpelExpressionParser().parseExpression("payload.class.name");
+		assertEquals("java.lang.String", exp.getValue(this.evaluationContext, new GenericMessage<>("foo")));
+
+		exp = new SpelExpressionParser().parseExpression("payload.foo.toString()");
+		assertEquals("bar", exp.getValue(this.evaluationContext, new GenericMessage<>("{ \"foo\" : \"bar\" }")));
 	}
 
 	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object, Object> {

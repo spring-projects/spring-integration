@@ -16,38 +16,50 @@
 
 package org.springframework.integration.json;
 
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
-import org.springframework.util.Assert;
+import org.springframework.integration.support.CompositePropertyAccessor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
+ * A SpEL {@link CompositePropertyAccessor} that wraps node and String accessors.
+ *
+ * Also delegates to the appropriate accessor for backwards compatibility if used
+ * programmatically.
  *
  * @author Eric Bottard
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
-public class JsonPropertyAccessor implements PropertyAccessor {
+public class JsonPropertyAccessor implements PropertyAccessor, CompositePropertyAccessor {
+
+	private final JsonNodePropertyAccessor nodeAccessor = new JsonNodePropertyAccessor();
+
+	private final JsonStringPropertyAccessor stringAccessor = new JsonStringPropertyAccessor();
+
+	private final List<PropertyAccessor> accessors = Arrays.<PropertyAccessor>asList(nodeAccessor, stringAccessor);
+
+
+	@Override
+	public Collection<PropertyAccessor> accessors() {
+		return accessors;
+	}
 
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] {String.class, ToStringFriendlyJsonNode.class,
-			ObjectNode.class, ArrayNode.class};
-
-	// Note: ObjectMapper is thread-safe
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] { String.class,
+			JsonNodePropertyAccessor.ToStringFriendlyJsonNode.class, ObjectNode.class, ArrayNode.class };
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
@@ -56,67 +68,21 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
-		ContainerNode<?> container = asJson(target);
-		Integer index = maybeIndex(name);
-		return ((index != null && container.has(index)) || container.has(name));
-	}
-
-	private ContainerNode<?> assertContainerNode(JsonNode json) throws AccessException {
-		if (json instanceof ContainerNode) {
-			return (ContainerNode<?>) json;
+		if (target instanceof String) {
+			return this.stringAccessor.canRead(context, target, name);
 		}
 		else {
-			throw new AccessException("Can not act on json that is not a ContainerNode: "
-					+ json.getClass().getSimpleName());
-		}
-	}
-
-	private ContainerNode<?> asJson(Object target) throws AccessException {
-		if (target instanceof ContainerNode) {
-			return (ContainerNode<?>) target;
-		}
-		else if (target instanceof ToStringFriendlyJsonNode) {
-			ToStringFriendlyJsonNode wrapper = (ToStringFriendlyJsonNode) target;
-			return assertContainerNode(wrapper.node);
-		}
-		else if (target instanceof String) {
-			try {
-				JsonNode json = this.objectMapper.readTree((String) target);
-				return assertContainerNode(json);
-			}
-			catch (JsonProcessingException e) {
-				throw new AccessException("Exception while trying to deserialize String", e);
-			}
-			catch (IOException e) {
-				throw new AccessException("Exception while trying to deserialize String", e);
-			}
-		}
-		else {
-			throw new IllegalStateException("Can't happen. Check SUPPORTED_CLASSES");
-		}
-	}
-
-	/**
-	 * Return an integer if the String property name can be parsed as an int, or null otherwise.
-	 */
-	private Integer maybeIndex(String name) {
-		try {
-			return Integer.valueOf(name);
-		}
-		catch (NumberFormatException e) {
-			return null;
+			return this.nodeAccessor.canRead(context, target, name);
 		}
 	}
 
 	@Override
 	public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
-		ContainerNode<?> container = asJson(target);
-		Integer index = maybeIndex(name);
-		if (index != null && container.has(index)) {
-			return new TypedValue(wrap(container.get(index)));
+		if (target instanceof String) {
+			return this.stringAccessor.read(context, target, name);
 		}
 		else {
-			return new TypedValue(wrap(container.get(name)));
+			return this.nodeAccessor.read(context, target, name);
 		}
 	}
 
@@ -131,45 +97,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "'objectMapper' cannot be null");
-		this.objectMapper = objectMapper;
-	}
-
-	private ToStringFriendlyJsonNode wrap(JsonNode json) {
-		return new ToStringFriendlyJsonNode(json);
-	}
-
-	public static class ToStringFriendlyJsonNode {
-
-		private final JsonNode node;
-
-		public ToStringFriendlyJsonNode(JsonNode node) {
-			this.node = node;
-		}
-
-		@Override
-		public String toString() {
-			if (node.isValueNode()) {
-				// This is to avoid quotes around a TextNode for example
-				return node.asText();
-			}
-			else {
-				return node.toString();
-			}
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			return this == o
-					|| (!(o == null || getClass() != o.getClass())
-							&& this.node.equals(((ToStringFriendlyJsonNode) o).node));
-		}
-
-		@Override
-		public int hashCode() {
-			return this.node.toString().hashCode();
-		}
-
+		this.stringAccessor.setObjectMapper(objectMapper);
 	}
 
 }

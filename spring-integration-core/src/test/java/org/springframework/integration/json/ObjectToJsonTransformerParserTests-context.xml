@@ -25,4 +25,8 @@
 
 	<beans:bean id="customJsonObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomJsonObjectMapper"/>
 
+	<spel-property-accessors>
+		<beans:bean id="json" class="org.springframework.integration.json.JsonPropertyAccessor" />
+	</spel-property-accessors>
+
 </beans:beans>

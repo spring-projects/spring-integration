@@ -30,9 +30,9 @@
 		<ref bean="jsonPropertyAccessor"/>
 	</int:spel-property-accessors>
 
-	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonNodePropertyAccessor"/>
 
-	<bean id="parentJsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+	<bean id="parentJsonPropertyAccessor" class="org.springframework.integration.json.JsonNodePropertyAccessor"/>
 
 	<bean id="barService" class="org.springframework.integration.expression.ParentContextTests$Bar" />
 

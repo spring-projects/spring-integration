@@ -17,7 +17,11 @@
 package org.springframework.integration.config;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -30,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.Ordered;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.PropertyAccessor;
@@ -38,6 +43,7 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.CompositePropertyAccessor;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
@@ -73,6 +79,8 @@ import org.springframework.util.Assert;
  */
 public class IntegrationEvaluationContextFactoryBean implements FactoryBean<StandardEvaluationContext>,
 		ApplicationContextAware, InitializingBean {
+
+	private final MapAccessor mapAccessor = new MapAccessor();
 
 	private volatile Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<String, PropertyAccessor>();
 
@@ -158,9 +166,60 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 					}
 				}
 			}
+
 		}
 
+		sortPropertyAccessors();
 		this.initialized = true;
+	}
+
+	/**
+	 * Sort the property accessors thus: unordered, ordered; when applied to the evaluation
+	 * context; unordered will be followed by ordered with a negative order, followed by the default
+	 * (currenly reflective) followed by ordered with >= 0 order. Within the same order (or unordered)
+	 * the original order is retained.
+	 */
+	private void sortPropertyAccessors() {
+		int orderedStart = 0;
+		Iterator<Entry<String, PropertyAccessor>> iterator = this.propertyAccessors.entrySet().iterator();
+		Map<String, PropertyAccessor> map = new LinkedHashMap<String, PropertyAccessor>();
+		// First "expand" any composite accessors
+		while (iterator.hasNext()) {
+			Entry<String, PropertyAccessor> entry = iterator.next();
+			if (entry.getValue() instanceof CompositePropertyAccessor) {
+				Collection<PropertyAccessor> delegates = ((CompositePropertyAccessor) entry.getValue()).accessors();
+				int n = 0;
+				for (PropertyAccessor accessor : delegates) {
+					map.put(entry.getKey() + "." + n++, accessor);
+				}
+			}
+			else {
+				map.put(entry.getKey(), entry.getValue());
+			}
+		}
+		// Now build the list in the right sequence.
+		List<Entry<String, PropertyAccessor>> list = new LinkedList<Entry<String, PropertyAccessor>>();
+		for (Entry<String, PropertyAccessor> entry : map.entrySet()) {
+			if (entry.getValue() instanceof Ordered) {
+				int i;
+				for (i = orderedStart; i < list.size(); i++) {
+					if ( ((Ordered) list.get(i).getValue()).getOrder() > ((Ordered) entry.getValue()).getOrder()) {
+						list.add(i, entry);
+						break;
+					}
+				}
+				if (i >= list.size()) {
+					list.add(i, entry);
+				}
+			}
+			else {
+				list.add(orderedStart++, entry);
+			}
+		}
+		this.propertyAccessors.clear();
+		for (Entry<String, PropertyAccessor> entry : list) {
+			this.propertyAccessors.put(entry.getKey(), entry.getValue());
+		}
 	}
 
 	@Override
@@ -173,11 +232,30 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 		evaluationContext.setBeanResolver(this.beanResolver);
 		evaluationContext.setTypeConverter(this.typeConverter);
 
+		List<PropertyAccessor> propertyAccessors = evaluationContext.getPropertyAccessors();
+
+		boolean addedMapAccessor = false;
+
 		for (PropertyAccessor propertyAccessor : this.propertyAccessors.values()) {
-			evaluationContext.addPropertyAccessor(propertyAccessor);
+			if (!(propertyAccessor instanceof Ordered) || ((Ordered) propertyAccessor).getOrder() < 0) {
+				propertyAccessors.add(propertyAccessors.size() - 1, propertyAccessor);
+			}
+			else {
+				if (!addedMapAccessor) {
+					propertyAccessors.add(propertyAccessors.size() - 1, this.mapAccessor);
+					addedMapAccessor = true;
+				}
+				propertyAccessors.add(propertyAccessor);
+			}
 		}
 
-		evaluationContext.addPropertyAccessor(new MapAccessor());
+		// this is not really necessary because we have a direct reference, but that might change.
+
+		evaluationContext.setPropertyAccessors(propertyAccessors);
+
+		if (!addedMapAccessor) {
+			evaluationContext.addPropertyAccessor(this.mapAccessor);
+		}
 
 		for (Entry<String, Method> functionEntry : this.functions.entrySet()) {
 			evaluationContext.registerFunction(functionEntry.getKey(), functionEntry.getValue());
