@@ -75,6 +75,7 @@ import org.springframework.util.Assert;
  * {@link Condition}s are not supported.
  *
  * @author Gary Russell
+ * @author Konstantin Yakimov
  * @since 4.0
  *
  */
@@ -94,7 +95,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 	private final long expireAfter;
 
-	private final LockRegistry localRegistry = new DefaultLockRegistry();
+	private final LockRegistry localRegistry;
 
 	private final LockSerializer lockSerializer = new LockSerializer();
 
@@ -110,7 +111,8 @@ public final class RedisLockRegistry implements LockRegistry {
 	}
 
 	/**
-	 * Constructs a lock registry with the default (60 second) lock expiration.
+	 * Constructs a lock registry with the default (60 second) lock expiration and a default
+	 * local {@link DefaultLockRegistry}.
 	 * @param connectionFactory The connection factory.
 	 * @param registryKey The key prefix for locks.
 	 */
@@ -119,14 +121,29 @@ public final class RedisLockRegistry implements LockRegistry {
 	}
 
 	/**
-	 * Constructs a lock registry with the supplied lock expiration.
+	 * Constructs a lock registry with the supplied lock expiration and a default
+	 * local {@link DefaultLockRegistry}.
 	 * @param connectionFactory The connection factory.
 	 * @param registryKey The key prefix for locks.
 	 * @param expireAfter The expiration in milliseconds.
 	 */
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, long expireAfter) {
+		this(connectionFactory, registryKey, expireAfter, new DefaultLockRegistry());
+	}
+
+	/**
+	 * Constructs a lock registry with the supplied lock expiration and a custom local {@link LockRegistry}.
+	 * @param connectionFactory The connection factory.
+	 * @param registryKey The key prefix for locks.
+	 * @param expireAfter The expiration in milliseconds.
+	 * @param localRegistry The local registry used to reduce wait time,
+	 * {@link DefaultLockRegistry} is used by default.
+	 */
+	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey,
+							 long expireAfter, LockRegistry localRegistry) {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		Assert.notNull(registryKey, "'registryKey' cannot be null");
+		Assert.notNull(localRegistry, "'localRegistry' cannot be null");
 		this.redisTemplate = new RedisTemplate<String, RedisLockRegistry.RedisLock>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -134,6 +151,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		this.redisTemplate.afterPropertiesSet();
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
+		this.localRegistry = localRegistry;
 	}
 
 	@Override
