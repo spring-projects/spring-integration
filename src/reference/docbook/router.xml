@@ -420,7 +420,7 @@
           mappings.
           <programlisting language="xml"><![CDATA[<bean id="payloadTypeRouter"
       class="org.springframework.integration.router.PayloadTypeRouter">
-    <property name="channelIdentifierMap">
+    <property name="channelMapping">
         <map>
             <entry key="java.lang.String" value-ref="stringChannel"/>
             <entry key="java.lang.Integer" value-ref="integerChannel"/>
@@ -910,9 +910,9 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             will now have a chance to go through Step 2 to be additionally resolved to the actual <code>channel name</code>.
         </para>
         <para>
-            In Spring Integration 2.0 the router hierarchy underwent significant refactoring, so that now any router that is a subclass of the
-            <classname>AbstractMessageRouter</classname> (which includes all framework defined routers) is a Dynamic Router simply because the
-            <code>channelIdentiferMap</code> is defined at the <classname>AbstractMessageRouter</classname> level. That map's setter method is
+            Any router that is a subclass of the
+            <classname>AbstractMappingMessageRouter</classname> (which includes most framework defined routers) is a Dynamic Router simply because the
+            <code>channelMapping</code> is defined at the <classname>AbstractMappingMessageRouter</classname> level. That map's setter method is
             exposed as a public method along with 'setChannelMapping' and 'removeChannelMapping' methods. These allow you to change/add/remove
             router mappings at runtime as long as you have a reference to the router itself. It also means that you could expose these same
             configuration options via JMX (see <xref linkend="jmx"/>) or the Spring Integration ControlBus (see <xref linkend="control-bus"/>) functionality. 
@@ -937,11 +937,11 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             </para>
             <itemizedlist>
                 <listitem>
-                    <para><code>public void setChannelMapping(String channelIdentifier, String channelName)</code> -
+                    <para><code>public void setChannelMapping(String key, String channelName)</code> -
                     will allow you to add a new or modify an existing mapping between <code>channel identifier</code> and <code>channel name</code></para>
                 </listitem>
                 <listitem>
-                  <para><code>public void removeChannelMapping(String channelIdentifier)</code> -
+                  <para><code>public void removeChannelMapping(String key)</code> -
                   will allow you to remove a particular channel mapping, thus disconnecting the relationship between
                   <code>channel identifier</code> and <code>channel name</code> </para>
                 </listitem>
