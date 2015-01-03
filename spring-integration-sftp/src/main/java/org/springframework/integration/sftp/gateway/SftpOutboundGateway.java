@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 		super(sessionFactory, command, expression);
 	}
 
-	private SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate, String command, String expression) {
+	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate, String command, String expression) {
 		super(remoteFileTemplate, command, expression);
 	}
 
