@@ -51,12 +51,47 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 
+	/**
+	 * Construct a converter with default options (qos=0, retain=false, charset=UTF-8).
+	 */
 	public DefaultPahoMessageConverter() {
 		this (0, false);
 	}
 
+	/**
+	 * Construct a converter to create outbound messages with the supplied default qos and retain settings and
+	 * a UTF-8 charset for converting outbound String paylaods to {@code byte[]} and inbound
+	 * {@code byte[]} to String (unless {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
+	 * @param defaultQos the default qos.
+	 * @param defaultRetain the default retain.
+	 */
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetain) {
 		this(defaultQos, defaultRetain, "UTF-8");
+	}
+
+	/**
+	 * Construct a converter with default options (qos=0, retain=false) and
+	 * the supplied charset.
+	 * @param charset the charset used to convert outbound String paylaods to {@code byte[]} and inbound
+	 * {@code byte[]} to String (unless {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
+	 * @since 4.1.2
+	 */
+	public DefaultPahoMessageConverter(String charset) {
+		this(0, false, charset);
+	}
+
+	/**
+	 * Construct a converter to create outbound messages with the supplied default qos and retain settings and
+	 * the supplied charset.
+	 * @param defaultQos the default qos.
+	 * @param defaultRetained the default retain.
+	 * @param charset the charset used to convert outbound String paylaods to {@code byte[]} and inbound
+	 * {@code byte[]} to String (unless {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
+	 */
+	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained, String charset) {
+		this.defaultQos = defaultQos;
+		this.defaultRetained = defaultRetained;
+		this.charset = charset;
 	}
 
 	@Override
@@ -84,12 +119,6 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	public boolean isPayloadAsBytes() {
 		return this.payloadAsBytes;
-	}
-	
-	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained, String charset) {
-		this.defaultQos = defaultQos;
-		this.defaultRetained = defaultRetained;
-		this.charset = charset;
 	}
 
 	@Override
