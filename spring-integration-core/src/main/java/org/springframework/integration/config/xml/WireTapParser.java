@@ -20,16 +20,21 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;wire-tap&gt; element.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class WireTapParser implements BeanDefinitionRegisteringParser {
 
+	@Override
 	public String parse(Element element, ParserContext parserContext) {
+		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(WireTap.class);
 		String targetRef = element.getAttribute("channel");
 		if (!StringUtils.hasText(targetRef)) {
@@ -37,8 +42,20 @@ public class WireTapParser implements BeanDefinitionRegisteringParser {
 		}
 		builder.addConstructorArgReference(targetRef);
 		String selectorRef = element.getAttribute("selector");
+		String selectorExpression = element.getAttribute("selector-expression");
+		if (StringUtils.hasText(selectorRef) && StringUtils.hasText(selectorExpression)) {
+			parserContext.getReaderContext().error("Only one of 'selector' or 'selector-expression' is allowed", source);
+		}
 		if (StringUtils.hasText(selectorRef)) {
 			builder.addConstructorArgReference(selectorRef);
+		}
+		else if (StringUtils.hasText(selectorExpression)) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(selectorExpression);
+			BeanDefinitionBuilder eemsBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingSelector.class);
+			eemsBuilder.addConstructorArgValue(expressionBuilder.getBeanDefinition());
+			builder.addConstructorArgValue(eemsBuilder.getBeanDefinition());
 		}
 		String timeout = element.getAttribute("timeout");
 		if (StringUtils.hasText(timeout)) {

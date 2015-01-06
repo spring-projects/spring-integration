@@ -44,7 +44,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private static final String VERSION = "4.1";
+	private static final String VERSION = "4.2";
 
 	private final NamespaceHandlerDelegate delegate = new NamespaceHandlerDelegate();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,84 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
-import java.util.Map;
+import java.util.List;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class WireTapParserTests {
+
+	@Autowired
+	MessageChannel noSelectors;
+
+	@Autowired
+	MessageChannel accepting;
+
+	@Autowired
+	MessageChannel rejecting;
+
+	@Autowired
+	MessageChannel withId;
+
+	@Autowired
+	PollableChannel wireTapChannel;
+
+	@Autowired @Qualifier("wireTap")
+	WireTap wireTap;
+
+	@Autowired
+	List<WireTap> wireTaps;
 
 	@Test
 	public void simpleWireTap() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"wireTapParserTests.xml", this.getClass());
-		MessageChannel mainChannel = (MessageChannel) context.getBean("noSelectors");
-		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
 		assertNull(wireTapChannel.receive(0));
 		Message<?> original = new GenericMessage<String>("test");
-		mainChannel.send(original);
+		noSelectors.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNotNull(intercepted);
 		assertEquals(original, intercepted);
 	}
 
 	@Test
-	public void simpleWireTapWithId() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"wireTapParserTests.xml", this.getClass());
-		WireTap wireTap = (WireTap) context.getBean("wireTap");
-		assertNotNull(wireTap);
+	public void simpleWireTapWithIdAndSelectorExpression() {
+		assertThat(TestUtils.getPropertyValue(wireTap, "selector"), instanceOf(ExpressionEvaluatingSelector.class));
+		Message<?> original = new GenericMessage<String>("test");
+		withId.send(original);
+		Message<?> intercepted = wireTapChannel.receive(0);
+		assertNotNull(intercepted);
+		assertEquals(original, intercepted);
 	}
 
 	@Test
 	public void wireTapWithAcceptingSelector() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"wireTapParserTests.xml", this.getClass());
-		MessageChannel mainChannel = (MessageChannel) context.getBean("accepting");
-		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
 		assertNull(wireTapChannel.receive(0));
 		Message<?> original = new GenericMessage<String>("test");
-		mainChannel.send(original);
+		accepting.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNotNull(intercepted);
 		assertEquals(original, intercepted);
@@ -75,26 +101,19 @@ public class WireTapParserTests {
 
 	@Test
 	public void wireTapWithRejectingSelector() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"wireTapParserTests.xml", this.getClass());
-		MessageChannel mainChannel = (MessageChannel) context.getBean("rejecting");
-		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
 		assertNull(wireTapChannel.receive(0));
 		Message<?> original = new GenericMessage<String>("test");
-		mainChannel.send(original);
+		rejecting.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNull(intercepted);
 	}
 
 	@Test
 	public void wireTapTimeouts() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"wireTapParserTests.xml", this.getClass());
-		Map<String, WireTap> beans = context.getBeansOfType(WireTap.class);
 		int defaultTimeoutCount = 0;
 		int expectedTimeoutCount = 0;
 		int otherTimeoutCount = 0;
-		for (WireTap wireTap : beans.values()) {
+		for (WireTap wireTap : wireTaps) {
 			long timeout = ((Long) new DirectFieldAccessor(wireTap).getPropertyValue("timeout")).longValue();
 			if (timeout == 0) {
 				defaultTimeoutCount++;
