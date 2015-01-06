@@ -25,13 +25,14 @@ import org.springframework.core.convert.converter.Converter;
  * expression for JSON in case of the {@link JsonPropertyAccessor} usage.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 class ToStringFriendlyJsonNodeToStringConverter
-		implements Converter<JsonPropertyAccessor.ToStringFriendlyJsonNode, String> {
+		implements Converter<AbstractJsonPropertyAccessor.ToStringFriendlyJsonNode, String> {
 
 	@Override
-	public String convert(JsonPropertyAccessor.ToStringFriendlyJsonNode source) {
+	public String convert(AbstractJsonPropertyAccessor.ToStringFriendlyJsonNode source) {
 		return source.toString();
 	}
 

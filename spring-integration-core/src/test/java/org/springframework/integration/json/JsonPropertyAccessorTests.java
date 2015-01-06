@@ -54,11 +54,11 @@ public class JsonPropertyAccessorTests {
 	public void testSimpleLookup() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
 		Object value = evaluate(json, "foo", Object.class);
-		assertThat(value, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
+		assertThat(value, Matchers.instanceOf(AbstractJsonPropertyAccessor.ToStringFriendlyJsonNode.class));
 		assertEquals("bar", value.toString());
 		Object json2 = mapper.readTree("{\"foo\": \"bar\"}");
 		Object value2 = evaluate(json2, "foo", Object.class);
-		assertThat(value2, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
+		assertThat(value2, Matchers.instanceOf(AbstractJsonPropertyAccessor.ToStringFriendlyJsonNode.class));
 		assertTrue(value.equals(value2));
 		assertEquals(value.hashCode(), value2.hashCode());
 	}

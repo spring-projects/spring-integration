@@ -29,7 +29,7 @@
 		<ref bean="jsonPropertyAccessor"/>
 	</int:spel-property-accessors>
 
-	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonNodePropertyAccessor"/>
 
 	<bean id="messageBuilderFactory" class="org.springframework.integration.support.MutableMessageBuilderFactory" />
 
