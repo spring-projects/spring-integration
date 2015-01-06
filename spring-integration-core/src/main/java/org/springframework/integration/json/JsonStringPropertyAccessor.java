@@ -23,7 +23,6 @@ import org.springframework.expression.AccessException;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -68,9 +67,6 @@ public class JsonStringPropertyAccessor extends AbstractJsonPropertyAccessor imp
 			try {
 				JsonNode json = this.objectMapper.readTree((String) target);
 				return assertContainerNode(json);
-			}
-			catch (JsonProcessingException e) {
-				throw new AccessException("Exception while trying to deserialize String", e);
 			}
 			catch (IOException e) {
 				throw new AccessException("Exception while trying to deserialize String", e);

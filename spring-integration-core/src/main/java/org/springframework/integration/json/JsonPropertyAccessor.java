@@ -18,7 +18,6 @@ package org.springframework.integration.json;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
@@ -41,18 +40,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Gary Russell
  * @since 3.0
  */
-public class JsonPropertyAccessor implements PropertyAccessor, CompositePropertyAccessor {
+public class JsonPropertyAccessor implements CompositePropertyAccessor {
 
 	private final JsonNodePropertyAccessor nodeAccessor = new JsonNodePropertyAccessor();
 
 	private final JsonStringPropertyAccessor stringAccessor = new JsonStringPropertyAccessor();
 
-	private final List<PropertyAccessor> accessors = Arrays.<PropertyAccessor>asList(nodeAccessor, stringAccessor);
-
-
 	@Override
 	public Collection<PropertyAccessor> accessors() {
-		return accessors;
+		return Arrays.<PropertyAccessor>asList(nodeAccessor, stringAccessor);
 	}
 
 	/**

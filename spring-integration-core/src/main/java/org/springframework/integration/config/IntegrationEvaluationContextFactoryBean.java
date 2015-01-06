@@ -176,7 +176,7 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 	/**
 	 * Sort the property accessors thus: unordered, ordered; when applied to the evaluation
 	 * context; unordered will be followed by ordered with a negative order, followed by the default
-	 * (currenly reflective) followed by ordered with >= 0 order. Within the same order (or unordered)
+	 * (currently reflective) followed by ordered with >= 0 order. Within the same order (or unordered)
 	 * the original order is retained.
 	 */
 	private void sortPropertyAccessors() {
