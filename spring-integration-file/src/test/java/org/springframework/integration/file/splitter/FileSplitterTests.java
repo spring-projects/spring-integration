@@ -146,8 +146,7 @@ public class FileSplitterTests {
 		@Bean
 		@Splitter(inputChannel = "input2")
 		public MessageHandler fileSplitter() {
-			FileSplitter fileSplitter = new FileSplitter();
-			fileSplitter.setIterator(true);
+			FileSplitter fileSplitter = new FileSplitter(true);
 			fileSplitter.setOutputChannel(output());
 			return fileSplitter;
 		}

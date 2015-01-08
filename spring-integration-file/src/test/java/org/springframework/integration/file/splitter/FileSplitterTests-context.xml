@@ -6,7 +6,9 @@
 	   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:splitter input-channel="input1" output-channel="output">
-		<bean class="org.springframework.integration.file.splitter.FileSplitter"/>
+		<bean class="org.springframework.integration.file.splitter.FileSplitter">
+			<constructor-arg value="false"/>
+		</bean>
 	</int:splitter>
 
 </beans>

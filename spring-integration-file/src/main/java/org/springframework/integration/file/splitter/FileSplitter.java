@@ -50,11 +50,16 @@ import org.springframework.messaging.MessagingException;
  */
 public class FileSplitter extends AbstractMessageSplitter {
 
-	private boolean iterator;
+	private final boolean iterator;
 
-	public void setIterator(boolean iterator) {
+	public FileSplitter() {
+		this(true);
+	}
+
+	public FileSplitter(boolean iterator) {
 		this.iterator = iterator;
 	}
+
 
 	@Override
 	protected Object splitMessage(final Message<?> message) {
