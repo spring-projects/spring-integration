@@ -68,7 +68,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		this.onSuccessExpression = new SpelExpressionParser().parseExpression(onSuccessExpression);
 	}
 
-	public void setOnSuccessExpression(Expression onSuccessExpression) {
+	public void setExpressionOnSuccess(Expression onSuccessExpression) {
 		this.onSuccessExpression = onSuccessExpression;
 	}
 
@@ -77,7 +77,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		this.onFailureExpression = new SpelExpressionParser().parseExpression(onFailureExpression);
 	}
 
-	public void setOnFailureExpression(Expression onFailureExpression) {
+	public void setExpressionOnFailure(Expression onFailureExpression) {
 		this.onFailureExpression = onFailureExpression;
 	}
 
