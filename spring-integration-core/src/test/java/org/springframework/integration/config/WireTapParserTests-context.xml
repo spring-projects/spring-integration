@@ -21,7 +21,7 @@
 	<channel id="withId">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap id="wireTap" channel="wireTapChannel"/>
+			<wire-tap id="wireTap" channel="wireTapChannel" selector-expression="@booleanTrue" />
 		</interceptors>
 	</channel>
 
@@ -52,6 +52,10 @@
 
 	<beans:bean id="rejectingSelector" class="org.springframework.integration.config.TestSelector">
 		<beans:constructor-arg value="false"/>
+	</beans:bean>
+
+	<beans:bean id="booleanTrue"  class="java.lang.Boolean">
+		<beans:constructor-arg value="true" />
 	</beans:bean>
 
 </beans:beans>

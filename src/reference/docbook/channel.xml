@@ -810,7 +810,7 @@ public QueueChannel reactorQueue() {
       </para>
 
       <para>
-      <emphasis>A little more on Wire Tap</emphasis>
+      <emphasis role="bold">A little more on Wire Tap</emphasis>
       </para>
       <para>
       One of the common misconceptions about the wire tap and other similar components (<xref linkend="message-publishing-config"/>)
@@ -879,6 +879,16 @@ public QueueChannel reactorQueue() {
        not one that is referenced by the interceptor. The <classname>WireTap</classname> uses both of these
        techniques.
       </important>
+  </section>
+  <section id="conditional-wiretap">
+      <title>Conditional Wire Taps</title>
+      <para>
+       Wire taps can be made conditional, using the <code>selector</code> or <code>selector-expression</code>
+       attributes. The <code>selector</code> references a <classname>MessageSelector</classname> bean, which
+       can determine at runtime whether the message should go to the tap channel. Similarly, the
+       <code>selector-expression</code> is a boolean SpEL expression that performs the same purpose - if
+       the expression evaluates to true, the message will be sent to the tap channel.
+      </para>
   </section>
   <section id="channel-global-wiretap">
       <title>Global Wire Tap Configuration</title>
