@@ -28,9 +28,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Date;
 
 import org.junit.AfterClass;
@@ -59,6 +61,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1.2
  */
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
@@ -77,6 +80,9 @@ public class FileSplitterTests {
 	private MessageChannel input2;
 
 	@Autowired
+	private MessageChannel input3;
+
+	@Autowired
 	private PollableChannel output;
 
 	@BeforeClass
@@ -92,9 +98,25 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testFileSplitter() throws UnsupportedEncodingException {
+	public void testFileSplitter() throws Exception {
 		this.input1.send(new GenericMessage<File>(file));
 		Message<?> receive = this.output.receive(10000);
+		assertNotNull(receive); //HelloWorld
+		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //äöüß
+		assertNull(this.output.receive(1));
+
+		this.input1.send(new GenericMessage<String>(file.getAbsolutePath()));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //HelloWorld
+		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //äöüß
+		assertNull(this.output.receive(1));
+
+		this.input1.send(new GenericMessage<Reader>(new FileReader(file)));
+		receive = this.output.receive(10000);
 		assertNotNull(receive); //HelloWorld
 		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
@@ -131,6 +153,22 @@ public class FileSplitterTests {
 		assertEquals(1, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		assertThat(receive.getPayload(), instanceOf(Date.class));
 		assertNull(this.output.receive(1));
+
+		this.input3.send(new GenericMessage<File>(file));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //HelloWorld
+		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //äöüß
+		assertNull(this.output.receive(1));
+
+		this.input3.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //HelloWorld
+		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		receive = this.output.receive(10000);
+		assertNotNull(receive); //äöüß
+		assertNull(this.output.receive(1));
 	}
 
 	@Configuration
@@ -145,8 +183,17 @@ public class FileSplitterTests {
 
 		@Bean
 		@Splitter(inputChannel = "input2")
-		public MessageHandler fileSplitter() {
+		public MessageHandler fileSplitter2() {
 			FileSplitter fileSplitter = new FileSplitter(true);
+			fileSplitter.setOutputChannel(output());
+			return fileSplitter;
+		}
+
+		@Bean
+		@Splitter(inputChannel = "input3")
+		public MessageHandler fileSplitter3() {
+			FileSplitter fileSplitter = new FileSplitter();
+			fileSplitter.setCharset(Charset.defaultCharset());
 			fileSplitter.setOutputChannel(output());
 			return fileSplitter;
 		}

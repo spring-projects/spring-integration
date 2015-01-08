@@ -18,12 +18,14 @@ package org.springframework.integration.file.splitter;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,30 +38,51 @@ import org.springframework.messaging.MessagingException;
  * The {@link AbstractMessageSplitter} implementation to split the {@link File}
  * Message payload to lines.
  * <p>
- * With {@code iterator = true} (defaults to {@code false}) this class produces an {@link Iterator}
+ * With {@code iterator = true} (defaults to {@code true}) this class produces an {@link Iterator}
  * to process file lines on demand from {@link Iterator#next}.
- * Otherwise the {@link List} of all lines is returned to the to further
+ * Otherwise a {@link List} of all lines is returned to the to further
  * {@link AbstractMessageSplitter#handleRequestMessage} process.
  * <p>
  *  Can accept {@link String} as file path, {@link File}, {@link Reader} or {@link InputStream}
  *  as payload type.
- *  All other types are ignored and returned to the {@link AbstractMessageSplitter) as is.
+ *  All other types are ignored and returned to the {@link AbstractMessageSplitter} as is.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1.2
  */
 public class FileSplitter extends AbstractMessageSplitter {
 
 	private final boolean iterator;
 
+	private Charset charset;
+
+	/**
+	 * Construct a splitter where the {@link #splitMessage(Message)} method returns
+	 * an iterator and the file is read line-by-line during iteration.
+	 */
 	public FileSplitter() {
 		this(true);
 	}
 
+	/**
+	 * Construct a splitter where the {@link #splitMessage(Message)} method returns
+	 * an iterator, and the file is read line-by-line during iteration, or a list
+	 * of lines from the file.
+	 * @param iterator true to return an iterator, false to return a list of lines.
+	 */
 	public FileSplitter(boolean iterator) {
 		this.iterator = iterator;
 	}
 
+	/**
+	 * Set the charset to be used when reading the file, when something other than the default
+	 * charset is required.
+	 * @param charset the charset.
+	 */
+	public void setCharset(Charset charset) {
+		this.charset = charset;
+	}
 
 	@Override
 	protected Object splitMessage(final Message<?> message) {
@@ -75,16 +98,26 @@ public class FileSplitter extends AbstractMessageSplitter {
 				throw new MessagingException(message, "failed to read file [" + payload + "]", e);
 			}
 		}
-		if (payload instanceof File) {
+		else if (payload instanceof File) {
 			try {
-				reader = new FileReader((File) payload);
+				if (this.charset == null) {
+					reader = new FileReader((File) payload);
+				}
+				else {
+					reader = new InputStreamReader(new FileInputStream((File) payload), this.charset);
+				}
 			}
 			catch (FileNotFoundException e) {
 				throw new MessagingException(message, "failed to read file [" + payload + "]", e);
 			}
 		}
 		else if (payload instanceof InputStream) {
-			reader = new InputStreamReader((InputStream) payload);
+			if (this.charset == null) {
+				reader = new InputStreamReader((InputStream) payload);
+			}
+			else {
+				reader = new InputStreamReader((InputStream) payload, this.charset);
+			}
 		}
 		else if (payload instanceof Reader) {
 			reader = (Reader) payload;
@@ -129,7 +162,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 					reader.close();
 				}
 				catch (IOException e1) {}
-				throw new RuntimeException(e);
+				throw new MessagingException("IOException while iterating", e);
 			}
 		}
 
@@ -143,7 +176,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 					reader.close();
 				}
 				catch (IOException e1) {}
-				throw new RuntimeException(e);
+				throw new MessagingException("IOException while iterating", e);
 			}
 		}
 
