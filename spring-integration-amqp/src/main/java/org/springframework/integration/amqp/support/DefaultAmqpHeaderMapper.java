@@ -16,11 +16,13 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
@@ -28,6 +30,9 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.FieldCallback;
+import org.springframework.util.ReflectionUtils.FieldFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -52,6 +57,8 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
+
+	static final boolean CONSUMER_METADATA_PRESENT;
 
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
@@ -79,6 +86,27 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(JsonHeaders.KEY_TYPE_ID);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_CORRELATION);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_TO_STACK);
+
+		final AtomicBoolean consumerTagHeader = new AtomicBoolean();
+		try {
+			ReflectionUtils.doWithFields(AmqpHeaders.class, new FieldCallback() {
+
+				@Override
+				public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+					consumerTagHeader.set(true);
+				}
+			},
+			new FieldFilter() {
+
+				@Override
+				public boolean matches(Field field) {
+					return field.getName().equals("CONSUMER_TAG") && field.getType().equals(String.class);
+				}
+			});
+		}
+		catch (Exception e) {
+		}
+		CONSUMER_METADATA_PRESENT = consumerTagHeader.get();
 	}
 
 	public DefaultAmqpHeaderMapper() {
@@ -345,6 +373,26 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			}
 		}
 		return contentTypeStringValue;
+	}
+
+	@Override
+	public Map<String, Object> toHeadersFromRequest(MessageProperties source) {
+		Map<String, Object> headersFromRequest = super.toHeadersFromRequest(source);
+		if (CONSUMER_METADATA_PRESENT) {
+			addConsumerMetadata(source, headersFromRequest);
+		}
+		return headersFromRequest;
+	}
+
+	private void addConsumerMetadata(MessageProperties messageProperties, Map<String, Object> headers) {
+		String consumerTag = messageProperties.getConsumerTag();
+		if (consumerTag != null) {
+			headers.put(AmqpHeaders.CONSUMER_TAG, consumerTag);
+		}
+		String consumerQueue = messageProperties.getConsumerQueue();
+		if (consumerQueue != null) {
+			headers.put(AmqpHeaders.CONSUMER_QUEUE, consumerQueue);
+		}
 	}
 
 }

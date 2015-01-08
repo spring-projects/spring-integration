@@ -171,6 +171,17 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.replyTo2", headerMap.get(AmqpHeaders.SPRING_REPLY_TO_STACK));
 	}
 
+	@Test // INT-3586 requires Spring AMQP 1.4.2
+	public void testToHeadersConsumerMetadata() {
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setConsumerTag("consumerTag");
+		amqpProperties.setConsumerQueue("consumerQueue");
+		Map<String, Object> headerMap = headerMapper.toHeadersFromRequest(amqpProperties);
+		assertEquals("consumerTag", headerMap.get(AmqpHeaders.CONSUMER_TAG));
+		assertEquals("consumerQueue", headerMap.get(AmqpHeaders.CONSUMER_QUEUE));
+	}
+
 	@Test
 	public void messageIdNotMappedToAmqpProperties() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
