@@ -82,7 +82,7 @@ public class KafkaConsumerContext<K, V> implements DisposableBean {
 	@Override
 	public void destroy() throws Exception {
 		for (ConsumerConfiguration<K, V> config : this.consumerConfigurations.values()) {
-			config.getConsumerConnector().shutdown();
+			config.shutdown();
 		}
 	}
 

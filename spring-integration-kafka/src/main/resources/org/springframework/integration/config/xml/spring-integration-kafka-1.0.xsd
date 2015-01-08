@@ -311,6 +311,21 @@
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
+									<xsd:attribute name="executor" type="xsd:string">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													A java.util.concurrent.Executor bean reference.
+													Typically
+													org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor.
+													Used to execute iterator task on KafkaStreams.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="java.util.concurrent.Executor"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
 								</xsd:complexType>
 							</xsd:element>
 						</xsd:choice>
@@ -328,9 +343,14 @@
 			</xsd:attribute>
 			<xsd:attribute name="zookeeper-connect" use="required" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
-						Kafka Server Bean Name
-					</xsd:documentation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Kafka Server Bean Name
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.support.ZookeeperConnect"/>
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="consumer-properties" use="optional" type="xsd:string">
