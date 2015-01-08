@@ -1,42 +1,66 @@
 /*
- * Copyright 2002-2013 the original author or authors. Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright 2002-2015 the original author or authors. Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied. See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package org.springframework.integration.kafka.support;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.Assert;
 
 import kafka.consumer.ConsumerTimeoutException;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.MessagingException;
-
 /**
  * @author Soby Chacko
  * @author Rajasekar Elango
+ * @author Artem Bilan
  * @since 0.5
  */
 public class ConsumerConfiguration<K, V> {
 	private static final Log LOGGER = LogFactory.getLog(ConsumerConfiguration.class);
 
 	private final ConsumerMetadata<K, V> consumerMetadata;
+
 	private final ConsumerConnectionProvider consumerConnectionProvider;
+
 	private final MessageLeftOverTracker<K, V> messageLeftOverTracker;
+
 	private ConsumerConnector consumerConnector;
+
 	private volatile int count = 0;
+
 	private int maxMessages = 1;
+
 	private Collection<List<KafkaStream<K, V>>> consumerMessageStreams;
 
-	private final ExecutorService executorService = Executors.newCachedThreadPool();
+	private ExecutorService executorService = Executors.newCachedThreadPool();
+
+	private boolean executorExplicitlySet;
+
+	private volatile boolean stopped;
 
 	public ConsumerConfiguration(final ConsumerMetadata<K, V> consumerMetadata,
 			final ConsumerConnectionProvider consumerConnectionProvider,
@@ -44,6 +68,19 @@ public class ConsumerConfiguration<K, V> {
 		this.consumerMetadata = consumerMetadata;
 		this.consumerConnectionProvider = consumerConnectionProvider;
 		this.messageLeftOverTracker = messageLeftOverTracker;
+	}
+
+	public void setExecutor(Executor executor) {
+		boolean isExecutorService = executor instanceof ExecutorService;
+		boolean isThreadPoolTaskExecutor = executor instanceof ThreadPoolTaskExecutor;
+		Assert.isTrue(isExecutorService || isThreadPoolTaskExecutor);
+		if (isExecutorService) {
+			this.executorService = (ExecutorService) executor;
+		}
+		else {
+			this.executorService = ((ThreadPoolTaskExecutor) executor).getThreadPoolExecutor();
+		}
+		this.executorExplicitlySet = true;
 	}
 
 	public ConsumerMetadata<K, V> getConsumerMetadata() {
@@ -75,7 +112,8 @@ public class ConsumerConfiguration<K, V> {
 									}
 								}
 							}
-						} catch (ConsumerTimeoutException cte) {
+						}
+						catch (ConsumerTimeoutException cte) {
 							LOGGER.debug("Consumer timed out");
 						}
 						return rawMessages;
@@ -93,7 +131,7 @@ public class ConsumerConfiguration<K, V> {
 		messages.putAll(getLeftOverMessageMap());
 
 		try {
-			for (final Future<List<MessageAndMetadata<K, V>>> result : executorService.invokeAll(tasks)) {
+			for (final Future<List<MessageAndMetadata<K, V>>> result : this.executorService.invokeAll(tasks)) {
 				if (!result.get().isEmpty()) {
 					final String topic = result.get().get(0).topic();
 					if (!messages.containsKey(topic)) {
@@ -106,8 +144,14 @@ public class ConsumerConfiguration<K, V> {
 					}
 				}
 			}
-		} catch (Exception e) {
-			throw new MessagingException("Consuming from Kafka failed", e);
+		}
+		catch (Exception e) {
+			if (!this.stopped) {
+				throw new MessagingException("Consuming from Kafka failed", e);
+			}
+			else {
+				LOGGER.warn("Consuming from Kafka failed", e);
+			}
 		}
 
 		if (messages.isEmpty()) {
@@ -221,4 +265,13 @@ public class ConsumerConfiguration<K, V> {
 		}
 		return consumerConnector;
 	}
+
+	public void shutdown() {
+		this.stopped = true;
+		if (!this.executorExplicitlySet) {
+			this.executorService.shutdownNow();
+		}
+		getConsumerConnector().shutdown();
+	}
+
 }
