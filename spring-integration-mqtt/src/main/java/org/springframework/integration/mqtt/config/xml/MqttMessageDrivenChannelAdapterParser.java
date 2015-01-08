@@ -40,7 +40,7 @@ public class MqttMessageDrivenChannelAdapterParser extends AbstractChannelAdapte
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(MqttPahoMessageDrivenChannelAdapter.class);
 
-		MqttParserUtils.parseCommon(element, builder);
+		MqttParserUtils.parseCommon(element, builder, parserContext);
 		builder.addConstructorArgValue(element.getAttribute("topics"));
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
