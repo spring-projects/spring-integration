@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/file/spring-integration-file-4.1.xsd=org/springframework/integration/file/config/spring-integration-file-4.1.xsd
-http\://www.springframework.org/schema/integration/file/spring-integration-file.xsd=org/springframework/integration/file/config/spring-integration-file-4.1.xsd
+http\://www.springframework.org/schema/integration/file/spring-integration-file-4.2.xsd=org/springframework/integration/file/config/spring-integration-file-4.2.xsd
+http\://www.springframework.org/schema/integration/file/spring-integration-file.xsd=org/springframework/integration/file/config/spring-integration-file-4.2.xsd

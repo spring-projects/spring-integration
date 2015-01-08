@@ -3749,7 +3749,15 @@
 				<xsd:documentation>
 				A reference to a bean in the Application Context
 				which implements  MessageSelector that must accept a message for it to be
-				sent to the intercepting channel
+				sent to the intercepting channel. Mutually exclusive with 'selector-expression'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="selector-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				A boolean expression evaluated against the message to determine whether it should
+				sent to the intercepting channel. Mutually exclusive with 'selector'.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
