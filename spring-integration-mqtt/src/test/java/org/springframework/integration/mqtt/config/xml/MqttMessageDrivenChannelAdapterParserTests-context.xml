@@ -17,6 +17,12 @@
 		client-factory="clientFactory"
 		channel="out" />
 
+	<int-mqtt:message-driven-channel-adapter id="noTopicsAdapterDefaultCF"
+		auto-startup="false"
+		client-id="foo"
+		url="tcp://localhost:1883"
+		channel="out" />
+
 	<int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
 		auto-startup="false"
 		phase="25"

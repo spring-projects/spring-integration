@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,9 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 	private MqttPahoMessageDrivenChannelAdapter noTopicsAdapter;
 
 	@Autowired
+	private MqttPahoMessageDrivenChannelAdapter noTopicsAdapterDefaultCF;
+
+	@Autowired
 	private MqttPahoMessageDrivenChannelAdapter oneTopicAdapter;
 
 	@Autowired
@@ -75,6 +78,15 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertEquals(0, TestUtils.getPropertyValue(noTopicsAdapter, "topics", Collection.class).size());
 		assertSame(out, TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory"));
+	}
+
+	@Test
+	public void testNoTopicsDefaultCF() { // INT-3598
+		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "url"));
+		assertFalse(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "autoStartup", Boolean.class));
+		assertEquals("foo", TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "clientId"));
+		assertEquals(0, TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "topics", Collection.class).size());
+		assertSame(out, TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "outputChannel"));
 	}
 
 	@Test
