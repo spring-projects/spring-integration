@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.MessageHandlingException;
 
 /**
  * The {@link AbstractMessageSplitter} implementation to split the {@link File}
@@ -95,7 +95,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 				reader = new FileReader((String) payload);
 			}
 			catch (FileNotFoundException e) {
-				throw new MessagingException(message, "failed to read file [" + payload + "]", e);
+				throw new MessageHandlingException(message, "failed to read file [" + payload + "]", e);
 			}
 		}
 		else if (payload instanceof File) {
@@ -108,7 +108,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 				}
 			}
 			catch (FileNotFoundException e) {
-				throw new MessagingException(message, "failed to read file [" + payload + "]", e);
+				throw new MessageHandlingException(message, "failed to read file [" + payload + "]", e);
 			}
 		}
 		else if (payload instanceof InputStream) {
@@ -126,7 +126,42 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return message;
 		}
 
-		Iterator<String> iterator = new LineIterator(new BufferedReader(reader));
+		final BufferedReader bufferedReader = new BufferedReader(reader);
+		Iterator<String> iterator = new Iterator<String>() {
+
+			@Override
+			public boolean hasNext() {
+				try {
+					boolean ready = bufferedReader.ready();
+					if (!ready) {
+						bufferedReader.close();
+					}
+					return ready;
+				}
+				catch (IOException e) {
+					try {
+						bufferedReader.close();
+					}
+					catch (IOException e1) {}
+					throw new MessageHandlingException(message, "IOException while iterating", e);
+				}
+			}
+
+			@Override
+			public String next() {
+				try {
+					return bufferedReader.readLine();
+				}
+				catch (IOException e) {
+					try {
+						bufferedReader.close();
+					}
+					catch (IOException e1) {}
+					throw new MessageHandlingException(message, "IOException while iterating", e);
+				}
+			}
+
+		};
 
 		if (this.iterator) {
 			return iterator;
@@ -138,48 +173,6 @@ public class FileSplitter extends AbstractMessageSplitter {
 			}
 			return lines;
 		}
-	}
-
-	private class LineIterator implements Iterator<String> {
-
-		private final BufferedReader reader;
-
-		public LineIterator(BufferedReader reader) {
-			this.reader = reader;
-		}
-
-		@Override
-		public boolean hasNext() {
-			try {
-				boolean ready = reader.ready();
-				if (!ready) {
-					reader.close();
-				}
-				return ready;
-			}
-			catch (IOException e) {
-				try {
-					reader.close();
-				}
-				catch (IOException e1) {}
-				throw new MessagingException("IOException while iterating", e);
-			}
-		}
-
-		@Override
-		public String next() {
-			try {
-				return reader.readLine();
-			}
-			catch (IOException e) {
-				try {
-					reader.close();
-				}
-				catch (IOException e1) {}
-				throw new MessagingException("IOException while iterating", e);
-			}
-		}
-
 	}
 
 }
