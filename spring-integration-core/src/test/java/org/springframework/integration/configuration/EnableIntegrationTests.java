@@ -72,7 +72,6 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -85,8 +84,10 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
+import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
@@ -102,6 +103,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
@@ -246,6 +248,9 @@ public class EnableIntegrationTests {
 	@Autowired
 	private MessageChannel myBridgeToInput;
 
+	@Autowired
+	private MessageChannel controlBusChannel;
+
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -344,6 +349,13 @@ public class EnableIntegrationTests {
 		assertEquals("bar", message.getPayload());
 		assertTrue(message.getHeaders().containsKey("foo"));
 		assertEquals("FOO", message.getHeaders().get("foo"));
+
+		MessagingTemplate messagingTemplate = new MessagingTemplate(this.controlBusChannel);
+		assertFalse(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
+		this.controlBusChannel.send(new GenericMessage<String>("@lifecycle.start()"));
+		assertTrue(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
+		this.controlBusChannel.send(new GenericMessage<String>("@lifecycle.stop()"));
+		assertFalse(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
 	}
 
 	@Test
@@ -859,6 +871,36 @@ public class EnableIntegrationTests {
 					asyncAnnotationProcessLatch().countDown();
 					asyncAnnotationProcessThread().set(Thread.currentThread());
 				}
+			};
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "controlBusChannel")
+		public ExpressionControlBusFactoryBean controlBus() throws Exception {
+			return new ExpressionControlBusFactoryBean();
+		}
+
+		@Bean
+		public Lifecycle lifecycle() {
+			return new Lifecycle() {
+
+				private volatile boolean running;
+
+				@Override
+				public void start() {
+					this.running = true;
+				}
+
+				@Override
+				public void stop() {
+					this.running = false;
+				}
+
+				@Override
+				public boolean isRunning() {
+					return this.running;
+				}
+
 			};
 		}
 
