@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,13 +173,18 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test // INT-3586 requires Spring AMQP 1.4.2
 	public void testToHeadersConsumerMetadata() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
-		MessageProperties amqpProperties = new MessageProperties();
-		amqpProperties.setConsumerTag("consumerTag");
-		amqpProperties.setConsumerQueue("consumerQueue");
-		Map<String, Object> headerMap = headerMapper.toHeadersFromRequest(amqpProperties);
-		assertEquals("consumerTag", headerMap.get(AmqpHeaders.CONSUMER_TAG));
-		assertEquals("consumerQueue", headerMap.get(AmqpHeaders.CONSUMER_QUEUE));
+		try {
+			DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+			MessageProperties amqpProperties = new MessageProperties();
+			amqpProperties.setConsumerTag("consumerTag");
+			amqpProperties.setConsumerQueue("consumerQueue");
+			Map<String, Object> headerMap = headerMapper.toHeadersFromRequest(amqpProperties);
+			assertEquals("consumerTag", headerMap.get(AmqpHeaders.CONSUMER_TAG));
+			assertEquals("consumerQueue", headerMap.get(AmqpHeaders.CONSUMER_QUEUE));
+		}
+		catch (NoSuchMethodError e) {
+			// TODO: temporary for Spring IO Compatibility build - until Spring IO 1.1.x moves to amqp 1.4.2
+		}
 	}
 
 	@Test

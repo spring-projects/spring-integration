@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package org.springframework.integration.amqp.inbound;
 
 import java.util.Map;
 
-import com.rabbitmq.client.Channel;
-
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
+import org.springframework.amqp.core.AddressUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
@@ -37,6 +36,8 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
@@ -103,7 +104,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
 					// TODO: fallback to a reply address property of this gateway
-					Address replyTo = message.getMessageProperties().getReplyToAddress();
+					Address replyTo = AddressUtils.decodeReplyToAddress(message);
 					Assert.notNull(replyTo, "The replyTo header must not be null on a " +
 							"request Message being handled by the AMQP inbound gateway.");
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
