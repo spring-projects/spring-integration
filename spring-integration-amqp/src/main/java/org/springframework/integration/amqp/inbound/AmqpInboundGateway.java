@@ -21,7 +21,6 @@ import java.util.Map;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
-import org.springframework.amqp.core.AddressUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
@@ -104,7 +103,15 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
 					// TODO: fallback to a reply address property of this gateway
-					Address replyTo = AddressUtils.decodeReplyToAddress(message);
+					Address replyTo;
+					String replyToProperty = message.getMessageProperties().getReplyTo();
+					// TODO: Use the Address.AMQ_RABBITMQ_REPLY_TO constant when 1.4.3 is the minimum
+					if (replyToProperty.startsWith("amq.rabbitmq.reply-to")) {
+						replyTo = new Address("", replyToProperty);
+					}
+					else {
+						replyTo = new Address(replyToProperty);
+					}
 					Assert.notNull(replyTo, "The replyTo header must not be null on a " +
 							"request Message being handled by the AMQP inbound gateway.");
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
