@@ -65,6 +65,8 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	private File file;
 
+	private volatile boolean dirty;
+
 
 	public void setBaseDirectory(String baseDirectory) {
 		Assert.hasText(baseDirectory, "'baseDirectory' must be non-empty");
@@ -98,6 +100,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			this.metadata.setProperty(key, value);
 		}
 		finally {
+			this.dirty = true;
 			lock.unlock();
 		}
 	}
@@ -124,6 +127,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			return (String) this.metadata.remove(key);
 		}
 		finally {
+			this.dirty = true;
 			lock.unlock();
 		}
 	}
@@ -138,6 +142,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			String property = this.metadata.getProperty(key);
 			if (property == null) {
 				this.metadata.setProperty(key, value);
+				this.dirty = true;
 				return null;
 			}
 			else {
@@ -160,6 +165,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			String property = this.metadata.getProperty(key);
 			if (oldValue.equals(property)) {
 				this.metadata.setProperty(key, newValue);
+				this.dirty = true;
 				return true;
 			}
 			else {
@@ -187,9 +193,10 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	private void saveMetadata() {
-		if (this.file == null) {
+		if (this.file == null || !this.dirty) {
 			return;
 		}
+		this.dirty = false;
 		OutputStream outputStream = null;
 		try {
 			outputStream = new BufferedOutputStream(new FileOutputStream(this.file));
