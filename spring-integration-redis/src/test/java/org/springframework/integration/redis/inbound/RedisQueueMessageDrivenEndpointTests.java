@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors
+ * Copyright 2013-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 @ContextConfiguration
@@ -227,12 +228,15 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
 
+		while (redisTemplate.boundListOps(queueName).rightPop() != null) {}
+
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,
 				this.connectionFactory);
 		BoundListOperations<String, byte[]> boundListOperations =
 				TestUtils.getPropertyValue(endpoint, "boundListOperations", BoundListOperations.class);
 		boundListOperations = Mockito.spy(boundListOperations);
-		new DirectFieldAccessor(endpoint).setPropertyValue("boundListOperations", boundListOperations);
+		DirectFieldAccessor dfa = new DirectFieldAccessor(endpoint);
+		dfa.setPropertyValue("boundListOperations", boundListOperations);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(new DirectChannel());
 		endpoint.setReceiveTimeout(1000);
@@ -243,6 +247,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		endpoint.afterPropertiesSet();
 		endpoint.start();
+
+		waitListening(endpoint);
+		dfa.setPropertyValue("listening", false);
 
 		redisTemplate.boundListOps(queueName).leftPush("foo");
 		endpoint.stop();
@@ -283,16 +290,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		int n = 0;
-		do {
-			n++;
-			if (n == 100) {
-				break;
-			}
-			Thread.sleep(100);
-		} while (!endpoint.isListening());
-
-		assertTrue(n < 100);
+		waitListening(endpoint);
 
 		((DisposableBean) this.connectionFactory).destroy();
 
@@ -323,6 +321,19 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertEquals(payload, receive.getPayload());
 
 		endpoint.stop();
+	}
+
+	private void waitListening(RedisQueueMessageDrivenEndpoint endpoint) throws InterruptedException {
+		int n = 0;
+		do {
+			n++;
+			if (n == 100) {
+				break;
+			}
+			Thread.sleep(100);
+		} while (!endpoint.isListening());
+
+		assertTrue(n < 100);
 	}
 
 }
