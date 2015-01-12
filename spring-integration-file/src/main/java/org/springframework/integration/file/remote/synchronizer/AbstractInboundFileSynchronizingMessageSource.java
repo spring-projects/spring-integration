@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import org.springframework.integration.core.LifecycleMessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
@@ -54,7 +57,10 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends AbstractMessageSource<File> {
+public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends AbstractMessageSource<File>
+		implements LifecycleMessageSource<File> {
+
+	private volatile boolean running;
 
 	/**
 	 * Should the endpoint attempt to create the local directory? True by default.
@@ -151,6 +157,34 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends A
 			throw new MessagingException(
 					"Failure during initialization of MessageSource for: " + this.getClass(), e);
 		}
+	}
+
+	@Override
+	public void start() {
+		this.running = true;
+	}
+
+	@Override
+	public void stop() {
+		this.running = false;
+		if (this.synchronizer instanceof Closeable) {
+			try {
+				((Closeable) this.synchronizer).close();
+			}
+			catch (IOException e) {
+				logger.error("Error closing synchronizer", e);
+			}
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "file:synchronizing-message-source";
 	}
 
 	/**

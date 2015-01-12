@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,10 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
@@ -96,8 +98,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		FtpRegexPatternFileListFilter patternFilter = new FtpRegexPatternFileListFilter(".*\\.test$");
-		PropertiesPersistingMetadataStore store = new PropertiesPersistingMetadataStore();
+		PropertiesPersistingMetadataStore store = spy(new PropertiesPersistingMetadataStore());
 		store.setBaseDirectory("test");
+		store.afterPropertiesSet();
 		FtpPersistentAcceptOnceFileListFilter persistFilter =
 				new FtpPersistentAcceptOnceFileListFilter(store, "foo");
 		List<FileListFilter<FTPFile>> filters = new ArrayList<FileListFilter<FTPFile>>();
@@ -117,6 +120,11 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 		ms.setLocalDirectory(localDirectoy);
 		ms.setBeanFactory(mock(BeanFactory.class));
+		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
+		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.TEST\\.a$"));
+		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<File>();
+		localFileListFilter.addFilter(localAcceptOnceFilter);
+		ms.setLocalFilter(localFileListFilter);
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
@@ -139,7 +147,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		assertTrue(new File("test/A.TEST.a").exists());
 		assertTrue(new File("test/B.TEST.a").exists());
 
-		TestUtils.getPropertyValue(ms, "localFileListFilter.seenSet", Collection.class).clear();
+		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
 
 		new File("test/A.TEST.a").delete();
 		new File("test/B.TEST.a").delete();
@@ -147,6 +155,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		nothing =  ms.receive();
 		assertNull(nothing);
 
+		ms.stop();
+		verify(synchronizer).close();
+		verify(store).close();
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,10 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
@@ -97,8 +99,9 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		SftpRegexPatternFileListFilter patternFilter = new SftpRegexPatternFileListFilter(".*\\.test$");
-		PropertiesPersistingMetadataStore store = new PropertiesPersistingMetadataStore();
+		PropertiesPersistingMetadataStore store = spy(new PropertiesPersistingMetadataStore());
 		store.setBaseDirectory("test");
+		store.afterPropertiesSet();
 		SftpPersistentAcceptOnceFileListFilter persistFilter =
 				new SftpPersistentAcceptOnceFileListFilter(store, "foo");
 		List<FileListFilter<LsEntry>> filters = new ArrayList<FileListFilter<LsEntry>>();
@@ -107,11 +110,15 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		CompositeFileListFilter<LsEntry> filter = new CompositeFileListFilter<LsEntry>(filters);
 		synchronizer.setFilter(filter);
 		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
-
 		SftpInboundFileSynchronizingMessageSource ms = new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectoy);
 		ms.setBeanFactory(mock(BeanFactory.class));
+		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
+		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.test$"));
+		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<File>();
+		localFileListFilter.addFilter(localAcceptOnceFilter);
+		ms.setLocalFilter(localFileListFilter);
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
@@ -134,7 +141,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());
 
-		TestUtils.getPropertyValue(ms, "localFileListFilter.seenSet", Collection.class).clear();
+		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
 
 		new File("test/a.test").delete();
 		new File("test/b.test").delete();
@@ -142,6 +149,9 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		nothing =  ms.receive();
 		assertNull(nothing);
 
+		ms.stop();
+		verify(synchronizer).close();
+		verify(store).close();
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
