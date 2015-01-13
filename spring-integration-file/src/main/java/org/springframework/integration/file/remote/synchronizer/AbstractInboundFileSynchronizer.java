@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.file.remote.synchronizer;
 
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,7 +58,7 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer,
-		InitializingBean, IntegrationEvaluationContextAware {
+		InitializingBean, IntegrationEvaluationContextAware, Closeable {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -159,6 +160,13 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
+	}
+
+	@Override
+	public void close() throws IOException {
+		if (this.filter instanceof Closeable) {
+			((Closeable) this.filter).close();
+		}
 	}
 
 	@Override

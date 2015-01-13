@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.filters;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,7 +39,7 @@ import org.springframework.util.Assert;
  *
  * @param <F> The type that will be filtered.
  */
-public class CompositeFileListFilter<F> implements FileListFilter<F> {
+public class CompositeFileListFilter<F> implements FileListFilter<F>, Closeable {
 
 	private final Set<FileListFilter<F>> fileFilters;
 
@@ -50,6 +52,15 @@ public class CompositeFileListFilter<F> implements FileListFilter<F> {
 		this.fileFilters = new LinkedHashSet<FileListFilter<F>>(fileFilters);
 	}
 
+
+	@Override
+	public void close() throws IOException {
+		for (FileListFilter<F> filter : this.fileFilters) {
+			if (filter instanceof Closeable) {
+				((Closeable) filter).close();
+			}
+		}
+	}
 
 	public CompositeFileListFilter<F> addFilter(FileListFilter<F> filter) {
 		return this.addFilters(Collections.singletonList(filter));
