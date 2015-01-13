@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -315,16 +317,37 @@ public final class RedisLockRegistry implements LockRegistry {
 			 */
 			this.lockedAt = System.currentTimeMillis();
 			this.threadName = currentThread.getName();
-			Boolean success = RedisLockRegistry.this.redisTemplate.boundValueOps(
-					constructLockKey()).setIfAbsent(this);
+
+			Boolean success = RedisLockRegistry.this.redisTemplate.execute(new SessionCallback<Boolean>() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public Boolean execute(RedisOperations ops) throws DataAccessException {
+					String key = constructLockKey();
+
+					ops.watch(key); //monitor key
+
+					ops.multi(); //transaction start
+
+					//can't rely on operations result inside transaction, execution is delayed till `exec()`
+					ops.opsForValue().setIfAbsent(key, RedisLock.this);
+
+					//set expire on key if exists
+					ops.expire(key, RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+
+					//exec will contain all operations result or null - if execution has been aborted due to 'watch'
+					List result = ops.exec();
+
+					//check 'setIfAbsent' result (first in list)
+					return (result != null) && (!result.isEmpty()) && (Boolean.TRUE.equals(result.get(0)));
+				}
+			});
+
 			if (!success) {
 				this.lockedAt = 0;
 				this.threadName = null;
 			}
 			else {
 				this.thread = currentThread;
-				RedisLockRegistry.this.redisTemplate.expire(constructLockKey(),
-						RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
 				if (logger.isDebugEnabled()) {
 					logger.debug("New lock; " + this.toString());
 				}
