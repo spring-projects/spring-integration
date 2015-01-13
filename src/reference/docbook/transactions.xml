@@ -153,7 +153,7 @@
 As you can see from the example above, we have provided a very basic XML-based configuration of Spring Transaction advice  - "txAdvice" and
 included it within the <emphasis>&lt;advice-chain&gt;</emphasis> defined by the Poller.
 If you only need to address transactional concerns of the Poller, then you can still use the <emphasis>&lt;transactional&gt;</emphasis> element
-as a convinience.
+as a convenience.
         </para>
     </section>
   </section>
