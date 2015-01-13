@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package org.springframework.integration.metadata;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -48,7 +50,8 @@ import org.springframework.util.DefaultPropertiesPersister;
  * @author Gary Russell
  * @since 2.0
  */
-public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStore, InitializingBean, DisposableBean {
+public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStore, InitializingBean, DisposableBean,
+		Closeable, Flushable {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -61,6 +64,8 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	private String baseDirectory = System.getProperty("java.io.tmpdir") + "/spring-integration/";
 
 	private File file;
+
+	private volatile boolean dirty;
 
 
 	public void setBaseDirectory(String baseDirectory) {
@@ -95,6 +100,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			this.metadata.setProperty(key, value);
 		}
 		finally {
+			this.dirty = true;
 			lock.unlock();
 		}
 	}
@@ -121,6 +127,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			return (String) this.metadata.remove(key);
 		}
 		finally {
+			this.dirty = true;
 			lock.unlock();
 		}
 	}
@@ -135,6 +142,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			String property = this.metadata.getProperty(key);
 			if (property == null) {
 				this.metadata.setProperty(key, value);
+				this.dirty = true;
 				return null;
 			}
 			else {
@@ -157,6 +165,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			String property = this.metadata.getProperty(key);
 			if (oldValue.equals(property)) {
 				this.metadata.setProperty(key, newValue);
+				this.dirty = true;
 				return true;
 			}
 			else {
@@ -169,11 +178,25 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
+	public void close() throws IOException {
+		flush();
+	}
+
+	@Override
+	public void flush() {
+		saveMetadata();
+	}
+
+	@Override
 	public void destroy() throws Exception {
-		this.saveMetadata();
+		flush();
 	}
 
 	private void saveMetadata() {
+		if (this.file == null || !this.dirty) {
+			return;
+		}
+		this.dirty = false;
 		OutputStream outputStream = null;
 		try {
 			outputStream = new BufferedOutputStream(new FileOutputStream(this.file));

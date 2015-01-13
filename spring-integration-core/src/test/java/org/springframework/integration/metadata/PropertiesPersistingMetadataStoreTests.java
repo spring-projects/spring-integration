@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class PropertiesPersistingMetadataStoreTests {
 		assertNotNull(metadataStore.putIfAbsent("foo", "baz"));
 		assertFalse(metadataStore.replace("foo", "xxx", "bar"));
 		assertTrue(metadataStore.replace("foo", "baz", "bar"));
-		metadataStore.destroy();
+		metadataStore.close();
 		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
 		assertNotNull(persistentProperties);
 		assertEquals(1, persistentProperties.size());
@@ -66,7 +66,7 @@ public class PropertiesPersistingMetadataStoreTests {
 		metadataStore.setBaseDirectory("target/foo");
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");
-		metadataStore.destroy();
+		metadataStore.close();
 		assertTrue(file.exists());
 		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
 		assertNotNull(persistentProperties);
