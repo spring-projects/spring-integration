@@ -461,14 +461,14 @@ consumer.setTaskExecutor(taskExecutor);</programlisting>
 	Since Spring transaction support depends on the Proxy mechanism  with <classname>TransactionInterceptor</classname> (AOP Advice) handling transactional
 	behavior of the message flow initiated by the poller, some times there is a need to provide extra Advice(s) to handle other
 	cross cutting behavior associated with the poller. For that poller defines an <emphasis>advice-chain</emphasis> element allowing you to add
-	more advices - class that  implements <classname>MethodInterceptor</classname> interface.. 
+	more advices - class that  implements <classname>MethodInterceptor</classname> interface...
 	<programlisting language="xml"><![CDATA[<int:service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
 		method="good" output-channel="output">
 	<int:poller max-messages-per-poll="1" fixed-rate="10000">
-		<int:transactional transaction-manager="txManager" />
 		 <int:advice-chain>
 			<ref bean="adviceA" />
-			<beans:bean class="org.bar.SampleAdvice"/>
+			<beans:bean class="org.bar.SampleAdvice" />
+			<ref bean="txAdvice" />
 		</int:advice-chain>
 	</int:poller>
 </int:service-activator>]]></programlisting>
@@ -476,6 +476,11 @@ For more information on how to implement MethodInterceptor please refer to AOP s
 reference manual (section 8 and 9). Advice chain can also be applied on the poller that does not have
 any transaction configuration essentially allowing you to enhance the behavior of the message flow initiated by the poller.
     </para>
+    <important>
+    When using an advice chain, the <code>&lt;transactional/&gt;</code> child element cannot be specified; instead,
+    declare a <code>&lt;tx:advice/&gt;</code> bean and add it to the <code>&lt;advice-chain/&gt;</code>.
+    See <xref linkend="transaction-poller" /> for complete configuration.
+    </important>
 
     <para>
         <emphasis>TaskExecutor Support</emphasis>
