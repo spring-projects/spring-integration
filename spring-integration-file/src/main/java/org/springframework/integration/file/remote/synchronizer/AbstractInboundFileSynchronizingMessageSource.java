@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
-import org.springframework.integration.core.LifecycleMessageSource;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
@@ -57,8 +57,8 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends AbstractMessageSource<File>
-		implements LifecycleMessageSource<File> {
+public abstract class AbstractInboundFileSynchronizingMessageSource<F>
+		extends AbstractMessageSource<File> implements Lifecycle {
 
 	private volatile boolean running;
 
