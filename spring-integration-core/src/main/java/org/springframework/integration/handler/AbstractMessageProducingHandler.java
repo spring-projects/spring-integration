@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.BeansException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -32,7 +31,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -71,15 +69,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		this.outputChannelName = outputChannelName;//NOSONAR (inconsistent sync)
 	}
 
-	/**
-	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
-	 * @param channelResolver The channel resolver.
-	 */
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.messagingTemplate.setDestinationResolver(channelResolver);
-	}
-
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
@@ -88,22 +77,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
 		}
+		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 	}
 
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {
 			synchronized (this) {
 				if (this.outputChannelName != null) {
-					try {
-						Assert.state(getBeanFactory() != null,
-								"A bean factory is required to resolve the outputChannel at runtime.");
-						this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-						this.outputChannelName = null;
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.outputChannelName + "' in the BeanFactory.");
-					}
+					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+					this.outputChannelName = null;
 				}
 			}
 		}

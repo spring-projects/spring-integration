@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -92,6 +94,8 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile List<Advice> adviceChain;
 
+	private volatile DestinationResolver<MessageChannel> channelResolver;
+
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
 		synchronized (this.handlerMonitor) {
@@ -110,6 +114,17 @@ public class ConsumerEndpointFactoryBean
 
 	public void setPollerMetadata(PollerMetadata pollerMetadata) {
 		this.pollerMetadata = pollerMetadata;
+	}
+
+	/**
+	 * Specify the {@link DestinationResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 * @param channelResolver The channel resolver.
+	 * @since 4.1.3
+	 */
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
 	}
 
 	@Override
@@ -190,7 +205,10 @@ public class ConsumerEndpointFactoryBean
 				}
 			}
 		}
-		this.initializeEndpoint();
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
+		}
+		initializeEndpoint();
 	}
 
 	@Override
@@ -221,9 +239,7 @@ public class ConsumerEndpointFactoryBean
 			}
 			MessageChannel channel = null;
 			if (StringUtils.hasText(this.inputChannelName)) {
-				Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName), "no such input channel '"
-						+ this.inputChannelName + "' for endpoint '" + this.beanName + "'");
-				channel = this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
+				channel = this.channelResolver.resolveDestination(this.inputChannelName);
 			}
 			if (this.inputChannel != null) {
 				channel = this.inputChannel;

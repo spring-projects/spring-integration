@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -58,10 +60,26 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	private volatile String afterRollbackChannelName;
 
+	private volatile DestinationResolver<MessageChannel> channelResolver;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
+
+	/**
+	 * Specify the {@link DestinationResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 * @param channelResolver The channel resolver.
+	 * @return current TransactionSynchronizationFactoryBean
+	 * @since 4.1.3
+	 */
+	public TransactionSynchronizationFactoryBean channelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
+		return this;
+	}
+
 
 	public TransactionSynchronizationFactoryBean beforeCommit(String expression) {
 		return beforeCommit(expression, this.beforeCommitChannel);
@@ -143,6 +161,9 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	@Override
 	public DefaultTransactionSynchronizationFactory getObject() throws Exception {
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
+		}
 		ExpressionEvaluatingTransactionSynchronizationProcessor processor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
 
@@ -157,21 +178,21 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		}
 
 		if (StringUtils.hasText(this.beforeCommitChannelName)) {
-			this.beforeCommitChannel = this.beanFactory.getBean(this.beforeCommitChannelName, MessageChannel.class);
+			this.beforeCommitChannel = this.channelResolver.resolveDestination(this.beforeCommitChannelName);
 		}
 		if (this.beforeCommitChannel != null) {
 			processor.setBeforeCommitChannel(this.beforeCommitChannel);
 		}
 
 		if (StringUtils.hasText(this.afterCommitChannelName)) {
-			this.afterCommitChannel = this.beanFactory.getBean(this.afterCommitChannelName, MessageChannel.class);
+			this.afterCommitChannel = this.channelResolver.resolveDestination(this.afterCommitChannelName);
 		}
 		if (this.afterCommitChannel != null) {
 			processor.setAfterCommitChannel(this.afterCommitChannel);
 		}
 
 		if (StringUtils.hasText(this.afterRollbackChannelName)) {
-			this.afterRollbackChannel = this.beanFactory.getBean(this.afterRollbackChannelName, MessageChannel.class);
+			this.afterRollbackChannel = this.channelResolver.resolveDestination(this.afterRollbackChannelName);
 		}
 		if (this.afterRollbackChannel != null) {
 			processor.setAfterRollbackChannel(this.afterRollbackChannel);

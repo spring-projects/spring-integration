@@ -148,7 +148,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	public void addRecipient(String channelName, String selectorExpression) {
 		Assert.hasText(channelName, "'channelName' must not be empty.");
 		Assert.hasText(selectorExpression, "'selectorExpression' must not be empty.");
-		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		MessageChannel channel = getChannelResolver().resolveDestination(channelName);
 		ExpressionEvaluatingSelector expressionEvaluatingSelector = new ExpressionEvaluatingSelector(selectorExpression);
 		expressionEvaluatingSelector.setBeanFactory(this.getBeanFactory());
 		this.recipients.add(new Recipient(channel, expressionEvaluatingSelector));
@@ -158,7 +158,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public void addRecipient(String channelName) {
 		Assert.hasText(channelName, "'channelName' must not be empty.");
-		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		MessageChannel channel = getChannelResolver().resolveDestination(channelName);
 		this.recipients.add(new Recipient(channel));
 	}
 
@@ -166,7 +166,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public int removeRecipient(String channelName) {
 		int counter = 0;
-		MessageChannel channel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		MessageChannel channel = getChannelResolver().resolveDestination(channelName);
 		for (Iterator<Recipient> it = this.recipients.iterator(); it.hasNext(); ) {
 			if (it.next().getChannel() == channel) {
 				it.remove();
@@ -180,7 +180,7 @@ public class RecipientListRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public int removeRecipient(String channelName, String selectorExpression) {
 		int counter = 0;
-		MessageChannel targetChannel = this.getBeanFactory().getBean(channelName, MessageChannel.class);
+		MessageChannel targetChannel = getChannelResolver().resolveDestination(channelName);
 		for (Iterator<Recipient> it = this.recipients.iterator(); it.hasNext(); ) {
 			Recipient next = it.next();
 			MessageSelector selector = next.getSelector();
