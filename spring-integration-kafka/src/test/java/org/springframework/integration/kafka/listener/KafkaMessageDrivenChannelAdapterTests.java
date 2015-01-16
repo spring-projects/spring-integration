@@ -89,15 +89,16 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(new MessageChannel() {
 			@Override
 			public boolean send(Message<?> message) {
-				latch.countDown();
-				return receivedData.put(
-						(Integer)message.getHeaders().get(KafkaHeaders.PARTITION_ID),
+				boolean addedSuccessfully = receivedData.put(
+						(Integer) message.getHeaders().get(KafkaHeaders.PARTITION_ID),
 						new KeyedMessageWithOffset(
-								(String)message.getHeaders().get(KafkaHeaders.MESSAGE_KEY),
-								(String)message.getPayload(),
-								(Long)message.getHeaders().get(KafkaHeaders.OFFSET),
+								(String) message.getHeaders().get(KafkaHeaders.MESSAGE_KEY),
+								(String) message.getPayload(),
+								(Long) message.getHeaders().get(KafkaHeaders.OFFSET),
 								Thread.currentThread().getName(),
-								(Integer)message.getHeaders().get(KafkaHeaders.PARTITION_ID)));
+								(Integer) message.getHeaders().get(KafkaHeaders.PARTITION_ID)));
+				latch.countDown();
+				return addedSuccessfully;
 			}
 
 
