@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -39,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
 		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
@@ -66,6 +69,8 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	private volatile SourcePollingChannelAdapter adapter;
 
 	private volatile boolean initialized;
+
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private final Object initializationMonitor = new Object();
 
@@ -97,27 +102,45 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 		this.phase = phase;
 	}
 
+	/**
+	 * Specify the {@link DestinationResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 * @param channelResolver The channel resolver.
+	 * @since 4.1.3
+	 */
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
+	}
+
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory,
 				"a ConfigurableBeanFactory is required");
 		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
 	}
 
+	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.initializeAdapter();
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
+		}
+		initializeAdapter();
 	}
 
 	public SourcePollingChannelAdapter getObject() throws Exception {
 		if (this.adapter == null) {
-			this.initializeAdapter();
+			initializeAdapter();
 		}
 		return this.adapter;
 	}
@@ -139,13 +162,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 			if (StringUtils.hasText(this.outputChannelName)) {
 				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				try {
-					this.outputChannel = this.beanFactory.getBean(this.outputChannelName, MessageChannel.class);
-				}
-				catch (BeansException e) {
-					throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-							+ this.outputChannelName + "' in the BeanFactory.");
-				}
+				this.outputChannel = this.channelResolver.resolveDestination(this.outputChannelName);
 			}
 
 			Assert.notNull(this.outputChannel, "outputChannel is required");
