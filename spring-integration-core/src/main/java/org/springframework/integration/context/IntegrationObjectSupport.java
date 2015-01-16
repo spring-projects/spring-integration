@@ -131,6 +131,16 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.applicationContext = applicationContext;
 	}
 
+	/**
+	 * Specify the {@link DestinationResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 * @param channelResolver The channel resolver.
+	 */
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
+	}
+
 	@Override
 	public final void afterPropertiesSet() {
 		try {
@@ -145,23 +155,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			}
 			throw new BeanInitializationException("failed to initialize", e);
 		}
-	}
-
-	/**
-	 * Specify the {@link DestinationResolver} strategy to use.
-	 * The default is a BeanFactoryChannelResolver.
-	 * @param channelResolver The channel resolver.
-	 */
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.channelResolver = channelResolver;
-	}
-
-	protected DestinationResolver<MessageChannel> getChannelResolver() {
-		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
-		}
-		return this.channelResolver;
 	}
 
 	/**
@@ -180,6 +173,13 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
 		}
 		return this.taskScheduler;
+	}
+
+	protected DestinationResolver<MessageChannel> getChannelResolver() {
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
+		}
+		return this.channelResolver;
 	}
 
 	protected void setTaskScheduler(TaskScheduler taskScheduler) {

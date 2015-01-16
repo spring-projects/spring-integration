@@ -153,6 +153,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		// advice with success

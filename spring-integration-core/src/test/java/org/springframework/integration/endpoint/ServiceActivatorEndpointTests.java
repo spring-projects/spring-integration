@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -90,6 +91,7 @@ public class ServiceActivatorEndpointTests {
 		channelResolver.addChannel("testChannel", channel);
 		ServiceActivatingHandler endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setReplyChannelName("testChannel").build();
@@ -114,6 +116,7 @@ public class ServiceActivatorEndpointTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("replyChannel2", replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReplyChannel(replyChannel1).build();
@@ -211,7 +214,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void testBeanFactoryPopulation() {
 		ServiceActivatingHandler endpoint = this.createEndpoint();
-		BeanFactory mock = Mockito.mock(BeanFactory.class);
+		BeanFactory mock = mock(BeanFactory.class);
 		endpoint.setBeanFactory(mock);
 		endpoint.afterPropertiesSet();
 		Object beanFactory = TestUtils.getPropertyValue(endpoint, "processor.beanFactory");
