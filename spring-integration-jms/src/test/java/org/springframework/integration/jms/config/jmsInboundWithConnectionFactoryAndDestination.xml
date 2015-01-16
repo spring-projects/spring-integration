@@ -11,9 +11,13 @@
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<jms:inbound-channel-adapter id="adapter"
-								 channel="output"
+								 channel="transformChannel"
 								 connection-factory="testConnectionFactory"
-	                			 destination="testDestination"/>
+								 destination="testDestination"
+								 extract-payload="false"/>
+
+	<integration:transformer input-channel="transformChannel" output-channel="output"
+			expression="payload.text"/>
 
 	<integration:channel id="output">
 		<integration:queue capacity="1"/>
