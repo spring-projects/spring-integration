@@ -110,8 +110,7 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(new MessageChannel() {
 			@Override
 			public boolean send(Message<?> message) {
-				latch.countDown();
-				return receivedData.put(
+				boolean addedSuccessfully = receivedData.put(
 						(Integer) message.getHeaders().get(KafkaHeaders.PARTITION_ID),
 						new KeyedMessageWithOffset(
 								(String) message.getHeaders().get(KafkaHeaders.MESSAGE_KEY),
@@ -119,6 +118,8 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 								(Long) message.getHeaders().get(KafkaHeaders.OFFSET),
 								Thread.currentThread().getName(),
 								(Integer) message.getHeaders().get(KafkaHeaders.PARTITION_ID)));
+				latch.countDown();
+				return addedSuccessfully;
 			}
 
 
