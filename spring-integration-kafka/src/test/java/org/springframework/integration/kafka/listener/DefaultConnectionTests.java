@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.listener;
 
 import kafka.producer.Producer;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -82,7 +83,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 	}
 
 	@Test
-	public void testReceiveMessagesWithCompression1() throws Exception {
+	public void testReceiveMessagesWithGZipCompression() throws Exception {
 		createTopic(TEST_TOPIC, 1, 1, 1);
 		Producer<String, String> producer = createStringProducer(1);
 		producer.send( createMessages(10, TEST_TOPIC));
@@ -105,7 +106,14 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 	}
 
 	@Test
-	public void testReceiveMessagesWithCompression2() throws Exception {
+	@Ignore
+	/**
+	 * The compression codec '2' is for Snappy:
+	 * {@code producerConfig.put("compression.codec",  2);}
+	 * Since it relies on the native library we can't test it on all environment,
+	 * because we may not have permission to load dll(so).
+	 */
+	public void testReceiveMessagesWithSnappyCompression() throws Exception {
 		createTopic(TEST_TOPIC, 1, 1, 1);
 		Producer<String, String> producer = createStringProducer(2);
 		producer.send( createMessages(10, TEST_TOPIC));
