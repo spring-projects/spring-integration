@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -34,7 +33,7 @@ import org.springframework.util.Assert;
  * only recommended for very low message volume. Otherwise, the
  * {@link JmsMessageDrivenEndpoint} that uses Spring's MessageListener container
  * support is a better option.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -51,6 +50,8 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 
+	private volatile boolean extractPayload = true;
+
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		this.jmsTemplate = jmsTemplate;
 	}
@@ -66,6 +67,16 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 		this.destinationName = destinationName;
 	}
 
+	/**
+	 * The flag to indicate if we should extract {@code body} from JMS Message,
+	 * or use the received JMS Message as {@link Message} {@code payload}.
+	 * @param extractPayload the boolean flag. Defaults to {@code true}.
+	 * @since 3.0.7
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "jms:inbound-channel-adapter";
@@ -73,6 +84,7 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 
 	/**
 	 * Specify a JMS Message Selector expression to use when receiving Messages.
+	 * @param messageSelector The message selector.
 	 */
 	public void setMessageSelector(String messageSelector) {
 		this.messageSelector = messageSelector;
@@ -83,30 +95,32 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	}
 
 	/**
-	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as 
+	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as
 	 * a Spring Integration {@link Message}. This method will also use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
-		Message<Object> convertedMessage = null;
-		javax.jms.Message jmsMessage = this.doReceiveJmsMessage();
+		javax.jms.Message jmsMessage = doReceiveJmsMessage();
 		if (jmsMessage == null) {
 			return null;
 		}
 		try {
 			// Map headers
 			Map<String, Object> mappedHeaders = this.headerMapper.toHeaders(jmsMessage);
-			MessageConverter converter = this.jmsTemplate.getMessageConverter();
-			Object convertedObject = converter.fromMessage(jmsMessage);
-			MessageBuilder<Object> builder = (convertedObject instanceof Message)
-					? MessageBuilder.fromMessage((Message<Object>) convertedObject) : MessageBuilder.withPayload(convertedObject);
-			convertedMessage = builder.copyHeadersIfAbsent(mappedHeaders).build();
+			Object object = jmsMessage;
+			if (this.extractPayload) {
+				object = this.jmsTemplate.getMessageConverter().fromMessage(jmsMessage);
+			}
+			MessageBuilder<Object> builder = (object instanceof Message) ?
+					MessageBuilder.fromMessage((Message<Object>) object) :
+					MessageBuilder.withPayload(object);
+			return builder.copyHeadersIfAbsent(mappedHeaders).build();
 		}
 		catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);
 		}
-		return convertedMessage;
 	}
 
 	private javax.jms.Message doReceiveJmsMessage() {
