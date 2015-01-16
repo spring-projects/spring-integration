@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,16 +236,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.requestChannelName != null) {
 			synchronized (this) {
 				if (this.requestChannelName != null) {
-					try {
-						Assert.state(getBeanFactory() != null,
-								"A bean factory is required to resolve the requestChannel at runtime.");
-						this.requestChannel = getBeanFactory().getBean(this.requestChannelName, MessageChannel.class);
-						this.requestChannelName = null;
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.requestChannelName + "' in the BeanFactory.");
-					}
+					Assert.state(getBeanFactory() != null,
+							"A bean factory is required to resolve the requestChannel at runtime.");
+					this.requestChannel = getChannelResolver().resolveDestination(this.requestChannelName);
+					this.requestChannelName = null;
 				}
 			}
 		}
@@ -256,16 +250,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.replyChannelName != null) {
 			synchronized (this) {
 				if (this.replyChannelName != null) {
-					try {
-						Assert.state(getBeanFactory() != null,
-								"A bean factory is required to resolve the replyChannel at runtime.");
-						this.replyChannel = getBeanFactory().getBean(this.replyChannelName, MessageChannel.class);
-						this.replyChannelName = null;
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.replyChannelName + "' in the BeanFactory.");
-					}
+					Assert.state(getBeanFactory() != null,
+							"A bean factory is required to resolve the replyChannel at runtime.");
+					this.replyChannel = getChannelResolver().resolveDestination(this.replyChannelName);
+					this.replyChannelName = null;
 				}
 			}
 		}
@@ -276,16 +264,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.errorChannelName != null) {
 			synchronized (this) {
 				if (this.errorChannelName != null) {
-					try {
-						Assert.state(getBeanFactory() != null,
-								"A bean factory is required to resolve the errorChannel at runtime.");
-						this.errorChannel = getBeanFactory().getBean(this.errorChannelName, MessageChannel.class);
-						this.errorChannelName = null;
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.errorChannelName + "' in the BeanFactory.");
-					}
+					Assert.state(getBeanFactory() != null,
+							"A bean factory is required to resolve the errorChannel at runtime.");
+					this.errorChannel = getChannelResolver().resolveDestination(this.errorChannelName);
+					this.errorChannelName = null;
 				}
 			}
 		}

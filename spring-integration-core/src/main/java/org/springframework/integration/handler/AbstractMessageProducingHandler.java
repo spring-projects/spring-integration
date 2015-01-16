@@ -71,15 +71,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		this.outputChannelName = outputChannelName;//NOSONAR (inconsistent sync)
 	}
 
-	/**
-	 * Set the DestinationResolver&lt;MessageChannel&gt; to be used when there is no default output channel.
-	 * @param channelResolver The channel resolver.
-	 */
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.messagingTemplate.setDestinationResolver(channelResolver);
-	}
-
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
@@ -88,22 +79,17 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
 		}
+		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 	}
 
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {
 			synchronized (this) {
 				if (this.outputChannelName != null) {
-					try {
-						Assert.state(getBeanFactory() != null,
-								"A bean factory is required to resolve the outputChannel at runtime.");
-						this.outputChannel = getBeanFactory().getBean(this.outputChannelName, MessageChannel.class);
-						this.outputChannelName = null;
-					}
-					catch (BeansException e) {
-						throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-								+ this.outputChannelName + "' in the BeanFactory.");
-					}
+					Assert.state(getBeanFactory() != null,
+							"A bean factory is required to resolve the outputChannel at runtime.");
+					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+					this.outputChannelName = null;
 				}
 			}
 		}

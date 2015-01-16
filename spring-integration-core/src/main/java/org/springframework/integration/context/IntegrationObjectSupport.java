@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,11 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -66,6 +69,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final ConversionService defaultConversionService = new DefaultConversionService();
+
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile String beanName;
 
@@ -140,6 +145,23 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			}
 			throw new BeanInitializationException("failed to initialize", e);
 		}
+	}
+
+	/**
+	 * Specify the {@link DestinationResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 * @param channelResolver The channel resolver.
+	 */
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
+	}
+
+	protected DestinationResolver<MessageChannel> getChannelResolver() {
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
+		}
+		return this.channelResolver;
 	}
 
 	/**

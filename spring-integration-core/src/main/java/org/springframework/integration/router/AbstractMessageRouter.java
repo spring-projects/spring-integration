@@ -181,15 +181,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			if (this.defaultOutputChannelName != null) {
 				synchronized (this) {
 					if (this.defaultOutputChannelName != null) {
-						try {
-							this.defaultOutputChannel = getBeanFactory()
-									.getBean(this.defaultOutputChannelName, MessageChannel.class);
-							this.defaultOutputChannelName = null;
-						}
-						catch (BeansException e) {
-							throw new DestinationResolutionException("Failed to look up MessageChannel with name '"
-									+ this.defaultOutputChannelName + "' in the BeanFactory.");
-						}
+						this.defaultOutputChannel = getChannelResolver().resolveDestination(this.defaultOutputChannelName);
+						this.defaultOutputChannelName = null;
 					}
 				}
 			}

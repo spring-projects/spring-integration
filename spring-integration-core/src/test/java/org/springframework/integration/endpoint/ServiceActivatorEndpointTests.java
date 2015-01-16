@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ public class ServiceActivatorEndpointTests {
 		channelResolver.addChannel("testChannel", channel);
 		ServiceActivatingHandler endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
+		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setReplyChannelName("testChannel").build();
 		endpoint.handleMessage(message);
@@ -113,6 +114,7 @@ public class ServiceActivatorEndpointTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("replyChannel2", replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
+		endpoint.afterPropertiesSet();
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReplyChannel(replyChannel1).build();
 		endpoint.handleMessage(testMessage1);
