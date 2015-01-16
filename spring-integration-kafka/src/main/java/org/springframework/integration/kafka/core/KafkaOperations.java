@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.kafka.support;
+package org.springframework.integration.kafka.core;
 
 /**
- * @author Artem Bilan
- * @since 1.0
+ * @author Marius Bogoevici
  */
-public abstract class KafkaHeaders {
+public interface KafkaOperations {
 
-	private static final String PREFIX = "kafka_";
-
-	public static final String TOPIC = PREFIX + "topic";
-
-	public static final String MESSAGE_KEY = PREFIX + "messageKey";
-
-	public static final String PARTITION_ID = PREFIX + "_partitionId";
-
-	public static final String OFFSET = PREFIX + "_offset";
+	/**
+	 * Receive data from the server.
+	 * @param messageFetchRequests the set of FetchRequest
+	 * @return the Result with KafkaMessageBatch
+	 */
+	Result<KafkaMessageBatch> receive(Iterable<FetchRequest> messageFetchRequests);
 
 }
