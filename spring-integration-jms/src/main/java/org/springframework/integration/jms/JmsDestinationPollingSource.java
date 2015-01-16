@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 
+	private volatile boolean extractPayload = true;
+
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		this.jmsTemplate = jmsTemplate;
 	}
@@ -66,6 +68,16 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 		this.destinationName = destinationName;
 	}
 
+	/**
+	 * The flag to indicate if we should extract {@code body} from JMS Message,
+	 * or use the received JMS Message as {@link Message} {@code payload}.
+	 * @param extractPayload the boolean flag. Defaults to {@code true}.
+	 * @since 3.0.7
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "jms:inbound-channel-adapter";
@@ -73,7 +85,6 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 
 	/**
 	 * Specify a JMS Message Selector expression to use when receiving Messages.
-	 *
 	 * @param messageSelector The message selector.
 	 */
 	public void setMessageSelector(String messageSelector) {
@@ -92,25 +103,25 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 	@Override
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
-		Message<Object> convertedMessage = null;
-		javax.jms.Message jmsMessage = this.doReceiveJmsMessage();
+		javax.jms.Message jmsMessage = doReceiveJmsMessage();
 		if (jmsMessage == null) {
 			return null;
 		}
 		try {
 			// Map headers
 			Map<String, Object> mappedHeaders = this.headerMapper.toHeaders(jmsMessage);
-			MessageConverter converter = this.jmsTemplate.getMessageConverter();
-			Object convertedObject = converter.fromMessage(jmsMessage);
-			AbstractIntegrationMessageBuilder<Object> builder = (convertedObject instanceof Message) ?
-					this.getMessageBuilderFactory().fromMessage((Message<Object>) convertedObject) :
-					this.getMessageBuilderFactory().withPayload(convertedObject);
-			convertedMessage = builder.copyHeadersIfAbsent(mappedHeaders).build();
+			Object object = jmsMessage;
+			if (this.extractPayload) {
+				object = this.jmsTemplate.getMessageConverter().fromMessage(jmsMessage);
+			}
+			AbstractIntegrationMessageBuilder<Object> builder = (object instanceof Message) ?
+					getMessageBuilderFactory().fromMessage((Message<Object>) object) :
+					getMessageBuilderFactory().withPayload(object);
+			return builder.copyHeadersIfAbsent(mappedHeaders).build();
 		}
 		catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);
 		}
-		return convertedMessage;
 	}
 
 	private javax.jms.Message doReceiveJmsMessage() {
