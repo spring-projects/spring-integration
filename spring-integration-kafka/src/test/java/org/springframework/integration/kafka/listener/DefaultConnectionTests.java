@@ -51,7 +51,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 	public void testFetchPartitionMetadata() throws Exception {
 		createTopic(TEST_TOPIC, 1, 1, 1);
 		Connection brokerConnection =
-				new DefaultConnection(getKafkaRule().getBrokerAddresses().get(0), "client", 64*1024, 3000, 1, 10000);
+				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);
 		Result<Long> result = brokerConnection.fetchInitialOffset(-1, partition);
 		Assert.assertEquals(0, result.getErrors().size());
@@ -65,7 +65,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 		Producer<String, String> producer = createStringProducer(0);
 		producer.send( createMessages(10, TEST_TOPIC));
 		Connection brokerConnection =
-				new DefaultConnection(getKafkaRule().getBrokerAddresses().get(0), "client", 64*1024, 3000, 1, 10000);
+				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);
 		FetchRequest fetchRequest = new FetchRequest(partition, 0L, 1000);
 		Result<KafkaMessageBatch> result = brokerConnection.fetch(fetchRequest);
@@ -88,7 +88,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 		Producer<String, String> producer = createStringProducer(1);
 		producer.send( createMessages(10, TEST_TOPIC));
 		Connection brokerConnection =
-				new DefaultConnection(getKafkaRule().getBrokerAddresses().get(0), "client", 64*1024, 3000, 1, 10000);
+				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);
 		FetchRequest fetchRequest = new FetchRequest(partition, 0L, 1000);
 		Result<KafkaMessageBatch> result = brokerConnection.fetch(fetchRequest);
@@ -118,7 +118,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 		Producer<String, String> producer = createStringProducer(2);
 		producer.send( createMessages(10, TEST_TOPIC));
 		Connection brokerConnection =
-				new DefaultConnection(getKafkaRule().getBrokerAddresses().get(0), "client", 64*1024, 3000, 1, 10000);
+				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);
 		FetchRequest fetchRequest = new FetchRequest(partition, 0L, 1000);
 		Result<KafkaMessageBatch> result = brokerConnection.fetch(fetchRequest);

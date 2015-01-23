@@ -17,6 +17,7 @@
 
 package org.springframework.integration.kafka.core;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,8 +29,8 @@ public class BrokerAddressListConfiguration extends AbstractConfiguration {
 
 	private final List<BrokerAddress> brokerAddresses;
 
-	public BrokerAddressListConfiguration(List<BrokerAddress> brokerAddresses) {
-		this.brokerAddresses = brokerAddresses;
+	public BrokerAddressListConfiguration(BrokerAddress... brokerAddresses) {
+		this.brokerAddresses = Arrays.asList(brokerAddresses);
 	}
 
 	@Override

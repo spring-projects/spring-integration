@@ -20,12 +20,14 @@ package org.springframework.integration.kafka.rule;
 import static scala.collection.JavaConversions.asScalaBuffer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 import com.gs.collections.api.block.function.Function;
 import com.gs.collections.impl.list.mutable.FastList;
 import com.gs.collections.impl.utility.ListIterate;
+
 import kafka.Kafka;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
@@ -35,15 +37,18 @@ import kafka.utils.TestZKUtils;
 import kafka.utils.Utils;
 import kafka.utils.ZKStringSerializer$;
 import kafka.zk.EmbeddedZookeeper;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.junit.rules.ExternalResource;
+
 import scala.collection.JavaConversions;
 
 import org.springframework.integration.kafka.core.BrokerAddress;
 
 /**
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 @SuppressWarnings("serial")
 public class KafkaEmbedded extends ExternalResource implements KafkaRule {
@@ -76,7 +81,8 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 		zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
 		int zkConnectionTimeout = 6000;
 		int zkSessionTimeout = 6000;
-		zookeeperClient = new ZkClient(TestZKUtils.zookeeperConnect(), zkSessionTimeout, zkConnectionTimeout, ZKStringSerializer$.MODULE$);
+		zookeeperClient = new ZkClient(TestZKUtils.zookeeperConnect(), zkSessionTimeout, zkConnectionTimeout,
+				ZKStringSerializer$.MODULE$);
 		kafkaServers = new ArrayList<KafkaServer>();
 		for (int i = 0; i < count; i++) {
 			Properties brokerConfigProperties = TestUtils.createBrokerConfig(i, kafkaPorts.get(i));
@@ -138,13 +144,17 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 	}
 
 	@Override
-	public List<BrokerAddress> getBrokerAddresses() {
-		return ListIterate.collect(kafkaServers, new Function<KafkaServer, BrokerAddress>() {
-			@Override
-			public BrokerAddress valueOf(KafkaServer kafkaServer) {
-				return new BrokerAddress(kafkaServer.config().hostName(), kafkaServer.config().port());
-			}
-		});
+	public BrokerAddress[] getBrokerAddresses() {
+		return ListIterate.collect(this.kafkaServers,
+				new Function<KafkaServer, BrokerAddress>() {
+
+					@Override
+					public BrokerAddress valueOf(KafkaServer kafkaServer) {
+						return new BrokerAddress(kafkaServer.config().hostName(), kafkaServer.config().port());
+					}
+
+				})
+				.toArray(new BrokerAddress[this.kafkaServers.size()]);
 	}
 
 	public void bounce(BrokerAddress brokerAddress) {
@@ -162,16 +172,21 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 
 	@Override
 	public String getBrokersAsString() {
-		return FastList.newList(getBrokerAddresses()).collect(new Function<BrokerAddress, String>() {
-			@Override
-			public String valueOf(BrokerAddress object) {
-				return object.getHost() + ":" + object.getPort();
-			}
-		}).makeString(",");
+		return FastList.newList(Arrays.asList(getBrokerAddresses()))
+				.collect(new Function<BrokerAddress, String>() {
+
+					@Override
+					public String valueOf(BrokerAddress object) {
+						return object.getHost() + ":" + object.getPort();
+					}
+
+				})
+				.makeString(",");
 	}
 
 	@Override
 	public boolean isEmbedded() {
 		return true;
 	}
+
 }

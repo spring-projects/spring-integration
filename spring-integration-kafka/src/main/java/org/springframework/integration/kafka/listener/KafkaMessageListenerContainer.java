@@ -87,9 +87,9 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 
 	private final KafkaTemplate kafkaTemplate;
 
-	private Partition[] partitions;
+	private final String[] topics;
 
-	private String[] topics;
+	private Partition[] partitions;
 
 	public boolean autoStartup = true;
 
@@ -123,6 +123,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 		Assert.noNullElements(partitions, "The list of partitions cannot contain null elements");
 		this.kafkaTemplate = new KafkaTemplate(connectionFactory);
 		this.partitions = partitions;
+		this.topics = null;
 	}
 
 	public KafkaMessageListenerContainer(final ConnectionFactory connectionFactory, String... topics) {
@@ -131,11 +132,6 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 		Assert.noNullElements(topics, "The list of topics cannot contain null elements");
 		this.kafkaTemplate = new KafkaTemplate(connectionFactory);
 		this.topics = topics;
-	}
-
-	private static Partition[] getPartitionsForTopics(final ConnectionFactory connectionFactory, String[] topics) {
-		MutableList<Partition> partitionList = flatCollect(topics, new GetPartitionsForTopic(connectionFactory));
-		return partitionList.toArray(new Partition[partitionList.size()]);
 	}
 
 	public OffsetManager getOffsetManager() {
@@ -295,6 +291,11 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	@Override
 	public int getPhase() {
 		return 0;
+	}
+
+	private static Partition[] getPartitionsForTopics(final ConnectionFactory connectionFactory, String[] topics) {
+		MutableList<Partition> partitionList = flatCollect(topics, new GetPartitionsForTopic(connectionFactory));
+		return partitionList.toArray(new Partition[partitionList.size()]);
 	}
 
 	/**

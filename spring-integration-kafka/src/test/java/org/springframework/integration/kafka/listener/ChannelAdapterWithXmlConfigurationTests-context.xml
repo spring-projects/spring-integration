@@ -1,60 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xmlns:int="http://www.springframework.org/schema/integration"
-			 xmlns:util="http://www.springframework.org/schema/util"
-			 xmlns:context="http://www.springframework.org/schema/context"
-			 xmlns="http://www.springframework.org/schema/beans"
-			 xsi:schemaLocation="
-	   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-	   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	   http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
 
 	<context:property-placeholder/>
 
-	<util:list id="kafkaBrokerAddresses">
-		<bean class="org.springframework.integration.kafka.core.BrokerAddress">
-			<constructor-arg index="0" value="localhost"/>
-			<constructor-arg index="1" value="${kafka.test.port}"/>
-		</bean>
-	</util:list>
-
-	<util:list id="partitions">
-		<bean class="org.springframework.integration.kafka.core.Partition">
-			<constructor-arg index="0" value="${kafka.test.topic}"/>
-			<constructor-arg index="1" value="0"/>
-		</bean>
-	</util:list>
-
-	<bean id="kafkaConfiguration" class="org.springframework.integration.kafka.core.BrokerAddressListConfiguration">
-		<constructor-arg index="0" ref="kafkaBrokerAddresses"/>
+	<int-kafka:zookeeper-connect id="zkConnect" zk-connect="#{T (kafka.utils.TestZKUtils).zookeeperConnect()}"/>
+	
+	<bean id="kafkaConfiguration" class="org.springframework.integration.kafka.core.ZookeeperConfiguration">
+		<constructor-arg ref="zkConnect"/>
 	</bean>
 
 	<bean id="connectionFactory" class="org.springframework.integration.kafka.core.DefaultConnectionFactory">
-		<constructor-arg index="0" ref="kafkaConfiguration"/>
+		<constructor-arg ref="kafkaConfiguration"/>
 	</bean>
 
+	<bean id="decoder" class="org.springframework.integration.kafka.serializer.common.StringDecoder"/>
 
-	<bean id="kafkaMessageListenerContainer"
-				class="org.springframework.integration.kafka.listener.KafkaMessageListenerContainer">
-		<constructor-arg index="0" ref="connectionFactory"/>
-		<constructor-arg index="1" ref="partitions"/>
-		<property name="maxFetch" value="100"/>
-	</bean>
-
-	<bean id="kafkaInboundChannelAdapter"
-				class="org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter">
-		<constructor-arg index="0" ref="kafkaMessageListenerContainer"/>
-		<property name="outputChannel" ref="output"/>
-		<property name="keyDecoder">
-			<bean class="org.springframework.integration.kafka.serializer.common.StringDecoder"/>
-		</property>
-		<property name="payloadDecoder">
-			<bean class="org.springframework.integration.kafka.serializer.common.StringDecoder"/>
-		</property>
-	</bean>
+	<int-kafka:message-driven-channel-adapter
+			id="adapter"
+			channel="output"
+			connection-factory="connectionFactory"
+			key-decoder="decoder"
+			payload-decoder="decoder"
+			max-fetch="100"
+			topics="${kafka.test.topic}"/>
 
 	<int:channel id="output">
 		<int:queue capacity="100"/>
 	</int:channel>
+
 </beans>

@@ -382,18 +382,10 @@
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="send-timeout" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-						Allows you to specify how long this inbound-channel-adapter
-						will wait for the message (containing the retrieved entities)
-						to be sent successfully to the message channel, before throwing
-						an exception.
-
-						Keep in mind that when sending to a DirectChannel, the
-						invocation will occur in the sender's thread so the failing
-						of the send operation may be caused by other components
-						further downstream. By default the Inbound Channel Adapter
-						will wait indefinitely. The value is specified in milliseconds.
-					]]>
+					<xsd:documentation>
+						Maximum amount of time in milliseconds to wait when sending a message to the channel
+						if such channel may block. For example, a Queue Channel can block until space is available
+						if its maximum capacity has been reached.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -488,6 +480,176 @@
 				<xsd:simpleType>
 					<xsd:union memberTypes="xsd:int xsd:string"/>
 				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="message-driven-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				The definition for the Spring Integration Kafka
+				KafkaMessageDrivenChannelAdapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum amount of time in milliseconds to wait when sending a message to the channel
+						if such channel may block. For example, a Queue Channel can block until space is available
+						if its maximum capacity has been reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel to which error Messages should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="key-decoder" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'kafka.serializer.Decoder' bean reference for decoding the 'key'
+						of the received the 'kafka.message.Message'. Defaults to 'kafka.serializer.DefaultDecoder'
+						without 'kafka.utils.VerifiableProperties'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="kafka.serializer.Decoder"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="payload-decoder" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'kafka.serializer.Decoder' bean reference for decoding the 'payload'
+						of the received the 'kafka.message.Message'. Defaults to 'kafka.serializer.DefaultDecoder'
+						without 'kafka.utils.VerifiableProperties'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="kafka.serializer.Decoder"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="listener-container" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'org.springframework.integration.kafka.listener.KafkaMessageListenerContainer' bean reference.
+						Mutually exclusive with 'connection-factory', 'topics', 'offset-manager', 'error-handler',
+						'task-executor', 'concurrency', 'max-fetch', 'queue-size'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.core.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'org.springframework.integration.kafka.core.ConnectionFactory' bean reference.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.core.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="topics" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The comma-separated Kafka topics to listen to.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="offset-manager" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'org.springframework.integration.kafka.listener.OffsetManager' bean reference.
+						Defaults to 'org.springframework.integration.kafka.listener.MetadataStoreOffsetManager'.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.listener.OffsetManager"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-handler" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'org.springframework.integration.kafka.listener.ErrorHandler' bean reference.
+						Used from 'org.springframework.integration.kafka.listener.KafkaMessageListenerContainer'
+						to handle errors from 'kafka.message.Message' decoding and when the 'error-channel'
+						isn't provided to catch message producing errors.
+						Defaults to 'org.springframework.integration.kafka.listener.LoggingErrorHandler.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.kafka.listener.ErrorHandler"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A 'java.util.concurrent.Executor' bean reference to fetch messages from Kafka.
+						Defaults to the 'ThreadPoolExecutor' with the pool based on the number of 'partitionsByBroker'.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.concurrent.Executor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="concurrency" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The number of internal concurrent
+						'org.springframework.integration.kafka.listener.QueueingMessageListenerInvoker'.
+						Defaults to '1'.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-fetch" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The maximum amount of data (in bytes) that pollers will fetch in one round.
+						Defaults to '300 * 1024'.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="queue-size" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The maximum number of messages that are buffered by each concurrent 'MessageListener' runner.
+						Increasing the value may increase throughput, but also increases the memory consumption.
+						Defaults to '1024'.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
