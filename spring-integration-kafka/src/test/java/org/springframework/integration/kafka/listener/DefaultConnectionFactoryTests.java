@@ -55,15 +55,16 @@ public class DefaultConnectionFactoryTests extends AbstractBrokerTests {
 
 		createTopic(TEST_TOPIC, 1, 1, 1);
 
-		List<BrokerAddress> brokerAddresses = getKafkaRule().getBrokerAddresses();
+		BrokerAddress[] brokerAddresses = getKafkaRule().getBrokerAddresses();
 		Partition partition = new Partition(TEST_TOPIC, 0);
-		DefaultConnectionFactory connectionFactory = new DefaultConnectionFactory(new BrokerAddressListConfiguration(brokerAddresses));
+		DefaultConnectionFactory connectionFactory =
+				new DefaultConnectionFactory(new BrokerAddressListConfiguration(brokerAddresses));
 		connectionFactory.afterPropertiesSet();
-		Connection connection = connectionFactory.connect(getKafkaRule().getBrokerAddresses().get(0));
+		Connection connection = connectionFactory.connect(brokerAddresses[0]);
 		Result<BrokerAddress> leaders = connection.findLeaders(TEST_TOPIC);
 		assertThat(leaders.getErrors().entrySet(), empty());
 		assertThat(leaders.getResults().entrySet(), hasSize(1));
-		assertThat(leaders.getResults().get(partition), equalTo(getKafkaRule().getBrokerAddresses().get(0)));
+		assertThat(leaders.getResults().get(partition), equalTo(brokerAddresses[0]));
 	}
 
 	@Test
@@ -78,10 +79,11 @@ public class DefaultConnectionFactoryTests extends AbstractBrokerTests {
 		DefaultConnectionFactory connectionFactory =
 				new DefaultConnectionFactory(new ZookeeperConfiguration(zookeeperConnect));
 		connectionFactory.afterPropertiesSet();
-		Connection connection = connectionFactory.connect(getKafkaRule().getBrokerAddresses().get(0));
+		Connection connection = connectionFactory.connect(getKafkaRule().getBrokerAddresses()[0]);
 		Result<BrokerAddress> leaders = connection.findLeaders(TEST_TOPIC);
 		assertThat(leaders.getErrors().entrySet(), empty());
 		assertThat(leaders.getResults().entrySet(), hasSize(1));
-		assertThat(leaders.getResults().get(partition), equalTo(getKafkaRule().getBrokerAddresses().get(0)));
+		assertThat(leaders.getResults().get(partition), equalTo(getKafkaRule().getBrokerAddresses()[0]));
 	}
+
 }

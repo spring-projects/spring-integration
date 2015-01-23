@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<context:property-placeholder/>
+
+	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.kafka.core.ConnectionFactory"/>
+	</bean>
+
+	<bean id="offsetManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.kafka.listener.OffsetManager"/>
+	</bean>
+
+	<bean id="errorHandler" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.kafka.listener.ErrorHandler"/>
+	</bean>
+
+	<bean id="keyDecoder" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="kafka.serializer.Decoder"/>
+	</bean>
+
+	<bean id="payloadDecoder" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="kafka.serializer.Decoder"/>
+	</bean>
+
+	<task:executor id="executor"/>
+
+	<int-kafka:message-driven-channel-adapter
+			id="kafkaListener"
+			auto-startup="false"
+			phase="100"
+			send-timeout="5000"
+			channel="nullChannel"
+			error-channel="errorChannel"
+			error-handler="errorHandler"
+			connection-factory="connectionFactory"
+			key-decoder="keyDecoder"
+			payload-decoder="payloadDecoder"
+			offset-manager="offsetManager"
+			task-executor="executor"
+			queue-size="${queue.size:1024}"
+			concurrency="${concurrency:10}"
+			max-fetch="${max.fetch:1000}"
+			topics="${topics:foo,bar}"/>
+
+
+	<!-- Invalid config
+
+	<bean id="container" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.kafka.listener.KafkaMessageListenerContainer"/>
+	</bean>
+
+	<int-kafka:message-driven-channel-adapter
+			channel="nullChannel"
+			topics="foo"
+			listener-container="container"/>
+
+	-->
+
+
+</beans>

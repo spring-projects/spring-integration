@@ -15,16 +15,19 @@
  */
 package org.springframework.integration.kafka.rule;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.gs.collections.api.block.function.Function;
 import com.gs.collections.impl.block.factory.Functions;
 import com.gs.collections.impl.list.mutable.FastList;
 import com.gs.collections.impl.utility.ListIterate;
+
 import kafka.cluster.Broker;
 import kafka.server.KafkaServer;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,6 +35,7 @@ import org.junit.Assume;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
@@ -72,19 +76,23 @@ public class KafkaRunning extends TestWatcher implements KafkaRule {
 
 	@Override
 	@SuppressWarnings("serial")
-	public List<BrokerAddress> getBrokerAddresses() {
+	public BrokerAddress[] getBrokerAddresses() {
 		Seq<Broker> allBrokersInCluster = ZkUtils.getAllBrokersInCluster(zkClient);
-		return ListIterate.collect(JavaConversions.asJavaList(allBrokersInCluster), new Function<Broker, BrokerAddress>() {
-			@Override
-			public BrokerAddress valueOf(Broker broker) {
-				return new BrokerAddress(broker.host(), broker.port());
-			}
-		});
+		return ListIterate.collect(JavaConversions.asJavaList(allBrokersInCluster),
+				new Function<Broker, BrokerAddress>() {
+
+					@Override
+					public BrokerAddress valueOf(Broker broker) {
+						return new BrokerAddress(broker.host(), broker.port());
+					}
+
+				})
+				.toArray(new BrokerAddress[allBrokersInCluster.size()]);
 	}
 
 	@Override
 	public String getBrokersAsString() {
-		return FastList.newList(getBrokerAddresses()).collect(Functions.getToString()).makeString(",");
+		return FastList.newList(Arrays.asList(getBrokerAddresses())).collect(Functions.getToString()).makeString(",");
 	}
 
 	@Override
@@ -101,7 +109,7 @@ public class KafkaRunning extends TestWatcher implements KafkaRule {
 	public Statement apply(Statement base, Description description) {
 		try {
 			this.zkClient = new ZkClient(ZOOKEEPER_CONNECT_STRING, 1000, 1000, ZKStringSerializer$.MODULE$);
-			if (getBrokerAddresses().size() == 0) {
+			if (getBrokerAddresses().length == 0) {
 				throw new IllegalStateException("No running Kafka brokers");
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.config.xml;
 
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
@@ -25,15 +26,15 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  *
  */
 public class KafkaNamespaceHandler extends AbstractIntegrationNamespaceHandler {
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
-	 */
+
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("zookeeper-connect", new ZookeeperConnectParser());
-		registerBeanDefinitionParser("inbound-channel-adapter",  new KafkaInboundChannelAdapterParser());
-		registerBeanDefinitionParser("outbound-channel-adapter",  new KafkaOutboundChannelAdapterParser());
-		registerBeanDefinitionParser("producer-context",  new KafkaProducerContextParser());
-		registerBeanDefinitionParser("consumer-context",  new KafkaConsumerContextParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new KafkaInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new KafkaOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("producer-context", new KafkaProducerContextParser());
+		registerBeanDefinitionParser("consumer-context", new KafkaConsumerContextParser());
+		registerBeanDefinitionParser("message-driven-channel-adapter", new KafkaMessageDrivenChannelAdapterParser());
 	}
+
 }
