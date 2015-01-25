@@ -55,6 +55,9 @@ import org.springframework.util.StringUtils;
  * it directly. Otherwise, the payload type is unsupported, and an Exception
  * will be thrown.
  * <p>
+ * If the payload is a byte array or String, to append a new-line after each write, set the
+ * {@link #setShouldAppendNewLine(boolean) shouldAppendNewLine} flag to 'true'. It is 'false' by default.
+ * <p>
  * If the 'deleteSourceFiles' flag is set to true, the original Files will be
  * deleted. The default value for that flag is <em>false</em>. See the
  * {@link #setDeleteSourceFiles(boolean)} method javadoc for more information.
@@ -75,6 +78,10 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
+
+	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+	
+	private static final byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR.getBytes();
 
 	private volatile String temporaryFileSuffix =".writing";
 
@@ -100,6 +107,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile boolean expectReply = true;
 
+	private volatile boolean shouldAppendNewLine = false;
+	
 	private volatile LockRegistry lockRegistry = new PassThruLockRegistry();
 
 	/**
@@ -189,6 +198,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.expectReply = expectReply;
 	}
 
+	/**
+	 * If the payload is a byte array or String setting this property to 'true' will append a new-line
+	 * after each write.  It is 'false' by default.
+	 * @param shouldAppendNewLine true if a new-line should be written to the file after payload is written 
+	 */
+	public void setShouldAppendNewLine(boolean shouldAppendNewLine) {
+		this.shouldAppendNewLine = shouldAppendNewLine;
+	}
+	
 	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
@@ -293,12 +311,31 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					resultFile = this.handleFileMessage((File) payload, tempFile, resultFile);
 				}
 				else if (payload instanceof byte[]) {
-					resultFile = this.handleByteArrayMessage(
-							(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
+					if (!this.shouldAppendNewLine) {
+						resultFile = this.handleByteArrayMessage(
+								(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
+					}
+					else {
+						// append LINE_SEPARATOR_BYTES to end of payload byte array
+						byte[] payloadAsBytes = (byte[])payload;
+						byte[] payloadWithLineSeparator = new byte[payloadAsBytes.length + LINE_SEPARATOR_BYTES.length];
+						System.arraycopy(payloadAsBytes, 0, payloadWithLineSeparator, 0, payloadAsBytes.length);
+						System.arraycopy(LINE_SEPARATOR_BYTES, 0, payloadWithLineSeparator, 
+								payloadAsBytes.length, LINE_SEPARATOR_BYTES.length);
+						
+						resultFile = this.handleByteArrayMessage(
+								payloadWithLineSeparator, originalFileFromHeader, tempFile, resultFile);
+					}
 				}
 				else if (payload instanceof String) {
-					resultFile = this.handleStringMessage(
-							(String) payload, originalFileFromHeader, tempFile, resultFile);
+					if (!this.shouldAppendNewLine) {
+						resultFile = this.handleStringMessage(
+								(String) payload, originalFileFromHeader, tempFile, resultFile);
+					}
+					else {
+						resultFile = this.handleStringMessage(
+								(String) payload + LINE_SEPARATOR, originalFileFromHeader, tempFile, resultFile);
+					}
 				}
 				else {
 					throw new IllegalArgumentException(

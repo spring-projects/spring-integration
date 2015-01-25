@@ -113,6 +113,19 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
+	public void stringPayloadCopiedToNewFileWithNewLines() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
+		QueueChannel output = new QueueChannel();
+		String newLine = System.getProperty("line.separator");
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setShouldAppendNewLine(true);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, SAMPLE_CONTENT + newLine);
+	}
+	
+	@Test
 	public void byteArrayPayloadCopiedToNewFile() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(
 				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)).build();
@@ -122,7 +135,20 @@ public class FileWritingMessageHandlerTests {
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
 	}
-
+	
+	@Test
+	public void byteArrayPayloadCopiedToNewFileWithNewLines() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(
+				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)).build();
+		QueueChannel output = new QueueChannel();
+		String newLine = System.getProperty("line.separator");
+		handler.setOutputChannel(output);
+		handler.setShouldAppendNewLine(true);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, SAMPLE_CONTENT + newLine);
+	}
+	
 	@Test
 	public void filePayloadCopiedToNewFile() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
