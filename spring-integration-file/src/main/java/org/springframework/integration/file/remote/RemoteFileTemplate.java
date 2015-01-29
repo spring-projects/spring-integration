@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,6 +52,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Gary Russell
+ * @author David Thexton
  * @since 3.0
  *
  */
@@ -376,7 +378,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			else if (payload instanceof byte[] || payload instanceof String) {
 				byte[] bytes = null;
 				if (payload instanceof String) {
-					bytes = ((String) payload).getBytes(this.charset);
+					bytes = ((String) payload).getBytes();
 					name = "String payload";
 				}
 				else {
@@ -393,12 +395,17 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				return null;
 			}
 			else {
-				return new StreamHolder(dataInputStream, name);
+				return new StreamHolder(streamToCharsetStream(dataInputStream), name);
 			}
 		}
 		catch (Exception e) {
 			throw new MessageDeliveryException(message, "Failed to create sendable file.", e);
 		}
+	}
+
+	private InputStream streamToCharsetStream(InputStream stream) {
+		return (Charset.defaultCharset().name().equals(this.charset)) ? stream
+				: new CharsetInputStream(stream, Charset.forName(this.charset));
 	}
 
 	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectory,
@@ -487,6 +494,23 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			return name;
 		}
 
+	}
+
+
+	private static class CharsetInputStream extends InputStream {
+		private InputStream underlyingStream;
+		private Charset charset;
+
+		public CharsetInputStream(InputStream underlyingStream, Charset charset) {
+			this.underlyingStream = underlyingStream;
+			this.charset = charset;
+		}
+
+		@Override
+		public int read() throws IOException {
+			int c = underlyingStream.read();
+			return (c == -1) ? c : charset.encode(Character.toString((char) c)).get();
+		}
 	}
 
 }

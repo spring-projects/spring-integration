@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -33,9 +34,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -43,6 +46,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -67,6 +71,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Gary Russell
  * @author liujiong
+ * @author David Thexton
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
@@ -748,6 +753,35 @@ public class RemoteFileOutboundGatewayTests {
 
 	@Test
 	public void testPut() throws Exception {
+		testPut("hello", null);
+	}
+
+	@Test
+	public void testPutNonDefaultCharset() throws Exception {
+		testPut("hello", "Cp1047");
+	}
+
+	@Test
+	public void testPutBytes() throws Exception {
+		testPut("hello".getBytes(), null);
+	}
+
+	@Test
+	public void testPutBytesNonDefaultCharset() throws Exception {
+		testPut("hello".getBytes(), "Cp1047");
+	}
+
+	@Test
+	public void testPutFile() throws Exception {
+		testPut(createFile(), null);
+	}
+
+	@Test
+	public void testPutFileNonDefaultCharset() throws Exception {
+		testPut(createFile(), "Cp1047");
+	}
+
+	private void testPut(Object payload, String charset) throws Exception {
 		@SuppressWarnings("unchecked")
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
 		@SuppressWarnings("unchecked")
@@ -755,6 +789,9 @@ public class RemoteFileOutboundGatewayTests {
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<TestLsEntry>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setBeanFactory(mock(BeanFactory.class));
+		if (charset != null) {
+			template.setCharset(charset);
+		}
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", null);
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<TestLsEntry>(sessionFactory);
@@ -763,21 +800,33 @@ public class RemoteFileOutboundGatewayTests {
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
+		final AtomicReference<byte[]> output = new AtomicReference<byte[]>();
 		final AtomicReference<String> written = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
+				output.set(IOUtils.toByteArray((InputStream) invocation.getArguments()[0]));
 				written.set((String) invocation.getArguments()[1]);
 				return null;
 			}
 		}).when(session).write(any(InputStream.class), anyString());
-		Message<String> requestMessage = MessageBuilder.withPayload("hello")
+		Message<Object> requestMessage = MessageBuilder.withPayload(payload)
 				.setHeader(FileHeaders.FILENAME, "bar.txt")
 				.build();
 		String path = (String) gw.handleRequestMessage(requestMessage);
 		assertEquals("foo/bar.txt", path);
+		assertArrayEquals((charset == null) ? "hello".getBytes() : "hello".getBytes(Charset.forName(charset)), output.get());
 		verify(session).rename("foo/bar.txt.writing", "foo/bar.txt");
+	}
+
+	private File createFile() throws IOException {
+		File file = File.createTempFile("hello", ".txt");
+		try (FileWriter writer = new FileWriter(file)) {
+			IOUtils.write("hello", writer);
+		}
+		file.deleteOnExit();
+		return file;
 	}
 
 	@Test
