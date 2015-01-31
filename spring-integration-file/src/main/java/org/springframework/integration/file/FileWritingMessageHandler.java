@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
@@ -46,6 +45,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -54,6 +54,9 @@ import org.springframework.util.StringUtils;
  * destination directory. If the payload is a byte array or String, it will write
  * it directly. Otherwise, the payload type is unsupported, and an Exception
  * will be thrown.
+ * <p>
+ * To append a new-line after each write, set the
+ * {@link #setAppendNewLine(boolean) appendNewLine} flag to 'true'. It is 'false' by default.
  * <p>
  * If the 'deleteSourceFiles' flag is set to true, the original Files will be
  * deleted. The default value for that flag is <em>false</em>. See the
@@ -73,8 +76,11 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Tony Falabella
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
+
+	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
 	private volatile String temporaryFileSuffix =".writing";
 
@@ -99,6 +105,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile Charset charset = Charset.defaultCharset();
 
 	private volatile boolean expectReply = true;
+
+	private volatile boolean appendNewLine = false;
 
 	private volatile LockRegistry lockRegistry = new PassThruLockRegistry();
 
@@ -187,6 +195,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
+	}
+
+	/**
+	 * If 'true' will append a new-line after each write. It is 'false' by default.
+	 * @param appendNewLine true if a new-line should be written to the file after payload is written
+	 * @since 4.0.7
+	 */
+	public void setAppendNewLine(boolean appendNewLine) {
+		this.appendNewLine = appendNewLine;
 	}
 
 	protected String getTemporaryFileSuffix() {
@@ -348,7 +365,29 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 				@Override
 				protected void whileLocked() throws IOException {
-					FileCopyUtils.copy(bis, bos);
+					try {
+						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
+						int bytesRead = -1;
+						while ((bytesRead = bis.read(buffer)) != -1) {
+							bos.write(buffer, 0, bytesRead);
+						}
+						if (FileWritingMessageHandler.this.appendNewLine) {
+							bos.write(LINE_SEPARATOR.getBytes());
+						}
+						bos.flush();
+					}
+					finally {
+						try {
+							bis.close();
+						}
+						catch (IOException ex) {
+						}
+						try {
+							bos.close();
+						}
+						catch (IOException ex) {
+						}
+					}
 				}
 			};
 			whileLockedProcessor.doWhileLocked();
@@ -380,7 +419,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 			@Override
 			protected void whileLocked() throws IOException {
-				FileCopyUtils.copy(bytes, bos);
+				try {
+					bos.write(bytes);
+					if (FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode) &&
+							FileWritingMessageHandler.this.appendNewLine) {
+						bos.write(LINE_SEPARATOR.getBytes());
+					}
+				}
+				finally {
+					try {
+						bos.close();
+					}
+					catch (IOException ex) {
+					}
+				}
 			}
 
 		};
@@ -394,11 +446,25 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
+		final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 			@Override
 			protected void whileLocked() throws IOException {
-				FileCopyUtils.copy(content, writer);
+				try {
+					writer.write(content);
+					if (FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode) &&
+							FileWritingMessageHandler.this.appendNewLine) {
+						writer.newLine();
+					}
+				}
+				finally {
+					try {
+						writer.close();
+					}
+					catch (IOException ex) {
+					}
+				}
+
 			}
 
 		};
