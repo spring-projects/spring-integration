@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.springframework.integration.mail;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.DataInputStream;
 
@@ -34,11 +38,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.mapping.MessageMappingException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -47,7 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  */
 @RunWith(value = SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/org/springframework/integration/mail/mailSendingMessageHandlerContextTests.xml"})
+@ContextConfiguration
 public class MailSendingMessageHandlerContextTests {
 
 	@Autowired
@@ -58,7 +63,13 @@ public class MailSendingMessageHandlerContextTests {
 	private StubJavaMailSender mailSender;
 
 	@Autowired
+	private StubMailSender simpleMailSender;
+
+	@Autowired
 	private MessageChannel sendMailOutboundChainChannel;
+
+	@Autowired
+	private MessageChannel simpleEmailChannel;
 
 	@Autowired
 	private BeanFactory beanFactory;
@@ -119,6 +130,49 @@ public class MailSendingMessageHandlerContextTests {
 		assertEquals("no mime message should have been sent", 0, this.mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent", 1, this.mailSender.getSentSimpleMailMessages().size());
 		assertEquals("message content different from expected", mailMessage, this.mailSender.getSentSimpleMailMessages().get(0));
+	}
+
+	@Test
+	public void testOutboundChannelAdapterWithSimpleMailSender() {
+		this.simpleEmailChannel.send(MailTestsHelper.createIntegrationMessage());
+		assertEquals(1, this.simpleMailSender.getSentMessages().size());
+		assertEquals(MailTestsHelper.createSimpleMailMessage(), this.simpleMailSender.getSentMessages().get(0));
+
+		try {
+			this.simpleEmailChannel.send(new GenericMessage<byte[]>(new byte[0]));
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), 
+					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
+		}
+
+		try {
+			this.simpleEmailChannel.send(MessageBuilder.withPayload("foo")
+					.setHeader(MailHeaders.CONTENT_TYPE, "text/plain")
+					.setHeader(MailHeaders.TO, "foo@com.foo")
+					.build());
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), 
+					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
+		}
+
+		try {
+			this.simpleEmailChannel.send(new GenericMessage<MimeMessage>(this.mailSender.createMimeMessage()));
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), 
+					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
+		}
 	}
 
 }
