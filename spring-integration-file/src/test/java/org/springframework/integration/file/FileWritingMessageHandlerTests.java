@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Iwein Fuld
  * @author Alex Peters
  * @author Gary Russell
+ * @author Tony Falabella
  */
 public class FileWritingMessageHandlerTests {
 
@@ -113,6 +114,19 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
+	public void stringPayloadCopiedToNewFileWithNewLines() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
+		QueueChannel output = new QueueChannel();
+		String newLine = System.getProperty("line.separator");
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setAppendNewLine(true);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, SAMPLE_CONTENT + newLine);
+	}
+
+	@Test
 	public void byteArrayPayloadCopiedToNewFile() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(
 				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)).build();
@@ -124,6 +138,19 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
+	public void byteArrayPayloadCopiedToNewFileWithNewLines() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(
+				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)).build();
+		QueueChannel output = new QueueChannel();
+		String newLine = System.getProperty("line.separator");
+		handler.setOutputChannel(output);
+		handler.setAppendNewLine(true);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, SAMPLE_CONTENT + newLine);
+	}
+
+	@Test
 	public void filePayloadCopiedToNewFile() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
 		QueueChannel output = new QueueChannel();
@@ -131,6 +158,17 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
+	}
+
+	@Test
+	public void filePayloadCopiedToNewFileWithNewLines() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
+		QueueChannel output = new QueueChannel();
+		handler.setOutputChannel(output);
+		handler.setAppendNewLine(true);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, SAMPLE_CONTENT + System.getProperty("line.separator"));
 	}
 
 	@Test @Ignore // INT-3289 ignored because it won't fail on all OS
