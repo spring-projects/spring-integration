@@ -25,4 +25,8 @@
 		<int-mail:outbound-channel-adapter id="mail-outbound-channel-adapter-within-chain" mail-sender="javaMailSender"/>
 	</int:chain>
 
+	<bean id="mailSender" class="org.springframework.integration.mail.StubMailSender"/>
+
+	<int-mail:outbound-channel-adapter id="simpleEmailChannel" mail-sender="mailSender"/>
+
 </beans>

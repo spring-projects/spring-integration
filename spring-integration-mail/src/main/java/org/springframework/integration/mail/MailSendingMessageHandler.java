@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.mail.MailMessage;
+import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
@@ -49,19 +50,19 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class MailSendingMessageHandler extends AbstractMessageHandler {
 
-	private final JavaMailSender mailSender;
+	private final MailSender mailSender;
 
 
 	/**
-	 * Create a MailSendingMessageConsumer.
-	 *
-	 * @param mailSender the {@link JavaMailSender} instance to which this
+	 * Create a MailSendingMessageHandler.
+	 * @param mailSender the {@link MailSender} instance to which this
 	 * adapter will delegate.
 	 */
-	public MailSendingMessageHandler(JavaMailSender mailSender) {
+	public MailSendingMessageHandler(MailSender mailSender) {
 		Assert.notNull(mailSender, "'mailSender' must not be null");
 		this.mailSender = mailSender;
 	}
@@ -73,12 +74,15 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {
-		MailMessage mailMessage = this.convertMessageToMailMessage(message);
+		MailMessage mailMessage = convertMessageToMailMessage(message);
 		if (mailMessage instanceof SimpleMailMessage) {
 			this.mailSender.send((SimpleMailMessage) mailMessage);
 		}
 		else if (mailMessage instanceof MimeMailMessage) {
-			this.mailSender.send(((MimeMailMessage) mailMessage).getMimeMessage());
+			Assert.state(this.mailSender instanceof JavaMailSender,
+					"'mailSender' [" + this.mailSender + "] doesn't support 'MimeMailMessage' to send: " + mailMessage);
+
+			((JavaMailSender) this.mailSender).send(((MimeMailMessage) mailMessage).getMimeMessage());
 		}
 		else {
 			throw new IllegalArgumentException(
@@ -111,25 +115,32 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		}
 		else {
 			throw new MessageHandlingException(message, "Unable to create MailMessage from payload type ["
-					+ message.getPayload().getClass().getName() + "], expected MimeMessage, MailMessage, byte array or String.");
+					+ message.getPayload().getClass().getName() + "], " +
+					"expected MimeMessage, MailMessage, byte array or String.");
 		}
 		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
 	}
 
 	private MailMessage createMailMessageWithContentType(Message<String> message, String contentType){
-		MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+		Assert.state(this.mailSender instanceof JavaMailSender,
+				"'mailSender' [" + this.mailSender + "] doesn't support 'MimeMailMessage' to send.");
+
+		MimeMessage mimeMessage = ((JavaMailSender) this.mailSender).createMimeMessage();
 		try {
 			mimeMessage.setContent(message.getPayload(), contentType);
 			return new MimeMailMessage(mimeMessage);
 		}
 		catch (Exception e) {
-			throw new org.springframework.messaging.MessagingException("Failed to creaet MimeMessage with contentType: " +
-																			contentType, e);
+			throw new org.springframework.messaging.MessagingException("Failed to create MimeMessage with contentType: "
+					+ contentType, e);
 		}
 	}
 
 	private MailMessage createMailMessageFromByteArrayMessage(Message<byte[]> message) {
+		Assert.state(this.mailSender instanceof JavaMailSender,
+				"'mailSender' [" + this.mailSender + "] doesn't support 'MimeMailMessage' to send for 'byte[]'.");
+
 		String attachmentFileName = message.getHeaders().get(MailHeaders.ATTACHMENT_FILENAME, String.class);
 		if (attachmentFileName == null) {
 			throw new MessageMappingException(message, "Header '" + MailHeaders.ATTACHMENT_FILENAME
@@ -139,7 +150,8 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		if (multipartMode == null) {
 			multipartMode = MimeMessageHelper.MULTIPART_MODE_MIXED;
 		}
-		MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+
+		MimeMessage mimeMessage = ((JavaMailSender) this.mailSender).createMimeMessage();
 		try {
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, multipartMode);
 			helper.addAttachment(attachmentFileName, new ByteArrayResource(message.getPayload()));
