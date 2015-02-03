@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-
 package org.springframework.integration.kafka.util;
+
+import org.springframework.integration.kafka.core.KafkaMessage;
 
 import kafka.serializer.Decoder;
 import kafka.utils.Utils$;
-
-import org.springframework.integration.kafka.core.KafkaMessage;
 
 /**
  * @author Marius Bogoevici
@@ -28,7 +27,7 @@ import org.springframework.integration.kafka.core.KafkaMessage;
 public class MessageUtils {
 
 	public static <T> T decodeKey(KafkaMessage message, Decoder<T> decoder) {
-		if (message.getMessage().isNull() || !message.getMessage().hasKey()) {
+		if (!message.getMessage().hasKey()) {
 			return null;
 		}
 		return decoder.fromBytes(Utils$.MODULE$.readBytes(message.getMessage().key()));
@@ -40,4 +39,5 @@ public class MessageUtils {
 		}
 		return decoder.fromBytes(Utils$.MODULE$.readBytes(message.getMessage().payload()));
 	}
+
 }

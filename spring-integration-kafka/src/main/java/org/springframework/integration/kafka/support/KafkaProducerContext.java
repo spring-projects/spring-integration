@@ -34,6 +34,7 @@ import org.springframework.messaging.Message;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Marius Bogoevici
  * @since 0.5
  */
 public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponent, BeanNameAware {
@@ -66,7 +67,6 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 				return producerConfiguration;
 			}
 		}
-		logger.error("No producer-configuration defined for topic " + topic + ". Cannot send message");
 		return null;
 	}
 
@@ -194,7 +194,7 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 		}
 		// if there is a single producer configuration then use that config to send message.
 		else if (this.theProducerConfiguration != null) {
-			this.theProducerConfiguration.send(null, messageKey, message);
+			this.theProducerConfiguration.send(topic, messageKey, message);
 		}
 		else {
 			throw new IllegalStateException("Could not send messages as there are multiple producer configurations " +

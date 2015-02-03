@@ -14,33 +14,17 @@
  * limitations under the License.
  */
 
-
-package org.springframework.integration.kafka.rule;
-
-import java.util.List;
-
-import kafka.server.KafkaServer;
-import org.I0Itec.zkclient.ZkClient;
-import org.junit.rules.TestRule;
-
-import org.springframework.integration.kafka.core.BrokerAddress;
+package org.springframework.integration.kafka.core;
 
 /**
- * Common functionality for the Kafka JUnit rules
- *
  * @author Marius Bogoevici
  */
-public interface KafkaRule extends TestRule {
+@SuppressWarnings("serial")
+public class PartitionNotFoundException extends ConsumerException {
 
-	ZkClient getZkClient();
+	public PartitionNotFoundException(Partition partition) {
+		super(String.format("Partition [%s,%d] has no leader or has not been found",
+				partition.getTopic(), partition.getId()));
+	}
 
-	String getZookeeperConnectionString();
-
-	BrokerAddress[] getBrokerAddresses();
-
-	String getBrokersAsString();
-
-	boolean isEmbedded();
-
-	List<KafkaServer> getKafkaServers();
 }

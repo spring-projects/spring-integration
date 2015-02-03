@@ -42,8 +42,7 @@ public interface Connection {
 	 * ({@link OffsetRequest#LatestTime()}) and -2 ({@link OffsetRequest#LatestTime()})
 	 * are used . To be used to position the initial offset of a read operation.
 	 * @param referenceTime The returned values will be before this time, if they exist. The special
-	 * 						values -2 ({@link OffsetRequest#LatestTime()})
-	 * 						and -1 ({@link OffsetRequest#LatestTime()}) are supported.
+	 * values -2 ({@link OffsetRequest#LatestTime()}) and -1 ({@link OffsetRequest#LatestTime()}) are supported.
 	 * @param partitions the offsets, indexed by {@link Partition}
 	 * @return any errors, an empty {@link Result} in case of success
 	 * @throws ConsumerException the ConsumerException if any underlying error
