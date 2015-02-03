@@ -14,33 +14,32 @@
  * limitations under the License.
  */
 
-
-package org.springframework.integration.kafka.rule;
-
-import java.util.List;
-
-import kafka.server.KafkaServer;
-import org.I0Itec.zkclient.ZkClient;
-import org.junit.rules.TestRule;
-
-import org.springframework.integration.kafka.core.BrokerAddress;
+package org.springframework.integration.kafka.util;
 
 /**
- * Common functionality for the Kafka JUnit rules
+ * Utilities for logging data
  *
  * @author Marius Bogoevici
  */
-public interface KafkaRule extends TestRule {
+public class LoggingUtils {
 
-	ZkClient getZkClient();
-
-	String getZookeeperConnectionString();
-
-	BrokerAddress[] getBrokerAddresses();
-
-	String getBrokersAsString();
-
-	boolean isEmbedded();
-
-	List<KafkaServer> getKafkaServers();
+	public static String asCommaSeparatedHexDump(byte[] bytes) {
+		if (bytes == null || bytes.length == 0) {
+			return "[]";
+		}
+		else if (bytes.length == 1) {
+			return String.format("[%s]", Integer.toHexString(bytes[0]));
+		}
+		else {
+			StringBuilder buffer = new StringBuilder("[");
+			for (int i = 0; i < bytes.length - 1; i++) {
+				buffer.append(Integer.toHexString(bytes[i]));
+				buffer.append(",");
+			}
+			buffer.append(Integer.toHexString(bytes[bytes.length]));
+			buffer.append("]");
+			return buffer.toString();
+		}
+	}
+	
 }

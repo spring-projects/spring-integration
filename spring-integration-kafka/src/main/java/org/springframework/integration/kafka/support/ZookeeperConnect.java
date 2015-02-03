@@ -22,10 +22,21 @@ import org.springframework.integration.kafka.core.ZookeeperConnectDefaults;
  * @since 0.5
  */
 public class ZookeeperConnect {
+
 	private String zkConnect = ZookeeperConnectDefaults.ZK_CONNECT;
+
 	private String zkConnectionTimeout = ZookeeperConnectDefaults.ZK_CONNECTION_TIMEOUT;
+
 	private String zkSessionTimeout = ZookeeperConnectDefaults.ZK_SESSION_TIMEOUT;
+
 	private String zkSyncTime = ZookeeperConnectDefaults.ZK_SYNC_TIME;
+
+	public ZookeeperConnect() {
+	}
+
+	public ZookeeperConnect(String zkConnect) {
+		this.zkConnect = zkConnect;
+	}
 
 	public String getZkConnect() {
 		return zkConnect;

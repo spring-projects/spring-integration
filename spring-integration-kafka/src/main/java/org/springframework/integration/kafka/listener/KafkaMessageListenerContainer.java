@@ -238,12 +238,6 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 				catch (IOException e) {
 					log.error("Error while flushing:", e);
 				}
-				try {
-					this.offsetManager.close();
-				}
-				catch (IOException e) {
-					log.error("Error while closing:", e);
-				}
 				this.messageDispatcher.stop();
 			}
 		}
@@ -437,7 +431,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 			public void run() {
 				FastList<Partition> partitionsAsList = FastList.newList(partitionsToReset);
 				FastList<String> topics = partitionsAsList.collect(new PartitionToTopicFunction()).distinct();
-				kafkaTemplate.getConnectionFactory().refreshLeaders(topics);
+				kafkaTemplate.getConnectionFactory().refreshMetadata(topics);
 				Map<Partition, BrokerAddress> leaders = kafkaTemplate.getConnectionFactory().getLeaders(partitionsToReset);
 				synchronized (partitionsByBrokerMap) {
 					forEachKeyValue(leaders, new AddPartitionToBrokerProcedure());

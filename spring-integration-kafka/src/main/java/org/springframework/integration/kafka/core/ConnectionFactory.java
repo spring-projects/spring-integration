@@ -50,12 +50,12 @@ public interface ConnectionFactory {
 	BrokerAddress getLeader(Partition partition);
 
 	/**
-	 * Refresh the broker connections and partition leader map. To be called when the topology changes
+	 * Refresh the cached metadata (i.e. leader topology and partitions). To be called when the topology changes
 	 * are detected (i.e. brokers leave and/or partition leaders change) and that results in fetch errors,
 	 * for instance.
 	 * @param topics the topics for which to refresh the leaders
 	 */
-	void refreshLeaders(Collection<String> topics);
+	void refreshMetadata(Collection<String> topics);
 
 	/**
 	 * Retrieves the partitions of a given topic

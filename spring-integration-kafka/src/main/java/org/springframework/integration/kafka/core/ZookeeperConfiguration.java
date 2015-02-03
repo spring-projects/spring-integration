@@ -18,19 +18,21 @@ package org.springframework.integration.kafka.core;
 
 import java.util.List;
 
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.impl.list.mutable.FastList;
-import kafka.cluster.Broker;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils$;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import scala.collection.JavaConversions;
-import scala.collection.Seq;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
+
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.impl.list.mutable.FastList;
+
+import kafka.cluster.Broker;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils$;
+import scala.collection.JavaConversions;
+import scala.collection.Seq;
 
 /**
  * Kafka {@link Configuration} that uses a ZooKeeper connection for retrieving the list of seed brokers.
@@ -48,6 +50,10 @@ public class ZookeeperConfiguration extends AbstractConfiguration {
 	private int sessionTimeout;
 
 	private int connectionTimeout;
+
+	public ZookeeperConfiguration(String zookeeperConnectionString) {
+		this(new ZookeeperConnect(zookeeperConnectionString));
+	}
 
 	public ZookeeperConfiguration(ZookeeperConnect zookeeperConnect) {
 		this.zookeeperServers = zookeeperConnect.getZkConnect();
@@ -69,7 +75,8 @@ public class ZookeeperConfiguration extends AbstractConfiguration {
 	protected List<BrokerAddress> doGetBrokerAddresses() {
 		ZkClient zkClient = null;
 		try {
-			zkClient = new ZkClient(zookeeperServers, sessionTimeout, connectionTimeout, ZKStringSerializer$.MODULE$);
+			zkClient = new ZkClient(this.zookeeperServers, this.sessionTimeout, this.connectionTimeout,
+					ZKStringSerializer$.MODULE$);
 			Seq<Broker> allBrokersInCluster = ZkUtils$.MODULE$.getAllBrokersInCluster(zkClient);
 			FastList<Broker> brokers = FastList.newList(JavaConversions.asJavaCollection(allBrokersInCluster));
 			return brokers.collect(brokerToBrokerAddressFunction);

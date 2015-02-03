@@ -139,6 +139,7 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 		return zookeeperClient;
 	}
 
+	@Override
 	public String getZookeeperConnectionString() {
 		return zookeeper.connectString();
 	}

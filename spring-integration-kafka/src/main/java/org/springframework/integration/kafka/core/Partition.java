@@ -16,6 +16,8 @@
 
 package org.springframework.integration.kafka.core;
 
+import org.springframework.util.Assert;
+
 /**
  * A reference to a Kafka partition, with both topic and partition id
  *
@@ -28,6 +30,8 @@ public class Partition {
 	private int id;
 
 	public Partition(String topic, int id) {
+		Assert.hasText(topic, "Topic name cannot be empty");
+		Assert.isTrue(id >= 0, "Partition id must be greater than or equal to 0");
 		this.topic = topic;
 		this.id = id;
 	}
@@ -67,10 +71,7 @@ public class Partition {
 		if (id != partition.id) {
 			return false;
 		}
-		if (!topic.equals(partition.topic)) {
-			return false;
-		}
-		return true;
+		return topic.equals(partition.topic);
 	}
 
 	@Override

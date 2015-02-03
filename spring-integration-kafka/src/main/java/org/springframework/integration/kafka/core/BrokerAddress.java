@@ -17,7 +17,9 @@
 
 package org.springframework.integration.kafka.core;
 
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
+
+import kafka.cluster.Broker;
 
 /**
  * Encapsulates the address of a Kafka broker.
@@ -33,15 +35,19 @@ public class BrokerAddress {
 	private final int port;
 
 	public BrokerAddress(String host, int port) {
-		if (StringUtils.isEmpty(host)) {
-			throw new IllegalArgumentException("Host cannot be empty");
-		}
+		Assert.hasText(host, "Host cannot be empty");
 		this.host = host;
 		this.port = port;
 	}
 
 	public BrokerAddress(String host) {
 		this(host, DEFAULT_PORT);
+	}
+
+	public BrokerAddress(Broker broker) {
+		Assert.notNull(broker, "Broker cannot be null");
+		this.host = broker.host();
+		this.port = broker.port();
 	}
 
 	public static BrokerAddress fromAddress(String address) {
@@ -55,20 +61,19 @@ public class BrokerAddress {
 		else {
 			return new BrokerAddress(split[0]);
 		}
-
 	}
 
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
 	public int getPort() {
-		return port;
+		return this.port;
 	}
 
 	@Override
 	public int hashCode() {
-		return 31 * host.hashCode() + port;
+		return 31 * this.host.hashCode() + this.port;
 	}
 
 	@Override
@@ -82,19 +87,12 @@ public class BrokerAddress {
 
 		BrokerAddress brokerAddress = (BrokerAddress) o;
 
-		if (port != brokerAddress.port) {
-			return false;
-		}
-		if (!host.equals(brokerAddress.host)) {
-			return false;
-		}
-
-		return true;
+		return this.port == brokerAddress.port && this.host.equals(brokerAddress.host);
 	}
 
 	@Override
 	public String toString() {
-		return host + ":" + port;
+		return this.host + ":" + this.port;
 	}
 
 }

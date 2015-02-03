@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-
 package org.springframework.integration.kafka.listener;
 
+import static org.springframework.integration.kafka.util.TopicUtils.ensureTopicCreated;
 import static scala.collection.JavaConversions.asScalaBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.After;
+
+import org.springframework.integration.kafka.core.BrokerAddressListConfiguration;
+import org.springframework.integration.kafka.core.Configuration;
+import org.springframework.integration.kafka.core.ConnectionFactory;
+import org.springframework.integration.kafka.core.DefaultConnectionFactory;
+import org.springframework.integration.kafka.rule.KafkaRule;
 
 import com.gs.collections.api.RichIterable;
 import com.gs.collections.api.block.function.Function2;
@@ -30,26 +41,18 @@ import com.gs.collections.api.multimap.MutableMultimap;
 import com.gs.collections.api.tuple.Pair;
 import com.gs.collections.impl.factory.Multimaps;
 import com.gs.collections.impl.tuple.Tuples;
+
 import kafka.admin.AdminUtils;
 import kafka.producer.KeyedMessage;
 import kafka.producer.Producer;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.StringEncoder;
 import kafka.utils.TestUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.After;
 import scala.collection.JavaConversions;
 import scala.collection.Map;
 import scala.collection.immutable.List$;
 import scala.collection.immutable.Map$;
 import scala.collection.immutable.Seq;
-
-import org.springframework.integration.kafka.core.Configuration;
-import org.springframework.integration.kafka.core.ConnectionFactory;
-import org.springframework.integration.kafka.core.DefaultConnectionFactory;
-import org.springframework.integration.kafka.core.BrokerAddressListConfiguration;
-import org.springframework.integration.kafka.rule.KafkaRule;
 
 /**
  * @author Marius Bogoevici
@@ -67,32 +70,30 @@ public abstract class AbstractBrokerTests {
 		deleteTopic(TEST_TOPIC);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void createTopic(String topicName, int partitionCount, int brokers, int replication) {
-		MutableMultimap<Integer, Integer> partitionDistribution = createPartitionDistribution(partitionCount, brokers, replication);
-		AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(getKafkaRule().getZkClient(),
-				topicName, toKafkaPartitionMap(partitionDistribution),
-				AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK$default$4(),
-				AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK$default$5());
-		if (getKafkaRule().isEmbedded()) {
-			for (int i = 0; i < partitionDistribution.keysView().size(); i++) {
-				TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(getKafkaRule().getKafkaServers()), topicName, i, 5000L);
-			}
-		} else {
-			sleep(partitionCount * 200);
-		}
+		createTopic(getKafkaRule().getZkClient(), topicName, partitionCount, brokers, replication);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void createTopic(ZkClient zkClient, String topicName, int partitionCount, int brokers, int replication) {
+		MutableMultimap<Integer, Integer> partitionDistribution =
+				createPartitionDistribution(partitionCount, brokers, replication);
+		ensureTopicCreated(zkClient, topicName, partitionCount, new Properties(),
+				toKafkaPartitionMap(partitionDistribution));
 	}
 
 	public void deleteTopic(String topicName) {
 		AdminUtils.deleteTopic(getKafkaRule().getZkClient(), topicName);
 		if (getKafkaRule().isEmbedded()) {
 			TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(getKafkaRule().getKafkaServers()), topicName, 0, 5000L);
-		} else {
+		}
+		else {
 			sleep(1000);
 		}
 	}
 
-	public MutableMultimap<Integer, Integer> createPartitionDistribution(int partitionCount, int brokers, int replication) {
+	public MutableMultimap<Integer, Integer> createPartitionDistribution(int partitionCount, int brokers,
+			int replication) {
 		MutableMultimap<Integer, Integer> partitionDistribution = Multimaps.mutable.list.with();
 		for (int i = 0; i < partitionCount; i++) {
 			for (int j = 0; j < replication; j++) {
@@ -108,12 +109,13 @@ public abstract class AbstractBrokerTests {
 	}
 
 	public static scala.collection.Seq<KeyedMessage<String, String>> createMessages(int count, String topic) {
-		return createMessagesInRange(0,count-1,topic);
+		return createMessagesInRange(0, count - 1, topic);
 	}
 
-	public static scala.collection.Seq<KeyedMessage<String, String>> createMessagesInRange(int start, int end, String topic) {
-		List<KeyedMessage<String,String>> messages = new ArrayList<KeyedMessage<String, String>>();
-		for (int i=start; i<= end; i++) {
+	public static scala.collection.Seq<KeyedMessage<String, String>> createMessagesInRange(int start, int end,
+			String topic) {
+		List<KeyedMessage<String, String>> messages = new ArrayList<KeyedMessage<String, String>>();
+		for (int i = start; i <= end; i++) {
 			messages.add(new KeyedMessage<String, String>(topic, "Key " + i, i, "Message " + i));
 		}
 		return asScalaBuffer(messages).toSeq();
@@ -123,8 +125,8 @@ public abstract class AbstractBrokerTests {
 		Properties producerConfig = TestUtils.getProducerConfig(getKafkaRule().getBrokersAsString(),
 				TestPartitioner.class.getCanonicalName());
 		producerConfig.put("serializer.class", StringEncoder.class.getCanonicalName());
-		producerConfig.put("key.serializer.class",  StringEncoder.class.getCanonicalName());
-		producerConfig.put("compression.codec",  Integer.toString(compression));
+		producerConfig.put("key.serializer.class", StringEncoder.class.getCanonicalName());
+		producerConfig.put("compression.codec", Integer.toString(compression));
 		return new Producer<String, String>(new ProducerConfig(producerConfig));
 	}
 
@@ -136,12 +138,16 @@ public abstract class AbstractBrokerTests {
 
 	@SuppressWarnings({"rawtypes", "serial", "deprecation"})
 	private Map toKafkaPartitionMap(Multimap<Integer, Integer> partitions) {
-		java.util.Map<Object, Seq<Object>> m = partitions.toMap().collect(new Function2<Integer, RichIterable<Integer>, Pair<Object, Seq<Object>>>() {
-			@Override
-			public Pair<Object, Seq<Object>> value(Integer argument1, RichIterable<Integer> argument2) {
-				return Tuples.pair((Object) argument1, List$.MODULE$.fromArray(argument2.toArray(new Object[0])).toSeq());
-			}
-		});
+		java.util.Map<Object, Seq<Object>> m = partitions.toMap()
+				.collect(new Function2<Integer, RichIterable<Integer>, Pair<Object, Seq<Object>>>() {
+
+					@Override
+					public Pair<Object, Seq<Object>> value(Integer argument1, RichIterable<Integer> argument2) {
+						return Tuples.pair((Object) argument1,
+								List$.MODULE$.fromArray(argument2.toArray(new Object[0])).toSeq());
+					}
+
+				});
 		return Map$.MODULE$.apply(JavaConversions.asScalaMap(m).toSeq());
 	}
 

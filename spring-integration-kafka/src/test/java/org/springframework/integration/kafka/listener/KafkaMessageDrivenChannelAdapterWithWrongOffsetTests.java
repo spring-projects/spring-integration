@@ -216,6 +216,11 @@ public class KafkaMessageDrivenChannelAdapterWithWrongOffsetTests extends Abstra
 			}
 
 			@Override
+			public void deleteOffset(Partition partition) {
+				offsetManager.deleteOffset(partition);
+			}
+
+			@Override
 			public void resetOffsets(Collection<Partition> partitionsToReset) {
 				System.out.println("resetting " + offsetResetLatch.getCount() + " partitions: "
 						+ StringUtils.collectionToDelimitedString(partitionsToReset, ","));

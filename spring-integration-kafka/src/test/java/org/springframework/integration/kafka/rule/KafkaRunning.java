@@ -75,6 +75,11 @@ public class KafkaRunning extends TestWatcher implements KafkaRule {
 	}
 
 	@Override
+	public String getZookeeperConnectionString() {
+		return ZOOKEEPER_CONNECT_STRING;
+	}
+
+	@Override
 	@SuppressWarnings("serial")
 	public BrokerAddress[] getBrokerAddresses() {
 		Seq<Broker> allBrokersInCluster = ZkUtils.getAllBrokersInCluster(zkClient);

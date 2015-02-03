@@ -14,34 +14,36 @@
  * limitations under the License.
  */
 
-
 package org.springframework.integration.kafka.core;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.impl.block.factory.Functions;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.map.mutable.UnifiedMap;
-import com.gs.collections.impl.utility.ListIterate;
-import kafka.client.ClientUtils$;
-import kafka.common.KafkaException;
-import kafka.javaapi.PartitionMetadata;
-import kafka.javaapi.TopicMetadata;
-import kafka.javaapi.TopicMetadataResponse;
-import scala.collection.JavaConversions;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
+
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.api.block.predicate.Predicate;
+import com.gs.collections.api.partition.PartitionIterable;
+import com.gs.collections.impl.block.factory.Functions;
+import com.gs.collections.impl.map.mutable.UnifiedMap;
+import com.gs.collections.impl.utility.Iterate;
+import com.gs.collections.impl.utility.ListIterate;
+
+import kafka.client.ClientUtils$;
+import kafka.common.ErrorMapping;
+import kafka.javaapi.TopicMetadata;
+import kafka.javaapi.TopicMetadataResponse;
+import scala.collection.JavaConversions;
 
 /**
  * Default implementation of {@link ConnectionFactory}
@@ -50,27 +52,20 @@ import org.springframework.util.Assert;
  */
 public class DefaultConnectionFactory implements InitializingBean, ConnectionFactory, DisposableBean {
 
+	private final static Log log = LogFactory.getLog(DefaultConnectionFactory.class);
+
+	public static final Predicate<TopicMetadata> errorlessTopicMetadataPredicate = new ErrorlessTopicMetadataPredicate();
+
 	private final GetBrokersByPartitionFunction getBrokersByPartitionFunction = new GetBrokersByPartitionFunction();
 
 	private final ConnectionInstantiationFunction connectionInstantiationFunction = new ConnectionInstantiationFunction();
 
 	private final Configuration configuration;
 
-	private final AtomicReference<PartitionBrokerMap> partitionBrokerMapReference = new AtomicReference<PartitionBrokerMap>();
+	private final AtomicReference<MetadataCache> metadataCacheHolder =
+			new AtomicReference<MetadataCache>(new MetadataCache(Collections.<TopicMetadata>emptySet()));
 
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
-	private String clientId = KafkaConsumerDefaults.GROUP_ID;
-
-	private int minBytes = KafkaConsumerDefaults.MIN_FETCH_BYTES;
-
-	private int maxWait = KafkaConsumerDefaults.MAX_WAIT_TIME_IN_MS;
-
-	private int bufferSize = KafkaConsumerDefaults.SOCKET_BUFFER_SIZE_INT;
-
-	private int socketTimeout = KafkaConsumerDefaults.SOCKET_TIMEOUT_INT;
-
-	private int fetchMetadataTimeout = KafkaConsumerDefaults.FETCH_METADATA_TIMEOUT;
 
 	private final UnifiedMap<BrokerAddress, Connection> kafkaBrokersCache = UnifiedMap.newMap();
 
@@ -79,84 +74,21 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	}
 
 	public Configuration getConfiguration() {
-		return configuration;
+		return this.configuration;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.configuration, "Kafka configuration cannot be empty");
-		this.refreshLeaders(configuration.getDefaultTopic() == null ? Collections.<String>emptyList() :
-				Collections.singletonList(configuration.getDefaultTopic()));
+		refreshMetadata(this.configuration.getDefaultTopic() == null ? Collections.<String>emptyList() :
+				Collections.singletonList(this.configuration.getDefaultTopic()));
 	}
 
 	@Override
 	public void destroy() throws Exception {
-		for (Connection connection : kafkaBrokersCache) {
+		for (Connection connection : this.kafkaBrokersCache) {
 			connection.close();
 		}
-	}
-
-	/**
-	 * The minimum amount of data that a server fetch operation will wait for before returning,
-	 * unless {@code maxWaitTimeInMs} has elapsed.
-	 * In conjunction with {@link DefaultConnectionFactory#setMaxWait(int)}, controls latency
-	 * and throughput.
-	 * Smaller values increase responsiveness, but may increase the number of poll operations,
-	 * potentially reducing throughput and increasing CPU consumption.
-	 * @param minBytes the amount of data to fetch
-	 */
-	public void setMinBytes(int minBytes) {
-		this.minBytes = minBytes;
-	}
-
-	/**
-	 * The maximum amount of time that a server fetch operation will wait before returning
-	 * (unless {@code minFetchSizeInBytes}) are available.
-	 * In conjunction with {@link DefaultConnectionFactory#setMinBytes(int)},
-	 * controls latency and throughput.
-	 * Smaller intervals increase responsiveness, but may increase
-	 * the number of poll operations, potentially increasing CPU
-	 * consumption and reducing throughput.
-	 * @param maxWait timeout to wait
-	 */
-	public void setMaxWait(int maxWait) {
-		this.maxWait = maxWait;
-	}
-
-	public String getClientId() {
-		return clientId;
-	}
-
-	/**
-	 * A client name to be used throughout this connection.
-	 * @param clientId the client name
-	 */
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-
-	/**
-	 * The buffer size for this client
-	 * @param bufferSize the buffer size
-	 */
-	public void setBufferSize(int bufferSize) {
-		this.bufferSize = bufferSize;
-	}
-
-	/**
-	 * The socket timeout for this client
-	 * @param socketTimeout the socket timeout
-	 */
-	public void setSocketTimeout(int socketTimeout) {
-		this.socketTimeout = socketTimeout;
-	}
-
-	/**
-	 * The timeout on fetching metadata (e.g. partition leaders)
-	 * @param fetchMetadataTimeout timeout
-	 */
-	public void setFetchMetadataTimeout(int fetchMetadataTimeout) {
-		this.fetchMetadataTimeout = fetchMetadataTimeout;
 	}
 
 	/**
@@ -164,7 +96,7 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	 */
 	@Override
 	public Map<Partition, BrokerAddress> getLeaders(Iterable<Partition> partitions) {
-		return FastList.newList(partitions).toMap(Functions.<Partition>getPassThru(), getBrokersByPartitionFunction);
+		return Iterate.toMap(partitions, Functions.<Partition>getPassThru(), getBrokersByPartitionFunction);
 	}
 
 	/**
@@ -172,13 +104,32 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	 */
 	@Override
 	public BrokerAddress getLeader(Partition partition) {
+		BrokerAddress leader = null;
 		try {
-			lock.readLock().lock();
-			return this.getLeaders(Collections.singleton(partition)).get(partition);
+			this.lock.readLock().lock();
+			leader = getMetadataCache().getLeader(partition);
 		}
 		finally {
-			lock.readLock().unlock();
+			this.lock.readLock().unlock();
 		}
+		if (leader == null) {
+			try {
+				this.lock.writeLock().lock();
+				// double lock check
+				leader = getMetadataCache().getLeader(partition);
+				if (leader == null) {
+					refreshMetadata(Collections.singleton(partition.getTopic()));
+					leader = getMetadataCache().getLeader(partition);
+				}
+			}
+			finally {
+				this.lock.writeLock().unlock();
+			}
+		}
+		if (leader == null) {
+			throw new PartitionNotFoundException(partition);
+		}
+		return leader;
 	}
 
 	/**
@@ -186,39 +137,38 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	 */
 	@Override
 	public Connection connect(BrokerAddress brokerAddress) {
-		return kafkaBrokersCache.getIfAbsentPutWithKey(brokerAddress, connectionInstantiationFunction);
+		return this.kafkaBrokersCache.getIfAbsentPutWithKey(brokerAddress, connectionInstantiationFunction);
 	}
 
 	/**
-	 * @see ConnectionFactory#refreshLeaders(Collection)
+	 * @see ConnectionFactory#refreshMetadata(Collection)
 	 */
 	@Override
-	public void refreshLeaders(Collection<String> topics) {
+	public void refreshMetadata(Collection<String> topics) {
 		try {
-			lock.writeLock().lock();
-			for (Connection connection : kafkaBrokersCache) {
+			this.lock.writeLock().lock();
+			for (Connection connection : this.kafkaBrokersCache) {
 				connection.close();
 			}
 			String brokerAddressesAsString =
-					ListIterate.collect(configuration.getBrokerAddresses(), Functions.getToString())
-					.makeString(",");
+					ListIterate.collect(this.configuration.getBrokerAddresses(), Functions.getToString())
+							.makeString(",");
 			TopicMetadataResponse topicMetadataResponse =
 					new TopicMetadataResponse(
 							ClientUtils$.MODULE$.fetchTopicMetadata(
 									JavaConversions.asScalaSet(new HashSet<String>(topics)),
 									ClientUtils$.MODULE$.parseBrokerList(brokerAddressesAsString),
-									getClientId(), fetchMetadataTimeout, 0));
-			Map<Partition, BrokerAddress> kafkaBrokerAddressMap = new HashMap<Partition, BrokerAddress>();
-			for (TopicMetadata topicMetadata : topicMetadataResponse.topicsMetadata()) {
-				for (PartitionMetadata partitionMetadata : topicMetadata.partitionsMetadata()) {
-					kafkaBrokerAddressMap.put(new Partition(topicMetadata.topic(), partitionMetadata.partitionId()),
-							new BrokerAddress(partitionMetadata.leader().host(), partitionMetadata.leader().port()));
-				}
+									this.configuration.getClientId(), this.configuration.getFetchMetadataTimeout(), 0));
+			PartitionIterable<TopicMetadata> selectWithoutErrors = Iterate.partition(topicMetadataResponse.topicsMetadata(),
+					errorlessTopicMetadataPredicate);
+			this.metadataCacheHolder.set(this.metadataCacheHolder.get().merge(selectWithoutErrors.getSelected()));
+			for (TopicMetadata topicMetadata : selectWithoutErrors.getRejected()) {
+				log.error(String.format("No metadata could be retrieved for '%s'", topicMetadata.topic()),
+						ErrorMapping.exceptionFor(topicMetadata.errorCode()));
 			}
-			this.partitionBrokerMapReference.set(new PartitionBrokerMap(UnifiedMap.newMap(kafkaBrokerAddressMap)));
 		}
 		finally {
-			lock.writeLock().unlock();
+			this.lock.writeLock().unlock();
 		}
 	}
 
@@ -227,14 +177,48 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	 */
 	@Override
 	public Collection<Partition> getPartitions(String topic) {
-		if (!getPartitionBrokerMap().getPartitionsByTopic().containsKey(topic)) {
+		// first, we try to read the topic from the cache. We use the read lock to block if a write is in progress
+		Collection<Partition> returnedPartitions = null;
+		try {
+			this.lock.readLock().lock();
+			returnedPartitions = getMetadataCache().getPartitions(topic);
+		}
+		finally {
+			this.lock.readLock().unlock();
+		}
+		// if we got here, it means that the data was not available, we should try a refresh. The lock is reentrant
+		// so we will not block ourselves
+		if (returnedPartitions == null) {
+			try {
+				this.lock.writeLock().lock();
+				// double lock check
+				returnedPartitions = getMetadataCache().getPartitions(topic);
+				if (returnedPartitions == null) {
+					refreshMetadata(Collections.singleton(topic));
+					// if data is not available after refreshing, it means that the topic was not found
+					returnedPartitions = getMetadataCache().getPartitions(topic);
+				}
+			}
+			finally {
+				lock.writeLock().unlock();
+			}
+		}
+		if (returnedPartitions == null) {
 			throw new TopicNotFoundException(topic);
 		}
-		return getPartitionBrokerMap().getPartitionsByTopic().get(topic).toList();
+		return returnedPartitions;
 	}
 
-	private PartitionBrokerMap getPartitionBrokerMap() {
-		return partitionBrokerMapReference.get();
+	private MetadataCache getMetadataCache() {
+		return this.metadataCacheHolder.get();
+	}
+
+	@SuppressWarnings("serial")
+	private static class ErrorlessTopicMetadataPredicate implements Predicate<TopicMetadata> {
+		@Override
+		public boolean accept(TopicMetadata topicMetadata) {
+			return topicMetadata.errorCode() == ErrorMapping.NoError();
+		}
 	}
 
 	@SuppressWarnings("serial")
@@ -242,7 +226,12 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 
 		@Override
 		public Connection valueOf(BrokerAddress brokerAddress) {
-			return new DefaultConnection(brokerAddress, clientId, bufferSize, socketTimeout, minBytes, maxWait);
+			return new DefaultConnection(brokerAddress,
+					DefaultConnectionFactory.this.configuration.getClientId(),
+					DefaultConnectionFactory.this.configuration.getBufferSize(),
+					DefaultConnectionFactory.this.configuration.getSocketTimeout(),
+					DefaultConnectionFactory.this.configuration.getMinBytes(),
+					DefaultConnectionFactory.this.configuration.getMaxWait());
 		}
 
 	}
@@ -252,7 +241,7 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 
 		@Override
 		public BrokerAddress valueOf(Partition partition) {
-			return partitionBrokerMapReference.get().getBrokersByPartition().get(partition);
+			return metadataCacheHolder.get().getLeader(partition);
 		}
 
 	}
