@@ -44,7 +44,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -358,7 +357,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
-		if (FileExistsMode.APPEND.equals(this.fileExistsMode)){
+		if (FileExistsMode.APPEND.equals(this.fileExistsMode)) {
 			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 			final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
 			final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
@@ -404,7 +403,33 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 							sourceFile.getAbsolutePath()));
 				}
 			}
-			FileCopyUtils.copy(sourceFile, tempFile);
+
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile));
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+
+			try {
+				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
+				int bytesRead = -1;
+				while ((bytesRead = bis.read(buffer)) != -1) {
+					bos.write(buffer, 0, bytesRead);
+				}
+				if (this.appendNewLine) {
+					bos.write(LINE_SEPARATOR.getBytes());
+				}
+				bos.flush();
+			}
+			finally {
+				try {
+					bis.close();
+				}
+				catch (IOException ex) {
+				}
+				try {
+					bos.close();
+				}
+				catch (IOException ex) {
+				}
+			}
 			this.cleanUpAfterCopy(tempFile, resultFile, sourceFile);
 			return resultFile;
 		}
@@ -421,8 +446,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			protected void whileLocked() throws IOException {
 				try {
 					bos.write(bytes);
-					if (FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode) &&
-							FileWritingMessageHandler.this.appendNewLine) {
+					if (FileWritingMessageHandler.this.appendNewLine) {
 						bos.write(LINE_SEPARATOR.getBytes());
 					}
 				}
@@ -452,8 +476,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			protected void whileLocked() throws IOException {
 				try {
 					writer.write(content);
-					if (FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode) &&
-							FileWritingMessageHandler.this.appendNewLine) {
+					if (FileWritingMessageHandler.this.appendNewLine) {
 						writer.newLine();
 					}
 				}

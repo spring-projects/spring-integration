@@ -60,7 +60,7 @@ public class FileWritingMessageHandlerTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n√§√∂√º√ü";
+	static final String SAMPLE_CONTENT = "HelloWorld\n‰ˆ¸ﬂ";
 
 
 	private File sourceFile;
@@ -118,7 +118,6 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
 		QueueChannel output = new QueueChannel();
 		String newLine = System.getProperty("line.separator");
-		handler.setFileExistsMode(FileExistsMode.APPEND);
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
 		handler.setAppendNewLine(true);
@@ -144,7 +143,6 @@ public class FileWritingMessageHandlerTests {
 				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)).build();
 		QueueChannel output = new QueueChannel();
 		String newLine = System.getProperty("line.separator");
-		handler.setFileExistsMode(FileExistsMode.APPEND);
 		handler.setOutputChannel(output);
 		handler.setAppendNewLine(true);
 		handler.handleMessage(message);
@@ -167,7 +165,6 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
 		QueueChannel output = new QueueChannel();
 		handler.setOutputChannel(output);
-		handler.setFileExistsMode(FileExistsMode.APPEND);
 		handler.setAppendNewLine(true);
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
