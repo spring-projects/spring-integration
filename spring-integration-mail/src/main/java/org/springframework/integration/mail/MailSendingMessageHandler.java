@@ -80,7 +80,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		}
 		else if (mailMessage instanceof MimeMailMessage) {
 			Assert.state(this.mailSender instanceof JavaMailSender,
-					"'mailSender' [" + this.mailSender + "] doesn't support 'MimeMailMessage' to send: " + mailMessage);
+					"this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 
 			((JavaMailSender) this.mailSender).send(((MimeMailMessage) mailMessage).getMimeMessage());
 		}
@@ -124,7 +124,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 
 	private MailMessage createMailMessageWithContentType(Message<String> message, String contentType){
 		Assert.state(this.mailSender instanceof JavaMailSender,
-				"'mailSender' [" + this.mailSender + "] doesn't support 'MimeMailMessage' to send.");
+				"this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 
 		MimeMessage mimeMessage = ((JavaMailSender) this.mailSender).createMimeMessage();
 		try {
@@ -139,7 +139,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 
 	private MailMessage createMailMessageFromByteArrayMessage(Message<byte[]> message) {
 		Assert.state(this.mailSender instanceof JavaMailSender,
-				"'mailSender' [" + this.mailSender + "] doesn't support 'MimeMailMessage' to send for 'byte[]'.");
+				"this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 
 		String attachmentFileName = message.getHeaders().get(MailHeaders.ATTACHMENT_FILENAME, String.class);
 		if (attachmentFileName == null) {
