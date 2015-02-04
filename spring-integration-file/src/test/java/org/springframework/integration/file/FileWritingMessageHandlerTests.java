@@ -60,7 +60,7 @@ public class FileWritingMessageHandlerTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n√§√∂√º√ü";
+	static final String SAMPLE_CONTENT = "HelloWorld\n‰ˆ¸ﬂ";
 
 
 	private File sourceFile;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Tony Falabella
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -80,6 +81,9 @@ public class FileOutboundGatewayParserTests {
 	@Autowired
 	MessageChannel gatewayWithFailModeLowercaseChannel;
 
+	@Autowired
+	EventDrivenConsumer gatewayWithAppendNewLine;
+	
 	private volatile static int adviceCalled;
 
 	@Test
@@ -304,7 +308,21 @@ public class FileOutboundGatewayParserTests {
 
 	}
 
-    public static class FooAdvice extends AbstractRequestHandlerAdvice {
+	/**
+	 * Test that the underlying {@link FileWritingMessageHandler} bean of the File Outbound Gateway
+	 * gets it's {@link FileWritingMessageHandler#setAppendNewLine(boolean)} called when XML 
+	 * config file has <code>append-new-line="true"</code>.
+	 */
+	@Test
+	public void gatewayWithAppendNewLine() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(gatewayWithAppendNewLine);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+			adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("appendNewLine"));
+	}	
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
