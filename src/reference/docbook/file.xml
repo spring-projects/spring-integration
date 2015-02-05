@@ -477,7 +477,13 @@
 				The <code>delete-source-files</code> attribute will only have an effect if the inbound
 				Message has a File payload or if the <classname>FileHeaders.ORIGINAL_FILE</classname> header
 				value contains either the source File instance or a String representing the original file path.
-			</note>
+			</note>						
+			<para>
+				The namespace based configuration also supports an <code>append-new-line</code> attribute (newly introduced in 4.2).
+				If set to <code>true</code>, a new line is appended to the file after a message is written.  The default attribute value is <code>false</code>.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-file:outbound-channel-adapter id="newlineAdapter" append-new-line="true"
+    directory="${output.directory}"/>]]></programlisting>			
 		</section>
 		<section id="file-writing-output-gateway">
 			<title>Outbound Gateway</title>

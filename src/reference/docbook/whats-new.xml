@@ -22,5 +22,12 @@
 				attribute.
 			</para>
 		</section>
+		<section id="4.2-file-outbound-channel-adapter">
+			<title>File Outbound Channel Adapter</title>
+			<para>
+				The <code>&lt;int-file:outbound-channel-adapter&gt;</code> now supports an <code>append-new-line</code> attribute.
+				If set to <code>true</code>, a new line is appended to the file after a message is written.  The default attribute value is <code>false</code>.
+			</para>
+		</section>		
 	</section>
 </chapter>

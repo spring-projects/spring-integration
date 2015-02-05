@@ -28,6 +28,11 @@
 								   channel="testChannel"
 								   directory-expression="'foo/bar'"/>
 
+	<file:outbound-channel-adapter id="adapterWithAppendNewLine"
+								   channel="testChannel"
+								   append-new-line="true"
+								   directory="${java.io.tmpdir}"/>
+
 	<file:outbound-channel-adapter id="adapterWithDeleteFlag"
 								   channel="testChannel"
 								   delete-source-files="true"
@@ -52,7 +57,21 @@
 			<bean class="org.springframework.integration.file.config.FileOutboundChannelAdapterParserTests$FooAdvice" />
 		</file:request-handler-advice-chain>
 	</file:outbound-channel-adapter>
+	
+	<file:outbound-channel-adapter id="adapterUsageWithAppendAndAppendNewLineTrue"
+	                               filename-generator-expression="@fooString"
+								   mode="APPEND"
+								   append-new-line="true"
+								   directory-expression="@barString">	
+	</file:outbound-channel-adapter>
 
+	<file:outbound-channel-adapter id="adapterUsageWithAppendAndAppendNewLineFalse"
+	                               filename-generator-expression="@fooString"
+								   mode="APPEND"
+								   append-new-line="false"
+								   directory-expression="@barString">	
+	</file:outbound-channel-adapter>
+	
 	<bean id="fooString" class="java.lang.String">
 		<constructor-arg value="fileToAppend.txt"/>
 	</bean>

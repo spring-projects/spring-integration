@@ -447,6 +447,14 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+    	<xsd:attribute name="append-new-line" type="xsd:string" default="false">
+    	    <xsd:annotation>
+    			<xsd:documentation>
+    				<![CDATA[Set to 'true' to append a new-line after each write. 
+    				It is 'false' by default.]]>
+    			</xsd:documentation>
+    		</xsd:annotation>
+    	</xsd:attribute>        
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
     </xsd:complexType>
 
