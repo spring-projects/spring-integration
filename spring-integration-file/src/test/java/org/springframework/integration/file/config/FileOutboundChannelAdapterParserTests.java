@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
@@ -54,6 +53,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Tony Falabella
  *
  */
 @ContextConfiguration
@@ -79,8 +79,17 @@ public class FileOutboundChannelAdapterParserTests {
 	EventDrivenConsumer adapterWithDirectoryExpression;
 
 	@Autowired
+	EventDrivenConsumer adapterWithAppendNewLine;
+	
+	@Autowired
 	MessageChannel usageChannel;
-
+	
+	@Autowired
+	MessageChannel adapterUsageWithAppendAndAppendNewLineTrue;
+	
+	@Autowired
+	MessageChannel adapterUsageWithAppendAndAppendNewLineFalse;
+	
 	@Autowired
 	MessageChannel usageChannelWithFailMode;
 
@@ -175,6 +184,15 @@ public class FileOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void adapterWithAppendNewLine() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithAppendNewLine);
+			FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("appendNewLine"));
+	}
+	
+	@Test
 	public void adapterUsageWithAppend() throws Exception{
 
 		String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
@@ -194,6 +212,44 @@ public class FileOutboundChannelAdapterParserTests {
 		testFile.delete();
 	}
 
+    @Test
+	public void adapterUsageWithAppendAndAppendNewLineTrue() throws Exception {
+    	String newLine = System.getProperty("line.separator");
+    	String expectedFileContent = "Initial File Content:" + newLine + "String content:" + newLine + "byte[] content:" + newLine + "File content" + newLine;
+
+		File testFile = new File("test/fileToAppend.txt");
+		if (testFile.exists()){
+			testFile.delete();
+		}
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<String>("Initial File Content:"));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<String>("String content:"));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<File>(new File("test/input.txt")));
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+		testFile.delete();    	
+	}
+    
+    @Test
+	public void adapterUsageWithAppendAndAppendNewLineFalse() throws Exception {
+    	String newLine = System.getProperty("line.separator");
+		String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
+
+		File testFile = new File("test/fileToAppend.txt");
+		if (testFile.exists()){
+			testFile.delete();
+		}
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<String>("Initial File Content:"));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<String>("String content:"));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<File>(new File("test/input.txt")));
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+		testFile.delete();    	
+	}    
+    
 	@Test
 	public void adapterUsageWithFailMode() throws Exception{
 

@@ -49,6 +49,12 @@
 		request-channel="gatewayWithFailModeLowercaseChannel"
 		filename-generator-expression="'fileToAppend.txt'" mode="fail"
 		directory="test" />
+
+	<int-file:outbound-gateway id="gatewayWithAppendNewLine"
+		request-channel="gatewayWithAppendNewLineChannel"
+		filename-generator-expression="'fileToAppend.txt'"
+		append-new-line="true"
+		directory="test" />		
 	<context:property-placeholder />
 
 </beans:beans>
