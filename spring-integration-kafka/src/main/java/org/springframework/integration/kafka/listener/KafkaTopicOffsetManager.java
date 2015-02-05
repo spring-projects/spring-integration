@@ -289,10 +289,10 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 		//validate that the topic exists, but also prevent working with the topic until it's fully initialized
 		// set a retry template, since operations may fail
 		RetryTemplate retryValidateTopic = new RetryTemplate();
-		retryValidateTopic.setRetryPolicy(new SimpleRetryPolicy(5,
+		retryValidateTopic.setRetryPolicy(new SimpleRetryPolicy(10,
 				Collections.<Class<? extends Throwable>, Boolean>singletonMap(TopicNotFoundException.class, true)));
 		ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-		backOffPolicy.setInitialInterval(50L);
+		backOffPolicy.setInitialInterval(100L);
 		backOffPolicy.setMaxInterval(1000L);
 		backOffPolicy.setMultiplier(2);
 		retryValidateTopic.setBackOffPolicy(backOffPolicy);
