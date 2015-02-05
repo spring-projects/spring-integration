@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Tony Falabella
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -74,11 +75,14 @@ public class FileOutboundGatewayParserTests {
 	MessageChannel gatewayWithReplaceModeChannel;
 
 	@Autowired
-    @Qualifier("gatewayWithReplaceMode.handler")
+	@Qualifier("gatewayWithReplaceMode.handler")
 	MessageHandler gatewayWithReplaceModeHandler;
 
 	@Autowired
 	MessageChannel gatewayWithFailModeLowercaseChannel;
+
+	@Autowired
+	EventDrivenConsumer gatewayWithAppendNewLine;
 
 	private volatile static int adviceCalled;
 
@@ -92,7 +96,8 @@ public class FileOutboundGatewayParserTests {
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(777, handlerAccessor.getPropertyValue("order"));
 		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("requiresReply"));
-		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
+		DefaultFileNameGenerator fileNameGenerator =
+				(DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
 		assertNotNull(fileNameGenerator);
 		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression", Expression.class);
 		assertNotNull(expression);
@@ -105,8 +110,11 @@ public class FileOutboundGatewayParserTests {
 
 	@Test
 	public void testOutboundGatewayWithDirectoryExpression() throws Exception {
-		FileWritingMessageHandler handler = TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
-		assertEquals("'build/foo'", TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class).getExpressionString());
+		FileWritingMessageHandler handler =
+				TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
+		assertEquals("'build/foo'",
+				TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
+						.getExpressionString());
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
 	}
@@ -121,7 +129,7 @@ public class FileOutboundGatewayParserTests {
 	 *
 	 */
 	@Test
-	public void gatewayWithIgnoreMode() throws Exception{
+	public void gatewayWithIgnoreMode() throws Exception {
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
@@ -129,7 +137,7 @@ public class FileOutboundGatewayParserTests {
 		final String expectedFileContent = "Initial File Content:";
 		final File testFile = new File("test/fileToAppend.txt");
 
-		if (testFile.exists()){
+		if (testFile.exists()) {
 			testFile.delete();
 		}
 
@@ -157,7 +165,7 @@ public class FileOutboundGatewayParserTests {
 	 *
 	 */
 	@Test
-	public void gatewayWithFailMode() throws Exception{
+	public void gatewayWithFailMode() throws Exception {
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeChannel);
@@ -166,7 +174,7 @@ public class FileOutboundGatewayParserTests {
 
 		File testFile = new File("test/fileToAppend.txt");
 
-		if (testFile.exists()){
+		if (testFile.exists()) {
 			testFile.delete();
 		}
 
@@ -179,7 +187,8 @@ public class FileOutboundGatewayParserTests {
 
 			messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
 
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			assertTrue(e.getMessage().startsWith("The destination file already exists at '"));
 			return;
 		}
@@ -197,7 +206,7 @@ public class FileOutboundGatewayParserTests {
 	 *
 	 */
 	@Test
-	public void gatewayWithFailModeLowercase() throws Exception{
+	public void gatewayWithFailModeLowercase() throws Exception {
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeLowercaseChannel);
@@ -206,7 +215,7 @@ public class FileOutboundGatewayParserTests {
 
 		File testFile = new File("test/fileToAppend.txt");
 
-		if (testFile.exists()){
+		if (testFile.exists()) {
 			testFile.delete();
 		}
 
@@ -219,7 +228,8 @@ public class FileOutboundGatewayParserTests {
 
 			messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
 
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			assertTrue(e.getMessage().startsWith("The destination file already exists at '"));
 			return;
 		}
@@ -239,7 +249,7 @@ public class FileOutboundGatewayParserTests {
 	 *
 	 */
 	@Test
-	public void gatewayWithAppendMode() throws Exception{
+	public void gatewayWithAppendMode() throws Exception {
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithAppendModeChannel);
@@ -248,7 +258,7 @@ public class FileOutboundGatewayParserTests {
 
 		File testFile = new File("test/fileToAppend.txt");
 
-		if (testFile.exists()){
+		if (testFile.exists()) {
 			testFile.delete();
 		}
 
@@ -276,7 +286,7 @@ public class FileOutboundGatewayParserTests {
 	 *
 	 */
 	@Test
-	public void gatewayWithReplaceMode() throws Exception{
+	public void gatewayWithReplaceMode() throws Exception {
 
 		assertFalse(TestUtils.getPropertyValue(this.gatewayWithReplaceModeHandler, "requiresReply", Boolean.class));
 
@@ -287,7 +297,7 @@ public class FileOutboundGatewayParserTests {
 
 		File testFile = new File("test/fileToAppend.txt");
 
-		if (testFile.exists()){
+		if (testFile.exists()) {
 			testFile.delete();
 		}
 
@@ -304,7 +314,17 @@ public class FileOutboundGatewayParserTests {
 
 	}
 
-    public static class FooAdvice extends AbstractRequestHandlerAdvice {
+	/**
+	 * Test that the underlying {@link FileWritingMessageHandler} bean of the File Outbound Gateway
+	 * gets it's {@link FileWritingMessageHandler#setAppendNewLine(boolean)} called when XML
+	 * config file has <code>append-new-line="true"</code>.
+	 */
+	@Test
+	public void gatewayWithAppendNewLine() {
+		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(this.gatewayWithAppendNewLine, "handler.appendNewLine"));
+	}
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
@@ -313,4 +333,5 @@ public class FileOutboundGatewayParserTests {
 		}
 
 	}
+
 }

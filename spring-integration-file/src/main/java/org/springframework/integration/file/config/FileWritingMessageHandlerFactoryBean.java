@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,12 @@ import org.springframework.integration.file.support.FileExistsMode;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Tony Falabella
  *
  * @since 1.0.3
  */
-public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
+public class FileWritingMessageHandlerFactoryBean 
+		extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
 
 	private volatile File directory;
 
@@ -59,6 +61,8 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 	private volatile FileExistsMode fileExistsMode;
 
 	private volatile boolean expectReply = true;
+	
+	private volatile Boolean appendNewLine;
 
 	public void setFileExistsMode(String fileExistsModeAsString) {
 		this.fileExistsMode = FileExistsMode.getForString(fileExistsModeAsString);
@@ -104,6 +108,10 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 		this.expectReply = expectReply;
 	}
 
+	public void setAppendNewLine(Boolean appendNewLine) {
+		this.appendNewLine = appendNewLine;
+	}
+	
 	@Override
 	protected FileWritingMessageHandler createHandler() {
 
@@ -143,11 +151,14 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
 		}
 		handler.setExpectReply(this.expectReply);
-
+		if (this.appendNewLine != null) {
+			handler.setAppendNewLine(this.appendNewLine);
+		}
 		if (this.fileExistsMode != null) {
 			handler.setFileExistsMode(this.fileExistsMode);
 		}
 
 		return handler;
 	}
+	
 }

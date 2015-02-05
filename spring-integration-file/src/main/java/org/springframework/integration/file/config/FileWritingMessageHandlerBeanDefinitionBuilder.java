@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Tony Falabella
  *
  * @since 1.0.3
  */
@@ -39,7 +41,8 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 
 	static BeanDefinitionBuilder configure(Element element, boolean expectReply, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandlerFactoryBean.class);
+		BeanDefinitionBuilder builder = 
+				BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandlerFactoryBean.class);
 
 		String directory = element.getAttribute("directory");
 		String directoryExpression = element.getAttribute("directory-expression");
@@ -48,16 +51,19 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 			parserContext.getReaderContext().error("directory or directory-expression is required", element);
 		}
 		else if (StringUtils.hasText(directory) && StringUtils.hasText(directoryExpression)) {
-			parserContext.getReaderContext().error("Either directory or directory-expression must be provided but not both", element);
+			parserContext.getReaderContext()
+					.error("Either directory or directory-expression must be provided but not both", element);
 		}
 
 		if (StringUtils.hasText(directoryExpression)) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			BeanDefinitionBuilder expressionBuilder = 
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 			expressionBuilder.addConstructorArgValue(directoryExpression);
 			builder.addPropertyValue("directoryExpression", expressionBuilder.getBeanDefinition());
 		}
 
 		builder.addPropertyValue("expectReply", expectReply);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "append-new-line");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");
@@ -70,7 +76,8 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
 		if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
 			if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
-				parserContext.getReaderContext().error("at most one of 'filename-generator-expression' or 'filename-generator' " +
+				parserContext.getReaderContext()
+						.error("at most one of 'filename-generator-expression' or 'filename-generator' " +
 						"is allowed on file outbound adapter/gateway", element);
 			}
 			if (hasRemoteFileNameGenerator) {

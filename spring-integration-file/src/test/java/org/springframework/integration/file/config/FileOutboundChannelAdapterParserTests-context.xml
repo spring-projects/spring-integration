@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:file="http://www.springframework.org/schema/integration/file"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:file="http://www.springframework.org/schema/integration/file"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -28,14 +28,19 @@
 								   channel="testChannel"
 								   directory-expression="'foo/bar'"/>
 
+	<file:outbound-channel-adapter id="adapterWithAppendNewLine"
+								   channel="testChannel"
+								   append-new-line="true"
+								   directory="${java.io.tmpdir}"/>
+
 	<file:outbound-channel-adapter id="adapterWithDeleteFlag"
 								   channel="testChannel"
 								   delete-source-files="true"
 								   directory="${java.io.tmpdir}"/>
 
-    <file:outbound-channel-adapter id="adapterWithCharset"
+	<file:outbound-channel-adapter id="adapterWithCharset"
 								   channel="testChannel"
-                                   charset="UTF-8"
+								   charset="UTF-8"
 								   directory="${java.io.tmpdir}"/>
 
 	<file:outbound-channel-adapter id="adapterWithOrder"
@@ -45,12 +50,26 @@
 								   directory="${java.io.tmpdir}"/>
 
 	<file:outbound-channel-adapter id="usageChannel"
-	                               filename-generator-expression="@fooString"
+								   filename-generator-expression="@fooString"
 								   mode="APPEND"
 								   directory-expression="@barString">
 		<file:request-handler-advice-chain>
-			<bean class="org.springframework.integration.file.config.FileOutboundChannelAdapterParserTests$FooAdvice" />
+			<bean class="org.springframework.integration.file.config.FileOutboundChannelAdapterParserTests$FooAdvice"/>
 		</file:request-handler-advice-chain>
+	</file:outbound-channel-adapter>
+
+	<file:outbound-channel-adapter id="adapterUsageWithAppendAndAppendNewLineTrue"
+								   filename-generator-expression="@fooString"
+								   mode="APPEND"
+								   append-new-line="true"
+								   directory-expression="@barString">
+	</file:outbound-channel-adapter>
+
+	<file:outbound-channel-adapter id="adapterUsageWithAppendAndAppendNewLineFalse"
+								   filename-generator-expression="@fooString"
+								   mode="APPEND"
+								   append-new-line="false"
+								   directory-expression="@barString">
 	</file:outbound-channel-adapter>
 
 	<bean id="fooString" class="java.lang.String">
@@ -62,7 +81,7 @@
 	</bean>
 
 	<file:outbound-channel-adapter id="usageChannelWithFailMode"
-	                               filename-generator-expression="'fileToFail.txt'"
+								   filename-generator-expression="'fileToFail.txt'"
 								   mode="FAIL"
 								   directory="test"/>
 
@@ -75,7 +94,7 @@
 		<si:dispatcher task-executor="executor"/>
 	</si:channel>
 	<file:outbound-channel-adapter channel="usageChannelConcurrent"
-	                               filename-generator-expression="'fileToAppendConcurrent.txt'"
+								   filename-generator-expression="'fileToAppendConcurrent.txt'"
 								   mode="APPEND"
 								   directory="test"/>
 
