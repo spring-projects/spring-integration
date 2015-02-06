@@ -11,7 +11,7 @@ import java.util.UUID;
  * header map.
  *
  * @author Stuart Williams
- * @since 4.1
+ * @since 4.2
  */
 class MutableMessageHeaders extends MessageHeaders {
 
