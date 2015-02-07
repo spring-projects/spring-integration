@@ -10,7 +10,7 @@
 	<int-redis:store-inbound-channel-adapter id="listAdapter"
 											connection-factory="redisConnectionFactory"
 											key-expression="'presidents'"
-											channel="redisChannel"
+											channel="transformChannel"
 											auto-startup="false"
 											collection-type="LIST">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
@@ -19,7 +19,7 @@
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronization"
 											connection-factory="redisConnectionFactory"
 											key-expression="'presidents'"
-											channel="redisChannel"
+											channel="transformChannel"
 											auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
 			<int:transactional synchronization-factory="syncFactory"/>
@@ -41,7 +41,7 @@
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
 											redis-template="redisTemplate"
 											key-expression="'presidents'"
-											channel="redisChannel"
+											channel="transformChannel"
 											auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
 		    <int:transactional synchronization-factory="syncFactory"/>
@@ -56,7 +56,7 @@
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationBeforeCommit"
 											redis-template="redisTemplate"
 											key-expression="'presidents'"
-											channel="redisChannel"
+											channel="transformChannel"
 											auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10" error-channel="adapterErrors">
 		    <int:transactional synchronization-factory="syncFactory2"/>
@@ -80,6 +80,8 @@
 			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 		</property>
 	</bean>
+
+	<int:transformer input-channel="transformChannel" output-channel="redisChannel" expression="payload.size()"/>
 
 	<int:channel id="redisChannel">
 		<int:queue/>

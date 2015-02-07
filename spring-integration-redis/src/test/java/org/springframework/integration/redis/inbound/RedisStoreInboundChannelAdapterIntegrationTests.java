@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -59,14 +58,14 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		Message<Integer> message = (Message<Integer>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(13, message.getPayload().size());
+		assertEquals(Integer.valueOf(13), message.getPayload());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		message = (Message<Integer>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(13, message.getPayload().size());
+		assertEquals(Integer.valueOf(13), message.getPayload());
 		this.deletePresidents(jcf);
 		context.close();
 	}
@@ -85,12 +84,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		Message<Integer> message = (Message<Integer>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(13, message.getPayload().size());
+		assertEquals(Integer.valueOf(13), message.getPayload());
 
 		//poll again, should get nothing since the collection was removed during synchronization
-		message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		message = (Message<Integer>) redisChannel.receive(1000);
 		assertNull(message);
 		assertEquals(Long.valueOf(13), template.boundListOps("bar").size());
 		template.delete("bar");
@@ -149,12 +148,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		Message<Integer> message = (Message<Integer>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(13, message.getPayload().size());
+		assertEquals(Integer.valueOf(13), message.getPayload());
 
 		//poll again, should get nothing since the collection was removed during synchronization
-		message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		message = (Message<Integer>) redisChannel.receive(1000);
 		assertNull(message);
 		assertEquals(Long.valueOf(13), template.boundListOps("bar").size());
 		template.delete("bar");
@@ -239,9 +238,9 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		// get only presidents for 18th century
 		zsetAdapterWithSingleScoreAndSynchronization.start();
-		message = (Message<RedisZSet<Object>>) otherRedisChannel.receive(2000);
-		assertNotNull(message);
-		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
+		Message<Integer> sizeMessage = (Message<Integer>) otherRedisChannel.receive(2000);
+		assertNotNull(sizeMessage);
+		assertEquals(Integer.valueOf(2), sizeMessage.getPayload());
 
 		// ... however other elements are still available 13-2=11
 		zsetAdapterNoScore.start();
