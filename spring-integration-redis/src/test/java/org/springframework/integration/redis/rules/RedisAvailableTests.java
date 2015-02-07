@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ public class RedisAvailableTests {
 		ops.add("Ronald Reagan", 20);
 		ops.add("William J. Clinton", 20);
 		ops.add("Abraham Lincoln", 19);
-		ops.add("George Wahington", 18);
+		ops.add("George Washington", 18);
 	}
 
 	protected void deletePresidents(RedisConnectionFactory connectionFactory){
