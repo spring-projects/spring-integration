@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,10 +116,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.trigger, "Trigger is required");
-			Executor providedExecutor = this.taskExecutor;
-			if (providedExecutor != null) {
-				this.taskExecutor = providedExecutor;
-			}
 			if (this.taskExecutor != null) {
 				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 					if (this.errorHandler == null) {

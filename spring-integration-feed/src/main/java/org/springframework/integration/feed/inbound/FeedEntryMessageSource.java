@@ -169,7 +169,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 			this.lastTime = next.getPublishedDate().getTime();
 		}
 		else {
-			this.lastTime += 1;
+			this.lastTime += 1;//NOSONAR - single poller thread
 		}
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
 		return next;

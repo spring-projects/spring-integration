@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
@@ -80,6 +75,12 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 
 
 /**
@@ -485,7 +486,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		@Override
-		@SuppressWarnings({"unchecked", "rawtypes"})
+		@SuppressWarnings({"unchecked"})
 		public <S> S read(Class<S> clazz, DBObject source) {
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
@@ -534,8 +535,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private Map<String, Object> normalizeHeaders(Map<String, Object> headers) {
 			Map<String, Object> normalizedHeaders = new HashMap<String, Object>();
-			for (String headerName : headers.keySet()) {
-				Object headerValue = headers.get(headerName);
+			for (Entry<String, Object> entry : headers.entrySet()) {
+				String headerName = entry.getKey();
+				Object headerValue = entry.getValue();
 				if (headerValue instanceof DBObject) {
 					DBObject source = (DBObject) headerValue;
 					try {

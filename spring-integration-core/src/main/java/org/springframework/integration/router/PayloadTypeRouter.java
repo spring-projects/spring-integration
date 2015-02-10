@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,10 @@ import org.springframework.util.CollectionUtils;
 /**
  * A Message Router that resolves the {@link MessageChannel} based on the
  * {@link Message Message's} payload type.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 
@@ -102,7 +103,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 		}
 		for (Class<?> iface : type.getInterfaces()) {
 			if (iface.getName().equals(candidate)) {
-				return (level % 2 == 1) ? level + 2 : level + 1; 
+				return (level % 2 != 0) ? level + 2 : level + 1;
 			}
 			// no match at this level, continue up the hierarchy
 			for (Class<?> superInterface : iface.getInterfaces()) {

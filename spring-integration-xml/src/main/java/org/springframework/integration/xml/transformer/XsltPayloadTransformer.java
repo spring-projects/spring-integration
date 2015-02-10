@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -41,7 +42,6 @@ import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -152,6 +152,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	 *
 	 * @param resultFactory The result factory.
 	 */
+	@Override
 	public void setResultFactory(ResultFactory resultFactory) {
 		super.setResultFactory(resultFactory);
 		this.resultFactoryExplicitlySet = true;
@@ -327,8 +328,9 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		// process individual mappings
 		Transformer transformer = this.templates.newTransformer();
 		if (this.xslParameterMappings != null) {
-			for (String parameterName : this.xslParameterMappings.keySet()) {
-				Expression expression = this.xslParameterMappings.get(parameterName);
+			for (Entry<String, Expression> entry : this.xslParameterMappings.entrySet()) {
+				String parameterName = entry.getKey();
+				Expression expression = entry.getValue();
 				try {
 					Object value = expression.getValue(this.evaluationContext, message);
 					transformer.setParameter(parameterName, value);
@@ -344,11 +346,11 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			}
 		}
 		// process xslt-parameter-headers
-		MessageHeaders headers = message.getHeaders();
 		if (!ObjectUtils.isEmpty(this.xsltParamHeaders)) {
-			for (String headerName : headers.keySet()) {
+			for (Entry<String, Object> entry : message.getHeaders().entrySet()) {
+				String headerName = entry.getKey();
 				if (PatternMatchUtils.simpleMatch(this.xsltParamHeaders, headerName)) {
-					transformer.setParameter(headerName, headers.get(headerName));
+					transformer.setParameter(headerName, entry.getValue());
 				}
 			}
 		}

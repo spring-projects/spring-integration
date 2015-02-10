@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,18 +37,19 @@ import org.springframework.util.PatternMatchUtils;
  * to {@link MessageHandler}s mapped by their {@code endpoint beanName}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 @SuppressWarnings("serial")
 class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 
-	private List<Map<String, String>> idempotentEndpointsMapping;
+	private volatile List<Map<String, String>> idempotentEndpointsMapping;
 
-	private Map<String, List<String>> idempotentEndpoints;
+	private volatile Map<String, List<String>> idempotentEndpoints; // double check locking requires volatile
 
 	public void setIdempotentEndpointsMapping(List<Map<String, String>> idempotentEndpointsMapping) {
 		Assert.notEmpty(idempotentEndpointsMapping);
-		this.idempotentEndpointsMapping = idempotentEndpointsMapping;
+		this.idempotentEndpointsMapping = idempotentEndpointsMapping;//NOSONAR (inconsistent sync)
 	}
 
 	@Override
@@ -82,7 +83,7 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 	}
 
 	private void initIdempotentEndpointsIfNecessary() {
-		if (this.idempotentEndpoints == null) {
+		if (this.idempotentEndpoints == null) {//NOSONAR (inconsistent sync)
 			synchronized (this) {
 				if (this.idempotentEndpoints == null) {
 					this.idempotentEndpoints = new LinkedHashMap<String, List<String>>();

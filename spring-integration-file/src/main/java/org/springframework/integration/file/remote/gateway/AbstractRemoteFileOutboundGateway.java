@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -528,7 +528,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
 						.copyHeaders(requestMessage.getHeaders())
 						.build(), subDirectory);
-				if (path == null) {
+				if (path == null) {//NOSONAR - false positive
 					if (logger.isDebugEnabled()) {
 						logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
 					}

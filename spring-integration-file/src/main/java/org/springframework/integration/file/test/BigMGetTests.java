@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public abstract class BigMGetTests {
 		for (int i = 0; i < FILES; i++) {
 			File f = new File("/tmp/bigmget/file" + i);
 			f.createNewFile();
-			FileOutputStream fos = new FileOutputStream(f);
+			FileOutputStream fos = new FileOutputStream(f);//NOSONAR
 			fos.write(buff);
 			fos.close();
 		}

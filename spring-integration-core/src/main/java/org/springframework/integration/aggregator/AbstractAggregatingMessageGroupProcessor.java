@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ package org.springframework.integration.aggregator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Alexander Peters
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor,
@@ -84,13 +86,13 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		Map<String, Object> aggregatedHeaders = new HashMap<String, Object>();
 		Set<String> conflictKeys = new HashSet<String>();
 		for (Message<?> message : group.getMessages()) {
-			MessageHeaders currentHeaders = message.getHeaders();
-			for (String key : currentHeaders.keySet()) {
+			for (Entry<String, Object> entry : message.getHeaders().entrySet()) {
+				String key = entry.getKey();
 				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
 						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(key) || IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(key)) {
 					continue;
 				}
-				Object value = currentHeaders.get(key);
+				Object value = entry.getValue();
 				if (!aggregatedHeaders.containsKey(key)) {
 					aggregatedHeaders.put(key, value);
 				}

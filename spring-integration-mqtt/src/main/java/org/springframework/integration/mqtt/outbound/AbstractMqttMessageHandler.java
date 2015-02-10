@@ -100,7 +100,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	protected void incrementClientInstance() {
-		this.clientInstance++;
+		this.clientInstance++;//NOSONAR - false positive - called from synchronized block
 	}
 
 	@Override

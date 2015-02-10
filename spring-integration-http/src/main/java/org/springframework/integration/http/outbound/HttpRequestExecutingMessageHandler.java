@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.transform.Source;
 
@@ -556,11 +557,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<?, ?> simpleMap) {
 		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
-		for (Object key : simpleMap.keySet()) {
-			Object value = simpleMap.get(key);
+		for (Entry<?, ?> entry : simpleMap.entrySet()) {
+			Object key = entry.getKey();
+			Object value = entry.getValue();
 			if (value instanceof Object[]) {
-				Object[] valueArray = (Object[]) value;
-				value = Arrays.asList(valueArray);
+				value = Arrays.asList((Object[]) value);
 			}
 			if (value instanceof Collection) {
 				multipartValueMap.put(key, new ArrayList<Object>((Collection<?>) value));
@@ -577,8 +578,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * the Map to be multipart/form-data
 	 */
 	private boolean isMultipart(Map<String, ?> map) {
-		for (String key : map.keySet()) {
-			Object value = map.get(key);
+		for (Object value : map.values()) {
 			if (value != null) {
 				if (value.getClass().isArray()) {
 					value = CollectionUtils.arrayToList(value);

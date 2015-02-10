@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll
+ * @author Gary Russell
  * @since 2.1
  */
 public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMapper<T> {
@@ -195,8 +197,9 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	}
 
 	private void populateUserDefinedHeaders(Map<String, Object> headers, T target) {
-		for (String headerName : headers.keySet()) {
-			Object value = headers.get(headerName);
+		for (Entry<String, Object> entry : headers.entrySet()) {
+			String headerName = entry.getKey();
+			Object value = entry.getValue();
 			if (value != null && !isMessageChannel(headerName, value)) {
 				try {
 					if (!headerName.startsWith(this.standardHeaderPrefix)) {

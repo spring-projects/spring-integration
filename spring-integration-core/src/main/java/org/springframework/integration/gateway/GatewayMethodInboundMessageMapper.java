@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -203,7 +204,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 
 	private void copyHeaders(Map<?, ?> argumentValue, Map<String, Object> headers) {
-		for (Object key : argumentValue.keySet()) {
+		for (Entry<?, ?> entry : argumentValue.entrySet()) {
+			Object key = entry.getKey();
 			if (!(key instanceof String)) {
 				if (this.logger.isWarnEnabled()){
 					this.logger.warn("Invalid header name [" + key +
@@ -211,8 +213,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				}
 			}
 			else {
-				Object value = argumentValue.get(key);
-				headers.put((String) key, value);
+				headers.put((String) key, entry.getValue());
 			}
 		}
 	}

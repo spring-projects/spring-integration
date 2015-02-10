@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
  *
  * @author David Liu
  * @author Artem Bilan
+ * @author Gary Russell
  * since 4.1
  */
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
@@ -48,9 +49,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private MessageChannel outputChannel;
+	private volatile MessageChannel outputChannel;
 
-	private String outputChannelName;
+	private volatile String outputChannelName;
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -67,7 +68,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
-		this.outputChannelName = outputChannelName;
+		this.outputChannelName = outputChannelName;//NOSONAR (inconsistent sync)
 	}
 
 	/**
@@ -82,7 +83,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
+		Assert.state(!(this.outputChannelName != null && this.outputChannel != null),//NOSONAR (inconsistent sync)
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		if (getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());

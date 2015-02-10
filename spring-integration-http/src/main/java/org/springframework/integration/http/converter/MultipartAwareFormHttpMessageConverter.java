@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -42,6 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
  * <code>multipart/form-data</code> content in an HTTP request.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
@@ -112,11 +114,10 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) throws IOException {
 		MultiValueMap<String, Object> resultMap = new LinkedMultiValueMap<String, Object>();
 		Map<?, ?> parameterMap = multipartRequest.getParameterMap();
-		for (Object key : parameterMap.keySet()) {
-			resultMap.add((String) key, parameterMap.get(key));
+		for (Entry<?, ?> entry : parameterMap.entrySet()) {
+			resultMap.add((String) entry.getKey(), entry.getValue());
 		}
-		Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
-		for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
+		for (Map.Entry<String, MultipartFile> entry : multipartRequest.getFileMap().entrySet()) {
 			MultipartFile multipartFile = entry.getValue();
 			if (multipartFile.isEmpty()) {
 				continue;

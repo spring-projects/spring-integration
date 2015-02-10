@@ -16,7 +16,6 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -167,13 +166,11 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	@Override
 	public void stop() {
 		this.running = false;
-		if (this.synchronizer instanceof Closeable) {
-			try {
-				((Closeable) this.synchronizer).close();
-			}
-			catch (IOException e) {
-				logger.error("Error closing synchronizer", e);
-			}
+		try {
+			this.synchronizer.close();
+		}
+		catch (IOException e) {
+			logger.error("Error closing synchronizer", e);
 		}
 	}
 

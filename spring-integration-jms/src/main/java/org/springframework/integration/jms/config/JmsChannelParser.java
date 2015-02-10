@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 		String prefetch = element.getAttribute("prefetch");
 		if (StringUtils.hasText(prefetch)) {
 			if (containerType.startsWith("default")) {
-				builder.addPropertyValue("maxMessagesPerTask", new Integer(prefetch));
+				builder.addPropertyValue("maxMessagesPerTask", Integer.valueOf(prefetch));
 			}
 		}
 		return builder;

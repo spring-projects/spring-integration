@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -32,10 +31,11 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware {
 
-	private final MessageProcessor<?> processor;
+	private final MethodInvokingMessageProcessor<?> processor;
 
 	public MethodInvokingCorrelationStrategy(Object object, String methodName) {
 		this.processor = new MethodInvokingMessageProcessor<Object>(object, methodName, true);
@@ -50,8 +50,8 @@ public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, B
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (beanFactory != null && this.processor instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.processor).setBeanFactory(beanFactory);
+		if (beanFactory != null) {
+			this.processor.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -59,4 +59,5 @@ public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, B
 	public Object getCorrelationKey(Message<?> message) {
 		return processor.processMessage(message);
 	}
+
 }

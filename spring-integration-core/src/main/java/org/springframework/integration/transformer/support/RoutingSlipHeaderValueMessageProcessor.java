@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * with the {@code path} as {@code key} and {@code 0} as initial {@code routingSlipIndex}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class RoutingSlipHeaderValueMessageProcessor
@@ -74,17 +75,21 @@ public class RoutingSlipHeaderValueMessageProcessor
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.beanFactory = beanFactory;
-		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);
+		this.beanFactory = beanFactory;//NOSONAR (inconsistent sync)
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);//NOSONAR (inconsistent sync)
 	}
 
 	@Override
 	public Map<List<Object>, Integer> processMessage(Message<?> message) {
-		if (this.routingSlip == null) {
+		// use a local variable to avoid the second access to volatile field on the happy path
+		Map<List<Object>, Integer> routingSlip = this.routingSlip;
+		if (routingSlip == null) {
 			synchronized (this) {
-				if (this.routingSlip == null) {
-					List<Object> routingSlipValues = new ArrayList<Object>(this.routingSlipPath.size());
-					for (Object path : this.routingSlipPath) {
+				routingSlip = this.routingSlip;
+				if (routingSlip == null) {
+					List<Object> routingSlipPath = this.routingSlipPath;
+					List<Object> routingSlipValues = new ArrayList<Object>(routingSlipPath.size());
+					for (Object path : routingSlipPath) {
 						if (path instanceof String) {
 							String entry = (String) path;
 							if (this.beanFactory.containsBean(entry)) {
@@ -108,10 +113,11 @@ public class RoutingSlipHeaderValueMessageProcessor
 						}
 
 					}
-					this.routingSlip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
+					routingSlip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
+					this.routingSlip = routingSlip;
 				}
 			}
 		}
-		return this.routingSlip;
+		return routingSlip;
 	}
 }

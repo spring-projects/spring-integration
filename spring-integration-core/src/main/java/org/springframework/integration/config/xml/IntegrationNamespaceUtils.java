@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -300,8 +300,7 @@ public abstract class IntegrationNamespaceUtils {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (StringUtils.hasText(ref) && innerComponentDefinition != null) {
 			parserContext.getReaderContext().error(
-				"Ambiguous definition. Inner bean " + (innerComponentDefinition == null ? innerComponentDefinition
-						: innerComponentDefinition.getBeanDefinition().getBeanClassName())
+				"Ambiguous definition. Inner bean " + (innerComponentDefinition.getBeanDefinition().getBeanClassName())
 						+ " declaration and \"ref\" " + ref + " are not allowed together on element " +
 					IntegrationNamespaceUtils.createElementDescription(element) + ".", parserContext.extractSource(element));
 		}

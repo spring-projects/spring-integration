@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ package org.springframework.integration.transformer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -50,6 +51,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?,?>> {
@@ -104,9 +106,8 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		if (StringUtils.hasText(propertyPrefix)) {
 			propertyPrefix = propertyPrefix + ".";
 		}
-		for (String key : inputMap.keySet()) {
-			Object value = inputMap.get(key);
-			this.doProcessElement(propertyPrefix + key, value, resultMap);
+		for (Entry<String, Object> entry : inputMap.entrySet()) {
+			this.doProcessElement(propertyPrefix + entry.getKey(), entry.getValue(), resultMap);
 		}
 	}
 

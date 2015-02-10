@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -139,11 +139,11 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 					logger.info("failed to set JMSType, skipping", e);
 				}
 			}
-			Set<String> headerNames = headers.keySet();
-			for (String headerName : headerNames) {
+			for (Entry<String, Object> entry : headers.entrySet()) {
+				String headerName = entry.getKey();
 				if (StringUtils.hasText(headerName) && !headerName.startsWith(JmsHeaders.PREFIX)
 						&& jmsMessage.getObjectProperty(headerName) == null) {
-					Object value = headers.get(headerName);
+					Object value = entry.getValue();
 					if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
 						try {
 							String propertyName = this.fromHeaderName(headerName);

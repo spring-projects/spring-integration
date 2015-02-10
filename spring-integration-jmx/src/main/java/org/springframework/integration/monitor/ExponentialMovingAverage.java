@@ -76,7 +76,7 @@ public class ExponentialMovingAverage {
 		sum = decay * sum + value;
 		sumSquares = decay * sumSquares + value * value;
 		weight = decay * weight + 1;
-		count++;
+		count++;//NOSONAR - false positive, we're synchronized
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -308,7 +309,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
 		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
 		this.outboundHeaderNamesLower = new String[this.outboundHeaderNames.length];
-		for (int i = 0; i < outboundHeaderNames.length; i++) {
+		for (int i = 0; i < this.outboundHeaderNames.length; i++) {
 			if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(this.outboundHeaderNames[i])
 					|| HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(this.outboundHeaderNames[i])) {
 				this.outboundHeaderNamesLower[i] = this.outboundHeaderNames[i];
@@ -335,7 +336,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
 		this.inboundHeaderNamesLower = new String[this.inboundHeaderNames.length];
-		for (int i = 0; i < inboundHeaderNames.length; i++) {
+		for (int i = 0; i < this.inboundHeaderNames.length; i++) {
 			if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(this.inboundHeaderNames[i])
 					|| HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(this.inboundHeaderNames[i])) {
 				this.inboundHeaderNamesLower[i] = this.inboundHeaderNames[i];
@@ -387,11 +388,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			logger.debug(MessageFormat.format("outboundHeaderNames={0}",
 					CollectionUtils.arrayToList(outboundHeaderNames)));
 		}
-		Set<String> headerNames = headers.keySet();
-		for (String name : headerNames) {
+		for (Entry<String, Object> entry : headers.entrySet()) {
+			String name = entry.getKey();
 			String lowerName = name.toLowerCase();
 			if (this.shouldMapOutboundHeader(lowerName)) {
-				Object value = headers.get(name);
+				Object value = entry.getValue();
 				if (value != null) {
 					if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName) &&
 							!HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName) &&
