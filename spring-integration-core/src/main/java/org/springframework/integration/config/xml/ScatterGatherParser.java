@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.ScatterGatherHandler;
+import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;

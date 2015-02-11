@@ -25,11 +25,19 @@
 		<section id="4.2-file-outbound-channel-adapter">
 			<title>File Outbound Channel Adapter</title>
 			<para>
-				The <code>&lt;int-file:outbound-channel-adapter&gt;</code> and 
+				The <code>&lt;int-file:outbound-channel-adapter&gt;</code> and
 				<code>&lt;int-file:outbound-gateway&gt;</code> now support an <code>append-new-line</code> attribute.
-				If set to <code>true</code>, a new line is appended to the file after a message is written.  
+				If set to <code>true</code>, a new line is appended to the file after a message is written.
 				The default attribute value is <code>false</code>.
 			</para>
-		</section>		
+		</section>
+		<section>
+			<title>Class Package Change</title>
+			<para>
+				The <classname>ScatterGatherHandler</classname> class has been moved from the
+				<code>org.springframework.integration.handler</code> to the
+				<code>org.springframework.integration.scattergather</code>.
+			</para>
+		</section>
 	</section>
 </chapter>
