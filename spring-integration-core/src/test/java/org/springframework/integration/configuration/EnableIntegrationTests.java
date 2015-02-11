@@ -42,7 +42,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.intercept.MethodInterceptor;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.hamcrest.Matchers;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -255,6 +259,19 @@ public class EnableIntegrationTests {
 	@Autowired
 	private MessageChannel controlBusChannel;
 
+	private static Level existingLogLevel;
+
+	// The temporal hooks to investigate CI failures
+	@BeforeClass
+	public static void setup() {
+		existingLogLevel = LogManager.getLogger("org.springframework.integration").getLevel();
+		LogManager.getLogger("org.springframework.integration").setLevel(Level.DEBUG);
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		LogManager.getLogger("org.springframework.integration").setLevel(existingLogLevel);
+	}
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -296,6 +313,9 @@ public class EnableIntegrationTests {
 		assertEquals(10L, TestUtils.getPropertyValue(trigger, "period"));
 		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
 
+		// Markers to investigate the failures on CI
+		System.out.println("----SEND Message to 'input' channel----");
+
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(10000);
@@ -314,7 +334,10 @@ public class EnableIntegrationTests {
 				Matchers.containsString("annotationTestService.handle.serviceActivator.handler"));
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
 
-		receive = this.publishedChannel.receive(1000);
+		receive = this.publishedChannel.receive(10000);
+
+		System.out.println("----RECEIVE Message from 'publishedChannel' channel----" + receive);
+
 		assertNotNull(receive);
 		assertEquals("foo", receive.getPayload());
 
@@ -694,7 +717,10 @@ public class EnableIntegrationTests {
 						@Override
 						public Message<?> preSend(Message<?> message, MessageChannel channel) {
 							fbInterceptorCounter().incrementAndGet();
-							return super.preSend(message, channel);
+							Message<?> message1 = super.preSend(message, channel);
+							System.out.println("!!!!'ciFactoryBean': the result of 'preSend' on '" + channel + "' '" +
+									message1 + "'");
+							return message1;
 						}
 					};
 				}
@@ -806,6 +832,8 @@ public class EnableIntegrationTests {
 		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			this.invoked.incrementAndGet();
+			System.out.println("!!!!'TestChannelInterceptor': the result of 'preSend' on '" + channel + "' '" +
+					message + "'");
 			return message;
 		}
 
