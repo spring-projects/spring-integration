@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		this.name = name;
 	}
 
+	@Override
 	public String getName() {
 		return this.name;
 	}
@@ -72,6 +73,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		this.source = source;
 	}
 
+	@Override
 	public String getSource() {
 		return this.source;
 	}
@@ -80,6 +82,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		return this.handler;
 	}
 
+	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		String method = invocation.getMethod().getName();
 		if ("handleMessage".equals(method)) {
@@ -109,7 +112,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 			timer.stop();
 			this.duration.append(timer.getTotalTimeMillis());
 		}
-		catch (Throwable e) {
+		catch (Throwable e) {//NOSONAR - rethrown below
 			this.errorCount.incrementAndGet();
 			throw e;
 		}
@@ -118,12 +121,14 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		}
 	}
 
+	@Override
 	public synchronized void reset() {
 		this.duration.reset();
 		this.errorCount.set(0);
 		this.handleCount.set(0);
 	}
 
+	@Override
 	public long getHandleCountLong() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
@@ -131,42 +136,52 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		return this.handleCount.get();
 	}
 
+	@Override
 	public int getHandleCount() {
 		return (int) getHandleCountLong();
 	}
 
+	@Override
 	public int getErrorCount() {
 		return (int) this.errorCount.get();
 	}
 
+	@Override
 	public long getErrorCountLong() {
 		return this.errorCount.get();
 	}
 
+	@Override
 	public double getMeanDuration() {
 		return this.duration.getMean();
 	}
 
+	@Override
 	public double getMinDuration() {
 		return this.duration.getMin();
 	}
 
+	@Override
 	public double getMaxDuration() {
 		return this.duration.getMax();
 	}
 
+	@Override
 	public double getStandardDeviationDuration() {
 		return this.duration.getStandardDeviation();
 	}
 
+	@Override
 	public int getActiveCount() {
 		return (int) this.activeCount.get();
 	}
 
+	@Override
 	public long getActiveCountLong() {
 		return this.activeCount.get();
 	}
 
+	@Override
 	public Statistics getDuration() {
 		return this.duration.getStatistics();
 	}

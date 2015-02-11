@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,14 +34,15 @@ public class TcpDeserializationExceptionEvent extends IpIntegrationEvent {
 
 	private final int offset;
 
-	public TcpDeserializationExceptionEvent(Object source, Throwable cause, byte[] buffer, int offset) {
+	public TcpDeserializationExceptionEvent(Object source, Throwable cause, byte[] buffer,//NOSONAR - direct storage
+			int offset) {
 		super(source, cause);
-		this.buffer = buffer;
+		this.buffer = buffer;//NOSONAR - direct storage
 		this.offset = offset;
 	}
 
 	public byte[] getBuffer() {
-		return buffer;
+		return buffer;//NOSONAR - direct access
 	}
 
 	public int getOffset() {

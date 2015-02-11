@@ -29,11 +29,6 @@ import java.util.concurrent.Future;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
-import reactor.core.Environment;
-import reactor.core.composable.Promise;
-import reactor.core.composable.spec.Promises;
-import reactor.function.Functions;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -67,6 +62,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+
+import reactor.core.Environment;
+import reactor.core.composable.Promise;
+import reactor.core.composable.spec.Promises;
+import reactor.function.Functions;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -373,7 +373,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		try {
 			return this.invokeGatewayMethod(invocation);
 		}
-		catch (Throwable e) {
+		catch (Throwable e) {//NOSONAR - ok to catch, rethrown below
 			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
 			return null; // preceding call should always throw something
 		}
@@ -638,7 +638,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			try {
 				return doInvoke(this.invocation);
 			}
-			catch (Throwable t) {
+			catch (Error e) {//NOSONAR
+				throw e;
+			}
+			catch (Throwable t) {//NOSONAR
 				if (t instanceof RuntimeException) {
 					throw (RuntimeException) t;
 				}

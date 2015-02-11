@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -85,6 +86,34 @@ public class AsyncGatewayTests {
 		assertTrue(elapsed >= 200);
 		assertTrue(result instanceof Message<?>);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
+	}
+
+	@Test
+	public void futureWithError() throws Exception {
+		final Error error = new Error("error");
+		DirectChannel channel = new DirectChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				throw error;
+			}
+
+		};
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(channel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Future<Message<?>> f = service.returnMessage("foo");
+		try {
+			f.get(1000, TimeUnit.MILLISECONDS);
+			fail("Expected Exception");
+		}
+		catch (ExecutionException e) {
+			assertEquals(error, e.getCause());
+		}
 	}
 
 	@Test

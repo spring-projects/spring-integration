@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,10 @@ import org.springframework.util.ErrorHandler;
  * A {@link TaskExecutor} implementation that wraps an existing Executor
  * instance in order to catch any exceptions. If an exception is thrown, it
  * will be handled by the provided {@link ErrorHandler}.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ErrorHandlingTaskExecutor implements TaskExecutor {
 
@@ -45,13 +46,15 @@ public class ErrorHandlingTaskExecutor implements TaskExecutor {
 	}
 
 
+	@Override
 	public void execute(final Runnable task) {
 		this.executor.execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					task.run();
 				}
-				catch (Throwable t) {
+				catch (Throwable t) {//NOSONAR
 					errorHandler.handleError(t);
 				}
 			}

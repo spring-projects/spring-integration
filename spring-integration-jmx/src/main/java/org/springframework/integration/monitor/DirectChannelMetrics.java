@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -31,6 +31,7 @@ import org.springframework.util.StopWatch;
  *
  * @author Dave Syer
  * @author Helena Edelson
+ * @author Gary Russell
  * @since 2.0
  */
 @ManagedResource
@@ -45,7 +46,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
 
-	private ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
+	private final ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
 			DEFAULT_MOVING_AVERAGE_WINDOW);
 
 	private final ExponentialMovingAverageRate sendErrorRate = new ExponentialMovingAverageRate(
@@ -86,6 +87,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		return name;
 	}
 
+	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		String method = invocation.getMethod().getName();
 		MessageChannel channel = (MessageChannel) invocation.getThis();
@@ -125,7 +127,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 			}
 			return result;
 		}
-		catch (Throwable e) {
+		catch (Throwable e) {//NOSONAR - rethrown below
 			sendSuccessRatio.failure();
 			sendErrorCount.incrementAndGet();
 			sendErrorRate.increment();
@@ -138,6 +140,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		}
 	}
 
+	@Override
 	public synchronized void reset() {
 		sendDuration.reset();
 		sendErrorRate.reset();
@@ -147,62 +150,77 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		sendErrorCount.set(0);
 	}
 
+	@Override
 	public int getSendCount() {
 		return (int) sendCount.get();
 	}
 
+	@Override
 	public long getSendCountLong() {
 		return sendCount.get();
 	}
 
+	@Override
 	public int getSendErrorCount() {
 		return (int) sendErrorCount.get();
 	}
 
+	@Override
 	public long getSendErrorCountLong() {
 		return sendErrorCount.get();
 	}
 
+	@Override
 	public double getTimeSinceLastSend() {
 		return sendRate.getTimeSinceLastMeasurement();
 	}
 
+	@Override
 	public double getMeanSendRate() {
 		return sendRate.getMean();
 	}
 
+	@Override
 	public double getMeanErrorRate() {
 		return sendErrorRate.getMean();
 	}
 
+	@Override
 	public double getMeanErrorRatio() {
 		return 1 - sendSuccessRatio.getMean();
 	}
 
+	@Override
 	public double getMeanSendDuration() {
 		return sendDuration.getMean();
 	}
 
+	@Override
 	public double getMinSendDuration() {
 		return sendDuration.getMin();
 	}
 
+	@Override
 	public double getMaxSendDuration() {
 		return sendDuration.getMax();
 	}
 
+	@Override
 	public double getStandardDeviationSendDuration() {
 		return sendDuration.getStandardDeviation();
 	}
 
+	@Override
 	public Statistics getSendDuration() {
 		return sendDuration.getStatistics();
 	}
 
+	@Override
 	public Statistics getSendRate() {
 		return sendRate.getStatistics();
 	}
 
+	@Override
 	public Statistics getErrorRate() {
 		return sendErrorRate.getStatistics();
 	}

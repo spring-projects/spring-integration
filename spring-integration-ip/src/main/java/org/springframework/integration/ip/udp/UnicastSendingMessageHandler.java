@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2013 the original author or authors.
+ * Copyright 2001-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,6 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile Map<String, CountDownLatch> ackControl = Collections
 			.synchronizedMap(new HashMap<String, CountDownLatch>());
-
-	private volatile Exception fatalException;
 
 	private volatile int soReceiveBufferSize = -1;
 
@@ -224,9 +222,6 @@ public class UnicastSendingMessageHandler extends
 		try {
 			DatagramPacket packet;
 			if (this.waitForAck) {
-				if (this.fatalException != null) {
-					throw new MessagingException(message, "Acknowledgment failure", fatalException);
-				}
 				countdownLatch = new CountDownLatch(ackCounter);
 				this.ackControl.put(messageId, countdownLatch);
 			}
@@ -402,10 +397,6 @@ public class UnicastSendingMessageHandler extends
 	 * (bind) error occurred, without bouncing the JVM.
 	 */
 	public void restartAckThread() {
-		if (fatalException == null) {
-			return;
-		}
-		this.fatalException = null;
 		this.taskExecutor.execute(this);
 	}
 

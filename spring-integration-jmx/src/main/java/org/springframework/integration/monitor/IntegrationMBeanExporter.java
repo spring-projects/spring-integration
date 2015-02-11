@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@
 package org.springframework.integration.monitor;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -210,7 +211,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
 		Assert.notEmpty(componentNamePatterns, "componentNamePatterns must not be empty");
-		this.componentNamePatterns = componentNamePatterns;
+		this.componentNamePatterns = Arrays.copyOf(componentNamePatterns, componentNamePatterns.length);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.mqtt.core;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import javax.net.SocketFactory;
@@ -104,7 +105,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	 * @since 4.1
 	 */
 	public void setServerURIs(String[] serverURIs) {
-		this.serverURIs = serverURIs;
+		this.serverURIs = Arrays.copyOf(serverURIs, serverURIs.length);
 	}
 
 	@Override
@@ -162,9 +163,9 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 		private final boolean retained;
 
-		public Will(String topic, byte[] payload, int qos, boolean retained) {
+		public Will(String topic, byte[] payload, int qos, boolean retained) {//NOSONAR
 			this.topic = topic;
-			this.payload = payload;
+			this.payload = payload;//NOSONAR
 			this.qos = qos;
 			this.retained = retained;
 		}
@@ -174,7 +175,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		}
 
 		protected byte[] getPayload() {
-			return payload;
+			return payload;//NOSONAR
 		}
 
 		protected int getQos() {

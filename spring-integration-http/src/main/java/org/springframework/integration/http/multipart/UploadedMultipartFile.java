@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,8 @@ public class UploadedMultipartFile implements MultipartFile {
 	private final String originalFilename;
 
 
-	public UploadedMultipartFile(File file, long size, String contentType, String formParameterName, String originalFilename) {
+	public UploadedMultipartFile(File file, long size, String contentType, String formParameterName,
+			String originalFilename) {
 		Assert.notNull(file, "file must not be null");
 		Assert.hasText(contentType, "contentType is required");
 		Assert.hasText(formParameterName, "formParameterName is required");
@@ -63,12 +64,13 @@ public class UploadedMultipartFile implements MultipartFile {
 		this.originalFilename = originalFilename;
 	}
 
-	public UploadedMultipartFile(byte[] bytes, String contentType, String formParameterName, String originalFilename) {
+	public UploadedMultipartFile(byte[] bytes, String contentType, String formParameterName,//NOSONAR - direct storage
+			String originalFilename) {
 		Assert.notNull(bytes, "bytes must not be null");
 		Assert.hasText(contentType, "contentType is required");
 		Assert.hasText(formParameterName, "formParameterName is required");
 		Assert.hasText(originalFilename, "originalFilename is required");
-		this.bytes = bytes;
+		this.bytes = bytes;//NOSONAR - direct storage
 		this.size = bytes.length;
 		this.file = null;
 		this.contentType = contentType;
@@ -77,21 +79,25 @@ public class UploadedMultipartFile implements MultipartFile {
 	}
 
 
+	@Override
 	public String getName() {
 		return this.formParameterName;
 	}
 
+	@Override
 	public byte[] getBytes() throws IOException {
 		if (this.bytes != null) {
-			return this.bytes;
+			return this.bytes;//NOSONAR - direct access
 		}
 		return FileCopyUtils.copyToByteArray(this.file);
 	}
 
+	@Override
 	public String getContentType() {
 		return this.contentType;
 	}
 
+	@Override
 	public InputStream getInputStream() throws IOException {
 		if (this.bytes != null) {
 			return new ByteArrayInputStream(this.bytes);
@@ -99,18 +105,22 @@ public class UploadedMultipartFile implements MultipartFile {
 		return new BufferedInputStream(new FileInputStream(this.file));
 	}
 
+	@Override
 	public String getOriginalFilename() {
 		return this.originalFilename;
 	}
 
+	@Override
 	public long getSize() {
 		return this.size;
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return this.size == 0;
 	}
 
+	@Override
 	public void transferTo(File dest) throws IOException, IllegalStateException {
 		if (this.bytes != null) {
 			FileCopyUtils.copy(this.bytes, dest);

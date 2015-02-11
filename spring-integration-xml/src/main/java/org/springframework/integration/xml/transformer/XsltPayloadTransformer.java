@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -181,7 +182,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	}
 
 	public void setXsltParamHeaders(String[] xsltParamHeaders) {
-		this.xsltParamHeaders = xsltParamHeaders;
+		this.xsltParamHeaders = Arrays.copyOf(xsltParamHeaders, xsltParamHeaders.length);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import java.util.Arrays;
+
 import org.springframework.core.Ordered;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
@@ -23,6 +25,7 @@ import org.springframework.util.Assert;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class GlobalChannelInterceptorWrapper implements Ordered {
@@ -59,7 +62,7 @@ public class GlobalChannelInterceptorWrapper implements Ordered {
 	}
 
 	public void setPatterns(String[] patterns) {
-		this.patterns = patterns;
+		this.patterns = Arrays.copyOf(patterns, patterns.length);
 	}
 
 	public String[] getPatterns() {

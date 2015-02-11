@@ -142,7 +142,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 			context.setVariable(PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME, returnValue);
 			return returnValue;
 		}
-		catch (Throwable t) {
+		catch (Throwable t) {//NOSONAR - rethrown below
 			context.setVariable(PublisherMetadataSource.EXCEPTION_VARIABLE_NAME, t);
 			throw t;
 		}

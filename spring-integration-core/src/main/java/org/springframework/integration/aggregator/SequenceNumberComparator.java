@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -31,10 +31,11 @@ public class SequenceNumberComparator implements Comparator<Message<?>> {
 	 * doesn't then the numbered message comes first, or finally of neither has a sequence number then they are equal in
 	 * rank.
 	 */
+	@Override
 	public int compare(Message<?> o1, Message<?> o2) {
 		Integer sequenceNumber1 = new IntegrationMessageHeaderAccessor(o1).getSequenceNumber();
 		Integer sequenceNumber2 = new IntegrationMessageHeaderAccessor(o2).getSequenceNumber();
-		if (sequenceNumber1 == sequenceNumber2) {
+		if (sequenceNumber1 == sequenceNumber2) {//NOSONAR - early exit optimization
 			return 0;
 		}
 		if (sequenceNumber1 == null) {

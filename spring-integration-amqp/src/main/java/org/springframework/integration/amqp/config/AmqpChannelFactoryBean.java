@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -239,7 +240,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	public void setAdviceChain(Advice[] adviceChain) {
-		this.adviceChain = adviceChain;
+		this.adviceChain = Arrays.copyOf(adviceChain, adviceChain.length);
 	}
 
 	public void setAutoStartup(boolean autoStartup) {

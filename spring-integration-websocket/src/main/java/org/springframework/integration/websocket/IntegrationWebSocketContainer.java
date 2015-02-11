@@ -123,16 +123,20 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	@Override
 	public void destroy() throws Exception {
-		// Notify sessions to stop flushing messages
-		for (WebSocketSession session : this.sessions.values()) {
-			try {
-				session.close(CloseStatus.GOING_AWAY);
-			}
-			catch (Throwable t) {
-				logger.error("Failed to close session id '" + session.getId() + "': " + t.getMessage());
+		try {
+			// Notify sessions to stop flushing messages
+			for (WebSocketSession session : this.sessions.values()) {
+				try {
+					session.close(CloseStatus.GOING_AWAY);
+				}
+				catch (Exception e) {
+					logger.error("Failed to close session id '" + session.getId() + "': " + e.getMessage());
+				}
 			}
 		}
-		this.sessions.clear();
+		finally {
+			this.sessions.clear();
+		}
 	}
 
 	/**

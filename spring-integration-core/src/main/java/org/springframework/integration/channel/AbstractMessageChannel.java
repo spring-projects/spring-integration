@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -396,7 +396,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				try {
 					interceptor.afterSendCompletion(message, channel, sent, ex);
 				}
-				catch (Throwable ex2) {
+				catch (Exception ex2) {
 					logger.error("Exception from afterSendCompletion in " + interceptor, ex2);
 				}
 			}
@@ -443,7 +443,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				try {
 					interceptor.afterReceiveCompletion(message, channel, ex);
 				}
-				catch (Throwable ex2) {
+				catch (Exception ex2) {
 					logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
 				}
 			}

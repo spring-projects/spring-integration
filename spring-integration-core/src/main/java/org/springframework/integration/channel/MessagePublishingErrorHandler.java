@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		this.sendTimeout = sendTimeout;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		if (this.channelResolver == null) {
@@ -74,6 +75,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		}
 	}
 
+	@Override
 	public final void handleError(Throwable t) {
 		MessageChannel errorChannel = this.resolveErrorChannel(t);
 		boolean sent = false;
@@ -86,9 +88,13 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 					sent = errorChannel.send(new ErrorMessage(t));
 				}
 			}
-			catch (Throwable errorDeliveryError) { // message will be logged only
+			catch (Throwable errorDeliveryError) {//NOSONAR
+				// message will be logged only
 				if (logger.isWarnEnabled()) {
 					logger.warn("Error message was not delivered.", errorDeliveryError);
+				}
+				if (errorDeliveryError instanceof Error) {
+					throw ((Error) errorDeliveryError);
 				}
 			}
 		}
