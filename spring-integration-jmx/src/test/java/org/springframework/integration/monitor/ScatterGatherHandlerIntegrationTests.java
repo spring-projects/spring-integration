@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-import javax.management.MBeanServer;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -48,7 +46,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.handler.ScatterGatherHandler;
+import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.store.SimpleMessageStore;
