@@ -134,6 +134,9 @@ public class StompIntegrationTests {
 		Message<Integer> message2 = MessageBuilder.withPayload(5).setHeaders(headers).build();
 
 		this.webSocketOutputChannel.send(message);
+
+		waitForSubscribe();
+
 		this.webSocketOutputChannel.send(message2);
 
 		Message<?> receive = webSocketInputChannel.receive(10000);
@@ -157,6 +160,9 @@ public class StompIntegrationTests {
 		Message<Integer> message2 = MessageBuilder.withPayload(10).setHeaders(headers).build();
 
 		this.webSocketOutputChannel.send(message);
+
+		waitForSubscribe();
+
 		this.webSocketOutputChannel.send(message2);
 
 		Message<?> receive = webSocketInputChannel.receive(10000);
@@ -209,22 +215,7 @@ public class StompIntegrationTests {
 
 		this.webSocketOutputChannel.send(message);
 
-		SimpleBrokerMessageHandler serverBrokerMessageHandler =
-				this.serverContext.getBean("simpleBrokerMessageHandler", SimpleBrokerMessageHandler.class);
-
-		SubscriptionRegistry subscriptionRegistry = serverBrokerMessageHandler.getSubscriptionRegistry();
-
-		@SuppressWarnings("rawtypes")
-		Map subscriptions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
-
-		int n = 0;
-
-		while (subscriptions.isEmpty() && n++ < 100) {
-			Thread.sleep(100);
-			subscriptions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
-		}
-
-		assertTrue("The subscription for the 'user/queue/error' hasn't been registered", n < 100);
+		waitForSubscribe();
 
 		this.webSocketOutputChannel.send(message2);
 
@@ -256,11 +247,33 @@ public class StompIntegrationTests {
 		Message<String> message2 = MessageBuilder.withPayload("Bob").setHeaders(headers).build();
 
 		this.webSocketOutputChannel.send(message);
+
+		waitForSubscribe();
+
 		this.webSocketOutputChannel.send(message2);
 
 		Message<?> receive = webSocketInputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("Hello Bob", receive.getPayload());
+	}
+
+	private void waitForSubscribe() throws InterruptedException {
+		SimpleBrokerMessageHandler serverBrokerMessageHandler =
+				this.serverContext.getBean("simpleBrokerMessageHandler", SimpleBrokerMessageHandler.class);
+
+		SubscriptionRegistry subscriptionRegistry = serverBrokerMessageHandler.getSubscriptionRegistry();
+
+		@SuppressWarnings("rawtypes")
+		Map subscriptions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
+
+		int n = 0;
+
+		while (subscriptions.isEmpty() && n++ < 100) {
+			Thread.sleep(100);
+			subscriptions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
+		}
+
+		assertTrue("The subscription for the 'user/queue/error' hasn't been registered", n < 100);
 	}
 
 
