@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -40,22 +44,36 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class InterceptedSharedConnectionTests {
-	
+
 	@Autowired
 	AbstractApplicationContext ctx;
-	
+
 	@Autowired
 	@Qualifier(value="inboundServer")
 	TcpReceivingChannelAdapter listener;
-	
+
+	private static Level existingLogLevel;
+
+	// temporary hooks to investigate CI failures
+	@BeforeClass
+	public static void setup() {
+		existingLogLevel = LogManager.getLogger("org.springframework.integration").getLevel();
+		LogManager.getLogger("org.springframework.integration").setLevel(Level.DEBUG);
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		LogManager.getLogger("org.springframework.integration").setLevel(existingLogLevel);
+	}
+
 	/**
 	 * Tests a loopback. The client-side outbound adapter sends a message over
-	 * a connection from the client connection factory; the server side 
+	 * a connection from the client connection factory; the server side
 	 * receives the message, puts in on a channel which is the input channel
-	 * for the outbound adapter that's sharing the connections. The response 
-	 * comes back to an inbound adapter that is sharing the client's 
+	 * for the outbound adapter that's sharing the connections. The response
+	 * comes back to an inbound adapter that is sharing the client's
 	 * connection and we verify we get the echo back as expected.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
