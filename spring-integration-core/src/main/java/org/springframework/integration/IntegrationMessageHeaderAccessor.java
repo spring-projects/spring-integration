@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,12 +45,6 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public static final String SEQUENCE_SIZE = "sequenceSize";
 
 	public static final String SEQUENCE_DETAILS = "sequenceDetails";
-
-	/**
-	 * @deprecated Not used; will be removed in 4.2.
-	 */
-	@Deprecated
-	public static final String POSTPROCESS_RESULT = "postProcessResult";
 
 	public static final String ROUTING_SLIP = "routingSlip";
 
