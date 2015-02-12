@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  *
  */
 public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
-		implements HeaderChannelRegistry, SmartLifecycle, Runnable {
+		implements HeaderChannelRegistry, Lifecycle, Runnable {
 
 	private static final int DEFAULT_REAPER_DELAY = 60000;
 
@@ -62,10 +62,6 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	private volatile ScheduledFuture<?> reaperScheduledFuture;
 
 	private volatile boolean running;
-
-	private volatile int phase;
-
-	private volatile boolean autoStartup = false;
 
 	private volatile boolean explicitlyStopped;
 
@@ -113,42 +109,6 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		super.setTaskScheduler(taskScheduler);
 	}
 
-	/**
-	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
-	 */
-	@Deprecated
-	@Override
-	public int getPhase() {
-		return this.phase;
-	}
-
-	/**
-	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
-	 * @param phase - the phase to set.
-	 */
-	@Deprecated
-	public final void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	/**
-	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
-	 */
-	@Deprecated
-	@Override
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	/**
-	 * @deprecated - this class will not implement {@link SmartLifecycle} in 4.2, just {@code Lifecycle}.
-	 * @param autoStartup the boolean flag to specify {@code autoStartup} behaviour.
-	 */
-	@Deprecated
-	public final void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
 	@Override
 	public final int size() {
 		return this.channels.size();
@@ -179,7 +139,6 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		this.explicitlyStopped = true;
 	}
 
-	@Override
 	public void stop(Runnable callback) {
 		this.stop();
 		callback.run();
@@ -236,17 +195,15 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	 * Cancel the scheduled reap task and run immediately; then reschedule.
 	 */
 	@Override
-	public void runReaper() {
-		synchronized(this) {
-			this.reaperScheduledFuture.cancel(false);
-			this.reaperScheduledFuture = null;
+	public synchronized void runReaper() {
+		if (this.reaperScheduledFuture != null) {
+			this.reaperScheduledFuture.cancel(true);
 		}
 		this.run();
 	}
 
 	@Override
-	public void run() {
-		this.reaperScheduledFuture = null;
+	public synchronized void run() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Reaper started; channels size=" + this.channels.size());
 		}
@@ -261,12 +218,8 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 				iterator.remove();
 			}
 		}
-		synchronized (this) {
-			if (this.reaperScheduledFuture == null) {
-				this.reaperScheduledFuture = this.getTaskScheduler().schedule(this,
-						new Date(System.currentTimeMillis() + this.reaperDelay));
-			}
-		}
+		this.reaperScheduledFuture = this.getTaskScheduler().schedule(this,
+				new Date(System.currentTimeMillis() + this.reaperDelay));
 		if (logger.isTraceEnabled()) {
 			logger.trace("Reaper completed; channels size=" + this.channels.size());
 		}
