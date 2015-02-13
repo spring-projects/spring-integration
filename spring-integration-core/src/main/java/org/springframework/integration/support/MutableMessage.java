@@ -45,9 +45,7 @@ class MutableMessage<T> implements Message<T>, Serializable {
 
 	private T payload;
 
-	private final MessageHeaders headers;
-
-	private final Map<String, Object> rawHeaders;
+	private final MutableMessageHeaders headers;
 
 	MutableMessage(T payload) {
 		this(payload, null);
@@ -56,20 +54,19 @@ class MutableMessage<T> implements Message<T>, Serializable {
 	@SuppressWarnings("unchecked")
 	MutableMessage(T payload, Map<String, Object> headers) {
 		Assert.notNull(payload, "payload must not be null");
-		this.headers = new MessageHeaders(headers);
-		this.payload = payload;
-		// Needs SPR-11468 to avoid DFA and header manipulation
-		rawHeaders = (Map<String, Object>) new DirectFieldAccessor(this.headers)
-				.getPropertyValue("headers");
+        this.payload = payload;
+
+		this.headers = new MutableMessageHeaders(headers);
+
 		if (headers != null) {
-			this.rawHeaders.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			this.rawHeaders.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			this.headers.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			this.headers.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 		}
 	}
 
 
 	@Override
-	public MessageHeaders getHeaders() {
+	public MutableMessageHeaders getHeaders() {
 		return this.headers;
 	}
 
@@ -84,7 +81,7 @@ class MutableMessage<T> implements Message<T>, Serializable {
 	}
 
 	public Map<String, Object> getRawHeaders() {
-		return this.rawHeaders;
+		return this.headers.getRawHeaders();
 	}
 
 	@Override
