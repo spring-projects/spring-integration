@@ -23,6 +23,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.support.management.ExponentialMovingAverage;
+import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;

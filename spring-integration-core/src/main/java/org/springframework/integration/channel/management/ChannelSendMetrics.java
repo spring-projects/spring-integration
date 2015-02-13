@@ -11,18 +11,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.channel.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.support.management.ExponentialMovingAverage;
+import org.springframework.integration.support.management.ExponentialMovingAverageRate;
+import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
+import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StopWatch;
 
 /**
@@ -35,7 +35,7 @@ import org.springframework.util.StopWatch;
  * @since 2.0
  */
 @ManagedResource
-public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMetrics {
+public class ChannelSendMetrics {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -44,7 +44,6 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	public static final long ONE_MINUTE_SECONDS = 60;
 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
-
 
 	private final ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
 			DEFAULT_MOVING_AVERAGE_WINDOW);
@@ -64,11 +63,8 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 
 	private final String name;
 
-	private final MessageChannel messageChannel;
 
-
-	public DirectChannelMetrics(MessageChannel messageChannel, String name) {
-		this.messageChannel = messageChannel;
+	public ChannelSendMetrics(String name) {
 		this.name = name;
 	}
 
@@ -79,44 +75,27 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		}
 	}
 
-	public MessageChannel getMessageChannel() {
-		return messageChannel;
-	}
-
 	public String getName() {
 		return name;
 	}
 
-	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
-		String method = invocation.getMethod().getName();
-		MessageChannel channel = (MessageChannel) invocation.getThis();
-		return doInvoke(invocation, method, channel);
-	}
-
-	protected Object doInvoke(MethodInvocation invocation, String method, MessageChannel channel) throws Throwable {
-		if ("send".equals(method)) {
-			Message<?> message = (Message<?>) invocation.getArguments()[0];
-			return monitorSend(invocation, channel, message);
-		}
-		return invocation.proceed();
-	}
-
-	private Object monitorSend(MethodInvocation invocation, MessageChannel channel, Message<?> message) throws Throwable {
+	public StopWatch beforeSend() {
 		if (logger.isTraceEnabled()) {
-			logger.trace("Recording send on channel(" + channel + ") : message(" + message + ")");
+			logger.trace("Recording send on channel(" + this.name + ")");
 		}
-		final StopWatch timer = new StopWatch(channel + ".send:execution");
-		try {
-			timer.start();
+		final StopWatch timer = new StopWatch(this.name + ".send:execution");
+		timer.start();
 
-			sendCount.incrementAndGet();
-			sendRate.increment();
+		this.sendCount.incrementAndGet();
+		this.sendRate.increment();
 
-			Object result = invocation.proceed();
+		return timer;
+	}
 
+	public void afterSend(StopWatch timer, boolean result) {
+		if (timer != null) {
 			timer.stop();
-			if ((Boolean)result) {
+			if (result) {
 				sendSuccessRatio.success();
 				sendDuration.append(timer.getTotalTimeMillis());
 			}
@@ -125,22 +104,12 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 				sendErrorCount.incrementAndGet();
 				sendErrorRate.increment();
 			}
-			return result;
-		}
-		catch (Throwable e) {//NOSONAR - rethrown below
-			sendSuccessRatio.failure();
-			sendErrorCount.incrementAndGet();
-			sendErrorRate.increment();
-			throw e;
-		}
-		finally {
 			if (logger.isTraceEnabled()) {
 				logger.trace(timer);
 			}
 		}
 	}
 
-	@Override
 	public synchronized void reset() {
 		sendDuration.reset();
 		sendErrorRate.reset();
@@ -150,77 +119,62 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		sendErrorCount.set(0);
 	}
 
-	@Override
 	public int getSendCount() {
 		return (int) sendCount.get();
 	}
 
-	@Override
 	public long getSendCountLong() {
 		return sendCount.get();
 	}
 
-	@Override
 	public int getSendErrorCount() {
 		return (int) sendErrorCount.get();
 	}
 
-	@Override
 	public long getSendErrorCountLong() {
 		return sendErrorCount.get();
 	}
 
-	@Override
 	public double getTimeSinceLastSend() {
 		return sendRate.getTimeSinceLastMeasurement();
 	}
 
-	@Override
 	public double getMeanSendRate() {
 		return sendRate.getMean();
 	}
 
-	@Override
 	public double getMeanErrorRate() {
 		return sendErrorRate.getMean();
 	}
 
-	@Override
 	public double getMeanErrorRatio() {
 		return 1 - sendSuccessRatio.getMean();
 	}
 
-	@Override
 	public double getMeanSendDuration() {
 		return sendDuration.getMean();
 	}
 
-	@Override
 	public double getMinSendDuration() {
 		return sendDuration.getMin();
 	}
 
-	@Override
 	public double getMaxSendDuration() {
 		return sendDuration.getMax();
 	}
 
-	@Override
 	public double getStandardDeviationSendDuration() {
 		return sendDuration.getStandardDeviation();
 	}
 
-	@Override
 	public Statistics getSendDuration() {
 		return sendDuration.getStatistics();
 	}
 
-	@Override
 	public Statistics getSendRate() {
 		return sendRate.getStatistics();
 	}
 
-	@Override
 	public Statistics getErrorRate() {
 		return sendErrorRate.getStatistics();
 	}

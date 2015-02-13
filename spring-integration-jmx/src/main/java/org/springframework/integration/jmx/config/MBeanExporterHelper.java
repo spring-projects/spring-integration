@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -37,8 +37,12 @@ import org.springframework.util.StringUtils;
  * of bean names that will be exported by the IntegrationMBeanExporter and merges it with the list
  * of 'excludedBeans' of MBeanExporter so it will not attempt to export them again.
  *
+ * Since 4.2, we unconditionally exclude all channels from standard context exporter (channels
+ * are now managed resources and would otherwise be picked up).
+ *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  *
  */
@@ -50,9 +54,13 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 
 	private final Set<String> siBeanNames = new HashSet<String>();
 
+	private final Set<String> si42ChannelBeanNames = new HashSet<String>();
+
 	private volatile DefaultListableBeanFactory beanFactory;
 
 	private volatile boolean capturedAutoChannelCandidates;
+
+	private volatile boolean hasIntegrationExporter;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -71,8 +79,16 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 					className = ((StandardMethodMetadata) def.getSource()).getIntrospectedMethod().getReturnType().getName();
 				}
 				if (StringUtils.hasText(className)){
-					if (className.startsWith(SI_ROOT_PACKAGE) && !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
-						siBeanNames.add(beanName);
+					if (className.startsWith(SI_ROOT_PACKAGE)
+							&& !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
+						this.siBeanNames.add(beanName);
+					}
+					if (className.startsWith(SI_ROOT_PACKAGE + "channel.")
+							&& !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
+						this.si42ChannelBeanNames.add(beanName);
+					}
+					else if (className.equals(IntegrationMBeanExporter.class.getName())) {
+						this.hasIntegrationExporter = true;
 					}
 				}
 			}
@@ -88,6 +104,7 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 					Collection<String> autoCreateChannelCandidatesNames =
 									(Collection<String>) new DirectFieldAccessor(autoCreateChannelCandidates).getPropertyValue("channelNames");
 					this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
+					this.si42ChannelBeanNames.addAll(autoCreateChannelCandidatesNames);
 			}
 			this.capturedAutoChannelCandidates = true;
 		}
@@ -97,9 +114,19 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 			@SuppressWarnings("unchecked")
 			Set<String> excludedNames = (Set<String>) mbeDfa.getPropertyValue(EXCLUDED_BEANS_PROPERTY_NAME);
 			if (excludedNames != null) {
-				siBeanNames.addAll(excludedNames);
+				excludedNames = new HashSet<String>(excludedNames);
 			}
-			mbeDfa.setPropertyValue(EXCLUDED_BEANS_PROPERTY_NAME, siBeanNames);
+			else {
+				excludedNames = new HashSet<String>();
+			}
+			if (!this.hasIntegrationExporter) {
+				excludedNames.addAll(this.si42ChannelBeanNames);
+			}
+			else {
+				excludedNames.addAll(this.siBeanNames);
+			}
+			//TODO: SF 4.1.5 and above now has additive exclusions (SPR-12686)
+			mbeDfa.setPropertyValue(EXCLUDED_BEANS_PROPERTY_NAME, excludedNames);
 		}
 
 		return bean;

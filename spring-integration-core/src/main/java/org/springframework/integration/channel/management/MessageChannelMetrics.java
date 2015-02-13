@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.channel.management;
 
+import org.springframework.integration.support.management.Statistics;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
@@ -25,12 +27,19 @@ import org.springframework.jmx.support.MetricType;
  * channel types.
  *
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public interface MessageChannelMetrics {
 
 	@ManagedOperation
 	void reset();
+
+	@ManagedOperation
+	void enableStats(boolean statsEnabled);
+
+	@ManagedAttribute
+	boolean isStatsEnabled();
 
 	/**
 	 * @return the number of successful sends

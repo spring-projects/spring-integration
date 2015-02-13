@@ -21,16 +21,15 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -95,7 +94,6 @@ public class DynamicRouterTests {
 	}
 
 	@Test @DirtiesContext
-	@Ignore // Requires Spring 3.2.3 TODO: Remove when minimum SF is >= 3.2.3
 	public void testRouteChangeMapNamedArgs() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processAChannel.receive(0).getPayload());

@@ -53,6 +53,8 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.management.MessageChannelMetrics;
+import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
@@ -61,6 +63,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
@@ -73,7 +76,6 @@ import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
@@ -131,17 +133,17 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Set<Lifecycle> inboundLifecycleMessageProducers = new HashSet<Lifecycle>();
 
-	private final Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
+	private final Set<MessageChannelMetrics> channels = new HashSet<MessageChannelMetrics>();
 
 	private final Map<String, Object> exposedBeans = new HashMap<String, Object>();
 
-	private final Map<String, DirectChannelMetrics> channelsByName = new HashMap<String, DirectChannelMetrics>();
+	private final Map<String, MessageChannelMetrics> channelsByName = new HashMap<String, MessageChannelMetrics>();
 
 	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
 
 	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
 
-	private final Map<String, DirectChannelMetrics> allChannelsByName = new HashMap<String, DirectChannelMetrics>();
+	private final Map<String, MessageChannelMetrics> allChannelsByName = new HashMap<String, MessageChannelMetrics>();
 
 	private final Map<String, MessageHandlerMetrics> allHandlersByName = new HashMap<String, MessageHandlerMetrics>();
 
@@ -268,23 +270,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			bean = advised;
 		}
 
-		if (bean instanceof MessageChannel) {
-			DirectChannelMetrics monitor;
-			MessageChannel target = (MessageChannel) extractTarget(bean);
-			if (bean instanceof PollableChannel) {
-				if (target instanceof QueueChannel) {
-					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
-				}
-				else {
-					monitor = new PollableChannelMetrics(target, beanName);
-				}
-			}
-			else {
-				monitor = new DirectChannelMetrics(target, beanName);
-			}
-			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
+		if (bean instanceof MessageChannel && bean instanceof MessageChannelMetrics
+				&& bean instanceof NamedComponent) {
+			MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(bean);
+			monitor.enableStats(true);//TODO: INT-3638
 			channels.add(monitor);
-			bean = advised;
 		}
 
 		if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
@@ -575,9 +565,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@ManagedOperation
 	public void stopActiveChannels() {
 		// Stop any "active" channels (JMS etc).
-		for (Entry<String, DirectChannelMetrics> entry : this.allChannelsByName.entrySet()) {
-			DirectChannelMetrics metrics = entry.getValue();
-			MessageChannel channel = metrics.getMessageChannel();
+		for (Entry<String, MessageChannelMetrics> entry : this.allChannelsByName.entrySet()) {
+			MessageChannelMetrics metrics = entry.getValue();
+			MessageChannel channel = (MessageChannel) metrics;
 			if (channel instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Stopping channel " + channel);
@@ -648,8 +638,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public int getQueuedMessageCount() {
 		int count = 0;
 		for (MessageChannelMetrics monitor : channels) {
-			if (monitor instanceof QueueChannelMetrics) {
-				count += ((QueueChannelMetrics) monitor).getQueueSize();
+			if (monitor instanceof QueueChannel) {
+				count += ((QueueChannel) monitor).getQueueSize();
 			}
 		}
 		return count;
@@ -686,8 +676,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public long getChannelReceiveCountLong(String name) {
 		if (channelsByName.containsKey(name)) {
-			if (channelsByName.get(name) instanceof PollableChannelMetrics) {
-				return ((PollableChannelMetrics) channelsByName.get(name)).getReceiveCountLong();
+			if (channelsByName.get(name) instanceof PollableChannelManagement) {
+				return ((PollableChannelManagement) channelsByName.get(name)).getReceiveCountLong();
 			}
 		}
 		logger.debug("No channel found for (" + name + ")");
@@ -720,8 +710,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerChannels() {
-		for (DirectChannelMetrics monitor : channels) {
-			String name = monitor.getName();
+		for (MessageChannelMetrics monitor : channels) {
+			String name = ((NamedComponent) monitor).getComponentName();
 			this.allChannelsByName.put(name, monitor);
 			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
 				continue;
@@ -734,12 +724,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					channelsByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
-				// Expose the raw bean if it is managed
-				MessageChannel bean = monitor.getMessageChannel();
-				if (assembler.includeBean(bean.getClass(), monitor.getName())) {
-					registerBeanInstance(bean,
-							this.getMonitoredIntegrationObjectBeanKey(bean, name));
-				}
 			}
 		}
 	}
@@ -828,13 +812,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				logger.info("Registered endpoint without MessageSource: " + objectName);
 			}
 		}
-	}
-
-	private Object applyChannelInterceptor(Object bean, DirectChannelMetrics interceptor, ClassLoader beanClassLoader) {
-		NameMatchMethodPointcutAdvisor channelsAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
-		channelsAdvice.addMethodName("send");
-		channelsAdvice.addMethodName("receive");
-		return applyAdvice(bean, channelsAdvice, beanClassLoader);
 	}
 
 	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMetrics interceptor,

@@ -34,6 +34,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.OrderlyShutdownCapable;
@@ -350,17 +351,12 @@ public class MBeanExporterIntegrationTests {
 		boolean isStopCalled();
 	}
 
-	public static class ActiveChannelImpl implements MessageChannel, Lifecycle, ActiveChannel {
+	public static class ActiveChannelImpl extends AbstractMessageChannel implements Lifecycle, ActiveChannel {
 
 		private boolean stopCalled;
 
 		@Override
-		public boolean send(Message<?> message) {
-			return false;
-		}
-
-		@Override
-		public boolean send(Message<?> message, long timeout) {
+		protected boolean doSend(Message<?> message, long timeout) {
 			return false;
 		}
 

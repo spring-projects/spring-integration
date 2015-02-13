@@ -24,7 +24,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.integration.channel.management.QueueChannelManagement;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -40,7 +43,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations {
+public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations,
+		QueueChannelManagement {
 
 	private final Queue<Message<?>> queue;
 
@@ -75,7 +79,6 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	public QueueChannel() {
 		this(new LinkedBlockingQueue<Message<?>>());
 	}
-
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
@@ -176,11 +179,13 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	}
 
 	@Override
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "QueueChannel Queue Size")
 	public int getQueueSize() {
 		return this.queue.size();
 	}
 
 	@Override
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "QueueChannel Remaining Capacity")
 	public int getRemainingCapacity() {
 		if (this.queue instanceof BlockingQueue) {
 			return ((BlockingQueue<Message<?>>) this.queue).remainingCapacity();
