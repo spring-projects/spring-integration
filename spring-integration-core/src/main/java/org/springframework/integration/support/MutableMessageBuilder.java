@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.support;
 
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import org.springframework.util.StringUtils;
  */
 public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
 
-	private MutableMessage<T> mutableMessage;
+	private final MutableMessage<T> mutableMessage;
 
 	private final Map<String, Object> headers;
 
@@ -55,27 +56,23 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	/**
 	 * Create a builder for a new {@link Message} instance pre-populated with all of the headers copied from the
 	 * provided message. The payload of the provided Message will also be used as the payload for the new message.
-	 *
 	 * @param message the Message from which the payload and all headers will be copied
 	 * @param <T> The type of the payload.
 	 * @return A MutableMessageBuilder.
 	 */
 	public static <T> MutableMessageBuilder<T> fromMessage(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
-		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(message);
-		return builder;
+		return new MutableMessageBuilder<T>(message);
 	}
 
 	/**
 	 * Create a builder for a new {@link Message} instance with the provided payload.
-	 *
 	 * @param payload the payload for the new message
 	 * @param <T> The type of the payload.
 	 * @return A MessageBuilder.
 	 */
 	public static <T> MutableMessageBuilder<T> withPayload(T payload) {
-		MutableMessageBuilder<T> builder = new MutableMessageBuilder<T>(new MutableMessage<T>(payload));
-		return builder;
+		return new MutableMessageBuilder<T>(new MutableMessage<T>(payload));
 	}
 
 	@Override
@@ -102,8 +99,8 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	public AbstractIntegrationMessageBuilder<T> removeHeaders(String... headerPatterns) {
 		List<String> headersToRemove = new ArrayList<String>();
 		for (String pattern : headerPatterns) {
-			if (StringUtils.hasLength(pattern)){
-				if (pattern.contains("*")){
+			if (StringUtils.hasLength(pattern)) {
+				if (pattern.contains("*")) {
 					headersToRemove.addAll(getMatchingHeaderNames(pattern, this.headers));
 				}
 				else {
@@ -120,8 +117,8 @@ public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<
 	private List<String> getMatchingHeaderNames(String pattern, Map<String, Object> headers) {
 		List<String> matchingHeaderNames = new ArrayList<String>();
 		if (headers != null) {
-			for (Map.Entry<String, Object> header: headers.entrySet()) {
-				if (PatternMatchUtils.simpleMatch(pattern,  header.getKey())) {
+			for (Map.Entry<String, Object> header : headers.entrySet()) {
+				if (PatternMatchUtils.simpleMatch(pattern, header.getKey())) {
 					matchingHeaderNames.add(header.getKey());
 				}
 			}

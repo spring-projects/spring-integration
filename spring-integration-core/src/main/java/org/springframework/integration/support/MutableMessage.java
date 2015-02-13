@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.support;
 
 import java.io.Serializable;
 import java.util.Map;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -36,6 +36,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Stuart Williams
  * @since 4.0
  *
  */
@@ -43,33 +44,29 @@ class MutableMessage<T> implements Message<T>, Serializable {
 
 	private static final long serialVersionUID = -636635024258737500L;
 
-	private T payload;
+	private final T payload;
 
-	private final MessageHeaders headers;
-
-	private final Map<String, Object> rawHeaders;
+	private final MutableMessageHeaders headers;
 
 	MutableMessage(T payload) {
 		this(payload, null);
 	}
 
-	@SuppressWarnings("unchecked")
 	MutableMessage(T payload, Map<String, Object> headers) {
 		Assert.notNull(payload, "payload must not be null");
-		this.headers = new MessageHeaders(headers);
 		this.payload = payload;
-		// Needs SPR-11468 to avoid DFA and header manipulation
-		rawHeaders = (Map<String, Object>) new DirectFieldAccessor(this.headers)
-				.getPropertyValue("headers");
+
+		this.headers = new MutableMessageHeaders(headers);
+
 		if (headers != null) {
-			this.rawHeaders.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			this.rawHeaders.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+			this.headers.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			this.headers.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 		}
 	}
 
 
 	@Override
-	public MessageHeaders getHeaders() {
+	public MutableMessageHeaders getHeaders() {
 		return this.headers;
 	}
 
@@ -78,13 +75,8 @@ class MutableMessage<T> implements Message<T>, Serializable {
 		return this.payload;
 	}
 
-	public void setPayload(T payload) {
-		Assert.notNull(payload, "'payload' must not be null");
-		this.payload = payload;
-	}
-
-	public Map<String, Object> getRawHeaders() {
-		return this.rawHeaders;
+	Map<String, Object> getRawHeaders() {
+		return this.headers.getRawHeaders();
 	}
 
 	@Override
