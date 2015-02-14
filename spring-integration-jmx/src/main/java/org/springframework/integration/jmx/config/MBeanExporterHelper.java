@@ -54,7 +54,12 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 
 	private final Set<String> siBeanNames = new HashSet<String>();
 
-	private final Set<String> si42ChannelBeanNames = new HashSet<String>();
+	/**
+	 * For backwards compatibility, we don't want a context MBeanExporter to export
+	 * integration components that are now managed resources. When there *is* an IMBE,
+	 * *all* managed resources in org.springframework.integration are exluded.
+	 */
+	private final Set<String> siBeansToExcludeWhenNoIMBE = new HashSet<String>();
 
 	private volatile DefaultListableBeanFactory beanFactory;
 
@@ -85,7 +90,7 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 					}
 					if (className.startsWith(SI_ROOT_PACKAGE + "channel.")
 							&& !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
-						this.si42ChannelBeanNames.add(beanName);
+						this.siBeansToExcludeWhenNoIMBE.add(beanName);
 					}
 					else if (className.equals(IntegrationMBeanExporter.class.getName())) {
 						this.hasIntegrationExporter = true;
@@ -104,7 +109,7 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 					Collection<String> autoCreateChannelCandidatesNames =
 									(Collection<String>) new DirectFieldAccessor(autoCreateChannelCandidates).getPropertyValue("channelNames");
 					this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
-					this.si42ChannelBeanNames.addAll(autoCreateChannelCandidatesNames);
+					this.siBeansToExcludeWhenNoIMBE.addAll(autoCreateChannelCandidatesNames);
 			}
 			this.capturedAutoChannelCandidates = true;
 		}
@@ -120,7 +125,7 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 				excludedNames = new HashSet<String>();
 			}
 			if (!this.hasIntegrationExporter) {
-				excludedNames.addAll(this.si42ChannelBeanNames);
+				excludedNames.addAll(this.siBeansToExcludeWhenNoIMBE);
 			}
 			else {
 				excludedNames.addAll(this.siBeanNames);
