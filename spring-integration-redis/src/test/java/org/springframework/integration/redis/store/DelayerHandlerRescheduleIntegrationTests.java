@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,11 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.TimeUnit;
 
@@ -61,6 +65,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 		Message<String> message1 = MessageBuilder.withPayload("test1").build();
 		input.send(message1);
+		Thread.sleep(10);
 		input.send(MessageBuilder.withPayload("test2").build());
 
 		// Emulate restart and check DB state before next start
@@ -106,6 +111,10 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		assertNotSame(payload1, payload2);
 
 		assertEquals(1, messageStore.getMessageGroupCount());
+		int n = 0;
+		while (n++ < 100 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
+			Thread.sleep(100);
+		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		messageStore.removeMessageGroup(delayerMessageGroupId);
