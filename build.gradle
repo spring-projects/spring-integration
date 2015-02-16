@@ -5,7 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url 'http://repo.spring.io/plugins-release' }
+		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
 		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
@@ -168,7 +168,7 @@ subprojects { subproject ->
 		if (!(subproject.name ==~ /.*-(core|test)/)) {
 			testCompile project(":spring-integration-test")
 		}
-		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.5.6.201201232323", classifier: "runtime"
+		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.7.2.201409121644", classifier: "runtime"
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -857,6 +857,6 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.12'
+	gradleVersion = '2.3-rc-4'
 	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

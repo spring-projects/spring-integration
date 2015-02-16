@@ -66,6 +66,7 @@ public class SOLingerTests {
 	public void configOk() {}
 
 	@Test
+	@Ignore
 	public void finReceivedNet() {
 		finReceived(inCFNet);
 	}
