@@ -17,6 +17,7 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;

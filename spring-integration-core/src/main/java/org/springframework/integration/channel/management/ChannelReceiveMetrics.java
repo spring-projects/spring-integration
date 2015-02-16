@@ -14,56 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.channel.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.aopalliance.intercept.MethodInvocation;
-
-import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.support.MetricType;
-import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Dave Syer
  * @author Gary Russell
  * @since 2.0
  */
-public class PollableChannelMetrics extends DirectChannelMetrics {
+public class ChannelReceiveMetrics extends ChannelSendMetrics {
 
 	private final AtomicLong receiveCount = new AtomicLong();
 
 	private final AtomicLong receiveErrorCount = new AtomicLong();
 
 
-	public PollableChannelMetrics(MessageChannel messageChannel, String name) {
-		super(messageChannel, name);
+	public ChannelReceiveMetrics(String name) {
+		super(name);
 	}
 
-	@Override
-	protected Object doInvoke(MethodInvocation invocation, String method, MessageChannel channel) throws Throwable {
-		if ("receive".equals(method)) {
-			return monitorReceive(invocation, channel);
-		}
-		return super.doInvoke(invocation, method, channel);
-	}
-
-	private Object monitorReceive(MethodInvocation invocation, MessageChannel channel) throws Throwable {
+	public void afterReceive() {
 		if (logger.isTraceEnabled()) {
-			logger.trace("Recording receive on channel(" + channel + ") ");
+			logger.trace("Recording receive on channel(" + getName() + ") ");
 		}
-		try {
-			Object object = invocation.proceed();
-			if (object != null) {
-				this.receiveCount.incrementAndGet();
-			}
-			return object;
-		}
-		catch (Throwable e) {//NOSONAR - rethrown below
-			this.receiveErrorCount.incrementAndGet();
-			throw e;
-		}
+		this.receiveCount.incrementAndGet();
+	}
+
+	public void afterError() {
+		this.receiveErrorCount.incrementAndGet();
 	}
 
 	@Override
@@ -74,22 +55,18 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 		this.receiveCount.set(0);
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
 	public int getReceiveCount() {
 		return (int) this.receiveCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
 	public long getReceiveCountLong() {
 		return this.receiveCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
 	public int getReceiveErrorCount() {
 		return (int) this.receiveErrorCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
 	public long getReceiveErrorCountLong() {
 		return this.receiveErrorCount.get();
 	}
