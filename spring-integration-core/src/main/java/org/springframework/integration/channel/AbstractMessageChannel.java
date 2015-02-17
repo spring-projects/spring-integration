@@ -26,11 +26,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.channel.management.ChannelSendMetrics;
+import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
+import org.springframework.integration.support.management.Statistics;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -38,6 +42,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 /**
@@ -51,8 +56,9 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
+@ManagedResource
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
-		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
+		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics {
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
@@ -66,6 +72,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile MessageConverter messageConverter;
 
+	private volatile boolean statsEnabled;
+
+	private volatile ChannelSendMetrics channelMetrics;
+
 	@Override
 	public String getComponentType() {
 		return "channel";
@@ -74,6 +84,16 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
+	}
+
+	@Override
+	public void enableStats(boolean statsEnabled) {
+		this.statsEnabled = statsEnabled;
+	}
+
+	@Override
+	public boolean isStatsEnabled() {
+		return this.statsEnabled;
 	}
 
 	/**
@@ -193,6 +213,86 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
+	public void reset() {
+		this.channelMetrics.reset();
+	}
+
+	@Override
+	public int getSendCount() {
+		return this.channelMetrics.getSendCount();
+	}
+
+	@Override
+	public long getSendCountLong() {
+		return this.channelMetrics.getSendCountLong();
+	}
+
+	@Override
+	public int getSendErrorCount() {
+		return this.channelMetrics.getSendErrorCount();
+	}
+
+	@Override
+	public long getSendErrorCountLong() {
+		return this.channelMetrics.getSendErrorCountLong();
+	}
+
+	@Override
+	public double getTimeSinceLastSend() {
+		return this.channelMetrics.getTimeSinceLastSend();
+	}
+
+	@Override
+	public double getMeanSendRate() {
+		return this.channelMetrics.getMeanSendRate();
+	}
+
+	@Override
+	public double getMeanErrorRate() {
+		return this.channelMetrics.getMeanErrorRate();
+	}
+
+	@Override
+	public double getMeanErrorRatio() {
+		return this.channelMetrics.getMeanErrorRatio();
+	}
+
+	@Override
+	public double getMeanSendDuration() {
+		return this.channelMetrics.getMeanSendDuration();
+	}
+
+	@Override
+	public double getMinSendDuration() {
+		return this.channelMetrics.getMinSendDuration();
+	}
+
+	@Override
+	public double getMaxSendDuration() {
+		return this.channelMetrics.getMaxSendDuration();
+	}
+
+	@Override
+	public double getStandardDeviationSendDuration() {
+		return this.channelMetrics.getStandardDeviationSendDuration();
+	}
+
+	@Override
+	public Statistics getSendDuration() {
+		return this.channelMetrics.getSendDuration();
+	}
+
+	@Override
+	public Statistics getSendRate() {
+		return this.channelMetrics.getSendRate();
+	}
+
+	@Override
+	public Statistics getErrorRate() {
+		return this.channelMetrics.getErrorRate();
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 		if (this.messageConverter == null) {
@@ -205,6 +305,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 			}
 		}
+		initMetrics();
+	}
+
+	protected void initMetrics() {
+		setChannelMetrics(new ChannelSendMetrics(getComponentName()));
+	}
+
+	protected void setChannelMetrics(ChannelSendMetrics channelMetrics) {
+		this.channelMetrics = channelMetrics;
 	}
 
 	/**
@@ -263,6 +372,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
+		boolean statsProcessed = false;
+		StopWatch timer = null;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
@@ -274,7 +385,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					return false;
 				}
 			}
+			if (this.statsEnabled) {
+				timer = this.channelMetrics.beforeSend();
+			}
 			sent = this.doSend(message, timeout);
+			if (this.statsEnabled) {
+				this.channelMetrics.afterSend(timer, sent);
+				statsProcessed = true;
+			}
 			this.interceptors.postSend(message, this, sent);
 			if (interceptorStack != null) {
 				this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
@@ -282,6 +400,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return sent;
 		}
 		catch (Exception e) {
+			if (this.statsEnabled && !statsProcessed) {
+				this.channelMetrics.afterSend(timer, false);
+			}
 			if (interceptorStack != null) {
 				this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
 			}
@@ -291,6 +412,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			throw new MessageDeliveryException(message,
 					"failed to send Message to channel '" + this.getComponentName() + "'", e);
 		}
+	}
+
+	protected ChannelSendMetrics getMetrics() {
+		return this.channelMetrics;
 	}
 
 	private Message<?> convertPayloadIfNecessary(Message<?> message) {
@@ -309,7 +434,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 						return (Message<?>) converted;
 					}
 					else {
-						return this.getMessageBuilderFactory().withPayload(converted).copyHeaders(message.getHeaders()).build();
+						return getMessageBuilderFactory()
+								.withPayload(converted)
+								.copyHeaders(message.getHeaders())
+								.build();
 					}
 				}
 			}

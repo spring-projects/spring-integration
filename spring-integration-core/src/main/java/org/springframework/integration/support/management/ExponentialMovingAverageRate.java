@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,13 +11,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
+
+
 
 /**
- * Cumulative statistics for success ratio with higher weight given to recent data but without storing any history.
- * Clients call {@link #success()} or {@link #failure()} when an event occurs, and the ratio of success to total events
- * is accumulated. Older values are given exponentially smaller weight, with a decay factor determined by a duration
- * chosen by the client. The rate measurement weights decay in two dimensions:
+ * Cumulative statistics for an event rate with higher weight given to recent data but without storing any history.
+ * Clients call {@link #increment()} when a new event occurs, and then use convenience methods (e.g. {@link #getMean()})
+ * to retrieve estimates of the rate of event arrivals and the statistics of the series. Older values are given
+ * exponentially smaller weight, with a decay factor determined by a duration chosen by the client. The rate measurement
+ * weights decay in two dimensions:
  * <ul>
  * <li>in time according to the lapse period supplied: <code>weight = exp((t0-t)/T)</code> where <code>t0</code> is the
  * last measurement time, <code>t</code> is the current time and <code>T</code> is the lapse period)</li>
@@ -26,73 +29,81 @@ package org.springframework.integration.monitor;
  * </ul>
  *
  * @author Dave Syer
- * @since 2.0
+ * @author Gary Russell
+ *
  */
-public class ExponentialMovingAverageRatio {
+public class ExponentialMovingAverageRate {
+
+	private final ExponentialMovingAverage rates;
 
 	private volatile double weight;
 
 	private volatile double sum;
 
+	private volatile double min;
+
+	private volatile double max;
+
 	private volatile long t0 = System.currentTimeMillis();
 
 	private final double lapse;
 
-	private final ExponentialMovingAverage cumulative;
+	private final double period;
 
 
 	/**
+	 * @param period the period to base the rate measurement (in seconds)
 	 * @param lapsePeriod the exponential lapse rate for the rate average (in seconds)
 	 * @param window the exponential lapse window (number of measurements)
 	 */
-	public ExponentialMovingAverageRatio(double lapsePeriod, int window) {
-		this.cumulative = new ExponentialMovingAverage(window);
-		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to millisecs
+	public ExponentialMovingAverageRate(double period, double lapsePeriod, int window) {
+		rates = new ExponentialMovingAverage(window);
+		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to milliseconds
+		this.period = period * 1000; // convert to milliseconds
 	}
 
-
-	/**
-	 * Add a new event with successful outcome.
-	 */
-	public void success() {
-		append(1);
-	}
-
-	/**
-	 * Add a new event with failed outcome.
-	 */
-	public void failure() {
-		append(0);
-	}
 
 	public synchronized void reset() {
+		min = 0;
+		max = 0;
 		weight = 0;
 		sum = 0;
 		t0 = System.currentTimeMillis();
-		cumulative.reset();
+		rates.reset();
 	}
 
-	private synchronized void append(int value) {
+	/**
+	 * Add a new event to the series.
+	 */
+	public synchronized void increment() {
 		long t = System.currentTimeMillis();
+		double value = t > t0 ? (t - t0) / period : 0;
+		if (value > max || getCount() == 0) {
+			max = value;
+		}
+		if (value < min || getCount() == 0) {
+			min = value;
+		}
 		double alpha = Math.exp((t0 - t) * lapse);
 		t0 = t;
 		sum = alpha * sum + value;
 		weight = alpha * weight + 1;
-		cumulative.append(sum / weight);
+		rates.append(sum > 0 ? weight / sum : 0);
 	}
 
 	/**
 	 * @return the number of measurements recorded
 	 */
 	public int getCount() {
-		return cumulative.getCount();
+		return rates.getCount();
 	}
 
 	/**
 	 * @return the number of measurements recorded
+	 * @since 3.0
 	 */
 	public long getCountLong() {
-		return cumulative.getCountLong();
+		return rates.getCountLong();
 	}
 
 	/**
@@ -103,45 +114,44 @@ public class ExponentialMovingAverageRatio {
 	}
 
 	/**
-	 * @return the mean success rate
+	 * @return the mean value
 	 */
 	public double getMean() {
-		long count = cumulative.getCountLong();
+		long count = rates.getCountLong();
 		if (count == 0) {
-			// Optimistic to start: success rate is 100%
-			return 1;
+			return 0;
 		}
 		long t = System.currentTimeMillis();
-		double alpha = Math.exp((t0 - t) * lapse);
-		return alpha * cumulative.getMean() + 1 - alpha;
+		double value = t > t0 ? (t - t0) / period : 0;
+		return count / (count / rates.getMean() + value);
 	}
 
 	/**
-	 * @return the approximate standard deviation of the success rate measurements
+	 * @return the approximate standard deviation
 	 */
 	public double getStandardDeviation() {
-		return cumulative.getStandardDeviation();
+		return rates.getStandardDeviation();
 	}
 
 	/**
-	 * @return the maximum value recorded of the exponential weighted average (per measurement) success rate
+	 * @return the maximum value recorded (not weighted)
 	 */
 	public double getMax() {
-		return cumulative.getMax();
+		return min > 0 ? 1 / min : 0;
 	}
 
 	/**
-	 * @return the minimum value recorded of the exponential weighted average (per measurement) success rate
+	 * @return the minimum value recorded (not weighted)
 	 */
 	public double getMin() {
-		return cumulative.getMin();
+		return max > 0 ? 1 / max : 0;
 	}
 
 	/**
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return new Statistics(getCount(), getMin(), getMax(), getMean(), getStandardDeviation());
+		return new Statistics(getCount(), min, max, getMean(), getStandardDeviation());
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,16 +13,18 @@
 package org.springframework.integration_.mbeanexporterhelper;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class INT_2626Tests {
 
 	@Test // This context failed to load before the INT-2626 fix was applied
 	public void testInt2626(){
-		new ClassPathXmlApplicationContext("INT-2626-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("INT-2626-config.xml", this.getClass()).close();
 	}
 }

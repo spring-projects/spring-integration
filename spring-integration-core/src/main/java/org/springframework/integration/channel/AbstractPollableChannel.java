@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.channel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import org.springframework.integration.channel.management.ChannelReceiveMetrics;
+import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -28,8 +30,41 @@ import org.springframework.messaging.support.ChannelInterceptor;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
-public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel {
+public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel,
+		PollableChannelManagement {
+
+
+	@Override
+	protected void initMetrics() {
+		setChannelMetrics(new ChannelReceiveMetrics(this.getComponentName()));
+	}
+
+	@Override
+	protected ChannelReceiveMetrics getMetrics() {
+		return (ChannelReceiveMetrics) super.getMetrics();
+	}
+
+	@Override
+	public int getReceiveCount() {
+		return getMetrics().getReceiveCount();
+	}
+
+	@Override
+	public long getReceiveCountLong() {
+		return getMetrics().getReceiveCountLong();
+	}
+
+	@Override
+	public int getReceiveErrorCount() {
+		return getMetrics().getReceiveErrorCount();
+	}
+
+	@Override
+	public long getReceiveErrorCountLong() {
+		return getMetrics().getReceiveErrorCountLong();
+	}
 
 	/**
 	 * Receive the first available message from this channel. If the channel
@@ -40,7 +75,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 */
 	@Override
 	public final Message<?> receive() {
-		return this.receive(-1);
+		return receive(-1);
 	}
 
 	/**
@@ -58,7 +93,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	 */
 	@Override
 	public final Message<?> receive(long timeout) {
-		ChannelInterceptorList interceptorList = this.getInterceptors();
+		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
@@ -69,6 +104,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 				}
 			}
 			Message<?> message = this.doReceive(timeout);
+			if (isStatsEnabled()) {
+				getMetrics().afterReceive();
+			}
 			message = interceptorList.postReceive(message, this);
 			if (interceptorStack != null) {
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
@@ -76,6 +114,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			return message;
 		}
 		catch (RuntimeException e) {
+			if (isStatsEnabled()) {
+				getMetrics().afterError();
+			}
 			if (interceptorStack != null) {
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}

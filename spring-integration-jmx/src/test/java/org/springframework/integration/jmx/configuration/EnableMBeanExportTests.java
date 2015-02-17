@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
@@ -42,7 +41,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.test.util.TestUtils;
@@ -54,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 @ContextConfiguration(initializers = EnableMBeanExportTests.EnvironmentApplicationContextInitializer.class)
@@ -73,8 +72,6 @@ public class EnableMBeanExportTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
-		assertTrue(AopUtils.isAopProxy(this.beanFactory.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)));
-		assertTrue(AopUtils.isAopProxy(this.beanFactory.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)));
 
 		assertSame(this.mBeanServer, this.exporter.getServer());
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);

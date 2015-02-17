@@ -47,10 +47,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	private volatile Integer maxSubscribers;
 
-	@Override
-	public String getComponentType(){
-		return "publish-subscribe-channel";
-	}
+
 	/**
 	 * Create a PublishSubscribeChannel that will use an {@link Executor}
 	 * to invoke the handlers. If this is null, each invocation will occur in
@@ -71,6 +68,11 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 		this(null);
 	}
 
+
+	@Override
+	public String getComponentType(){
+		return "publish-subscribe-channel";
+	}
 
 	/**
 	 * Provide an {@link ErrorHandler} strategy for handling Exceptions that
@@ -144,9 +146,11 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	/**
 	 * Callback method for initialization.
+	 * @throws Exception the exception.
 	 */
 	@Override
-	public final void onInit() {
+	public final void onInit() throws Exception {
+		super.onInit();
 		if (this.executor != null) {
 			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
