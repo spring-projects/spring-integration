@@ -63,10 +63,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.core.Environment;
-import reactor.core.composable.Promise;
-import reactor.core.composable.spec.Promises;
-import reactor.function.Functions;
+import reactor.Environment;
+import reactor.rx.Promise;
+import reactor.rx.Promises;
+import reactor.fn.Functions;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -358,9 +358,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (this.reactorEnvironment == null) {
 				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
 			}
-			return Promises.<Object>task(Functions.supplier(new AsyncInvocationTask(invocation)))
-					.env(this.reactorEnvironment)
-					.get();
+			return Promises.<Object>task(this.reactorEnvironment,
+					Functions.supplier(new AsyncInvocationTask(invocation)));
 		}
 		return this.doInvoke(invocation);
 	}

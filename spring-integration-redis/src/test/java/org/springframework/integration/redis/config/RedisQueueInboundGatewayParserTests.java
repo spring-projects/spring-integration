@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -33,8 +34,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import reactor.util.Assert;
 
 /**
  * @author David Liu
@@ -68,7 +67,7 @@ public class RedisQueueInboundGatewayParserTests {
 		assertSame(this.receiveChannel, TestUtils.getPropertyValue(this.defaultGateway, "replyChannel"));
 		assertSame(this.requestChannel, TestUtils.getPropertyValue(this.defaultGateway, "requestChannel"));
 		assertEquals(2000L, TestUtils.getPropertyValue(this.defaultGateway, "replyTimeout"));
-		Assert.notNull(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor"));
+		assertNotNull(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
 		assertEquals(3, TestUtils.getPropertyValue(this.defaultGateway, "phase"));
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertNotNull;
@@ -48,9 +49,16 @@ public class ConnectionEventTests {
 		final List<TcpConnectionEvent> theEvent = new ArrayList<TcpConnectionEvent>();
 		TcpNetConnection conn = new TcpNetConnection(socket, false, false, new ApplicationEventPublisher() {
 
+			@Override
 			public void publishEvent(ApplicationEvent event) {
 				theEvent.add((TcpConnectionEvent) event);
 			}
+
+			@Override
+			public void publishEvent(Object event) {
+				
+			}
+			
 		}, "foo");
 		/*
 		 *  Open is not published by the connection itself; the factory publishes it after initialization.

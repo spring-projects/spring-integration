@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,11 @@ import java.nio.ByteBuffer;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.file.FileSystemView;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.common.util.Base64;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.PasswordAuthenticator;
@@ -53,6 +51,7 @@ import org.springframework.util.StreamUtils;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
+ * *
  * @author Gary Russell
  * @author David Liu
  * @since 4.1
@@ -75,26 +74,10 @@ public class SftpServerTests {
 			});
 			server.setPort(port);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-			SftpSubsystem.Factory sftp = new SftpSubsystem.Factory();
-			server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(sftp));
-			server.setFileSystemFactory(new NativeFileSystemFactory() {
-
-				@Override
-				public FileSystemView createFileSystemView(org.apache.sshd.common.Session session) {
-					final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest"
-							+ File.separator;
-					File f = new File(pathname);
-					f.mkdirs();
-					return new NativeFileSystemView(session.getUsername(), false) {
-
-						@Override
-						public String getVirtualUserDir() {
-							return pathname;
-						}
-					};
-				}
-
-			});
+			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
+			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
+			new File(pathname).mkdirs();
+			server.setFileSystemFactory(new VirtualFileSystemFactory(pathname));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
@@ -127,26 +110,10 @@ public class SftpServerTests {
 			});
 			server.setPort(port);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-			SftpSubsystem.Factory sftp = new SftpSubsystem.Factory();
-			server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(sftp));
-			server.setFileSystemFactory(new NativeFileSystemFactory() {
-
-				@Override
-				public FileSystemView createFileSystemView(org.apache.sshd.common.Session session) {
-					final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest"
-							+ File.separator;
-					File f = new File(pathname);
-					f.mkdirs();
-					return new NativeFileSystemView(session.getUsername(), false) {
-
-						@Override
-						public String getVirtualUserDir() {
-							return pathname;
-						}
-					};
-				}
-
-			});
+			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
+			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
+			new File(pathname).mkdirs();
+			server.setFileSystemFactory(new VirtualFileSystemFactory(pathname));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();

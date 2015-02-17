@@ -53,6 +53,6 @@
 
 	<beans:bean id="testExecutor" class="org.springframework.integration.config.xml.GatewayParserTests$TestExecutor"/>
 
-	<beans:bean id="reactorEnvironment" class="reactor.core.Environment" destroy-method="shutdown"/>
+	<beans:bean id="reactorEnvironment" class="reactor.Environment" destroy-method="shutdown"/>
 
 </beans:beans>

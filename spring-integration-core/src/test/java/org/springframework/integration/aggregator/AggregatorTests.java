@@ -76,6 +76,12 @@ public class AggregatorTests {
 			public void publishEvent(ApplicationEvent event) {
 				expiryEvents.add((MessageGroupExpiredEvent) event);
 			}
+
+			@Override
+			public void publishEvent(Object event) {
+				
+			}
+			
 		});
 		this.aggregator.setBeanName("testAggregator");
 		this.aggregator.afterPropertiesSet();

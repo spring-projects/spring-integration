@@ -283,6 +283,12 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				exceptionEvents.add(event);
 				exceptionsLatch.countDown();
 			}
+
+			@Override
+			public void publishEvent(Object event) {
+				
+			}
+			
 		});
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(100);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.GenericXmlContextLoader;
 
-import reactor.core.Environment;
-import reactor.core.composable.spec.Streams;
+import reactor.rx.Streams;
 import reactor.spring.context.config.EnableReactor;
 
 /**
@@ -179,9 +178,6 @@ public class RoutingSlipTests {
 	@EnableIntegration
 	public static class RoutingSlipConfiguration {
 
-		@Autowired
-		private Environment reactorEnv;
-
 		@Bean
 		public MessagingTemplate messagingTemplate() {
 			return new MessagingTemplate();
@@ -196,19 +192,13 @@ public class RoutingSlipTests {
 		public RoutingSlipRouteStrategy routeStrategy() {
 			return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
 					? new FixedSubscriberChannel(m ->
-					Streams.defer((String) m.getPayload())
-							.env(this.reactorEnv)
-							.get()
+					Streams.just((String) m.getPayload())
 							.map(String::toUpperCase)
-							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
-							.flush())
+							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v)))
 					: new FixedSubscriberChannel(m ->
-					Streams.defer((Integer) m.getPayload())
-							.env(this.reactorEnv)
-							.get()
+					Streams.just((Integer) m.getPayload())
 							.map(v -> v * 2)
-							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
-							.flush());
+							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v)));
 		}
 
 		@Bean

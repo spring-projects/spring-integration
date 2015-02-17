@@ -28,7 +28,7 @@ import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
-import reactor.function.Function;
+import reactor.fn.Function;
 
 /**
  * Base class for Message-splitting handlers.

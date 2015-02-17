@@ -46,9 +46,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-import reactor.core.Environment;
-import reactor.core.composable.Promise;
-import reactor.function.Consumer;
+import reactor.Environment;
+import reactor.rx.Promise;
+import reactor.fn.Consumer;
 
 /**
  * @author Mark Fisher
@@ -266,7 +266,7 @@ public class AsyncGatewayTests {
 		long start = System.currentTimeMillis();
 		Object result = promise.await(1, TimeUnit.SECONDS);
 		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed >= 200);
+		assertTrue(elapsed <= 200);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -287,7 +287,7 @@ public class AsyncGatewayTests {
 		Object result = promise.await(1, TimeUnit.SECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200 - safety);
+		assertTrue(elapsed <= 200 - safety);
 		assertEquals("foobar", result);
 	}
 
@@ -308,7 +308,7 @@ public class AsyncGatewayTests {
 		Object result = promise.await(1, TimeUnit.SECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200 - safety);
+		assertTrue(elapsed <= 200 - safety);
 		assertTrue(result instanceof String);
 		assertEquals("foobar", result);
 	}
@@ -331,19 +331,18 @@ public class AsyncGatewayTests {
 		final AtomicReference<String> result = new AtomicReference<String>();
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		promise.consume(new Consumer<String>() {
+		promise.onSuccess(new Consumer<String>() {
 			@Override
 			public void accept(String s) {
 				result.set(s);
 				latch.countDown();
 			}
-		})
-				.flush();
+		});
 
 		latch.await(1, TimeUnit.SECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200 - safety);
+		assertTrue(elapsed <= 200 - safety);
 		assertEquals("foobar", result.get());
 	}
 
