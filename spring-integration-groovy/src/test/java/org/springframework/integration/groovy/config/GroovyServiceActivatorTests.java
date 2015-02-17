@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class GroovyServiceActivatorTests {
 
 
 	@Test
-	public void referencedScriptAndCustomiser() throws Exception{
+	public void referencedScriptAndCustomiser() throws Exception {
 		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
@@ -115,7 +115,7 @@ public class GroovyServiceActivatorTests {
 	}
 
 	@Test
-	public void withScriptVariableGenerator() throws Exception{
+	public void withScriptVariableGenerator() throws Exception {
 		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
@@ -139,7 +139,7 @@ public class GroovyServiceActivatorTests {
 	}
 
 	@Test
-	public void inlineScript() throws Exception{
+	public void inlineScript() throws Exception {
 		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
@@ -161,7 +161,7 @@ public class GroovyServiceActivatorTests {
 	}
 
 	@Test
-	public void testScriptWithoutVariables() throws Exception{
+	public void testScriptWithoutVariables() throws Exception {
 		PollableChannel replyChannel = new QueueChannel();
 		for (int i = 1; i <= 3; i++) {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
@@ -182,7 +182,8 @@ public class GroovyServiceActivatorTests {
 	//INT-2399
 	@Test(expected = MessageHandlingException.class)
 	public void invalidInlineScript() throws Exception {
-		Message<?> message = new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
+		Message<?> message =
+				new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
 		try {
 			this.invalidInlineScript.send(message);
 			fail("MessageHandlingException expected!");
@@ -190,15 +191,17 @@ public class GroovyServiceActivatorTests {
 		catch (Exception e) {
 			Throwable cause = e.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
-			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy.lang"));
-		    throw e;
+			assertThat(cause.getMessage(),
+					Matchers.containsString("No such property: ReplyRequiredException for class: groovy_lang"));
+			throw e;
 		}
 
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void variablesAndScriptVariableGenerator() throws Exception{
-		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void variablesAndScriptVariableGenerator() throws Exception {
+		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", 
+				this.getClass()).close();
 	}
 
 	@Test
@@ -208,7 +211,8 @@ public class GroovyServiceActivatorTests {
 	}
 
 
-	public static class SampleScriptVariSource implements ScriptVariableGenerator{
+	public static class SampleScriptVariSource implements ScriptVariableGenerator {
+		
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
@@ -218,6 +222,7 @@ public class GroovyServiceActivatorTests {
 			variables.put("headers", message.getHeaders());
 			return variables;
 		}
+		
 	}
 
 
@@ -228,6 +233,7 @@ public class GroovyServiceActivatorTests {
 		public void customize(GroovyObject goo) {
 			this.executed = true;
 		}
+		
 	}
 
 }

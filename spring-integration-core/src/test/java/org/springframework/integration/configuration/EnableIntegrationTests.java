@@ -32,7 +32,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -125,12 +124,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import reactor.core.Environment;
-import reactor.core.composable.Composable;
-import reactor.core.composable.Promise;
-import reactor.core.composable.spec.Streams;
-import reactor.function.Consumer;
-import reactor.function.Function;
+import reactor.Environment;
+import reactor.fn.Consumer;
+import reactor.rx.Promise;
+import reactor.rx.Streams;
 import reactor.spring.context.config.EnableReactor;
 
 /**
@@ -597,30 +594,15 @@ public class EnableIntegrationTests {
 		final AtomicReference<List<Integer>> ref = new AtomicReference<List<Integer>>();
 		final CountDownLatch consumeLatch = new CountDownLatch(1);
 
-		Streams.defer(Arrays.asList("1", "2", "3", "4", "5"))
-				.env(this.environment)
-				.get()
-				.map(new Function<String, Integer>() {
-					@Override
-					public Integer apply(String s) {
-						return Integer.parseInt(s);
-					}
-				})
-				.mapMany(new Function<Integer, Composable<Integer>>() {
-					@Override
-					public Composable<Integer> apply(Integer integer) {
-						return testGateway.multiply(integer);
-					}
-				})
-				.collect()
-				.consume(new Consumer<List<Integer>>() {
-					@Override
-					public void accept(List<Integer> integers) {
-						ref.set(integers);
-						consumeLatch.countDown();
-					}
-				})
-				.flush();
+		Streams.just("1", "2", "3", "4", "5")
+				.dispatchOn(this.environment)
+				.map(Integer::parseInt)
+				.flatMap(this.testGateway::multiply)
+				.toList()
+				.onSuccess(integers -> {
+					ref.set(integers);
+					consumeLatch.countDown();
+				});
 
 
 		assertTrue(consumeLatch.await(2, TimeUnit.SECONDS));
@@ -1255,7 +1237,7 @@ public class EnableIntegrationTests {
 	}
 
 	@TestMessagingGateway
-	public static interface TestGateway {
+	public interface TestGateway {
 
 		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
 		String echo(String payload);
@@ -1270,7 +1252,7 @@ public class EnableIntegrationTests {
 	}
 
 	@TestMessagingGateway2
-	public static interface TestGateway2 {
+	public interface TestGateway2 {
 
 		@Gateway(headers = @GatewayHeader(name = "calledMethod", expression = "#gatewayMethod.name"))
 		String echo2(String payload);
@@ -1281,7 +1263,7 @@ public class EnableIntegrationTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", reactorEnvironment = "reactorEnv",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
-	public static @interface TestMessagingGateway {
+	public @interface TestMessagingGateway {
 
 		String defaultRequestChannel() default "";
 
@@ -1290,7 +1272,7 @@ public class EnableIntegrationTests {
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
 	@TestMessagingGateway(defaultRequestChannel = "gatewayChannel2")
-	public static @interface TestMessagingGateway2 {
+	public @interface TestMessagingGateway2 {
 
 		String defaultRequestChannel() default "";
 

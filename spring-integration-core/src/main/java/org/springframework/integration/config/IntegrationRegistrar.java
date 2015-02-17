@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,6 +218,20 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			catch (ClassNotFoundException e) {
 				logger.debug("SpEL function '#jsonPath' isn't registered: " +
 						"there is no jayway json-path.jar on the classpath.");
+			}
+
+			if (jsonPathClass != null) {
+				try {
+					ClassUtils.forName("com.jayway.jsonpath.Predicate", this.classLoader);
+				}
+				catch (ClassNotFoundException e) {
+					jsonPathClass = null;
+					logger.warn("SpEL function '#jsonPath' isn't registered. " +
+							"An old json-path.jar version is detected in the classpath." +
+							"Consider to upgrade it to the newer version: " +
+							"https://github.com/jayway/JsonPath/releases", e);
+
+				}
 			}
 
 			if (jsonPathClass != null) {

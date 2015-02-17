@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.file.FileSystemView;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
@@ -121,33 +120,20 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		this.sftpFolder.create();
+		this.localFolder.create();
 		server.setPasswordAuthenticator(new PasswordAuthenticator() {
 
 			@Override
 			public boolean authenticate(String arg0, String arg1, ServerSession arg2) {
 				return true;
 			}
+
 		});
 		server.setPort(port);
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-		SftpSubsystem.Factory sftp = new SftpSubsystem.Factory();
-		server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(sftp));
-		server.setFileSystemFactory(new NativeFileSystemFactory() {
-
-			@Override
-			public FileSystemView createFileSystemView(org.apache.sshd.common.Session session) {
-				return new NativeFileSystemView(session.getUsername(), false) {
-
-					@Override
-					public String getVirtualUserDir() {
-						return sftpRootFolder.getAbsolutePath();
-					}
-				};
-			}
-
-		});
-		this.sftpFolder.create();
-		this.localFolder.create();
+		this.server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
+		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.getAbsolutePath()));
 		server.start();
 	}
 
