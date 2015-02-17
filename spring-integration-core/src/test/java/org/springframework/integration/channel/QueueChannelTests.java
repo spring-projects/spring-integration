@@ -249,7 +249,7 @@ public class QueueChannelTests {
 	public final TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@Test
-	@Ignore
+	@Ignore //INT-3644
 	public void testReactorPersistentQueue() throws InterruptedException {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);

@@ -220,15 +220,18 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 						"there is no jayway json-path.jar on the classpath.");
 			}
 
-			try {
-				ClassUtils.forName("com.jayway.jsonpath.Predicate", this.classLoader);
-			}
-			catch (ClassNotFoundException e) {
-				jsonPathClass = null;
-				logger.error("SpEL function '#jsonPath' isn't registered. " +
-						"An old json-path.jar version is detected in the classpath." +
-						"Consider to upgrade it to the newer version: https://github.com/jayway/JsonPath/releases", e);
+			if (jsonPathClass != null) {
+				try {
+					ClassUtils.forName("com.jayway.jsonpath.Predicate", this.classLoader);
+				}
+				catch (ClassNotFoundException e) {
+					jsonPathClass = null;
+					logger.warn("SpEL function '#jsonPath' isn't registered. " +
+							"An old json-path.jar version is detected in the classpath." +
+							"Consider to upgrade it to the newer version: " +
+							"https://github.com/jayway/JsonPath/releases", e);
 
+				}
 			}
 
 			if (jsonPathClass != null) {
