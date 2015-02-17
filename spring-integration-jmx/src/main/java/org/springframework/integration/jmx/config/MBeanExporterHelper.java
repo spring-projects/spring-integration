@@ -92,6 +92,20 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 							&& !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
 						this.siBeansToExcludeWhenNoIMBE.add(beanName);
 					}
+					else if (className.startsWith(SI_ROOT_PACKAGE) // all framework MessageSources
+							&& ((className.endsWith("MessageSource")
+									|| className.endsWith("CorrelatingMessageBarrier")
+									|| className.endsWith("JdbcPollingChannelAdapter")
+									|| className.endsWith("JmsDestinationPollingSource")
+									|| className.endsWith("JpaPollingChannelAdapter")
+									|| className.endsWith("StoredProcPollingChannelAdapter")
+									|| className.endsWith("XmppMessageProducer"))
+									|| className.endsWith("MessageHandler")
+									|| className.endsWith("MessageHandlerChain")
+									|| className.endsWith("BridgeHandler"))) { //TODO: more handlers?
+						// can't think of a better way - any ideas?
+						this.siBeansToExcludeWhenNoIMBE.add(beanName);
+					}
 					else if (className.equals(IntegrationMBeanExporter.class.getName())) {
 						this.hasIntegrationExporter = true;
 					}

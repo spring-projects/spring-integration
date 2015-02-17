@@ -23,7 +23,6 @@ import org.springframework.integration.support.management.ExponentialMovingAvera
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.util.StopWatch;
 
 /**
  * Registers all message channels, and accumulates statistics about their performance. The statistics are then published
@@ -63,11 +62,16 @@ public class ChannelSendMetrics {
 
 	private final String name;
 
+	private volatile boolean fullStatsEnabled;
+
 
 	public ChannelSendMetrics(String name) {
 		this.name = name;
 	}
 
+	public void setFullStatsEnabled(boolean fullStatsEnabled) {
+		this.fullStatsEnabled = fullStatsEnabled;
+	}
 
 	public void destroy() {
 		if (logger.isDebugEnabled()) {
@@ -79,33 +83,38 @@ public class ChannelSendMetrics {
 		return name;
 	}
 
-	public StopWatch beforeSend() {
+	public long beforeSend() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Recording send on channel(" + this.name + ")");
 		}
-		final StopWatch timer = new StopWatch(this.name + ".send:execution");
-		timer.start();
 
+		long start = 0;
+		if (this.fullStatsEnabled) {
+			start = System.currentTimeMillis();
+			this.sendRate.increment();
+		}
 		this.sendCount.incrementAndGet();
-		this.sendRate.increment();
 
-		return timer;
+		return start;
 	}
 
-	public void afterSend(StopWatch timer, boolean result) {
-		if (timer != null) {
-			timer.stop();
-			if (result) {
+	public void afterSend(long start, boolean result) {
+		if (start > 0) {
+			long now = System.currentTimeMillis();
+			long elapsed = now - start;
+			if (result && this.fullStatsEnabled) {
 				sendSuccessRatio.success();
-				sendDuration.append(timer.getTotalTimeMillis());
+				sendDuration.append(elapsed);
 			}
 			else {
-				sendSuccessRatio.failure();
-				sendErrorCount.incrementAndGet();
+				if (this.fullStatsEnabled) {
+	 				sendSuccessRatio.failure();
+					sendErrorCount.incrementAndGet();
+				}
 				sendErrorRate.increment();
 			}
 			if (logger.isTraceEnabled()) {
-				logger.trace(timer);
+				logger.trace("Elapsed: " + this.name + ": " + elapsed);
 			}
 		}
 	}

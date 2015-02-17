@@ -43,7 +43,9 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile ChannelSendMetrics metrics = new ChannelSendMetrics("nullChannel");
+	private volatile ChannelSendMetrics channelMetrics = new ChannelSendMetrics("nullChannel");
+
+	private volatile boolean countsEnabled;
 
 	private volatile boolean statsEnabled;
 
@@ -52,7 +54,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
-		this.metrics = new ChannelSendMetrics(getComponentName());
+		this.channelMetrics = new ChannelSendMetrics(getComponentName());
 	}
 
 	@Override
@@ -67,12 +69,31 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 
 	@Override
 	public void reset() {
-		this.metrics.reset();
+		this.channelMetrics.reset();
+	}
+
+	@Override
+	public void enableCounts(boolean countsEnabled) {
+		this.countsEnabled = countsEnabled;
+		if (!countsEnabled) {
+			this.statsEnabled = false;
+		}
+	}
+
+	@Override
+	public boolean isCountsEnabled() {
+		return this.countsEnabled;
 	}
 
 	@Override
 	public void enableStats(boolean statsEnabled) {
+		if (statsEnabled) {
+			this.countsEnabled = true;
+		}
 		this.statsEnabled = statsEnabled;
+		if (this.channelMetrics != null) {
+			this.channelMetrics.setFullStatsEnabled(statsEnabled);
+		}
 	}
 
 	@Override
@@ -82,77 +103,77 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 
 	@Override
 	public int getSendCount() {
-		return this.metrics.getSendCount();
+		return this.channelMetrics.getSendCount();
 	}
 
 	@Override
 	public long getSendCountLong() {
-		return this.metrics.getSendCountLong();
+		return this.channelMetrics.getSendCountLong();
 	}
 
 	@Override
 	public int getSendErrorCount() {
-		return this.metrics.getSendErrorCount();
+		return this.channelMetrics.getSendErrorCount();
 	}
 
 	@Override
 	public long getSendErrorCountLong() {
-		return this.metrics.getSendErrorCountLong();
+		return this.channelMetrics.getSendErrorCountLong();
 	}
 
 	@Override
 	public double getTimeSinceLastSend() {
-		return this.metrics.getTimeSinceLastSend();
+		return this.channelMetrics.getTimeSinceLastSend();
 	}
 
 	@Override
 	public double getMeanSendRate() {
-		return this.metrics.getMeanSendRate();
+		return this.channelMetrics.getMeanSendRate();
 	}
 
 	@Override
 	public double getMeanErrorRate() {
-		return this.metrics.getMeanErrorRate();
+		return this.channelMetrics.getMeanErrorRate();
 	}
 
 	@Override
 	public double getMeanErrorRatio() {
-		return this.metrics.getMeanErrorRatio();
+		return this.channelMetrics.getMeanErrorRatio();
 	}
 
 	@Override
 	public double getMeanSendDuration() {
-		return this.metrics.getMeanSendDuration();
+		return this.channelMetrics.getMeanSendDuration();
 	}
 
 	@Override
 	public double getMinSendDuration() {
-		return this.metrics.getMinSendDuration();
+		return this.channelMetrics.getMinSendDuration();
 	}
 
 	@Override
 	public double getMaxSendDuration() {
-		return this.metrics.getMaxSendDuration();
+		return this.channelMetrics.getMaxSendDuration();
 	}
 
 	@Override
 	public double getStandardDeviationSendDuration() {
-		return this.metrics.getStandardDeviationSendDuration();
+		return this.channelMetrics.getStandardDeviationSendDuration();
 	}
 
 	@Override
 	public Statistics getSendDuration() {
-		return this.metrics.getSendDuration();
+		return this.channelMetrics.getSendDuration();
 	}
 
 	@Override
 	public Statistics getSendRate() {
-		return this.metrics.getSendRate();
+		return this.channelMetrics.getSendRate();
 	}
 
 	@Override
 	public Statistics getErrorRate() {
-		return this.metrics.getErrorRate();
+		return this.channelMetrics.getErrorRate();
 	}
 
 	@Override
@@ -160,8 +181,8 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 		if (logger.isDebugEnabled()) {
 			logger.debug("message sent to null channel: " + message);
 		}
-		if (this.statsEnabled) {
-			this.metrics.afterSend(this.metrics.beforeSend(), true);
+		if (this.countsEnabled) {
+			this.channelMetrics.afterSend(this.channelMetrics.beforeSend(), true);
 		}
 		return true;
 	}

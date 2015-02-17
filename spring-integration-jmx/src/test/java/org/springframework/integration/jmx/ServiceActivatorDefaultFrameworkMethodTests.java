@@ -148,7 +148,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 //	INT-2399
 	@Test
 	public void testMessageProcessor() {
-		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.h.advised.targetSource.target.processor");
+		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
 		assertSame(testMessageProcessor, processor);
 
 		QueueChannel replyChannel = new QueueChannel();

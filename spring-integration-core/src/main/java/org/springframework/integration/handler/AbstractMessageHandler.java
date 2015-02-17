@@ -19,8 +19,12 @@ package org.springframework.integration.handler;
 import org.springframework.core.Ordered;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
+import org.springframework.integration.handler.management.MessageHandlerMetrics;
+import org.springframework.integration.handler.management.SimpleMessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.management.Statistics;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -37,12 +41,23 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, TrackableComponent, Orderable {
+@ManagedResource
+public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
+		MessageHandlerMetrics, TrackableComponent, Orderable {
 
 	private volatile boolean shouldTrack = false;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
+	private final SimpleMessageHandlerMetrics handlerMetrics = new SimpleMessageHandlerMetrics();
+
+	private volatile boolean statsEnabled;
+
+	private volatile boolean countsEnabled;
+
+	private volatile String managedName;
+
+	private volatile String managedType;
 
 	@Override
 	public void setOrder(int order) {
@@ -71,13 +86,19 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
+		long start = 0;
 		try {
 			if (message != null && this.shouldTrack) {
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
+			if (this.countsEnabled) {
+				this.handlerMetrics.beforeHandle(message);
+			}
 			this.handleMessageInternal(message);
+			this.handlerMetrics.afterHandle(start, true);
 		}
 		catch (Exception e) {
+			this.handlerMetrics.afterHandle(start, false);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
@@ -86,5 +107,114 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	}
 
 	protected abstract void handleMessageInternal(Message<?> message) throws Exception;
+
+	@Override
+	public void reset() {
+		this.handlerMetrics.reset();
+	}
+
+	@Override
+	public long getHandleCountLong() {
+		return this.handlerMetrics.getHandleCountLong();
+	}
+
+	@Override
+	public int getHandleCount() {
+		return this.handlerMetrics.getHandleCount();
+	}
+
+	@Override
+	public int getErrorCount() {
+		return this.handlerMetrics.getErrorCount();
+	}
+
+	@Override
+	public long getErrorCountLong() {
+		return this.handlerMetrics.getErrorCountLong();
+	}
+
+	@Override
+	public double getMeanDuration() {
+		return this.handlerMetrics.getMeanDuration();
+	}
+
+	@Override
+	public double getMinDuration() {
+		return this.handlerMetrics.getMinDuration();
+	}
+
+	@Override
+	public double getMaxDuration() {
+		return this.handlerMetrics.getMaxDuration();
+	}
+
+	@Override
+	public double getStandardDeviationDuration() {
+		return this.handlerMetrics.getStandardDeviationDuration();
+	}
+
+	@Override
+	public int getActiveCount() {
+		return this.handlerMetrics.getActiveCount();
+	}
+
+	@Override
+	public long getActiveCountLong() {
+		return this.handlerMetrics.getActiveCountLong();
+	}
+
+	@Override
+	public Statistics getDuration() {
+		return this.handlerMetrics.getDuration();
+	}
+
+	@Override
+	public void enableStats(boolean statsEnabled) {
+		if (statsEnabled) {
+			this.countsEnabled = true;
+		}
+		this.statsEnabled = statsEnabled;
+		if (this.handlerMetrics != null) {
+			this.handlerMetrics.setFullStatsEnabled(statsEnabled);
+		}
+	}
+
+	@Override
+	public boolean isStatsEnabled() {
+		return this.statsEnabled;
+	}
+
+	@Override
+	public void enableCounts(boolean countsEnabled) {
+		this.countsEnabled = countsEnabled;
+		if (!countsEnabled) {
+			this.statsEnabled = false;
+		}
+	}
+
+	@Override
+	public boolean isCountsEnabled() {
+		return this.countsEnabled;
+	}
+
+	@Override
+	public void setManagedName(String managedName) {
+		this.managedName = managedName;
+	}
+
+	@Override
+	public String getManagedName() {
+		return this.managedName;
+	}
+
+	@Override
+	public void setManagedType(String managedType) {
+		this.managedType = managedType;
+	}
+
+	@Override
+	public String getManagedType() {
+		return this.managedType;
+	}
 
 }

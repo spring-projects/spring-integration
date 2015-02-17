@@ -26,9 +26,9 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,15 +53,18 @@ public class DynamicRouterTests {
 
 	@Autowired
 	@Qualifier("processAChannel")
-	private QueueChannel processAChannel;
+	private PollableChannel processAChannel;
 
 	@Autowired
 	@Qualifier("processBChannel")
-	private QueueChannel processBChannel;
+	private PollableChannel processBChannel;
 
 	@Autowired
 	@Qualifier("processCChannel")
-	private QueueChannel processCChannel;
+	private PollableChannel processCChannel;
+
+	@Autowired
+	private MessageChannel nullChannel;
 
 
 	@Test @DirtiesContext
@@ -107,6 +110,14 @@ public class DynamicRouterTests {
 
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processCChannel.receive(0).getPayload());
+	}
+
+	@Test @DirtiesContext
+	public void testPerf() throws Exception {
+		for (int i = 0; i < 10000000; i++) {
+			this.nullChannel.send(null);
+		}
+		System.out.println("done");
 	}
 
 }
