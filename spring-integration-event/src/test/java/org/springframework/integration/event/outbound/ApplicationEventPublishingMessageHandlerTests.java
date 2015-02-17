@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,8 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.messaging.Message;
 import org.springframework.integration.event.core.MessagingEvent;
-import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -56,7 +55,7 @@ public class ApplicationEventPublishingMessageHandlerTests {
 		handler.handleMessage(message);
 		ApplicationEvent event = publisher.getLastEvent();
 		assertEquals(TestEvent.class, event.getClass());
-		assertEquals("foo", ((TestEvent) event).getSource());	
+		assertEquals("foo", ((TestEvent) event).getSource());
 	}
 
 
@@ -68,9 +67,16 @@ public class ApplicationEventPublishingMessageHandlerTests {
 			return this.lastEvent;
 		}
 
+		@Override
 		public void publishEvent(ApplicationEvent event) {
 			this.lastEvent = event;
 		}
+
+		@Override
+		public void publishEvent(Object event) {
+
+		}
+
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,7 +225,8 @@ public class ApplicationEventListeningMessageProducerTests {
 		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
 
 		QueueChannel channel = new QueueChannel();
-		ApplicationEventListeningMessageProducer listenerMessageProducer = new ApplicationEventListeningMessageProducer();
+		ApplicationEventListeningMessageProducer listenerMessageProducer =
+				new ApplicationEventListeningMessageProducer();
 		listenerMessageProducer.setOutputChannel(channel);
 		listenerMessageProducer.setEventTypes(TestApplicationEvent2.class);
 		beanFactory.registerSingleton("testListenerMessageProducer", listenerMessageProducer);
@@ -236,7 +237,8 @@ public class ApplicationEventListeningMessageProducerTests {
 		ctx.refresh();
 
 		ApplicationEventMulticaster multicaster =
-				ctx.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+				ctx.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+						ApplicationEventMulticaster.class);
 		Map<?, ?> retrieverCache = TestUtils.getPropertyValue(multicaster, "retrieverCache", Map.class);
 
 		ctx.publishEvent(new TestApplicationEvent1());
@@ -246,10 +248,11 @@ public class ApplicationEventListeningMessageProducerTests {
 		 *  event if not supported.
 		 */
 		assertEquals(2, retrieverCache.size());
-		for (Object key : retrieverCache.keySet()) {
-			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(key, "eventType", Class.class);
+		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
+			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved",
+					Class.class);
 			assertThat(event, Matchers.is(Matchers.isOneOf(ContextRefreshedEvent.class, TestApplicationEvent1.class)));
-			Set<?> listeners = TestUtils.getPropertyValue(retrieverCache.get(key), "applicationListenerBeans", Set.class);
+			Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListenerBeans", Set.class);
 			assertEquals(1, listeners.size());
 			assertEquals("testListener", listeners.iterator().next());
 		}
@@ -257,19 +260,21 @@ public class ApplicationEventListeningMessageProducerTests {
 		TestApplicationEvent2 event2 = new TestApplicationEvent2();
 		ctx.publishEvent(event2);
 		assertEquals(3, retrieverCache.size());
-		for (Object key : retrieverCache.keySet()) {
-			Class<?> event = TestUtils.getPropertyValue(key, "eventType", Class.class);
+		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
+			Class<?> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved", Class.class);
 			if (TestApplicationEvent2.class.isAssignableFrom(event)) {
-				Set<?> listeners = TestUtils.getPropertyValue(retrieverCache.get(key), "applicationListenerBeans", Set.class);
+				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListenerBeans", Set.class);
 				assertEquals(2, listeners.size());
 				for (Object listener : listeners) {
-					assertThat((String) listener, Matchers.is(Matchers.isOneOf("testListenerMessageProducer", "testListener")));
+					assertThat((String) listener, 
+							Matchers.is(Matchers.isOneOf("testListenerMessageProducer", "testListener")));
 				}
 				break;
 			}
 		}
 
-		ctx.publishEvent(new ApplicationEvent("Some event") {});
+		ctx.publishEvent(new ApplicationEvent("Some event") {
+		});
 
 		assertEquals(4, listenerCounter.get());
 
@@ -286,6 +291,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		public TestApplicationEvent1() {
 			super("event1");
 		}
+
 	}
 
 	@SuppressWarnings("serial")
@@ -294,6 +300,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		public TestApplicationEvent2() {
 			super("event2");
 		}
+
 	}
 
 	@SuppressWarnings("serial")
@@ -302,6 +309,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		public TestMessagingEvent(Message<?> message) {
 			super(message);
 		}
+
 	}
 
 	private static class TestApplicationListener implements ApplicationListener<ApplicationEvent> {
@@ -315,6 +323,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		public void onApplicationEvent(ApplicationEvent event) {
 			this.counter.incrementAndGet();
 		}
+
 	}
 
 }

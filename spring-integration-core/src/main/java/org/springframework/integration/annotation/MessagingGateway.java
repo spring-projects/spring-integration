@@ -115,11 +115,11 @@ public @interface MessagingGateway {
 	String mapper() default "";
 
 	/**
-	 * Provide a reference to an {@link reactor.core.Environment}
-	 * to use for any of the interface methods that have a {@link reactor.core.composable.Promise} return type.
+	 * Provide a reference to an {@link reactor.Environment}
+	 * to use for any of the interface methods that have a {@link reactor.rx.Promise} return type.
 	 * This {@code reactor.core.Environment} will only be used for those async methods; the sync methods
 	 * will be invoked in the caller's thread.
-	 * <p> This attribute is required in case of {@link reactor.core.composable.Promise} usage.
+	 * <p> This attribute is required in case of {@link reactor.rx.Promise} usage.
 	 * @return the suggested reactor Environment bean name.
 	 * @since 4.1
 	 */

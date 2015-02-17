@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
@@ -55,8 +56,16 @@ import org.springframework.messaging.support.ErrorMessage;
 public class TcpNetConnectionTests {
 
 	private final ApplicationEventPublisher nullPublisher = new ApplicationEventPublisher() {
+
+		@Override
 		public void publishEvent(ApplicationEvent event) {
 		}
+
+		@Override
+		public void publishEvent(Object event) {
+			
+		}
+		
 	};
 
 	@Test
@@ -93,7 +102,8 @@ public class TcpNetConnectionTests {
 		Socket socket = mock(Socket.class);
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, nullPublisher, null);
-		ChannelInputStream inputStream = TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
+		ChannelInputStream inputStream = 
+				TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
 		inputStream.write(new byte[] {(byte) 0x80}, 1);
 		assertEquals(0x80, inputStream.read());
 	}
@@ -145,4 +155,5 @@ public class TcpNetConnectionTests {
 		assertEquals("foo", inboundMessage.get().getPayload());
 		assertEquals("baz", inboundMessage.get().getHeaders().get("bar"));
 	}
+	
 }

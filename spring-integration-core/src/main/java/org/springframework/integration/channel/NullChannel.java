@@ -27,8 +27,7 @@ import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-
-import reactor.util.StringUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".

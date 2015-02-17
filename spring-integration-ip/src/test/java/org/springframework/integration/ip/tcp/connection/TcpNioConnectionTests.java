@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,9 +98,16 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 public class TcpNioConnectionTests {
 
 	private final ApplicationEventPublisher nullPublisher = new ApplicationEventPublisher() {
+		
 		@Override
 		public void publishEvent(ApplicationEvent event) {
 		}
+
+		@Override
+		public void publishEvent(Object event) {
+			
+		}
+		
 	};
 
 	@Test
@@ -713,6 +720,12 @@ public class TcpNioConnectionTests {
 			public void publishEvent(ApplicationEvent event) {
 				connectionLatch.countDown();
 			}
+
+			@Override
+			public void publishEvent(Object event) {
+				
+			}
+			
 		});
 		final CountDownLatch assemblerLatch = new CountDownLatch(1);
 		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();

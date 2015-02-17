@@ -27,10 +27,9 @@ allprojects {
 
 	repositories {
 		if (version.endsWith('BUILD-SNAPSHOT') || project.hasProperty('platformVersion')) {
-			maven { url 'http://repo.spring.io/libs-snapshot' }
+			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
 		maven { url 'https://repo.spring.io/libs-milestone' }
-		maven { url 'https://repo.spring.io/plugins-release' }
 		mavenCentral()
 	}
 
@@ -76,59 +75,58 @@ subprojects { subproject ->
 
 
 	ext {
-		activeMqVersion = '5.10.0'
-		aspectjVersion = '1.8.2'
-		apacheSshdVersion = '0.10.1'
-		boonVersion = '0.25'
-		chronicleVersion = '3.2.2'
+		activeMqVersion = '5.11.0'
+		aspectjVersion = '1.8.4'
+		apacheSshdVersion = '0.13.0'
+		boonVersion = '0.31'
+		chronicleVersion = '3.3.4'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
-		derbyVersion = '10.10.2.0'
+		derbyVersion = '10.11.1.1'
 		eclipseLinkVersion = '2.4.2'
 		ftpServerVersion = '1.0.6'
-		groovyVersion = '2.3.6'
-		guavaVersion = '16.0.1'
+		groovyVersion = '2.4.0'
+		guavaVersion = '18.0'
 		hamcrestVersion = '1.3'
-		hibernateVersion = '4.3.6.Final'
+		hibernateVersion = '4.3.8.Final'
 		hsqldbVersion = '2.3.2'
 		h2Version = '1.4.180'
-		jackson2Version = '2.4.2'
+		jackson2Version = '2.5.1'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.5.2'
-		jedisVersion = '2.5.2'
-		jettyVersion = '9.2.2.v20140723'
+		jedisVersion = '2.6.2'
 		jmsApiVersion = '1.1-rev-1'
 		jpaApiVersion = '2.0.0'
-		jrubyVersion = '1.7.15'
+		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.51'
-		jsonpathVersion = '0.9.1'
+		jsonpathVersion = '1.2.0'
 		junitVersion = '4.11'
 		jythonVersion = '2.5.3'
 		log4jVersion = '1.2.17'
 		mockitoVersion = '1.9.5'
-		mysqlVersion = '5.1.29'
+		mysqlVersion = '5.1.34'
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
-		reactorVersion = '1.1.4.RELEASE'
-		reactorSpringVersion = '1.1.3.RELEASE'
+		reactorVersion = '2.0.0.RC1'
+		reactorSpringVersion = '2.0.0.M2'
 		romeToolsVersion = '1.5.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
 		servletApiVersion = '3.1.0'
-		slf4jVersion = "1.7.6"
-		tomcatVersion = "7.0.55"
+		slf4jVersion = "1.7.8"
+		tomcatVersion = "8.0.18"
 		smack3Version = '3.2.1'
-		smackVersion = '4.0.0'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.4.2.RELEASE'
-		springDataMongoVersion = '1.6.0.RELEASE'
-		springDataRedisVersion = '1.4.0.RELEASE'
-		springGemfireVersion = '1.5.0.RELEASE'
+		smackVersion = '4.0.6'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.5.0.BUILD-SNAPSHOT'
+		springDataMongoVersion = '1.7.0.M1'
+		springDataRedisVersion = '1.5.0.M1'
+		springGemfireVersion = '1.6.0.M1'
 		springSecurityVersion = '3.2.5.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
-		springRetryVersion = '1.1.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.4.RELEASE'
+		springRetryVersion = '1.1.2.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.2.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.2.0.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
@@ -259,16 +257,15 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
-		compile ("org.springframework:spring-context-support:$springVersion", optional) // override the reactor version
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
-		compile "org.projectreactor:reactor-core:$reactorVersion"
-		compile("org.projectreactor.spring:reactor-spring-context:$reactorSpringVersion", optional)
+		compile ("io.projectreactor:reactor-core:$reactorVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
 		compile("io.fastjson:boon:$boonVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile ("net.openhft:chronicle:$chronicleVersion")
+		testCompile ("io.projectreactor.spring:reactor-spring-context:$reactorSpringVersion")
 	}
 }
 

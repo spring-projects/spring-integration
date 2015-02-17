@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 
-import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Predicate;
 
 /**
  * Utility class to {@link #evaluate} a jsonPath on the provided object.
@@ -33,21 +33,21 @@ import com.jayway.jsonpath.JsonPath;
  */
 public final class JsonPathUtils {
 
-	public static <T> T evaluate(Object json, String jsonPath, Filter<?>... filters) throws Exception {
+	public static <T> T evaluate(Object json, String jsonPath, Predicate... predicates) throws Exception {
 		if (json instanceof String) {
-			return JsonPath.read((String) json, jsonPath, filters);
+			return JsonPath.read((String) json, jsonPath, predicates);
 		}
 		else if (json instanceof File) {
-			return JsonPath.read((File) json, jsonPath, filters);
+			return JsonPath.read((File) json, jsonPath, predicates);
 		}
 		else if (json instanceof URL) {
-			return JsonPath.read((URL) json, jsonPath, filters);
+			return JsonPath.read((URL) json, jsonPath, predicates);
 		}
 		else if (json instanceof InputStream) {
-			return JsonPath.read((InputStream) json, jsonPath, filters);
+			return JsonPath.read((InputStream) json, jsonPath, predicates);
 		}
 		else {
-			return JsonPath.read(json, jsonPath, filters);
+			return JsonPath.read(json, jsonPath, predicates);
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
+import com.jayway.jsonpath.PathNotFoundException;
+import com.jayway.jsonpath.Predicate;
 
 /**
  * @author Artem Bilan
@@ -132,8 +134,8 @@ public class JsonPathTests {
 		catch (Exception e) {
 			//MessageTransformationException / MessageHandlingException / InvocationTargetException / IllegalArgumentException
 			Throwable cause = e.getCause().getCause().getCause();
-			assertTrue(cause instanceof IllegalArgumentException);
-			assertEquals("Invalid container object", cause.getMessage());
+			assertTrue(cause instanceof PathNotFoundException);
+			assertEquals("Property ['store'] not found in path $", cause.getMessage());
 		}
 	}
 
@@ -211,7 +213,7 @@ public class JsonPathTests {
 	public static class JsonPathTestsContextConfiguration {
 
 		@Bean
-		public Filter<?> jsonPathFilter() {
+		public Predicate jsonPathFilter() {
 			return  Filter.filter(Criteria.where("isbn").exists(true).and("category").ne("fiction"));
 		}
 
