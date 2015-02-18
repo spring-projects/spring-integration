@@ -38,8 +38,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -66,6 +68,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -359,9 +362,9 @@ public class CachingClientConnectionFactoryTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		}, "foo");
 		conn.setMapper(new TcpMessageMapper());
 		conn.setSerializer(new ByteArrayCrLfSerializer());
@@ -381,9 +384,9 @@ public class CachingClientConnectionFactoryTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		}, "foo");
 		conn.setMapper(new TcpMessageMapper());
 		conn.setSerializer(new ByteArrayCrLfSerializer());
@@ -517,6 +520,49 @@ public class CachingClientConnectionFactoryTests {
 		conn1 = cachingFactory.getConnection();
 		conn1.send(message);
 		Mockito.verify(mockConn2).send(message);
+	}
+
+	@Test //INT-3650
+	public void testRealConnection() throws Exception {
+		int port = SocketUtils.findAvailableTcpPort();
+		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(port);
+		final CountDownLatch latch1 = new CountDownLatch(2);
+		final CountDownLatch latch2 = new CountDownLatch(102);
+		final List<String> connectionIds = new ArrayList<String>();
+		in.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				connectionIds.add((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				latch1.countDown();
+				latch2.countDown();
+				return false;
+			}
+		});
+		in.start();
+		int n = 0;
+		while (n++ < 100 && !in.isListening()) {
+			Thread.sleep(100);
+		}
+		assertTrue(in.isListening());
+		TcpNetClientConnectionFactory out = new TcpNetClientConnectionFactory("localhost", port);
+		CachingClientConnectionFactory cache = new CachingClientConnectionFactory(out, 1);
+		cache.setSingleUse(false);
+		cache.start();
+		TcpConnectionSupport connection1 = cache.getConnection();
+		connection1.send(new GenericMessage<String>("foo"));
+		TcpConnectionSupport connection2 = cache.getConnection();
+		connection2.send(new GenericMessage<String>("foo"));
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertSame(connectionIds.get(0), connectionIds.get(1));
+		for (int i = 0; i < 100; i++) {
+			TcpConnectionSupport connection = cache.getConnection();
+			connection.send(new GenericMessage<String>("foo"));
+		}
+		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertSame(connectionIds.get(0), connectionIds.get(101));
+		in.stop();
+		cache.stop();
 	}
 
 	public TcpConnectionSupport makeMockConnection() {

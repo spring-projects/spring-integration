@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,11 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 
 /**
+ * Connection factory that caches connections from the underlying target factory. The underlying
+ * factory will be reconfigured to have {@code singleUse=true} in order for the connection to be
+ * returned to the cache after use. Users should not subsequently set the underlying property to
+ * false, or cache starvation will result.
+ *
  * @author Gary Russell
  * @since 2.2
  *
@@ -37,12 +42,18 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	private final SimplePool<TcpConnectionSupport> pool;
 
+	/**
+	 * Construct a caching connection factory that delegates to the provided factory, with
+	 * the provided pool size.
+	 * @param target the target factory.
+	 * @param poolSize the number of connections to allow.
+	 */
 	public CachingClientConnectionFactory(AbstractClientConnectionFactory target, int poolSize) {
 		super("", 0);
 		// override single-use to true to force "close" after use
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
-		pool = new SimplePool<TcpConnectionSupport>(poolSize, new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
+		this.pool = new SimplePool<TcpConnectionSupport>(poolSize, new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
 
 			@Override
 			public TcpConnectionSupport createForPool() {
@@ -65,26 +76,50 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		});
 	}
 
+	/**
+	 * @param connectionWaitTimeout the new timeout.
+	 * @see SimplePool#setWaitTimeout(long)
+	 */
 	public void setConnectionWaitTimeout(int connectionWaitTimeout) {
 		this.pool.setWaitTimeout(connectionWaitTimeout);
 	}
 
+	/**
+	 * @param poolSize the new pool size.
+	 * @see SimplePool#setPoolSize(int)
+	 */
 	public synchronized void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
+	/**
+	 * @see SimplePool#getPoolSize()
+	 * @return the pool size.
+	 */
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}
 
+	/**
+	 * @see SimplePool#getIdleCount()
+	 * @return the idle count.
+	 */
 	public int getIdleCount() {
 		return this.pool.getIdleCount();
 	}
 
+	/**
+	 * @see SimplePool#getActiveCount()
+	 * @return the active count.
+	 */
 	public int getActiveCount() {
 		return this.pool.getActiveCount();
 	}
 
+	/**
+	 * @see SimplePool#getAllocatedCount()
+	 * @return the allocated count.
+	 */
 	public int getAllocatedCount() {
 		return this.pool.getAllocatedCount();
 	}
@@ -356,9 +391,18 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return targetConnectionFactory.isSingleUse();
 	}
 
+	/**
+	 * Ignored on this factory; connections are always cached in the pool. The underlying
+	 * connection factory will have its singleUse property coerced to true (causing the
+	 * connection to be returned). Setting it to false on the underlying factory after initialization
+	 * will cause cache starvation.
+	 * @param singleUse the singleUse.
+	 */
 	@Override
 	public void setSingleUse(boolean singleUse) {
-		targetConnectionFactory.setSingleUse(singleUse);
+		if (!singleUse && logger.isDebugEnabled()) {
+			logger.debug("singleUse=false is not supported; cached connections are never closed");
+		}
 	}
 
 	@Override
