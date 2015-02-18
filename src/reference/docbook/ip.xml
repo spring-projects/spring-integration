@@ -508,6 +508,11 @@
         point the exception occurred. Applications can use a normal <interfacename>ApplicationListener</interfacename>,
         or see <xref linkend="applicationevent-inbound"/>, to capture these events, allowing analysis of the problem.
     </para>
+    <para>
+        Starting with <emphasis>versions 4.0.7, 4.1.3</emphasis> <classname>TcpConnectionServerExceptionEvent</classname>s
+        are published whenever an unexpected exception occurs on a server socket (such as a <classname>BindException</classname>
+        when the server socket is in use). These events have a reference to the connection factory and the cause.
+    </para>
   </section>
   <section id="tcp-adapters">
     <title>TCP Adapters</title>
