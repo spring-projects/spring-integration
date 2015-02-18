@@ -93,13 +93,9 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 		}
 		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
 			MBeanExporter mbeanExporter = (MBeanExporter) bean;
-			DirectFieldAccessor mbeDfa = new DirectFieldAccessor(mbeanExporter);
-			@SuppressWarnings("unchecked")
-			Set<String> excludedNames = (Set<String>) mbeDfa.getPropertyValue(EXCLUDED_BEANS_PROPERTY_NAME);
-			if (excludedNames != null) {
-				siBeanNames.addAll(excludedNames);
+			for (String siBean : this.siBeanNames) {
+				mbeanExporter.addExcludedBean(siBean);
 			}
-			mbeDfa.setPropertyValue(EXCLUDED_BEANS_PROPERTY_NAME, siBeanNames);
 		}
 
 		return bean;
