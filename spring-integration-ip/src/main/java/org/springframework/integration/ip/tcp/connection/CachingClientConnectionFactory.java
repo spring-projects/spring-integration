@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
 import java.util.concurrent.Executor;
@@ -27,6 +28,11 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 
 /**
+ * Connection factory that caches connections from the underlying target factory. The underlying
+ * factory will be reconfigured to have {@code singleUse=true} in order for the connection to be
+ * returned to the cache after use. Users should not subsequently set the underlying property to
+ * false, or cache starvation will result.
+ *
  * @author Gary Russell
  * @since 2.2
  *
@@ -37,54 +43,87 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	private final SimplePool<TcpConnectionSupport> pool;
 
+	/**
+	 * Construct a caching connection factory that delegates to the provided factory, with
+	 * the provided pool size.
+	 * @param target the target factory.
+	 * @param poolSize the number of connections to allow.
+	 */
 	public CachingClientConnectionFactory(AbstractClientConnectionFactory target, int poolSize) {
 		super("", 0);
 		// override single-use to true to force "close" after use
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
-		pool = new SimplePool<TcpConnectionSupport>(poolSize, new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
+		this.pool = new SimplePool<TcpConnectionSupport>(poolSize,
+				new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
 
-			@Override
-			public TcpConnectionSupport createForPool() {
-				try {
-					return targetConnectionFactory.getConnection();
-				} catch (Exception e) {
-					throw new MessagingException("Failed to obtain connection", e);
-				}
-			}
+					@Override
+					public TcpConnectionSupport createForPool() {
+						try {
+							return targetConnectionFactory.getConnection();
+						}
+						catch (Exception e) {
+							throw new MessagingException("Failed to obtain connection", e);
+						}
+					}
 
-			@Override
-			public boolean isStale(TcpConnectionSupport connection) {
-				return !connection.isOpen();
-			}
+					@Override
+					public boolean isStale(TcpConnectionSupport connection) {
+						return !connection.isOpen();
+					}
 
-			@Override
-			public void removedFromPool(TcpConnectionSupport connection) {
-				connection.close();
-			}
-		});
+					@Override
+					public void removedFromPool(TcpConnectionSupport connection) {
+						connection.close();
+					}
+
+				});
 	}
 
+	/**
+	 * @param connectionWaitTimeout the new timeout.
+	 * @see SimplePool#setWaitTimeout(long)
+	 */
 	public void setConnectionWaitTimeout(int connectionWaitTimeout) {
 		this.pool.setWaitTimeout(connectionWaitTimeout);
 	}
 
+	/**
+	 * @param poolSize the new pool size.
+	 * @see SimplePool#setPoolSize(int)
+	 */
 	public synchronized void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
+	/**
+	 * @see SimplePool#getPoolSize()
+	 * @return the pool size.
+	 */
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}
 
+	/**
+	 * @see SimplePool#getIdleCount()
+	 * @return the idle count.
+	 */
 	public int getIdleCount() {
 		return this.pool.getIdleCount();
 	}
 
+	/**
+	 * @see SimplePool#getActiveCount()
+	 * @return the active count.
+	 */
 	public int getActiveCount() {
 		return this.pool.getActiveCount();
 	}
 
+	/**
+	 * @see SimplePool#getAllocatedCount()
+	 * @return the allocated count.
+	 */
 	public int getAllocatedCount() {
 		return this.pool.getAllocatedCount();
 	}
@@ -92,7 +131,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	@Override
 	public TcpConnectionSupport obtainConnection() throws Exception {
 		CachedConnection cachedConnection = new CachedConnection(this.pool.getItem());
-		cachedConnection.registerListener(this.getListener());
+		cachedConnection.registerListener(getListener());
 		return cachedConnection;
 	}
 
@@ -107,23 +146,23 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		@Override
 		public synchronized void close() {
-			if(this.released) {
+			if (this.released) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Connection " + this.getConnectionId() + " has already been released");
+					logger.debug("Connection " + getConnectionId() + " has already been released");
 				}
 			}
-			else  {
+			else {
 				/**
 				 * If the delegate is stopped, actually close the connection, but still release
 				 * it to the pool, it will be discarded/renewed the next time it is retrieved.
 				 */
 				if (!isRunning()) {
-					if (logger.isDebugEnabled()){
-						logger.debug("Factory not running - closing " + this.getConnectionId());
+					if (logger.isDebugEnabled()) {
+						logger.debug("Factory not running - closing " + getConnectionId());
 					}
 					super.close();
 				}
-				pool.releaseItem(this.getTheConnection());
+				pool.releaseItem(getTheConnection());
 				this.released = true;
 			}
 		}
@@ -135,7 +174,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		@Override
 		public String toString() {
-			return this.getConnectionId();
+			return getConnectionId();
 		}
 
 		/**
@@ -146,20 +185,21 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		 */
 		@Override
 		public boolean onMessage(Message<?> message) {
-			AbstractIntegrationMessageBuilder<?> messageBuilder = CachingClientConnectionFactory.this
-					.getMessageBuilderFactory().fromMessage(message)
-						.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+			AbstractIntegrationMessageBuilder<?> messageBuilder =
+					CachingClientConnectionFactory.this.getMessageBuilderFactory()
+							.fromMessage(message)
+							.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
 			if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
 				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 						message.getHeaders().get(IpHeaders.CONNECTION_ID));
 			}
-			this.getListener().onMessage(messageBuilder.build());
+			getListener().onMessage(messageBuilder.build());
 			close(); // return to pool after response is received
 			return true; // true so the single-use connection doesn't close itself
 		}
 
 		private void physicallyClose() {
-			this.getTheConnection().close();
+			getTheConnection().close();
 		}
 
 	}
@@ -168,127 +208,133 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public boolean isRunning() {
-		return targetConnectionFactory.isRunning();
+		return this.targetConnectionFactory.isRunning();
 	}
 
 	@Override
 	public int hashCode() {
-		return targetConnectionFactory.hashCode();
+		return this.targetConnectionFactory.hashCode();
 	}
 
 	@Override
 	public void setComponentName(String componentName) {
-		targetConnectionFactory.setComponentName(componentName);
+		this.targetConnectionFactory.setComponentName(componentName);
 	}
 
 	@Override
 	public String getComponentType() {
-		return targetConnectionFactory.getComponentType();
+		return this.targetConnectionFactory.getComponentType();
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return targetConnectionFactory.equals(obj);
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		CachingClientConnectionFactory that = (CachingClientConnectionFactory) o;
+
+		return this.targetConnectionFactory.equals(that.targetConnectionFactory);
+
 	}
 
 	@Override
 	public int getSoTimeout() {
-		return targetConnectionFactory.getSoTimeout();
+		return this.targetConnectionFactory.getSoTimeout();
 	}
 
 	@Override
 	public void setSoTimeout(int soTimeout) {
-		targetConnectionFactory.setSoTimeout(soTimeout);
+		this.targetConnectionFactory.setSoTimeout(soTimeout);
 	}
 
 	@Override
 	public int getSoReceiveBufferSize() {
-		return targetConnectionFactory.getSoReceiveBufferSize();
+		return this.targetConnectionFactory.getSoReceiveBufferSize();
 	}
 
 	@Override
 	public void setSoReceiveBufferSize(int soReceiveBufferSize) {
-		targetConnectionFactory.setSoReceiveBufferSize(soReceiveBufferSize);
+		this.targetConnectionFactory.setSoReceiveBufferSize(soReceiveBufferSize);
 	}
 
 	@Override
 	public int getSoSendBufferSize() {
-		return targetConnectionFactory.getSoSendBufferSize();
+		return this.targetConnectionFactory.getSoSendBufferSize();
 	}
 
 	@Override
 	public void setSoSendBufferSize(int soSendBufferSize) {
-		targetConnectionFactory.setSoSendBufferSize(soSendBufferSize);
+		this.targetConnectionFactory.setSoSendBufferSize(soSendBufferSize);
 	}
 
 	@Override
 	public boolean isSoTcpNoDelay() {
-		return targetConnectionFactory.isSoTcpNoDelay();
+		return this.targetConnectionFactory.isSoTcpNoDelay();
 	}
 
 	@Override
 	public void setSoTcpNoDelay(boolean soTcpNoDelay) {
-		targetConnectionFactory.setSoTcpNoDelay(soTcpNoDelay);
+		this.targetConnectionFactory.setSoTcpNoDelay(soTcpNoDelay);
 	}
 
 	@Override
 	public int getSoLinger() {
-		return targetConnectionFactory.getSoLinger();
+		return this.targetConnectionFactory.getSoLinger();
 	}
 
 	@Override
 	public void setSoLinger(int soLinger) {
-		targetConnectionFactory.setSoLinger(soLinger);
+		this.targetConnectionFactory.setSoLinger(soLinger);
 	}
 
 	@Override
 	public boolean isSoKeepAlive() {
-		return targetConnectionFactory.isSoKeepAlive();
+		return this.targetConnectionFactory.isSoKeepAlive();
 	}
 
 	@Override
 	public void setSoKeepAlive(boolean soKeepAlive) {
-		targetConnectionFactory.setSoKeepAlive(soKeepAlive);
+		this.targetConnectionFactory.setSoKeepAlive(soKeepAlive);
 	}
 
 	@Override
 	public int getSoTrafficClass() {
-		return targetConnectionFactory.getSoTrafficClass();
+		return this.targetConnectionFactory.getSoTrafficClass();
 	}
 
 	@Override
 	public void setSoTrafficClass(int soTrafficClass) {
-		targetConnectionFactory.setSoTrafficClass(soTrafficClass);
+		this.targetConnectionFactory.setSoTrafficClass(soTrafficClass);
 	}
 
 	@Override
 	public String getHost() {
-		return targetConnectionFactory.getHost();
+		return this.targetConnectionFactory.getHost();
 	}
 
 	@Override
 	public int getPort() {
-		return targetConnectionFactory.getPort();
+		return this.targetConnectionFactory.getPort();
 	}
 
 	@Override
 	public TcpSender getSender() {
-		return targetConnectionFactory.getSender();
+		return this.targetConnectionFactory.getSender();
 	}
 
 	@Override
 	public Serializer<?> getSerializer() {
-		return targetConnectionFactory.getSerializer();
+		return this.targetConnectionFactory.getSerializer();
 	}
 
 	@Override
 	public Deserializer<?> getDeserializer() {
-		return targetConnectionFactory.getDeserializer();
+		return this.targetConnectionFactory.getDeserializer();
 	}
 
 	@Override
 	public TcpMessageMapper getMapper() {
-		return targetConnectionFactory.getMapper();
+		return this.targetConnectionFactory.getMapper();
 	}
 
 	/**
@@ -315,7 +361,8 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	@Override
 	public void registerListener(TcpListener listener) {
 		super.registerListener(listener);
-		targetConnectionFactory.registerListener(new TcpListener() {
+		this.targetConnectionFactory.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
 				if (!(message instanceof ErrorMessage)) {
@@ -323,59 +370,67 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				}
 				return false;
 			}
+
 		});
 	}
 
 	@Override
 	public void registerSender(TcpSender sender) {
-		targetConnectionFactory.registerSender(sender);
+		this.targetConnectionFactory.registerSender(sender);
 	}
 
 	@Override
 	public void setTaskExecutor(Executor taskExecutor) {
-		targetConnectionFactory.setTaskExecutor(taskExecutor);
+		this.targetConnectionFactory.setTaskExecutor(taskExecutor);
 	}
 
 	@Override
 	public void setDeserializer(Deserializer<?> deserializer) {
-		targetConnectionFactory.setDeserializer(deserializer);
+		this.targetConnectionFactory.setDeserializer(deserializer);
 	}
 
 	@Override
 	public void setSerializer(Serializer<?> serializer) {
-		targetConnectionFactory.setSerializer(serializer);
+		this.targetConnectionFactory.setSerializer(serializer);
 	}
 
 	@Override
 	public void setMapper(TcpMessageMapper mapper) {
-		targetConnectionFactory.setMapper(mapper);
+		this.targetConnectionFactory.setMapper(mapper);
 	}
 
 	@Override
 	public boolean isSingleUse() {
-		return targetConnectionFactory.isSingleUse();
+		return this.targetConnectionFactory.isSingleUse();
 	}
 
+	/**
+	 * Ignored on this factory; connections are always cached in the pool. The underlying
+	 * connection factory will have its singleUse property coerced to true (causing the
+	 * connection to be returned). Setting it to false on the underlying factory after initialization
+	 * will cause cache starvation.
+	 * @param singleUse the singleUse.
+	 */
 	@Override
 	public void setSingleUse(boolean singleUse) {
-		targetConnectionFactory.setSingleUse(singleUse);
+		if (!singleUse && logger.isDebugEnabled()) {
+			logger.debug("singleUse=false is not supported; cached connections are never closed");
+		}
 	}
 
 	@Override
-	public void setInterceptorFactoryChain(
-			TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
-		targetConnectionFactory
-				.setInterceptorFactoryChain(interceptorFactoryChain);
+	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
+		this.targetConnectionFactory.setInterceptorFactoryChain(interceptorFactoryChain);
 	}
 
 	@Override
 	public void setLookupHost(boolean lookupHost) {
-		targetConnectionFactory.setLookupHost(lookupHost);
+		this.targetConnectionFactory.setLookupHost(lookupHost);
 	}
 
 	@Override
 	public boolean isLookupHost() {
-		return targetConnectionFactory.isLookupHost();
+		return this.targetConnectionFactory.isLookupHost();
 	}
 
 
@@ -390,30 +445,30 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public void start() {
-		this.setActive(true);
-		targetConnectionFactory.start();
+		setActive(true);
+		this.targetConnectionFactory.start();
 		super.start();
 	}
 
 	@Override
 	public synchronized void stop() {
-		targetConnectionFactory.stop();
+		this.targetConnectionFactory.stop();
 		this.pool.removeAllIdleItems();
 	}
 
 	@Override
 	public int getPhase() {
-		return targetConnectionFactory.getPhase();
+		return this.targetConnectionFactory.getPhase();
 	}
 
 	@Override
 	public boolean isAutoStartup() {
-		return targetConnectionFactory.isAutoStartup();
+		return this.targetConnectionFactory.isAutoStartup();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		targetConnectionFactory.stop(callback);
+		this.targetConnectionFactory.stop(callback);
 	}
 
 }
