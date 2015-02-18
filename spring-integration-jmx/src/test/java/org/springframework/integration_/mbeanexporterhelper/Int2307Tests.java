@@ -54,12 +54,11 @@ public class Int2307Tests {
 		int count = 0;
 		for (ObjectInstance mbean : mbeans) {
 			Thread.sleep(500); //Added in order to pass test with Java 8
-			System.out.println(mbean.toString());
-			if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
+			if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleTrackableMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
 				bits |= 2;
 				count++;
 			}
-			else if (mbean.toString().startsWith("org.springframework.integration.monitor.RouterMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
+			else if (mbean.toString().startsWith("org.springframework.integration.monitor.TrackableRouterMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
 				bits |= 8;
 				count++;
 			}
@@ -81,7 +80,7 @@ public class Int2307Tests {
 		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("zz"));
 
 		// make sure there are no duplicate MBean ObjectNames if 2 contexts loaded from same config
-		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("single-config.xml", this.getClass()).close();
 	}
 
 	@SuppressWarnings("unchecked")

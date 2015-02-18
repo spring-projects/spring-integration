@@ -134,32 +134,32 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 
 	@Override
 	public void enableStats(boolean statsEnabled) {
-		delegate.enableStats(statsEnabled);
+		this.delegate.enableStats(statsEnabled);
 	}
 
 	@Override
 	public void enableCounts(boolean countsEnabled) {
-		delegate.enableCounts(countsEnabled);
+		this.delegate.enableCounts(countsEnabled);
 	}
 
 	@Override
 	public boolean isStatsEnabled() {
-		return delegate.isStatsEnabled();
+		return this.delegate.isStatsEnabled();
 	}
 
 	@Override
 	public boolean isCountsEnabled() {
-		return delegate.isCountsEnabled();
+		return this.delegate.isCountsEnabled();
 	}
 
 	@Override
 	public void setManagedName(String name) {
-		delegate.setManagedName(name);
+		this.delegate.setManagedName(name);
 	}
 
 	@Override
 	public void setManagedType(String source) {
-		delegate.setManagedType(source);
+		this.delegate.setManagedType(source);
 	}
 
 }

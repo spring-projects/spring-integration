@@ -31,11 +31,9 @@ import javax.management.JMException;
 import javax.management.ObjectName;
 import javax.management.modelmbean.ModelMBean;
 
-import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -62,6 +60,7 @@ import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistoryConfigurer;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.Statistics;
@@ -234,16 +233,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 
-		if (bean instanceof Advised) {
-			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
-				Advice advice = advisor.getAdvice();
-				if (advice instanceof MessageHandlerMetrics) {
-					// Already advised - so probably a factory bean product
-					return bean;
-				}
-			}
-		}
-
 		if (IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME.equals(beanName)
 				&& bean instanceof MessageHistoryConfigurer) {
 			this.messageHistoryConfigurer = (MessageHistoryConfigurer) bean;
@@ -257,12 +246,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				}
 				return bean;
 			}
+			// If the handler is proxied, we have to extract the target to expose as an MBean.
+			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageHandlerMetrics monitor = (MessageHandlerMetrics) extractTarget(bean);
 			monitor.enableStats(true);//TODO: INT-3638
 			handlers.add(monitor);
 		}
 
 		if (bean instanceof MessageSourceMetrics) {
+			// If the source is proxied, we have to extract the target to expose as an MBean.
+			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageSourceMetrics monitor = (MessageSourceMetrics) extractTarget(bean);
 			monitor.enableCounts(true);//TODO: INT-3638
 			sources.add(monitor);
@@ -270,6 +263,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (bean instanceof MessageChannel && bean instanceof MessageChannelMetrics
 				&& bean instanceof NamedComponent) {
+			// If the channel is proxied, we have to extract the target to expose as an MBean.
+			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(bean);
 			monitor.enableStats(true);//TODO: INT-3638
 			channels.add(monitor);
@@ -838,10 +833,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				handler.getManagedName(), handler.getManagedType());
 	}
 
-	private String getSourceBeanKey(MessageSourceMetrics monitor) {
+	private String getSourceBeanKey(MessageSourceMetrics source) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
-				monitor.getManagedName(), monitor.getManagedType());
+				source.getManagedName(), source.getManagedType());
 	}
 
 	private String getEndpointBeanKey(AbstractEndpoint endpoint, String name, String source) {
@@ -931,10 +926,20 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
 			if (monitor instanceof MappingMessageRouterManagement) {
-				result = new RouterMetrics((Lifecycle) endpoint, (MappingMessageRouterManagement) monitor);
+				if (monitor instanceof TrackableComponent) {
+					result = new TrackableRouterMetrics((Lifecycle) endpoint, (MappingMessageRouterManagement) monitor);
+				}
+				else {
+					result = new RouterMetrics((Lifecycle) endpoint, (MappingMessageRouterManagement) monitor);
+				}
 			}
 			else {
-				result = new LifecycleMessageHandlerMetrics((Lifecycle) endpoint, monitor);
+				if (monitor instanceof TrackableComponent) {
+					result = new LifecycleTrackableMessageHandlerMetrics((Lifecycle) endpoint, monitor);
+				}
+				else {
+					result = new LifecycleMessageHandlerMetrics((Lifecycle) endpoint, monitor);
+				}
 			}
 		}
 
@@ -1032,7 +1037,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
-			result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+			if (endpoint instanceof TrackableComponent) {
+				result = new LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
+			}
+			else {
+				result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+			}
 		}
 
 		if (name == null) {

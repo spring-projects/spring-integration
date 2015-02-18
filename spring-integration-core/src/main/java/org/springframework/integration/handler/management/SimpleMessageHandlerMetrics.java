@@ -72,9 +72,9 @@ public class SimpleMessageHandlerMetrics {
 		return start;
 	}
 
-	public void afterHandle(long time, boolean success) {
+	public void afterHandle(long start, boolean success) {
 		if (this.fullStatsEnabled && success) {
-			this.duration.append(System.currentTimeMillis());
+			this.duration.append(System.currentTimeMillis() - start);
 		}
 		else if (!success) {
 			this.errorCount.incrementAndGet();

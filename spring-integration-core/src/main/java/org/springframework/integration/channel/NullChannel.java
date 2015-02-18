@@ -91,9 +91,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 			this.countsEnabled = true;
 		}
 		this.statsEnabled = statsEnabled;
-		if (this.channelMetrics != null) {
-			this.channelMetrics.setFullStatsEnabled(statsEnabled);
-		}
+		this.channelMetrics.setFullStatsEnabled(statsEnabled);
 	}
 
 	@Override

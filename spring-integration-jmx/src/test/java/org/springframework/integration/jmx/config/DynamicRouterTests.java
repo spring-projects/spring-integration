@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -112,7 +113,7 @@ public class DynamicRouterTests {
 		assertEquals("123", processCChannel.receive(0).getPayload());
 	}
 
-	@Test @DirtiesContext
+	@Test @DirtiesContext @Ignore
 	public void testPerf() throws Exception {
 		for (int i = 0; i < 10000000; i++) {
 			this.nullChannel.send(null);

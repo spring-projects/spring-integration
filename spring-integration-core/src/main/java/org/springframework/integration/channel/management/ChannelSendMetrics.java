@@ -103,12 +103,12 @@ public class ChannelSendMetrics {
 			long now = System.currentTimeMillis();
 			long elapsed = now - start;
 			if (result && this.fullStatsEnabled) {
-				sendSuccessRatio.success();
+				sendSuccessRatio.success(now);
 				sendDuration.append(elapsed);
 			}
 			else {
 				if (this.fullStatsEnabled) {
-	 				sendSuccessRatio.failure();
+	 				sendSuccessRatio.failure(now);
 					sendErrorCount.incrementAndGet();
 				}
 				sendErrorRate.increment();
