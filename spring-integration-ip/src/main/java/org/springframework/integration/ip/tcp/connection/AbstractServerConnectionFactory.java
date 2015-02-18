@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 the original author or authors.
+ * Copyright 2001-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,10 +57,10 @@ public abstract class AbstractServerConnectionFactory
 	@Override
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
-			if (!this.isActive()) {
+			if (!isActive()) {
 				this.setActive(true);
 				this.shuttingDown = false;
-				this.getTaskExecutor().execute(this);
+				getTaskExecutor().execute(this);
 			}
 		}
 		super.start();
@@ -102,22 +102,22 @@ public abstract class AbstractServerConnectionFactory
 	 * @param socket The new socket.
 	 */
 	protected void initializeConnection(TcpConnectionSupport connection, Socket socket) {
-		TcpListener listener = this.getListener();
+		TcpListener listener = getListener();
 		if (listener != null) {
 			connection.registerListener(listener);
 		}
-		connection.registerSender(this.getSender());
-		connection.setMapper(this.getMapper());
-		connection.setDeserializer(this.getDeserializer());
-		connection.setSerializer(this.getSerializer());
-		connection.setSingleUse(this.isSingleUse());
+		connection.registerSender(getSender());
+		connection.setMapper(getMapper());
+		connection.setDeserializer(getDeserializer());
+		connection.setSerializer(getSerializer());
+		connection.setSingleUse(isSingleUse());
 		/*
 		 * If we are configured
 		 * for single use; need to enforce a timeout on the socket so we will close
 		 * if the client connects, but sends nothing. (Protect against DoS).
 		 * Behavior can be overridden by explicitly setting the timeout to zero.
 		 */
-		if (this.isSingleUse() && this.getSoTimeout() < 0) {
+		if (isSingleUse() && getSoTimeout() < 0) {
 			try {
 				socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
 			} catch (SocketException e) {
@@ -128,7 +128,7 @@ public abstract class AbstractServerConnectionFactory
 	}
 
 	protected void postProcessServerSocket(ServerSocket serverSocket) {
-		this.getTcpSocketSupport().postProcessServerSocket(serverSocket);
+		getTcpSocketSupport().postProcessServerSocket(serverSocket);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public abstract class AbstractServerConnectionFactory
 	 * @return The backlog.
 	 */
 	public int getBacklog() {
-		return backlog;
+		return this.backlog;
 	}
 
 	/**
@@ -175,8 +175,12 @@ public abstract class AbstractServerConnectionFactory
 
 	@Override
 	public int afterShutdown() {
-		this.stop();
+		stop();
 		return 0;
+	}
+
+	protected void publishServerExceptionEvent(Exception e) {
+		getApplicationEventPublisher().publishEvent(new TcpConnectionServerExceptionEvent(this, e));
 	}
 
 }

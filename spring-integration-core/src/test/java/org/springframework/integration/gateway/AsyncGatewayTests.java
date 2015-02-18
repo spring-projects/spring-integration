@@ -18,6 +18,7 @@ package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -84,7 +85,7 @@ public class AsyncGatewayTests {
 		Object result = f.get(1000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 		assertTrue(elapsed >= 200);
-		assertTrue(result instanceof Message<?>);
+		assertNotNull(result);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -149,7 +150,6 @@ public class AsyncGatewayTests {
 		long elapsed = System.currentTimeMillis() - start;
 		assertTrue(elapsed >= 200);
 		assertEquals("foobar", result.get().getPayload());
-
 		Object thread = result.get().getHeaders().get("thread");
 		assertNotEquals(Thread.currentThread(), thread);
 	}
@@ -169,7 +169,6 @@ public class AsyncGatewayTests {
 		CustomFuture f = service.returnCustomFuture("foo");
 		String result = f.get(1000, TimeUnit.MILLISECONDS);
 		assertEquals("foobar", result);
-
 		assertEquals(Thread.currentThread(), f.thread);
 	}
 
@@ -184,14 +183,13 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 
-		proxyFactory.setAsyncExecutor(null);	// Not async - user flow returns Future<?>
+		proxyFactory.setAsyncExecutor(null);    // Not async - user flow returns Future<?>
 
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		CustomFuture f = (CustomFuture) service.returnCustomFutureWithTypeFuture("foo");
 		String result = f.get(1000, TimeUnit.MILLISECONDS);
 		assertEquals("foobar", result);
-
 		assertEquals(Thread.currentThread(), f.thread);
 	}
 
@@ -204,6 +202,7 @@ public class AsyncGatewayTests {
 						.setHeader("thread", Thread.currentThread())
 						.build();
 			}
+
 		});
 	}
 
@@ -222,9 +221,8 @@ public class AsyncGatewayTests {
 		long start = System.currentTimeMillis();
 		Object result = f.get(1000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
-
 		assertTrue(elapsed >= 200 - safety);
-		assertTrue(result instanceof String);
+		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
 
@@ -243,7 +241,6 @@ public class AsyncGatewayTests {
 		long start = System.currentTimeMillis();
 		Object result = f.get(1000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
-
 		assertTrue(elapsed >= 200 - safety);
 		assertTrue(result instanceof String);
 		assertEquals("foobar", result);
@@ -263,10 +260,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<Message<?>> promise = service.returnMessagePromise("foo");
-		long start = System.currentTimeMillis();
 		Object result = promise.await(1, TimeUnit.SECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed <= 200);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -283,11 +277,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<String> promise = service.returnStringPromise("foo");
-		long start = System.currentTimeMillis();
 		Object result = promise.await(1, TimeUnit.SECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-
-		assertTrue(elapsed <= 200 - safety);
 		assertEquals("foobar", result);
 	}
 
@@ -304,12 +294,8 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<?> promise = service.returnSomethingPromise("foo");
-		long start = System.currentTimeMillis();
 		Object result = promise.await(1, TimeUnit.SECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-
-		assertTrue(elapsed <= 200 - safety);
-		assertTrue(result instanceof String);
+		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
 
@@ -326,7 +312,6 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<String> promise = service.returnStringPromise("foo");
-		long start = System.currentTimeMillis();
 
 		final AtomicReference<String> result = new AtomicReference<String>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -340,9 +325,6 @@ public class AsyncGatewayTests {
 		});
 
 		latch.await(1, TimeUnit.SECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-
-		assertTrue(elapsed <= 200 - safety);
 		assertEquals("foobar", result.get());
 	}
 
@@ -366,6 +348,7 @@ public class AsyncGatewayTests {
 
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
+
 			@Override
 			public void run() {
 				Message<?> input = requestChannel.receive();
@@ -389,11 +372,12 @@ public class AsyncGatewayTests {
 				}
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
+
 		}).start();
 	}
 
 
-	static interface TestEchoService {
+	interface TestEchoService {
 
 		Future<String> returnString(String s);
 
@@ -403,10 +387,10 @@ public class AsyncGatewayTests {
 
 		ListenableFuture<Message<?>> returnMessageListenable(String s);
 
-		@Gateway(headers=@GatewayHeader(name="method", expression="#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "method", expression = "#gatewayMethod.name"))
 		CustomFuture returnCustomFuture(String s);
 
-		@Gateway(headers=@GatewayHeader(name="method", expression="#gatewayMethod.name"))
+		@Gateway(headers = @GatewayHeader(name = "method", expression = "#gatewayMethod.name"))
 		Future<?> returnCustomFutureWithTypeFuture(String s);
 
 		Promise<String> returnStringPromise(String s);
