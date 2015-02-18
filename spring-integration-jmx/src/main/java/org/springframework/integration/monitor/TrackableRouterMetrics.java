@@ -19,7 +19,6 @@ package org.springframework.integration.monitor;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.router.MappingMessageRouterManagement;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +27,6 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
 public class TrackableRouterMetrics extends RouterMetrics implements TrackableComponent {
 
 	private final TrackableComponent trackable;

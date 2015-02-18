@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -44,6 +44,7 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -77,10 +78,12 @@ import org.springframework.util.StringUtils;
  * @author Matt Stine
  * @author Gunnar Hillert
  * @author Will Schipp
+ * @author Gary Russell
  *
  * @since 2.0
  */
 @ManagedResource
+@IntegrationManagedResource
 public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);

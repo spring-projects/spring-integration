@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors
+ * Copyright 2014-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -42,9 +43,11 @@ import org.springframework.util.Assert;
 /**
  * @author David Liu
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 @ManagedResource
+@IntegrationManagedResource
 public class RedisQueueInboundGateway extends MessagingGatewaySupport implements ApplicationEventPublisherAware {
 
 	private static final String QUEUE_NAME_SUFFIX = ".reply";

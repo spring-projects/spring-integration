@@ -23,8 +23,8 @@ import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.handler.management.SimpleMessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-@ManagedResource
+@IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
 		MessageHandlerMetrics, TrackableComponent, Orderable {
 

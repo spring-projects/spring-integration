@@ -19,7 +19,7 @@ package org.springframework.integration.monitor;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
+@IntegrationManagedResource
 public class LifecycleTrackableMessageSourceMetrics extends LifecycleMessageSourceMetrics
 		implements TrackableComponent {
 

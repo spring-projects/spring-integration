@@ -40,6 +40,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.annotation.AnnotationBeanUtils;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -47,8 +48,10 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
@@ -63,6 +66,7 @@ import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
@@ -72,6 +76,7 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
+import org.springframework.jmx.export.metadata.InvalidMetadataException;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
@@ -81,6 +86,8 @@ import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
+import org.springframework.util.StringUtils;
+import org.springframework.util.StringValueResolver;
 
 /**
  * <p>
@@ -111,13 +118,13 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
  */
 @ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
-		ApplicationContextAware, BeanClassLoaderAware, SmartLifecycle {
+		ApplicationContextAware, BeanClassLoaderAware, EmbeddedValueResolverAware, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
-	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
+	private final AnnotationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
 
 	private ListableBeanFactory beanFactory;
 
@@ -177,6 +184,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private MessageHistoryConfigurer messageHistoryConfigurer;
 
+	private StringValueResolver embeddedValueResolver;
+
+
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
@@ -228,6 +238,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			throws BeansException {
 		Assert.notNull(applicationContext, "ApplicationContext may not be null");
 		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void setEmbeddedValueResolver(StringValueResolver resolver) {
+		this.embeddedValueResolver = resolver;
 	}
 
 	@Override
@@ -1072,6 +1087,32 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		ReflectionUtils.makeAccessible(field);
 		return ReflectionUtils.getField(field, target);
+	}
+
+	private class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource {
+
+		@Override
+		public org.springframework.jmx.export.metadata.ManagedResource getManagedResource(Class<?> beanClass)
+				throws InvalidMetadataException {
+			IntegrationManagedResource ann =
+					AnnotationUtils.getAnnotation(beanClass, IntegrationManagedResource.class);
+			if (ann == null) {
+				return null;
+			}
+			org.springframework.jmx.export.metadata.ManagedResource managedResource =
+					new org.springframework.jmx.export.metadata.ManagedResource();
+			AnnotationBeanUtils.copyPropertiesToBean(ann, managedResource,
+					IntegrationMBeanExporter.this.embeddedValueResolver);
+			if (!"".equals(ann.value()) && !StringUtils.hasLength(managedResource.getObjectName())) {
+				String value = ann.value();
+				if (IntegrationMBeanExporter.this.embeddedValueResolver != null) {
+					value = IntegrationMBeanExporter.this.embeddedValueResolver.resolveStringValue(value);
+				}
+				managedResource.setObjectName(value);
+			}
+			return managedResource;
+		}
+
 	}
 
 }

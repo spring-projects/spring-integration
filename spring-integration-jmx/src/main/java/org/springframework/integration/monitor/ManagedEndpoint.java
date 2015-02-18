@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@ package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Wrapper for an {@link AbstractEndpoint} that exposes a management interface.
- * 
+ *
  * @author Dave Syer
- * 
+ * @author Gary Russell
+ *
  */
-@ManagedResource
+@IntegrationManagedResource
 public class ManagedEndpoint implements Lifecycle {
 
 	private final AbstractEndpoint delegate;
@@ -36,16 +37,19 @@ public class ManagedEndpoint implements Lifecycle {
 		this.delegate = delegate;
 	}
 
+	@Override
 	@ManagedAttribute
 	public final boolean isRunning() {
 		return delegate.isRunning();
 	}
 
+	@Override
 	@ManagedOperation
 	public final void start() {
 		delegate.start();
 	}
 
+	@Override
 	@ManagedOperation
 	public final void stop() {
 		delegate.stop();

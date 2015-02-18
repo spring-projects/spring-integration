@@ -22,7 +22,6 @@ import org.springframework.integration.support.management.ExponentialMovingAvera
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Registers all message channels, and accumulates statistics about their performance. The statistics are then published
@@ -33,7 +32,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
 public class ChannelSendMetrics {
 
 	protected final Log logger = LogFactory.getLog(getClass());

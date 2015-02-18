@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 
 /**
@@ -31,7 +30,6 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
 public class SimpleMessageHandlerMetrics {
 
 	private static final Log logger = LogFactory.getLog(SimpleMessageHandlerMetrics.class);

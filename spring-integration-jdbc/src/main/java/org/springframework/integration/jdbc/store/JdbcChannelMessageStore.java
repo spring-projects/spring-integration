@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -55,6 +55,7 @@ import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
@@ -92,9 +93,11 @@ import org.springframework.util.StringUtils;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.2
  */
 @ManagedResource
+@IntegrationManagedResource
 public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean, BeanFactoryAware {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);

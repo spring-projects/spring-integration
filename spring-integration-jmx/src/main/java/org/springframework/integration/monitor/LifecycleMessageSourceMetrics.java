@@ -18,9 +18,9 @@ package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.management.MessageSourceMetrics;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * A {@link MessageSourceMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
@@ -30,7 +30,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
+@IntegrationManagedResource
 public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Lifecycle {
 
 	private final Lifecycle lifecycle;

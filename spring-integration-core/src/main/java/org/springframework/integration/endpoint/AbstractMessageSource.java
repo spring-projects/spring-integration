@@ -27,8 +27,8 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
@@ -39,7 +39,7 @@ import org.springframework.util.CollectionUtils;
  * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
+@IntegrationManagedResource
 public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator implements MessageSource<T>,
 		MessageSourceMetrics, NamedComponent, BeanNameAware {
 

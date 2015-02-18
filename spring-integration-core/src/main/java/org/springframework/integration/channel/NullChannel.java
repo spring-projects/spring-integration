@@ -23,8 +23,8 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.management.ChannelSendMetrics;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.StringUtils;
@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  */
-@ManagedResource
+@IntegrationManagedResource
 public class NullChannel implements PollableChannel, MessageChannelMetrics, BeanNameAware, NamedComponent {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
