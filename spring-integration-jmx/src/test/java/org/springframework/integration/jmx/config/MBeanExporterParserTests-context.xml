@@ -19,7 +19,9 @@
 					  server="mbs" 
 					  default-domain="tests.MBeanExpoerterParser"
 					  object-name-static-properties="appProperties"
-					  object-naming-strategy="keyNamer"/>
+					  object-naming-strategy="keyNamer"
+					  counts-enabled="foo, !baz, ba*"
+					  stats-enabled="fiz, buz" />
 					  
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>
@@ -27,5 +29,17 @@
 	</util:properties>
 
 	<bean id="keyNamer" class="org.springframework.jmx.export.naming.KeyNamingStrategy" />
+
+	<si:channel id="foo" />
+
+	<si:channel id="bar" />
+
+	<si:channel id="baz" />
+
+	<si:channel id="qux" />
+
+	<si:channel id="fiz" />
+
+	<si:channel id="buz" />
 
 </beans>

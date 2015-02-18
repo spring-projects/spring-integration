@@ -41,7 +41,6 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.annotation.AnnotationBeanUtils;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -118,7 +117,7 @@ import org.springframework.util.StringValueResolver;
  */
 @ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
-		ApplicationContextAware, BeanClassLoaderAware, EmbeddedValueResolverAware, SmartLifecycle {
+		ApplicationContextAware, EmbeddedValueResolverAware, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
@@ -158,8 +157,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Map<String, String> beansByEndpointName = new HashMap<String, String>();
 
-	private ClassLoader beanClassLoader;
-
 	private volatile boolean autoStartup = true;
 
 	private volatile int phase = 0;
@@ -178,6 +175,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private String[] componentNamePatterns = { "*" };
 
+	private String[] enabledCountsPatterns = { "*" };
+
+	private String[] enabledStatsPatterns = { "*" };
+
 	private volatile long shutdownDeadline;
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
@@ -193,12 +194,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		setAutodetect(false);
 		setNamingStrategy(defaultNamingStrategy);
 		setAssembler(assembler);
-	}
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-		super.setBeanClassLoader(classLoader);
 	}
 
 	/**
@@ -224,6 +219,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
 		Assert.notEmpty(componentNamePatterns, "componentNamePatterns must not be empty");
 		this.componentNamePatterns = Arrays.copyOf(componentNamePatterns, componentNamePatterns.length);
+	}
+
+	public void setEnabledCountsPatterns(String[] enabledCountsPatterns) {
+		Assert.notEmpty(enabledCountsPatterns, "enabledCountsPatterns must not be empty");
+		this.enabledCountsPatterns = Arrays.copyOf(enabledCountsPatterns, enabledCountsPatterns.length);
+	}
+
+	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
+		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
+		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
 	}
 
 	@Override
@@ -264,7 +269,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			// If the handler is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageHandlerMetrics monitor = (MessageHandlerMetrics) extractTarget(bean);
-			monitor.enableStats(true);//TODO: INT-3638
 			handlers.add(monitor);
 		}
 
@@ -272,7 +276,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			// If the source is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageSourceMetrics monitor = (MessageSourceMetrics) extractTarget(bean);
-			monitor.enableCounts(true);//TODO: INT-3638
 			sources.add(monitor);
 		}
 
@@ -281,7 +284,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			// If the channel is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(bean);
-			monitor.enableStats(true);//TODO: INT-3638
 			channels.add(monitor);
 		}
 
@@ -717,6 +719,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					channelsByName.put(name, monitor);
 				}
+				Boolean enabled = enabled(this.enabledCountsPatterns, name);
+				if (enabled != null) {
+					monitor.enableCounts(enabled);
+				}
+				enabled = enabled(this.enabledStatsPatterns, name);
+				if (enabled != null) {
+					monitor.enableStats(enabled);
+				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
 		}
@@ -736,6 +746,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					handlersByName.put(name, monitor);
 				}
+				Boolean enabled = enabled(this.enabledCountsPatterns, name);
+				if (enabled != null) {
+					monitor.enableCounts(enabled);
+				}
+				enabled = enabled(this.enabledStatsPatterns, name);
+				if (enabled != null) {
+					monitor.enableStats(enabled);
+				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
 		}
@@ -754,6 +772,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				String beanKey = getSourceBeanKey(monitor);
 				if (name != null) {
 					sourcesByName.put(name, monitor);
+				}
+				Boolean enabled = enabled(this.enabledCountsPatterns, name);
+				if (enabled != null) {
+					monitor.enableCounts(enabled);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -794,6 +816,23 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				logger.info("Registered endpoint without MessageSource: " + objectName);
 			}
 		}
+	}
+
+	private Boolean enabled(String[] patterns, String name) {
+		if (patterns != null) {
+			for (String pattern : patterns) {
+				boolean reverse = false;
+				String patternToUse = pattern;
+				if (pattern.startsWith("!")) {
+					reverse = true;
+					patternToUse = pattern.substring(1);
+				}
+				if (PatternMatchUtils.simpleMatch(patternToUse, name)) {
+					return !reverse;
+				}
+			}
+		}
+		return null;
 	}
 
 	private Object extractTarget(Object bean) {

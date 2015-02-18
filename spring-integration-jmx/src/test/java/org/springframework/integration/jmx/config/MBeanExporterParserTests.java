@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -30,6 +31,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,6 +61,24 @@ public class MBeanExporterParserTests {
 		assertTrue(properties.containsKey("bar"));
 		assertEquals(server, exporter.getServer());
 		assertSame(context.getBean("keyNamer"), TestUtils.getPropertyValue(exporter, "namingStrategy"));
+		MessageChannelMetrics metrics = context.getBean("foo", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("bar", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("baz", MessageChannelMetrics.class);
+		assertFalse(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("qux", MessageChannelMetrics.class);
+		assertFalse(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("fiz", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertTrue(metrics.isStatsEnabled());
+		metrics = context.getBean("buz", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertTrue(metrics.isStatsEnabled());
 		exporter.destroy();
 	}
 
