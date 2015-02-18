@@ -95,6 +95,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 	public final Message<?> receive(long timeout) {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
+		boolean counted = false;
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
@@ -104,7 +105,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 				}
 			}
 			Message<?> message = this.doReceive(timeout);
-			if (isStatsEnabled()) {
+			if (isCountsEnabled()) {
 				getMetrics().afterReceive();
 			}
 			message = interceptorList.postReceive(message, this);
@@ -114,7 +115,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			return message;
 		}
 		catch (RuntimeException e) {
-			if (isStatsEnabled()) {
+			if (isCountsEnabled() && !counted) {
 				getMetrics().afterError();
 			}
 			if (interceptorStack != null) {

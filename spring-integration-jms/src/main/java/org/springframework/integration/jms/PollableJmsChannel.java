@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.jms;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import org.springframework.integration.channel.management.ChannelReceiveMetrics;
+import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -31,7 +33,8 @@ import org.springframework.messaging.support.ChannelInterceptor;
  * @author Artem Bilan
  * @since 2.0
  */
-public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel {
+public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel,
+		PollableChannelManagement {
 
 	private volatile String messageSelector;
 
@@ -43,9 +46,41 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 		this.messageSelector = messageSelector;
 	}
 
+	@Override
+	protected void initMetrics() {
+		setChannelMetrics(new ChannelReceiveMetrics(this.getComponentName()));
+	}
+
+	@Override
+	protected ChannelReceiveMetrics getMetrics() {
+		return (ChannelReceiveMetrics) super.getMetrics();
+	}
+
+	@Override
+	public int getReceiveCount() {
+		return getMetrics().getReceiveCount();
+	}
+
+	@Override
+	public long getReceiveCountLong() {
+		return getMetrics().getReceiveCountLong();
+	}
+
+	@Override
+	public int getReceiveErrorCount() {
+		return getMetrics().getReceiveErrorCount();
+	}
+
+	@Override
+	public long getReceiveErrorCountLong() {
+		return getMetrics().getReceiveErrorCountLong();
+	}
+
+	@Override
 	public Message<?> receive() {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
+		boolean counted = false;
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
@@ -65,6 +100,10 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			if (object == null) {
 				return null;
 			}
+			if (isCountsEnabled()) {
+				getMetrics().afterReceive();
+				counted = true;
+			}
 			Message<?> message = null;
 			if (object instanceof Message<?>) {
 				message = (Message<?>) object;
@@ -79,6 +118,9 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			return message;
 		}
 		catch (RuntimeException e) {
+			if (isCountsEnabled() && !counted) {
+				getMetrics().afterError();
+			}
 			if (interceptorStack != null) {
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}
@@ -86,6 +128,7 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 		}
 	}
 
+	@Override
 	public Message<?> receive(long timeout) {
 		try {
 			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
