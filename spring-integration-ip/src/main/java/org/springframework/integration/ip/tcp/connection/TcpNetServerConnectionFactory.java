@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 /**
  * Implements a server connection factory that produces {@link TcpNetConnection}s using
  * a {@link ServerSocket}. Must have a {@link TcpListener} registered.
+ *
  * @author Gary Russell
  * @since 2.0
  *
@@ -48,6 +49,11 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		super(port);
 	}
 
+	@Override
+	public String getComponentType() {
+		return "tcp-net-server-connection-factory";
+	}
+
 	/**
 	 * If no listener registers, exits.
 	 * Accepts incoming connections and creates TcpConnections for each new connection.
@@ -58,22 +64,22 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public void run() {
 		ServerSocket theServerSocket = null;
-		if (this.getListener() == null) {
+		if (getListener() == null) {
 			logger.info("No listener bound to server connection factory; will not read; exiting...");
 			return;
 		}
 		try {
-			if (this.getLocalAddress() == null) {
-				theServerSocket = createServerSocket(this.getPort(), this.getBacklog(), null);
+			if (getLocalAddress() == null) {
+				theServerSocket = createServerSocket(getPort(), getBacklog(), null);
 			}
 			else {
-				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
-				theServerSocket = createServerSocket(this.getPort(), this.getBacklog(), whichNic);
+				InetAddress whichNic = InetAddress.getByName(getLocalAddress());
+				theServerSocket = createServerSocket(getPort(), getBacklog(), whichNic);
 			}
-			this.getTcpSocketSupport().postProcessServerSocket(theServerSocket);
+			getTcpSocketSupport().postProcessServerSocket(theServerSocket);
 			this.serverSocket = theServerSocket;
-			this.setListening(true);
-			logger.info("Listening on port " + this.getPort());
+			setListening(true);
+			logger.info("Listening on port " + getPort());
 			while (true) {
 				final Socket socket;
 				/*
@@ -89,7 +95,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 					}
 					continue;
 				}
-				if (this.isShuttingDown()) {
+				if (isShuttingDown()) {
 					if (logger.isInfoEnabled()) {
 						logger.info("New connection from " + socket.getInetAddress().getHostAddress()
 								+ " rejected; the server is in the process of shutting down.");
@@ -101,12 +107,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
 					}
 					setSocketAttributes(socket);
-					TcpConnectionSupport connection = new TcpNetConnection(socket, true, this.isLookupHost(),
-							this.getApplicationEventPublisher(), this.getComponentName());
+					TcpConnectionSupport connection = new TcpNetConnection(socket, true, isLookupHost(),
+							getApplicationEventPublisher(), getComponentName());
 					connection = wrapConnection(connection);
-					this.initializeConnection(connection, socket);
-					this.getTaskExecutor().execute(connection);
-					this.harvestClosedConnections();
+					initializeConnection(connection, socket);
+					getTaskExecutor().execute(connection);
+					harvestClosedConnections();
 					connection.publishConnectionOpenEvent();
 				}
 			}
@@ -115,20 +121,21 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
 				logger.warn("Server Socket closed");
-			} else if (this.isActive()) {
-				logger.error("Error on ServerSocket", e);
+			}
+			else if (isActive()) {
+				logger.error("Error on ServerSocket; port = " + getPort(), e);
+				publishServerExceptionEvent(e);
 			}
 		}
 		finally {
-			this.setListening(false);
-			this.setActive(false);
+			setListening(false);
+			setActive(false);
 		}
 	}
 
 	/**
 	 * Create a new {@link ServerSocket}. This default implementation uses the default
 	 * {@link ServerSocketFactory}. Override to use some other mechanism
-	 *
 	 * @param port The port.
 	 * @param backlog The server socket backlog.
 	 * @param whichNic An InetAddress if binding to a specific network interface. Set to
@@ -139,11 +146,10 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
 		ServerSocketFactory serverSocketFactory = this.tcpSocketFactorySupport.getServerSocketFactory();
 		if (whichNic == null) {
-			return serverSocketFactory.createServerSocket(port,
-					Math.abs(backlog));
-		} else {
-			return serverSocketFactory.createServerSocket(port,
-					Math.abs(backlog), whichNic);
+			return serverSocketFactory.createServerSocket(port, Math.abs(backlog));
+		}
+		else {
+			return serverSocketFactory.createServerSocket(port, Math.abs(backlog), whichNic);
 		}
 	}
 
@@ -171,8 +177,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		return tcpSocketFactorySupport;
 	}
 
-	public void setTcpSocketFactorySupport(
-			TcpSocketFactorySupport tcpSocketFactorySupport) {
+	public void setTcpSocketFactorySupport(TcpSocketFactorySupport tcpSocketFactorySupport) {
 		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
 		this.tcpSocketFactorySupport = tcpSocketFactorySupport;
 	}
