@@ -54,22 +54,17 @@ public class Int2307Tests {
 		int count = 0;
 		for (ObjectInstance mbean : mbeans) {
 			Thread.sleep(500); //Added in order to pass test with Java 8
-			if (mbean.toString().startsWith("org.springframework.integration.router.RecipientListRouter[test.domain:type=RecipientListRouter,name=rlr,random=")) {
-				bits |= 1;
-				count++;
-			} else if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
+			if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleTrackableMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
 				bits |= 2;
 				count++;
-			} else if (mbean.toString().startsWith("org.springframework.integration.router.HeaderValueRouter[test.domain:type=HeaderValueRouter,name=hvr,random=")) {
-				bits |= 4;
-				count++;
-			} else if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleMessageHandlerMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
+			}
+			else if (mbean.toString().startsWith("org.springframework.integration.monitor.TrackableRouterMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
 				bits |= 8;
 				count++;
 			}
 		}
-		assertEquals(0xf, bits);
-		assertEquals(4, count);
+		assertEquals(0xa, bits);
+		assertEquals(2, count);
 
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
 		List<Object> beanPostProcessors = TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors", List.class);
@@ -85,7 +80,7 @@ public class Int2307Tests {
 		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("zz"));
 
 		// make sure there are no duplicate MBean ObjectNames if 2 contexts loaded from same config
-		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("single-config.xml", this.getClass()).close();
 	}
 
 	@SuppressWarnings("unchecked")

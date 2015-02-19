@@ -16,10 +16,9 @@
 
 package org.springframework.integration.channel.management;
 
+import org.springframework.integration.support.management.MetricsEnablement;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
 
 /**
@@ -30,16 +29,7 @@ import org.springframework.jmx.support.MetricType;
  * @author Gary Russell
  * @since 2.0
  */
-public interface MessageChannelMetrics {
-
-	@ManagedOperation
-	void reset();
-
-	@ManagedOperation
-	void enableStats(boolean statsEnabled);
-
-	@ManagedAttribute
-	boolean isStatsEnabled();
+public interface MessageChannelMetrics extends MetricsEnablement {
 
 	/**
 	 * @return the number of successful sends

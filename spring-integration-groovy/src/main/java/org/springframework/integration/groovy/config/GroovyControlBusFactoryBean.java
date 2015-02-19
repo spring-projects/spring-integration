@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,21 +16,26 @@ package org.springframework.integration.groovy.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import groovy.lang.Binding;
-import groovy.lang.MissingPropertyException;
-import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.messaging.Message;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.CustomizableThreadCreator;
+
+import groovy.lang.Binding;
+import groovy.lang.MissingPropertyException;
 
 /**
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a Groovy Script.
@@ -40,6 +45,7 @@ import org.springframework.util.CustomizableThreadCreator;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Stefan Reuter
+ * @author Gary Russell
  * @since 2.0
  */
 public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements BeanClassLoaderAware {
@@ -67,11 +73,14 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	protected MessageHandler createHandler() {
 		Binding binding = new ManagedBeansBinding(this.getBeanFactory());
 		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(binding, new ScriptVariableGenerator() {
+
+			@Override
 			public Map<String, Object> generateScriptVariables(Message<?> message) {
 				Map<String, Object> variables = new HashMap<String, Object>();
 				variables.put("headers", message.getHeaders());
 				return variables;
 			}
+
 		});
 		if (this.customizer != null) {
 			processor.setCustomizer(this.customizer);
@@ -131,7 +140,8 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 			if (bean instanceof Lifecycle ||
 					bean instanceof CustomizableThreadCreator ||
-					(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
+					(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null) ||
+					(AnnotationUtils.findAnnotation(bean.getClass(), IntegrationManagedResource.class) != null)) {
 				return bean;
 			}
 			throw new BeanCreationNotAllowedException(name, "Only beans with @ManagedResource or beans which implement " +

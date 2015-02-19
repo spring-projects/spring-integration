@@ -46,9 +46,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
@@ -63,6 +63,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 @ContextConfiguration
@@ -94,6 +95,7 @@ public class ScatterGatherHandlerIntegrationTests {
 		assertThat((Double) payload, lessThan(10D));
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAuctionWithGatherChannel() {
 		Message<String> quoteMessage = MessageBuilder.withPayload("testQuote").build();

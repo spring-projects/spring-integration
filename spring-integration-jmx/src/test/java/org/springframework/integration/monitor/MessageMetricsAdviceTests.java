@@ -12,16 +12,11 @@
  */
 package org.springframework.integration.monitor;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -55,19 +50,6 @@ public class MessageMetricsAdviceTests {
 		mBeanExporter.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
 		mBeanExporter.afterPropertiesSet();
 		handler = new DummyHandler();
-	}
-
-	@Test
-	public void adviceExportedHandler() throws Exception {
-		Advised advised = (Advised) mBeanExporter.postProcessAfterInitialization(handler, "test");
-
-		DummyInterceptor interceptor = new DummyInterceptor();
-		advised.addAdvice(interceptor);
-
-		assertThat(advised.getAdvisors().length, equalTo(2));
-
-		((MessageHandler) advised).handleMessage(MessageBuilder.withPayload("test").build());
-		assertThat(interceptor.invoked, is(true));
 	}
 
 	@Test

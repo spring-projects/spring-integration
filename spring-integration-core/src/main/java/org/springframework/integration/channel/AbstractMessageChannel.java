@@ -33,8 +33,8 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -42,7 +42,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
-import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,7 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ManagedResource
+@IntegrationManagedResource
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics {
 
@@ -71,6 +70,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	private volatile String fullChannelName;
 
 	private volatile MessageConverter messageConverter;
+
+	private volatile boolean countsEnabled;
 
 	private volatile boolean statsEnabled;
 
@@ -87,8 +88,27 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
+	public void enableCounts(boolean countsEnabled) {
+		this.countsEnabled = countsEnabled;
+		if (!countsEnabled) {
+			this.statsEnabled = false;
+		}
+	}
+
+	@Override
+	public boolean isCountsEnabled() {
+		return countsEnabled;
+	}
+
+	@Override
 	public void enableStats(boolean statsEnabled) {
+		if (statsEnabled) {
+			this.countsEnabled = true;
+		}
 		this.statsEnabled = statsEnabled;
+		if (this.channelMetrics != null) {
+			this.channelMetrics.setFullStatsEnabled(statsEnabled);
+		}
 	}
 
 	@Override
@@ -314,6 +334,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	protected void setChannelMetrics(ChannelSendMetrics channelMetrics) {
 		this.channelMetrics = channelMetrics;
+		this.channelMetrics.setFullStatsEnabled(this.statsEnabled);
 	}
 
 	/**
@@ -373,7 +394,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
 		boolean statsProcessed = false;
-		StopWatch timer = null;
+		long start = 0;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
@@ -385,12 +406,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					return false;
 				}
 			}
-			if (this.statsEnabled) {
-				timer = this.channelMetrics.beforeSend();
+			if (this.countsEnabled) {
+				start = this.channelMetrics.beforeSend();
 			}
 			sent = this.doSend(message, timeout);
-			if (this.statsEnabled) {
-				this.channelMetrics.afterSend(timer, sent);
+			if (this.countsEnabled) {
+				this.channelMetrics.afterSend(start, sent);
 				statsProcessed = true;
 			}
 			this.interceptors.postSend(message, this, sent);
@@ -400,8 +421,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return sent;
 		}
 		catch (Exception e) {
-			if (this.statsEnabled && !statsProcessed) {
-				this.channelMetrics.afterSend(timer, false);
+			if (this.countsEnabled && !statsProcessed) {
+				this.channelMetrics.afterSend(start, false);
 			}
 			if (interceptorStack != null) {
 				this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);

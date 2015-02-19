@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +99,8 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 		setupDomain(exporter);
 		setupServer(exporter);
 		setupComponentNamePatterns(exporter);
+		setupCountsEnabledNamePatterns(exporter);
+		setupStatsEnabledNamePatterns(exporter);
 		return exporter;
 	}
 
@@ -136,9 +139,29 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 		String[] managedComponents = this.attributes.getStringArray("managedComponents");
 		for (String managedComponent : managedComponents) {
 			String pattern = this.environment.resolvePlaceholders(managedComponent);
-			patterns.addAll(StringUtils.commaDelimitedListToSet(pattern));
+			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
 		}
 		exporter.setComponentNamePatterns(patterns.toArray(new String[patterns.size()]));
+	}
+
+	private void setupCountsEnabledNamePatterns(IntegrationMBeanExporter exporter) {
+		List<String> patterns = new ArrayList<String>();
+		String[] countsEnabled = this.attributes.getStringArray("countsEnabled");
+		for (String managedComponent : countsEnabled) {
+			String pattern = this.environment.resolvePlaceholders(managedComponent);
+			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
+		}
+		exporter.setEnabledCountsPatterns(patterns.toArray(new String[patterns.size()]));
+	}
+
+	private void setupStatsEnabledNamePatterns(IntegrationMBeanExporter exporter) {
+		List<String> patterns = new ArrayList<String>();
+		String[] statsEnabled = this.attributes.getStringArray("statsEnabled");
+		for (String managedComponent : statsEnabled) {
+			String pattern = this.environment.resolvePlaceholders(managedComponent);
+			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
+		}
+		exporter.setEnabledStatsPatterns(patterns.toArray(new String[patterns.size()]));
 	}
 
 }

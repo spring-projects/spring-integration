@@ -14,35 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.handler.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.util.StopWatch;
 
 /**
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
-public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHandlerMetrics {
+public class SimpleMessageHandlerMetrics {
 
 	private static final Log logger = LogFactory.getLog(SimpleMessageHandlerMetrics.class);
 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
-
-	private final MessageHandler handler;
 
 	private final AtomicLong activeCount = new AtomicLong();
 
@@ -54,83 +47,45 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 
 	private volatile String name;
 
-	private volatile String source;
-
-
-	public SimpleMessageHandlerMetrics(MessageHandler handler) {
-		this.handler = handler;
-	}
-
+	private volatile boolean fullStatsEnabled;
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Override
-	public String getName() {
-		return this.name;
+	public void setFullStatsEnabled(boolean fullStatsEnabled) {
+		this.fullStatsEnabled = fullStatsEnabled;
 	}
 
-	public void setSource(String source) {
-		this.source = source;
-	}
-
-	@Override
-	public String getSource() {
-		return this.source;
-	}
-
-	public MessageHandler getMessageHandler() {
-		return this.handler;
-	}
-
-	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
-		String method = invocation.getMethod().getName();
-		if ("handleMessage".equals(method)) {
-			Message<?> message = (Message<?>) invocation.getArguments()[0];
-			handleMessage(invocation, message);
-			return null;
-		}
-		return invocation.proceed();
-	}
-
-	private void handleMessage(MethodInvocation invocation, Message<?> message) throws Throwable {
+	public long beforeHandle(Message<?> message) throws Exception {
 		if (logger.isTraceEnabled()) {
-			logger.trace("messageHandler(" + this.handler + ") message(" + message + ") :");
+			logger.trace("messageHandler(" + this.name + ") message(" + message + ") :");
 		}
-		String name = this.name;
-		if (name == null) {
-			name = this.handler.toString();
+		long start = 0;
+		if (this.fullStatsEnabled) {
+			start = System.currentTimeMillis();
 		}
-		StopWatch timer = new StopWatch(name + ".handle:execution");
-		try {
-			timer.start();
-			this.handleCount.incrementAndGet();
-			this.activeCount.incrementAndGet();
+		this.handleCount.incrementAndGet();
+		this.activeCount.incrementAndGet();
+		return start;
+	}
 
-			invocation.proceed();
-
-			timer.stop();
-			this.duration.append(timer.getTotalTimeMillis());
+	public void afterHandle(long start, boolean success) {
+		this.activeCount.decrementAndGet();
+		if (this.fullStatsEnabled && success) {
+			this.duration.append(System.currentTimeMillis() - start);
 		}
-		catch (Throwable e) {//NOSONAR - rethrown below
+		else if (!success) {
 			this.errorCount.incrementAndGet();
-			throw e;
-		}
-		finally {
-			this.activeCount.decrementAndGet();
 		}
 	}
 
-	@Override
 	public synchronized void reset() {
 		this.duration.reset();
 		this.errorCount.set(0);
 		this.handleCount.set(0);
 	}
 
-	@Override
 	public long getHandleCountLong() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
@@ -138,59 +93,44 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		return this.handleCount.get();
 	}
 
-	@Override
 	public int getHandleCount() {
 		return (int) getHandleCountLong();
 	}
 
-	@Override
 	public int getErrorCount() {
 		return (int) this.errorCount.get();
 	}
 
-	@Override
 	public long getErrorCountLong() {
 		return this.errorCount.get();
 	}
 
-	@Override
 	public double getMeanDuration() {
 		return this.duration.getMean();
 	}
 
-	@Override
 	public double getMinDuration() {
 		return this.duration.getMin();
 	}
 
-	@Override
 	public double getMaxDuration() {
 		return this.duration.getMax();
 	}
 
-	@Override
 	public double getStandardDeviationDuration() {
 		return this.duration.getStandardDeviation();
 	}
 
-	@Override
 	public int getActiveCount() {
 		return (int) this.activeCount.get();
 	}
 
-	@Override
 	public long getActiveCountLong() {
 		return this.activeCount.get();
 	}
 
-	@Override
 	public Statistics getDuration() {
 		return this.duration.getStatistics();
-	}
-
-	@Override
-	public String toString() {
-		return String.format("MessageHandlerMonitor: [name=%s, source=%s, duration=%s]", name, source, duration);
 	}
 
 }
