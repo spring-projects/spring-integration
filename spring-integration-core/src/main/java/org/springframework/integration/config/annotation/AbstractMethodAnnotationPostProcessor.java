@@ -150,7 +150,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					((Advised) handler).addAdvisor(advisor);
 				}
 				else {
-					ProxyFactory proxyFactory = new ProxyFactory(bean);
+					ProxyFactory proxyFactory = new ProxyFactory(handler);
 					proxyFactory.addAdvisor(advisor);
 					handler = (MessageHandler) proxyFactory.getProxy(this.beanFactory.getBeanClassLoader());
 				}

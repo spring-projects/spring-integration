@@ -57,14 +57,30 @@ public class ExponentialMovingAverageRatio {
 	 * Add a new event with successful outcome.
 	 */
 	public void success() {
-		append(1);
+		append(1, System.currentTimeMillis());
+	}
+
+	/**
+	 * Add a new event with successful outcome.
+	 * @param t The current timestamp.
+	 */
+	public void success(long t) {
+		append(1, t);
 	}
 
 	/**
 	 * Add a new event with failed outcome.
 	 */
 	public void failure() {
-		append(0);
+		append(0, System.currentTimeMillis());
+	}
+
+	/**
+	 * Add a new event with failed outcome.
+	 * @param t the current timestamp.
+	 */
+	public void failure(long t) {
+		append(0, t);
 	}
 
 	public synchronized void reset() {
@@ -74,8 +90,7 @@ public class ExponentialMovingAverageRatio {
 		cumulative.reset();
 	}
 
-	private synchronized void append(int value) {
-		long t = System.currentTimeMillis();
+	private synchronized void append(int value, long t) {
 		double alpha = Math.exp((t0 - t) * lapse);
 		t0 = t;
 		sum = alpha * sum + value;

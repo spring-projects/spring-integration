@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.integration.channel.management.ChannelReceiveMetrics;
+import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -36,9 +38,11 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  */
-public class PollableAmqpChannel extends AbstractAmqpChannel implements PollableChannel {
+public class PollableAmqpChannel extends AbstractAmqpChannel implements PollableChannel,
+		PollableChannelManagement {
 
 	private final String channelName;
 
@@ -53,6 +57,16 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 		this.channelName = channelName;
 	}
 
+
+	@Override
+	protected void initMetrics() {
+		setChannelMetrics(new ChannelReceiveMetrics(this.getComponentName()));
+	}
+
+	@Override
+	protected ChannelReceiveMetrics getMetrics() {
+		return (ChannelReceiveMetrics) super.getMetrics();
+	}
 
 	/**
 	 * Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
@@ -77,7 +91,33 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 	}
 
 	@Override
+	public int getReceiveCount() {
+		return getMetrics().getReceiveCount();
+	}
+
+	@Override
+	public long getReceiveCountLong() {
+		return getMetrics().getReceiveCountLong();
+	}
+
+	@Override
+	public int getReceiveErrorCount() {
+		return getMetrics().getReceiveErrorCount();
+	}
+
+	@Override
+	public long getReceiveErrorCountLong() {
+		return getMetrics().getReceiveErrorCountLong();
+	}
+
+	@Override
+	protected String getRoutingKey() {
+		return this.queueName;
+	}
+
+	@Override
 	protected void onInit() throws Exception {
+		super.onInit();
 		AmqpTemplate amqpTemplate = this.getAmqpTemplate();
 		if (this.queueName == null) {
 			if (this.amqpAdmin == null && amqpTemplate instanceof RabbitTemplate) {
@@ -92,14 +132,10 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 	}
 
 	@Override
-	protected String getRoutingKey() {
-		return this.queueName;
-	}
-
-	@Override
 	public Message<?> receive() {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
+		boolean counted = false;
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
@@ -111,6 +147,10 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			Object object = getAmqpTemplate().receiveAndConvert(this.queueName);
 			if (object == null) {
 				return null;
+			}
+			if (isCountsEnabled()) {
+				getMetrics().afterReceive();
+				counted = true;
 			}
 			Message<?> message = null;
 			if (object instanceof Message<?>) {
@@ -126,6 +166,9 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			return message;
 		}
 		catch (RuntimeException e) {
+			if (isCountsEnabled() && !counted) {
+				getMetrics().afterError();
+			}
 			if (interceptorStack != null) {
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.endpoint.management.MessageSourceMetrics;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * A {@link MessageSourceMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
  * be used to start and stop polling endpoints, for instance, in a live system.
  *
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
+@IntegrationManagedResource
 public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Lifecycle {
 
 	private final Lifecycle lifecycle;
@@ -42,38 +44,41 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 	}
 
 
+	@Override
 	@ManagedOperation
 	public void reset() {
 		this.delegate.reset();
 	}
 
+	@Override
 	@ManagedAttribute
 	public boolean isRunning() {
 		return this.lifecycle.isRunning();
 	}
 
+	@Override
 	@ManagedOperation
 	public void start() {
 		this.lifecycle.start();
 	}
 
+	@Override
 	@ManagedOperation
 	public void stop() {
 		this.lifecycle.stop();
 	}
 
-	public String getName() {
-		return this.delegate.getName();
+	@Override
+	public String getManagedName() {
+		return this.delegate.getManagedName();
 	}
 
-	public String getSource() {
-		return this.delegate.getSource();
+	@Override
+	public String getManagedType() {
+		return this.delegate.getManagedType();
 	}
 
-	/**
-	 * @return int
-	 * @see org.springframework.integration.monitor.MessageSourceMetrics#getMessageCount()
-	 */
+	@Override
 	public int getMessageCount() {
 		return this.delegate.getMessageCount();
 	}
@@ -81,6 +86,30 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 	@Override
 	public long getMessageCountLong() {
 		return this.delegate.getMessageCountLong();
+	}
+
+
+	@Override
+	public void enableCounts(boolean countsEnabled) {
+		delegate.enableCounts(countsEnabled);
+	}
+
+
+	@Override
+	public boolean isCountsEnabled() {
+		return delegate.isCountsEnabled();
+	}
+
+
+	@Override
+	public void setManagedName(String name) {
+		delegate.setManagedName(name);
+	}
+
+
+	@Override
+	public void setManagedType(String source) {
+		delegate.setManagedType(source);
 	}
 
 }

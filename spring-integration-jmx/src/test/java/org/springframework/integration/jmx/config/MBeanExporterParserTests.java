@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -30,8 +31,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -39,10 +42,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class MBeanExporterParserTests {
 
 	@Autowired
@@ -59,6 +64,24 @@ public class MBeanExporterParserTests {
 		assertTrue(properties.containsKey("bar"));
 		assertEquals(server, exporter.getServer());
 		assertSame(context.getBean("keyNamer"), TestUtils.getPropertyValue(exporter, "namingStrategy"));
+		MessageChannelMetrics metrics = context.getBean("foo", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("bar", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("baz", MessageChannelMetrics.class);
+		assertFalse(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("qux", MessageChannelMetrics.class);
+		assertFalse(metrics.isCountsEnabled());
+		assertFalse(metrics.isStatsEnabled());
+		metrics = context.getBean("fiz", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertTrue(metrics.isStatsEnabled());
+		metrics = context.getBean("buz", MessageChannelMetrics.class);
+		assertTrue(metrics.isCountsEnabled());
+		assertTrue(metrics.isStatsEnabled());
 		exporter.destroy();
 	}
 

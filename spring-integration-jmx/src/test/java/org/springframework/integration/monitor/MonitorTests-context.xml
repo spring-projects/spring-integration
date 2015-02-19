@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<context:mbean-server />
+
+	<int-jmx:mbean-export />
+
+	<int:channel id="input">
+		<int:queue />
+	</int:channel>
+	
+	<int:bridge input-channel="input" output-channel="next">
+		<int:poller fixed-delay="500" />
+	</int:bridge>
+
+	<int:service-activator input-channel="next">
+		<bean class="org.springframework.integration.monitor.MonitorTests$TestHandler" />
+	</int:service-activator>
+
+	<int:inbound-channel-adapter channel="pubsub">
+		<bean class="org.springframework.integration.monitor.MonitorTests$TestSource" />
+		<int:poller fixed-delay="500" />
+	</int:inbound-channel-adapter>
+
+	<int:publish-subscribe-channel id="pubsub" />
+
+	<int:bridge input-channel="pubsub" output-channel="nullChannel" />
+
+	<int:bridge input-channel="pubsub" output-channel="output" />
+
+	<int:channel id="output">
+		<int:queue />
+	</int:channel>
+
+</beans>

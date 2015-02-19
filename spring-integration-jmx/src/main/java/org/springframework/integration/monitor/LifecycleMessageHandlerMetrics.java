@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,26 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.handler.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
  * be used to stop and start polling endpoints, for instance, in a live system.
  *
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
-@ManagedResource
+@IntegrationManagedResource
 public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Lifecycle {
 
 	private final Lifecycle lifecycle;
 
-	private final MessageHandlerMetrics delegate;
+	protected final MessageHandlerMetrics delegate;
 
 
 	public LifecycleMessageHandlerMetrics(Lifecycle lifecycle, MessageHandlerMetrics delegate) {
@@ -101,13 +103,13 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 	}
 
 	@Override
-	public String getName() {
-		return this.delegate.getName();
+	public String getManagedName() {
+		return this.delegate.getManagedName();
 	}
 
 	@Override
-	public String getSource() {
-		return this.delegate.getSource();
+	public String getManagedType() {
+		return this.delegate.getManagedType();
 	}
 
 	@Override
@@ -128,6 +130,36 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 	@Override
 	public long getActiveCountLong() {
 		return this.delegate.getActiveCountLong();
+	}
+
+	@Override
+	public void enableStats(boolean statsEnabled) {
+		this.delegate.enableStats(statsEnabled);
+	}
+
+	@Override
+	public void enableCounts(boolean countsEnabled) {
+		this.delegate.enableCounts(countsEnabled);
+	}
+
+	@Override
+	public boolean isStatsEnabled() {
+		return this.delegate.isStatsEnabled();
+	}
+
+	@Override
+	public boolean isCountsEnabled() {
+		return this.delegate.isCountsEnabled();
+	}
+
+	@Override
+	public void setManagedName(String name) {
+		this.delegate.setManagedName(name);
+	}
+
+	@Override
+	public void setManagedType(String source) {
+		this.delegate.setManagedType(source);
 	}
 
 }

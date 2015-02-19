@@ -95,7 +95,7 @@ public class UpdateMappingsTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		Set<ObjectName> names = this.server.queryNames(ObjectName
-				.getInstance("update.mapping.domain:type=HeaderValueRouter,name=router"),
+				.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),
 				null);
 		assertEquals(1, names.size());
 		Map<String, String> map = new HashMap<String, String>();

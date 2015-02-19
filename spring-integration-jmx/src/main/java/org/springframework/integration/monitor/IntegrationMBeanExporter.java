@@ -31,38 +31,41 @@ import javax.management.JMException;
 import javax.management.ObjectName;
 import javax.management.modelmbean.ModelMBean;
 
-import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.annotation.AnnotationBeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistoryConfigurer;
+import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
@@ -72,6 +75,7 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
+import org.springframework.jmx.export.metadata.InvalidMetadataException;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
@@ -81,6 +85,8 @@ import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
+import org.springframework.util.StringUtils;
+import org.springframework.util.StringValueResolver;
 
 /**
  * <p>
@@ -110,14 +116,15 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
  * @author Artem Bilan
  */
 @ManagedResource
+@IntegrationManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
-		ApplicationContextAware, BeanClassLoaderAware, SmartLifecycle {
+		ApplicationContextAware, EmbeddedValueResolverAware, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
-	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
+	private final AnnotationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
 
 	private ListableBeanFactory beanFactory;
 
@@ -127,9 +134,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<Object, AtomicLong>();
 
-	private final Set<SimpleMessageHandlerMetrics> handlers = new HashSet<SimpleMessageHandlerMetrics>();
+	private final Set<MessageHandlerMetrics> handlers = new HashSet<MessageHandlerMetrics>();
 
-	private final Set<SimpleMessageSourceMetrics> sources = new HashSet<SimpleMessageSourceMetrics>();
+	private final Set<MessageSourceMetrics> sources = new HashSet<MessageSourceMetrics>();
 
 	private final Set<Lifecycle> inboundLifecycleMessageProducers = new HashSet<Lifecycle>();
 
@@ -151,8 +158,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Map<String, String> beansByEndpointName = new HashMap<String, String>();
 
-	private ClassLoader beanClassLoader;
-
 	private volatile boolean autoStartup = true;
 
 	private volatile int phase = 0;
@@ -171,11 +176,18 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private String[] componentNamePatterns = { "*" };
 
+	private String[] enabledCountsPatterns = { "*" };
+
+	private String[] enabledStatsPatterns = { "*" };
+
 	private volatile long shutdownDeadline;
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
 
 	private MessageHistoryConfigurer messageHistoryConfigurer;
+
+	private StringValueResolver embeddedValueResolver;
+
 
 	public IntegrationMBeanExporter() {
 		super();
@@ -183,12 +195,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		setAutodetect(false);
 		setNamingStrategy(defaultNamingStrategy);
 		setAssembler(assembler);
-	}
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-		super.setBeanClassLoader(classLoader);
 	}
 
 	/**
@@ -211,9 +217,62 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.defaultNamingStrategy.setDefaultDomain(domain);
 	}
 
+	/**
+	 * Set the array of simple patterns for component names to register (defaults to '*').
+	 * The pattern is applied to all components before they are registered, looking for a
+	 * match on the 'name' property of the ObjectName. A MessageChannel and a
+	 * MessageHandler (for instance) can share a name because they have a different type,
+	 * so in that case they would either both be included or both excluded. Since version
+	 * 4.2, a leading '!' negates the pattern match ('!foo*' means don't export components
+	 * where the name matches the pattern 'foo*'). For components with names that match
+	 * multiple patterns, the first pattern wins.
+	 * @param componentNamePatterns the patterns.
+	 */
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
 		Assert.notEmpty(componentNamePatterns, "componentNamePatterns must not be empty");
 		this.componentNamePatterns = Arrays.copyOf(componentNamePatterns, componentNamePatterns.length);
+	}
+
+	/**
+	 * Set the array of simple patterns for component names for which message counts will
+	 * be enabled (defaults to '*'). Only patterns that also match
+	 * {@link #setComponentNamePatterns(String[]) componentNamePatterns} will be
+	 * considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
+	 * for those components that support counters (channels, message handlers, etc).
+	 * This is the initial setting only, individual components can have counts
+	 * enabled/disabled at runtime. May be overridden by an entry in
+	 * {@link #setEnabledStatsPatterns(String[]) enabledStatsPatterns} which is additional
+	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
+	 * for matches. For components that match multiple patterns, the first pattern wins.
+	 * Disabling counts at runtime also disables stats.
+	 * @param enabledCountsPatterns the patterns.
+	 * @since 4.2
+	 */
+	public void setEnabledCountsPatterns(String[] enabledCountsPatterns) {
+		Assert.notEmpty(enabledCountsPatterns, "enabledCountsPatterns must not be empty");
+		this.enabledCountsPatterns = Arrays.copyOf(enabledCountsPatterns, enabledCountsPatterns.length);
+	}
+
+	/**
+	 * Set the array of simple patterns for component names for which message statistics
+	 * will be enabled (response times, rates etc), as well as counts (a positive match
+	 * here overrides {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns},
+	 * you can't have statistics without counts). (defaults to '*'). Only patterns that
+	 * also match {@link #setComponentNamePatterns(String[]) componentNamePatterns} will
+	 * be considered. Enables statistics for those components that support statistics
+	 * (channels - when sending, message handlers, etc). This is the initial setting only,
+	 * individual components can have stats enabled/disabled at runtime. If a pattern
+	 * starts with `!`, stats (and counts) are disabled for matches. Note: this means that
+	 * '!foo' here will disable stats and counts for 'foo' even if counts are enabled for
+	 * 'foo' in {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}. For
+	 * components that match multiple patterns, the first pattern wins. Enabling stats at
+	 * runtime also enables counts.
+	 * @param enabledStatsPatterns the patterns.
+	 * @since 4.2
+	 */
+	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
+		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
+		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
 	}
 
 	@Override
@@ -231,18 +290,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+	public void setEmbeddedValueResolver(StringValueResolver resolver) {
+		this.embeddedValueResolver = resolver;
+	}
 
-		if (bean instanceof Advised) {
-			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
-				Advice advice = advisor.getAdvice();
-				if (advice instanceof MessageHandlerMetrics || advice instanceof MessageSourceMetrics
-						|| advice instanceof MessageChannelMetrics) {
-					// Already advised - so probably a factory bean product
-					return bean;
-				}
-			}
-		}
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 
 		if (IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME.equals(beanName)
 				&& bean instanceof MessageHistoryConfigurer) {
@@ -250,30 +303,31 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			return bean;
 		}
 
-		if (bean instanceof MessageHandler) {
+		if (bean instanceof MessageHandlerMetrics) {
 			if (this.handlerInAnonymousWrapper(bean) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Skipping " + beanName + " because it wraps another handler");
 				}
 				return bean;
 			}
-			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
-			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
+			// If the handler is proxied, we have to extract the target to expose as an MBean.
+			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
+			MessageHandlerMetrics monitor = (MessageHandlerMetrics) extractTarget(bean);
 			handlers.add(monitor);
-			bean = advised;
 		}
 
-		if (bean instanceof MessageSource<?>) {
-			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
-			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
+		if (bean instanceof MessageSourceMetrics) {
+			// If the source is proxied, we have to extract the target to expose as an MBean.
+			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
+			MessageSourceMetrics monitor = (MessageSourceMetrics) extractTarget(bean);
 			sources.add(monitor);
-			bean = advised;
 		}
 
 		if (bean instanceof MessageChannel && bean instanceof MessageChannelMetrics
 				&& bean instanceof NamedComponent) {
+			// If the channel is proxied, we have to extract the target to expose as an MBean.
+			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(bean);
-			monitor.enableStats(true);//TODO: INT-3638
 			channels.add(monitor);
 		}
 
@@ -464,20 +518,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	/**
 	 * Shutdown active components.
 	 *
-	 * @param force No longer used.
-	 * @param howLong The time to wait in total for all activities to complete
-	 * in milliseconds.
-	 * @deprecated Use {@link #stopActiveComponents(long)}.
-	 */
-	@Deprecated
-	@ManagedOperation
-	public void stopActiveComponents(boolean force, long howLong) {
-		stopActiveComponents(howLong);
-	}
-
-	/**
-	 * Shutdown active components.
-	 *
 	 * @param howLong The time to wait in total for all activities to complete
 	 * in milliseconds.
 	 */
@@ -532,11 +572,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public void stopMessageSources() {
 		for (Entry<String, MessageSourceMetrics> entry : this.allSourcesByName.entrySet()) {
 			MessageSourceMetrics sourceMetrics = entry.getValue();
-			if (sourceMetrics instanceof LifecycleMessageSourceMetrics) {
+			if (sourceMetrics instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Stopping message source " + sourceMetrics);
 				}
-				((LifecycleMessageSourceMetrics) sourceMetrics).stop();
+				((Lifecycle) sourceMetrics).stop();
 			}
 			else {
 				if (logger.isInfoEnabled()) {
@@ -713,7 +753,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		for (MessageChannelMetrics monitor : channels) {
 			String name = ((NamedComponent) monitor).getComponentName();
 			this.allChannelsByName.put(name, monitor);
-			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
@@ -723,17 +763,25 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					channelsByName.put(name, monitor);
 				}
+				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+				if (enabled != null) {
+					monitor.enableCounts(enabled);
+				}
+				enabled = smartMatch(this.enabledStatsPatterns, name);
+				if (enabled != null) {
+					monitor.enableStats(enabled);
+				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
 		}
 	}
 
 	private void registerHandlers() {
-		for (SimpleMessageHandlerMetrics source : handlers) {
-			MessageHandlerMetrics monitor = enhanceHandlerMonitor(source);
-			String name = monitor.getName();
+		for (MessageHandlerMetrics handler : handlers) {
+			MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
+			String name = monitor.getManagedName();
 			this.allHandlersByName.put(name, monitor);
-			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
@@ -742,23 +790,25 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					handlersByName.put(name, monitor);
 				}
-				registerBeanNameOrInstance(monitor, beanKey);
-				// Expose the raw bean if it is managed
-				MessageHandler bean = source.getMessageHandler();
-				if (assembler.includeBean(bean.getClass(), source.getName())) {
-					registerBeanInstance(bean,
-							this.getMonitoredIntegrationObjectBeanKey(bean, name));
+				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+				if (enabled != null) {
+					monitor.enableCounts(enabled);
 				}
+				enabled = smartMatch(this.enabledStatsPatterns, name);
+				if (enabled != null) {
+					monitor.enableStats(enabled);
+				}
+				registerBeanNameOrInstance(monitor, beanKey);
 			}
 		}
 	}
 
 	private void registerSources() {
-		for (SimpleMessageSourceMetrics source : sources) {
+		for (MessageSourceMetrics source : sources) {
 			MessageSourceMetrics monitor = enhanceSourceMonitor(source);
-			String name = monitor.getName();
+			String name = monitor.getManagedName();
 			this.allSourcesByName.put(name, monitor);
-			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
@@ -767,13 +817,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					sourcesByName.put(name, monitor);
 				}
-				registerBeanNameOrInstance(monitor, beanKey);
-				// Expose the raw bean if it is managed
-				MessageSource<?> bean = source.getMessageSource();
-				if (assembler.includeBean(bean.getClass(), source.getName())) {
-					registerBeanInstance(bean,
-							this.getMonitoredIntegrationObjectBeanKey(bean, name));
+				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+				if (enabled != null) {
+					monitor.enableCounts(enabled);
 				}
+				registerBeanNameOrInstance(monitor, beanKey);
 			}
 		}
 	}
@@ -795,7 +843,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					name = endpoint.getComponentName();
 					source = "endpoint";
 				}
-				if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+				if (!matches(this.componentNamePatterns, name)) {
 					continue;
 				}
 				if (endpointNames.contains(name)) {
@@ -814,18 +862,40 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
-	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMetrics interceptor,
-			ClassLoader beanClassLoader) {
-		NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
-		handlerAdvice.addMethodName("handleMessage");
-		return applyAdvice(bean, handlerAdvice, beanClassLoader);
+	/**
+	 * Simple pattern match against the supplied patterns; also supports negated ('!')
+	 * patterns. First match wins (positive or negative).
+	 * @param patterns the patterns.
+	 * @param name the name to match.
+	 * @return true if positive match, false if no match or negative match.
+	 */
+	private boolean matches(String[] patterns, String name) {
+		Boolean match = smartMatch(patterns, name);
+		return match == null ? false : match;
 	}
 
-	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMetrics interceptor,
-			ClassLoader beanClassLoader) {
-		NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
-		sourceAdvice.addMethodName("receive");
-		return applyAdvice(bean, sourceAdvice, beanClassLoader);
+	/**
+	 * Simple pattern match against the supplied patterns; also supports negated ('!')
+	 * patterns. First match wins (positive or negative).
+	 * @param patterns the patterns.
+	 * @param name the name to match.
+	 * @return null if no match; true for positive match; false for negative match.
+	 */
+	private Boolean smartMatch(String[] patterns, String name) {
+		if (patterns != null) {
+			for (String pattern : patterns) {
+				boolean reverse = false;
+				String patternToUse = pattern;
+				if (pattern.startsWith("!")) {
+					reverse = true;
+					patternToUse = pattern.substring(1);
+				}
+				if (PatternMatchUtils.simpleMatch(patternToUse, name)) {
+					return !reverse;
+				}
+			}
+		}
+		return null;
 	}
 
 	private Object extractTarget(Object bean) {
@@ -876,24 +946,19 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private String getHandlerBeanKey(MessageHandlerMetrics handler) {
 		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(), handler.getName(),
-				handler.getSource());
+		return String.format(domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(),
+				handler.getManagedName(), handler.getManagedType());
 	}
 
-	private String getSourceBeanKey(MessageSourceMetrics handler) {
+	private String getSourceBeanKey(MessageSourceMetrics source) {
 		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(), handler.getName(),
-				handler.getSource());
+		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
+				source.getManagedName(), source.getManagedType());
 	}
 
 	private String getEndpointBeanKey(AbstractEndpoint endpoint, String name, String source) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(), name, source);
-	}
-
-	private String getMonitoredIntegrationObjectBeanKey(Object object, String name) {
-		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(domain + ":type=" + object.getClass().getSimpleName() + ",name=%s" + getStaticNames(), name);
 	}
 
 	private String getStaticNames() {
@@ -908,11 +973,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return builder.toString();
 	}
 
-	private MessageHandlerMetrics enhanceHandlerMonitor(SimpleMessageHandlerMetrics monitor) {
+	private MessageHandlerMetrics enhanceHandlerMonitor(MessageHandlerMetrics monitor) {
 
 		MessageHandlerMetrics result = monitor;
 
-		if (monitor.getName() != null && monitor.getSource() != null) {
+		if (monitor.getManagedName() != null && monitor.getManagedType() != null) {
 			return monitor;
 		}
 
@@ -924,14 +989,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		String source = "endpoint";
 		Object endpoint = null;
 
-		MessageHandler messageHandler = monitor.getMessageHandler();
-
 		for (String beanName : names) {
 			endpoint = beanFactory.getBean(beanName);
 			try {
 				Object field = extractTarget(getField(endpoint, "handler"));
-				if (field == messageHandler ||
-						this.extractTarget(this.handlerInAnonymousWrapper(field)) == messageHandler) {
+				if (field == monitor ||
+						this.extractTarget(this.handlerInAnonymousWrapper(field)) == monitor) {
 					name = beanName;
 					endpointName = beanName;
 					break;
@@ -979,15 +1042,30 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
-			result = new LifecycleMessageHandlerMetrics((Lifecycle) endpoint, monitor);
+			if (monitor instanceof MappingMessageRouterManagement) {
+				if (monitor instanceof TrackableComponent) {
+					result = new TrackableRouterMetrics((Lifecycle) endpoint, (MappingMessageRouterManagement) monitor);
+				}
+				else {
+					result = new RouterMetrics((Lifecycle) endpoint, (MappingMessageRouterManagement) monitor);
+				}
+			}
+			else {
+				if (monitor instanceof TrackableComponent) {
+					result = new LifecycleTrackableMessageHandlerMetrics((Lifecycle) endpoint, monitor);
+				}
+				else {
+					result = new LifecycleMessageHandlerMetrics((Lifecycle) endpoint, monitor);
+				}
+			}
 		}
 
 		if (name == null) {
-			if (messageHandler instanceof NamedComponent) {
-				name = ((NamedComponent) messageHandler).getComponentName();
+			if (monitor instanceof NamedComponent) {
+				name = ((NamedComponent) monitor).getComponentName();
 			}
 			if (name == null) {
-				name = messageHandler.toString();
+				name = monitor.toString();
 			}
 			source = "handler";
 		}
@@ -996,8 +1074,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			beansByEndpointName.put(name, endpointName);
 		}
 
-		monitor.setSource(source);
-		monitor.setName(name);
+		monitor.setManagedType(source);
+		monitor.setManagedName(name);
 
 		return result;
 
@@ -1007,11 +1085,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return name.substring("_org.springframework.integration".length() + 1);
 	}
 
-	private MessageSourceMetrics enhanceSourceMonitor(SimpleMessageSourceMetrics monitor) {
+	private MessageSourceMetrics enhanceSourceMonitor(MessageSourceMetrics monitor) {
 
 		MessageSourceMetrics result = monitor;
 
-		if (monitor.getName() != null && monitor.getSource() != null) {
+		if (monitor.getManagedName() != null) {
 			return monitor;
 		}
 
@@ -1032,7 +1110,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			catch (Exception e) {
 				logger.trace("Could not get source from bean = " + beanName);
 			}
-			if (field == monitor.getMessageSource()) {
+			if (field == monitor) {
 				name = beanName;
 				endpointName = beanName;
 				break;
@@ -1076,11 +1154,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
-			result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+			if (endpoint instanceof TrackableComponent) {
+				result = new LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
+			}
+			else {
+				result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+			}
 		}
 
 		if (name == null) {
-			name = monitor.getMessageSource().toString();
+			name = monitor.toString();
 			source = "handler";
 		}
 
@@ -1088,8 +1171,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			beansByEndpointName.put(name, endpointName);
 		}
 
-		monitor.setSource(source);
-		monitor.setName(name);
+		monitor.setManagedType(source);
+		monitor.setManagedName(name);
 
 		return result;
 	}
@@ -1106,6 +1189,32 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		ReflectionUtils.makeAccessible(field);
 		return ReflectionUtils.getField(field, target);
+	}
+
+	private class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource {
+
+		@Override
+		public org.springframework.jmx.export.metadata.ManagedResource getManagedResource(Class<?> beanClass)
+				throws InvalidMetadataException {
+			IntegrationManagedResource ann =
+					AnnotationUtils.getAnnotation(beanClass, IntegrationManagedResource.class);
+			if (ann == null) {
+				return null;
+			}
+			org.springframework.jmx.export.metadata.ManagedResource managedResource =
+					new org.springframework.jmx.export.metadata.ManagedResource();
+			AnnotationBeanUtils.copyPropertiesToBean(ann, managedResource,
+					IntegrationMBeanExporter.this.embeddedValueResolver);
+			if (!"".equals(ann.value()) && !StringUtils.hasLength(managedResource.getObjectName())) {
+				String value = ann.value();
+				if (IntegrationMBeanExporter.this.embeddedValueResolver != null) {
+					value = IntegrationMBeanExporter.this.embeddedValueResolver.resolveStringValue(value);
+				}
+				managedResource.setObjectName(value);
+			}
+			return managedResource;
+		}
+
 	}
 
 }

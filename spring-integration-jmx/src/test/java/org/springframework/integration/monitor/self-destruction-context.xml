@@ -12,7 +12,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int:inbound-channel-adapter channel="toControlBus" auto-startup="false"
-		expression="@integrationMbeanExporter.stopActiveComponents(false, 1000)" />
+		expression="@integrationMbeanExporter.stopActiveComponents(1000)" />
 
 	<int:channel id="toControlBus" />
 

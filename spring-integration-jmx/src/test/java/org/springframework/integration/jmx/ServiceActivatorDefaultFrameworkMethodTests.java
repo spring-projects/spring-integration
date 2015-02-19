@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.integration.util.StackTraceUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -53,6 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	@Autowired
@@ -148,7 +150,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 //	INT-2399
 	@Test
 	public void testMessageProcessor() {
-		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.h.advised.targetSource.target.processor");
+		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
 		assertSame(testMessageProcessor, processor);
 
 		QueueChannel replyChannel = new QueueChannel();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -58,6 +58,8 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-name-static-properties");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "managed-components", "componentNamePatterns");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "counts-enabled", "enabledCountsPatterns");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "stats-enabled", "enabledStatsPatterns");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-naming-strategy", "namingStrategy");
 
 		builder.addPropertyValue("server", mbeanServer);
