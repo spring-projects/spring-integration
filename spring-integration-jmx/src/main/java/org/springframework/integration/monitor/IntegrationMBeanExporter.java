@@ -116,6 +116,7 @@ import org.springframework.util.StringValueResolver;
  * @author Artem Bilan
  */
 @ManagedResource
+@IntegrationManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
 		ApplicationContextAware, EmbeddedValueResolverAware, SmartLifecycle {
 
@@ -216,16 +217,54 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.defaultNamingStrategy.setDefaultDomain(domain);
 	}
 
+	/**
+	 * Set the array of simple patterns for component names to register (defaults to '*').
+	 * The pattern is applied to all components before they are registered, looking for a
+	 * match on the 'name' property of the ObjectName. A MessageChannel and a
+	 * MessageHandler (for instance) can share a name because they have a different type,
+	 * so in that case they would either both be included or both excluded.
+	 * @param componentNamePatterns the patterns.
+	 */
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
 		Assert.notEmpty(componentNamePatterns, "componentNamePatterns must not be empty");
 		this.componentNamePatterns = Arrays.copyOf(componentNamePatterns, componentNamePatterns.length);
 	}
 
+	/**
+	 * Set the array of simple patterns for component names for which message counts will
+	 * be enabled (defaults to '*'). Only patterns that also match
+	 * {@link #setComponentNamePatterns(String[]) componentNamePatterns} will be
+	 * considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
+	 * for those components that support those counters (channels, message handlers, etc).
+	 * This is the initial setting only, individual components can have counts
+	 * enabled/disabled at runtime. May be overridden by an entry in
+	 * {@link #setEnabledStatsPatterns(String[]) enabledStatsPatterns} which is additional
+	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
+	 * for matches. For components that match multiple patterns, the first pattern wins.
+	 * Disabling counts at runtime also disables stats.
+	 * @param enabledCountsPatterns the patterns.
+	 */
 	public void setEnabledCountsPatterns(String[] enabledCountsPatterns) {
 		Assert.notEmpty(enabledCountsPatterns, "enabledCountsPatterns must not be empty");
 		this.enabledCountsPatterns = Arrays.copyOf(enabledCountsPatterns, enabledCountsPatterns.length);
 	}
 
+	/**
+	 * Set the array of simple patterns for component names for which message statistics
+	 * will be enabled (response times, rates etc), as well as counts (a positive match
+	 * here overrides {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns},
+	 * you can't have statistics without counts). (defaults to '*'). Only patterns that
+	 * also match {@link #setComponentNamePatterns(String[]) componentNamePatterns} will
+	 * be considered. Enables statistics for those components that support those
+	 * statistics (channels - when sending, message handlers, etc). This is the initial
+	 * setting only, individual components can have stats enabled/disabled at runtime. If
+	 * a pattern starts with `!`, stats (and counts) are disabled for matches. For
+	 * components that match multiple patterns, the first pattern wins. Enabling stats at
+	 * runtime also enables counts. Note: this means that '!foo' here will disable stats
+	 * and counts for 'foo' even if counts are enabled for 'foo' in
+	 * {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}.
+	 * @param enabledStatsPatterns the patterns.
+	 */
 	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
 		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
 		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
@@ -733,8 +772,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerHandlers() {
-		for (MessageHandlerMetrics source : handlers) {
-			MessageHandlerMetrics monitor = enhanceHandlerMonitor(source);
+		for (MessageHandlerMetrics handler : handlers) {
+			MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
 			String name = monitor.getManagedName();
 			this.allHandlersByName.put(name, monitor);
 			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {

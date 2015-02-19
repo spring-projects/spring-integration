@@ -196,7 +196,7 @@
 								This is the initial setting only, individual components can have counts enabled/disabled
 								at runtime. May be overridden by an entry in 'stats-enabled' which is additional
 								functionality over simple counts. If a pattern starts with `!`, counts are disabled
-								for matches. For components that match multiple patterns, first pattern wins.
+								for matches. For components that match multiple patterns, the first pattern wins.
 								Disabling counts at runtime also disables stats.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -209,12 +209,12 @@
 								overrides `counts-enabled`, you can't have statistics without counts).
 								(defaults to '*'). Only patterns that also match 'managed-components'
 								will be considered. Enables statistics for those components that support
-								those statistics (channels - sending, message handlers, etc).
+								those statistics (channels - when sending, message handlers, etc).
 								This is the initial setting only, individual components can have stats enabled/disabled
 								at runtime. If a pattern starts with `!`, stats (and counts) are disabled
-								for matches. For components that match multiple patterns, first pattern wins. Enabling
+								for matches. For components that match multiple patterns, the first pattern wins. Enabling
 								stats at runtime also enables counts. Note: this means that '!foo' here will disable stats
-								and counts for 'foo' even if counts are enabled in 'counts-enabled'.
+								and counts for 'foo' even if counts are enabled for 'foo' in 'counts-enabled'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

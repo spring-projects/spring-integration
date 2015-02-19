@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -45,6 +45,7 @@ import groovy.lang.MissingPropertyException;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Stefan Reuter
+ * @author Gary Russell
  * @since 2.0
  */
 public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements BeanClassLoaderAware {
@@ -72,12 +73,14 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	protected MessageHandler createHandler() {
 		Binding binding = new ManagedBeansBinding(this.getBeanFactory());
 		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(binding, new ScriptVariableGenerator() {
+
 			@Override
 			public Map<String, Object> generateScriptVariables(Message<?> message) {
 				Map<String, Object> variables = new HashMap<String, Object>();
 				variables.put("headers", message.getHeaders());
 				return variables;
 			}
+
 		});
 		if (this.customizer != null) {
 			processor.setCustomizer(this.customizer);

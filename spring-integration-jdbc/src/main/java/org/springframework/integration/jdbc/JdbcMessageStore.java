@@ -44,7 +44,6 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,7 +54,6 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -82,8 +80,6 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-@ManagedResource
-@IntegrationManagedResource
 public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);

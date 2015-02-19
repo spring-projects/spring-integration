@@ -26,7 +26,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  * @since 4.2
  *
  */
-public interface MetricsEnablement extends CountsEnablement{
+public interface MetricsEnablement extends CountsEnablement {
 
 	@ManagedOperation(description = "Enable all statistics")
 	void enableStats(boolean statsEnabled);

@@ -71,6 +71,7 @@ public class SimpleMessageHandlerMetrics {
 	}
 
 	public void afterHandle(long start, boolean success) {
+		this.activeCount.decrementAndGet();
 		if (this.fullStatsEnabled && success) {
 			this.duration.append(System.currentTimeMillis() - start);
 		}

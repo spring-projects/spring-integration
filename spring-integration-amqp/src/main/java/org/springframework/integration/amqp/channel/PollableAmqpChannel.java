@@ -150,8 +150,8 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			}
 			if (isCountsEnabled()) {
 				getMetrics().afterReceive();
+				counted = true;
 			}
-			counted = true;
 			Message<?> message = null;
 			if (object instanceof Message<?>) {
 				message = (Message<?>) object;

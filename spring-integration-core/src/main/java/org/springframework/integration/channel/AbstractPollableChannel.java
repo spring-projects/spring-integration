@@ -107,6 +107,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			Message<?> message = this.doReceive(timeout);
 			if (isCountsEnabled()) {
 				getMetrics().afterReceive();
+				counted = true;
 			}
 			message = interceptorList.postReceive(message, this);
 			if (interceptorStack != null) {

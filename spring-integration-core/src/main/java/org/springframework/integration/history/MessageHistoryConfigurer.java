@@ -34,6 +34,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
@@ -45,6 +46,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
+@ManagedResource
 @IntegrationManagedResource
 public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware {
 

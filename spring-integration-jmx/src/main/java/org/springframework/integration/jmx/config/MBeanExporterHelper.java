@@ -26,6 +26,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.type.StandardMethodMetadata;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.util.Assert;
@@ -43,10 +44,6 @@ import org.springframework.util.StringUtils;
  *
  */
 class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAware, InitializingBean {
-
-	private final static String EXCLUDED_BEANS_PROPERTY_NAME = "excludedBeans";
-
-	private final static String SI_ROOT_PACKAGE = "org.springframework.integration.";
 
 	private final Set<String> siBeanNames = new HashSet<String>();
 
@@ -71,7 +68,8 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered, BeanFactoryAwar
 					className = ((StandardMethodMetadata) def.getSource()).getIntrospectedMethod().getReturnType().getName();
 				}
 				if (StringUtils.hasText(className)){
-					if (className.startsWith(SI_ROOT_PACKAGE) && !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
+					if (className.startsWith(IntegrationConfigUtils.BASE_PACKAGE)
+							&& !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
 						siBeanNames.add(beanName);
 					}
 				}
