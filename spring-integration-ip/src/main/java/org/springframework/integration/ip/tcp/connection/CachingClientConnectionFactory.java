@@ -193,7 +193,15 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 						message.getHeaders().get(IpHeaders.CONNECTION_ID));
 			}
-			getListener().onMessage(messageBuilder.build());
+			TcpListener listener = getListener();
+			if (listener != null) {
+				listener.onMessage(messageBuilder.build());
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Message discarded; no listener: " + message);
+				}
+			}
 			close(); // return to pool after response is received
 			return true; // true so the single-use connection doesn't close itself
 		}
@@ -228,8 +236,12 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		CachingClientConnectionFactory that = (CachingClientConnectionFactory) o;
 
