@@ -19,11 +19,15 @@ package org.springframework.integration.handler;
 import org.springframework.core.Ordered;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
+import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
+import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.handler.management.MessageHandlerMetrics;
-import org.springframework.integration.handler.management.SimpleMessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.management.ConfigurableMetrics;
+import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -43,13 +47,13 @@ import org.springframework.util.Assert;
  */
 @IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
-		MessageHandlerMetrics, TrackableComponent, Orderable {
+		MessageHandlerMetrics, ConfigurableMetricsAware, TrackableComponent, Orderable {
 
 	private volatile boolean shouldTrack = false;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
-	private final SimpleMessageHandlerMetrics handlerMetrics = new SimpleMessageHandlerMetrics();
+	private volatile AbstractMessageHandlerMetrics handlerMetrics = new DefaultMessageHandlerMetrics();
 
 	private volatile boolean statsEnabled;
 
@@ -80,25 +84,44 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	}
 
 	@Override
+	public void configureMetrics(ConfigurableMetrics metrics) {
+		Assert.isInstanceOf(AbstractMessageHandlerMetrics.class, metrics);
+		this.handlerMetrics = handlerMetrics;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		if (this.statsEnabled) {
+			this.handlerMetrics.setFullStatsEnabled(true);
+		}
+	}
+
+	@Override
 	public final void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(message.getPayload(), "Message payload must not be null");//NOSONAR - false positive
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
-		long start = 0;
+		MetricsContext start = null;
+		boolean countsEnabled = this.countsEnabled;
+		AbstractMessageHandlerMetrics handlerMetrics = this.handlerMetrics;
 		try {
 			if (message != null && this.shouldTrack) {
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
-			if (this.countsEnabled) {
-				start = this.handlerMetrics.beforeHandle(message);
+			if (countsEnabled) {
+				start = handlerMetrics.beforeHandle(message);
 			}
 			this.handleMessageInternal(message);
-			this.handlerMetrics.afterHandle(start, true);
+			if (countsEnabled) {
+				handlerMetrics.afterHandle(start, true);
+			}
 		}
 		catch (Exception e) {
-			this.handlerMetrics.afterHandle(start, false);
+			if (countsEnabled) {
+				handlerMetrics.afterHandle(start, false);
+			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}

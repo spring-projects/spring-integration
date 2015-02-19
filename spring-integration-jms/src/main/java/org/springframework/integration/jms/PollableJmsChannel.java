@@ -19,7 +19,6 @@ package org.springframework.integration.jms;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import org.springframework.integration.channel.management.ChannelReceiveMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
@@ -47,16 +46,6 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 	}
 
 	@Override
-	protected void initMetrics() {
-		setChannelMetrics(new ChannelReceiveMetrics(this.getComponentName()));
-	}
-
-	@Override
-	protected ChannelReceiveMetrics getMetrics() {
-		return (ChannelReceiveMetrics) super.getMetrics();
-	}
-
-	@Override
 	public int getReceiveCount() {
 		return getMetrics().getReceiveCount();
 	}
@@ -81,6 +70,7 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
+		boolean countsEnabled = isCountsEnabled();
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
@@ -100,7 +90,7 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			if (object == null) {
 				return null;
 			}
-			if (isCountsEnabled()) {
+			if (countsEnabled) {
 				getMetrics().afterReceive();
 				counted = true;
 			}
@@ -118,7 +108,7 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			return message;
 		}
 		catch (RuntimeException e) {
-			if (isCountsEnabled() && !counted) {
+			if (countsEnabled && !counted) {
 				getMetrics().afterError();
 			}
 			if (interceptorStack != null) {

@@ -19,7 +19,6 @@ package org.springframework.integration.channel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import org.springframework.integration.channel.management.ChannelReceiveMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -35,16 +34,6 @@ import org.springframework.messaging.support.ChannelInterceptor;
 public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel,
 		PollableChannelManagement {
 
-
-	@Override
-	protected void initMetrics() {
-		setChannelMetrics(new ChannelReceiveMetrics(this.getComponentName()));
-	}
-
-	@Override
-	protected ChannelReceiveMetrics getMetrics() {
-		return (ChannelReceiveMetrics) super.getMetrics();
-	}
 
 	@Override
 	public int getReceiveCount() {
@@ -96,6 +85,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
+		boolean countsEnabled = isCountsEnabled();
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
@@ -105,7 +95,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 				}
 			}
 			Message<?> message = this.doReceive(timeout);
-			if (isCountsEnabled()) {
+			if (countsEnabled) {
 				getMetrics().afterReceive();
 				counted = true;
 			}
@@ -116,7 +106,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			return message;
 		}
 		catch (RuntimeException e) {
-			if (isCountsEnabled() && !counted) {
+			if (countsEnabled && !counted) {
 				getMetrics().afterError();
 			}
 			if (interceptorStack != null) {

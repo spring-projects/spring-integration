@@ -20,13 +20,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.channel.management.ChannelSendMetrics;
+import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
+import org.springframework.integration.channel.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.ConfigurableMetrics;
+import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,11 +43,12 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 @IntegrationManagedResource
-public class NullChannel implements PollableChannel, MessageChannelMetrics, BeanNameAware, NamedComponent {
+public class NullChannel implements PollableChannel, MessageChannelMetrics, ConfigurableMetricsAware,
+		BeanNameAware, NamedComponent {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile ChannelSendMetrics channelMetrics = new ChannelSendMetrics("nullChannel");
+	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics("nullChannel");
 
 	private volatile boolean countsEnabled;
 
@@ -54,7 +59,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
-		this.channelMetrics = new ChannelSendMetrics(getComponentName());
+		this.channelMetrics = new DefaultMessageChannelMetrics(getComponentName());
 	}
 
 	@Override
@@ -65,6 +70,12 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics, Bean
 	@Override
 	public String getComponentType() {
 		return "channel";
+	}
+
+	@Override
+	public void configureMetrics(ConfigurableMetrics metrics) {
+		Assert.isInstanceOf(AbstractMessageChannelMetrics.class, metrics);
+		this.channelMetrics = (AbstractMessageChannelMetrics) metrics;
 	}
 
 	@Override

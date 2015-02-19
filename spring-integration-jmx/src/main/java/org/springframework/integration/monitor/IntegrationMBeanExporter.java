@@ -52,6 +52,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -60,11 +61,13 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.MBeanExporter;
@@ -188,6 +191,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private StringValueResolver embeddedValueResolver;
 
+	private MetricsFactory metricsFactory = new DefaultMetricsFactory();
+
 
 	public IntegrationMBeanExporter() {
 		super();
@@ -292,6 +297,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@Override
 	public void setEmbeddedValueResolver(StringValueResolver resolver) {
 		this.embeddedValueResolver = resolver;
+	}
+
+	/**
+	 * Set a metrics factory.
+	 * @param metricsFactory the factory.
+	 */
+	public void setMetricsFactory(MetricsFactory metricsFactory) {
+		this.metricsFactory = metricsFactory;
 	}
 
 	@Override
@@ -763,6 +776,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					channelsByName.put(name, monitor);
 				}
+				AbstractMessageChannelMetrics metrics = this.metricsFactory.createChannelMetrics(name);
 				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 				if (enabled != null) {
 					monitor.enableCounts(enabled);
@@ -770,6 +784,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				enabled = smartMatch(this.enabledStatsPatterns, name);
 				if (enabled != null) {
 					monitor.enableStats(enabled);
+					metrics.setFullStatsEnabled(enabled);
+				}
+				if (monitor instanceof ConfigurableMetricsAware) {
+					((ConfigurableMetricsAware) monitor).configureMetrics(metrics);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -790,6 +808,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					handlersByName.put(name, monitor);
 				}
+				AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
 				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 				if (enabled != null) {
 					monitor.enableCounts(enabled);
@@ -797,6 +816,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				enabled = smartMatch(this.enabledStatsPatterns, name);
 				if (enabled != null) {
 					monitor.enableStats(enabled);
+					metrics.setFullStatsEnabled(enabled);
+				}
+				if (monitor instanceof ConfigurableMetricsAware) {
+					((ConfigurableMetricsAware) monitor).configureMetrics(metrics);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}

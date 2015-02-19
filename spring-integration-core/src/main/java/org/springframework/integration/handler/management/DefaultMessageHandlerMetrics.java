@@ -18,10 +18,8 @@ package org.springframework.integration.handler.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.support.management.ExponentialMovingAverage;
+import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
 
@@ -30,9 +28,7 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  * @since 2.0
  */
-public class SimpleMessageHandlerMetrics {
-
-	private static final Log logger = LogFactory.getLog(SimpleMessageHandlerMetrics.class);
+public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics {
 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
@@ -45,47 +41,49 @@ public class SimpleMessageHandlerMetrics {
 
 	private final ExponentialMovingAverage duration = new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW);
 
-	private volatile String name;
-
-	private volatile boolean fullStatsEnabled;
-
-	public void setName(String name) {
-		this.name = name;
+	public DefaultMessageHandlerMetrics() {
+		super(null);
 	}
 
-	public void setFullStatsEnabled(boolean fullStatsEnabled) {
-		this.fullStatsEnabled = fullStatsEnabled;
+	public DefaultMessageHandlerMetrics(String name) {
+		super(name);
 	}
 
-	public long beforeHandle(Message<?> message) throws Exception {
+
+	@Override
+	public MetricsContext beforeHandle(Message<?> message) throws Exception {
 		if (logger.isTraceEnabled()) {
 			logger.trace("messageHandler(" + this.name + ") message(" + message + ") :");
 		}
 		long start = 0;
 		if (this.fullStatsEnabled) {
-			start = System.currentTimeMillis();
+			start = System.nanoTime();
 		}
 		this.handleCount.incrementAndGet();
 		this.activeCount.incrementAndGet();
-		return start;
+		return new DefaultHandlerMetricsContext(start);
 	}
 
-	public void afterHandle(long start, boolean success) {
+	@Override
+	public void afterHandle(MetricsContext context, boolean success) {
+		long start = ((DefaultHandlerMetricsContext) context).start;
 		this.activeCount.decrementAndGet();
 		if (this.fullStatsEnabled && success) {
-			this.duration.append(System.currentTimeMillis() - start);
+			this.duration.appendNanos(System.nanoTime() - start);
 		}
 		else if (!success) {
 			this.errorCount.incrementAndGet();
 		}
 	}
 
+	@Override
 	public synchronized void reset() {
 		this.duration.reset();
 		this.errorCount.set(0);
 		this.handleCount.set(0);
 	}
 
+	@Override
 	public long getHandleCountLong() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
@@ -93,44 +91,64 @@ public class SimpleMessageHandlerMetrics {
 		return this.handleCount.get();
 	}
 
+	@Override
 	public int getHandleCount() {
 		return (int) getHandleCountLong();
 	}
 
+	@Override
 	public int getErrorCount() {
 		return (int) this.errorCount.get();
 	}
 
+	@Override
 	public long getErrorCountLong() {
 		return this.errorCount.get();
 	}
 
+	@Override
 	public double getMeanDuration() {
 		return this.duration.getMean();
 	}
 
+	@Override
 	public double getMinDuration() {
 		return this.duration.getMin();
 	}
 
+	@Override
 	public double getMaxDuration() {
 		return this.duration.getMax();
 	}
 
+	@Override
 	public double getStandardDeviationDuration() {
 		return this.duration.getStandardDeviation();
 	}
 
+	@Override
 	public int getActiveCount() {
 		return (int) this.activeCount.get();
 	}
 
+	@Override
 	public long getActiveCountLong() {
 		return this.activeCount.get();
 	}
 
+	@Override
 	public Statistics getDuration() {
 		return this.duration.getStatistics();
+	}
+
+	private static class DefaultHandlerMetricsContext implements MetricsContext {
+
+		private final long start;
+
+		public DefaultHandlerMetricsContext(long start) {
+			this.start = start;
+		}
+
 	}
 
 }

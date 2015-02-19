@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.integration.monitor.MetricsFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -82,6 +83,8 @@ public class MBeanExporterParserTests {
 		metrics = context.getBean("buz", MessageChannelMetrics.class);
 		assertTrue(metrics.isCountsEnabled());
 		assertTrue(metrics.isStatsEnabled());
+		MetricsFactory factory = context.getBean(MetricsFactory.class);
+		assertSame(factory, TestUtils.getPropertyValue(exporter, "metricsFactory"));
 		exporter.destroy();
 	}
 

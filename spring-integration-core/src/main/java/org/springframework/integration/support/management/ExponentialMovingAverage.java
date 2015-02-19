@@ -66,9 +66,18 @@ public class ExponentialMovingAverage {
 	/**
 	 * Add a new measurement to the series.
 	 *
-	 * @param value the measurement to append
+	 * @param value the measurement to append (milliseconds)
 	 */
 	public synchronized void append(double value) {
+		appendNanos(value * 1000000);
+	}
+
+	/**
+	 * Add a new measurement to the series.
+	 *
+	 * @param value the measurement to append (nanoseconds)
+	 */
+	public synchronized void appendNanos(double value) {
 		if (value > max || count == 0) {
 			max = value;
 		}
@@ -76,7 +85,8 @@ public class ExponentialMovingAverage {
 			min = value;
 		}
 		sum = decay * sum + value;
-		sumSquares = decay * sumSquares + value * value;
+		double valueMillis = value / 1000000.;
+		sumSquares = decay * sumSquares + valueMillis * valueMillis;
 		weight = decay * weight + 1;
 		count++;//NOSONAR - false positive, we're synchronized
 	}
@@ -96,9 +106,16 @@ public class ExponentialMovingAverage {
 	}
 
 	/**
-	 * @return the mean value
+	 * @return the mean value (milliseconds)
 	 */
 	public double getMean() {
+		return weight > 0 ? sum / weight / 1000000. : 0.;
+	}
+
+	/**
+	 * @return the mean value (nanoseconds)
+	 */
+	public double getMeanNanos() {
 		return weight > 0 ? sum / weight : 0.;
 	}
 
@@ -112,24 +129,24 @@ public class ExponentialMovingAverage {
 	}
 
 	/**
-	 * @return the maximum value recorded (not weighted)
+	 * @return the maximum value recorded (not weighted, milliseconds).
 	 */
 	public double getMax() {
-		return max;
+		return max / 1000000.;
 	}
 
 	/**
-	 * @return the minimum value recorded (not weighted)
+	 * @return the minimum value recorded (not weighted, milliseconds).
 	 */
 	public double getMin() {
-		return min;
+		return min / 1000000.;
 	}
 
 	/**
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return new Statistics(count, min, max, getMean(), getStandardDeviation());
+		return new Statistics(count, getMin(), getMax(), getMean(), getStandardDeviation());
 	}
 
 	@Override
