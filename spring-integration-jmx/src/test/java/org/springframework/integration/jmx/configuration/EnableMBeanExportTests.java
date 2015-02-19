@@ -75,10 +75,12 @@ public class EnableMBeanExportTests {
 
 		assertSame(this.mBeanServer, this.exporter.getServer());
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
-		for (String componentNamePattern : componentNamePatterns) {
-			assertThat(componentNamePattern, Matchers.isOneOf("input", "in*"));
-			assertThat(componentNamePattern, Matchers.not(Matchers.equalTo("*")));
-		}
+		assertThat(componentNamePatterns, Matchers.arrayContaining("input", "inputX", "in*"));
+		String[] enabledCounts = TestUtils.getPropertyValue(this.exporter, "enabledCountsPatterns", String[].class);
+		assertThat(enabledCounts, Matchers.arrayContaining("foo", "bar", "baz"));
+		String[] enabledStatts = TestUtils.getPropertyValue(this.exporter, "enabledStatsPatterns", String[].class);
+		assertThat(enabledStatts, Matchers.arrayContaining("qux", "!*"));
+
 		Set<ObjectName> names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
 		assertEquals(1, names.size());
@@ -102,7 +104,11 @@ public class EnableMBeanExportTests {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationMBeanExport(server = "#{mbeanServer}", defaultDomain = "${managed.domain}", managedComponents = {"input", "${managed.component}"})
+	@EnableIntegrationMBeanExport(server = "#{mbeanServer}",
+			defaultDomain = "${managed.domain}",
+			managedComponents = {"input", "${managed.component}"},
+			countsEnabled = { "foo", "${count.patterns}" },
+			statsEnabled = { "qux", "!*" })
 	public static class ContextConfiguration {
 
 		@Bean
@@ -127,8 +133,9 @@ public class EnableMBeanExportTests {
 		@Override
 		public void initialize(GenericApplicationContext applicationContext) {
 			applicationContext.setEnvironment(new MockEnvironment()
-					.withProperty("managed.component", "input,in*")
-					.withProperty("managed.domain", "FOO"));
+					.withProperty("managed.component", "inputX,in*")
+					.withProperty("managed.domain", "FOO")
+					.withProperty("count.patterns", "bar,baz"));
 		}
 
 	}

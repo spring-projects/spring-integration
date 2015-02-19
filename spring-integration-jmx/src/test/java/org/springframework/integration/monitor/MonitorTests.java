@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -69,18 +70,21 @@ public class MonitorTests {
 	@Autowired
 	private NullChannel nullChannel;
 
+	@Autowired
+	ApplicationContext ctx;
+
 	@Test
 	public void testStats() {
 		Integer active = new MessagingTemplate(this.input).convertSendAndReceive("foo", Integer.class);
 		assertEquals(1, active.intValue());
 		assertEquals(0, this.handler.getActiveCount());
 		assertEquals(1, this.handler.getHandleCount());
-		assertThat(this.handler.getDuration().getMax(), greaterThan(100.0));
+		assertThat(this.handler.getDuration().getMax(), greaterThan(99.0));
 		assertThat(this.handler.getDuration().getMax(), lessThan(10000.0));
 		assertEquals(1, this.input.getSendCount());
 		assertEquals(1, this.input.getReceiveCount());
 		assertEquals(1, this.next.getSendCount());
-		assertThat(this.next.getSendDuration().getMax(), greaterThan(100.0));
+		assertThat(this.next.getSendDuration().getMax(), greaterThan(99.0));
 		assertThat(this.next.getSendDuration().getMax(), lessThan(10000.0));
 		Message<?> fromInbound = this.output.receive(10000);
 		assertNotNull(fromInbound);

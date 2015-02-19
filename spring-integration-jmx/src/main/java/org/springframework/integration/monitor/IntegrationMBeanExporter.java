@@ -222,7 +222,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * The pattern is applied to all components before they are registered, looking for a
 	 * match on the 'name' property of the ObjectName. A MessageChannel and a
 	 * MessageHandler (for instance) can share a name because they have a different type,
-	 * so in that case they would either both be included or both excluded.
+	 * so in that case they would either both be included or both excluded. Since version
+	 * 4.2, a leading '!' negates the pattern match ('!foo*' means don't export components
+	 * where the name matches the pattern 'foo*'). For components with names that match
+	 * multiple patterns, the first pattern wins.
 	 * @param componentNamePatterns the patterns.
 	 */
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
@@ -235,7 +238,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * be enabled (defaults to '*'). Only patterns that also match
 	 * {@link #setComponentNamePatterns(String[]) componentNamePatterns} will be
 	 * considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
-	 * for those components that support those counters (channels, message handlers, etc).
+	 * for those components that support counters (channels, message handlers, etc).
 	 * This is the initial setting only, individual components can have counts
 	 * enabled/disabled at runtime. May be overridden by an entry in
 	 * {@link #setEnabledStatsPatterns(String[]) enabledStatsPatterns} which is additional
@@ -243,6 +246,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * for matches. For components that match multiple patterns, the first pattern wins.
 	 * Disabling counts at runtime also disables stats.
 	 * @param enabledCountsPatterns the patterns.
+	 * @since 4.2
 	 */
 	public void setEnabledCountsPatterns(String[] enabledCountsPatterns) {
 		Assert.notEmpty(enabledCountsPatterns, "enabledCountsPatterns must not be empty");
@@ -255,15 +259,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * here overrides {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns},
 	 * you can't have statistics without counts). (defaults to '*'). Only patterns that
 	 * also match {@link #setComponentNamePatterns(String[]) componentNamePatterns} will
-	 * be considered. Enables statistics for those components that support those
-	 * statistics (channels - when sending, message handlers, etc). This is the initial
-	 * setting only, individual components can have stats enabled/disabled at runtime. If
-	 * a pattern starts with `!`, stats (and counts) are disabled for matches. For
+	 * be considered. Enables statistics for those components that support statistics
+	 * (channels - when sending, message handlers, etc). This is the initial setting only,
+	 * individual components can have stats enabled/disabled at runtime. If a pattern
+	 * starts with `!`, stats (and counts) are disabled for matches. Note: this means that
+	 * '!foo' here will disable stats and counts for 'foo' even if counts are enabled for
+	 * 'foo' in {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}. For
 	 * components that match multiple patterns, the first pattern wins. Enabling stats at
-	 * runtime also enables counts. Note: this means that '!foo' here will disable stats
-	 * and counts for 'foo' even if counts are enabled for 'foo' in
-	 * {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}.
+	 * runtime also enables counts.
 	 * @param enabledStatsPatterns the patterns.
+	 * @since 4.2
 	 */
 	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
 		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
@@ -748,7 +753,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		for (MessageChannelMetrics monitor : channels) {
 			String name = ((NamedComponent) monitor).getComponentName();
 			this.allChannelsByName.put(name, monitor);
-			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
@@ -758,11 +763,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					channelsByName.put(name, monitor);
 				}
-				Boolean enabled = enabled(this.enabledCountsPatterns, name);
+				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 				if (enabled != null) {
 					monitor.enableCounts(enabled);
 				}
-				enabled = enabled(this.enabledStatsPatterns, name);
+				enabled = smartMatch(this.enabledStatsPatterns, name);
 				if (enabled != null) {
 					monitor.enableStats(enabled);
 				}
@@ -776,7 +781,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
 			String name = monitor.getManagedName();
 			this.allHandlersByName.put(name, monitor);
-			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
@@ -785,11 +790,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					handlersByName.put(name, monitor);
 				}
-				Boolean enabled = enabled(this.enabledCountsPatterns, name);
+				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 				if (enabled != null) {
 					monitor.enableCounts(enabled);
 				}
-				enabled = enabled(this.enabledStatsPatterns, name);
+				enabled = smartMatch(this.enabledStatsPatterns, name);
 				if (enabled != null) {
 					monitor.enableStats(enabled);
 				}
@@ -803,7 +808,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			MessageSourceMetrics monitor = enhanceSourceMonitor(source);
 			String name = monitor.getManagedName();
 			this.allSourcesByName.put(name, monitor);
-			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
@@ -812,7 +817,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (name != null) {
 					sourcesByName.put(name, monitor);
 				}
-				Boolean enabled = enabled(this.enabledCountsPatterns, name);
+				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 				if (enabled != null) {
 					monitor.enableCounts(enabled);
 				}
@@ -838,7 +843,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					name = endpoint.getComponentName();
 					source = "endpoint";
 				}
-				if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+				if (!matches(this.componentNamePatterns, name)) {
 					continue;
 				}
 				if (endpointNames.contains(name)) {
@@ -857,7 +862,26 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
-	private Boolean enabled(String[] patterns, String name) {
+	/**
+	 * Simple pattern match against the supplied patterns; also supports negated ('!')
+	 * patterns. First match wins (positive or negative).
+	 * @param patterns the patterns.
+	 * @param name the name to match.
+	 * @return true if positive match, false if no match or negative match.
+	 */
+	private boolean matches(String[] patterns, String name) {
+		Boolean match = smartMatch(patterns, name);
+		return match == null ? false : match;
+	}
+
+	/**
+	 * Simple pattern match against the supplied patterns; also supports negated ('!')
+	 * patterns. First match wins (positive or negative).
+	 * @param patterns the patterns.
+	 * @param name the name to match.
+	 * @return null if no match; true for positive match; false for negative match.
+	 */
+	private Boolean smartMatch(String[] patterns, String name) {
 		if (patterns != null) {
 			for (String pattern : patterns) {
 				boolean reverse = false;
