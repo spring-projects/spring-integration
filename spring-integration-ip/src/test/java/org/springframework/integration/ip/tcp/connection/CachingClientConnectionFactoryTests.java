@@ -15,16 +15,19 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,8 +42,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -59,6 +64,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -102,6 +109,16 @@ public class CachingClientConnectionFactoryTests {
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 2);
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
+		// INT-3652
+		TcpConnectionInterceptorSupport cachedConn1 = (TcpConnectionInterceptorSupport) conn1;
+		Log logger = spy(TestUtils.getPropertyValue(cachedConn1, "logger", Log.class));
+		when(logger.isDebugEnabled()).thenReturn(true);
+		new DirectFieldAccessor(cachedConn1).setPropertyValue("logger", logger);
+		cachedConn1.onMessage(new ErrorMessage(new RuntimeException()));
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(logger).debug(captor.capture());
+		assertThat(captor.getValue(), startsWith("Message discarded; no listener:"));
+		// end INT-3652
 		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
 		conn1.close();
 		conn1 = cachingFactory.getConnection();
