@@ -24,7 +24,6 @@ import org.springframework.integration.handler.management.DefaultMessageHandlerM
 import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.support.management.ConfigurableMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MetricsContext;
@@ -47,7 +46,7 @@ import org.springframework.util.Assert;
  */
 @IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
-		MessageHandlerMetrics, ConfigurableMetricsAware, TrackableComponent, Orderable {
+		MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>, TrackableComponent, Orderable {
 
 	private volatile boolean shouldTrack = false;
 
@@ -84,9 +83,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	}
 
 	@Override
-	public void configureMetrics(ConfigurableMetrics metrics) {
-		Assert.isInstanceOf(AbstractMessageHandlerMetrics.class, metrics);
-		this.handlerMetrics = handlerMetrics;
+	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
+		this.handlerMetrics = metrics;
 	}
 
 	@Override

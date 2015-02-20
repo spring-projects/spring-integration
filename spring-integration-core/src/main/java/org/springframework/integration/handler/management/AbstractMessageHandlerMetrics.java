@@ -32,11 +32,11 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetrics {
 
-	protected static final Log logger = LogFactory.getLog(DefaultMessageHandlerMetrics.class);
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	protected final String name;
 
-	protected volatile boolean fullStatsEnabled;
+	private volatile boolean fullStatsEnabled;
 
 	public AbstractMessageHandlerMetrics(String name) {
 		this.name = name;
@@ -51,6 +51,10 @@ public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetri
 		this.fullStatsEnabled = fullStatsEnabled;
 	}
 
+	protected boolean isFullStatsEnabled() {
+		return fullStatsEnabled;
+	}
+
 	/**
 	 * Begin a handle event.
 	 * @return the context.
@@ -59,10 +63,10 @@ public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetri
 
 	/**
 	 * End a handle event
-	 * @param start the context.
-	 * @param result true for success, false otherwise.
+	 * @param context the context.
+	 * @param success true for success, false otherwise.
 	 */
-	public abstract void afterHandle(MetricsContext start, boolean success);
+	public abstract void afterHandle(MetricsContext context, boolean success);
 
 	public abstract void reset();
 

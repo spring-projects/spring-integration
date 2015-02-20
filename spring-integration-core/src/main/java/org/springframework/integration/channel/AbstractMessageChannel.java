@@ -34,7 +34,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
-import org.springframework.integration.support.management.ConfigurableMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MetricsContext;
@@ -62,7 +61,7 @@ import org.springframework.util.StringUtils;
 @IntegrationManagedResource
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics,
-		ConfigurableMetricsAware {
+		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
@@ -124,9 +123,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void configureMetrics(ConfigurableMetrics metrics) {
-		Assert.isInstanceOf(AbstractMessageChannelMetrics.class, metrics);
-		this.channelMetrics = (AbstractMessageChannelMetrics) metrics;
+	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
+		this.channelMetrics = metrics;
 	}
 
 	/**

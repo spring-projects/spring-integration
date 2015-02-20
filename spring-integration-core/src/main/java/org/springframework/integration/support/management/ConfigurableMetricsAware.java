@@ -16,14 +16,14 @@
 package org.springframework.integration.support.management;
 
 /**
- * Classes implementing this interface can receive a {@link ConfigurableMetrics}.
+ * Classes implementing this interface can accept a {@link ConfigurableMetrics}.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public interface ConfigurableMetricsAware {
+public interface ConfigurableMetricsAware<M extends ConfigurableMetrics> {
 
-	void configureMetrics(ConfigurableMetrics metrics);
+	void configureMetrics(M metrics);
 
 }

@@ -30,12 +30,14 @@ public interface MetricsFactory {
 
 	/**
 	 * Factory method to create an {@link AbstractMessageChannelMetrics}.
+	 * @param name the name.
 	 * @return the metrics.
 	 */
 	AbstractMessageChannelMetrics createChannelMetrics(String name);
 
 	/**
 	 * Factory method to create an {@link AbstractMessageHandlerMetrics}.
+	 * @param name the name.
 	 * @return the metrics.
 	 */
 	AbstractMessageHandlerMetrics createHandlerMetrics(String name);

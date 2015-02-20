@@ -35,7 +35,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	protected final String name;
 
-	protected volatile boolean fullStatsEnabled;
+	private volatile boolean fullStatsEnabled;
 
 	public AbstractMessageChannelMetrics(String name) {
 		this.name = name;
@@ -50,15 +50,22 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 		this.fullStatsEnabled = fullStatsEnabled;
 	}
 
+	protected boolean isFullStatsEnabled() {
+		return fullStatsEnabled;
+	}
+
 	/**
 	 * Begin a send event.
-	 * @return the context.
+	 * @return the context to be used in a subsequent {@link #afterSend(MetricsContext, boolean)}
+	 * call.
 	 */
 	public abstract MetricsContext beforeSend();
 
 	/**
-	 * End a send event
-	 * @param start the context.
+	 * End a send event. Note that implementations typically will not validate that the
+	 * context is of the correct type and not null; callers should take care to ensure
+	 * the context is the object returned by the previous {@link #beforeSend()} call.
+	 * @param context the context.
 	 * @param result true for success, false otherwise.
 	 */
 	public abstract void afterSend(MetricsContext context, boolean result);

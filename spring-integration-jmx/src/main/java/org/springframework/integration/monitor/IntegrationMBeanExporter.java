@@ -34,11 +34,8 @@ import javax.management.modelmbean.ModelMBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
-import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.annotation.AnnotationBeanUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -60,7 +57,7 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.management.MessageSourceMetrics;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistoryConfigurer;
@@ -302,6 +299,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	/**
 	 * Set a metrics factory.
 	 * @param metricsFactory the factory.
+	 * @since 4.2
 	 */
 	public void setMetricsFactory(MetricsFactory metricsFactory) {
 		this.metricsFactory = metricsFactory;
@@ -346,7 +344,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
 			Lifecycle target = (Lifecycle) extractTarget(bean);
-			if (!(target instanceof AbstractReplyProducingMessageHandler)) { // TODO: change to AMPMH
+			if (!(target instanceof AbstractMessageProducingHandler)) {
 				this.inboundLifecycleMessageProducers.add(target);
 			}
 		}
@@ -936,27 +934,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			logger.error("Could not extract target", e);
 			return null;
 		}
-	}
-
-	private Object applyAdvice(Object bean, PointcutAdvisor advisor, ClassLoader beanClassLoader) {
-		Class<?> targetClass = AopUtils.getTargetClass(bean);
-		if (AopUtils.canApply(advisor.getPointcut(), targetClass)) {
-			if (bean instanceof Advised) {
-				((Advised) bean).addAdvisor(advisor);
-				return bean;
-			}
-			else {
-				ProxyFactory proxyFactory = new ProxyFactory(bean);
-				proxyFactory.addAdvisor(advisor);
-				/**
-				 * N.B. it's not a good idea to use proxyFactory.setProxyTargetClass(true) here because it forces all
-				 * the integration components to be cglib proxyable (i.e. have a default constructor etc.), which they
-				 * are not in general (usually for good reason).
-				 */
-				return proxyFactory.getProxy(beanClassLoader);
-			}
-		}
-		return bean;
 	}
 
 	private String getChannelBeanKey(String channel) {

@@ -56,7 +56,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 			logger.trace("messageHandler(" + this.name + ") message(" + message + ") :");
 		}
 		long start = 0;
-		if (this.fullStatsEnabled) {
+		if (isFullStatsEnabled()) {
 			start = System.nanoTime();
 		}
 		this.handleCount.incrementAndGet();
@@ -66,10 +66,9 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 
 	@Override
 	public void afterHandle(MetricsContext context, boolean success) {
-		long start = ((DefaultHandlerMetricsContext) context).start;
 		this.activeCount.decrementAndGet();
-		if (this.fullStatsEnabled && success) {
-			this.duration.appendNanos(System.nanoTime() - start);
+		if (isFullStatsEnabled() && success) {
+			this.duration.appendNanos(System.nanoTime() - ((DefaultHandlerMetricsContext) context).start);
 		}
 		else if (!success) {
 			this.errorCount.incrementAndGet();
