@@ -95,7 +95,7 @@ public class ExponentialMovingAverageRatio {
 		t0 = t;
 		sum = alpha * sum + value;
 		weight = alpha * weight + 1;
-		cumulative.appendNanos(sum / weight);
+		cumulative.append(sum / weight);
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class ExponentialMovingAverageRatio {
 		}
 		long t = System.nanoTime();
 		double alpha = Math.exp((t0 - t) / 1000000. * lapse);
-		return alpha * cumulative.getMeanNanos() + 1 - alpha;
+		return alpha * cumulative.getMean() + 1 - alpha;
 	}
 
 	/**
