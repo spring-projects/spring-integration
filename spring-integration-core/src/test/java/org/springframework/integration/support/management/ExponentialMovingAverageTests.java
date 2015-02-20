@@ -65,4 +65,26 @@ public class ExponentialMovingAverageTests {
 		assertEquals(String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", 0, 0d, 0d, 0d, 0d), history.toString());
 	}
 
+	@Test
+	public void testAv() throws Exception {
+		ExponentialMovingAverage av = new ExponentialMovingAverage(10);
+		for (int i = 0; i < 10000; i++) {
+			switch (i % 3) {
+				case 0:
+					av.appendNanos(20000);
+					break;
+				case 1:
+					av.appendNanos(30000);
+					break;
+				case 2:
+					av.appendNanos(40000);
+					break;
+			}
+		}
+		assertEquals(0.04, av.getMax(), 0.001);
+		assertEquals(0.02, av.getMin(), 0.001);
+		assertEquals(0.03, av.getMean(), 0.001);
+	}
+
+
 }

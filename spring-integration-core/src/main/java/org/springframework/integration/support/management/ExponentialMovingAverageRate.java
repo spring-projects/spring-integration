@@ -124,7 +124,7 @@ public class ExponentialMovingAverageRate {
 		}
 		long delta = System.nanoTime() - t0;
 		double value = delta > 0 ? delta / period : 0;
-		return count / (count / rates.getMeanNanos() + value);
+		return count / (count / rates.getMean() + value);
 	}
 
 	/**

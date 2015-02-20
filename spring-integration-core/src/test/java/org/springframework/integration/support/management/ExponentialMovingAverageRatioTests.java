@@ -130,4 +130,19 @@ public class ExponentialMovingAverageRatioTests {
 		return sum / count;
 	}
 
+	@Test
+	public void testRatio() {
+		ExponentialMovingAverageRatio ratio = new ExponentialMovingAverageRatio(60, 10);
+		for (int i = 0; i < 10000; i++) {
+			if (i % 10 == 0) {
+				ratio.failure();
+			}
+			else {
+				ratio.success();
+			}
+		}
+		assertEquals(0.9, ratio.getMax(), 0.01);
+		assertEquals(0.9, ratio.getMean(), 0.01);
+	}
+
 }

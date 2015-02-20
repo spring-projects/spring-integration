@@ -22,6 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Dave Syer
@@ -124,6 +125,20 @@ public class ExponentialMovingAverageRateTests {
 		assertEquals(0, history.getMean(), 0.01);
 		assertEquals(0, history.getMin(), 0.01);
 		assertEquals(0, history.getMax(), 0.01);
+	}
+
+	@Test
+	public void testRate() {
+		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1, 60, 10);
+		int count = 1000000;
+		StopWatch watch = new StopWatch();
+		watch.start();
+		for (int i = 0; i < count; i++) {
+			rate.increment();
+		}
+		watch.stop();
+		double calculatedRate = count / (double) watch.getTotalTimeMillis() * 1000;
+		assertEquals(calculatedRate, rate.getMean(), 2000000);
 	}
 
 }
