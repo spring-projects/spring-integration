@@ -13,10 +13,14 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 
 
 /**
- * Cumulative statistics for an event rate with higher weight given to recent data but without storing any history.
+ * Cumulative statistics for an event rate with higher weight given to recent data.
  * Clients call {@link #increment()} when a new event occurs, and then use convenience methods (e.g. {@link #getMean()})
  * to retrieve estimates of the rate of event arrivals and the statistics of the series. Older values are given
  * exponentially smaller weight, with a decay factor determined by a duration chosen by the client. The rate measurement
@@ -27,28 +31,35 @@ package org.springframework.integration.support.management;
  * <li>per measurement according to the lapse window supplied: <code>weight = exp(-i/L)</code> where <code>L</code> is
  * the lapse window and <code>i</code> is the sequence number of the measurement.</li>
  * </ul>
- *
+ * For performance reasons, the calculation is performed on retrieval,
+ * {@code window * 5} samples are retained meaning that the earliest retained value contributes just 0.5% to the
+ * sum.
  * @author Dave Syer
  * @author Gary Russell
  *
  */
 public class ExponentialMovingAverageRate {
 
-	private final ExponentialMovingAverage rates;
-
-	private volatile double weight;
-
-	private volatile double sum;
-
-	private volatile double min;
+	private volatile double min = Double.MAX_VALUE;
 
 	private volatile double max;
 
-	private volatile double t0 = System.nanoTime() / 1000000.;
+	private volatile double t0;
+
+	private volatile long count;
 
 	private final double lapse;
 
 	private final double period;
+
+	private final List<Long> times = new LinkedList<Long>();
+
+	private final int retention;
+
+	private final int window;
+
+	private final double factor;
+
 
 
 	/**
@@ -57,45 +68,105 @@ public class ExponentialMovingAverageRate {
 	 * @param window the exponential lapse window (number of measurements)
 	 */
 	public ExponentialMovingAverageRate(double period, double lapsePeriod, int window) {
-		rates = new ExponentialMovingAverage(window);
+		this(period, lapsePeriod, window, false);
+	}
+
+	/**
+	 * @param period the period to base the rate measurement (in seconds)
+	 * @param lapsePeriod the exponential lapse rate for the rate average (in seconds)
+	 * @param window the exponential lapse window (number of measurements)
+	 * @param millis when true, analyze the data as milliseconds instead of the native nanoseconds
+	 */
+	public ExponentialMovingAverageRate(double period, double lapsePeriod, int window, boolean millis) {
 		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to milliseconds
 		this.period = period * 1000; // convert to milliseconds
+		this.window = window;
+		this.retention = window * 5;
+		this.factor = millis ? 1000000 : 1;
+		this.t0 = System.nanoTime() / this.factor;
 	}
 
 
 	public synchronized void reset() {
-		min = 0;
-		max = 0;
-		weight = 0;
-		sum = 0;
-		t0 = System.nanoTime() / 1000000.;
-		rates.reset();
+		this.min = 0;
+		this.max = 0;
+		this.count = 0;
+		this.times.clear();
+		t0 = System.nanoTime() / this.factor;
 	}
 
 	/**
 	 * Add a new event to the series.
 	 */
 	public synchronized void increment() {
-		double t = System.nanoTime() / 1000000.;
-		double value = t > t0 ? (t - t0) / period : 0;
-		if (value > max || getCount() == 0) {
-			max = value;
+		increment(System.nanoTime());
+	}
+
+	/**
+	 * Add a new event to the series at time t.
+	 */
+	public synchronized void increment(long t) {
+		if (this.times.size() == this.retention) {
+			this.times.remove(0);
 		}
-		if (value < min || getCount() == 0) {
-			min = value;
+		this.times.add(t);
+		this.count++;//NOSONAR - false positive, we're synchronized
+	}
+
+	private Statistics calc() {
+		List<Long> copy;
+		long count;
+		synchronized (this) {
+			copy = new ArrayList<Long>(this.times);
+			count = this.count;
 		}
-		double alpha = Math.exp((t0 - t) * lapse);
-		t0 = t;
-		sum = alpha * sum + value;
-		weight = alpha * weight + 1;
-		rates.append(sum > 0 ? weight / sum : 0);
+		ExponentialMovingAverage rates = new ExponentialMovingAverage(window);
+		double t0 = 0;
+		double sum = 0;
+		double weight = 0;
+		double min = this.min;
+		double max = this.max;
+		int size = copy.size();
+		for (Long time : copy) {
+			double t = time / this.factor;
+			if (size == 1) {
+				t0 = this.t0;
+			}
+			else if (t0 == 0) {
+				t0 = t;
+				continue;
+			}
+			double delta = t - t0;
+			double value = delta > 0 ? delta / period : 0;
+			if (value > max) {
+				max = value;
+			}
+			if (value < this.min) {
+				min = value;
+			}
+			double alpha = Math.exp(-delta * lapse);
+			t0 = t;
+			sum = alpha * sum + value;
+			weight = alpha * weight + 1;
+			rates.append(sum > 0 ? weight / sum : 0);
+		}
+		synchronized (this) {
+			if (max > this.max) {
+				this.max = max;
+			}
+			if (min < this.min) {
+				this.min = min;
+			}
+		}
+		return new Statistics(count, min < Double.MAX_VALUE ? min : 0, max, rates.getMean(),
+				rates.getStandardDeviation());
 	}
 
 	/**
 	 * @return the number of measurements recorded
 	 */
 	public int getCount() {
-		return rates.getCount();
+		return (int) this.count;
 	}
 
 	/**
@@ -103,40 +174,55 @@ public class ExponentialMovingAverageRate {
 	 * @since 3.0
 	 */
 	public long getCountLong() {
-		return rates.getCountLong();
+		return this.count;
 	}
 
 	/**
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
-		return System.nanoTime() / 1000000. - t0;
+		double t0 = lastTime();
+		return (System.nanoTime() / this.factor - t0);
 	}
 
 	/**
 	 * @return the mean value
 	 */
 	public double getMean() {
-		long count = rates.getCountLong();
+		long count = this.count;
+		count = count > this.retention ? this.retention : count;
 		if (count == 0) {
 			return 0;
 		}
-		double t = System.nanoTime() / 1000000.;
+		double t0 = lastTime();
+		double t = System.nanoTime() / this.factor;
 		double value = t > t0 ? (t - t0) / period : 0;
-		return count / (count / rates.getMean() + value);
+		return count / (count / calc().getMean() + value);
+	}
+
+	private double lastTime() {
+		if (this.times.size() > 0) {
+			synchronized (this) {
+				return this.times.get(this.times.size() - 1) / this.factor;
+			}
+		}
+		else {
+			 return this.t0;
+		}
 	}
 
 	/**
 	 * @return the approximate standard deviation
 	 */
 	public double getStandardDeviation() {
-		return rates.getStandardDeviation();
+		return calc().getStandardDeviation();
 	}
 
 	/**
 	 * @return the maximum value recorded (not weighted)
 	 */
 	public double getMax() {
+		double min = calc().getMin();
 		return min > 0 ? 1 / min : 0;
 	}
 
@@ -144,6 +230,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the minimum value recorded (not weighted)
 	 */
 	public double getMin() {
+		double max = calc().getMax();
 		return max > 0 ? 1 / max : 0;
 	}
 
@@ -151,7 +238,7 @@ public class ExponentialMovingAverageRate {
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return new Statistics(getCount(), min, max, getMean(), getStandardDeviation());
+		return calc();
 	}
 
 	@Override

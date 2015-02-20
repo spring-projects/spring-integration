@@ -19,6 +19,7 @@ package org.springframework.integration.support.management;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -86,5 +87,26 @@ public class ExponentialMovingAverageTests {
 		assertEquals(30, av.getMean(), 1.0);
 	}
 
+	@Test @Ignore
+	public void testPerf() throws Exception {
+		ExponentialMovingAverage av = new ExponentialMovingAverage(10);
+		for (int i = 0; i < 10000000; i++) {
+			switch (i % 4) {
+			case 0:
+				av.append(20);
+				break;
+			case 1:
+				av.append(30);
+				break;
+			case 2:
+				av.append(40);
+				break;
+
+			case 3:
+				av.append(50);
+				break;
+			}
+		}
+	}
 
 }
