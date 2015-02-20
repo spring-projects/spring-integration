@@ -2,22 +2,27 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:aop="http://www.springframework.org/schema/aop"
-	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:channel id="inputA"/>
 
-	<int:channel-interceptor>
+	<int:channel-interceptor id="globalChannelInterceptor">
+		<int:wire-tap channel="wiretap1"/>
+	</int:channel-interceptor>
+
+	<int:channel id="wiretap1">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel-interceptor id="globalChannelInterceptor">
 		<int:wire-tap channel="wiretap"/>
 	</int:channel-interceptor>
-	
+
 	<int:channel id="wiretap">
 		<int:queue/>
 	</int:channel>
-	
+
 	<int:bridge input-channel="inputA" output-channel="nullChannel"/>
-	
+
 </beans>
