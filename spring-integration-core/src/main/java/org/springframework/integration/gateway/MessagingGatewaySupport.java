@@ -16,7 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.beans.BeansException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -34,7 +33,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -236,8 +234,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.requestChannelName != null) {
 			synchronized (this) {
 				if (this.requestChannelName != null) {
-					Assert.state(getBeanFactory() != null,
-							"A bean factory is required to resolve the requestChannel at runtime.");
 					this.requestChannel = getChannelResolver().resolveDestination(this.requestChannelName);
 					this.requestChannelName = null;
 				}
@@ -250,8 +246,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.replyChannelName != null) {
 			synchronized (this) {
 				if (this.replyChannelName != null) {
-					Assert.state(getBeanFactory() != null,
-							"A bean factory is required to resolve the replyChannel at runtime.");
 					this.replyChannel = getChannelResolver().resolveDestination(this.replyChannelName);
 					this.replyChannelName = null;
 				}
@@ -264,8 +258,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.errorChannelName != null) {
 			synchronized (this) {
 				if (this.errorChannelName != null) {
-					Assert.state(getBeanFactory() != null,
-							"A bean factory is required to resolve the errorChannel at runtime.");
 					this.errorChannel = getChannelResolver().resolveDestination(this.errorChannelName);
 					this.errorChannelName = null;
 				}

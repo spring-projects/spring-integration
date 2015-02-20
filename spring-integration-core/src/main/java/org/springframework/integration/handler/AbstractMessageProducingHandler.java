@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.BeansException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -32,7 +31,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -86,8 +84,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (this.outputChannelName != null) {
 			synchronized (this) {
 				if (this.outputChannelName != null) {
-					Assert.state(getBeanFactory() != null,
-							"A bean factory is required to resolve the outputChannel at runtime.");
 					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
 					this.outputChannelName = null;
 				}
