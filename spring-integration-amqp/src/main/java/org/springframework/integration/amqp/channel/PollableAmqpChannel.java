@@ -24,7 +24,6 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.integration.channel.management.ChannelReceiveMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -57,16 +56,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 		this.channelName = channelName;
 	}
 
-
-	@Override
-	protected void initMetrics() {
-		setChannelMetrics(new ChannelReceiveMetrics(this.getComponentName()));
-	}
-
-	@Override
-	protected ChannelReceiveMetrics getMetrics() {
-		return (ChannelReceiveMetrics) super.getMetrics();
-	}
 
 	/**
 	 * Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
@@ -136,6 +125,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
+		boolean countsEnabled = isCountsEnabled();
 		try {
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
@@ -148,7 +138,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			if (object == null) {
 				return null;
 			}
-			if (isCountsEnabled()) {
+			if (countsEnabled) {
 				getMetrics().afterReceive();
 				counted = true;
 			}
@@ -166,7 +156,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			return message;
 		}
 		catch (RuntimeException e) {
-			if (isCountsEnabled() && !counted) {
+			if (countsEnabled && !counted) {
 				getMetrics().afterError();
 			}
 			if (interceptorStack != null) {

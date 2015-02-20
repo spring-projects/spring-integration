@@ -21,7 +21,8 @@
 					  object-name-static-properties="appProperties"
 					  object-naming-strategy="keyNamer"
 					  counts-enabled="foo, !baz, ba*"
-					  stats-enabled="fiz, buz" />
+					  stats-enabled="fiz, buz" 
+					  metrics-factory="mf" />
 					  
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>
@@ -41,5 +42,7 @@
 	<si:channel id="fiz" />
 
 	<si:channel id="buz" />
+
+	<bean id="mf" class="org.springframework.integration.monitor.DefaultMetricsFactory" />
 
 </beans>

@@ -221,6 +221,19 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="metrics-factory" use="optional">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.monitor.MetricsFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								A MetricsFactory responsible for creating objects that maintain metrics for message
+								channels and message handlers.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="object-naming-strategy" use="optional">
 						<xsd:annotation>
 							<xsd:appinfo>

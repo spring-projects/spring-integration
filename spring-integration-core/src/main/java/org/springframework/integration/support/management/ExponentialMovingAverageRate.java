@@ -44,7 +44,7 @@ public class ExponentialMovingAverageRate {
 
 	private volatile double max;
 
-	private volatile long t0 = System.currentTimeMillis();
+	private volatile long t0 = System.nanoTime();
 
 	private final double lapse;
 
@@ -58,8 +58,8 @@ public class ExponentialMovingAverageRate {
 	 */
 	public ExponentialMovingAverageRate(double period, double lapsePeriod, int window) {
 		rates = new ExponentialMovingAverage(window);
-		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to milliseconds
-		this.period = period * 1000; // convert to milliseconds
+		this.lapse = lapsePeriod > 0 ? 0.000000001 / lapsePeriod : 0; // convert to nanoseconds
+		this.period = period * 1000000000; // convert to nanoseconds
 	}
 
 
@@ -68,7 +68,7 @@ public class ExponentialMovingAverageRate {
 		max = 0;
 		weight = 0;
 		sum = 0;
-		t0 = System.currentTimeMillis();
+		t0 = System.nanoTime();
 		rates.reset();
 	}
 
@@ -76,15 +76,16 @@ public class ExponentialMovingAverageRate {
 	 * Add a new event to the series.
 	 */
 	public synchronized void increment() {
-		long t = System.currentTimeMillis();
-		double value = t > t0 ? (t - t0) / period : 0;
+		long t = System.nanoTime();
+		double delta = t - t0;
+		double value = delta > 0 ? delta / period : 0;
 		if (value > max || getCount() == 0) {
 			max = value;
 		}
 		if (value < min || getCount() == 0) {
 			min = value;
 		}
-		double alpha = Math.exp((t0 - t) * lapse);
+		double alpha = Math.exp(-delta * lapse);
 		t0 = t;
 		sum = alpha * sum + value;
 		weight = alpha * weight + 1;
@@ -110,7 +111,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
-		return (System.currentTimeMillis() - t0) / 1000.;
+		return (System.nanoTime() - t0) / 1000000000.;
 	}
 
 	/**
@@ -121,9 +122,9 @@ public class ExponentialMovingAverageRate {
 		if (count == 0) {
 			return 0;
 		}
-		long t = System.currentTimeMillis();
-		double value = t > t0 ? (t - t0) / period : 0;
-		return count / (count / rates.getMean() + value);
+		long delta = System.nanoTime() - t0;
+		double value = delta > 0 ? delta / period : 0;
+		return count / (count / rates.getMeanNanos() + value);
 	}
 
 	/**
