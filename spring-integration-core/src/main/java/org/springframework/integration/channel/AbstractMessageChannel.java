@@ -26,14 +26,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.channel.management.ChannelSendMetrics;
+import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
+import org.springframework.integration.channel.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
+import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -57,7 +60,8 @@ import org.springframework.util.StringUtils;
  */
 @IntegrationManagedResource
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
-		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics {
+		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics,
+		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
@@ -75,7 +79,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile boolean statsEnabled;
 
-	private volatile ChannelSendMetrics channelMetrics;
+	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
 
 	@Override
 	public String getComponentType() {
@@ -106,14 +110,21 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			this.countsEnabled = true;
 		}
 		this.statsEnabled = statsEnabled;
-		if (this.channelMetrics != null) {
-			this.channelMetrics.setFullStatsEnabled(statsEnabled);
-		}
+		this.channelMetrics.setFullStatsEnabled(statsEnabled);
 	}
 
 	@Override
 	public boolean isStatsEnabled() {
 		return this.statsEnabled;
+	}
+
+	protected AbstractMessageChannelMetrics getMetrics() {
+		return this.channelMetrics;
+	}
+
+	@Override
+	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
+		this.channelMetrics = metrics;
 	}
 
 	/**
@@ -325,16 +336,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 			}
 		}
-		initMetrics();
-	}
-
-	protected void initMetrics() {
-		setChannelMetrics(new ChannelSendMetrics(getComponentName()));
-	}
-
-	protected void setChannelMetrics(ChannelSendMetrics channelMetrics) {
-		this.channelMetrics = channelMetrics;
-		this.channelMetrics.setFullStatsEnabled(this.statsEnabled);
+		if (this.statsEnabled) {
+			this.channelMetrics.setFullStatsEnabled(true);
+		}
 	}
 
 	/**
@@ -393,39 +397,42 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
-		boolean statsProcessed = false;
-		long start = 0;
+		boolean metricsProcessed = false;
+		MetricsContext metrics = null;
+		boolean countsEnabled = this.countsEnabled;
+		ChannelInterceptorList interceptors = this.interceptors;
+		AbstractMessageChannelMetrics channelMetrics = this.channelMetrics;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			if (this.interceptors.getInterceptors().size() > 0) {
+			if (interceptors.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
-				message = this.interceptors.preSend(message, this, interceptorStack);
+				message = interceptors.preSend(message, this, interceptorStack);
 				if (message == null) {
 					return false;
 				}
 			}
-			if (this.countsEnabled) {
-				start = this.channelMetrics.beforeSend();
+			if (countsEnabled) {
+				metrics = channelMetrics.beforeSend();
 			}
 			sent = this.doSend(message, timeout);
-			if (this.countsEnabled) {
-				this.channelMetrics.afterSend(start, sent);
-				statsProcessed = true;
+			if (countsEnabled) {
+				channelMetrics.afterSend(metrics, sent);
+				metricsProcessed = true;
 			}
-			this.interceptors.postSend(message, this, sent);
+			interceptors.postSend(message, this, sent);
 			if (interceptorStack != null) {
-				this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
+				interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
 			}
 			return sent;
 		}
 		catch (Exception e) {
-			if (this.countsEnabled && !statsProcessed) {
-				this.channelMetrics.afterSend(start, false);
+			if (countsEnabled && !metricsProcessed) {
+				channelMetrics.afterSend(metrics, false);
 			}
 			if (interceptorStack != null) {
-				this.interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
+				interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
@@ -433,10 +440,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			throw new MessageDeliveryException(message,
 					"failed to send Message to channel '" + this.getComponentName() + "'", e);
 		}
-	}
-
-	protected ChannelSendMetrics getMetrics() {
-		return this.channelMetrics;
 	}
 
 	private Message<?> convertPayloadIfNecessary(Message<?> message) {

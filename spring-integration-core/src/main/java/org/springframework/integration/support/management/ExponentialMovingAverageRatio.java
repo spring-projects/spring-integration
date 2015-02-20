@@ -36,7 +36,7 @@ public class ExponentialMovingAverageRatio {
 
 	private volatile double sum;
 
-	private volatile long t0 = System.currentTimeMillis();
+	private volatile long t0 = System.nanoTime();
 
 	private final double lapse;
 
@@ -57,12 +57,12 @@ public class ExponentialMovingAverageRatio {
 	 * Add a new event with successful outcome.
 	 */
 	public void success() {
-		append(1, System.currentTimeMillis());
+		append(1, System.nanoTime());
 	}
 
 	/**
 	 * Add a new event with successful outcome.
-	 * @param t The current timestamp.
+	 * @param t The current timestamp (System.nanoTime()).
 	 */
 	public void success(long t) {
 		append(1, t);
@@ -72,12 +72,12 @@ public class ExponentialMovingAverageRatio {
 	 * Add a new event with failed outcome.
 	 */
 	public void failure() {
-		append(0, System.currentTimeMillis());
+		append(0, System.nanoTime());
 	}
 
 	/**
 	 * Add a new event with failed outcome.
-	 * @param t the current timestamp.
+	 * @param t the current timestamp (System.nanoTime()).
 	 */
 	public void failure(long t) {
 		append(0, t);
@@ -86,16 +86,16 @@ public class ExponentialMovingAverageRatio {
 	public synchronized void reset() {
 		weight = 0;
 		sum = 0;
-		t0 = System.currentTimeMillis();
+		t0 = System.nanoTime();
 		cumulative.reset();
 	}
 
 	private synchronized void append(int value, long t) {
-		double alpha = Math.exp((t0 - t) * lapse);
+		double alpha = Math.exp((t0 - t) / 1000000. * lapse);
 		t0 = t;
 		sum = alpha * sum + value;
 		weight = alpha * weight + 1;
-		cumulative.append(sum / weight);
+		cumulative.appendNanos(sum / weight);
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class ExponentialMovingAverageRatio {
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
-		return (System.currentTimeMillis() - t0) / 1000.;
+		return (System.nanoTime() - t0) / 1000000000.;
 	}
 
 	/**
@@ -128,9 +128,9 @@ public class ExponentialMovingAverageRatio {
 			// Optimistic to start: success rate is 100%
 			return 1;
 		}
-		long t = System.currentTimeMillis();
-		double alpha = Math.exp((t0 - t) * lapse);
-		return alpha * cumulative.getMean() + 1 - alpha;
+		long t = System.nanoTime();
+		double alpha = Math.exp((t0 - t) / 1000000. * lapse);
+		return alpha * cumulative.getMeanNanos() + 1 - alpha;
 	}
 
 	/**

@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
+import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 
 /**
@@ -32,7 +33,7 @@ import org.springframework.integration.support.management.Statistics;
  * @author Gary Russell
  * @since 2.0
  */
-public class ChannelSendMetrics {
+public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -58,17 +59,16 @@ public class ChannelSendMetrics {
 
 	private final AtomicLong sendErrorCount = new AtomicLong();
 
-	private final String name;
+	protected final AtomicLong receiveCount = new AtomicLong();
 
-	private volatile boolean fullStatsEnabled;
+	protected final AtomicLong receiveErrorCount = new AtomicLong();
 
-
-	public ChannelSendMetrics(String name) {
-		this.name = name;
+	public DefaultMessageChannelMetrics() {
+		super(null);
 	}
 
-	public void setFullStatsEnabled(boolean fullStatsEnabled) {
-		this.fullStatsEnabled = fullStatsEnabled;
+	public DefaultMessageChannelMetrics(String name) {
+		super(name);
 	}
 
 	public void destroy() {
@@ -77,118 +77,176 @@ public class ChannelSendMetrics {
 		}
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public long beforeSend() {
+	@Override
+	public MetricsContext beforeSend() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Recording send on channel(" + this.name + ")");
 		}
 
 		long start = 0;
-		if (this.fullStatsEnabled) {
-			start = System.currentTimeMillis();
+		if (isFullStatsEnabled()) {
+			start = System.nanoTime();
 			this.sendRate.increment();
 		}
 		this.sendCount.incrementAndGet();
-
-		return start;
+		return new DefaultChannelMetricsContext(start);
 	}
 
-	public void afterSend(long start, boolean result) {
-		if (start > 0) {
-			long now = System.currentTimeMillis();
-			long elapsed = now - start;
-			if (result && this.fullStatsEnabled) {
-				sendSuccessRatio.success(now);
-				sendDuration.append(elapsed);
+	@Override
+	public void afterSend(MetricsContext context, boolean result) {
+		if (result && isFullStatsEnabled()) {
+			long now = System.nanoTime();
+			this.sendSuccessRatio.success(now);
+			this.sendDuration.appendNanos(now - ((DefaultChannelMetricsContext) context).start);
+		}
+		else {
+			if (isFullStatsEnabled()) {
+				this.sendSuccessRatio.failure(System.nanoTime());
+				this.sendErrorRate.increment();
 			}
-			else {
-				if (this.fullStatsEnabled) {
-	 				sendSuccessRatio.failure(now);
-					sendErrorCount.incrementAndGet();
-				}
-				sendErrorRate.increment();
-			}
-			if (logger.isTraceEnabled()) {
-				logger.trace("Elapsed: " + this.name + ": " + elapsed);
-			}
+			this.sendErrorCount.incrementAndGet();
+		}
+		if (logger.isTraceEnabled()) {
+			logger.trace("Elapsed: " + this.name
+					+ ": " + ((System.nanoTime() - ((DefaultChannelMetricsContext) context).start) / 1000000.) + "ms");
 		}
 	}
 
+	@Override
 	public synchronized void reset() {
-		sendDuration.reset();
-		sendErrorRate.reset();
-		sendSuccessRatio.reset();
-		sendRate.reset();
-		sendCount.set(0);
-		sendErrorCount.set(0);
+		this.sendDuration.reset();
+		this.sendErrorRate.reset();
+		this.sendSuccessRatio.reset();
+		this.sendRate.reset();
+		this.sendCount.set(0);
+		this.sendErrorCount.set(0);
+		this.receiveErrorCount.set(0);
+		this.receiveCount.set(0);
 	}
 
+	@Override
 	public int getSendCount() {
-		return (int) sendCount.get();
+		return (int) this.sendCount.get();
 	}
 
+	@Override
 	public long getSendCountLong() {
-		return sendCount.get();
+		return this.sendCount.get();
 	}
 
+	@Override
 	public int getSendErrorCount() {
-		return (int) sendErrorCount.get();
+		return (int) this.sendErrorCount.get();
 	}
 
+	@Override
 	public long getSendErrorCountLong() {
-		return sendErrorCount.get();
+		return this.sendErrorCount.get();
 	}
 
+	@Override
 	public double getTimeSinceLastSend() {
-		return sendRate.getTimeSinceLastMeasurement();
+		return this.sendRate.getTimeSinceLastMeasurement();
 	}
 
+	@Override
 	public double getMeanSendRate() {
-		return sendRate.getMean();
+		return this.sendRate.getMean();
 	}
 
+	@Override
 	public double getMeanErrorRate() {
-		return sendErrorRate.getMean();
+		return this.sendErrorRate.getMean();
 	}
 
+	@Override
 	public double getMeanErrorRatio() {
-		return 1 - sendSuccessRatio.getMean();
+		return 1 - this.sendSuccessRatio.getMean();
 	}
 
+	@Override
 	public double getMeanSendDuration() {
-		return sendDuration.getMean();
+		return this.sendDuration.getMean();
 	}
 
+	@Override
 	public double getMinSendDuration() {
-		return sendDuration.getMin();
+		return this.sendDuration.getMin();
 	}
 
+	@Override
 	public double getMaxSendDuration() {
-		return sendDuration.getMax();
+		return this.sendDuration.getMax();
 	}
 
+	@Override
 	public double getStandardDeviationSendDuration() {
-		return sendDuration.getStandardDeviation();
+		return this.sendDuration.getStandardDeviation();
 	}
 
+	@Override
 	public Statistics getSendDuration() {
-		return sendDuration.getStatistics();
+		return this.sendDuration.getStatistics();
 	}
 
+	@Override
 	public Statistics getSendRate() {
-		return sendRate.getStatistics();
+		return this.sendRate.getStatistics();
 	}
 
+	@Override
 	public Statistics getErrorRate() {
-		return sendErrorRate.getStatistics();
+		return this.sendErrorRate.getStatistics();
+	}
+
+	@Override
+	public void afterReceive() {
+		if (logger.isTraceEnabled()) {
+			logger.trace("Recording receive on channel(" + this.name + ") ");
+		}
+		this.receiveCount.incrementAndGet();
+	}
+
+	@Override
+	public void afterError() {
+		this.receiveErrorCount.incrementAndGet();
+	}
+
+	@Override
+	public int getReceiveCount() {
+		return (int) this.receiveCount.get();
+	}
+
+	@Override
+	public long getReceiveCountLong() {
+		return this.receiveCount.get();
+	}
+
+	@Override
+	public int getReceiveErrorCount() {
+		return (int) this.receiveErrorCount.get();
+	}
+
+	@Override
+	public long getReceiveErrorCountLong() {
+		return this.receiveErrorCount.get();
 	}
 
 	@Override
 	public String toString() {
-		return String.format("MessageChannelMonitor: [name=%s, sends=%d]", name, sendCount.get());
+		return String.format("MessageChannelMonitor: [name=%s, sends=%d"
+				+ (this.receiveCount.get() == 0 ? "" : this.receiveCount.get())
+				+ "]", name, sendCount.get());
+	}
+
+	private static class DefaultChannelMetricsContext implements MetricsContext {
+
+		private final long start;
+
+		public DefaultChannelMetricsContext(long start) {
+			this.start = start;
+		}
+
 	}
 
 }
