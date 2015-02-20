@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -48,13 +49,19 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 	private static final String REF_ATTRIBUTE = "ref";
 
 	@Override
-	protected boolean shouldGenerateId() {
+	protected boolean shouldGenerateIdAsFallback() {
 		return true;
 	}
 
 	@Override
 	protected boolean shouldFireEvents() {
 		return false;
+	}
+
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		return super.resolveId(element, definition, parserContext) + ".globalChannelInterceptor";
 	}
 
 	@Override
