@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -25,7 +26,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +55,7 @@ import org.springframework.messaging.support.GenericMessage;
 public class ChannelAdapterParserTests {
 
 	private AbstractApplicationContext applicationContext;
+
 	private AbstractApplicationContext applicationContextInner;
 
 
@@ -129,8 +130,8 @@ public class ChannelAdapterParserTests {
 			fail("MessageDispatchingException is expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), Matchers.instanceOf(MessageDispatchingException.class));
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getCause(), instanceOf(MessageDispatchingException.class));
 		}
 
 		((EventDrivenConsumer) adapter).start();
@@ -279,7 +280,7 @@ public class ChannelAdapterParserTests {
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void innerBeanAndExpressionFail() throws Exception {
-		new ClassPathXmlApplicationContext("InboundChannelAdapterInnerBeanWithExpression-fail-context.xml", this.getClass()).close();;
+		new ClassPathXmlApplicationContext("InboundChannelAdapterInnerBeanWithExpression-fail-context.xml", this.getClass()).close();
 	}
 
 	@Test
@@ -311,12 +312,29 @@ public class ChannelAdapterParserTests {
 		assertSame(testMessageSource, source);
 	}
 
+	@Test
+	public void testMessageSourceAsInnerBean() {
+		MessageSource<?> bean = this.applicationContextInner.getBean("messageSourceRef.source", MessageSource.class);
+		assertThat(bean, instanceOf(TestSource.class));
+	}
+
 	public static class SampleBean {
+
 		private final String message = "hello";
 
 		String getMessage() {
 			return message;
 		}
-	}
-}
 
+	}
+
+	public static class TestSource implements MessageSource<Object> {
+
+		@Override
+		public Message<Object> receive() {
+			return null;
+		}
+
+	}
+
+}

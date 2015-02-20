@@ -16,4 +16,9 @@
 		<beans:bean class="org.springframework.integration.config.ChannelAdapterParserTests$SampleBean"/>
 	</inbound-channel-adapter>
 
+	<inbound-channel-adapter id="messageSourceRef" channel="queueChannel" auto-startup="false">
+		<poller max-messages-per-poll="1" fixed-delay="10000"/>
+		<beans:bean class="org.springframework.integration.config.ChannelAdapterParserTests$TestSource"/>
+	</inbound-channel-adapter>
+
 </beans:beans>
