@@ -71,19 +71,19 @@ public class ExponentialMovingAverageTests {
 		for (int i = 0; i < 10000; i++) {
 			switch (i % 3) {
 				case 0:
-					av.appendNanos(20000);
+					av.append(20);
 					break;
 				case 1:
-					av.appendNanos(30000);
+					av.append(30);
 					break;
 				case 2:
-					av.appendNanos(40000);
+					av.append(40);
 					break;
 			}
 		}
-		assertEquals(0.04, av.getMax(), 0.001);
-		assertEquals(0.02, av.getMin(), 0.001);
-		assertEquals(0.03, av.getMean(), 0.001);
+		assertEquals(40, av.getMax(), 0.1);
+		assertEquals(20, av.getMin(), 0.1);
+		assertEquals(30, av.getMean(), 1.0);
 	}
 
 

@@ -28,6 +28,7 @@ package org.springframework.integration.support.management;
  * </ul>
  *
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExponentialMovingAverageRatio {
@@ -36,7 +37,7 @@ public class ExponentialMovingAverageRatio {
 
 	private volatile double sum;
 
-	private volatile long t0 = System.currentTimeMillis();
+	private volatile double t0 = System.nanoTime() / 1000000.;
 
 	private final double lapse;
 
@@ -57,25 +58,39 @@ public class ExponentialMovingAverageRatio {
 	 * Add a new event with successful outcome.
 	 */
 	public void success() {
-		append(1);
+		append(1, System.nanoTime() / 1000000.);
+	}
+
+	/**
+	 * Add a new event with successful outcome at time t.
+	 * @param t the time in milliseconds.
+	 */
+	public void success(double t) {
+		append(1, t);
 	}
 
 	/**
 	 * Add a new event with failed outcome.
 	 */
 	public void failure() {
-		append(0);
+		append(0, System.nanoTime() / 1000000.);
+	}
+
+	/**
+	 * Add a new event with failed outcome at time t.
+	 */
+	public void failure(double t) {
+		append(0, t);
 	}
 
 	public synchronized void reset() {
 		weight = 0;
 		sum = 0;
-		t0 = System.currentTimeMillis();
+		t0 = System.nanoTime() / 1000000.;
 		cumulative.reset();
 	}
 
-	private synchronized void append(int value) {
-		long t = System.currentTimeMillis();
+	private synchronized void append(int value, double t) {
 		double alpha = Math.exp((t0 - t) * lapse);
 		t0 = t;
 		sum = alpha * sum + value;
@@ -101,7 +116,7 @@ public class ExponentialMovingAverageRatio {
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
-		return (System.currentTimeMillis() - t0) / 1000.;
+		return (System.nanoTime() / 1000000. - t0) / 1000.;
 	}
 
 	/**
@@ -113,7 +128,7 @@ public class ExponentialMovingAverageRatio {
 			// Optimistic to start: success rate is 100%
 			return 1;
 		}
-		long t = System.currentTimeMillis();
+		double t = System.nanoTime() / 1000000.;
 		double alpha = Math.exp((t0 - t) * lapse);
 		return alpha * cumulative.getMean() + 1 - alpha;
 	}

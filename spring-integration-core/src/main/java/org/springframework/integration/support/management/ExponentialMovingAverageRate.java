@@ -44,7 +44,7 @@ public class ExponentialMovingAverageRate {
 
 	private volatile double max;
 
-	private volatile long t0 = System.currentTimeMillis();
+	private volatile double t0 = System.nanoTime() / 1000000.;
 
 	private final double lapse;
 
@@ -68,7 +68,7 @@ public class ExponentialMovingAverageRate {
 		max = 0;
 		weight = 0;
 		sum = 0;
-		t0 = System.currentTimeMillis();
+		t0 = System.nanoTime() / 1000000.;
 		rates.reset();
 	}
 
@@ -76,7 +76,7 @@ public class ExponentialMovingAverageRate {
 	 * Add a new event to the series.
 	 */
 	public synchronized void increment() {
-		long t = System.currentTimeMillis();
+		double t = System.nanoTime() / 1000000.;
 		double value = t > t0 ? (t - t0) / period : 0;
 		if (value > max || getCount() == 0) {
 			max = value;
@@ -110,7 +110,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
-		return (System.currentTimeMillis() - t0) / 1000.;
+		return System.nanoTime() / 1000000. - t0;
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class ExponentialMovingAverageRate {
 		if (count == 0) {
 			return 0;
 		}
-		long t = System.currentTimeMillis();
+		double t = System.nanoTime() / 1000000.;
 		double value = t > t0 ? (t - t0) / period : 0;
 		return count / (count / rates.getMean() + value);
 	}
