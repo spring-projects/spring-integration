@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +18,51 @@ package org.springframework.integration.channel.interceptor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class GlobalChannelInterceptorSubElementTests {
-	@Autowired
-	ApplicationContext applicationContext;
-	
- 
+
 	@Autowired
 	@Qualifier("inputA")
 	MessageChannel inputA;
-	
+
 	@Autowired
 	@Qualifier("wiretap")
 	PollableChannel wiretapChannel;
-	
+
+	@Autowired
+	@Qualifier("wiretap1")
+	PollableChannel wiretap1;
+
 	@Test
-	public void testWiretapSubElement(){
-		inputA.send(new GenericMessage<String>("hello")); 
-		Message<?> result = wiretapChannel.receive(100);
+	public void testWiretapSubElement() {
+		this.inputA.send(new GenericMessage<String>("hello"));
+		Message<?> result = this.wiretapChannel.receive(100);
 		assertNotNull(result);
-		assertEquals("hello",result.getPayload());
+		assertEquals("hello", result.getPayload());
+		assertNull(this.wiretapChannel.receive(1));
+		assertNull(this.wiretap1.receive(1));
 	}
+
 }
