@@ -4079,6 +4079,7 @@
 			<xsd:sequence>
 				<xsd:any namespace="##any" processContents="strict" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
 			<xsd:attribute name="pattern" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>

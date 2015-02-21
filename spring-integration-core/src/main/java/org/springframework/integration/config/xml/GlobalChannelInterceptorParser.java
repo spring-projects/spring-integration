@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -56,12 +55,6 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 	@Override
 	protected boolean shouldFireEvents() {
 		return false;
-	}
-
-	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
-			throws BeanDefinitionStoreException {
-		return super.resolveId(element, definition, parserContext) + ".globalChannelInterceptor";
 	}
 
 	@Override

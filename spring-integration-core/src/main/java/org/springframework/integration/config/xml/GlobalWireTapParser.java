@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,12 +15,15 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 
 /**
  * Parser for the top level 'wire-tap' element
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -32,4 +35,10 @@ public class GlobalWireTapParser extends GlobalChannelInterceptorParser {
 		return new RuntimeBeanReference(wireTapBeanName);
 	}
 
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		return super.resolveId(element, definition, parserContext) + ".globalChannelInterceptor";
+	}
+	
 }
