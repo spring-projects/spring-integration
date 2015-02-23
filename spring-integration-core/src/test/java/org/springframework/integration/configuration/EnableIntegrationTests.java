@@ -923,7 +923,21 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public PollableChannel publishedChannel() {
-			return new QueueChannel();
+			return new QueueChannel() {
+
+				@Override
+				protected boolean doSend(Message<?> message, long timeout) {
+					logger.debug("---- 'publishedChannel' before 'doSend': " + message);
+					logger.debug("---- 'publishedChannel' state before: " + getQueueSize() +
+							", " + getRemainingCapacity());
+					boolean b = super.doSend(message, timeout);
+					logger.debug("---- 'publishedChannel' after 'doSend': " + b);
+					logger.debug("---- 'publishedChannel' state after: " + getQueueSize() +
+							", " + getRemainingCapacity());
+					return b;
+				}
+
+			};
 		}
 
 		@Bean
