@@ -55,9 +55,9 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 		if (logger.isTraceEnabled()) {
 			logger.trace("messageHandler(" + this.name + ") message(" + message + ") :");
 		}
-		long start = 0;
+		double start = 0;
 		if (isFullStatsEnabled()) {
-			start = System.nanoTime();
+			start = System.nanoTime() / 1000000.;
 		}
 		this.handleCount.incrementAndGet();
 		this.activeCount.incrementAndGet();
@@ -68,7 +68,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	public void afterHandle(MetricsContext context, boolean success) {
 		this.activeCount.decrementAndGet();
 		if (isFullStatsEnabled() && success) {
-			this.duration.appendNanos(System.nanoTime() - ((DefaultHandlerMetricsContext) context).start);
+			this.duration.append(System.nanoTime() / 1000000. - ((DefaultHandlerMetricsContext) context).start);
 		}
 		else if (!success) {
 			this.errorCount.incrementAndGet();
@@ -142,9 +142,9 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 
 	private static class DefaultHandlerMetricsContext implements MetricsContext {
 
-		private final long start;
+		private final double start;
 
-		public DefaultHandlerMetricsContext(long start) {
+		public DefaultHandlerMetricsContext(double start) {
 			this.start = start;
 		}
 

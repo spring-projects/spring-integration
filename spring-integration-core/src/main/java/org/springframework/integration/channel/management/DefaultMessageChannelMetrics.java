@@ -83,9 +83,9 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 			logger.trace("Recording send on channel(" + this.name + ")");
 		}
 
-		long start = 0;
+		double start = 0;
 		if (isFullStatsEnabled()) {
-			start = System.nanoTime();
+			start = System.nanoTime() / 1000000.;
 			this.sendRate.increment();
 		}
 		this.sendCount.incrementAndGet();
@@ -95,20 +95,20 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	@Override
 	public void afterSend(MetricsContext context, boolean result) {
 		if (result && isFullStatsEnabled()) {
-			long now = System.nanoTime();
+			double now = System.nanoTime() / 1000000.;
 			this.sendSuccessRatio.success(now);
-			this.sendDuration.appendNanos(now - ((DefaultChannelMetricsContext) context).start);
+			this.sendDuration.append(now - ((DefaultChannelMetricsContext) context).start);
 		}
 		else {
 			if (isFullStatsEnabled()) {
-				this.sendSuccessRatio.failure(System.nanoTime());
+				this.sendSuccessRatio.failure(System.nanoTime() / 1000000.);
 				this.sendErrorRate.increment();
 			}
 			this.sendErrorCount.incrementAndGet();
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Elapsed: " + this.name
-					+ ": " + ((System.nanoTime() - ((DefaultChannelMetricsContext) context).start) / 1000000.) + "ms");
+					+ ": " + ((System.nanoTime() / 1000000. - ((DefaultChannelMetricsContext) context).start)) + "ms");
 		}
 	}
 
@@ -241,9 +241,9 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	private static class DefaultChannelMetricsContext implements MetricsContext {
 
-		private final long start;
+		private final double start;
 
-		public DefaultChannelMetricsContext(long start) {
+		public DefaultChannelMetricsContext(double start) {
 			this.start = start;
 		}
 
