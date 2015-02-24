@@ -13,34 +13,41 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 
 
 /**
- * Cumulative statistics for a series of real numbers with higher weight given to recent data but without storing any
- * history. Clients call {@link #append(double)} every time there is a new measurement, and then can collect summary
+ * Cumulative statistics for a series of real numbers with higher weight given to recent data.
+ * Clients call {@link #append(double)} every time there is a new measurement, and then can collect summary
  * statistics from the convenience getters (e.g. {@link #getStatistics()}). Older values are given exponentially smaller
  * weight, with a decay factor determined by a "window" size chosen by the caller. The result is a good approximation to
  * the statistics of the series but with more weight given to recent measurements, so if the statistics change over time
- * those trends can be approximately reflected.
+ * those trends can be approximately reflected. For performance reasons, the calculation is performed on retrieval,
+ * {@code window * 5} samples are retained meaning that the earliest retained value contributes just 0.5% to the
+ * sum.
  *
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExponentialMovingAverage {
 
 	private volatile long count;
 
-	private volatile double weight;
-
-	private volatile double sum;
-
-	private volatile double sumSquares;
-
-	private volatile double min;
+	private volatile double min = Double.MAX_VALUE;
 
 	private volatile double max;
 
-	private final double decay;
+	private final List<Double> samples = new LinkedList<Double>();
+
+	private final int retention;
+
+	private final int window;
+
+	private final double factor;
 
 
 	/**
@@ -50,17 +57,28 @@ public class ExponentialMovingAverage {
 	 * @param window the exponential lapse window (number of measurements)
 	 */
 	public ExponentialMovingAverage(int window) {
-		this.decay = 1 - 1. / window;
+		this(window, 1);
 	}
 
+	/**
+	 * Create a moving average accumulator with decay lapse window provided. Measurements older than this will have
+	 * smaller weight than <code>1/e</code>.
+	 *
+	 * @param window the exponential lapse window (number of measurements)
+	 * @param factor a factor by which raw values are reduced during analysis; e.g. to analyze in ms and
+	 * raw values are ns, set the factor to 1000000.0.
+	 */
+	public ExponentialMovingAverage(int window, double factor) {
+		this.window = window;
+		this.retention = window * 5;// last retained value contributes just 0.5% to the sum
+		this.factor = factor;
+	}
 
 	public synchronized void reset() {
-		weight = 0;
-		sum = 0;
-		sumSquares = 0;
 		count = 0;
-		min = 0;
+		min = Double.MAX_VALUE;
 		max = 0;
+		samples.clear();
 	}
 
 	/**
@@ -69,16 +87,50 @@ public class ExponentialMovingAverage {
 	 * @param value the measurement to append
 	 */
 	public synchronized void append(double value) {
-		if (value > max || count == 0) {
-			max = value;
+		if (this.samples.size() == this.retention) {
+			samples.remove(0);
 		}
-		if (value < min || count == 0) {
-			min = value;
-		}
-		sum = decay * sum + value;
-		sumSquares = decay * sumSquares + value * value;
-		weight = decay * weight + 1;
+		samples.add(value);
 		count++;//NOSONAR - false positive, we're synchronized
+	}
+
+	private Statistics calc() {
+		List<Double> copy;
+		long count;
+		synchronized (this) {
+			copy = new ArrayList<Double>(this.samples);
+			count = this.count;
+		}
+		double sum = 0;
+		double decay = 1 - 1. / this.window;
+		double sumSquares = 0;
+		double weight = 0;
+		double min = this.min;
+		double max = this.max;
+		for (Double value : copy) {
+			value /= this.factor;
+			if (value > max) {
+				max = value;
+			}
+			if (value < min) {
+				min = value;
+			}
+			sum = decay * sum + value;
+			sumSquares = decay * sumSquares + value * value;
+			weight = decay * weight + 1;
+		}
+		synchronized (this) {
+			if (max > this.max) {
+				this.max = max;
+			}
+			if (min < this.min) {
+				this.min = min;
+			}
+		}
+		double mean = weight > 0 ? sum / weight : 0.;
+		double var = weight > 0 ? sumSquares / weight - mean * mean : 0.;
+		double standardDeviation =  var > 0 ? Math.sqrt(var) : 0;
+		return new Statistics(count, min == Double.MAX_VALUE ? 0 : min, max, mean, standardDeviation);
 	}
 
 	/**
@@ -99,37 +151,35 @@ public class ExponentialMovingAverage {
 	 * @return the mean value
 	 */
 	public double getMean() {
-		return weight > 0 ? sum / weight : 0.;
+		return calc().getMean();
 	}
 
 	/**
 	 * @return the approximate standard deviation
 	 */
 	public double getStandardDeviation() {
-		double mean = getMean();
-		double var = weight > 0 ? sumSquares / weight - mean * mean : 0.;
-		return var > 0 ? Math.sqrt(var) : 0;
+		return calc().getStandardDeviation();
 	}
 
 	/**
 	 * @return the maximum value recorded (not weighted)
 	 */
 	public double getMax() {
-		return max;
+		return calc().getMax();
 	}
 
 	/**
 	 * @return the minimum value recorded (not weighted)
 	 */
 	public double getMin() {
-		return min;
+		return calc().getMin();
 	}
 
 	/**
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return new Statistics(count, min, max, getMean(), getStandardDeviation());
+		return calc();
 	}
 
 	@Override

@@ -44,16 +44,16 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
 	private final ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
-			DEFAULT_MOVING_AVERAGE_WINDOW);
+			DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.);
 
 	private final ExponentialMovingAverageRate sendErrorRate = new ExponentialMovingAverageRate(
-			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
+			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true);
 
 	private final ExponentialMovingAverageRatio sendSuccessRatio = new ExponentialMovingAverageRatio(
-			ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
+			ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true);
 
 	private final ExponentialMovingAverageRate sendRate = new ExponentialMovingAverageRate(
-			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
+			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true);
 
 	private final AtomicLong sendCount = new AtomicLong();
 
@@ -83,10 +83,10 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 			logger.trace("Recording send on channel(" + this.name + ")");
 		}
 
-		double start = 0;
+		long start = 0;
 		if (isFullStatsEnabled()) {
-			start = System.nanoTime() / 1000000.;
-			this.sendRate.increment();
+			start = System.nanoTime();
+			this.sendRate.increment(start);
 		}
 		this.sendCount.incrementAndGet();
 		return new DefaultChannelMetricsContext(start);
@@ -95,14 +95,15 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	@Override
 	public void afterSend(MetricsContext context, boolean result) {
 		if (result && isFullStatsEnabled()) {
-			double now = System.nanoTime() / 1000000.;
+			long now = System.nanoTime();
 			this.sendSuccessRatio.success(now);
 			this.sendDuration.append(now - ((DefaultChannelMetricsContext) context).start);
 		}
 		else {
 			if (isFullStatsEnabled()) {
-				this.sendSuccessRatio.failure(System.nanoTime() / 1000000.);
-				this.sendErrorRate.increment();
+				long now = System.nanoTime();
+				this.sendSuccessRatio.failure(now);
+				this.sendErrorRate.increment(now);
 			}
 			this.sendErrorCount.incrementAndGet();
 		}
@@ -241,9 +242,9 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	private static class DefaultChannelMetricsContext implements MetricsContext {
 
-		private final double start;
+		private final long start;
 
-		public DefaultChannelMetricsContext(double start) {
+		public DefaultChannelMetricsContext(long start) {
 			this.start = start;
 		}
 

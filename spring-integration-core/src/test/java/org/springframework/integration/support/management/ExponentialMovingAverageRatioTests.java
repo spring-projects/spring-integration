@@ -15,10 +15,13 @@
  */
 package org.springframework.integration.support.management;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -28,7 +31,7 @@ import org.junit.Test;
 public class ExponentialMovingAverageRatioTests {
 
 	private final ExponentialMovingAverageRatio history = new ExponentialMovingAverageRatio(
-			0.5, 10);
+			0.5, 10, true);
 
 	@Test
 	public void testGetCount() {
@@ -41,7 +44,7 @@ public class ExponentialMovingAverageRatioTests {
 	public void testGetTimeSinceLastMeasurement() throws Exception {
 		history.success();
 		Thread.sleep(20L);
-		assertTrue(history.getTimeSinceLastMeasurement() > 0);
+		assertThat(history.getTimeSinceLastMeasurement(), Matchers.greaterThan(0.));
 	}
 
 	@Test
@@ -79,6 +82,7 @@ public class ExponentialMovingAverageRatioTests {
 	@Test
 	public void testGetMeanFailuresHighRate() throws Exception {
 		assertEquals(1, history.getMean(), 0.01);
+		history.success();// need an extra now that we can't determine the time between the first and previous
 		history.success();
 		assertEquals(average(1), history.getMean(), 0.01);
 		history.failure();
@@ -90,6 +94,7 @@ public class ExponentialMovingAverageRatioTests {
 	@Test
 	public void testGetMeanFailuresLowRate() throws Exception {
 		assertEquals(1, history.getMean(), 0.01);
+		history.failure();// need an extra now that we can't determine the time between the first and previous
 		history.failure();
 		assertEquals(average(0), history.getMean(), 0.01);
 		history.failure();
@@ -110,7 +115,7 @@ public class ExponentialMovingAverageRatioTests {
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		history.success();
 		history.failure();
-		assertFalse(0==history.getStandardDeviation());
+		assertThat(history.getStandardDeviation(), not(equalTo(0)));
 		history.reset();
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		assertEquals(0, history.getCount());
@@ -118,6 +123,8 @@ public class ExponentialMovingAverageRatioTests {
 		assertEquals(1, history.getMean(), 0.01);
 		assertEquals(0, history.getMin(), 0.01);
 		assertEquals(0, history.getMax(), 0.01);
+		history.success();
+		assertEquals(1, history.getMin(), 0.01);
 	}
 
 	private double average(double... values) {
@@ -132,8 +139,23 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testRatio() {
+		ExponentialMovingAverageRatio ratio = new ExponentialMovingAverageRatio(60, 10, true);
+		for (int i = 0; i < 100; i++) {
+			if (i % 10 == 1) {
+				ratio.failure();
+			}
+			else {
+				ratio.success();
+			}
+		}
+		assertEquals(0.9, ratio.getMax(), 0.02);
+		assertEquals(0.9, ratio.getMean(), 0.03);
+	}
+
+	@Test @Ignore
+	public void testPerf() {
 		ExponentialMovingAverageRatio ratio = new ExponentialMovingAverageRatio(60, 10);
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 100000; i++) {
 			if (i % 10 == 0) {
 				ratio.failure();
 			}
@@ -141,8 +163,6 @@ public class ExponentialMovingAverageRatioTests {
 				ratio.success();
 			}
 		}
-		assertEquals(0.9, ratio.getMax(), 0.01);
-		assertEquals(0.9, ratio.getMean(), 0.01);
 	}
 
 }

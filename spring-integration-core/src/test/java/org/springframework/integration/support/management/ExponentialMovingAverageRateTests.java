@@ -12,8 +12,10 @@
  */
 package org.springframework.integration.support.management;
 
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
@@ -21,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.StopWatch;
 
 /**
@@ -33,14 +34,7 @@ public class ExponentialMovingAverageRateTests {
 
 	private final static Log logger = LogFactory.getLog(ExponentialMovingAverageRateTests.class);
 
-	private final ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10);
-
-	@Test
-	public void testWindow() {
-		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1., 10., 20);
-		double decay = TestUtils.getPropertyValue(rate, "rates.decay", Double.class);
-		assertEquals(95, (int) (decay * 100.));
-	}
+	private final ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10, true);
 
 	@Test
 	public void testGetCount() {
@@ -86,7 +80,7 @@ public class ExponentialMovingAverageRateTests {
 			Thread.sleep(20L);
 			elapsed = System.currentTimeMillis() - t0;
 			if (elapsed < 80L) {
-				assertTrue(history.getMean() < before);
+				assertThat(history.getMean(), lessThan(before));
 			}
 			else {
 				logger.warn("Test took too long to verify mean");
@@ -127,7 +121,7 @@ public class ExponentialMovingAverageRateTests {
 		assertEquals(0, history.getMax(), 0.01);
 	}
 
-	@Test
+	@Test @Ignore // tolerance needed is too dependent on hardware
 	public void testRate() {
 		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1, 60, 10);
 		int count = 1000000;
@@ -138,7 +132,15 @@ public class ExponentialMovingAverageRateTests {
 		}
 		watch.stop();
 		double calculatedRate = count / (double) watch.getTotalTimeMillis() * 1000;
-		assertEquals(calculatedRate, rate.getMean(), 2000000);
+		assertEquals(calculatedRate, rate.getMean(), 4000000);
+	}
+
+	@Test @Ignore
+	public void testPerf() {
+		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1, 60, 10);
+		for (int i = 0; i < 1000000; i++) {
+			rate.increment();
+		}
 	}
 
 }
