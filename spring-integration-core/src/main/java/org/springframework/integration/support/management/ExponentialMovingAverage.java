@@ -76,7 +76,7 @@ public class ExponentialMovingAverage {
 
 	public synchronized void reset() {
 		count = 0;
-		min = 0;
+		min = Double.MAX_VALUE;
 		max = 0;
 		samples.clear();
 	}
@@ -94,7 +94,7 @@ public class ExponentialMovingAverage {
 		count++;//NOSONAR - false positive, we're synchronized
 	}
 
-	public Statistics calc() {
+	private Statistics calc() {
 		List<Double> copy;
 		long count;
 		synchronized (this) {

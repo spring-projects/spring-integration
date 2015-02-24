@@ -130,7 +130,7 @@ public class ExponentialMovingAverageRatio {
 		this.count++;//NOSONAR - false positive, we're synchronized
 	}
 
-	public Statistics calc() {
+	private Statistics calc() {
 		List<Long> copyTimes;
 		List<Integer> copyValues;
 		long count;
@@ -169,7 +169,6 @@ public class ExponentialMovingAverageRatio {
 				min = value;
 			}
 			cumulative.append(value);
-			System.out.println(sum + " " + alpha + " " + weight + " " + (sum/weight));
 		}
 		synchronized (this) {
 			if (max > this.max) {

@@ -64,6 +64,8 @@ public class ExponentialMovingAverageTests {
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		// INT-2165
 		assertEquals(String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", 0, 0d, 0d, 0d, 0d), history.toString());
+		history.append(1);
+		assertEquals(1, history.getMin(), 0.01);
 	}
 
 	@Test

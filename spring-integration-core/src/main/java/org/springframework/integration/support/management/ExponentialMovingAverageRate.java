@@ -88,7 +88,7 @@ public class ExponentialMovingAverageRate {
 
 
 	public synchronized void reset() {
-		this.min = 0;
+		this.min = Double.MAX_VALUE;
 		this.max = 0;
 		this.count = 0;
 		this.times.clear();
@@ -141,7 +141,7 @@ public class ExponentialMovingAverageRate {
 			if (value > max) {
 				max = value;
 			}
-			if (value < this.min) {
+			if (value < min) {
 				min = value;
 			}
 			double alpha = Math.exp(-delta * lapse);

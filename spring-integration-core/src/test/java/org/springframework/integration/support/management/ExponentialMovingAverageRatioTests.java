@@ -123,6 +123,8 @@ public class ExponentialMovingAverageRatioTests {
 		assertEquals(1, history.getMean(), 0.01);
 		assertEquals(0, history.getMin(), 0.01);
 		assertEquals(0, history.getMax(), 0.01);
+		history.success();
+		assertEquals(1, history.getMin(), 0.01);
 	}
 
 	private double average(double... values) {
