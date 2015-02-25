@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
+	private static final boolean reactorPresent = ClassUtils.isPresent("reactor.Environment",
+			GatewayProxyFactoryBean.class.getClassLoader());
+
 	private volatile Class<?> serviceInterface;
 
 	private volatile MessageChannel defaultRequestChannel;
@@ -116,7 +119,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private volatile Class<?> asyncSubmitListenableType;
 
-	private volatile Environment reactorEnvironment;
+	private volatile Object reactorEnvironment;
 
 	private volatile boolean initialized;
 
@@ -255,7 +258,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * @param reactorEnvironment the Reactor Environment.
 	 * @since 4.1
 	 */
-	public void setReactorEnvironment(Environment reactorEnvironment) {
+	public void setReactorEnvironment(Object reactorEnvironment) {
+		if (!Environment.class.getName().equals(reactorEnvironment.getClass().getName())) {
+			throw new IllegalArgumentException("The 'reactorEnvironment' must be instance of 'reactor.Environment'");
+		}
 		this.reactorEnvironment = reactorEnvironment;
 	}
 
@@ -354,11 +360,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				}
 			}
 		}
-		if (Promise.class.isAssignableFrom(returnType)) {
+		if (reactorPresent && Promise.class.isAssignableFrom(returnType)) {
 			if (this.reactorEnvironment == null) {
 				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
 			}
-			return Promises.<Object>task(this.reactorEnvironment,
+			return Promises.<Object>task((Environment) this.reactorEnvironment,
 					Functions.supplier(new AsyncInvocationTask(invocation)));
 		}
 		return this.doInvoke(invocation);
@@ -584,7 +590,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (Future.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
-		if (Promise.class.isAssignableFrom(expectedReturnType)) {
+		if (reactorPresent && Promise.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
 		if (this.getConversionService() != null) {
@@ -596,7 +602,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	private static boolean hasReturnParameterizedWithMessage(Method method) {
-		if (Future.class.isAssignableFrom(method.getReturnType()) || Promise.class.isAssignableFrom(method.getReturnType())) {
+		if (Future.class.isAssignableFrom(method.getReturnType())
+				|| (reactorPresent && Promise.class.isAssignableFrom(method.getReturnType()))) {
 			Type returnType = method.getGenericReturnType();
 			if (returnType instanceof ParameterizedType) {
 				Type[] typeArgs = ((ParameterizedType) returnType).getActualTypeArguments();
