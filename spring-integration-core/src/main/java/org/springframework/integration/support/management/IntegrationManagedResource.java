@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
- * Clone of {@link ManagedResource} limiting beans thus annoated so that they
+ * Clone of {@link ManagedResource} limiting beans thus annotated so that they
  * will only be exported by the {@code IntegrationMBeanExporter}.
  *
  * @author Gary Russell

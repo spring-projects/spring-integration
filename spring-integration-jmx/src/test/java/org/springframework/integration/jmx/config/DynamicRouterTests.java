@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -66,7 +67,7 @@ public class DynamicRouterTests {
 	private PollableChannel processCChannel;
 
 	@Autowired
-	private MessageChannel nullChannel;
+	private NullChannel nullChannel;
 
 
 	@Test @DirtiesContext
@@ -116,10 +117,11 @@ public class DynamicRouterTests {
 
 	@Test @DirtiesContext @Ignore
 	public void testPerf() throws Exception {
-		for (int i = 0; i < 10000000; i++) {
+//		this.nullChannel.enableStats(false);
+		for (int i = 0; i < 1000000000; i++) {
 			this.nullChannel.send(null);
 		}
-		System.out.println("done");
+		System.out.println(this.nullChannel.getSendRate());
 	}
 
 }
