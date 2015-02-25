@@ -110,7 +110,7 @@ subprojects { subproject ->
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
 		reactorVersion = '2.0.0.RC1'
-		reactorSpringVersion = '2.0.0.M2'
+		reactorSpringVersion = '2.0.0.RC1'
 		romeToolsVersion = '1.5.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'

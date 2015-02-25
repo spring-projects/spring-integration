@@ -94,5 +94,19 @@
 				to 1. The annotation now defaults this attribute to 1.
 			</para>
 		</section>
+		<section id="4.2-api-changes">
+			<title>API Changes</title>
+			<para>
+				<classname>o.s.integtation.util.FunctionIterator</classname> now requires a
+				<interfacename>o.s.integration.util.Function</interfacename> instead of a
+				<interfacename>reactor.function.Function</interfacename>. This was done to remove
+				an unnecessary hard dependency on Reactor. Any uses of this iterator will need to
+				change the import.
+			</para>
+			<para>
+				Of course, Reactor is still supported for functionality such as the <code>Promise</code>
+				gateway; the dependency was removed for those users who don't need it.
+			</para>
+		</section>
 	</section>
 </chapter>
