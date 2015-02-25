@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.integration.jdbc;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,12 +69,7 @@ public class StoredProcPollingChannelAdapterWithNamespaceIntegrationTests {
 
         List<Integer> primeNumbers = (List<Integer>) message.getPayload();
 
-        assertTrue(primeNumbers.size() == 4);
-
-        assertTrue(Integer.valueOf(2).equals(primeNumbers.get(0)));
-        assertTrue(Integer.valueOf(3).equals(primeNumbers.get(1)));
-        assertTrue(Integer.valueOf(5).equals(primeNumbers.get(2)));
-        assertTrue(Integer.valueOf(7).equals(primeNumbers.get(3)));
+		assertThat(primeNumbers, contains(2, 3, 5, 7));
 
     }
 
