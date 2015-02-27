@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
 
 /**
@@ -32,7 +33,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public abstract class AbstractInternetProtocolReceivingChannelAdapter
-		extends MessageProducerSupport implements Runnable, CommonSocketOptions {
+		extends MessageProducerSupport implements SchedulingAwareRunnable, CommonSocketOptions {
 
 	private final int port;
 
