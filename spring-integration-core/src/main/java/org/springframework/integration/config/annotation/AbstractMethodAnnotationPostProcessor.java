@@ -50,6 +50,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -247,7 +248,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		AbstractEndpoint endpoint;
 		if (inputChannel instanceof PollableChannel) {
 			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-			this.configurePollingEndpoint(pollingConsumer, annotations);
+			configurePollingEndpoint(pollingConsumer, annotations);
 			endpoint = pollingConsumer;
 		}
 		else {
@@ -272,6 +273,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
 			String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
 			String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
+			if (pollingEndpoint instanceof SourcePollingChannelAdapter) {
+				// SPCAs default to 1 message per poll
+				maxMessagesPerPollValue = "1";
+			}
 			String cron = this.environment.resolvePlaceholders(poller.cron());
 
 			if (StringUtils.hasText(ref)) {

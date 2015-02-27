@@ -47,5 +47,14 @@
 				See <xref linkend="tcp-events"/> for more information.
 			</para>
 		</section>
+		<section>
+			<title>@InboundChannelAdapter</title>
+			<para>
+				Previously, the <classname>@Poller</classname> on an inbound channel adapter defaulted
+				the <code>maxMessagesPerPoll</code> attribute to <code>-1</code> (infinity). This was inconsistent
+				with the XML configuration of <code>&lt;inbound-channel-adapter/&gt;</code>s, which defaults
+				to 1. The annotation now defaults this attribute to 1.
+			</para>
+		</section>
 	</section>
 </chapter>
