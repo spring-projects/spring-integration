@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class FileToStringTransformerParserTests {
                 handlerAccessor.getPropertyValue("transformer");
         DirectFieldAccessor transformerAccessor = new DirectFieldAccessor(transformer);
         assertEquals(Boolean.TRUE, transformerAccessor.getPropertyValue("deleteFiles"));
-        assertSame(this.messageBuilderFactory, transformerAccessor.getPropertyValue("messageBuilderFactory"));
+        assertNotSame(this.messageBuilderFactory, transformerAccessor.getPropertyValue("messageBuilderFactory"));
     }
 
 }

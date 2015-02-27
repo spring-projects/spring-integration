@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.messaging.converter.MessageConverter;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -43,37 +44,60 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
+	private BeanFactory beanFactory;
+
 	public SimpleMessageConverter() {
 		this(null, null);
 	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper) {
 		this(inboundMessageMapper,
-				(inboundMessageMapper instanceof OutboundMessageMapper ? (OutboundMessageMapper<?>) inboundMessageMapper : null));
+				(inboundMessageMapper instanceof OutboundMessageMapper
+						? (OutboundMessageMapper<?>) inboundMessageMapper
+						: null));
 	}
 
 	public SimpleMessageConverter(OutboundMessageMapper<?> outboundMessageMapper) {
-		this(outboundMessageMapper instanceof InboundMessageMapper ? (InboundMessageMapper<?>) outboundMessageMapper : null,
+		this(outboundMessageMapper instanceof InboundMessageMapper
+						? (InboundMessageMapper<?>) outboundMessageMapper
+						: null,
 				outboundMessageMapper);
 	}
 
-	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper, OutboundMessageMapper<?> outboundMessageMapper) {
+	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper,
+			OutboundMessageMapper<?> outboundMessageMapper) {
 		this.setInboundMessageMapper(inboundMessageMapper);
 		this.setOutboundMessageMapper(outboundMessageMapper);
 	}
 
 
 	public void setInboundMessageMapper(InboundMessageMapper<?> inboundMessageMapper) {
-		this.inboundMessageMapper = (inboundMessageMapper != null) ? inboundMessageMapper : new DefaultInboundMessageMapper();
+		this.inboundMessageMapper = (inboundMessageMapper != null)
+				? inboundMessageMapper
+				: new DefaultInboundMessageMapper();
 	}
 
 	public void setOutboundMessageMapper(OutboundMessageMapper<?> outboundMessageMapper) {
-		this.outboundMessageMapper = (outboundMessageMapper != null) ? outboundMessageMapper : new DefaultOutboundMessageMapper();
+		this.outboundMessageMapper = (outboundMessageMapper != null
+				? outboundMessageMapper
+				: new DefaultOutboundMessageMapper());
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -107,8 +131,9 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
 			}
-			return messageBuilderFactory.withPayload(object).build();
+			return getMessageBuilderFactory().withPayload(object).build();
 		}
+
 	}
 
 
@@ -118,6 +143,7 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		public Object fromMessage(Message<?> message) throws Exception {
 			return (message != null) ? message.getPayload() : null;
 		}
+
 	}
 
 }

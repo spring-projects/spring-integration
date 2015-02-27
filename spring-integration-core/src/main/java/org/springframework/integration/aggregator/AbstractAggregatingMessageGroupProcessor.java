@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor,
@@ -52,9 +53,23 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
+	private BeanFactory beanFactory;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -64,11 +79,12 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
 		AbstractIntegrationMessageBuilder<?> builder;
+		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 		if (payload instanceof Message<?>) {
-			builder = this.messageBuilderFactory.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
+			builder = messageBuilderFactory.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 		}
 		else {
-			builder = this.messageBuilderFactory.withPayload(payload).copyHeadersIfAbsent(headers);
+			builder = messageBuilderFactory.withPayload(payload).copyHeadersIfAbsent(headers);
 		}
 
 		return builder.popSequenceDetails().build();
@@ -89,7 +105,8 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 			for (Entry<String, Object> entry : message.getHeaders().entrySet()) {
 				String key = entry.getKey();
 				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
-						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(key) || IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(key)) {
+						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(key)
+						|| IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(key)) {
 					continue;
 				}
 				Object value = entry.getValue();

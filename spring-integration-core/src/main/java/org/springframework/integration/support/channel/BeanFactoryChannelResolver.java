@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @see org.springframework.beans.factory.BeanFactory
  */
@@ -48,6 +49,8 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 	private volatile BeanFactory beanFactory;
 
 	private volatile HeaderChannelRegistry replyChannelRegistry;
+
+	private volatile boolean initialized;
 
 	/**
 	 * Create a new instance of the {@link BeanFactoryChannelResolver} class.
@@ -66,30 +69,16 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 	 * replaced by the {@link BeanFactory} that creates it (c.f. the
 	 * {@link BeanFactoryAware} contract). So only use this constructor if you
 	 * are instantiating this object explicitly rather than defining a bean.
-	 *
 	 * @param beanFactory the bean factory to be used to lookup {@link MessageChannel}s.
 	 */
 	public BeanFactoryChannelResolver(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.lookupHeaderChannelRegistry(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.lookupHeaderChannelRegistry(beanFactory);
-	}
-
-	private void lookupHeaderChannelRegistry(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-		try {
-			this.replyChannelRegistry = beanFactory.getBean(
-					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
-					HeaderChannelRegistry.class);
-		}
-		catch (Exception e) {
-			logger.debug("No HeaderChannelRegistry found");
-		}
 	}
 
 	@Override
@@ -99,15 +88,31 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 			return this.beanFactory.getBean(name, MessageChannel.class);
 		}
 		catch (BeansException e) {
+			if (!this.initialized) {
+				synchronized (this) {
+					if (!this.initialized) {
+						try {
+							this.replyChannelRegistry = this.beanFactory.getBean(
+									IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+									HeaderChannelRegistry.class);
+						}
+						catch (Exception ex) {
+							logger.debug("No HeaderChannelRegistry found");
+						}
+						this.initialized = true;
+					}
+				}
+			}
 			if (this.replyChannelRegistry != null) {
 				MessageChannel channel = this.replyChannelRegistry.channelNameToChannel(name);
 				if (channel != null) {
 					return channel;
 				}
 			}
-			throw new DestinationResolutionException(
-					"failed to look up MessageChannel with name '" + name + "' in the BeanFactory"
-					+ (this.replyChannelRegistry == null ? " (and there is no HeaderChannelRegistry present)." : "."), e);
+			throw new DestinationResolutionException("failed to look up MessageChannel with name '" + name
+					+ "' in the BeanFactory"
+					+ (this.replyChannelRegistry == null ? " (and there is no HeaderChannelRegistry present)." : "."),
+					e);
 		}
 	}
 

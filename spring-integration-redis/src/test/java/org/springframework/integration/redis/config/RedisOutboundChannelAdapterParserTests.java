@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertSame(mbf, TestUtils.getPropertyValue(handler, "messageConverter.messageBuilderFactory"));
+		assertNotSame(mbf, TestUtils.getPropertyValue(handler, "messageConverter.messageBuilderFactory"));
 
 		Object endpointHandler = TestUtils.getPropertyValue(adapter, "handler");
 

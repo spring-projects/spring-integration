@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,17 +42,27 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private BeanFactory beanFactory;
+
+	private volatile boolean messageBuilderFactorySet;
+
 	protected AbstractJacksonJsonMessageParser(JsonObjectMapper<?, P> objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -64,7 +74,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 		if (messageMapper.isMapToPayload()) {
 			Object payload = this.readPayload(parser, jsonMessage);
-			return this.messageBuilderFactory.withPayload(payload).build();
+			return getMessageBuilderFactory().withPayload(payload).build();
 		}
 		else {
 			return this.parseWithHeaders(parser, jsonMessage);

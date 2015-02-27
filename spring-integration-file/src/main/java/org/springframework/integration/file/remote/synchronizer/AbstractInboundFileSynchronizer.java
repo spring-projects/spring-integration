@@ -151,7 +151,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	@Override
 	public final void afterPropertiesSet() {
 		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
-		Assert.notNull(this.evaluationContext, "evaluationContext must not be null");
 	}
 
 	protected final List<F> filterFiles(F[] files) {

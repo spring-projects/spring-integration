@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -45,6 +46,12 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 
 	public MethodInvokingMessageHandler(Object object, String methodName) {
 		processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
+		this.processor.setBeanFactory(beanFactory);
 	}
 
 	public void setComponentType(String componentType) {

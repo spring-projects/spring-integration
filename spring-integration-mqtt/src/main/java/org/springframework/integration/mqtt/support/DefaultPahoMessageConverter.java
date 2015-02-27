@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mqtt.support;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
  * Default implementation for mapping to/from Messages.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -50,6 +52,8 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 
 	/**
 	 * Construct a converter with default options (qos=0, retain=false, charset=UTF-8).
@@ -60,7 +64,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	/**
 	 * Construct a converter to create outbound messages with the supplied default qos and retain settings and
-	 * a UTF-8 charset for converting outbound String paylaods to {@code byte[]} and inbound
+	 * a UTF-8 charset for converting outbound String payloads to {@code byte[]} and inbound
 	 * {@code byte[]} to String (unless {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 * @param defaultQos the default qos.
 	 * @param defaultRetain the default retain.
@@ -97,7 +101,6 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected BeanFactory getBeanFactory() {
@@ -105,7 +108,13 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	/**
@@ -130,7 +139,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	@Override
 	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = this.messageBuilderFactory
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = getMessageBuilderFactory()
 					.withPayload(mqttBytesToPayload(mqttMessage))
 					.setHeader(MqttHeaders.QOS, mqttMessage.getQos())
 					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())

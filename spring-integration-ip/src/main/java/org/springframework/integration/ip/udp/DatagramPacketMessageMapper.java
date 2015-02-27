@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 2.0
  */
 public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>, OutboundMessageMapper<DatagramPacket>,
@@ -76,11 +77,15 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 	private static Pattern udpHeadersPattern =
 		Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
 				"=" + "([^;]*);" +
 				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
 				"=" + "([^;]*);");
+
+	private BeanFactory beanFactory;
 
 	public void setCharset(String charset) {
 		this.charset = charset;
@@ -107,7 +112,17 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	/**
@@ -213,7 +228,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 					length = length - matcher.end();
 					payload = new byte[length];
 					System.arraycopy(packet.getData(), offset + matcher.end(), payload, 0, length);
-					message = this.messageBuilderFactory.withPayload(payload)
+					message = getMessageBuilderFactory().withPayload(payload)
 							.setHeader(IpHeaders.ACK_ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
 							.setHeader(IpHeaders.HOSTNAME, hostName)
@@ -230,7 +245,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			payload = new byte[length];
 			System.arraycopy(packet.getData(), offset, payload, 0, length);
 			if (payload.length > 0) {
-				message = this.messageBuilderFactory.withPayload(payload)
+				message = getMessageBuilderFactory().withPayload(payload)
 						.setHeader(IpHeaders.HOSTNAME, hostName)
 						.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
 						.setHeader(IpHeaders.PORT, port)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.MessagingTemplate;
@@ -63,9 +62,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile PublisherMetadataSource metadataSource;
+	private final ExpressionParser parser = new SpelExpressionParser();
 
-	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private volatile PublisherMetadataSource metadataSource;
 
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 
@@ -74,6 +73,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private volatile boolean messageBuilderFactorySet;
 
 	private volatile String defaultChannelName;
 
@@ -114,7 +115,16 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -163,9 +173,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		Expression expression = this.parser.parseExpression(payloadExpressionString);
 		Object result = expression.getValue(context);
 		if (result != null) {
+			MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 			AbstractIntegrationMessageBuilder<?> builder = (result instanceof Message<?>)
-					? this.messageBuilderFactory.fromMessage((Message<?>) result)
-					: this.messageBuilderFactory.withPayload(result);
+					? messageBuilderFactory.fromMessage((Message<?>) result)
+					: messageBuilderFactory.withPayload(result);
 			Map<String, Object> headers = this.evaluateHeaders(method, context);
 			if (headers != null) {
 				builder.copyHeaders(headers);

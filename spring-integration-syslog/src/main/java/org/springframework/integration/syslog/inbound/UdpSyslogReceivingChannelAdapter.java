@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.syslog.inbound;
 
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -25,6 +26,7 @@ import org.springframework.messaging.MessagingException;
  * UDP implementation of a syslog inbound channel adapter.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -32,8 +34,11 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 
 	private volatile UnicastReceivingChannelAdapter udpAdapter;
 
+	private volatile boolean udpAdapterSet;
+
 	public void setUdpAdapter(UnicastReceivingChannelAdapter udpAdpter) {
 		this.udpAdapter = udpAdpter;
+		this.udpAdapterSet = true;
 	}
 
 	@Override
@@ -43,18 +48,27 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 
 	@Override
 	protected void onInit() {
+		super.onInit();
 		if (this.udpAdapter == null) {
 			this.udpAdapter = new UnicastReceivingChannelAdapter(this.getPort());
+			this.udpAdapter.setBeanFactory(getBeanFactory());
 		}
-		DirectChannel outputChannel = new DirectChannel();
-		outputChannel.subscribe(new MessageHandler() {
+		else {
+			logger.info("The 'UdpSyslogReceivingChannelAdapter' overrides an 'outputChannel' " +
+					"of the provided 'UnicastReceivingChannelAdapter' to support Syslog conversion " +
+					"for the incoming UDP packets");
+		}
+		this.udpAdapter.setOutputChannel(new FixedSubscriberChannel(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				convertAndSend(message);
 			}
-		});
-		this.udpAdapter.setOutputChannel(outputChannel);
+
+		}));
+		if (!this.udpAdapterSet) {
+			this.udpAdapter.afterPropertiesSet();
+		}
 	}
 
 	@Override

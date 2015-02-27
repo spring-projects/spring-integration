@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -54,7 +54,9 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	private volatile BeanFactory beanFactory;
 
-	private volatile MessageBuilderFactory messageBuilderFactory;
+	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private volatile boolean messageBuilderFactorySet;
 
 	/**
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
@@ -67,7 +69,6 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			if (this.evaluationContext != null && this.evaluationContext.getBeanResolver() == null) {
 				this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 			}
-			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
 		}
 	}
 
@@ -114,6 +115,12 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 				this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 			}
 			this.evaluationContext.setTypeConverter(this.typeConverter);
+			if (this.beanFactory != null) {
+				ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
+				if (conversionService != null) {
+					this.typeConverter.setConversionService(conversionService);
+				}
+			}
 		}
 		return this.evaluationContext;
 	}

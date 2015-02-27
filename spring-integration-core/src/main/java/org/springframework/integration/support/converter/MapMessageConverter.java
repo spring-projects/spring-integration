@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.support.converter;
 
 import java.util.Arrays;
@@ -32,7 +33,9 @@ import org.springframework.util.Assert;
 
 /**
  * Converts to/from a Map with 2 keys ('headers' and 'payload').
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -46,15 +49,22 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	/**
@@ -87,7 +97,7 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 		Map<String, ?> map = (Map<String, ?>) object;
 		Object payload = map.get("payload");
 		Assert.notNull(payload, "'payload' entry cannot be null");
-		AbstractIntegrationMessageBuilder<?> messageBuilder = this.messageBuilderFactory.withPayload(payload);
+		AbstractIntegrationMessageBuilder<?> messageBuilder = getMessageBuilderFactory().withPayload(payload);
 		@SuppressWarnings("unchecked")
 		Map<String, ?> headers = (Map<String, ?>) map.get("headers");
 		if (headers != null) {
@@ -96,8 +106,7 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 			}
 			messageBuilder.copyHeaders(headers);
 		}
-		Message<?> convertedMessage = messageBuilder.build();
-		return convertedMessage;
+		return messageBuilder.build();
 	}
 
 	@Override
