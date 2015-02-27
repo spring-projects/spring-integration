@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.util.Map;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.util.Assert;
 
 /**
@@ -107,7 +107,6 @@ public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Ma
 			throw new IOException(e);
 		}
 		this.packetSerializer.serialize(baos.toByteArray(), outputStream);
-		outputStream.flush();
 	}
 
 }

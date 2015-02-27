@@ -31,12 +31,21 @@
 				The default attribute value is <code>false</code>.
 			</para>
 		</section>
-		<section>
+		<section id="4.2-class-package-change">
 			<title>Class Package Change</title>
 			<para>
 				The <classname>ScatterGatherHandler</classname> class has been moved from the
 				<code>org.springframework.integration.handler</code> to the
 				<code>org.springframework.integration.scattergather</code>.
+			</para>
+		</section>
+		<section id="4.2-tcp-serializers">
+			<title>TCP Serializers</title>
+			<para>
+				The TCP <interfacename>Serializers</interfacename> no longer <code>flush()</code> the
+				<classname>OutputStream</classname>; this is now done by the <classname>TcpNxxConnection</classname>
+				classes. If you are using the serializers directly within user code, you may have to
+				<code>flush()</code> the <classname>OutputStream</classname>.
 			</para>
 		</section>
 		<section id="4.2-tcp-server-exceptions">
@@ -47,7 +56,7 @@
 				See <xref linkend="tcp-events"/> for more information.
 			</para>
 		</section>
-		<section>
+		<section id="4.2-inbound-channel-adapter-annotation">
 			<title>@InboundChannelAdapter</title>
 			<para>
 				Previously, the <classname>@Poller</classname> on an inbound channel adapter defaulted
