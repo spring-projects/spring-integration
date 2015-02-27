@@ -491,11 +491,13 @@ public class ParserUnitTests {
 		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate",
 				MessagingTemplate.class);
 		assertEquals(Long.valueOf(567), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout", Long.class));
-		assertEquals(789L, dfa.getPropertyValue("remoteTimeout"));
+		assertEquals("789", TestUtils.getPropertyValue(tcpOutboundGateway, "remoteTimeoutExpression.literalValue"));
 		assertEquals("outGateway",tcpOutboundGateway.getComponentName());
 		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
 		assertTrue(cfC2.isLookupHost());
 		assertEquals(24, dfa.getPropertyValue("order"));
+
+		assertEquals("4000", TestUtils.getPropertyValue(outAdviceGateway, "remoteTimeoutExpression.expression"));
 	}
 
 	@Test

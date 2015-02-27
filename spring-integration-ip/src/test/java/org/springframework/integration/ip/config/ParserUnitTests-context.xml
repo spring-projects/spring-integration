@@ -234,6 +234,7 @@
 	<ip:tcp-outbound-gateway id="outAdviceGateway"
 		request-channel="tcpAdviceGateChannel"
 		reply-channel="replyChannel"
+		remote-timeout-expression="4000"
 		connection-factory="mockClientCf">
 		<ip:request-handler-advice-chain>
 			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 the original author or authors.
+ * Copyright 2001-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessageTimeoutException;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -52,7 +57,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
-		implements TcpSender, TcpListener, Lifecycle {
+		implements TcpSender, TcpListener, IntegrationEvaluationContextAware, Lifecycle {
 
 	private volatile AbstractClientConnectionFactory connectionFactory;
 
@@ -60,11 +65,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private final Semaphore semaphore = new Semaphore(1, true);
 
-	private volatile long remoteTimeout = 10000L;
+	private volatile Expression remoteTimeoutExpression = new LiteralExpression("10000");
 
 	private volatile boolean remoteTimeoutSet = false;
 
 	private volatile long requestTimeout = 10000;
+
+	private volatile EvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	/**
 	 * @param requestTimeout the requestTimeout to set
@@ -77,7 +84,15 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param remoteTimeout the remoteTimeout to set
 	 */
 	public void setRemoteTimeout(long remoteTimeout) {
-		this.remoteTimeout = remoteTimeout;
+		this.remoteTimeoutExpression = new LiteralExpression("" + remoteTimeout);
+		this.remoteTimeoutSet = true;
+	}
+
+	/**
+	 * @param remoteTimeoutExpression the remoteTimeoutExpression to set
+	 */
+	public void setRemoteTimeoutExpression(Expression remoteTimeoutExpression) {
+		this.remoteTimeoutExpression = remoteTimeoutExpression;
 		this.remoteTimeoutSet = true;
 	}
 
@@ -90,8 +105,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * explicitly set.
 		 */
 		if (!this.remoteTimeoutSet) {
-			this.remoteTimeout = sendTimeout;
+			this.remoteTimeoutExpression = new LiteralExpression("" + sendTimeout);
 		}
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
@@ -113,7 +133,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				}
 			}
 			TcpConnection connection = this.connectionFactory.getConnection();
-			AsyncReply reply = new AsyncReply();
+			AsyncReply reply = new AsyncReply(this.remoteTimeoutExpression.getValue(this.evaluationContext,
+					requestMessage, Long.class));
 			connectionId = connection.getConnectionId();
 			pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
@@ -249,11 +270,14 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final CountDownLatch secondChanceLatch;
 
+		private final long remoteTimeout;
+
 		private volatile Message<?> reply;
 
-		public AsyncReply() {
+		public AsyncReply(long remoteTimeout) {
 			this.latch = new CountDownLatch(1);
 			this.secondChanceLatch = new CountDownLatch(1);
+			this.remoteTimeout = remoteTimeout;
 		}
 
 		/**
@@ -263,7 +287,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		 */
 		public Message<?> getReply() throws Exception {
 			try {
-				if (!this.latch.await(remoteTimeout, TimeUnit.MILLISECONDS)) {
+				if (!this.latch.await(this.remoteTimeout, TimeUnit.MILLISECONDS)) {
 					return null;
 				}
 			}
