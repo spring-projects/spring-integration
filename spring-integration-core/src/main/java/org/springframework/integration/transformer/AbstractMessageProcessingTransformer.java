@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package org.springframework.integration.transformer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -41,25 +39,31 @@ public abstract class AbstractMessageProcessingTransformer
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
+	private BeanFactory beanFactory;
+
 	protected AbstractMessageProcessingTransformer(MessageProcessor<?> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
 
-	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
-	}
-
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
 		}
-		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
-		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
 		}
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -90,7 +94,7 @@ public abstract class AbstractMessageProcessingTransformer
 		if (result instanceof Message<?>) {
 			return (Message<?>) result;
 		}
-		return this.messageBuilderFactory.withPayload(result).copyHeaders(message.getHeaders()).build();
+		return getMessageBuilderFactory().withPayload(result).copyHeaders(message.getHeaders()).build();
 	}
 
 }

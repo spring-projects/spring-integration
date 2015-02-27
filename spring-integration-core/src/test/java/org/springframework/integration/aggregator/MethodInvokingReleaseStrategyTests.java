@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.mockito.Mockito.mock;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -23,16 +25,18 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Marius Bogoevici
  * @author Dave Syer
+ * @author Artem Bilan
  */
 public class MethodInvokingReleaseStrategyTests {
 
@@ -248,13 +252,18 @@ public class MethodInvokingReleaseStrategyTests {
 	@Test(expected = IllegalStateException.class)
 	public void testWrongReturnTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		class TestReleaseStrategy {
+
 			@SuppressWarnings("unused")
 			public int wrongReturnType(List<Message<?>> message) {
 				return 0;
 			}
+
 		}
-		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
-				"wrongReturnType", new Class<?>[] { List.class }));
+
+		MethodInvokingReleaseStrategy wrongReturnType =
+				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
+						"wrongReturnType", new Class<?>[] {List.class}));
+		wrongReturnType.canRelease(mock(MessageGroup.class));
 	}
 
 	private static MessageGroup createListOfMessages(int size) {

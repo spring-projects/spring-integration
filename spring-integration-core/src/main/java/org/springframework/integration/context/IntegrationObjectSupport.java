@@ -119,10 +119,9 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	@Override
-	public final void setBeanFactory(BeanFactory beanFactory) {
+	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.beanFactory = beanFactory;
-		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 	}
 
 	@Override
@@ -143,9 +142,15 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	@Override
 	public final void afterPropertiesSet() {
+		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 		try {
 			if (this.messageBuilderFactory == null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+				if (this.beanFactory != null) {
+					this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+				}
+				else {
+					this.messageBuilderFactory = new DefaultMessageBuilderFactory();
+				}
 			}
 			this.onInit();
 		}

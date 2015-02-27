@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * Base class for transformers that convert a File payload.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public abstract class AbstractFilePayloadTransformer<T> implements Transformer, BeanFactoryAware {
 
@@ -45,6 +46,10 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 	private volatile boolean deleteFiles;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private boolean messageBuilderFactorySet;
+
+	private volatile BeanFactory beanFactory;
 
 	/**
 	 * Specify whether to delete the File after transformation.
@@ -58,7 +63,17 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -66,11 +81,11 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 		try {
 			Assert.notNull(message, "Message must not be null");
 			Object payload = message.getPayload();
-			Assert.notNull(payload, "Mesasge payload must not be null");
+			Assert.notNull(payload, "Message payload must not be null");
 			Assert.isInstanceOf(File.class, payload, "Message payload must be of type [java.io.File]");
 			File file = (File) payload;
 	        T result = this.transformFile(file);
-	        Message<?> transformedMessage = this.messageBuilderFactory.withPayload(result)
+	        Message<?> transformedMessage = getMessageBuilderFactory().withPayload(result)
 	        		.copyHeaders(message.getHeaders())
 	        		.setHeaderIfAbsent(FileHeaders.ORIGINAL_FILE, file)
 	        		.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())

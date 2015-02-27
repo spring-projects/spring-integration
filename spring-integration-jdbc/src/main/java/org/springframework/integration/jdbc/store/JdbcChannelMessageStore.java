@@ -157,6 +157,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private boolean priorityEnabled;
 
+	private BeanFactory beanFactory;
+
 	/**
 	 * Convenient constructor for configuration use.
 	 */
@@ -362,7 +364,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 	/**
@@ -392,6 +394,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			logger.warn("The jdbcTemplate's fetchsize is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
+		if (this.beanFactory != null) {
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}
 

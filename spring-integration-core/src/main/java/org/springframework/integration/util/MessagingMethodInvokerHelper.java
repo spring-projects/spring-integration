@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private final boolean canProcessMessageList;
 
+	private Class<? extends Annotation> annotationType;
+
+	private volatile boolean initialized;
+
+	private String methodName;
+
+	private Method method;
+
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -184,6 +192,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			Method method, Class<?> expectedType, boolean canProcessMessageList) {
 		this.canProcessMessageList = canProcessMessageList;
 		Assert.notNull(method, "method must not be null");
+		this.method = method;
 		this.expectedType = expectedType;
 		this.requiresReply = expectedType != null;
 		if (expectedType != null) {
@@ -201,12 +210,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.handlerMethods = null;
 		this.handlerMessageMethods = null;
 		this.handlerMethodsList = null;
-		this.prepareEvaluationContext(this.getEvaluationContext(false), method, annotationType);
 		this.setDisplayString(targetObject, method);
 	}
 
 	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
+		this.annotationType = annotationType;
+		this.methodName = methodName;
 		this.canProcessMessageList = canProcessMessageList;
 		Assert.notNull(targetObject, "targetObject must not be null");
 		this.expectedType = expectedType;
@@ -238,7 +248,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			this.handlerMethodsList.add(this.handlerMethods);
 			this.handlerMethodsList.add(this.handlerMessageMethods);
 		}
-		this.prepareEvaluationContext(this.getEvaluationContext(false), methodName, annotationType);
 		this.setDisplayString(targetObject, methodName);
 	}
 
@@ -253,26 +262,26 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.displayString = sb.toString() + "]";
 	}
 
-	private void prepareEvaluationContext(StandardEvaluationContext context, Object method,
-			Class<? extends Annotation> annotationType) {
+	private void prepareEvaluationContext() {
+		StandardEvaluationContext context = getEvaluationContext(false);
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
-		if (method instanceof Method) {
-			context.registerMethodFilter(targetType, new FixedMethodFilter((Method) method));
-			if (expectedType != null) {
+		if (this.method != null) {
+			context.registerMethodFilter(targetType, new FixedMethodFilter(this.method));
+			if (this.expectedType != null) {
 				Assert.state(context.getTypeConverter()
-								.canConvert(TypeDescriptor.valueOf(((Method) method).getReturnType()),
-						TypeDescriptor.valueOf(expectedType)),
-						"Cannot convert to expected type (" + expectedType + ") from " + method);
+								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()),
+						TypeDescriptor.valueOf(this.expectedType)),
+						"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
 			}
 		}
-		else if (method == null || method instanceof String) {
-			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(annotationType, (String) method,
+		else  {
+			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
 					this.requiresReply);
 			Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
-					"Cannot convert to expected type (" + expectedType + ") from " + method);
+					"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
 			context.registerMethodFilter(targetType, filter);
 		}
-		context.setVariable("target", targetObject);
+		context.setVariable("target", this.targetObject);
 	}
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
@@ -291,6 +300,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private T processInternal(ParametersWrapper parameters) throws Exception {
+		if (!this.initialized) {
+			synchronized (this) {
+				if (!this.initialized) {
+					prepareEvaluationContext();
+					this.initialized = true;
+				}
+			}
+		}
 		HandlerMethod candidate = this.findHandlerMethodForParameters(parameters);
 		Assert.notNull(candidate, "No candidate methods found for messages.");
 		Expression expression = candidate.getExpression();

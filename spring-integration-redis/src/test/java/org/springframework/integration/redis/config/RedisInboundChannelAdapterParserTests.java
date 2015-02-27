@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -78,8 +79,6 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		Object bean = context.getBean("withoutSerializer.adapter");
 		assertNotNull(bean);
 		assertNull(TestUtils.getPropertyValue(bean, "serializer"));
-		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertSame(mbf, TestUtils.getPropertyValue(bean, "messageConverter.messageBuilderFactory"));
 	}
 
 	@Test

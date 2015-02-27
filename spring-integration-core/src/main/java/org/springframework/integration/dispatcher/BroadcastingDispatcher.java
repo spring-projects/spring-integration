@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.messaging.MessagingException;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFactoryAware {
 
@@ -58,6 +59,10 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 	private volatile int minSubscribers;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private volatile boolean messageBuilderFactorySet;
+
+	private BeanFactory beanFactory;
 
 
 	public BroadcastingDispatcher() {
@@ -114,7 +119,17 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -127,7 +142,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		}
 		int sequenceSize = handlers.size();
 		for (final MessageHandler handler : handlers) {
-			final Message<?> messageToSend = (!this.applySequence) ? message : this.messageBuilderFactory.fromMessage(message)
+			final Message<?> messageToSend = (!this.applySequence) ? message : getMessageBuilderFactory().fromMessage(message)
 					.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 			if (this.executor != null) {
 				this.executor.execute(new Runnable() {
@@ -173,6 +188,5 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 			return false;
 		}
 	}
-
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,16 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PublishSubscribeChannelParserTests {
 
@@ -50,10 +55,20 @@ public class PublishSubscribeChannelParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
+		dispatcher.setApplySequence(true);
+		dispatcher.addHandler(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+
+			}
+
+		});
+		dispatcher.dispatch(new GenericMessage<String>("foo"));
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		assertNull(dispatcherAccessor.getPropertyValue("executor"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
-		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
+		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		assertSame(mbf, dispatcherAccessor.getPropertyValue("messageBuilderFactory"));
 		context.close();

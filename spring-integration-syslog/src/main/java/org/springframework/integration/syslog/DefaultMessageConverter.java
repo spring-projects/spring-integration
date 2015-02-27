@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,11 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 	private volatile boolean asMap = true;
+
+	private BeanFactory beanFactory;
 
 	/**
 	 * Set false will leave the payload as the original complete syslog.
@@ -65,11 +69,17 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -82,7 +92,7 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 				out.put(SyslogHeaders.PREFIX + entry.getKey(), entry.getValue());
 			}
 		}
-		return this.messageBuilderFactory.withPayload(this.asMap ? map : message.getPayload())
+		return getMessageBuilderFactory().withPayload(this.asMap ? map : message.getPayload())
 				.copyHeaders(out)
 				.build();
 	}

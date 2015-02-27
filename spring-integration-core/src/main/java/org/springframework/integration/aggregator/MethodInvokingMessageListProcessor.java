@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.messaging.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 
 /**
  * A MessageListProcessor implementation that invokes a method on a target POJO.
- * 
+ *
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 2.0
  */
 public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator {
@@ -55,6 +57,12 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
 		delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, Object.class, true);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
+		this.delegate.setBeanFactory(beanFactory);
 	}
 
 	public String toString() {

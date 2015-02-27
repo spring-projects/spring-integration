@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import java.util.List;
@@ -168,7 +170,6 @@ public class JmsChannelParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals(topic, jmsTemplate.getDefaultDestination());
 		assertEquals(topic, container.getDestination());
-		assertSame(this.messageBuilderFactory, TestUtils.getPropertyValue(channel, "dispatcher.messageBuilderFactory"));
 		assertSame(this.messageBuilderFactory,
 				TestUtils.getPropertyValue(channel, "container.messageListener.messageBuilderFactory"));
 	}

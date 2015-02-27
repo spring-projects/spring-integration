@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class MailReceivingMessageSource implements MessageSource<javax.mail.Message>,
 		BeanFactoryAware, BeanNameAware, NamedComponent {
@@ -58,6 +59,8 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 	private volatile String beanName;
 
 
@@ -69,7 +72,6 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected BeanFactory getBeanFactory() {
@@ -77,7 +79,13 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -110,7 +118,7 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 				if (logger.isDebugEnabled()) {
 					logger.debug("received mail message [" + mailMessage + "]");
 				}
-				return this.messageBuilderFactory.withPayload(mailMessage).build();
+				return getMessageBuilderFactory().withPayload(mailMessage).build();
 			}
 		}
 		catch (Exception e) {

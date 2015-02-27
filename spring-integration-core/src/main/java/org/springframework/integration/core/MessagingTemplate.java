@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.core;
 
 import java.util.Properties;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
 
@@ -35,6 +37,10 @@ import org.springframework.messaging.core.GenericMessagingTemplate;
  */
 public class MessagingTemplate extends GenericMessagingTemplate {
 
+	private BeanFactory beanFactory;
+	
+	private volatile boolean throwExceptionOnLateReplySet;
+	
 	/**
 	 * Create a MessagingTemplate with no default channel. Note, that one
 	 * may be provided by invoking {@link #setDefaultChannel(MessageChannel)}.
@@ -55,10 +61,14 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 		super.setDestinationResolver(new BeanFactoryChannelResolver(beanFactory));
-		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(beanFactory);
-		Boolean throwExceptionOnLateReply = Boolean.valueOf(integrationProperties.getProperty(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
-		this.setThrowExceptionOnLateReply(throwExceptionOnLateReply);
+	}
+
+	@Override
+	public void setThrowExceptionOnLateReply(boolean throwExceptionOnLateReply) {
+		super.setThrowExceptionOnLateReply(throwExceptionOnLateReply);
+		this.throwExceptionOnLateReplySet = true;
 	}
 
 	/**
@@ -68,6 +78,23 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	 */
 	public void setDefaultChannel(MessageChannel channel) {
 		super.setDefaultDestination(channel);
+	}
+
+	@Override
+	public Message<?> sendAndReceive(MessageChannel destination, Message<?> requestMessage) {
+		if (!this.throwExceptionOnLateReplySet) {
+			synchronized (this) {
+				if (!this.throwExceptionOnLateReplySet) {
+					Properties integrationProperties = 
+							IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+					Boolean throwExceptionOnLateReply = Boolean.valueOf(integrationProperties
+							.getProperty(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
+					super.setThrowExceptionOnLateReply(throwExceptionOnLateReply);
+					this.throwExceptionOnLateReplySet = true;
+				}
+			}
+		}
+		return super.sendAndReceive(destination, requestMessage);
 	}
 
 }

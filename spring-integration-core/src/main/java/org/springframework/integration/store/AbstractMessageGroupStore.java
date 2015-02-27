@@ -33,9 +33,9 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
- *
  */
 @ManagedResource
 @IntegrationManagedResource
@@ -52,6 +52,8 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 	public AbstractMessageGroupStore() {
 		super();
 	}
@@ -59,11 +61,17 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	/**

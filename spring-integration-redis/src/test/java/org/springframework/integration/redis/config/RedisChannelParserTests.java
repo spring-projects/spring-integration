@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,6 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 		redisChannel = context.getBean("redisChannelWithSubLimit", SubscribableChannel.class);
 		assertEquals(1, TestUtils.getPropertyValue(redisChannel, "dispatcher.maxSubscribers", Integer.class).intValue());
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertSame(mbf, TestUtils.getPropertyValue(redisChannel, "dispatcher.messageBuilderFactory"));
 		assertSame(mbf, TestUtils.getPropertyValue(redisChannel, "messageBuilderFactory"));
 		context.close();
 	}

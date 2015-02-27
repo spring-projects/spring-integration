@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.mongodb.DB;
-import com.mongodb.MongoException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -60,6 +58,9 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+
+import com.mongodb.DB;
+import com.mongodb.MongoException;
 
 /**
  * The abstract MongoDB {@link BasicMessageGroupStore} implementation to provide configuration for common options
@@ -111,7 +112,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter, String collectionName) {
+	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, 
+			MappingMongoConverter mappingMongoConverter, String collectionName) {
 		Assert.notNull("'mongoDbFactory' must not be null");
 		Assert.hasText("'collectionName' must not be empty");
 		this.collectionName = collectionName;
@@ -122,7 +124,6 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
 	}
 
 	@Override
@@ -142,7 +143,9 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 				this.mongoTemplate.setApplicationContext(this.applicationContext);
 			}
 		}
-
+		
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
+		
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 
 		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
@@ -201,13 +204,16 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 					}
 				}
 
-				final long createdDate = document.getCreatedTime() == 0 ? System.currentTimeMillis() : document.getCreatedTime();
+				final long createdDate = document.getCreatedTime() == 0 
+						? System.currentTimeMillis() 
+						: document.getCreatedTime();
 
 				Message<?> result = messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 						.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 				@SuppressWarnings("unchecked")
-				Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
+				Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders())
+						.getPropertyValue("headers");
 				// using reflection to set ID since it is immutable through MessageHeaders
 				innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
 				innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));

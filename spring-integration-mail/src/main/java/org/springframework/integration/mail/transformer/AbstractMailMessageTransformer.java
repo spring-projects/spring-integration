@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 		BeanFactoryAware {
@@ -54,15 +55,22 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private volatile boolean messageBuilderFactorySet;
+
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override

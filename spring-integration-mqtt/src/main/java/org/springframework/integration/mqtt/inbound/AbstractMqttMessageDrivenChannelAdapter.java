@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.LinkedHashSet;
@@ -240,7 +241,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	protected void onInit() {
 		super.onInit();
 		if (this.converter == null) {
-			this.converter = new DefaultPahoMessageConverter();
+			DefaultPahoMessageConverter pahoMessageConverter = new DefaultPahoMessageConverter();
+			pahoMessageConverter.setBeanFactory(getBeanFactory());
+			this.converter = pahoMessageConverter;
+
 		}
 	}
 

@@ -19,8 +19,21 @@ package org.springframework.integration.expression;
 import org.springframework.expression.EvaluationContext;
 
 /**
+ * Interface to be implemented by beans that wish to be aware of their
+ * owning integration {@link EvaluationContext}, which is the result of
+ * {@link org.springframework.integration.config.IntegrationEvaluationContextFactoryBean}
+ * <p>
+ * The {@link #setIntegrationEvaluationContext} is invoked from
+ * the {@link IntegrationEvaluationContextAwareBeanPostProcessor#afterSingletonsInstantiated()},
+ * not during standard {@code postProcessBefore(After)Initialization} to avoid any
+ * {@code BeanFactory} early access during integration {@link EvaluationContext} retrieval.
+ * Therefore, if it is necessary to use {@link EvaluationContext} in the {@code afterPropertiesSet()},
+ * the {@code IntegrationContextUtils.getEvaluationContext(this.beanFactory)} should be used instead
+ * of this interface implementation.
+ *
  * @author Artem Bilan
  * @since 3.0
+ * @see IntegrationEvaluationContextAwareBeanPostProcessor
  */
 public interface IntegrationEvaluationContextAware {
 

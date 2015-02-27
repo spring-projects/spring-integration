@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,9 @@ import org.springframework.messaging.MessageHandlingException;
  * to correlate which connection to send a reply. If applySequence is set, adds
  * standard correlationId/sequenceNumber headers allowing for downstream (unbounded)
  * resequencing.
+ * *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -62,6 +64,10 @@ public class TcpMessageMapper implements
 	private volatile boolean applySequence = false;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private volatile boolean messageBuilderFactorySet;
+
+	private BeanFactory beanFactory;
 
 	/**
 	 * @param charset the charset to set
@@ -88,11 +94,17 @@ public class TcpMessageMapper implements
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(beanFactory);
+		this.beanFactory = beanFactory;
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		return messageBuilderFactory;
+		if (!this.messageBuilderFactorySet) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			this.messageBuilderFactorySet = true;
+		}
+		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -100,7 +112,7 @@ public class TcpMessageMapper implements
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = this.messageBuilderFactory.withPayload(payload);
+			AbstractIntegrationMessageBuilder<Object> messageBuilder = getMessageBuilderFactory().withPayload(payload);
 			this.addStandardHeaders(connection, messageBuilder);
 			this.addCustomHeaders(connection, messageBuilder);
 			message = messageBuilder.build();

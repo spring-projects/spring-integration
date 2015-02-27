@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,9 +275,6 @@ public class ParserUnitTests {
 	@Autowired
 	QueueChannel eventChannel;
 
-	@Autowired
-	MessageBuilderFactory messageBuilderFactory;
-
 	private static volatile int adviceCalled;
 
 	@Test
@@ -299,7 +296,6 @@ public class ParserUnitTests {
 		assertFalse((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
 		assertFalse(TestUtils.getPropertyValue(udpIn, "autoStartup", Boolean.class));
 		assertEquals(1234, dfa.getPropertyValue("phase"));
-		assertSame(this.messageBuilderFactory, mapperAccessor.getPropertyValue("messageBuilderFactory"));
 	}
 
 	@Test
@@ -318,14 +314,12 @@ public class ParserUnitTests {
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertTrue((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
-		assertSame(this.messageBuilderFactory, mapperAccessor.getPropertyValue("messageBuilderFactory"));
 	}
 
 	@Test
 	public void testInTcp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpIn);
 		assertSame(cfS1, dfa.getPropertyValue("serverConnectionFactory"));
-		assertSame(this.messageBuilderFactory, TestUtils.getPropertyValue(cfS1, "mapper.messageBuilderFactory"));
 		assertEquals("testInTcp",tcpIn.getComponentName());
 		assertEquals("ip:tcp-inbound-channel-adapter", tcpIn.getComponentType());
 		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
@@ -353,7 +347,6 @@ public class ParserUnitTests {
 	public void testInTcpNioSSLDefaultConfig() {
 		assertFalse(cfS1Nio.isLookupHost());
 		assertTrue((Boolean) TestUtils.getPropertyValue(cfS1Nio, "mapper.applySequence"));
-		assertSame(this.messageBuilderFactory, TestUtils.getPropertyValue(cfS1Nio, "mapper.messageBuilderFactory"));
 		Object connectionSupport = TestUtils.getPropertyValue(cfS1Nio, "tcpNioConnectionSupport");
 		assertTrue(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport);
 		assertNotNull(TestUtils.getPropertyValue(connectionSupport, "sslContext"));
@@ -381,7 +374,6 @@ public class ParserUnitTests {
 		assertEquals(23, dfa.getPropertyValue("order"));
 		assertEquals("testOutUdp",udpOut.getComponentName());
 		assertEquals("ip:udp-outbound-channel-adapter", udpOut.getComponentType());
-		assertSame(this.messageBuilderFactory, TestUtils.getPropertyValue(mapper, "messageBuilderFactory"));
 	}
 
 	@Test
@@ -403,7 +395,6 @@ public class ParserUnitTests {
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals(55, dfa.getPropertyValue("timeToLive"));
 		assertEquals(12, dfa.getPropertyValue("order"));
-		assertSame(this.messageBuilderFactory, TestUtils.getPropertyValue(mapper, "messageBuilderFactory"));
 	}
 
 	@Test
