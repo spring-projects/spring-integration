@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.scheduling.Trigger;
 
 /**
  * Provides the {@link PollerMetadata} options for the Messaging annotations for
@@ -39,6 +39,7 @@ import org.springframework.scheduling.Trigger;
  * Non-reference attributes support Property Placeholder resolutions.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 @Target({})
@@ -63,6 +64,7 @@ public @interface Poller {
 	/**
 	 * @return The maximum number of messages to receive for each poll.
 	 * Can be specified as 'property placeholder', e.g. {@code ${poller.maxMessagesPerPoll}}.
+	 * Defaults to -1 (infinity) for polling consumers and 1 for polling inbound channel adapters.
 	 */
 	String maxMessagesPerPoll() default "";
 
@@ -83,4 +85,5 @@ public @interface Poller {
 	 * Can be specified as 'property placeholder', e.g. {@code ${poller.cron}}.
 	 */
 	String cron() default "";
+
 }

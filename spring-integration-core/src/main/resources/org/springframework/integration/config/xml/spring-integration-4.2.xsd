@@ -273,7 +273,7 @@
 				<xsd:documentation>
 					<![CDATA[
 	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
-	interface and provides logic based on which Messages will be prioritized. Not allowed if `message-store` is set.
+	interface and provides logic based on which Messages will be prioritized. Not allowed if 'message-store' is set.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -288,7 +288,7 @@
 						<xsd:documentation>
 						A reference to a bean that implements 'org.springframework.integration.store.PriorityCapableChannelMessageStore'.
 						A message store that supports priority in a manner defined by the store. When set, the underlying
-						channel will be a 'QueueChannel` that delegates to a `MessageGroupQueue' backed by the store.
+						channel will be a 'QueueChannel' that delegates to a 'MessageGroupQueue' backed by the store.
 						Not allowed if 'comparator' is set.
 						</xsd:documentation>
 				</xsd:annotation>
@@ -1772,8 +1772,23 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:choice>
-				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Run each poll task in a transaction; mutually exclusive
+							with 'advice-chain'; add a transaction advice if you need transactions
+							in addition to other advices.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							A chain of nested AOP 'Advice' objects applied to the poller task.
+							Mutually exclusive with 'transactional'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
 			</xsd:choice>
 		</xsd:sequence>
 		<xsd:attribute name="fixed-delay" type="xsd:string">
@@ -1826,8 +1841,25 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="receive-timeout" type="xsd:string" />
-		<xsd:attribute name="max-messages-per-poll" type="xsd:string" />
+		<xsd:attribute name="receive-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Only applies to polling consumers - the time the poll thread will wait
+					after the trigger for a new message to arrive. Defaults to 1000 (1 second).
+					For polled inbound channel adapters, whether or not the polling thread blocks is
+					dependent on the message source implementation.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-messages-per-poll" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The maximum number of messages that will be produced for each poll. Defaults to
+					infinity (indicated by -1) for polling consumers, and 1 for polled
+					inbound channel adapters.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

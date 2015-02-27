@@ -74,6 +74,7 @@ public class StoredProcJavaConfigTests {
 		Collection<?> primes = (Collection<?>) received.getPayload();
 		assertThat(primes, Matchers.<Object>contains(2, 3, 5, 7));
 		received = fooChannel.receive(100);
+		// verify maxMessagesPerPoll == 1
 		assertNull(received);
 	}
 
@@ -87,7 +88,7 @@ public class StoredProcJavaConfigTests {
 		}
 
 		@Bean
-		@InboundChannelAdapter(value = "fooChannel", poller = @Poller(fixedDelay="5000", maxMessagesPerPoll = "1"))
+		@InboundChannelAdapter(value = "fooChannel", poller = @Poller(fixedDelay="5000"))
 		public MessageSource<?> storedProc() {
 			StoredProcPollingChannelAdapter source = new StoredProcPollingChannelAdapter(storedProcExecutor());
 			source.setExpectSingleResult(true);

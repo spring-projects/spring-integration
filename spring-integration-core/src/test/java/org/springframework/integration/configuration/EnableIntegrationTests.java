@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -372,6 +372,9 @@ public class EnableIntegrationTests {
 		}
 
 		Message<?> message = this.fooChannel.receive(1000);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+		message = this.fooChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
 		assertNull(this.fooChannel.receive(10));
@@ -1151,7 +1154,8 @@ public class EnableIntegrationTests {
 		}
 
 		@Override
-		@InboundChannelAdapter(value = "fooChannel", poller = @Poller(trigger = "onlyOnceTrigger", maxMessagesPerPoll = "1"))
+		@InboundChannelAdapter(value = "fooChannel",
+				poller = @Poller(trigger = "onlyOnceTrigger", maxMessagesPerPoll = "2"))
 		public String foo() {
 			return "foo";
 		}

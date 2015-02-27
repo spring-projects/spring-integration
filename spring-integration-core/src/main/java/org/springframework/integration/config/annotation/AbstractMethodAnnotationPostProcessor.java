@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -247,7 +248,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		AbstractEndpoint endpoint;
 		if (inputChannel instanceof PollableChannel) {
 			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
-			this.configurePollingEndpoint(pollingConsumer, annotations);
+			configurePollingEndpoint(pollingConsumer, annotations);
 			endpoint = pollingConsumer;
 		}
 		else {
@@ -285,6 +286,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				pollerMetadata = new PollerMetadata();
 				if (StringUtils.hasText(maxMessagesPerPollValue)) {
 					pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
+				}
+				else if (pollingEndpoint instanceof SourcePollingChannelAdapter) {
+					// SPCAs default to 1 message per poll
+					pollerMetadata.setMaxMessagesPerPoll(1);
 				}
 				if (StringUtils.hasText(executorRef)) {
 					pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
