@@ -39,6 +39,15 @@
 				<code>org.springframework.integration.scattergather</code>.
 			</para>
 		</section>
+		<section>
+			<title>TCP Serializers</title>
+			<para>
+				The TCP <interfacename>Serializers</interfacename> no longer <code>flush()</code> the
+				<classname>OutputStream</classname>; this is now done by the <classname>TcpNxxConnection</classname>
+				classes. If you are using the serializers directly within user code, you may have to
+				<code>flush()</code> the <classname>OutputStream</classname>.
+			</para>
+		</section>
 		<section id="4.2-tcp-server-exceptions">
 			<title>Server Socket Exceptions</title>
 			<para>
