@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 the original author or authors.
+ * Copyright 2001-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.SchedulingAwareRunnable;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.
@@ -35,7 +36,7 @@ import org.springframework.messaging.Message;
  * @since 2.0
  *
  */
-public class TcpNetConnection extends TcpConnectionSupport {
+public class TcpNetConnection extends TcpConnectionSupport implements SchedulingAwareRunnable {
 
 	private final Socket socket;
 
@@ -61,6 +62,11 @@ public class TcpNetConnection extends TcpConnectionSupport {
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
 		super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socket = socket;
+	}
+
+	@Override
+	public boolean isLongLived() {
+		return true;
 	}
 
 	/**

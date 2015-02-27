@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.util.Date;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
  *
  */
 public class OSDelegatingFileTailingMessageProducer extends FileTailingMessageProducerSupport
-		implements Runnable {
+		implements SchedulingAwareRunnable {
 
 	private volatile Process process;
 
@@ -59,6 +60,11 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	@Override
 	public String getComponentType() {
 		return super.getComponentType() + " (native)";
+	}
+
+	@Override
+	public boolean isLongLived() {
+		return true;
 	}
 
 	@Override

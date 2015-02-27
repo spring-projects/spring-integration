@@ -324,6 +324,7 @@ project('spring-integration-gemfire') {
 			exclude group: 'org.springframework', module: 'spring-core'
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
+		compile "commons-io:commons-io:$commonsIoVersion"
 		testCompile project(":spring-integration-stream")
 
 	}

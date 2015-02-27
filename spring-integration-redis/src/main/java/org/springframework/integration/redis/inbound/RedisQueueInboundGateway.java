@@ -38,6 +38,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
 
 /**
@@ -323,7 +324,12 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	}
 
 
-	private class ListenerTask implements Runnable {
+	private class ListenerTask implements SchedulingAwareRunnable {
+
+		@Override
+		public boolean isLongLived() {
+			return true;
+		}
 
 		@Override
 		public void run() {
