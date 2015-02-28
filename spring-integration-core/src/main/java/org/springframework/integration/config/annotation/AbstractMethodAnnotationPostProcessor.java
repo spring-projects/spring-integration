@@ -273,6 +273,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
 			String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
 			String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
+			if (pollingEndpoint instanceof SourcePollingChannelAdapter) {
+				// SPCAs default to 1 message per poll
+				maxMessagesPerPollValue = "1";
+			}
 			String cron = this.environment.resolvePlaceholders(poller.cron());
 
 			if (StringUtils.hasText(ref)) {
