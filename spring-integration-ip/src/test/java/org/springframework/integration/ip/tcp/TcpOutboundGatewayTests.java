@@ -128,8 +128,6 @@ public class TcpOutboundGatewayTests {
 		// check the default remote timeout
 		assertEquals("10000", TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.literalValue"));
 		gateway.setSendTimeout(123);
-		// ensure this also changed the remote timeout
-		assertEquals("123", TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.literalValue"));
 		gateway.setRemoteTimeout(60000);
 		gateway.setSendTimeout(61000);
 		// ensure this did NOT change the remote timeout

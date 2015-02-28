@@ -67,8 +67,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private volatile Expression remoteTimeoutExpression = new LiteralExpression("10000");
 
-	private volatile boolean remoteTimeoutSet = false;
-
 	private volatile long requestTimeout = 10000;
 
 	private volatile EvaluationContext evaluationContext = new StandardEvaluationContext();
@@ -85,7 +83,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	public void setRemoteTimeout(long remoteTimeout) {
 		this.remoteTimeoutExpression = new LiteralExpression("" + remoteTimeout);
-		this.remoteTimeoutSet = true;
 	}
 
 	/**
@@ -93,20 +90,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	public void setRemoteTimeoutExpression(Expression remoteTimeoutExpression) {
 		this.remoteTimeoutExpression = remoteTimeoutExpression;
-		this.remoteTimeoutSet = true;
-	}
-
-	@Override
-	public void setSendTimeout(long sendTimeout) {
-		super.setSendTimeout(sendTimeout);
-		/*
-		 * For backwards compatibility, also set the remote
-		 * timeout to this value, unless it has been
-		 * explicitly set.
-		 */
-		if (!this.remoteTimeoutSet) {
-			this.remoteTimeoutExpression = new LiteralExpression("" + sendTimeout);
-		}
 	}
 
 	@Override
