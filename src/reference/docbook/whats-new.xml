@@ -11,6 +11,20 @@
 	</para>
 	<section id="4.2-new-components">
 		<title>New Components</title>
+		<section id="4.2-JMX">
+			<title>Major JMX Rework</title>
+			<para>
+				A new <classname>MetricsFactory</classname> strategy interface has been introduced. This,
+				together with other changes in the JMX infrastructure provides much more control
+				over JMX configuration and runtime performance.
+			</para>
+			<para>
+				However, this has some important implications for (some) user environments.
+			</para>
+			<para>
+				For complete details, see <xref linkend="jmx-42-improvements" />.
+			</para>
+		</section>
 	</section>
 	<section id="4.2-general">
 		<title>General Changes</title>

@@ -915,6 +915,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					reverse = true;
 					patternToUse = pattern.substring(1);
 				}
+				else if (pattern.startsWith("\\")) {
+					patternToUse = pattern.substring(1);
+				}
 				if (PatternMatchUtils.simpleMatch(patternToUse, name)) {
 					return !reverse;
 				}
