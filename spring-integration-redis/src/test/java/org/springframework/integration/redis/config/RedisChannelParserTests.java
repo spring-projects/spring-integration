@@ -62,7 +62,6 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 		redisChannel = context.getBean("redisChannelWithSubLimit", SubscribableChannel.class);
 		assertEquals(1, TestUtils.getPropertyValue(redisChannel, "dispatcher.maxSubscribers", Integer.class).intValue());
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertNotSame(mbf, TestUtils.getPropertyValue(redisChannel, "dispatcher.messageBuilderFactory"));
 		assertSame(mbf, TestUtils.getPropertyValue(redisChannel, "messageBuilderFactory"));
 		context.close();
 	}

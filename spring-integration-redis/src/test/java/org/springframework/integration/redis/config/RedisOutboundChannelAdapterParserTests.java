@@ -77,8 +77,6 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
-		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertNotSame(mbf, TestUtils.getPropertyValue(handler, "messageConverter.messageBuilderFactory"));
 
 		Object endpointHandler = TestUtils.getPropertyValue(adapter, "handler");
 

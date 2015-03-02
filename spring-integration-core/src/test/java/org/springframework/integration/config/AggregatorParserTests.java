@@ -20,7 +20,6 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -95,7 +94,6 @@ public class AggregatorParserTests {
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReference.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
-		assertNotSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
 	}
 
 	@Test
@@ -122,7 +120,6 @@ public class AggregatorParserTests {
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithExpressions.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
-		assertNotSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
 		assertTrue(TestUtils.getPropertyValue(handler, "expireGroupsUponTimeout", Boolean.class));
 	}
 
@@ -176,7 +173,6 @@ public class AggregatorParserTests {
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReferenceAndMethod.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
-		assertNotSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.processor.messageBuilderFactory"));
 	}
 
 	@Test(expected = BeanCreationException.class)
@@ -249,8 +245,6 @@ public class AggregatorParserTests {
 		EventDrivenConsumer aggregatorConsumer = (EventDrivenConsumer) context.getBean("aggregatorWithExpressionsAndPojoAggregator");
 		AggregatingMessageHandler aggregatingMessageHandler = (AggregatingMessageHandler) TestUtils.getPropertyValue(aggregatorConsumer, "handler");
 		MethodInvokingMessageGroupProcessor messageGroupProcessor = (MethodInvokingMessageGroupProcessor) TestUtils.getPropertyValue(aggregatingMessageHandler, "outputProcessor");
-		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertNotSame(mbf, TestUtils.getPropertyValue(messageGroupProcessor, "messageBuilderFactory"));
 		Object messageGroupProcessorTargetObject = TestUtils.getPropertyValue(messageGroupProcessor, "processor.delegate.targetObject");
 		assertSame(context.getBean("aggregatorBean"), messageGroupProcessorTargetObject);
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "releaseStrategy");
@@ -272,4 +266,5 @@ public class AggregatorParserTests {
 		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
 	}
+	
 }

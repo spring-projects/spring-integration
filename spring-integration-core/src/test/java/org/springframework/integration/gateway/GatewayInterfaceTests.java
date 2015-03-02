@@ -134,9 +134,6 @@ public class GatewayInterfaceTests {
 		bar.foo("hello");
 		assertTrue(called.get());
 		Map<?,?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
-		Object mbf = ac.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertNotSame(mbf, TestUtils.getPropertyValue(gateways.values().iterator().next(),
-				"messageConverter.messageBuilderFactory"));
 		ac.close();
 	}
 

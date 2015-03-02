@@ -79,8 +79,6 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		Object bean = context.getBean("withoutSerializer.adapter");
 		assertNotNull(bean);
 		assertNull(TestUtils.getPropertyValue(bean, "serializer"));
-		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertNotSame(mbf, TestUtils.getPropertyValue(bean, "messageConverter.messageBuilderFactory"));
 	}
 
 	@Test

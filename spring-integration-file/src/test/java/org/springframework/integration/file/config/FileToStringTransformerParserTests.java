@@ -45,9 +45,6 @@ public class FileToStringTransformerParserTests {
     @Qualifier("transformer")
     EventDrivenConsumer endpoint;
 
-    @Autowired
-    MessageBuilderFactory messageBuilderFactory;
-
     @Test
     public void checkDeleteFilesValue() {
         DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(endpoint);
@@ -58,7 +55,6 @@ public class FileToStringTransformerParserTests {
                 handlerAccessor.getPropertyValue("transformer");
         DirectFieldAccessor transformerAccessor = new DirectFieldAccessor(transformer);
         assertEquals(Boolean.TRUE, transformerAccessor.getPropertyValue("deleteFiles"));
-        assertNotSame(this.messageBuilderFactory, transformerAccessor.getPropertyValue("messageBuilderFactory"));
     }
 
 }

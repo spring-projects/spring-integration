@@ -79,12 +79,11 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
 		AbstractIntegrationMessageBuilder<?> builder;
-		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 		if (payload instanceof Message<?>) {
-			builder = messageBuilderFactory.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
+			builder = getMessageBuilderFactory().fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 		}
 		else {
-			builder = messageBuilderFactory.withPayload(payload).copyHeadersIfAbsent(headers);
+			builder = getMessageBuilderFactory().withPayload(payload).copyHeadersIfAbsent(headers);
 		}
 
 		return builder.popSequenceDetails().build();

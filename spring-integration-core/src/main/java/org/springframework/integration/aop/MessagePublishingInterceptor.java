@@ -173,10 +173,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		Expression expression = this.parser.parseExpression(payloadExpressionString);
 		Object result = expression.getValue(context);
 		if (result != null) {
-			MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 			AbstractIntegrationMessageBuilder<?> builder = (result instanceof Message<?>)
-					? messageBuilderFactory.fromMessage((Message<?>) result)
-					: messageBuilderFactory.withPayload(result);
+					? getMessageBuilderFactory().fromMessage((Message<?>) result)
+					: getMessageBuilderFactory().withPayload(result);
 			Map<String, Object> headers = this.evaluateHeaders(method, context);
 			if (headers != null) {
 				builder.copyHeaders(headers);
