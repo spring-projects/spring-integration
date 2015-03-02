@@ -25,8 +25,7 @@ import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 
 /**
- * Registers all message channels, and accumulates statistics about their performance. The statistics are then published
- * locally for other components to consume and publish remotely.
+ * Default implementation; use the full constructor to customize the moving averages.
  *
  * @author Dave Syer
  * @author Helena Edelson
@@ -43,17 +42,13 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
-	private final ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
-			DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.);
+	private final ExponentialMovingAverage sendDuration;
 
-	private final ExponentialMovingAverageRate sendErrorRate = new ExponentialMovingAverageRate(
-			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true);
+	private final ExponentialMovingAverageRate sendErrorRate;
 
-	private final ExponentialMovingAverageRatio sendSuccessRatio = new ExponentialMovingAverageRatio(
-			ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true);
+	private final ExponentialMovingAverageRatio sendSuccessRatio;
 
-	private final ExponentialMovingAverageRate sendRate = new ExponentialMovingAverageRate(
-			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true);
+	private final ExponentialMovingAverageRate sendRate;
 
 	private final AtomicLong sendCount = new AtomicLong();
 
@@ -64,11 +59,43 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	protected final AtomicLong receiveErrorCount = new AtomicLong();
 
 	public DefaultMessageChannelMetrics() {
-		super(null);
+		this(null);
 	}
 
+	/**
+	 * Construct an instance with default metrics with {@code window=10, period=1 second,
+	 * lapsePeriod=1 minute}.
+	 * @param name the name.
+	 */
 	public DefaultMessageChannelMetrics(String name) {
+		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.),
+		new ExponentialMovingAverageRate(
+				ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+		new ExponentialMovingAverageRatio(
+				ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+		new ExponentialMovingAverageRate(
+				ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true));
+	}
+
+	/**
+	 * Construct an instance with the supplied metrics. For proper representation of metrics, the
+	 * supplied sendDuration must have a {@code factor=1000000.} and the the other arguments
+	 * must be created with the {@code millis} constructor argument set to true.
+	 * @param name the name.
+	 * @param sendDuration an {@link ExponentialMovingAverage} for calculating the send duration.
+	 * @param sendErrorRate an {@link ExponentialMovingAverageRate} for calculating the send error rate.
+	 * @param sendSuccessRatio an {@link ExponentialMovingAverageRatio} for calculating the success ratio.
+	 * @param sendRate an {@link ExponentialMovingAverageRate} for calculating the send rate.
+	 * @since 4.2
+	 */
+	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
+			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
+			ExponentialMovingAverageRate sendRate) {
 		super(name);
+		this.sendDuration = sendDuration;
+		this.sendErrorRate = sendErrorRate;
+		this.sendSuccessRatio = sendSuccessRatio;
+		this.sendRate = sendRate;
 	}
 
 	public void destroy() {

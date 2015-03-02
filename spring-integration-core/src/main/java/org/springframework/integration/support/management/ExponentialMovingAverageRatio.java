@@ -92,7 +92,7 @@ public class ExponentialMovingAverageRatio {
 
 	/**
 	 * Add a new event with successful outcome at time t.
-	 * @param t the time in milliseconds.
+	 * @param t the System.nanoTime().
 	 */
 	public void success(long t) {
 		append(1, t);

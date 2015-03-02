@@ -248,20 +248,6 @@
 <bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
     <property name="locateExistingServerIfPossible" value="true"/>
 </bean>]]></programlisting>
-		<para>
-			Once the exporter is defined, start up your application with:
-		</para>
-		<screen>    -Dcom.sun.management.jmxremote
-    -Dcom.sun.management.jmxremote.port=6969
-    -Dcom.sun.management.jmxremote.ssl=false
-    -Dcom.sun.management.jmxremote.authenticate=false</screen>
-		<para>
-			Then start JConsole (free with the JDK), and connect to the local process on
-			<literal>localhost:6969</literal> to get a look at the management
-			endpoints exposed. (The port and client are just examples to get you
-			started quickly, there are other JMX clients available and some offer more
-			sophisticated features than JConsole.)
-		</para>
 
 		<important>
 		  <para>
@@ -441,7 +427,7 @@ public class ContextConfiguration {
 				cases there are some metrics that are simple counters (message
 				count and error count), and some that are estimates of averages
 				of interesting quantities. The algorithms used to calculate these
-				estimates are described briefly in the table below:
+				estimates are described briefly in the section below.
 			</para>
 
 			<table>
@@ -462,8 +448,16 @@ public class ContextConfiguration {
 						<row>
 							<entry>Count</entry>
 							<entry>Send Count</entry>
-							<entry>Simple incrementer. Increase by one when an event
+							<entry>Simple incrementer. Increases by one when an event
 								occurs.
+							</entry>
+						</row>
+						<row>
+							<entry>Error Count</entry>
+							<entry>Send Error Count</entry>
+							<entry>
+								Simple incrementer. Increases by one when an send results
+								in an error.
 							</entry>
 						</row>
 						<row>
@@ -471,8 +465,8 @@ public class ContextConfiguration {
 							<entry>Send Duration (method execution time in
 								milliseconds)
 							</entry>
-							<entry>Exponential Moving Average with decay factor 10. Average
-								of the method execution time over roughly the last 10
+							<entry>Exponential Moving Average with decay factor (10 by default). Average
+								of the method execution time over roughly the last 10 (default)
 								measurements.
 							</entry>
 						</row>
@@ -480,23 +474,97 @@ public class ContextConfiguration {
 							<entry>Rate</entry>
 							<entry>Send Rate (number of operations per second)</entry>
 							<entry>Inverse of Exponential Moving Average of the interval
-								between events with decay in time (lapsing over 60 seconds) and
-								per measurement (last 10 events).
+								between events with decay in time (lapsing over 60 seconds
+								by default) and per measurement (last 10 events by default).
+							</entry>
+						</row>
+						<row>
+							<entry>Error Rate</entry>
+							<entry>Send Error Rate (number of errors per second)</entry>
+							<entry>Inverse of Exponential Moving Average of the interval
+								between error events with decay in time (lapsing over 60 seconds
+								by default) and per measurement (last 10 events by default).
 							</entry>
 						</row>
 						<row>
 							<entry>Ratio</entry>
-							<entry>Send Error Ratio (ratio of errors to total sends)</entry>
+							<entry>Send Success Ratio (ratio of successful to total sends)</entry>
 							<entry>Estimate the success ratio as the Exponential Moving
 								Average of the series composed of values 1 for success and 0 for
 								failure (decaying as per the rate measurement over time and
-								events). Error ratio is 1 - success ratio.
+								events by default). Error ratio is 1 - success ratio.
 							</entry>
 						</row>
 					</tbody>
 				</tgroup>
 			</table>
+		</section>
+		<section id="jmx-handler-features">
+			<title>MessageHandler MBean Features</title>
 
+			<para>
+				The following table shows the statistics maintained for message
+				handlers. Some metrics are simple counters (message
+				count and error count), and one is an estimate of averages
+				of send duration. The algorithms used to calculate these
+				estimates are described briefly in the table below:
+			</para>
+
+			<table>
+				<title />
+
+				<tgroup cols="3">
+					<colspec colnum="1" colname="col1" colwidth="1*"/>
+					<colspec colnum="2" colname="col2" colwidth="1.5*"/>
+					<colspec colnum="3" colname="col3" colwidth="3*"/>
+					<thead>
+						<row>
+							<entry align="center">Metric Type</entry>
+							<entry align="center">Example</entry>
+							<entry align="center">Algorithm</entry>
+						</row>
+					</thead>
+					<tbody>
+						<row>
+							<entry>Count</entry>
+							<entry>Handle Count</entry>
+							<entry>Simple incrementer. Increases by one when an event
+								occurs.
+							</entry>
+						</row>
+						<row>
+							<entry>Error Count</entry>
+							<entry>Handler Error Count</entry>
+							<entry>
+								Simple incrementer. Increases by one when an invocation results
+								in an error.
+							</entry>
+						</row>
+						<row>
+							<entry>Active Count</entry>
+							<entry>Handler Active Count</entry>
+							<entry>
+								Indicates the number of currently active threads currently invoking
+								the handler (or any downstream synchronous flow).
+							</entry>
+						</row>
+						<row>
+							<entry>Duration</entry>
+							<entry>Handle Duration (method execution time in
+								milliseconds)
+							</entry>
+							<entry>Exponential Moving Average with decay factor (10 by default). Average
+								of the method execution time over roughly the last 10 (default)
+								measurements.
+							</entry>
+						</row>
+					</tbody>
+				</tgroup>
+			</table>
+		</section>
+
+		<section id="jmx-statistics">
+			<title>Time-Based Average Estimates</title>
 			<para>
 				A feature of the time-based average estimates is that they decay
 				with time if no new measurements arrive. To help interpret the behaviour
@@ -534,6 +602,267 @@ public class ContextConfiguration {
 				seconds).
 			</para>
 		</section>
+
+		<section id="jmx-42-improvements">
+			<title>JMX Improvements</title>
+			<para>
+				<emphasis>Version 4.2</emphasis> introduced some important improvements, representing
+				a fairly major overhaul to the JMX support in the framework. These resulted in a
+				significant performance improvement of the JMX statistics collection and
+				much more control thereof, but has some
+				implications for user code in a few specific (uncommon) situations. These
+				changes are detailed below, with a <emphasis role="bold">caution</emphasis> where
+				necessary.
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para><emphasis role="bold">Metrics Capture</emphasis></para>
+					<para>
+						Previously, <classname>MessageSource</classname>, <classname>MessageChannel</classname>
+						and <classname>MessageHandler</classname> metrics were captured by wrapping
+						the object in a JDK dynamic proxy to intercept appropriate method calls and
+						capture the statistics. The proxy was added when an integration MBean exporter
+						was declared in the context.
+					</para>
+					<para>
+						Now, the statistics are captured by the beans themselves; but they are still enabled
+						(by default) only if the integration MBean exporter is declared.
+					</para>
+					<caution>
+						This change means that you no longer automatically get an MBean or statistics for custom
+						<interfacename>MessageHandler</interfacename> implementations, unless those custom
+						handlers extend <classname>AbstractMessageHandler</classname>. The simplest
+						way to resolve this is to extend <classname>AbstractMessageHandler</classname>.
+						If that's not possible, or desired, another work-around is to implement the
+						<interfacename>MessageHandlerMetrics</interfacename> interface. For convenience,
+						a <classname>DefaultMessageHandlerMetrics</classname> is provided to capture
+						and report statistics. Invoke the <code>beforeHandle</code> and
+						<code>afterHandle</code>at the appropriate times. Your
+						<interface>MessageHandlerMetrics</interface> methods can then delegate to this
+						object to obtain each statistic. Similarly, <interface>MessageSource</interface>
+						implementations must extend <classname>AbstractMessageSource</classname>
+						or implement <interfacename>MessageSourceMetrics</interfacename>. Message sources
+						only capture a count so there is no provided convenience class; simply maintain
+						the count in an <classname>AtomicLong</classname> field.
+					</caution>
+					<para>
+						The removal of the proxy has two additional benefits; 1) stack traces in
+						exceptions are reduced (when JMX is enabled) because the proxy is not on the
+						stack; 2) cases where 2 MBeans were exported for the same bean now only
+						export a single MBean with consolidated attributes/operations (see the MBean
+						consolidation bullet below).
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Resolution</emphasis></para>
+					<para>
+						<code>System.nanoTime()</code> is now used to capture times instead of
+						<code>System.currentTimeMillis()</code>. This may provide more accuracy on
+						some JVMs, espcially when durations of less than 1 millisecond are expected
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Setting Initial Statistics Collection State</emphasis></para>
+					<para>
+						Previously, when JMX was enabled, all sources, channels, handlers captured
+						statistics. It is now possible to control whether the statisics are enabled
+						on an individual component. Further, it is possible to capture simple counts
+						on <interfacename>MessageChannel</interfacename>s and
+						<interfacename>MessageHandler</interfacename>s instead of the complete
+						time-based statistics. This can have significant performance implications
+						because you can selectively configure where you need detailed statistics,
+						as well as enable/disable at runtime. Also see the bullet below about
+						setting initial collection state.
+					</para>
+					<para>
+						Two new attributes have been added to the <code>&lt;int-jmx:mbean-exporter/&gt;</code>.
+						<code>counts-enabled</code> is a list of bean name patterns where simple message counts
+						will be enabled. <code>stats-enabled</code> is a list of bean name patterns where full
+						time-based statistics will be enabled. These are initial settings only and each component
+						can have its settings changed at runtime, using JMX or a &lt;control-bus/&gt; using the
+						<code>enableCounts()</code> and <code>enableStats()</code> operations.
+						<emphasis role="bold">Note:</emphasis> stats is a superset of counts, enabling stats
+						will enable counts (this is true for the initial setting via the patterns and at
+						runtime). Disabling counts at runtime will also disable stats.
+					</para>
+					<para>
+						A pattern can be negated by preceding it with <code>!</code>; patterns are evaluated
+						left to right; the first match (positive or negative) wins and the remaining
+						patterns won't be evaluated against that bean. If your bean name begins with
+						<code>!</code>, the <code>!</code> in the pattern can be escaped. <code>"\!foo"</code>
+						will positively match a bean named <code>"!foo"</code>.
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">@IntegrationManagedResource</emphasis></para>
+					<para>
+						Similar to the <classname>@ManagedResource</classname> annotation, the
+						<classname>@IntegrationManagedResource</classname> marks a class as eligible
+						to be exported as an MBean; however, it will only be exported if there is
+						an <classname>IntegrationMBeanExporter</classname> in the application
+						context.
+					</para>
+					<para>
+						Certain Spring Integration classes (in the <code>org.springframework.integration</code>)
+						package) that were previously annotated with
+						<classname>@ManagedResource</classname> are now annotated with both
+						<classname>@ManagedResource</classname> and
+						<classname>@IntegrationManagedResource</classname>. This is for backwards
+						compatibility (see the next bullet). Such MBeans will be exported by any
+						context <interfacename>MBeanServer</interfacename> <emphasis role="bold"
+						>or</emphasis> an <classname>IntegrationMBeanExporter</classname> (but not
+						both - if both exporters are present, the bean is exported by the
+						integration exporter if the bean matches a <code>managed-components</code>
+						pattern).
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Consolidated MBeans</emphasis></para>
+					<para>
+						Certain classes within the framework (mapping routers for example) have additional
+						attributes/operations over and above those provided by metrics and
+						<interfacename>Lifecycle</interfacename>. We will use a <classname
+						>Router</classname> as an example here.
+					</para>
+					<para>
+						Previously, beans of these types were exported as two distinct MBeans: 1) the
+						metrics MBean (with an objectName such as: <code
+						>intDomain:type=MessageHandler,name=myRouter,bean=endpoint</code>).
+						This MBean had metrics attributes and metrics/Lifecycle operations.
+					</para>
+					<para>
+						A second MBean (with an objectName such as: <code
+						>ctxDomain:name=org.springframework.integration.config.RouterFactoryBean#0
+						,type=MethodInvokingRouter</code>) was exported with the channel mappings attribute
+						and operations.
+					</para>
+					<para>
+						Now, the attributes and operations are consolidated into a single MBean. The
+						objectName will depend on the exporter. If exported by the integration
+						MBean exporter, the objectName will be, for example: <code
+						>intDomain:type=MessageHandler,name=myRouter,bean=endpoint</code>. If exported
+						by another exporter, the objectName will be, for example: <code
+						>ctxDomain:name=org.springframework.integration.config.RouterFactoryBean#0
+						,type=MethodInvokingRouter</code>. There is no difference between these MBeans (aside from
+						the objectName), except that the statistics will <emphasis role="bold">not</emphasis>
+						be enabled (the attributes will be 0) by exporters other than the integration exporter;
+						statistics can be enabled at runtime using the JMX operations. When exported
+						by the integration MBean exporter, the initial state can be managed as described above.
+					</para>
+					<caution>
+						If you are currently using the second MBean to change, for example, channel mappings,
+						<emphasis role="bold">and</emphasis> you are using the integration MBean
+						exporter, note that the objectName has changed because of the MBean consolidation.
+						There is no change if you are not using the integration MBean exporter.
+					</caution>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">MBean Exporter Bean Name Patterns</emphasis></para>
+					<para>
+						Previously, the <code>managed-components</code> patterns were inclusive only. If a bean
+						name matched one of the patterns it would be included. Now, the pattern can be
+						negated by prefixing it with <code>!</code>. i.e. <code>"!foo*, foox"</code> will match
+						all beans that don't start with <code>foo</code>, except <code>foox</code>. Patterns
+						are evaluated left to right and the first match (positive or negative) wins and no
+						further patterns are applied.
+					</para>
+					<caution>
+						The addition of this syntax to the pattern causes one possible (although perhaps unlikey)
+						problem. If you have a bean <code>"!foo"</code> <emphasis role="bold">and</emphasis>
+						you included a pattern <code>"!foo"</code> in your MBean exporter's
+						<code>managed-components</code> patterns; it will no long match; the pattern will now match all
+						beans <emphasis role="bold">not</emphasis> named <code>foo</code>. In this case, you
+						can escape the <code>!</code> in the pattern with <code>\</code>. The pattern
+						<code>"\!foo"</code> means match a bean named <code>"!foo"</code>.
+					</caution>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Replacing the Default Channel/Handler Statistics</emphasis></para>
+					<para>
+						A new strategy interface <interfacename>MetricsFactory</interfacename> has been introduced
+						allowing you to provide custom channel metrics for your <interfacename>MessageChannel</interfacename>s
+						and <interfacename>MessageHandler</interfacename>s. By default, a
+						<classname>DefaultMetricsFactory</classname> provides default implementation of
+						<interfacename>MessageChannelMetrics</interfacename> and
+						<interfacename>MessageHandlerMetrics</interfacename> which are described in the next bullet.
+						To override the default <interfacename>MetricsFactory</interfacename> use the MBean exporter's
+						<code>metrics-factory</code> attribute to provide a reference to your
+						<interface>MetricsFactory</interface> bean instance. You can either customize the
+						default implementations as described in the next bullet, or provide completely different
+						implementations by overriding <classname>AbstractMessageChannelMetrics</classname>
+						and/or <classname>AbstractMessageHandlerMetrics</classname>.
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Customizing the Default Channel/Handler Statistics</emphasis></para>
+					<para>
+						See <xref linkend="jmx-statistics" /> and the Javadocs for the
+						<classname>ExponentialMovingAverage*</classname> classes for more information about these
+						values.
+					</para>
+					<para>
+						By default, the <classname>DefaultMessageChannelMetrics</classname> and
+						<classname>DefaultMessageHandlerMetrics</classname> use a <code>window</code> of
+						10 measurements, a rate period of 1 second (rate per second) and a decay lapse period
+						of 1 minute.
+					</para>
+					<para>
+						If you wish to override these defaults, you can provide a custom
+						<interfacename>MetricsFactory</interfacename> that returns appropriately configured
+						metrics and provide a reference to it to the MBean exporter as described above.
+					</para>
+					<para>
+						Example:
+					</para>
+					<para>
+						<programlisting language="java"><![CDATA[public static class CustomMetrics implements MetricsFactory {
+
+    @Override
+    public AbstractMessageChannelMetrics createChannelMetrics(String name) {
+        return new DefaultMessageChannelMetrics(name,
+                new ExponentialMovingAverage(20, 1000000.),
+                new ExponentialMovingAverageRate(2000, 120000, 30, true),
+                new ExponentialMovingAverageRatio(130000, 40, true),
+                new ExponentialMovingAverageRate(3000, 140000, 50, true));
+    }
+
+    @Override
+    public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
+        return new DefaultMessageHandlerMetrics(name, new ExponentialMovingAverage(20, 1000000.));
+    }
+
+}]]></programlisting>
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Advanced Customization</emphasis></para>
+					<para>
+						The customizations described above are wholesale and will apply to all appropriate
+						beans exported by the MBean exporter. This is the extent of customization available
+						using XML configuration.
+					</para>
+					<para>
+						Individual beans can be provided with different implementations using java
+						<code>@Configuration</code> or programmatically at runtime, after the application
+						context has been refreshed, by invoking the <code>configureMetrics</code> methods
+						on <classname>AbstractMessageChannel</classname> and
+						<classname>AbstractMessageHandler</classname>.
+					</para>
+				</listitem>
+				<listitem>
+					<para><emphasis role="bold">Performance Improvement</emphasis></para>
+					<para>
+						Previously, the time-based metrics (see <xref linkend="jmx-statistics"/>) were
+						calculated in real time. The statistics are now calculated when retrieved instead.
+						This resulted in a significant performance improvement, at the expense of a
+						small amount of additional memory for each statistic. As discussed in the bullet
+						above, the statistics can be disabled altogether, while retaining the MBean
+						allowing the invocation of <interfacename>Lifecycle</interfacename> methods.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+
 		<section id="jmx-mbean-shutdown">
 			<title>Orderly Shutdown Managed Operation</title>
 
@@ -541,7 +870,7 @@ public class ContextConfiguration {
 				The MBean exporter provides a JMX operation to shut down the application
 				in an orderly manner, intended for use before terminating the JVM.
 			</para>
-			<programlisting language="java"><![CDATA[public void stopActiveComponents(boolean force, long howLong)
+			<programlisting language="java"><![CDATA[public void stopActiveComponents(long howLong)
 ]]></programlisting>
 			<para>
 				Its use and operation are described in <xref linkend="jmx-shutdown"/>.

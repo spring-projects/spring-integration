@@ -24,6 +24,8 @@ import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
 
 /**
+ * Default implementation; use the full constructor to customize the moving averages.
+ *
  * @author Dave Syer
  * @author Gary Russell
  * @since 2.0
@@ -39,17 +41,32 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 
 	private final AtomicLong errorCount = new AtomicLong();
 
-	private final ExponentialMovingAverage duration = new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW,
-			1000000.);
+	private final ExponentialMovingAverage duration;
 
 	public DefaultMessageHandlerMetrics() {
-		super(null);
+		this(null);
 	}
 
+	/**
+	 * Construct an instance with the default moving average window (10).
+	 * @param name the name.
+	 */
 	public DefaultMessageHandlerMetrics(String name) {
-		super(name);
+		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.));
 	}
 
+	/**
+	 * Construct an instance with the supplied {@link ExponentialMovingAverage} calculating
+	 * the duration of processing by the message handler (and any downstream synchronous
+	 * endpoints).
+	 * @param name the name.
+	 * @param duration an {@link ExponentialMovingAverage} for calculating the duration.
+	 * @since 4.2
+	 */
+	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration) {
+		super(name);
+		this.duration = duration;
+	}
 
 	@Override
 	public MetricsContext beforeHandle(Message<?> message) {

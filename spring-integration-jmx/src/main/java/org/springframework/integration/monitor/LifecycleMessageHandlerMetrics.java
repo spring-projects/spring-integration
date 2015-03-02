@@ -17,7 +17,9 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.handler.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -32,7 +34,8 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  * @since 2.0
  */
 @IntegrationManagedResource
-public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Lifecycle {
+public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Lifecycle,
+		ConfigurableMetricsAware<AbstractMessageHandlerMetrics> {
 
 	private final Lifecycle lifecycle;
 
@@ -42,6 +45,14 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 	public LifecycleMessageHandlerMetrics(Lifecycle lifecycle, MessageHandlerMetrics delegate) {
 		this.lifecycle = lifecycle;
 		this.delegate = delegate;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
+		if (this.delegate instanceof ConfigurableMetricsAware) {
+			((ConfigurableMetricsAware<AbstractMessageHandlerMetrics>) this.delegate).configureMetrics(metrics);
+		}
 	}
 
 	@Override
