@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import kafka.common.ErrorMapping;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -34,8 +36,6 @@ import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.PartitionNotFoundException;
 import org.springframework.integration.kafka.core.Result;
 import org.springframework.util.Assert;
-
-import kafka.common.ErrorMapping;
 
 /**
  * Base implementation for {@link OffsetManager}. Subclasses may customize functionality as necessary.
@@ -54,6 +54,8 @@ public abstract class AbstractOffsetManager implements OffsetManager, Disposable
 
 	protected Map<Partition, Long> initialOffsets;
 
+	protected Map<Partition, Long> highestUpdatedOffsets = new ConcurrentHashMap<Partition, Long>();
+
 	public AbstractOffsetManager(ConnectionFactory connectionFactory) {
 		this(connectionFactory, new HashMap<Partition, Long>());
 	}
@@ -62,7 +64,7 @@ public abstract class AbstractOffsetManager implements OffsetManager, Disposable
 		Assert.notNull(connectionFactory, "A 'connectionFactory' can't be null");
 		Assert.notNull(initialOffsets, "An initialOffsets can't be null");
 		this.connectionFactory = connectionFactory;
-		this.initialOffsets = initialOffsets;
+		this.initialOffsets = new HashMap<Partition, Long>(initialOffsets);
 	}
 
 	public String getConsumerId() {
@@ -108,7 +110,11 @@ public abstract class AbstractOffsetManager implements OffsetManager, Disposable
 	 */
 	@Override
 	public synchronized final void updateOffset(Partition partition, long offset) {
-		doUpdateOffset(partition, offset);
+		Long highestUpdatedOffset = this.highestUpdatedOffsets.get(partition);
+		if (highestUpdatedOffset == null || highestUpdatedOffset < offset) {
+			highestUpdatedOffsets.put(partition, offset);
+			doUpdateOffset(partition, offset);
+		}
 	}
 
 	/**
@@ -148,6 +154,7 @@ public abstract class AbstractOffsetManager implements OffsetManager, Disposable
 		for (Partition partition : partitionsToReset) {
 			doRemoveOffset(partition);
 			this.initialOffsets.remove(partition);
+			this.highestUpdatedOffsets.remove(partition);
 		}
 	}
 

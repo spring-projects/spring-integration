@@ -56,7 +56,7 @@ class ConcurrentMessageListenerDispatcher implements Lifecycle {
 
 	private volatile boolean running;
 
-	private final MessageListener delegateListener;
+	private final Object delegateListener;
 
 	private final ErrorHandler errorHandler;
 
@@ -68,8 +68,13 @@ class ConcurrentMessageListenerDispatcher implements Lifecycle {
 
 	private Executor taskExecutor;
 
-	public ConcurrentMessageListenerDispatcher(MessageListener delegateListener, ErrorHandler errorHandler,
+	public ConcurrentMessageListenerDispatcher(Object delegateListener, ErrorHandler errorHandler,
 			Collection<Partition> partitions, OffsetManager offsetManager, int consumers, int queueSize) {
+		Assert.isTrue
+				(delegateListener instanceof MessageListener
+								|| delegateListener instanceof AcknowledgingMessageListener,
+						"Either a " + MessageListener.class.getName() + " or a "
+								+ AcknowledgingMessageListener.class.getName() + " must be provided");
 		Assert.notEmpty(partitions, "A set of partitions must be provided");
 		Assert.isTrue(consumers <= partitions.size(),
 				"The number of consumers must be smaller or equal to the number of partitions");
