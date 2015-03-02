@@ -35,23 +35,17 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
  */
 public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	
-	private MongoDbMetadataStore store = null;
-	private MongoDbFactory mongoDbFactory = null;
 	private final static String DEFAULT_COLLECTION_NAME = "metadatastore";
 	private String file1 = "/remotepath/filesTodownload/file-1.txt";
 	private String file1Id = "12345";
 
-	@MongoDbAvailable
-	@Before
-	public void configure() throws Exception{
-		mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		store = new MongoDbMetadataStore(template);
-	}
-	
 	@Test
 	@MongoDbAvailable
-	public void testGetFromStore(){
+	public void testGetFromStore() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
+		
 		String fileID = store.get(file1);
 		assertNull(fileID);
 		
@@ -63,7 +57,11 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
-	public void testPutIfAbsent(){
+	public void testPutIfAbsent() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
+		
 		String fileID = store.get(file1);
 		assertNull(fileID);
 		
@@ -74,7 +72,11 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
-	public void testRemove(){
+	public void testRemove() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
+		
 		String fileID = store.remove(file1);
 		assertNull(fileID);
 		
@@ -89,7 +91,11 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
-	public void testReplace(){
+	public void testReplace() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
+		
 		boolean removedValue = store.replace(file1, file1Id, "4567");
 		assertFalse(removedValue);
 		
