@@ -105,7 +105,7 @@ public class ExponentialMovingAverageRate {
 
 	/**
 	 * Add a new event to the series at time t.
-	 * @param t a new event to the series in milliseconds.
+	 * @param t a new event to the series (System.nanoTime()).
 	 */
 	public synchronized void increment(long t) {
 		if (this.times.size() == this.retention) {

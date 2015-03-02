@@ -22,6 +22,7 @@
 					  object-naming-strategy="keyNamer"
 					  counts-enabled="foo, !baz, ba*"
 					  stats-enabled="fiz, buz" 
+					  managed-components="\!excluded, f*, b*, q*, t*"
 					  metrics-factory="mf" />
 					  
 	<util:properties id="appProperties">
@@ -43,6 +44,10 @@
 
 	<si:channel id="buz" />
 
-	<bean id="mf" class="org.springframework.integration.monitor.DefaultMetricsFactory" />
+	<si:channel id="!excluded" />
+
+	<si:transformer id="transformer" input-channel="foo" expression="payload" />
+
+	<bean id="mf" class="org.springframework.integration.jmx.config.MBeanExporterParserTests$CustomMetrics" />
 
 </beans>
