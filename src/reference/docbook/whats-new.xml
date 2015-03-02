@@ -56,6 +56,21 @@
 				See <xref linkend="tcp-events"/> for more information.
 			</para>
 		</section>
+		<section id="4.2-tcp-gw-rto">
+			<title>TCP Gateway Remote Timeout</title>
+			<para>
+				The <classname>TcpOutboundGateway</classname> now supports <code>remote-timeout-expression</code>
+				as an alternative to the existing <code>remote-timeout</code> attribute.
+				This allows setting the timeout based on each message.
+			</para>
+			<para>
+				Also, the <code>remote-timeout</code> no longer defaults to the same value as <code>reply-timeout</code>
+				which has a completely different meaning. <!-- MIGRATION -->
+			</para>
+			<para>
+				See <xref linkend="tcp-ob-gateway-attributes"/> for more information.
+			</para>
+		</section>
 		<section id="4.2-inbound-channel-adapter-annotation">
 			<title>@InboundChannelAdapter</title>
 			<para>

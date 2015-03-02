@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.ip.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -46,8 +47,12 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				IpAdapterParserUtils.REPLY_CHANNEL);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.REQUEST_TIMEOUT);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.REMOTE_TIMEOUT);
+		BeanDefinition remoteTimeoutExpression = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression
+			(IpAdapterParserUtils.REMOTE_TIMEOUT, IpAdapterParserUtils.REMOTE_TIMEOUT_EXPRESSION,
+					parserContext, element, false);
+		if (remoteTimeoutExpression != null) {
+			builder.addPropertyValue("remoteTimeoutExpression", remoteTimeoutExpression);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.REPLY_TIMEOUT, "sendTimeout");
 		return builder;

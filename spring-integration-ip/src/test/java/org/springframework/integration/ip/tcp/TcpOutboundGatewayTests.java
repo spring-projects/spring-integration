@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -125,14 +126,12 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 		// check the default remote timeout
-		assertEquals(Long.valueOf(10000), TestUtils.getPropertyValue(gateway, "remoteTimeout", Long.class));
+		assertEquals("10000", TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.literalValue"));
 		gateway.setSendTimeout(123);
-		// ensure this also changed the remote timeout
-		assertEquals(Long.valueOf(123), TestUtils.getPropertyValue(gateway, "remoteTimeout", Long.class));
 		gateway.setRemoteTimeout(60000);
 		gateway.setSendTimeout(61000);
 		// ensure this did NOT change the remote timeout
-		assertEquals(Long.valueOf(60000), TestUtils.getPropertyValue(gateway, "remoteTimeout", Long.class));
+		assertEquals("60000", TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.literalValue"));
 		gateway.setRequestTimeout(60000);
 		for (int i = 100; i < 200; i++) {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());
@@ -685,7 +684,7 @@ public class TcpOutboundGatewayTests {
 		QueueChannel replyChannel = new QueueChannel();
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
-		gateway.setRemoteTimeout(5000);
+		gateway.setRemoteTimeoutExpression(new SpelExpressionParser().parseExpression("5000"));
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -702,4 +701,5 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 		ccf.getConnection();
 	}
+
 }

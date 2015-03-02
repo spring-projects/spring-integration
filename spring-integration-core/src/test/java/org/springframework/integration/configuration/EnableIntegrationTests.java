@@ -125,7 +125,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import reactor.Environment;
-import reactor.fn.Consumer;
 import reactor.rx.Promise;
 import reactor.rx.Streams;
 import reactor.spring.context.config.EnableReactor;
@@ -930,6 +929,7 @@ public class EnableIntegrationTests {
 
 				@Override
 				protected boolean doSend(Message<?> message, long timeout) {
+					logger.debug("---- 'publishedChannel' Thread State: " + Thread.currentThread().isInterrupted());
 					logger.debug("---- 'publishedChannel' before 'doSend': " + message);
 					logger.debug("---- 'publishedChannel' state before: " + getQueueSize() +
 							", " + getRemainingCapacity());

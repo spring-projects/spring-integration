@@ -709,7 +709,7 @@
     reply-channel="replyChannel"
     connection-factory="cfClient"
     request-timeout="10000"
-    remote-timeout="10000"/>]]></programlisting>
+    remote-timeout="10000"/> <!-- or e.g. remote-timeout-expression="headers['timeout']" -->]]></programlisting>
         A simple outbound TCP gateway.
   </para>
   </section>
@@ -1960,16 +1960,22 @@ private CompositeExecutor compositeExecutor() {
             <row>
               <entry>reply-channel</entry>
               <entry></entry>
-              <entry>Optional. The channel to which reply messages may be sent if the
-                     original outbound message did not contain a reply channel header.
-                     </entry>
+              <entry>Optional. The channel to which reply messages may be sent.</entry>
             </row>
             <row>
               <entry>remote-timeout</entry>
               <entry></entry>
               <entry>The time in milliseconds for which the gateway will wait for a reply from the
-                     remote system.
-                     Default: Same value as reply-timeout, if specified, or 10000 (10 seconds) otherwise.</entry>
+                     remote system. Mutually exclusive with <code>remote-timeout-expression</code>.
+                     Default: 10000 (10 seconds). Note: in versions prior to <emphasis>4.2</emphasis>
+                     this value defaulted to <code>reply-timeout</code> (if set).</entry>
+            </row>
+            <row>
+              <entry>remote-timeout-expression</entry>
+              <entry></entry>
+              <entry>A SpEL expression, evaluated against the message to determine
+                     the time in milliseconds for which the gateway will wait for a reply from the
+                     remote system. Mutually exclusive with <code>remote-timeout</code>.</entry>
             </row>
             <row>
               <entry>request-timeout</entry>

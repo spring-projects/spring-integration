@@ -402,7 +402,18 @@
 						from the remote system. Prior to 2.2, this was specified
 						with the reply-timeout attribute. To provide easier migration,
 						this attribute defaults to the same value of the reply-timeout,
-						if supplied, or 10 seconds otherwise.
+						if supplied, or 10 seconds otherwise. Mutually exclusive with
+						'remote-timeout-expression'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="remote-timeout-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies an expresssion that is evaluated against the outbound message 
+						to determine the time the gateway will wait for a reply
+						from the remote system. Mutually exclusive with
+						'remote-timeout'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
