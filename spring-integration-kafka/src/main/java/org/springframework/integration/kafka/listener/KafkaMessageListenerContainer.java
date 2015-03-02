@@ -31,6 +31,23 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.kafka.core.BrokerAddress;
+import org.springframework.integration.kafka.core.ConnectionFactory;
+import org.springframework.integration.kafka.core.ConsumerException;
+import org.springframework.integration.kafka.core.FetchRequest;
+import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
+import org.springframework.integration.kafka.core.KafkaMessage;
+import org.springframework.integration.kafka.core.KafkaMessageBatch;
+import org.springframework.integration.kafka.core.KafkaTemplate;
+import org.springframework.integration.kafka.core.Partition;
+import org.springframework.integration.kafka.core.Result;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+
 import com.gs.collections.api.RichIterable;
 import com.gs.collections.api.block.function.Function;
 import com.gs.collections.api.block.predicate.Predicate;
@@ -48,23 +65,6 @@ import com.gs.collections.impl.factory.Multimaps;
 import com.gs.collections.impl.list.mutable.FastList;
 
 import kafka.common.ErrorMapping;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.kafka.core.BrokerAddress;
-import org.springframework.integration.kafka.core.ConnectionFactory;
-import org.springframework.integration.kafka.core.ConsumerException;
-import org.springframework.integration.kafka.core.FetchRequest;
-import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
-import org.springframework.integration.kafka.core.KafkaMessage;
-import org.springframework.integration.kafka.core.KafkaMessageBatch;
-import org.springframework.integration.kafka.core.KafkaTemplate;
-import org.springframework.integration.kafka.core.Partition;
-import org.springframework.integration.kafka.core.Result;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Marius Bogoevici
@@ -105,7 +105,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 
 	private int queueSize = 1024;
 
-	private MessageListener messageListener;
+	private Object messageListener;
 
 	private ErrorHandler errorHandler = new LoggingErrorHandler();
 
@@ -142,11 +142,16 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 		this.offsetManager = offsetManager;
 	}
 
-	public MessageListener getMessageListener() {
+	public Object getMessageListener() {
 		return messageListener;
 	}
 
-	public void setMessageListener(MessageListener messageListener) {
+	public void setMessageListener(Object messageListener) {
+		Assert.isTrue
+				(messageListener instanceof MessageListener
+								|| messageListener instanceof AcknowledgingMessageListener,
+						"Either a " + MessageListener.class.getName() + " or a "
+								+ AcknowledgingMessageListener.class.getName() + " must be provided");
 		this.messageListener = messageListener;
 	}
 
@@ -297,7 +302,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	 */
 	public class FetchTask implements Runnable {
 
-		private BrokerAddress brokerAddress;
+		private final BrokerAddress brokerAddress;
 
 		public FetchTask(BrokerAddress brokerAddress) {
 			this.brokerAddress = brokerAddress;

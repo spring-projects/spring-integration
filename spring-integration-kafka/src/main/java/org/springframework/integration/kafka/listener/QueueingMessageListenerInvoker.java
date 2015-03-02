@@ -21,6 +21,7 @@ import java.util.concurrent.BlockingQueue;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.kafka.core.KafkaMessage;
+import org.springframework.util.Assert;
 
 /**
  * Invokes a delegate {@link MessageListener} for all the messages passed to it, storing them
@@ -34,16 +35,30 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 
 	private volatile boolean running = false;
 
-	private final MessageListener delegate;
+	private final MessageListener messageListener;
+
+	private final AcknowledgingMessageListener acknowledgingMessageListener;
 
 	private final OffsetManager offsetManager;
 
 	private final ErrorHandler errorHandler;
 
-	public QueueingMessageListenerInvoker(int capacity, OffsetManager offsetManager, MessageListener delegate,
+	public QueueingMessageListenerInvoker(int capacity, OffsetManager offsetManager, Object delegate,
 			ErrorHandler errorHandler) {
+		if (delegate instanceof MessageListener) {
+			this.messageListener = (MessageListener) delegate;
+			this.acknowledgingMessageListener = null;
+		}
+		else if (delegate instanceof AcknowledgingMessageListener) {
+			this.acknowledgingMessageListener = (AcknowledgingMessageListener) delegate;
+			this.messageListener = null;
+		}
+		else {
+			// it's neither, an exception will be thrown
+			throw new IllegalArgumentException("Either a " + MessageListener.class.getName() + " or a "
+					+ AcknowledgingMessageListener.class.getName() + " must be provided");
+		}
 		this.offsetManager = offsetManager;
-		this.delegate = delegate;
 		this.errorHandler = errorHandler;
 		this.messages = new ArrayBlockingQueue<KafkaMessage>(capacity, true);
 	}
@@ -102,7 +117,12 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 			try {
 				KafkaMessage message = messages.take();
 				try {
-					delegate.onMessage(message);
+					if (messageListener != null) {
+						messageListener.onMessage(message);
+					}
+					else {
+						acknowledgingMessageListener.onMessage(message, new DefaultAcknowledgment(offsetManager, message));
+					}
 				}
 				catch (Exception e) {
 					if (errorHandler != null) {
@@ -110,8 +130,10 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 					}
 				}
 				finally {
-					offsetManager.updateOffset(message.getMetadata().getPartition(),
-							message.getMetadata().getNextOffset());
+					if (messageListener != null) {
+						offsetManager.updateOffset(message.getMetadata().getPartition(),
+								message.getMetadata().getNextOffset());
+					}
 				}
 			}
 			catch (InterruptedException e) {

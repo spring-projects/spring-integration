@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.support;
 
 /**
  * @author Artem Bilan
+ * @author Marius Bogoevici
  * @since 1.0
  */
 public abstract class KafkaHeaders {
@@ -31,5 +32,9 @@ public abstract class KafkaHeaders {
 	public static final String PARTITION_ID = PREFIX + "_partitionId";
 
 	public static final String OFFSET = PREFIX + "_offset";
+
+	public static final String NEXT_OFFSET = PREFIX + "nextOffset";
+
+	public static final String ACKNOWLEDGMENT = PREFIX + "acknowledgment";
 
 }
