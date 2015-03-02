@@ -56,8 +56,6 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private volatile boolean messageBuilderFactorySet;
-
 	/**
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
 	 */
@@ -83,16 +81,13 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (this.messageBuilderFactory == null) {
-			this.messageBuilderFactory = new DefaultMessageBuilderFactory();
-		}
 		return this.messageBuilderFactory;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		getEvaluationContext();
-		if (this.messageBuilderFactory == null) {
+		if (this.beanFactory != null) {
 			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 		}
 	}
