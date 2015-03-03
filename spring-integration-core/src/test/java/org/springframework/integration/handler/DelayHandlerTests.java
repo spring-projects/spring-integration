@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,20 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
@@ -89,6 +93,11 @@ public class DelayHandlerTests {
 		delayHandler.setBeanFactory(mock(BeanFactory.class));
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
+	}
+
+	@After
+	public void tearDown() {
+		taskScheduler.destroy();
 	}
 
 	private void setDelayExpression() {
@@ -465,6 +474,37 @@ public class DelayHandlerTests {
 		message = results.receive(500);
 		assertNull(message);
 	}
+
+	@Test
+	public void testRescheduleForTheDateDelay() throws Exception {
+		this.delayHandler.setDelayExpression(new SpelExpressionParser().parseExpression("payload"));
+		this.delayHandler.setOutputChannel(new DirectChannel());
+		this.delayHandler.setIgnoreExpressionFailures(false);
+		startDelayerHandler();
+		Calendar releaseDate = Calendar.getInstance();
+		releaseDate.add(Calendar.HOUR, 1);
+		this.delayHandler.handleMessage(new GenericMessage<Date>(releaseDate.getTime()));
+
+		// emulate restart
+		this.taskScheduler.destroy();
+		MessageGroupStore messageStore = TestUtils.getPropertyValue(this.delayHandler, "messageStore",
+				MessageGroupStore.class);
+		MessageGroup messageGroup = messageStore.getMessageGroup(DELAYER_MESSAGE_GROUP_ID);
+		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
+		Object payload = messageInStore.getPayload();
+		DirectFieldAccessor dfa = new DirectFieldAccessor(payload);
+		long requestTime = (Long) dfa.getPropertyValue("requestDate");
+		Calendar requestDate = Calendar.getInstance();
+		requestDate.setTimeInMillis(requestTime);
+		requestDate.add(Calendar.HOUR, -2);
+		dfa.setPropertyValue("requestDate", requestDate.getTimeInMillis());
+		this.taskScheduler.afterPropertiesSet();
+		this.delayHandler.reschedulePersistedMessages();
+		Thread.sleep(10);
+		Queue<?> works = TestUtils.getPropertyValue(this.taskScheduler, "scheduledExecutor.workQueue", Queue.class);
+		assertEquals(1, works.size());
+	}
+
 
 	private void waitForLatch(long timeout) {
 		try {
