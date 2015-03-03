@@ -108,5 +108,15 @@
 				gateway; the dependency was removed for those users who don't need it.
 			</para>
 		</section>
+		<section id="4.2-jms-changes">
+			<title>JMS Changes</title>
+			<para>
+				The <code>error-channel</code> now is used for the conversion errors, which have caused a transaction
+				rollback and message redelivery previously.
+			</para>
+			<para>
+				See <xref linkend="jms-message-driven-channel-adapter"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

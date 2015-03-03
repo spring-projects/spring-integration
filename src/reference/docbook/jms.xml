@@ -144,6 +144,19 @@
           'error-channel' should also be one-way. For example, it could simply send to a logging handler,
           or it could be connected to a different JMS &lt;outbound-channel-adapter&gt; element.
       </para>
+      <para>
+          Starting with <emphasis>version 4.2</emphasis> the 'error-channel' is used for the conversion errors, too.
+          Previously, if a JMS &lt;message-driven-channel-adapter&gt; or &lt;inbound gateway&gt; could
+          not deliver a message due to a conversion error, an exception would be thrown back to the
+          container. If the container was configured to use transactions, the message would be
+          rolled back and redelivered repeatedly. The conversion process occurs before and during
+          message construction so such errors were not sent to the 'error-channel'. Now such conversion exceptions
+          result in an <classname>ErrorMessage</classname> being sent to the 'error-channel', with the exception as
+          the <code>payload</code>. If you wish the transaction to be rolled back, and you have an 'error-channel'
+          defined, the integration flow on the 'error-channel' must re-throw the exception (or another). If the error
+          flow does not throw an exception, the transaction will be committed and the message removed.
+          If no 'error-channel' is defined, the exception is thrown back to the container, as before.
+      </para>
   </section>
 
   <section id="jms-outbound-channel-adapter">

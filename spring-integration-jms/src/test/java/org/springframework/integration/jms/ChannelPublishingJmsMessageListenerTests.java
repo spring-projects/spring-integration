@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,33 @@
 
 package org.springframework.integration.jms;
 
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.internal.stubbing.answers.DoesNothing;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -46,7 +57,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 	@Test(expected = InvalidDestinationException.class)
 	public void noReplyToAndNoDefault() throws JMSException {
 		final QueueChannel requestChannel = new QueueChannel();
-		this.startBackgroundReplier(requestChannel);
+		startBackgroundReplier(requestChannel);
 		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
 		listener.setExpectReply(true);
 		listener.setRequestChannel(requestChannel);
@@ -57,11 +68,38 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.onMessage(jmsMessage, session);
 	}
 
+	@Test
+	public void testBadConversion() throws Exception {
+		final QueueChannel requestChannel = new QueueChannel();
+		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
+		Log logger = spy(TestUtils.getPropertyValue(listener, "logger", Log.class));
+		doAnswer(new DoesNothing()).when(logger).error(Matchers.anyString(), Matchers.any(Throwable.class));
+		new DirectFieldAccessor(listener).setPropertyValue("logger", logger);
+		listener.setRequestChannel(requestChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		listener.setErrorChannel(errorChannel);
+		listener.setBeanFactory(mock(BeanFactory.class));
+		listener.setMessageConverter(new TestMessageConverter() {
+
+			@Override
+			public Object fromMessage(javax.jms.Message message) throws JMSException, MessageConversionException {
+				return null;
+			}
+
+		});
+		listener.afterPropertiesSet();
+		javax.jms.Message jmsMessage = session.createTextMessage("test");
+		listener.onMessage(jmsMessage, mock(Session.class));
+		ErrorMessage received = (ErrorMessage) errorChannel.receive(0);
+		assertNotNull(received);
+		assertThat(received.getPayload().getMessage(), startsWith("Inbound conversion failed"));
+	}
+
 	private void startBackgroundReplier(final PollableChannel channel) {
 		new SimpleAsyncTaskExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
-				Message<?> request = channel.receive(5000);
+				Message<?> request = channel.receive(50000);
 				Message<?> reply = new GenericMessage<String>(((String) request.getPayload()).toUpperCase());
 				((MessageChannel) request.getHeaders().getReplyChannel()).send(reply, 5000);
 			}
