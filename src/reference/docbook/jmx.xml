@@ -860,6 +860,16 @@ public class ContextConfiguration {
 						allowing the invocation of <interfacename>Lifecycle</interfacename> methods.
 					</para>
 				</listitem>
+				<listitem>
+					<para><emphasis role="bold">IntegrationMBeanExporter changes</emphasis></para>
+					<para>
+						The <classname>IntegrationMBeanExporter</classname> no longer implements
+						<interfacename>SmartLifecycle</interfacename>; this means that <code>start()</code>
+						and <code>stop()</code> operations are no longer available to register/unregister
+						MBeans. The MBeans are now registered during context initialization and unregistered
+						when the context is destroyed.
+					</para>
+				</listitem>
 			</itemizedlist>
 		</section>
 

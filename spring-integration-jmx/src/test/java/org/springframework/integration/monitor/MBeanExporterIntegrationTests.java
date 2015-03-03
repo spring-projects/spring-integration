@@ -190,6 +190,15 @@ public class MBeanExporterIntegrationTests {
 		}
 		// Lifecycle method name
 		assertEquals("start", startName);
+
+		context.close();
+
+		context = new GenericXmlApplicationContext(getClass(), "lifecycle-no-source.xml");
+		server = context.getBean(MBeanServer.class);
+		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		assertEquals(1, names.size());
+		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=gateway,*"), null);
+		assertEquals(1, names.size());
 	}
 
 	@Test

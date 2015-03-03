@@ -126,6 +126,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			BeanDefinitionBuilder channelRegistryBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(ChannelInitializer.AutoCreateCandidatesCollector.class);
 			channelRegistryBuilder.addConstructorArgValue(new ManagedSet<String>());
+			channelRegistryBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE); //SPR-12761
 			BeanDefinitionHolder channelRegistryHolder =
 					new BeanDefinitionHolder(channelRegistryBuilder.getBeanDefinition(),
 							IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
