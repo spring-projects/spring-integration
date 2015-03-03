@@ -23,6 +23,8 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.mongodb.WriteResult;
+
 /**
  * MongoDbMetadataStore implementation of {@link ConcurrentMetadataStore}.
  * Use this {@link org.springframework.integration.metadata.MetadataStore} to
@@ -78,14 +80,20 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		Query query = new Query(Criteria.where("key").is(key));
-		return template.findOne(query, Datastore.class, collectionName).value;
+		Datastore result = template.findOne(query, Datastore.class, collectionName);
+		if(result != null){
+			return result.value;	
+		}
+		return null;
+		
 	}
 
 	@Override
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		Query query = new Query(Criteria.where("key").is(key));
-		return template.findAndRemove(query, Datastore.class).value;
+		Datastore result = template.findAndRemove(query, Datastore.class,collectionName);
+		return result==null?null:result.value;
 	}
 
 	@Override
@@ -93,10 +101,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
 
-		String result = null;
+		String result = value;
 		Query query = new Query(Criteria.where("key").is(key));
 		if (template.exists(query, collectionName)) {
-			result = value;
+			result = null;
 		} else {
 			template.save(new Datastore(key, value), collectionName);
 		}
@@ -108,10 +116,12 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
-		Query query = new Query(Criteria.where("file").is(key));
+		
+		Query query = new Query(Criteria.where("key").is(key));
 		Update update = new Update();
-		update.set(oldValue, newValue);
-		return (template.updateFirst(query, update, Datastore.class).getN() > 0);
+		update.set("value", newValue);
+		WriteResult result = template.updateFirst(query, update, Datastore.class,collectionName);
+		return result.isUpdateOfExisting();
 	}
 
 	private class Datastore {

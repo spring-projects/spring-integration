@@ -38,18 +38,24 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	private final static String DEFAULT_COLLECTION_NAME = "metadatastore";
 	private String file1 = "/remotepath/filesTodownload/file-1.txt";
 	private String file1Id = "12345";
-
+	private MongoDbMetadataStore store = null;
+	
 	@Test
 	@MongoDbAvailable
-	public void testGetFromStore() throws Exception{
+	@Before
+	public void configure() throws Exception  {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
-		
+		store = new MongoDbMetadataStore(template);
+	}
+	@Test
+	@MongoDbAvailable
+	public void testGetFromStore(){
 		String fileID = store.get(file1);
 		assertNull(fileID);
 		
 		store.put(file1, file1Id);
+		
 		fileID = store.get(file1);
 		assertNotNull(fileID);
 		assertEquals(file1Id, fileID);
@@ -58,10 +64,6 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void testPutIfAbsent() throws Exception{
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
-		
 		String fileID = store.get(file1);
 		assertNull(fileID);
 		
@@ -73,10 +75,6 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void testRemove() throws Exception{
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
-		
 		String fileID = store.remove(file1);
 		assertNull(fileID);
 		
@@ -92,10 +90,6 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void testReplace() throws Exception{
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		MongoDbMetadataStore store = new MongoDbMetadataStore(template);
-		
 		boolean removedValue = store.replace(file1, file1Id, "4567");
 		assertFalse(removedValue);
 		
