@@ -22,10 +22,18 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -34,6 +42,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
+import org.springframework.integration.support.management.MetricsContext;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -72,9 +84,29 @@ public class MonitorTests {
 
 
 	@Test
-	public void testStats() {
+	public void testStats() throws InterruptedException {
+		final CountDownLatch afterHandleLatch = new CountDownLatch(1);
+
+		DefaultMessageHandlerMetrics handlerMetrics =
+				TestUtils.getPropertyValue(this.handler, "handlerMetrics", DefaultMessageHandlerMetrics.class);
+		handlerMetrics = Mockito.spy(handlerMetrics);
+
+		Mockito.doAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object result = invocation.callRealMethod();
+				afterHandleLatch.countDown();
+				return result;
+			}
+
+		}).when(handlerMetrics).afterHandle(Mockito.any(MetricsContext.class), Mockito.eq(Boolean.TRUE));
+
+		new DirectFieldAccessor(this.handler).setPropertyValue("handlerMetrics", handlerMetrics);
+
 		Integer active = new MessagingTemplate(this.input).convertSendAndReceive("foo", Integer.class);
 		assertEquals(1, active.intValue());
+		assertTrue(afterHandleLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, this.handler.getActiveCount());
 		assertEquals(1, this.handler.getHandleCount());
 		assertThat(this.handler.getDuration().getMax(), greaterThan(99.0));
