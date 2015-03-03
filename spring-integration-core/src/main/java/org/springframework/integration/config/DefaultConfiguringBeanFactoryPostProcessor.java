@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,12 +133,16 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		registry.registerBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME,
 				new RootBeanDefinition(PublishSubscribeChannel.class));
 
-		BeanDefinitionBuilder loggingHandlerBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class).addConstructorArgValue("ERROR");
+		BeanDefinition loggingHandler =
+				BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class).addConstructorArgValue("ERROR")
+				.getBeanDefinition();
+
+		String errorLoggerBeanName = ERROR_LOGGER_BEAN_NAME + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
+		registry.registerBeanDefinition(errorLoggerBeanName, loggingHandler);
 
 		BeanDefinitionBuilder loggingEndpointBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class)
-						.addPropertyValue("handler", loggingHandlerBuilder.getBeanDefinition())
+						.addPropertyReference("handler", errorLoggerBeanName)
 						.addPropertyValue("inputChannelName", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 
 		BeanComponentDefinition componentDefinition =

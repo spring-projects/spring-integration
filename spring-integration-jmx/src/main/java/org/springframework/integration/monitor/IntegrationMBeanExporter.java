@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.management.DynamicMBean;
 import javax.management.JMException;
@@ -38,15 +37,10 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.annotation.AnnotationBeanUtils;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
@@ -117,16 +111,14 @@ import org.springframework.util.StringValueResolver;
  */
 @ManagedResource
 @IntegrationManagedResource
-public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
-		ApplicationContextAware, EmbeddedValueResolverAware, SmartLifecycle {
+public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
+		EmbeddedValueResolverAware {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
 	private final AnnotationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
-
-	private ListableBeanFactory beanFactory;
 
 	private ApplicationContext applicationContext;
 
@@ -142,8 +134,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Set<MessageChannelMetrics> channels = new HashSet<MessageChannelMetrics>();
 
-	private final Map<String, Object> exposedBeans = new HashMap<String, Object>();
-
 	private final Map<String, MessageChannelMetrics> channelsByName = new HashMap<String, MessageChannelMetrics>();
 
 	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
@@ -157,14 +147,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private final Map<String, MessageSourceMetrics> allSourcesByName = new HashMap<String, MessageSourceMetrics>();
 
 	private final Map<String, String> beansByEndpointName = new HashMap<String, String>();
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase = 0;
-
-	private volatile boolean running;
-
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	private String domain = DEFAULT_DOMAIN;
 
@@ -183,8 +165,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private volatile long shutdownDeadline;
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
-
-	private MessageHistoryConfigurer messageHistoryConfigurer;
 
 	private StringValueResolver embeddedValueResolver;
 
@@ -278,13 +258,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		super.setBeanFactory(beanFactory);
-		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory, "A ListableBeanFactory is required.");
-		this.beanFactory = (ListableBeanFactory) beanFactory;
-	}
-
-	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		Assert.notNull(applicationContext, "ApplicationContext may not be null");
@@ -306,50 +279,68 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-
-		if (IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME.equals(beanName)
-				&& bean instanceof MessageHistoryConfigurer) {
-			this.messageHistoryConfigurer = (MessageHistoryConfigurer) bean;
-			return bean;
-		}
-
-		if (bean instanceof MessageHandlerMetrics) {
+	public void afterSingletonsInstantiated() {
+		Map<String, MessageHandlerMetrics> messageHandlers =
+				this.applicationContext.getBeansOfType(MessageHandlerMetrics.class);
+		for (Entry<String, MessageHandlerMetrics> entry : messageHandlers.entrySet()) {
+			String beanName = entry.getKey();
+			MessageHandlerMetrics bean = entry.getValue();
 			if (this.handlerInAnonymousWrapper(bean) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Skipping " + beanName + " because it wraps another handler");
 				}
-				return bean;
+				continue;
 			}
 			// If the handler is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
 			MessageHandlerMetrics monitor = (MessageHandlerMetrics) extractTarget(bean);
-			handlers.add(monitor);
+			this.handlers.add(monitor);
 		}
 
-		if (bean instanceof MessageSourceMetrics) {
+		Map<String, MessageSourceMetrics> messageSources =
+				this.applicationContext.getBeansOfType(MessageSourceMetrics.class);
+		for (Entry<String, MessageSourceMetrics> entry : messageSources.entrySet()) {
 			// If the source is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
-			MessageSourceMetrics monitor = (MessageSourceMetrics) extractTarget(bean);
-			sources.add(monitor);
+			MessageSourceMetrics monitor = (MessageSourceMetrics) extractTarget(entry.getValue());
+			this.sources.add(monitor);
 		}
 
-		if (bean instanceof MessageChannel && bean instanceof MessageChannelMetrics
-				&& bean instanceof NamedComponent) {
+		Map<String, MessageChannelMetrics> messageChannels =
+				this.applicationContext.getBeansOfType(MessageChannelMetrics.class);
+		for (Entry<String, MessageChannelMetrics> entry : messageChannels.entrySet()) {
 			// If the channel is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
-			MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(bean);
-			channels.add(monitor);
+			MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(entry.getValue());
+			this.channels.add(monitor);
 		}
+		Map<String, MessageProducer> messageProducers =
+				this.applicationContext.getBeansOfType(MessageProducer.class);
+		for (Entry<String, MessageProducer> entry : messageProducers.entrySet()) {
+			MessageProducer messageProducer = entry.getValue();
+			if (messageProducer instanceof Lifecycle) {
+				Lifecycle target = (Lifecycle) extractTarget(messageProducer);
+				if (!(target instanceof AbstractMessageProducingHandler)) {
+					this.inboundLifecycleMessageProducers.add(target);
+				}
+			}
+		}
+		super.afterSingletonsInstantiated();
+		registerChannels();
+		registerHandlers();
+		registerSources();
+		registerEndpoints();
 
-		if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
-			Lifecycle target = (Lifecycle) extractTarget(bean);
-			if (!(target instanceof AbstractMessageProducingHandler)) {
-				this.inboundLifecycleMessageProducers.add(target);
+		if (this.applicationContext
+				.containsBean(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME)) {
+			Object messageHistoryConfigurer = this.applicationContext
+					.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
+			if (messageHistoryConfigurer instanceof MessageHistoryConfigurer) {
+				registerBeanInstance(messageHistoryConfigurer,
+						IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
 			}
 		}
 
-		return bean;
 
 	}
 
@@ -426,98 +417,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
-	}
-
-	@Override
-	public final boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	@Override
-	public final int getPhase() {
-		return this.phase;
-	}
-
-	@Override
-	public final boolean isRunning() {
-		this.lifecycleLock.lock();
-		try {
-			return this.running;
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	@Override
-	public final void start() {
-		this.lifecycleLock.lock();
-		try {
-			if (!this.running) {
-				this.doStart();
-				this.running = true;
-				if (logger.isInfoEnabled()) {
-					logger.info("started " + this);
-				}
-			}
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	@Override
-	public final void stop() {
-		this.lifecycleLock.lock();
-		try {
-			if (this.running) {
-				this.doStop();
-				this.running = false;
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
-			}
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	@Override
-	public final void stop(Runnable callback) {
-		this.lifecycleLock.lock();
-		try {
-			this.stop();
-			callback.run();
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	protected void doStop() {
-		unregisterBeans();
+	public void destroy() {
+		super.destroy();
 		channelsByName.clear();
 		handlersByName.clear();
 		sourcesByName.clear();
-	}
-
-	protected void doStart() {
-		registerChannels();
-		registerHandlers();
-		registerSources();
-		registerEndpoints();
-		if (this.messageHistoryConfigurer != null) {
-			this.registerBeanInstance(this.messageHistoryConfigurer,
-					IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
-		}
-	}
-
-	@Override
-	public void destroy() {
-		super.destroy();
 		for (MessageChannelMetrics monitor : channels) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
@@ -752,14 +656,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return null;
 	}
 
-	@Override
-	protected void registerBeans() {
-		if (!exposedBeans.isEmpty()) {
-			super.setBeans(exposedBeans);
-			super.registerBeans();
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	private void registerChannels() {
 		for (MessageChannelMetrics monitor : channels) {
@@ -852,11 +748,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerEndpoints() {
-		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 		Set<String> endpointNames = new HashSet<String>();
 		for (String name : names) {
 			if (!beansByEndpointName.values().contains(name)) {
-				AbstractEndpoint endpoint = beanFactory.getBean(name, AbstractEndpoint.class);
+				AbstractEndpoint endpoint = this.applicationContext.getBean(name, AbstractEndpoint.class);
 				String beanKey;
 				name = endpoint.getComponentName();
 				String source;
@@ -989,7 +885,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
-		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 
 		String name = null;
 		String endpointName = null;
@@ -997,7 +893,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		Object endpoint = null;
 
 		for (String beanName : names) {
-			endpoint = beanFactory.getBean(beanName);
+			endpoint = this.applicationContext.getBean(beanName);
 			try {
 				Object field = extractTarget(getField(endpoint, "handler"));
 				if (field == monitor ||
@@ -1101,7 +997,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
-		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 
 		String name = null;
 		String endpointName = null;
@@ -1109,7 +1005,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		Object endpoint = null;
 
 		for (String beanName : names) {
-			endpoint = beanFactory.getBean(beanName);
+			endpoint = this.applicationContext.getBean(beanName);
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "source"));
