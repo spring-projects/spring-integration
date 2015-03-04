@@ -72,6 +72,9 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();
 		try {
+			if (logger.isTraceEnabled()) {
+				logger.trace("preReceive on channel '" + this + "'");
+			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 
@@ -88,6 +91,9 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			}
 
 			if (object == null) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("postReceive on channel '" + this + "', message is null");
+				}
 				return null;
 			}
 			if (countsEnabled) {
@@ -101,8 +107,11 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 			else {
 				message = getMessageBuilderFactory().withPayload(object).build();
 			}
-			message = interceptorList.postReceive(message, this);
+			if (logger.isDebugEnabled()) {
+				logger.debug("postReceive on channel '" + this + "', message: " + message);
+			}
 			if (interceptorStack != null) {
+				message = interceptorList.postReceive(message, this);
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;
