@@ -45,6 +45,8 @@ import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -306,46 +308,60 @@ public class ChannelPublishingJmsMessageListener
 	@Override
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object result = jmsMessage;
-		if (this.extractRequestPayload) {
-			result = this.messageConverter.fromMessage(jmsMessage);
-			if (logger.isDebugEnabled()) {
-				logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message payload ["
-						+ result + "]");
-			}
-		}
-
-		Map<String, Object> headers = headerMapper.toHeaders(jmsMessage);
-		Message<?> requestMessage = (result instanceof Message<?>) ?
-				this.messageBuilderFactory.fromMessage((Message<?>) result).copyHeaders(headers).build() :
-				this.messageBuilderFactory.withPayload(result).copyHeaders(headers).build();
-		if (!this.expectReply) {
-			this.gatewayDelegate.send(requestMessage);
-		}
-		else {
-			Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
-			if (replyMessage != null) {
-				Destination destination = this.getReplyDestination(jmsMessage, session);
-				if (destination != null) {
-					// convert SI Message to JMS Message
-					Object replyResult = replyMessage;
-					if (this.extractReplyPayload) {
-						replyResult = replyMessage.getPayload();
-					}
-					try {
-						javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
-						// map SI Message Headers to JMS Message Properties/Headers
-						headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
-						this.copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
-						this.sendReply(jmsReply, destination, session);
-					}
-					catch (RuntimeException e) {
-						logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
-						throw e;
-					}
+		Message<?> requestMessage = null;
+		boolean errors = false;
+		try {
+			if (this.extractRequestPayload) {
+				result = this.messageConverter.fromMessage(jmsMessage);
+				if (logger.isDebugEnabled()) {
+					logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message payload ["
+							+ result + "]");
 				}
 			}
-			else if (logger.isDebugEnabled()) {
-				logger.debug("expected a reply but none was received");
+
+			Map<String, Object> headers = headerMapper.toHeaders(jmsMessage);
+			requestMessage = (result instanceof Message<?>) ?
+					this.messageBuilderFactory.fromMessage((Message<?>) result).copyHeaders(headers).build() :
+					this.messageBuilderFactory.withPayload(result).copyHeaders(headers).build();
+		}
+		catch (RuntimeException e) {
+			MessageChannel errorChannel = this.gatewayDelegate.getErrorChannel();
+			if (errorChannel == null) {
+				throw e;
+			}
+			errorChannel.send(new ErrorMessage(new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
+			errors = true;
+		}
+		if (!errors) {
+			if (!this.expectReply) {
+				this.gatewayDelegate.send(requestMessage);
+			}
+			else {
+				Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
+				if (replyMessage != null) {
+					Destination destination = this.getReplyDestination(jmsMessage, session);
+					if (destination != null) {
+						// convert SI Message to JMS Message
+						Object replyResult = replyMessage;
+						if (this.extractReplyPayload) {
+							replyResult = replyMessage.getPayload();
+						}
+						try {
+							javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
+							// map SI Message Headers to JMS Message Properties/Headers
+							headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
+							this.copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
+							this.sendReply(jmsReply, destination, session);
+						}
+						catch (RuntimeException e) {
+							logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
+							throw e;
+						}
+					}
+				}
+				else if (logger.isDebugEnabled()) {
+					logger.debug("expected a reply but none was received");
+				}
 			}
 		}
 	}
@@ -473,6 +489,11 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	private class GatewayDelegate extends MessagingGatewaySupport {
+
+		@Override
+		public MessageChannel getErrorChannel() {
+			return super.getErrorChannel();
+		}
 
 		@Override
 		protected void send(Object request) {
