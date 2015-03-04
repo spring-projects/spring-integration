@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -37,9 +38,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.RowMapper;
@@ -47,6 +51,7 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -67,6 +72,9 @@ public class StoredProcJavaConfigTests {
 	@Autowired
 	private PollableChannel fooChannel;
 
+	@Autowired
+	private MessageChannel control;
+
 	@Test
 	public void test() {
 		Message<?> received = fooChannel.receive(10000);
@@ -76,6 +84,10 @@ public class StoredProcJavaConfigTests {
 		received = fooChannel.receive(100);
 		// verify maxMessagesPerPoll == 1
 		assertNull(received);
+		MessagingTemplate template = new MessagingTemplate(this.control);
+		template.convertAndSend("@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.stop()");
+		assertFalse(template.convertSendAndReceive(
+				"@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.isRunning()", Boolean.class));
 	}
 
 	@Configuration
@@ -85,6 +97,12 @@ public class StoredProcJavaConfigTests {
 		@Bean
 		public PollableChannel fooChannel() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel="control")
+		public ExpressionControlBusFactoryBean controlBus() {
+			return new ExpressionControlBusFactoryBean();
 		}
 
 		@Bean
