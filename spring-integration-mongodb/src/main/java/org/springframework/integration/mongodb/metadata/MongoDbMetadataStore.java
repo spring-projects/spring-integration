@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.mongodb.metadata;
 
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -31,23 +32,22 @@ import com.mongodb.WriteResult;
  * achieve meta-data persistence shared across application instances and
  * restarts.
  *
- * @author SenthilArumugam SamirajPanneerSelvam
- * @since 4.0
+ * @author Senthil Arumugam, Samiraj Panneer Selvam
+ * @since 4.2
  *
  */
 public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
-	private MongoTemplate template;
+	private final MongoTemplate template;
 	private final static String DEFAULT_COLLECTION_NAME = "metadatastore";
-	private String collectionName;
-
+	private final String collectionName;
 	/**
 	 * 
 	 * Configures the MongoDbMetadataStore by provided {@link MongoTemplate} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * 
-	 * @param template
-	 * @param collectionName
+	 * @param template The mongodb template
+	 * @param collectionName the collection name where it persists the data
 	 */
 	public MongoDbMetadataStore(MongoTemplate template, String collectionName) {
 		this.template = template;
@@ -57,23 +57,44 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
 	/**
 	 * Configures the MongoDbMetadataStore by provided {@link MongoTemplate} and
-	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
+	 * collection name.
 	 * 
-	 * @param template
+	 * @param template The mongodb template
 	 */
 	public MongoDbMetadataStore(MongoTemplate template) {
 		this(template, null);
 	}
 
+	/**
+	 * Configures the MongoDbMetadataStore by provided {@link MongoDbFactory} and
+	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
+	 * 
+	 * @param factory The mongodb factory
+	 */
+	public MongoDbMetadataStore(MongoDbFactory factory) {
+		this(factory, null);
+	}
+	
+	/**
+	 * Configures the MongoDbMetadataStore by provided {@link MongoDbFactory} and
+	 * collection name
+	 * 
+	 * @param template The mongodb factory
+	 * @param collectionName the collection name where it persists the data
+	 */
+	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
+		template = new MongoTemplate(factory);
+		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName
+				: DEFAULT_COLLECTION_NAME;
+	}
+	
+	
 	@Override
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		Query query = new Query(Criteria.where("key").is(key));
 		Datastore fileInfo = new Datastore(key, value);
-		if (!template.exists(query, collectionName)) {
-			template.save(fileInfo, collectionName);
-		}
+		template.save(fileInfo, collectionName);
 	}
 
 	@Override
@@ -117,7 +138,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		
-		Query query = new Query(Criteria.where("key").is(key));
+		Query query = new Query(Criteria.where("key").is(key).and("value").is(oldValue));
 		Update update = new Update();
 		update.set("value", newValue);
 		WriteResult result = template.updateFirst(query, update, Datastore.class,collectionName);

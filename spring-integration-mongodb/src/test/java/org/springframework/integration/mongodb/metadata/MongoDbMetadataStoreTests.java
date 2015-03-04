@@ -30,17 +30,16 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
 
 /**
- * @author SenthilArumugam SamirajPanneerSelvam
+ * @author Senthil Arumugam, Samiraj Panneer Selvam
  *
  */
 public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	
 	private final static String DEFAULT_COLLECTION_NAME = "metadatastore";
-	private String file1 = "/remotepath/filesTodownload/file-1.txt";
-	private String file1Id = "12345";
+	private final String file1 = "/remotepath/filesTodownload/file-1.txt";
+	private final String file1Id = "12345";
 	private MongoDbMetadataStore store = null;
 	
-	@Test
 	@MongoDbAvailable
 	@Before
 	public void configure() throws Exception  {
@@ -48,6 +47,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		store = new MongoDbMetadataStore(template);
 	}
+	
 	@Test
 	@MongoDbAvailable
 	public void testGetFromStore(){
