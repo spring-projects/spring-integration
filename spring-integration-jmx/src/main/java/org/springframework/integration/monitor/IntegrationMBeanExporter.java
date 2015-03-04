@@ -326,21 +326,26 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			}
 		}
 		super.afterSingletonsInstantiated();
-		registerChannels();
-		registerHandlers();
-		registerSources();
-		registerEndpoints();
+		try {
+			registerChannels();
+			registerHandlers();
+			registerSources();
+			registerEndpoints();
 
-		if (this.applicationContext
-				.containsBean(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME)) {
-			Object messageHistoryConfigurer = this.applicationContext
-					.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
-			if (messageHistoryConfigurer instanceof MessageHistoryConfigurer) {
-				registerBeanInstance(messageHistoryConfigurer,
-						IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
+			if (this.applicationContext
+					.containsBean(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME)) {
+				Object messageHistoryConfigurer = this.applicationContext
+						.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
+				if (messageHistoryConfigurer instanceof MessageHistoryConfigurer) {
+					registerBeanInstance(messageHistoryConfigurer,
+							IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
+				}
 			}
 		}
-
+		catch (Exception e) {
+			unregisterBeans();
+			throw e;
+		}
 
 	}
 

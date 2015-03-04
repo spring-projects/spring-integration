@@ -860,6 +860,20 @@ public class ContextConfiguration {
 						allowing the invocation of <interfacename>Lifecycle</interfacename> methods.
 					</para>
 				</listitem>
+				<listitem>
+					<para><emphasis role="bold">IntegrationMBeanExporter changes</emphasis></para>
+					<para>
+						The <classname>IntegrationMBeanExporter</classname> doesn't implement
+						<interfacename>BeanPostProcessor</interfacename>, nor
+						<interfacename>SmartLifecycle</interfacename>, as it was prior version
+						<emphasis>4.2</emphasis>. After reworking metrics for the direct implementation instead of
+						proxying, there is no any adjustment options from
+						<classname>IntegrationMBeanExporter</classname> to expose
+						<interfacename>BeanPostProcessor</interfacename> operations. From other side, thanks to
+						<interfacename>SmartInitializingSingleton</interfacename> implementation, there is no reason
+						to support <interfacename>SmartLifecycle</interfacename> any more.
+					</para>
+				</listitem>
 			</itemizedlist>
 		</section>
 
