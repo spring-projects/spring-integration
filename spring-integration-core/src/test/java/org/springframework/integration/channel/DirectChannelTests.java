@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,25 @@
 
 package org.springframework.integration.channel;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -50,6 +59,9 @@ public class DirectChannelTests {
 	@Test
 	public void testSend() {
 		DirectChannel channel = new DirectChannel();
+		Log logger = spy(TestUtils.getPropertyValue(channel, "logger", Log.class));
+		when(logger.isDebugEnabled()).thenReturn(true);
+		new DirectFieldAccessor(channel).setPropertyValue("logger", logger);
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget();
 		channel.subscribe(target);
 		GenericMessage<String> message = new GenericMessage<String>("test");
@@ -60,6 +72,12 @@ public class DirectChannelTests {
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		Object loadBalancingStrategy = dispatcherAccessor.getPropertyValue("loadBalancingStrategy");
 		assertTrue(loadBalancingStrategy instanceof RoundRobinLoadBalancingStrategy);
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(logger, times(2)).debug(captor.capture());
+		List<String> logs = captor.getAllValues();
+		assertEquals(2, logs.size());
+		assertThat(logs.get(0), startsWith("preSend"));
+		assertThat(logs.get(1), startsWith("postSend"));
 	}
 
 	@Test

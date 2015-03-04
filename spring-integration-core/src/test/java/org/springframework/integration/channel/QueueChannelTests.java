@@ -16,10 +16,16 @@
 
 package org.springframework.integration.channel;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -28,12 +34,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.logging.Log;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.selector.UnexpiredMessageSelector;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -44,6 +55,7 @@ import reactor.queue.spec.PersistentQueueSpec;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class QueueChannelTests {
 
@@ -52,7 +64,12 @@ public class QueueChannelTests {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final QueueChannel channel = new QueueChannel();
+		Log logger = spy(TestUtils.getPropertyValue(channel, "logger", Log.class));
+		when(logger.isDebugEnabled()).thenReturn(true);
+		when(logger.isTraceEnabled()).thenReturn(true);
+		new DirectFieldAccessor(channel).setPropertyValue("logger", logger);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive();
 				if (message != null) {
@@ -65,6 +82,12 @@ public class QueueChannelTests {
 		channel.send(new GenericMessage<String>("testing"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertTrue(messageReceived.get());
+		ArgumentCaptor<String> preCaptor = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<String> postCaptor = ArgumentCaptor.forClass(String.class);
+		verify(logger).trace(preCaptor.capture());
+		verify(logger, times(3)).debug(postCaptor.capture());
+		assertThat(preCaptor.getValue(), startsWith("preReceive"));
+		assertThat(postCaptor.getValue(), startsWith("postReceive"));
 	}
 
 	@Test
@@ -75,6 +98,7 @@ public class QueueChannelTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
 		Runnable receiveTask1 = new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive(0);
 				if (message != null) {
@@ -84,6 +108,7 @@ public class QueueChannelTests {
 			}
 		};
 		Runnable sendTask = new Runnable() {
+			@Override
 			public void run() {
 				channel.send(new GenericMessage<String>("testing"));
 			}
@@ -93,6 +118,7 @@ public class QueueChannelTests {
 		singleThreadExecutor.execute(sendTask);
 		assertFalse(messageReceived.get());
 		Runnable receiveTask2 = new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive(0);
 				if (message != null) {
@@ -112,6 +138,7 @@ public class QueueChannelTests {
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive();
 				receiveInterrupted.set(true);
@@ -132,6 +159,7 @@ public class QueueChannelTests {
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive(10000);
 				receiveInterrupted.set(true);
@@ -167,6 +195,7 @@ public class QueueChannelTests {
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				channel.send(new GenericMessage<String>("test-2"));
 				sendInterrupted.set(true);
@@ -188,6 +217,7 @@ public class QueueChannelTests {
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				channel.send(new GenericMessage<String>("test-2"), 10000);
 				sendInterrupted.set(true);
@@ -257,6 +287,7 @@ public class QueueChannelTests {
 				.get();
 		final QueueChannel channel = new QueueChannel(queue);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive();
 				if (message != null) {
@@ -273,6 +304,7 @@ public class QueueChannelTests {
 		final CountDownLatch latch1 = new CountDownLatch(2);
 
 		Thread thread = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				while (true) {
 					Message<?> message = channel.receive(100);
@@ -295,6 +327,7 @@ public class QueueChannelTests {
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive(10000);
 				receiveInterrupted.set(true);
@@ -311,6 +344,7 @@ public class QueueChannelTests {
 		receiveInterrupted.set(false);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive();
 				receiveInterrupted.set(true);
@@ -342,6 +376,7 @@ public class QueueChannelTests {
 		// Distributed scenario
 		final CountDownLatch latch4 = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				Message<?> message = channel.receive();
 				if (message != null) {

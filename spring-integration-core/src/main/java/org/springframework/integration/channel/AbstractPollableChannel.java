@@ -61,6 +61,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 		ChannelInterceptorList interceptorList = this.getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		try {
+			if (logger.isTraceEnabled()) {
+				logger.trace("preReceive on channel '" + this + "'");
+			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 
@@ -69,8 +72,14 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 				}
 			}
 			Message<?> message = this.doReceive(timeout);
-			message = interceptorList.postReceive(message, this);
+			if (message != null && logger.isDebugEnabled()) {
+				logger.debug("postReceive on channel '" + this + "', message: " + message);
+			}
+			else if (logger.isTraceEnabled()) {
+				logger.trace("postReceive on channel '" + this + "', message is null");
+			}
 			if (interceptorStack != null) {
+				message = interceptorList.postReceive(message, this);
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;

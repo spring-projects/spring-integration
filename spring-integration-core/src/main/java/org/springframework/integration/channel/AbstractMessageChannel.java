@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.logging.Log;
+
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -54,7 +56,7 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware {
 
-	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
+	private final ChannelInterceptorList interceptors;
 
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
@@ -65,6 +67,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	private volatile String fullChannelName;
 
 	private volatile MessageConverter messageConverter;
+
+	public AbstractMessageChannel() {
+		this.interceptors = new ChannelInterceptorList(logger);
+	}
 
 	@Override
 	public String getComponentType() {
@@ -267,7 +273,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			if (this.interceptors.getInterceptors().size() > 0) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("preSend on channel '" + this + "', message: " + message);
+			}
+			if (interceptors.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 				message = this.interceptors.preSend(message, this, interceptorStack);
 				if (message == null) {
@@ -275,9 +284,13 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 			}
 			sent = this.doSend(message, timeout);
-			this.interceptors.postSend(message, this, sent);
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + message);
+			}
 			if (interceptorStack != null) {
-				this.interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
+				interceptors.postSend(message, this, sent);
+				interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
 			}
 			return sent;
 		}
@@ -337,9 +350,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	/**
 	 * A convenience wrapper class for the list of ChannelInterceptors.
 	 */
-	protected class ChannelInterceptorList {
+	protected static class ChannelInterceptorList {
+
+		private final Log logger;
 
 		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
+
+		public ChannelInterceptorList(Log logger) {
+			this.logger = logger;
+		}
 
 		public boolean set(List<ChannelInterceptor> interceptors) {
 			synchronized (this.interceptors) {
@@ -358,9 +377,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		public Message<?> preSend(Message<?> message, MessageChannel channel,
 				Deque<ChannelInterceptor> interceptorStack) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("preSend on channel '" + channel + "', message: " + message);
-			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.preSend(message, channel);
@@ -379,9 +395,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("postSend (sent=" + sent + ") on channel '" + channel + "', message: " + message);
-			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					interceptor.postSend(message, channel, sent);
@@ -403,9 +416,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public boolean preReceive(MessageChannel channel, Deque<ChannelInterceptor> interceptorStack) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("preReceive on channel '" + channel + "'");
-			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					if (!interceptor.preReceive(channel)) {
@@ -419,12 +429,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-			if (message != null && logger.isDebugEnabled()) {
-				logger.debug("postReceive on channel '" + channel + "', message: " + message);
-			}
-			else if (logger.isTraceEnabled()) {
-				logger.trace("postReceive on channel '" + channel + "', message is null");
-			}
 			if (this.interceptors.size() > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					message = interceptor.postReceive(message, channel);

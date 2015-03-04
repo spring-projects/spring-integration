@@ -101,6 +101,9 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		try {
+			if (logger.isTraceEnabled()) {
+				logger.trace("preReceive on channel '" + this + "'");
+			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 
@@ -110,6 +113,9 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			}
 			Object object = getAmqpTemplate().receiveAndConvert(this.queueName);
 			if (object == null) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("postReceive on channel '" + this + "', message is null");
+				}
 				return null;
 			}
 			Message<?> message = null;
@@ -119,8 +125,11 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			else {
 				message = getMessageBuilderFactory().withPayload(object).build();
 			}
-			message = interceptorList.postReceive(message, this);
+			if (logger.isDebugEnabled()) {
+				logger.debug("postReceive on channel '" + this + "', message: " + message);
+			}
 			if (interceptorStack != null) {
+				message = interceptorList.postReceive(message, this);
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;
