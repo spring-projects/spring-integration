@@ -118,5 +118,14 @@
 				See <xref linkend="jms-message-driven-channel-adapter"/> for more information.
 			</para>
 		</section>
+		<section id="4.2-conditional-pollers">
+			<title>Conditional Pollers</title>
+			<para>
+				Much more flexibility is now provided for dynamic polling.
+			</para>
+			<para>
+				See <xref linkend="conditional-pollers"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

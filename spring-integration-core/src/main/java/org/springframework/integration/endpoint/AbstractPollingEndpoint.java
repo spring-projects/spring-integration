@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -109,6 +111,27 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
+	protected ClassLoader getBeanClassLoader() {
+		return beanClassLoader;
+	}
+
+	/**
+	 * Return true if this advice should be applied only to the {@link #receiveMessage()} operation
+	 * rather than the whole poll.
+	 * @param advice The advice.
+	 * @return true to only advise the receive operation.
+	 */
+	protected boolean isReceiveOnlyAdvice(Advice advice) {
+		return false;
+	}
+
+	/**
+	 * Add the advice chain to the component that responds to {@link #receiveMessage()} calls.
+	 * @param chain the advice chain {@code Collection}.
+	 */
+	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
+	}
+
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -138,6 +161,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception {
+		List<Advice> receiveOnlyAdviceChain = new ArrayList<Advice>();
+		if (!CollectionUtils.isEmpty(adviceChain)) {
+			for (Advice advice : adviceChain) {
+				if (isReceiveOnlyAdvice(advice)) {
+					receiveOnlyAdviceChain.add(advice);
+				}
+			}
+		}
 
 		Callable<Boolean> pollingTask = new Callable<Boolean>() {
 			@Override
@@ -151,10 +182,15 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
 			if (!CollectionUtils.isEmpty(adviceChain)) {
 				for (Advice advice : adviceChain) {
-					proxyFactory.addAdvice(advice);
+					if (!isReceiveOnlyAdvice(advice)) {
+						proxyFactory.addAdvice(advice);
+					}
 				}
 			}
 			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
+		}
+		if (receiveOnlyAdviceChain.size() > 0) {
+			applyReceiveOnlyAdviceChain(receiveOnlyAdviceChain);
 		}
 		return new Poller(pollingTask);
 	}
