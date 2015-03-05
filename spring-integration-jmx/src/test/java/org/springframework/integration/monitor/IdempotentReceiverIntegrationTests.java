@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.monitor;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -43,6 +45,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
@@ -50,11 +53,15 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
@@ -91,6 +98,12 @@ public class IdempotentReceiverIntegrationTests {
 
 	@Autowired
 	private FooService fooService;
+
+	@Autowired
+	private MessageChannel annotatedBeanMessageHandlerChannel;
+
+	@Autowired
+	private MessageChannel annotatedBeanMessageHandlerChannel2;
 
 	@Test
 	public void testIdempotentReceiver() {
@@ -132,6 +145,33 @@ public class IdempotentReceiverIntegrationTests {
 		assertTrue(this.fooService.messages.get(1).getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE,
 				Boolean.class));
 	}
+
+	@Test
+	public void testIdempotentReceiverOnBeanMessageHandler() {
+		PollableChannel replyChannel = new QueueChannel();
+		Message<String> message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
+		this.annotatedBeanMessageHandlerChannel.send(message);
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertFalse(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+
+		this.annotatedBeanMessageHandlerChannel.send(message);
+		receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+
+		this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<String>("baz"));
+		try {
+			this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<String>("baz"));
+			fail("MessageHandlingException expected");
+		}
+		catch (Exception e) {
+			assertThat(e.getMessage(), containsString("duplicate message has been received"));
+		}
+	}
+
 
 	@Configuration
 	@EnableIntegration
@@ -219,6 +259,36 @@ public class IdempotentReceiverIntegrationTests {
 		@Bean
 		public FooService fooService() {
 			return new FooService();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "annotatedBeanMessageHandlerChannel")
+		@IdempotentReceiver("idempotentReceiverInterceptor")
+		public MessageHandler messageHandler() {
+			return new ServiceActivatingHandler(new MessageProcessor<Object>() {
+
+				@Override
+				public Object processMessage(Message<?> message) {
+					return message;
+				}
+
+			});
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "annotatedBeanMessageHandlerChannel2")
+		@IdempotentReceiver("idempotentReceiverInterceptor")
+		public MessageHandler messageHandler2() {
+			return new MessageHandler() {
+
+				@Override
+				public void handleMessage(Message<?> message) throws MessagingException {
+					if (message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)) {
+						throw new MessageHandlingException(message, "duplicate message has been received");
+					}
+				}
+
+			};
 		}
 
 	}
