@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class IdempotentReceiverParserTests {
 		List<String> endpoints = idempotentEndpoints.get("selectorInterceptor");
 		assertNotNull(endpoints);
 		assertFalse(endpoints.isEmpty());
-		assertTrue(endpoints.contains("foo"));
+		assertTrue(endpoints.contains("foo.handler"));
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class IdempotentReceiverParserTests {
 		List<String> endpoints = idempotentEndpoints.get("strategyInterceptor");
 		assertNotNull(endpoints);
 		assertFalse(endpoints.isEmpty());
-		assertTrue(endpoints.contains("foo"));
+		assertTrue(endpoints.contains("foo.handler"));
 	}
 
 	@Test
@@ -142,8 +142,8 @@ public class IdempotentReceiverParserTests {
 		List<String> endpoints = idempotentEndpoints.get("expressionInterceptor");
 		assertNotNull(endpoints);
 		assertFalse(endpoints.isEmpty());
-		assertTrue(endpoints.contains("foo"));
-		assertTrue(endpoints.contains("bar*"));
+		assertTrue(endpoints.contains("foo.handler"));
+		assertTrue(endpoints.contains("bar*.handler"));
 	}
 
 	@Test

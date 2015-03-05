@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,10 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -66,7 +68,8 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 				String[] endpoints = StringUtils.tokenizeToStringArray(mapping, ",");
 				for (String endpoint : endpoints) {
 					Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
-					idempotentEndpoint.put(beanName, beanFactory.resolveEmbeddedValue(endpoint));
+					idempotentEndpoint.put(beanName,
+							beanFactory.resolveEmbeddedValue(endpoint) + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);
 					idempotentEndpointsMapping.add(idempotentEndpoint);
 				}
 			}
@@ -78,12 +81,17 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value");
 						if (value != null) {
 							String[] interceptors = (String[]) value;
-							/*
-							   MessageHandler beans, populated from @Bean methods, have a complex id,
-							   including @Configuration bean name, method name and the Messaging annotation name.
-							   The following pattern matches the bean name, regardless of the annotation name.
-							*/
-							String endpoint = beanDefinition.getFactoryBeanName() + "." + beanName + ".*";
+							String endpoint = beanName;
+							if (!MessageHandler.class.isAssignableFrom(
+									((StandardMethodMetadata) beanMethod).getIntrospectedMethod().getReturnType())) {
+								/*
+								   MessageHandler beans, populated from @Bean methods, have a complex id,
+								   including @Configuration bean name, method name and the Messaging annotation name.
+								   The following pattern matches the bean name, regardless of the annotation name.
+								*/
+								endpoint = beanDefinition.getFactoryBeanName() + "." + beanName +
+										".*" + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
+							}
 							for (String interceptor : interceptors) {
 								Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
 								idempotentEndpoint.put(interceptor, endpoint);

@@ -62,8 +62,7 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 			for (Map.Entry<String, List<String>> entry : this.idempotentEndpoints.entrySet()) {
 				List<String> mappedNames = entry.getValue();
 				for (String mappedName : mappedNames) {
-					String pattern = mappedName + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
-					if (isMatch(pattern, beanName)) {
+					if (isMatch(mappedName, beanName)) {
 						DefaultBeanFactoryPointcutAdvisor idempotentReceiverInterceptor
 								= new DefaultBeanFactoryPointcutAdvisor();
 						idempotentReceiverInterceptor.setAdviceBeanName(entry.getKey());
