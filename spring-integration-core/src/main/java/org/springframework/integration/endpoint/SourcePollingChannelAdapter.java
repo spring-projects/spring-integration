@@ -16,7 +16,16 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.Collection;
+
+import org.aopalliance.aop.Advice;
+
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -90,6 +99,32 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	public String getComponentType() {
 		return (this.source instanceof NamedComponent) ?
 				((NamedComponent) this.source).getComponentType() : "inbound-channel-adapter";
+	}
+
+	@Override
+	protected boolean isReceiveOnlyAdvice(Advice advice) {
+		return advice instanceof AbstractMessageSourceAdvice;
+	}
+
+	@Override
+	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
+		Class<?> targetClass = AopUtils.getTargetClass(this.source);
+		if (AopUtils.isAopProxy(this.source)) {
+			for (Advice advice : chain) {
+				NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(advice);
+				sourceAdvice.addMethodName("receive");
+				if (AopUtils.canApply(sourceAdvice.getPointcut(), targetClass)) {
+					((Advised) this.source).addAdvice(advice);
+				}
+			}
+		}
+		else {
+			ProxyFactory proxyFactory = new ProxyFactory(this.source);
+			for (Advice advice : chain) {
+				proxyFactory.addAdvice(advice);
+			}
+			this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
+		}
 	}
 
 	@Override
