@@ -342,7 +342,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				}
 			}
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			unregisterBeans();
 			throw e;
 		}
