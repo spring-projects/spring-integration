@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mongodb.metadata;
 
 import java.util.HashMap;
@@ -46,56 +47,58 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 	private final MongoTemplate template;
-	private final String DEFAULT_COLLECTION_NAME = "metadatastore";
+	private final static String DEFAULT_COLLECTION_NAME = "metadataStore";
 	private final String collectionName;
 	private final String ID_FIELD = "_id";
 	private final String VALUE = "value";
 	
 	/**
 	 * 
-	 * Configures the MongoDbMetadataStore by provided {@link MongoTemplate} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoTemplate} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * 
 	 * @param template The mongodb template
 	 * @param collectionName the collection name where it persists the data
 	 */
 	public MongoDbMetadataStore(MongoTemplate template, String collectionName) {
+		Assert.notNull(template, "'template' must not be null.");
+		Assert.hasText(collectionName, "'collectionName' must not be empty.");
 		this.template = template;
-		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName
-				: DEFAULT_COLLECTION_NAME;
+		this.collectionName = collectionName;
 	}
 
 	/**
-	 * Configures the MongoDbMetadataStore by provided {@link MongoTemplate} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoTemplate} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * 
 	 * @param template The mongodb template
 	 */
 	public MongoDbMetadataStore(MongoTemplate template) {
-		this(template, null);
+		this(template, DEFAULT_COLLECTION_NAME);
 	}
 
 	/**
-	 * Configures the MongoDbMetadataStore by provided {@link MongoDbFactory} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * 
 	 * @param factory The mongodb factory
 	 */
 	public MongoDbMetadataStore(MongoDbFactory factory) {
-		this(factory, null);
+		this(factory, DEFAULT_COLLECTION_NAME);
 	}
 	
 	/**
-	 * Configures the MongoDbMetadataStore by provided {@link MongoDbFactory} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * collection name
 	 * 
 	 * @param collectionName the collection name where it persists the data
 	 * @param factory MongoDbFactory
 	 */
 	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
+		Assert.notNull(factory, "'factory' must not be null.");
+		Assert.hasText(collectionName, "'collectionName' must not be empty.");
 		template = new MongoTemplate(factory);
-		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName
-				: DEFAULT_COLLECTION_NAME;
+		this.collectionName = collectionName;
 	}
 	
 	
@@ -109,10 +112,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		Map<String,String> fileInfo = new HashMap();
-		fileInfo.put(ID_FIELD, key);
-		fileInfo.put(VALUE, value);
-		template.save(fileInfo, collectionName);
+		Map<String, String> entry = new HashMap<String, String>();
+		entry.put(ID_FIELD, key);
+		entry.put(VALUE, value);
+		template.save(entry, collectionName);
 	}
 
 	/**
@@ -125,9 +128,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
-		Map<String,String> result = template.findOne(query, Map.class, collectionName);
-		return result==null?null:result.get(VALUE);
+		Map<String, String> result = template.findOne(query, Map.class, collectionName);
+		return result == null ? null : result.get(VALUE);
 		
 	}
 
@@ -141,9 +145,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
-		Map<String,String> result = template.findAndRemove(query, Map.class,collectionName);
-		return result==null?null:result.get(VALUE);
+		Map<String, String> result = template.findAndRemove(query, Map.class,collectionName);
+		return result == null ? null : result.get(VALUE);
 	}
 
 	/**
@@ -159,11 +164,11 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(value, "'value' must not be null.");
 
 		String result = null;
-		Map<String,String> fileInfo = new HashMap();
-		fileInfo.put(ID_FIELD, key);
-		fileInfo.put(VALUE, value);
+		Map<String, String> entry = new HashMap<String, String>();
+		entry.put(ID_FIELD, key);
+		entry.put(VALUE, value);
 		try {
-			template.insert(fileInfo, collectionName);
+			template.insert(entry, collectionName);
 		} catch (DuplicateKeyException e) {
 			if(logger.isDebugEnabled()){
 				logger.debug("DUPLICATE KEY VIOLOATION",e);
@@ -186,11 +191,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
-		
 		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
 		Update update = new Update();
 		update.set(VALUE, newValue);
-		WriteResult result = template.updateFirst(query, update, Map.class,collectionName);
+		WriteResult result = template.updateFirst(query, update, collectionName);
 		return result.isUpdateOfExisting();
 	}
 
