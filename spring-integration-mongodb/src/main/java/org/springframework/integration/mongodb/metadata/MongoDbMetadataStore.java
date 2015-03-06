@@ -15,6 +15,12 @@
  */
 package org.springframework.integration.mongodb.metadata;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -38,9 +44,13 @@ import com.mongodb.WriteResult;
  */
 public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
+	protected final Log logger = LogFactory.getLog(getClass());
 	private final MongoTemplate template;
-	private final static String DEFAULT_COLLECTION_NAME = "metadatastore";
+	private final String DEFAULT_COLLECTION_NAME = "metadatastore";
 	private final String collectionName;
+	private final String ID_FIELD = "_id";
+	private final String VALUE = "value";
+	
 	/**
 	 * 
 	 * Configures the MongoDbMetadataStore by provided {@link MongoTemplate} and
@@ -57,7 +67,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
 	/**
 	 * Configures the MongoDbMetadataStore by provided {@link MongoTemplate} and
-	 * collection name.
+	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * 
 	 * @param template The mongodb template
 	 */
@@ -79,8 +89,8 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * Configures the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * collection name
 	 * 
-	 * @param template The mongodb factory
 	 * @param collectionName the collection name where it persists the data
+	 * @param factory MongoDbFactory
 	 */
 	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
 		template = new MongoTemplate(factory);
@@ -89,69 +99,99 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 	
 	
+	/**
+	 * Method put.
+	 * @param key String
+	 * @param value String
+	 * @see org.springframework.integration.metadata.MetadataStore#put(String, String)
+	 */
 	@Override
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		Datastore fileInfo = new Datastore(key, value);
+		Map<String,String> fileInfo = new HashMap<>();
+		fileInfo.put(ID_FIELD, key);
+		fileInfo.put(VALUE, value);
 		template.save(fileInfo, collectionName);
 	}
 
+	/**
+	 * Method get.
+	 * @param key String
+	 * @return String
+	 * @see org.springframework.integration.metadata.MetadataStore#get(String)
+	 */
 	@Override
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		Query query = new Query(Criteria.where("key").is(key));
-		Datastore result = template.findOne(query, Datastore.class, collectionName);
-		if(result != null){
-			return result.value;	
-		}
-		return null;
+		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		@SuppressWarnings("unchecked")
+		Map<String,String> result = template.findOne(query, Map.class, collectionName);
+		return result==null?null:result.get(VALUE);
 		
 	}
 
+	/**
+	 * Method remove.
+	 * @param key String
+	 * @return String
+	 * @see org.springframework.integration.metadata.MetadataStore#remove(String)
+	 */
 	@Override
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		Query query = new Query(Criteria.where("key").is(key));
-		Datastore result = template.findAndRemove(query, Datastore.class,collectionName);
-		return result==null?null:result.value;
+		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		@SuppressWarnings("unchecked")
+		Map<String,String> result = template.findAndRemove(query, Map.class,collectionName);
+		return result==null?null:result.get(VALUE);
 	}
 
+	/**
+	 * Method putIfAbsent.
+	 * @param key String
+	 * @param value String
+	 * @return String
+	 * @see org.springframework.integration.metadata.ConcurrentMetadataStore#putIfAbsent(String, String)
+	 */
 	@Override
 	public String putIfAbsent(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
 
-		String result = value;
-		Query query = new Query(Criteria.where("key").is(key));
-		if (template.exists(query, collectionName)) {
-			result = null;
-		} else {
-			template.save(new Datastore(key, value), collectionName);
+		String result = null;
+		Map<String,String> fileInfo = new HashMap<>();
+		fileInfo.put(ID_FIELD, key);
+		fileInfo.put(VALUE, value);
+		try {
+			template.insert(fileInfo, collectionName);
+		} catch (DuplicateKeyException e) {
+			if(logger.isDebugEnabled()){
+				logger.debug("DUPLICATE KEY VIOLOATION",e);
+			}
+			result = get(key);
 		}
 		return result;
 	}
 
+	/**
+	 * Method replace.
+	 * @param key String
+	 * @param oldValue String
+	 * @param newValue String
+	 * @return boolean
+	 * @see org.springframework.integration.metadata.ConcurrentMetadataStore#replace(String, String, String)
+	 */
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		
-		Query query = new Query(Criteria.where("key").is(key).and("value").is(oldValue));
+		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
 		Update update = new Update();
-		update.set("value", newValue);
-		WriteResult result = template.updateFirst(query, update, Datastore.class,collectionName);
+		update.set(VALUE, newValue);
+		WriteResult result = template.updateFirst(query, update, Map.class,collectionName);
 		return result.isUpdateOfExisting();
 	}
 
-	private class Datastore {
-		String key;
-		String value;
-
-		Datastore(String key, String value) {
-			this.key = key;
-			this.value = value;
-		}
-	}
 }

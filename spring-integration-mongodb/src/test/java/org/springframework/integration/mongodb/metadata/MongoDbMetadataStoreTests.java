@@ -48,9 +48,34 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		store = new MongoDbMetadataStore(template);
 	}
 	
-	@Test
 	@MongoDbAvailable
-	public void testGetFromStore(){
+	@Test
+	public void testConfigureCustomCollection() throws Exception  {
+		String collectioName = "TestMetaStore";
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectioName);
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		store = new MongoDbMetadataStore(template,collectioName);
+		testBasics();
+	}
+	
+	@MongoDbAvailable
+	@Test
+	public void testConfigureFactory() throws Exception  {
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		store = new MongoDbMetadataStore(mongoDbFactory);
+		testBasics();
+	}
+	
+	@MongoDbAvailable
+	@Test
+	public void testConfigureFactorCustomCollection() throws Exception  {
+		String collectioName = "TestMetaStore";
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectioName);
+		store = new MongoDbMetadataStore(mongoDbFactory,collectioName);
+		testBasics();
+	}
+	
+	private void testBasics(){
 		String fileID = store.get(file1);
 		assertNull(fileID);
 		
@@ -63,8 +88,17 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
+	public void testGetFromStore(){
+		testBasics();
+	}
+	
+	@Test
+	@MongoDbAvailable
 	public void testPutIfAbsent() throws Exception{
 		String fileID = store.get(file1);
+		assertNull(fileID);
+		
+		fileID = store.putIfAbsent(file1, file1Id);
 		assertNull(fileID);
 		
 		fileID = store.putIfAbsent(file1, file1Id);
@@ -79,8 +113,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		assertNull(fileID);
 		
 		fileID = store.putIfAbsent(file1, file1Id);
-		assertNotNull(fileID);
-		assertEquals(file1Id, fileID);
+		assertNull(fileID);
 		
 		fileID = store.remove(file1);
 		assertNotNull(fileID);
@@ -94,8 +127,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		assertFalse(removedValue);
 		
 		String fileID = store.putIfAbsent(file1, file1Id);
-		assertNotNull(fileID);
-		assertEquals(file1Id, fileID);
+		assertNull(fileID);
 		
 		removedValue = store.replace(file1, file1Id, "4567");
 		assertTrue(removedValue);
