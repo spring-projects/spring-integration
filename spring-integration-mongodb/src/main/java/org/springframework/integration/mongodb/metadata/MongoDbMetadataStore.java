@@ -109,7 +109,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		Map<String,String> fileInfo = new HashMap<>();
+		Map<String,String> fileInfo = new HashMap();
 		fileInfo.put(ID_FIELD, key);
 		fileInfo.put(VALUE, value);
 		template.save(fileInfo, collectionName);
@@ -159,7 +159,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(value, "'value' must not be null.");
 
 		String result = null;
-		Map<String,String> fileInfo = new HashMap<>();
+		Map<String,String> fileInfo = new HashMap();
 		fileInfo.put(ID_FIELD, key);
 		fileInfo.put(VALUE, value);
 		try {
