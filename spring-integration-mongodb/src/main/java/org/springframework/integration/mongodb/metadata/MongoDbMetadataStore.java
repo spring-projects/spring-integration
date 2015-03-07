@@ -21,17 +21,20 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
-import com.mongodb.WriteResult;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.MongoException;
 
 /**
  * MongoDbMetadataStore implementation of {@link ConcurrentMetadataStore}.
@@ -47,10 +50,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 	private final MongoTemplate template;
-	private final static String DEFAULT_COLLECTION_NAME = "metadataStore";
+	private static final String DEFAULT_COLLECTION_NAME = "metadataStore";
 	private final String collectionName;
-	private final String ID_FIELD = "_id";
-	private final String VALUE = "value";
+	private static final String ID_FIELD = "_id";
+	private static final String VALUE = "value";
 	
 	/**
 	 * 
@@ -95,10 +98,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param factory MongoDbFactory
 	 */
 	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
-		Assert.notNull(factory, "'factory' must not be null.");
-		Assert.hasText(collectionName, "'collectionName' must not be empty.");
-		template = new MongoTemplate(factory);
-		this.collectionName = collectionName;
+		this(new MongoTemplate(factory),collectionName);
 	}
 	
 	
@@ -112,10 +112,15 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		Map<String, String> entry = new HashMap<String, String>();
+		final Map<String, String> entry = new HashMap<String, String>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
-		template.save(entry, collectionName);
+		template.execute(collectionName, new CollectionCallback<Object>() {
+	        @Override
+	        public Object doInCollection(DBCollection collection) throws MongoException, DataAccessException {
+	            return collection.save(new BasicDBObject(entry));
+	        }
+	});
 	}
 
 	/**
@@ -192,10 +197,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
-		Update update = new Update();
-		update.set(VALUE, newValue);
-		WriteResult result = template.updateFirst(query, update, collectionName);
-		return result.isUpdateOfExisting();
+		return template.updateFirst(query, Update.update(VALUE, newValue), collectionName).isUpdateOfExisting();
 	}
 
 }
