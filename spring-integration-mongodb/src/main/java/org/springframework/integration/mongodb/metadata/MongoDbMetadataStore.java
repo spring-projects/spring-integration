@@ -103,7 +103,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	
 	
 	/**
-	 * Method put.
 	 * @param key String
 	 * @param value String
 	 * @see org.springframework.integration.metadata.MetadataStore#put(String, String)
@@ -124,7 +123,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * Method get.
 	 * @param key String
 	 * @return String
 	 * @see org.springframework.integration.metadata.MetadataStore#get(String)
@@ -141,7 +139,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * Method remove.
 	 * @param key String
 	 * @return String
 	 * @see org.springframework.integration.metadata.MetadataStore#remove(String)
@@ -157,7 +154,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * Method putIfAbsent.
 	 * @param key String
 	 * @param value String
 	 * @return String
@@ -184,7 +180,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * Method replace.
 	 * @param key String
 	 * @param oldValue String
 	 * @param newValue String
