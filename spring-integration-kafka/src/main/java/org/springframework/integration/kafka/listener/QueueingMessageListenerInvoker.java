@@ -60,7 +60,7 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 		}
 		this.offsetManager = offsetManager;
 		this.errorHandler = errorHandler;
-		this.messages = new ArrayBlockingQueue<KafkaMessage>(capacity, true);
+		this.messages = new ArrayBlockingQueue<KafkaMessage>(capacity);
 	}
 
 	/**
