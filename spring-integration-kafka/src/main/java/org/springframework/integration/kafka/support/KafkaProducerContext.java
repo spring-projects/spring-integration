@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Soby Chacko
@@ -187,7 +188,10 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 			start();
 		}
 
-		ProducerConfiguration<K,V> producerConfiguration = getTopicConfiguration(topic);
+		// only try to look up for a producer configuration if the topic is passed as argument
+		// if no topic is configured, then we'll fall back to the default if a single
+		// producer configuration is available
+		ProducerConfiguration<K, V> producerConfiguration = StringUtils.hasText(topic) ? getTopicConfiguration(topic) : null;
 
 		if (producerConfiguration != null) {
 			producerConfiguration.send(topic, messageKey, message);

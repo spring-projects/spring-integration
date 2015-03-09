@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -112,13 +113,13 @@ public class OutboundTests {
 		final List<String> payloads = new ArrayList<String>();
 		final CountDownLatch latch = new CountDownLatch(expectedMessageCount);
 		kafkaMessageListenerContainer.setMessageListener(new MessageListener() {
-			
+
 			@Override
 			public void onMessage(KafkaMessage message) {
 				payloads.add(MessageUtils.decodePayload(message, decoder));
 				latch.countDown();
 			}
-			
+
 		});
 
 		kafkaMessageListenerContainer.start();
@@ -182,14 +183,14 @@ public class OutboundTests {
 		final MutableMultimap<String, String> payloadsByTopic = Multimaps.mutable.list.with();
 		final CountDownLatch latch = new CountDownLatch(expectedMessageCount);
 		kafkaMessageListenerContainer.setMessageListener(new MessageListener() {
-			
+
 			@Override
 			public void onMessage(KafkaMessage message) {
 				payloadsByTopic.put(message.getMetadata().getPartition().getTopic(),
 						MessageUtils.decodePayload(message, decoder));
 				latch.countDown();
 			}
-			
+
 		});
 
 		kafkaMessageListenerContainer.start();
@@ -237,12 +238,67 @@ public class OutboundTests {
 		kafkaMessageListenerContainer.stop();
 	}
 
+
+	@Test
+	public void testNoHeader() throws Exception {
+
+		// create the topic
+
+		try {
+			TopicUtils.ensureTopicCreated(kafkaRule.getZookeeperConnectionString(), TOPIC, 1, 1);
+		}
+		catch (TopicExistsException e) {
+			// do nothing
+		}
+
+		final String suffix = UUID.randomUUID().toString();
+
+		KafkaMessageListenerContainer kafkaMessageListenerContainer = createMessageListenerContainer(TOPIC);
+
+		final Decoder<String> decoder = new StringDecoder();
+
+		int expectedMessageCount = 1;
+		final MutableMultimap<String, String> payloadsByTopic = Multimaps.mutable.list.with();
+		final CountDownLatch latch = new CountDownLatch(expectedMessageCount);
+		kafkaMessageListenerContainer.setMessageListener(new MessageListener() {
+
+			@Override
+			public void onMessage(KafkaMessage message) {
+				payloadsByTopic.put(message.getMetadata().getPartition().getTopic(),
+						MessageUtils.decodePayload(message, decoder));
+				latch.countDown();
+			}
+
+		});
+
+		kafkaMessageListenerContainer.start();
+
+		KafkaProducerContext<String, String> producerContext = createProducerContext();
+		KafkaProducerMessageHandler<String, String> handler
+				= new KafkaProducerMessageHandler<String, String>(producerContext);
+
+		handler.handleMessage(MessageBuilder.withPayload("fooTopic1" + suffix).build());
+
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		handler.setIntegrationEvaluationContext(evaluationContext);
+
+		producerContext.stop();
+
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertThat(latch.getCount(), equalTo(0L));
+		assertThat(payloadsByTopic.keysView(), hasItem(TOPIC));
+		assertThat(payloadsByTopic.toMap().get(TOPIC).toList(), hasSize(1));
+		assertThat(payloadsByTopic.toMap().get(TOPIC), contains("fooTopic1" + suffix));
+		kafkaMessageListenerContainer.stop();
+	}
+
 	private KafkaMessageListenerContainer createMessageListenerContainer(String... topics) throws Exception {
-		ZookeeperConfiguration configuration = 
+		ZookeeperConfiguration configuration =
 				new ZookeeperConfiguration(new ZookeeperConnect(kafkaRule.getZookeeperConnectionString()));
 		DefaultConnectionFactory connectionFactory = new DefaultConnectionFactory(configuration);
 		connectionFactory.afterPropertiesSet();
-		final KafkaMessageListenerContainer kafkaMessageListenerContainer = 
+		final KafkaMessageListenerContainer kafkaMessageListenerContainer =
 				new KafkaMessageListenerContainer(connectionFactory, topics);
 		kafkaMessageListenerContainer.setMaxFetch(100);
 		kafkaMessageListenerContainer.setConcurrency(1);
@@ -271,5 +327,5 @@ public class OutboundTests {
 		kafkaProducerContext.setProducerConfigurations(Collections.singletonMap(TOPIC, config));
 		return kafkaProducerContext;
 	}
-	
+
 }
