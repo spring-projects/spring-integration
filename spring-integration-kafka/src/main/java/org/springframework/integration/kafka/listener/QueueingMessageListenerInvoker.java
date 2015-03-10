@@ -21,7 +21,6 @@ import java.util.concurrent.BlockingQueue;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.kafka.core.KafkaMessage;
-import org.springframework.util.Assert;
 
 /**
  * Invokes a delegate {@link MessageListener} for all the messages passed to it, storing them

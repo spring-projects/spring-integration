@@ -16,6 +16,8 @@
 
 package org.springframework.integration.kafka.inbound;
 
+import java.util.Map;
+
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.kafka.core.KafkaMessageMetadata;
@@ -24,9 +26,15 @@ import org.springframework.integration.kafka.listener.AbstractDecodingMessageLis
 import org.springframework.integration.kafka.listener.Acknowledgment;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.support.KafkaHeaders;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+
+import com.gs.collections.api.map.MutableMap;
+import com.gs.collections.impl.map.mutable.UnifiedMap;
 
 import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
@@ -41,6 +49,12 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	private Decoder<?> keyDecoder = new DefaultDecoder(null);
 
 	private Decoder<?> payloadDecoder = new DefaultDecoder(null);
+
+	private boolean generateMessageId = false;
+
+	private boolean generateTimestamp = false;
+
+	private boolean useMessageBuilderFactory = false;
 
 	private boolean autoCommitOffset = true;
 
@@ -63,11 +77,51 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 		this.autoCommitOffset = autoCommitOffset;
 	}
 
+	/**
+	 * Generate {@link Message} {@code ids} for produced messages.
+	 * If set to {@code false}, will try to use a default value. By default set to {@code false}.
+	 * Note that this option only works in conjunction with {@link #setUseMessageBuilderFactory(boolean)}.
+	 * If the latter is set to {@code true}, then some {@link MessageBuilderFactory} implementations such as
+	 * {@link DefaultMessageBuilderFactory} may ignore it.
+	 * @param generateMessageId true if a message id should be generated
+	 * @since 1.1
+	 */
+	public void setGenerateMessageId(boolean generateMessageId) {
+		this.generateMessageId = generateMessageId;
+	}
+
+	/**
+	 * Generate {@code timestamp} for produced messages. If set to {@code false}, -1 is used instead.
+	 * By default set to {@code false}.
+	 * Note that this option only works in conjunction with {@link #setUseMessageBuilderFactory(boolean)}.
+	 * If the latter is set to {@code true}, then some {@link MessageBuilderFactory} implementations such as
+	 * {@link DefaultMessageBuilderFactory} may ignore it.
+	 * @param generateTimestamp true if a timestamp should be generated
+	 * @since 1.1
+	 */
+	public void setGenerateTimestamp(boolean generateTimestamp) {
+		this.generateTimestamp = generateTimestamp;
+	}
+
+	/**
+	 * Use the {@link MessageBuilderFactory} returned by {@link #getMessageBuilderFactory()} to create messages.
+	 * @param useMessageBuilderFactory true if the {@link MessageBuilderFactory} returned by
+	 * {@link #getMessageBuilderFactory()} should be used.
+	 * @since 1.1
+	 */
+	public void setUseMessageBuilderFactory(boolean useMessageBuilderFactory) {
+		this.useMessageBuilderFactory = useMessageBuilderFactory;
+	}
+
 	@Override
 	protected void onInit() {
 		this.messageListenerContainer.setMessageListener(autoCommitOffset ?
 				new AutoAcknowledgingChannelForwardingMessageListener()
 				: new AcknowledgingChannelForwardingMessageListener());
+		if (!this.generateMessageId && !this.generateTimestamp
+				&& (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory)) {
+			setMessageBuilderFactory(new MutableMessageBuilderFactory());
+		}
 		super.onInit();
 	}
 
@@ -130,16 +184,75 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 
 	private Message<Object> toMessage(Object key, Object payload, KafkaMessageMetadata metadata,
 			Acknowledgment acknowledgment) {
-		AbstractIntegrationMessageBuilder<Object> messageBuilder = getMessageBuilderFactory().withPayload(payload)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, key)
-				.setHeader(KafkaHeaders.TOPIC, metadata.getPartition().getTopic())
-				.setHeader(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId())
-				.setHeader(KafkaHeaders.OFFSET, metadata.getOffset())
-				.setHeader(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
-		if (acknowledgment != null) {
-			messageBuilder.setHeader(KafkaHeaders.ACKNOWLEDGMENT, acknowledgment);
+
+		final MutableMap<String, Object> headers = UnifiedMap.<String, Object>newMap()
+				.withKeyValue(KafkaHeaders.MESSAGE_KEY, key)
+				.withKeyValue(KafkaHeaders.TOPIC, metadata.getPartition().getTopic())
+				.withKeyValue(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId())
+				.withKeyValue(KafkaHeaders.OFFSET, metadata.getOffset())
+				.withKeyValue(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
+
+		// pre-set the message id header if set to not generate
+		if (!this.generateMessageId) {
+			headers.withKeyValue(MessageHeaders.ID, MessageHeaders.ID_VALUE_NONE);
 		}
-		return messageBuilder.build();
+
+		// pre-set the timestamp header if set to not generate
+		if (!this.generateTimestamp) {
+			headers.withKeyValue(MessageHeaders.TIMESTAMP, -1L);
+		}
+
+		if (!this.autoCommitOffset) {
+			headers.put(KafkaHeaders.ACKNOWLEDGMENT, acknowledgment);
+		}
+
+		if (this.useMessageBuilderFactory) {
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
+		}
+		else {
+			return new KafkaMessage(payload, headers);
+		}
+
+	}
+
+	/**
+	 * Special subclass of {@link Message}. It is used for lower message generation overhead, unless the default
+	 * strategy of the superclass is set via {@link #setUseMessageBuilderFactory(boolean)}
+	 * @since 1.1
+	 */
+	private class KafkaMessage implements Message<Object> {
+
+		private final Object payload;
+
+		private final MessageHeaders messageHeaders;
+
+		public KafkaMessage(Object payload, MutableMap<String, Object> headers) {
+			this.payload = payload;
+			this.messageHeaders = new KafkaMessageHeaders(headers, generateMessageId, generateTimestamp);
+		}
+
+		@Override
+		public Object getPayload() {
+			return this.payload;
+		}
+
+		@Override
+		public MessageHeaders getHeaders() {
+			return this.messageHeaders;
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private class KafkaMessageHeaders extends MessageHeaders {
+
+		public KafkaMessageHeaders(Map<String, Object> headers, boolean generateId, boolean generateTimestamp) {
+			super(headers, generateId ? null : ID_VALUE_NONE, generateTimestamp ? null : -1L);
+		}
+
 	}
 
 }
