@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.HashSet;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -31,6 +32,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 
@@ -44,16 +46,14 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 	 * values may be a single String or a comma-delimited list of values. All whitespace
 	 * will be trimmed. A <code>null</code> value indicates that the policy does not
 	 * apply for either send or receive access type. At most one of the values may be null.
-	 *
 	 * @param sendAccess The send access value(s).
 	 * @param receiveAccess The receive access value(s).
 	 */
-	@SuppressWarnings("unchecked")
 	public DefaultChannelAccessPolicy(String sendAccess, String receiveAccess) {
 		boolean sendAccessDefined = StringUtils.hasText(sendAccess);
 		boolean receiveAccessDefined = StringUtils.hasText(receiveAccess);
 		Assert.isTrue(sendAccessDefined || receiveAccessDefined,
-				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
+				"At least one of 'sendAccess' and 'receiveAccess' must not be null and have at least one entry.");
 		if (sendAccessDefined) {
 			String[] sendAccessValues = StringUtils.commaDelimitedListToStringArray(sendAccess);
 			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
@@ -62,7 +62,7 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 			}
 		}
 		else {
-			configAttributeDefinitionForSend = Collections.EMPTY_SET;
+			configAttributeDefinitionForSend = Collections.emptySet();
 		}
 		if (receiveAccessDefined) {
 			String[] receiveAccessValues = StringUtils.commaDelimitedListToStringArray(receiveAccess);
@@ -72,7 +72,40 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 			}
 		}
 		else {
-			configAttributeDefinitionForReceive = Collections.EMPTY_SET;
+			configAttributeDefinitionForReceive = Collections.emptySet();
+		}
+	}
+
+	/**
+	 * Create an access policy instance. A <code>null</code> value indicates that the policy does not
+	 * apply for either send or receive access type. At most one of the values may be null.
+	 * Typically is used for the values from the {@link SecuredChannel}
+	 * @param sendAccess The send access values.
+	 * @param receiveAccess The receive access values.
+	 * @since 4.2
+	 */
+	public DefaultChannelAccessPolicy(String[] sendAccess, String[] receiveAccess) {
+		boolean sendAccessDefined = !ObjectUtils.isEmpty(sendAccess);
+		boolean receiveAccessDefined = !ObjectUtils.isEmpty(receiveAccess);
+		Assert.isTrue(sendAccessDefined || receiveAccessDefined,
+				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
+		if (sendAccessDefined) {
+			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
+			for (String sendAccessValue : sendAccess) {
+				configAttributeDefinitionForSend.add(new SecurityConfig(sendAccessValue));
+			}
+		}
+		else {
+			configAttributeDefinitionForSend = Collections.emptySet();
+		}
+		if (receiveAccessDefined) {
+			configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
+			for (String receiveAccessValue : receiveAccess) {
+				configAttributeDefinitionForReceive.add(new SecurityConfig(receiveAccessValue));
+			}
+		}
+		else {
+			configAttributeDefinitionForReceive = Collections.emptySet();
 		}
 	}
 
