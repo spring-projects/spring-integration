@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
 
 package org.springframework.integration.security.config;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.Advisor;
+import org.springframework.aop.TargetSource;
+import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
+import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
 import org.springframework.messaging.MessageChannel;
@@ -37,40 +40,60 @@ import org.springframework.messaging.MessageChannel;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProcessor {
+public class ChannelSecurityInterceptorBeanPostProcessor extends AbstractAutoProxyCreator {
 
-	private final Collection<ChannelSecurityInterceptor> securityInterceptors;
+	private final Map<String, Set<Pattern>> securityInterceptorMappings;
 
-	public ChannelSecurityInterceptorBeanPostProcessor(Collection<ChannelSecurityInterceptor> securityInterceptors) {
-		this.securityInterceptors = securityInterceptors;
+	private final Map<String, Map<Pattern, ChannelAccessPolicy>> accessPolicyMapping;
+
+	public ChannelSecurityInterceptorBeanPostProcessor(Map<String, Set<Pattern>> securityInterceptorMappings) {
+		this(securityInterceptorMappings, null);
 	}
 
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
+	public ChannelSecurityInterceptorBeanPostProcessor(Map<String, Set<Pattern>> securityInterceptorMappings,
+			Map<String, Map<Pattern, ChannelAccessPolicy>> accessPolicyMapping) {
+		this.securityInterceptorMappings = securityInterceptorMappings;//NOSONAR (inconsistent sync)
+		this.accessPolicyMapping = accessPolicyMapping;//NOSONAR (inconsistent sync)
 	}
 
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageChannel) {
-			for (ChannelSecurityInterceptor securityInterceptor : this.securityInterceptors) {
-				ChannelSecurityMetadataSource channelSecurityMetadataSource =
-						(ChannelSecurityMetadataSource) securityInterceptor.obtainSecurityMetadataSource();
-				if (this.shouldProxy(beanName, channelSecurityMetadataSource)) {
-					if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {
-						((Advised) bean).addAdvisor(new DefaultPointcutAdvisor(securityInterceptor));
-					}
-					else {
-						ProxyFactory proxyFactory = new ProxyFactory(bean);
-						proxyFactory.addAdvisor(new DefaultPointcutAdvisor(securityInterceptor));
-						bean = proxyFactory.getProxy();
-					}
-				}
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) {
+		if (this.accessPolicyMapping != null
+				&& bean instanceof ChannelSecurityInterceptor
+				&& accessPolicyMapping.containsKey(beanName)) {
+			Map<Pattern, ChannelAccessPolicy> accessPolicies = this.accessPolicyMapping.get(beanName);
+			ChannelSecurityMetadataSource securityMetadataSource =
+					(ChannelSecurityMetadataSource) ((ChannelSecurityInterceptor) bean).obtainSecurityMetadataSource();
+			for (Map.Entry<Pattern, ChannelAccessPolicy> entry : accessPolicies.entrySet()) {
+				securityMetadataSource.addPatternMapping(entry.getKey(), entry.getValue());
 			}
 		}
 		return bean;
 	}
 
-	private boolean shouldProxy(String beanName, ChannelSecurityMetadataSource channelSecurityMetadataSource) {
-		Set<Pattern> patterns = channelSecurityMetadataSource.getPatterns();
+	@Override
+	protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName,
+			TargetSource customTargetSource) throws BeansException {
+		if (MessageChannel.class.isAssignableFrom(beanClass)) {
+			List<Advisor> interceptors = new ArrayList<Advisor>();
+			for (Map.Entry<String, Set<Pattern>> entry : this.securityInterceptorMappings.entrySet()) {
+				if (isMatch(beanName, entry.getValue())) {
+						DefaultBeanFactoryPointcutAdvisor channelSecurityInterceptor
+								= new DefaultBeanFactoryPointcutAdvisor();
+						channelSecurityInterceptor.setAdviceBeanName(entry.getKey());
+						channelSecurityInterceptor.setBeanFactory(getBeanFactory());
+						interceptors.add(channelSecurityInterceptor);
+					}
+				}
+			if (!interceptors.isEmpty()) {
+				return interceptors.toArray();
+			}
+		}
+
+		return DO_NOT_PROXY;
+	}
+
+	private boolean isMatch(String beanName, Set<Pattern> patterns) {
 		for (Pattern pattern : patterns) {
 			if (pattern.matcher(beanName).matches()) {
 				return true;
