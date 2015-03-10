@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="polling-consumer"
     xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Poller (Polling Consumer)</title>
+    <title>Poller (Polling Consumer, Polling Message Source)</title>
     <para>
         When Message Endpoints (Channel Adapters) are connected to channels and
         instantiated, they produce one of the following 2 instances:
@@ -66,7 +66,8 @@
         of the next poll. The <classname>PollSkipAdvice</classname> can be used to suppress (skip) a
         poll, perhaps because there is some downstream condition that would prevent the message to
         be processed properly. To use this advice, you have to provide it with an implementation
-        of a <interfacename>PollSkipStrategy</interfacename>.
+        of a <interfacename>PollSkipStrategy</interfacename>. <emphasis>Version 4.2</emphasis> added
+        more flexibility in this area - see <xref linkend="conditional-pollers"/>.
     </note>
     <para>
         This chapter is meant to only give a high-level overview regarding Polling Consumers
@@ -76,5 +77,72 @@
         Messaging Endpoints in general and Polling Consumers in particular, please see
         <xref linkend="endpoint"/>.
     </para>
+    <section id="conditional-pollers">
+       <title>Conditional Pollers</title>
+       <para><emphasis role="bold">Background</emphasis></para>
+       <para>
+         <interfacename>Advice</interfacename> objects, in an <code>advice-chain</code> on a poller, advise
+         the whole polling task (message retrieval and processing). These "around advice" objects do not
+         have access to any context for the poll, just the poll itself. This is fine for requirements
+         such as making a task transactional, or skipping a poll due to some external condition
+         as discussed above. What if we wish to take some action depending on
+         the result of the <code>receive</code> part of the poll, or if we want to adjust the poller
+         depending on conditions?
+       </para>
+       <para><emphasis role="bold">"Smart" Polling</emphasis></para>
+       <para>
+         <emphasis>Version 4.2</emphasis> introduced the <classname>AbstractMessageSourceAdvice</classname>.
+         Any <interfacename>Advice</interfacename> objects in the <code>advice-chain</code> that
+         subclass this class, are applied to just the receive operation. Such classes implement the
+         following methods:
+       </para>
+       <programlisting language="java"><![CDATA[boolean beforeReceive(MessageSource<?> source)]]></programlisting>
+       <para>
+         This method is called before the <interfacename>MessageSource</interfacename> <code>receive()</code>
+         method. It enables you to examine and or reconfigure the source at this time. Returning
+         false cancels this poll (similar to the <classname>PollSkipAdvice</classname> above).
+       </para>
+       <programlisting language="java"><![CDATA[
+Message<?> afterReceive(Message<?> result, MessageSource<?> source)]]></programlisting>
+       <para>
+         This method is called after the <code>receive()</code> method; again, you can reconfigure the
+         source, or take any action perhaps depending on the result (<code>null</code> for no message).
+         You can even return a different message!
+       </para>
+       <para><emphasis role="bold">SimpleActiveIdleMessageSourceAdvice</emphasis></para>
+       <para>
+         This advice is a simple implementation of <classname>AbstractMessageSourceAdvice</classname>,
+         when used in conjuction with a <classname>DynamicPeriodicTrigger</classname> it adjusts
+         the polling frequency depending on whether or not the previous poll resulted in a
+         message or not. The poller must also have a reference to the same
+         <classname>DynamicPeriodicTrigger</classname>.
+       </para>
+       <important>
+         This advice modifies the trigger based on the receive result. This will only work if the
+         advice is called on the poller thread. It will <emphasis role="bold">not</emphasis>
+         work if the poller has a <code>task-exector</code>. To use this advice where you wish to
+         use asynch operations after the result of a poll, do the async handoff later, perhaps
+         by using an <classname>ExceutorChannel</classname>.
+       </important>
+       <para><emphasis role="bold">Advice Chain Ordering</emphasis></para>
+       <important>
+        <para>
+         It is important to understamd how the advice chain is processed during initialization.
+         <interface>Advice</interface> objects that do not extend <classname>AbstractMessageSourceAdvice</classname>
+         are applied to the whole poll process and are all invoked first, in order, before any
+         <classname>AbstractMessageSourceAdvice</classname>; then <classname>AbstractMessageSourceAdvice</classname>
+         objects are invoked in order around the <interfacename>MessageSource</interfacename> <code>receive()</code>
+         method. If you have, say <interfacename>Advice</interfacename> objects <code>a, b, c, d</code>, where
+         <code>b</code> and <code>d</code> are <classname>AbstractMessageSourceAdvice</classname>, they will be
+         applied in the order <code>a, c, b, d</code>.
+        </para>
+        <para>
+         Also, if a <interfacename>MessageSource</interfacename> is already a <interfacename>Proxy</interfacename>,
+         the <classname>AbstractMessageSourceAdvice</classname> will be invoked after any existing
+         <interfacename>Advice</interfacename> objects. If you wish to change the order, you should wire
+         up the proxy yourself.
+        </para>
+       </important>
+    </section>
 
 </section>
