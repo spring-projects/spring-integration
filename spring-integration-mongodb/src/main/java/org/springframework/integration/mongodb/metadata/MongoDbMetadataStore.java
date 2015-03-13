@@ -54,16 +54,18 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	private final String collectionName;
 	private static final String ID_FIELD = "_id";
 	private static final String VALUE = "value";
-	
+
 	/**
-	 * 
+	 *
 	 * Configure the MongoDbMetadataStore by provided {@link MongoTemplate} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
-	 * 
-	 * @param template The mongodb template
-	 * @param collectionName the collection name where it persists the data
+	 *
+	 * @param template
+	 *            The mongodb template
+	 * @param collectionName
+	 *            the collection name where it persists the data
 	 */
-	public MongoDbMetadataStore(MongoTemplate template, String collectionName) {
+	public MongoDbMetadataStore(final MongoTemplate template, final String collectionName) {
 		Assert.notNull(template, "'template' must not be null.");
 		Assert.hasText(collectionName, "'collectionName' must not be empty.");
 		this.template = template;
@@ -73,106 +75,129 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	/**
 	 * Configure the MongoDbMetadataStore by provided {@link MongoTemplate} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
-	 * 
-	 * @param template The mongodb template
+	 *
+	 * @param template
+	 *            The mongodb template
 	 */
-	public MongoDbMetadataStore(MongoTemplate template) {
+	public MongoDbMetadataStore(final MongoTemplate template) {
 		this(template, DEFAULT_COLLECTION_NAME);
 	}
 
 	/**
 	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
-	 * 
-	 * @param factory The mongodb factory
+	 *
+	 * @param factory
+	 *            The mongodb factory
 	 */
-	public MongoDbMetadataStore(MongoDbFactory factory) {
+	public MongoDbMetadataStore(final MongoDbFactory factory) {
 		this(factory, DEFAULT_COLLECTION_NAME);
 	}
-	
+
 	/**
 	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * collection name
-	 * 
-	 * @param collectionName the collection name where it persists the data
-	 * @param factory MongoDbFactory
+	 *
+	 * @param collectionName
+	 *            the collection name where it persists the data
+	 * @param factory
+	 *            MongoDbFactory
 	 */
-	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
-		this(new MongoTemplate(factory),collectionName);
+	public MongoDbMetadataStore(final MongoDbFactory factory, final String collectionName) {
+		this(new MongoTemplate(factory), collectionName);
 	}
-	
-	
+
 	/**
-	 * @param key String
-	 * @param value String
-	 * @see org.springframework.integration.metadata.MetadataStore#put(String, String)
+	 * @Method
+	 *         put method uses mongo template execute method to save the
+	 *         key-value pair
+	 *
+	 * @param key
+	 *            Its metadata key usually filename
+	 * @param value
+	 *            Its a metadata value
+	 * @see org.springframework.integration.metadata.MetadataStore#put(String,
+	 *      String)
 	 */
 	@Override
-	public void put(String key, String value) {
+	public void put(final String key, final String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
 		final Map<String, String> entry = new HashMap<String, String>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
 		template.execute(collectionName, new CollectionCallback<Object>() {
-	        @Override
-	        public Object doInCollection(DBCollection collection) throws MongoException, DataAccessException {
-	            return collection.save(new BasicDBObject(entry));
-	        }
-	});
+			@Override
+			public Object doInCollection(final DBCollection collection) throws MongoException,
+			DataAccessException {
+				return collection.save(new BasicDBObject(entry));
+			}
+		});
 	}
 
 	/**
-	 * @param key String
+	 * @Method
+	 *         get method uses mongo template findOne method
+	 * @param key
+	 *            Its metadata key usually filename
 	 * @return String
 	 * @see org.springframework.integration.metadata.MetadataStore#get(String)
 	 */
 	@Override
-	public String get(String key) {
+	public String get(final String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		final Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
-		Map<String, String> result = template.findOne(query, Map.class, collectionName);
+		final Map<String, String> result = template.findOne(query, Map.class, collectionName);
 		return result == null ? null : result.get(VALUE);
-		
+
 	}
 
 	/**
-	 * @param key String
+	 * @Method
+	 *         remove method uses mongo template findAndRemove method
+	 * @param key
+	 *            Its metadata key usually filename
 	 * @return String
 	 * @see org.springframework.integration.metadata.MetadataStore#remove(String)
 	 */
 	@Override
-	public String remove(String key) {
+	public String remove(final String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		final Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
-		Map<String, String> result = template.findAndRemove(query, Map.class,collectionName);
+		final Map<String, String> result = template.findAndRemove(query, Map.class, collectionName);
 		return result == null ? null : result.get(VALUE);
 	}
 
 	/**
-	 * @param key String
-	 * @param value String
+	 * @Method
+	 *         putIfAbsent method uses mongo template insert method and throws
+	 *         exception due to duplicate constraint
+	 * @param key
+	 *            Its metadata key usually filename
+	 * @param value
+	 *            String
 	 * @return String
-	 * @see org.springframework.integration.metadata.ConcurrentMetadataStore#putIfAbsent(String, String)
+	 * @see org.springframework.integration.metadata.ConcurrentMetadataStore#putIfAbsent(String,
+	 *      String)
 	 */
 	@Override
-	public String putIfAbsent(String key, String value) {
+	public String putIfAbsent(final String key, final String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
 
 		String result = null;
-		Map<String, String> entry = new HashMap<String, String>();
+		final Map<String, String> entry = new HashMap<String, String>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
 		try {
 			template.insert(entry, collectionName);
-		} catch (DuplicateKeyException e) {
-			if(logger.isDebugEnabled()){
-				logger.debug("DUPLICATE KEY VIOLOATION",e);
+		} catch (final DuplicateKeyException e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("DUPLICATE KEY VIOLOATION", e);
 			}
 			result = get(key);
 		}
@@ -180,19 +205,26 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * @param key String
-	 * @param oldValue String
-	 * @param newValue String
+	 * @Method
+	 *         Replace method uses mongo template updateFirst method,
+	 * @param key
+	 *            Its metadata key usually filename
+	 * @param oldValue
+	 *            String
+	 * @param newValue
+	 *            String
 	 * @return boolean
-	 * @see org.springframework.integration.metadata.ConcurrentMetadataStore#replace(String, String, String)
+	 * @see org.springframework.integration.metadata.ConcurrentMetadataStore#replace(String,
+	 *      String, String)
 	 */
 	@Override
-	public boolean replace(String key, String oldValue, String newValue) {
+	public boolean replace(final String key, final String oldValue, final String newValue) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
-		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
-		return template.updateFirst(query, Update.update(VALUE, newValue), collectionName).isUpdateOfExisting();
+		final Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
+		return template.updateFirst(query, Update.update(VALUE, newValue), collectionName)
+				.isUpdateOfExisting();
 	}
 
 }
