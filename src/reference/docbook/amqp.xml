@@ -77,7 +77,7 @@
                                   task-executor=""]]><co                id="amqp-inbound-channel-adapter-xml-22-co" linkends="amqp-inbound-channel-adapter-xml-22" /><![CDATA[
                                   transaction-attribute=""]]><co        id="amqp-inbound-channel-adapter-xml-23-co" linkends="amqp-inbound-channel-adapter-xml-23" /><![CDATA[
                                   transaction-manager=""]]><co          id="amqp-inbound-channel-adapter-xml-24-co" linkends="amqp-inbound-channel-adapter-xml-24" /><![CDATA[
-                                  tx-size=""]]><co                      id="amqp-inbound-channel-adapter-xml-25-co" linkends="amqp-inbound-channel-adapter-xml-25" /><![CDATA[/>]]>
+                                  tx-size="" />]]><co                      id="amqp-inbound-channel-adapter-xml-25-co" linkends="amqp-inbound-channel-adapter-xml-25" />
     </programlisting>
     <para>
         <calloutlist>
@@ -164,21 +164,8 @@
                       is the MessageListener itself. Since that is actually the
                       core responsibility of this Channel Adapter implementation,
                       the referenced listener container must NOT already have its
-                      own MessageListener configured.
-                <emphasis>Optional</emphasis>.
-                <note>
-                  Note that when configuring an external container, you cannot use the <emphasis role="bold">Spring AMQP</emphasis>
-                  namespace to define the container. This is because the namespace requires at least one <code>&lt;listener/&gt;</code>
-                  element. In this environment, the listener is internal to the adapter. For this reason, you must define
-                  the container using a normal Spring <code>&lt;bean/&gt;</code> definition, such as:
-                  <programlisting language="xml"><![CDATA[
-<bean id="container"
- class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
-	<property name="connectionFactory" ref="connectionFactory" />
-	<property name="queueNames" value="foo.queue" />
-	<property name="defaultRequeueRejected" value="false"/>
-</bean>]]></programlisting>
-                </note></para>
+                      own MessageListener configured. <emphasis>Optional</emphasis>.
+				</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-15-co" id="amqp-inbound-channel-adapter-xml-15">
                 <para>The MessageConverter to use when receiving AMQP Messages.
@@ -277,6 +264,19 @@
                 <emphasis>Optional (Defaults to 1)</emphasis>.</para>
             </callout>
         </calloutlist>
+                <note>
+                  Note that when configuring an external container, you cannot use the <emphasis role="bold">Spring AMQP</emphasis>
+                  namespace to define the container. This is because the namespace requires at least one <code>&lt;listener/&gt;</code>
+                  element. In this environment, the listener is internal to the adapter. For this reason, you must define
+                  the container using a normal Spring <code>&lt;bean/&gt;</code> definition, such as:
+                  <programlisting language="xml"><![CDATA[
+<bean id="container"
+ class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+	<property name="connectionFactory" ref="connectionFactory" />
+	<property name="queueNames" value="foo.queue" />
+	<property name="defaultRequeueRejected" value="false"/>
+</bean>]]></programlisting>
+                </note>
     </para>
     <important>
         <para>Even though the Spring Integration JMS and AMQP support is very similar,
@@ -301,7 +301,7 @@
                           mapped-request-headers=""]]><co              id="amqp-inbound-gateway-adapter-xml-9-co" linkends="amqp-inbound-gateway-adapter-xml-9" /><![CDATA[
                           mapped-reply-headers=""]]><co                id="amqp-inbound-gateway-adapter-xml-10-co" linkends="amqp-inbound-gateway-adapter-xml-10" /><![CDATA[
                           reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-11-co" linkends="amqp-inbound-gateway-adapter-xml-11" /><![CDATA[
-                          reply-timeout="1000"]]><co                   id="amqp-inbound-gateway-adapter-xml-12-co" linkends="amqp-inbound-gateway-adapter-xml-12" /><![CDATA[/>]]>
+                          reply-timeout="1000" />]]><co                   id="amqp-inbound-gateway-adapter-xml-12-co" linkends="amqp-inbound-gateway-adapter-xml-12" />
       </programlisting>
       <para>
           <calloutlist>
@@ -422,7 +422,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                                return-channel=""]]><co              id="amqp-outbound-channel-adapter-xml-11-co" linkends="amqp-outbound-channel-adapter-xml-11" /><![CDATA[
                                header-mapper=""]]><co               id="amqp-outbound-channel-adapter-xml-12-co" linkends="amqp-outbound-channel-adapter-xml-12" /><![CDATA[
                                mapped-request-headers=""]]><co      id="amqp-outbound-channel-adapter-xml-13-co" linkends="amqp-outbound-channel-adapter-xml-13" /><![CDATA[
-                               lazy-connect="true"]]><co            id="amqp-outbound-channel-adapter-xml-14-co" linkends="amqp-outbound-channel-adapter-xml-14" /><![CDATA[/>]]>
+                               lazy-connect="true" />]]><co            id="amqp-outbound-channel-adapter-xml-14-co" linkends="amqp-outbound-channel-adapter-xml-14" />
     </programlisting>
     <para>
         <calloutlist>
@@ -513,14 +513,6 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                 data received from amqp, with the following additional headers: <emphasis>amqp_returnReplyCode,
                 amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey</emphasis>.
                 <emphasis>Optional</emphasis>.</para>
-                <important>
-                  Using a <code>return-channel</code> requires a <classname>RabbitTemplate</classname> with
-                  the <code>mandatory</code> property set to <code>true</code>,
-                  and a <classname>CachingConnectionFactory</classname>
-                  with the <code>publisherReturns</code> property set to <code>true</code>. When using multiple
-                  outbound endpoints with returns, a separate <classname>RabbitTemplate</classname> is needed
-                  for each endpoint.
-                </important>
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-12-co" id="amqp-outbound-channel-adapter-xml-12">
                 <para>A reference to an <interfacename>AmqpHeaderMapper</interfacename> to use when sending AMQP Messages.
@@ -546,6 +538,14 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                 some other component established it) when the first message is sent.</para>
             </callout>
         </calloutlist>
+        <important>
+          Using a <code>return-channel</code> requires a <classname>RabbitTemplate</classname> with
+          the <code>mandatory</code> property set to <code>true</code>,
+          and a <classname>CachingConnectionFactory</classname>
+          with the <code>publisherReturns</code> property set to <code>true</code>. When using multiple
+          outbound endpoints with returns, a separate <classname>RabbitTemplate</classname> is needed
+          for each endpoint.
+        </important>
     </para>
   </section>
 
@@ -566,7 +566,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                            routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[
                            default-delivery-mode""]]><co            id="amqp-outbound-gateway-adapter-xml-8a-co" linkends="amqp-outbound-gateway-adapter-xml-8a" /><![CDATA[
                            return-channel=""]]><co                  id="amqp-outbound-gateway-adapter-xml-9-co" linkends="amqp-outbound-gateway-adapter-xml-9" /><![CDATA[
-                           lazy-connect="true"]]><co               id="amqp-outbound-gateway-adapter-xml-10-co" linkends="amqp-outbound-gateway-adapter-xml-10" /><![CDATA[/>]]>
+                           lazy-connect="true" />]]><co               id="amqp-outbound-gateway-adapter-xml-10-co" linkends="amqp-outbound-gateway-adapter-xml-10" />
       </programlisting>
       <para>
           <calloutlist>
@@ -644,14 +644,6 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                 data received from amqp, with the following additional headers: <emphasis>amqp_returnReplyCode,
                 amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey</emphasis>.
                 <emphasis>Optional</emphasis>.</para>
-                <important>
-                  Using a <code>return-channel</code> requires a <classname>RabbitTemplate</classname> with
-                  the <code>mandatory</code> property set to <code>true</code>,
-                  and a <classname>CachingConnectionFactory</classname>
-                  with the <code>publisherReturns</code> property set to <code>true</code>. When using multiple
-                  outbound endpoints with returns, a separate <classname>RabbitTemplate</classname> is needed
-                  for each endpoint.
-                </important>
               </callout>
             <callout arearefs="amqp-outbound-gateway-adapter-xml-10-co" id="amqp-outbound-gateway-adapter-xml-10">
                 <para>When set to <code>false</code>, the endpoint will attempt to connect to the
@@ -661,6 +653,14 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                 some other component established it) when the first message is sent.</para>
             </callout>
           </calloutlist>
+          <important>
+            Using a <code>return-channel</code> requires a <classname>RabbitTemplate</classname> with
+            the <code>mandatory</code> property set to <code>true</code>,
+            and a <classname>CachingConnectionFactory</classname>
+            with the <code>publisherReturns</code> property set to <code>true</code>. When using multiple
+            outbound endpoints with returns, a separate <classname>RabbitTemplate</classname> is needed
+            for each endpoint.
+          </important>
       </para>
       <note>
         <para>Prior to Spring Integration 2.2, and Spring AMQP 1.1, the outbound gateway used a new, temporary,
@@ -719,7 +719,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 			The Spring Integration AMPQ Adapters will map standard AMQP  properties
 			automatically. These properties will be copied by default to and from
 			Spring Integration <classname>MessageHeaders</classname> using the
-			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink></classname>.
+			<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink>.
 		</para>
 		<para>
 			Of course, you can pass in your own implementation of AMQP specific header
@@ -727,7 +727,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 		</para>
 		<para>
 			Any user-defined headers within the AMQP
-			<classname><ulink url="http://static.springsource.org/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html">MessageProperties</ulink></classname>
+			<ulink url="http://static.springsource.org/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html">MessageProperties</ulink>
 			will NOT be copied to or from an AMQP Message, unless explicitly specified
 			by the <emphasis>requestHeaderNames</emphasis> and/or
 			<emphasis>replyHeaderNames</emphasis> properties of the

@@ -9,9 +9,12 @@ buildscript {
 	}
 	dependencies {
 		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
-		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
+		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.0'
+		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
 	}
 }
+
+def docsDir = 'src/reference/asciidoc' // Will be default with newer asciidoctor plugin
 
 ext {
 	linkHomepage = 'https://projects.spring.io/spring-integration'
@@ -689,11 +692,39 @@ project("spring-integration-bom") {
 	}
 }
 
-apply plugin: 'docbook-reference'
+apply plugin: org.asciidoctor.gradle.AsciidoctorPlugin
+
+asciidoctor {
+	sourceDir file("$docsDir")
+	sourceDocumentNames = files("$docsDir/index.adoc") // Change in >= 1.5.1
+	outputDir file("$buildDir/html")
+	backends = ['html5', 'docbook']
+	logDocuments = true
+	options = [
+		doctype: 'book',
+		attributes: [
+			docinfo: '',
+			toc2: '',
+			'compat-mode': '',
+			imagesdir: '',
+			stylesdir: "stylesheets/",
+			stylesheet: 'golo.css',
+			'spring-integration-version': "$version",
+			'source-highlighter': 'highlightjs'
+		]
+	]
+}
+
+apply plugin: DocbookReferencePlugin
 
 reference {
-	sourceDir = file('src/reference/docbook')
+	sourceFileName = 'index.xml'
+	sourceDir = file("$buildDir/html")
+	pdfFilename = 'spring-integration-reference.pdf'
+	expandPlaceholders = ''
 }
+
+reference.dependsOn asciidoctor
 
 apply plugin: 'sonar-runner'
 

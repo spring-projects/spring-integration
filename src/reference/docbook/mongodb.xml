@@ -150,7 +150,7 @@
 			  has been introduced; it is an optimized <interfacename>MessageGroupStore</interfacename> for use
 			  in <classname>QueueChannel</classname>s.
 			  With <code>priorityEnabled = true</code>, it can be used in
-			  <code>&lt;int:priority-queue&gt;</code>s to achieve <emphasis>priority</emphasis> order polling for
+			  <code>&lt;int:priority-queue&gt;</code> s to achieve <emphasis>priority</emphasis> order polling for
 			  persisted messages. The <emphasis>priority</emphasis> MonogDB document field is populated from the
 			  <code>IntegrationMessageHeaderAccessor.PRIORITY</code> (<code>priority</code>)
 			  message header.

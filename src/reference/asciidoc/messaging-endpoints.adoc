@@ -1,0 +1,20 @@
+[[messaging-endpoints-chapter]]
+== Messaging Endpoints
+
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+include::./endpoint.adoc[]
+
+include::./gateway.adoc[]
+
+include::./service-activator.adoc[]
+
+include::./delayer.adoc[]
+
+include::./scripting.adoc[]
+
+include::./groovy.adoc[]
+
+include::./handler-advice.adoc[]
+
+include::./logging-adapter.adoc[]
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297

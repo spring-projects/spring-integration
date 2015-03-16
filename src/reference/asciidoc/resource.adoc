@@ -1,0 +1,78 @@
+[[resource]]
+== Resource Support
+
+[[resource-intro]]
+=== Introduction
+
+The _Resource Inbound Channel Adapter_ builds upon Spring's `Resource` abstraction to support greater flexibility across a variety of actual types of underlying resources, such as a file, a URL,  or a class path resource.
+Therefore, it's similar to but more generic than the _File Inbound Channel Adapter_.
+
+[[resource-inbound-channel-adapter]]
+=== Resource Inbound Channel Adapter
+
+The _Resource Inbound Channel Adapter_ is a polling adapter that creates a `Message` whose payload is a collection of `Resource` objects.
+
+`Resource` objects are resolved based on the pattern specified using the `pattern` attribute.
+The collection of resolved `Resource` objects is then sent as a payload within a `Message` to the adapter's channel.
+That is one major difference between _Resource Inbound Channel Adapter_ and _File Inbound Channel Adapter_; the latter buffers File objects and sends a single `File` object per `Message`.
+
+Below is an example of a very simple configuration which will find all files ending with the 'properties' extension in the `foo.bar` package available on the classpath and will send them as the payload of a Message to the channel named '`resultChannel`':
+[source,xml]
+----
+<int:resource-inbound-channel-adapter id="resourceAdapter"
+               channel="resultChannel"
+               pattern="classpath:foo/bar/*.properties">
+    <int:poller fixed-rate="1000"/>
+</int:resource-inbound-channel-adapter>
+----
+
+The _Resource Inbound Channel Adapter_ relies on the `org.springframework.core.io.support.ResourcePatternResolver` strategy interface to resolve the provided pattern.
+It defaults to an instance of the current `ApplicationContext`.
+However you may provide a reference to an instance of your own implementation of `ResourcePatternResolver` using the `pattern-resolver` attribute:
+[source,xml]
+----
+<int:resource-inbound-channel-adapter id="resourceAdapter"
+               channel="resultChannel"
+               pattern="classpath:foo/bar/*.properties"
+               pattern-resolver="myPatternResolver">
+    <int:poller fixed-rate="1000"/>
+</int:resource-inbound-channel-adapter>
+
+<bean id="myPatternResolver" class="org.example.MyPatternResolver"/>
+----
+
+You may have a use case where you need to further filter the collection of resources resolved by the `ResourcePatternResolver`.
+For example, you may want to prevent resources that were resolved already from appearing in a collection of resolved resources ever again.
+On the other hand  your resources might be updated rather often and you _do_ want them to be picked up again.
+In other words there is a valid use case for defining an additional filter as well as disabling filtering altogether.
+You can provide your own implementation of the `org.springframework.integration.util.CollectionFilter` strategy interface:
+[source,java]
+----
+public interface CollectionFilter<T> {
+
+    Collection<T> filter(Collection<T> unfilteredElements);
+
+}
+----
+
+As you can see the `CollectionFilter` receives a collection of un-filtered elements (which would be `Resource` objects in this case), and it returns a collection of filtered elements of that same type.
+
+If you are defining the adapter via XML but you do not specify a filter reference, a default implementation of `CollectionFilter` will be used by the _Resource Inbound Channel Adapter_.
+The implementation class of that default filter is `org.springframework.integration.util.AcceptOnceCollectionFilter`.
+It remembers the elements passed in the previous invocation in order to avoid returning those elements more than once.
+
+To inject your own implementation of `CollectionFilter` instead, use the `filter` attribute.
+
+[source,xml]
+----
+<int:resource-inbound-channel-adapter id="resourceAdapter"
+               channel="resultChannel"
+               pattern="classpath:foo/bar/*.properties"
+               filter="myFilter">
+    <int:poller fixed-rate="1000"/>
+</int:resource-inbound-channel-adapter>
+
+<bean id="myFilter" class="org.example.MyFilter"/>
+----
+
+If you don't need any filtering and want to disable even the default `CollectionFilter` strategy, simply provide an empty value for the filter attribute (e.g., `filter=""`)

@@ -254,8 +254,8 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 			</callout>
 			<callout arearefs="redis-m-d-c-a-errorChannel">
 				<para>
-					The <interfacename>MessageChannel</interfacename> to which to send <interfacename>ErrorMessage</interfacename>s with
-					<interfacename>Exception</interfacename>s from the listening task of the Endpoint. By default
+					The <interfacename>MessageChannel</interfacename> to which to send <interfacename>ErrorMessage</interfacename> s with
+					<interfacename>Exception</interfacename> s from the listening task of the Endpoint. By default
 					the underlying <classname>MessagePublishingErrorHandler</classname> uses the
 					default <code>errorChannel</code> from the application context.
 				</para>
@@ -456,7 +456,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 		<title>Redis Metadata Store</title>
 		<para>
 			As of <emphasis>Spring Integration 3.0</emphasis> a new Redis-based
-			<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html">MetadataStore</ulink></interfacename>
+			<ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html">MetadataStore</ulink>
 			(<xref linkend="metadata-store"/>) implementation is available. The <classname>RedisMetadataStore</classname> can
 			be used to maintain state of a <interfacename>MetadataStore</interfacename>
 			across application restarts. This new <interfacename>MetadataStore</interfacename>
@@ -529,7 +529,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
         </note>
         <important>
           By default, the adapter uses a <classname>StringRedisTemplate</classname>; this uses
-          <classname>StringRedisSerializer</classname>s for keys, values, hash keys and hash values. If your
+          <classname>StringRedisSerializer</classname> s for keys, values, hash keys and hash values. If your
           Redis store contains objects that are serialized with other techniques, you must supply a
           <classname>RedisTemplate</classname> configured with appropriate serializers.
           For example, if the store is written to using a RedisStore Outbound Adapter that has its
@@ -650,8 +650,8 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
           By default, the adapter uses a <classname>StringRedisTemplate</classname>; this uses
           <classname>StringRedisSerializer</classname>s for keys, values, hash keys and hash values. However, if
           <code>extract-payload-elements</code> is set to false, a <classname>RedisTemplate</classname> using
-          <classname>StringRedisSerializer</classname>s for keys and hash keys, and
-          <classname>JdkSerializationRedisSerializer</classname>s for values and hash values will be used. With the JDK serializer, it is important
+          <classname>StringRedisSerializer</classname> s for keys and hash keys, and
+          <classname>JdkSerializationRedisSerializer</classname> s for values and hash values will be used. With the JDK serializer, it is important
           to understand that java serialization is used for all values, regardless of whether the value
           is actually a collection or not. If you need more control over
 the serialization of values, you may want to consider providing your own
@@ -688,12 +688,12 @@ the serialization of values, you may want to consider providing your own
 			<calloutlist>
 				<callout arearefs="redis-o-g-request-channel">
 					<para>
-						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename>s.
+						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-reply-channel">
 					<para>
-						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename>s.
+						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-o-g-requires-reply">
@@ -797,12 +797,12 @@ the serialization of values, you may want to consider providing your own
 			<calloutlist>
 				<callout arearefs="redis-q-o-g-request-channel">
 					<para>
-						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename>s.
+						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-q-o-g-reply-channel">
 					<para>
-						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename>s.
+						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-q-o-g-requires-reply">
@@ -844,7 +844,7 @@ the serialization of values, you may want to consider providing your own
 				</callout>
 				<callout arearefs="redis-q-o-g-extract-payload">
 					<para>
-						 Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename>s.
+						 Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename> s.
 						 If this attribute is set to <code>true</code>, the <code>serializer</code> can't be an empty string because messages
 				   		 require some form of deserialization (JDK serialization by default).
 					</para>
@@ -874,12 +874,12 @@ the serialization of values, you may want to consider providing your own
 			<calloutlist>
 				<callout arearefs="redis-q-i-g-request-channel">
 					<para>
-						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename>s.
+						The <interfacename>MessageChannel</interfacename> from which this Endpoint receives<interfacename>Message</interfacename> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-q-i-g-reply-channel">
 					<para>
-						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename>s.
+						The <interfacename>MessageChannel</interfacename> where this Endpoint sends reply<interfacename>Message</interfacename> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-q-i-g-task-executor">
@@ -903,7 +903,7 @@ the serialization of values, you may want to consider providing your own
 				</callout>
 				<callout arearefs="redis-q-i-g-queue">
 					<para>
-						The name of the Redis List for the <emphasis>conversation</emphasis> <code>UUID</code>s.
+						The name of the Redis List for the <emphasis>conversation</emphasis> <code>UUID</code> s.
 					</para>
 				</callout>
 				<callout arearefs="redis-q-i-g-order">
@@ -926,7 +926,7 @@ the serialization of values, you may want to consider providing your own
 				</callout>
 				<callout arearefs="redis-q-i-g-expect-message">
 					<para>
-						 Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename>s.
+						 Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename> s.
 						 If this attribute is set to <code>true</code>, the <code>serializer</code> can't be an empty string because messages
 				   		 require some form of deserialization (JDK serialization by default).
 					</para>

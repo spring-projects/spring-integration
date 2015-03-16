@@ -1,0 +1,96 @@
+[[groovy]]
+=== Groovy support
+
+In Spring Integration 2.0 we added Groovy support allowing you to use the Groovy scripting language to provide the logic for various integration components similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation and other integration concerns.
+For more information about Groovy please refer to the Groovy documentation which you can find on the http://groovy.codehaus.org[project website]
+
+[[groovy-config]]
+==== Groovy configuration
+
+With Spring Integration 2.1, Groovy Support's configuration namespace is an extension of Spring Integration's Scripting Support and shares the core configuration and behavior described in detail in the <<scripting,Scripting Support>> section.
+Even though Groovy scripts are well supported by generic Scripting Support, Groovy Support provides the_Groovy_ configuration namespace which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
+Below are a couple of sample configurations:
+
+_Filter_
+[source,xml]
+----
+<int:filter input-channel="referencedScriptInput">
+   <int-groovy:script location="some/path/to/groovy/file/GroovyFilterTests.groovy"/>
+</int:filter>
+
+<int:filter input-channel="inlineScriptInput">
+     <int-groovy:script><![CDATA[
+     return payload == 'good'
+   ]]></int-groovy:script>
+</int:filter>
+----
+
+As the above examples show, the configuration looks identical to the general Scripting Support configuration.
+The only difference is the use of the Groovy namespace as indicated in the examples by the _int-groovy_ namespace prefix.
+Also note that the `lang` attribute on the `<script>` tag is not valid in this namespace.
+
+_Groovy object customization_
+
+If you need to customize the Groovy object itself, beyond setting variables, you can reference a bean that implements `org.springframework.scripting.groovy.GroovyObjectCustomizer` via the `customizer` attribute.
+For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the MetaClass and registering functions to be available within the script:
+[source,xml]
+----
+<int:service-activator input-channel="groovyChannel">
+    <int-groovy:script location="foo/SomeScript.groovy" customizer="groovyCustomizer"/>
+</int:service-activator>
+
+<beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>
+----
+
+Setting a custom GroovyObjectCustomizer is not mutually exclusive with `<variable>` sub-elements or the `script-variable-generator` attribute.
+It can also be provided when defining an inline script.
+
+With _Spring Integration 3.0_, in addition to the `variable` sub-element, the `variables` attribute has been introduced.
+Also, groovy scripts have the ability to resolve a variable to a bean in the`BeanFactory`, if a binding variable was not provided with the name:
+[source,xml]
+----
+<int-groovy:script>
+	<![CDATA[
+		entityManager.persist(payload)
+		payload
+	]]>
+</int-groovy:script>
+----
+
+where variable `entityManager` is an appropriate bean in the application context.
+
+For more information regarding `<variable>`, `variables`, and `script-variable-generator`, see the paragraph '_Script variable bindings_' of <<scripting-config>>.
+
+[[groovy-control-bus]]
+==== Control Bus
+
+As described in (http://www.eaipatterns.com/ControlBus.html[EIP]), the idea behind the Control Bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "application-level" messaging.
+In Spring Integration we build upon the adapters described above so that it's possible to send Messages as a means of invoking exposed operations.
+One option for those operations is Groovy scripts.
+[source,xml]
+----
+ <int-groovy:control-bus input-channel="operationChannel"/>
+----
+
+The Control Bus has an input channel that can be accessed for invoking operations on the beans in the application context.
+
+The Groovy Control Bus executes messages on the input channel as Groovy scripts.
+It takes a message, compiles the body to a Script, customizes it with a `GroovyObjectCustomizer`, and then executes it.
+The Control Bus' `MessageProcessor` exposes all beans in the application context that are annotated with `@ManagedResource`, implement Spring's `Lifecycle` interface or extend Spring's `CustomizableThreadCreator` base class (e.g.
+several of the `TaskExecutor` and `TaskScheduler` implementations).
+
+IMPORTANT: Be careful about using managed beans with custom scopes (e.g.
+'request') in the Control Bus' command scripts, especially inside an _async_ message flow.
+If The Control Bus' `MessageProcessor` can't expose a bean from the application context, you may end up with some `BeansException` during _command script's_ executing.
+For example, if a custom scope's context is not established, the attempt to get a bean within that scope will trigger a `BeanCreationException`.
+
+If you need to further customize the Groovy objects, you can also provide a reference to a bean that implements `org.springframework.scripting.groovy.GroovyObjectCustomizer` via the `customizer` attribute.
+
+[source,xml]
+----
+<int-groovy:control-bus input-channel="input"
+        output-channel="output"
+        customizer="groovyCustomizer"/>
+
+<beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>
+----

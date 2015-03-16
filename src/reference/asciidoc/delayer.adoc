@@ -1,0 +1,131 @@
+[[delayer]]
+=== Delayer
+
+[[delayer-introduction]]
+==== Introduction
+
+A Delayer is a simple endpoint that allows a Message flow to be delayed by a certain interval.
+When a Message is delayed, the original sender will not block.
+Instead, the delayed Messages will be scheduled with an instance of `org.springframework.scheduling.TaskScheduler` to be sent to the output channel after the delay has passed.
+This approach is scalable even for rather long delays, since it does not result in a large number of blocked sender Threads.
+On the contrary, in the typical case a thread pool will be used for the actual execution of releasing the Messages.
+Below you will find several examples of configuring a Delayer.
+
+[[delayer-namespace]]
+==== Configuring Delayer
+
+The `<delayer>` element is used to delay the Message flow between two Message Channels.
+As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes, but the delayer also has 'default-delay' and 'expression' attributes (and 'expression' sub-element) that are used to determine the number of milliseconds that each Message should be delayed.
+The following delays all messages by 3 seconds:
+[source,xml]
+----
+<int:delayer id="delayer" input-channel="input"
+             default-delay="3000" output-channel="output"/>
+----
+
+If you need per-Message determination of the delay, then you can also provide the SpEL expression using the 'expression' attribute:
+[source,xml]
+----
+<int:delayer id="delayer" input-channel="input" output-channel="output"
+             default-delay="3000" expression="headers['delay']"/>
+----
+
+In the example above, the 3 second delay would only apply when the expression evaluates to _null_ for a given inbound Message.
+If you only want to apply a delay to Messages that have a valid result of the expression evaluation, then you can use a 'default-delay' of 0 (the default).
+For any Message that has a delay of 0 (or less), the Message will be sent immediately, on the calling Thread.
+
+tTIP: The delay handler supports expression evaluation results that represent an interval in milliseconds (any Object whose `toString()` method produces a value that can be parsed into a Long) as well as `java.util.Date` instances representing an absolute time.
+In the first case, the milliseconds will be counted from the current time (e.g.
+a value of 5000 would delay the Message for at least 5 seconds from the time it is received by the Delayer).
+With a Date instance, the Message will not be released until the time represented by that Date object.
+In either case, a value that equates to a non-positive delay, or a Date in the past, will not result in any delay.
+Instead, it will be sent directly to the output channel on the original sender's Thread.
+If the expression evaluation result is not a Date, and can not be parsed as a Long, the default delay (if any) will be applied.
+
+IMPORTANT: The expression evaluation may throw an evaluation Exception for various reasons, including an invalid expression, or other conditions.
+By default, such exceptions are ignored (logged at DEBUG level) and the delayer falls back to the default delay (if any).
+You can modify this behavior by setting the `ignore-expression-failures` attribute.
+By default this attribute is set to `true` and the Delayer behavior is as described above.
+However, if you wish to not ignore expression evaluation exceptions, and throw them to the delayer's caller, set the `ignore-expression-failures` attribute to `false`.
+
+[TIP]
+=====
+Notice in the example above that the delay expression is specified as `headers['delay']`.
+This is the SpEL `Indexer` syntax to access a `Map` element (`MessageHeaders` implements `Map`), it invokes: `headers.get("delay")`.
+For simple map element names (that do not contain '.') you can also use the SpEL _dot accessor_ syntax, where the above header expression can be specified as `headers.delay`.
+But, different results are achieved if the header is missing.
+In the first case, the expression will evaluate to `null`; the second will result in something like:
+[source,java]
+----
+ org.springframework.expression.spel.SpelEvaluationException: EL1008E:(pos 8):
+		   Field or property 'delay' cannot be found on object of type 'org.springframework.messaging.MessageHeaders'
+----
+
+So, if there is a possibility of the header being omitted, and you want to fall back to the default delay, it is generally more efficient (and recommended) to use the_Indexer_ syntax instead of _dot property accessor_ syntax, because detecting the null is faster than catching an exception.
+=====
+
+The delayer delegates to an instance of Spring's `TaskScheduler` abstraction.
+The default scheduler used by the delayer is the `ThreadPoolTaskScheduler` instance provided by Spring Integration on startup: <<namespace-taskscheduler>>.
+If you want to delegate to a different scheduler, you can provide a reference through the delayer element's 'scheduler' attribute:
+[source,xml]
+----
+<int:delayer id="delayer" input-channel="input" output-channel="output"
+    expression="headers.delay"
+    scheduler="exampleTaskScheduler"/>
+
+<task:scheduler id="exampleTaskScheduler" pool-size="3"/>
+----
+
+TIP: If you configure an external `ThreadPoolTaskScheduler` you can set on this scheduler property `waitForTasksToCompleteOnShutdown = true`.
+It allows successful completion of 'delay' tasks, which already in the execution state (releasing the Message), when the application is shutdown.
+Before Spring Integration 2.2 this property was available on the `<delayer>` element, because `DelayHandler` could create its own scheduler on the background.
+Since 2.2 delayer requires an external scheduler instance and `waitForTasksToCompleteOnShutdown` was deleted; you should use the scheduler's own configuration.
+
+TIP: Also keep in mind `ThreadPoolTaskScheduler` has a property `errorHandler` which can be injected with some implementation of `org.springframework.util.ErrorHandler`.
+This handler allows to process an `Exception` from the thread of the scheduled task sending the delayed message.
+By default it uses an `org.springframework.scheduling.support.TaskUtils$LoggingErrorHandler` and you will see a stack trace in the logs.
+You might want to consider using an `org.springframework.integration.channel.MessagePublishingErrorHandler`, which sends an `ErrorMessage` into an `error-channel`, either from the failed Message's header or into the default `error-channel`.
+
+[[delayer-message-store]]
+==== Delayer and Message Store
+
+The `DelayHandler` persists delayed Messages into the Message Group in the provided `MessageStore`.
+(The 'groupId' is based on required 'id' attribute of `<delayer>` element.) A delayed message is removed from the `MessageStore` by the scheduled task just before the `DelayHandler` sends the Message to the `output-channel`.
+If the provided `MessageStore` is persistent (e.g.
+`JdbcMessageStore`) it provides the ability to not lose Messages on the application shutdown.
+After application startup, the`DelayHandler` reads Messages from its Message Group in the `MessageStore` and reschedules them with a delay based on the original arrival time of the Message (if the delay is numeric).
+For messages where the delay header was a `Date`, that is used when rescheduling.
+If a delayed Message remained in the `MessageStore` more than its 'delay', it will be sent immediately after startup.
+
+The `<delayer>` can be enriched with mutually exclusive sub-elements `<transactional>` or `<advice-chain>`.
+The List of these AOP Advices is applied to the proxied internal `DelayHandler.ReleaseMessageHandler`, which has the responsibility to release the Message, after the delay, on a `Thread` of the scheduled task.
+It might be used, for example, when the downstream message flow throws an Exception and the `ReleaseMessageHandler`'s transaction will be rolled back.
+In this case the delayed Message will remain in the persistent `MessageStore`.
+You can use any custom `org.aopalliance.aop.Advice` implementation within the `<advice-chain>`.
+A sample configuration of the `<delayer>` may look like this:
+[source,xml]
+----
+<int:delayer id="delayer" input-channel="input" output-channel="output"
+    expression="headers.delay"
+    message-store="jdbcMessageStore">
+    <int:advice-chain>
+        <beans:ref bean="customAdviceBean"/>
+        <tx:advice>
+            <tx:attributes>
+                <tx:method name="*" read-only="true"/>
+            </tx:attributes>
+        </tx:advice>
+    </int:advice-chain>
+</int:delayer>
+----
+
+The `DelayHandler` can be exported as a JMX `MBean` with managed operations `getDelayedMessageCount` and `reschedulePersistedMessages`, which allows the rescheduling of delayed persisted Messages at runtime, for example, if the`TaskScheduler` has previously been stopped.
+These operations can be invoked via a `Control Bus` command:
+[source,java]
+----
+Message<String> delayerReschedulingMessage =
+    MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
+    controlBusChannel.send(delayerReschedulingMessage);
+----
+
+NOTE: For more information regarding the Message Store, JMX and the Control Bus, please read <<system-management-chapter>>.

@@ -259,7 +259,7 @@
 		<title>Writing files</title>
 		<para>
 			To write messages to the file system you can use a
-			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html">FileWritingMessageHandler</ulink></classname>.
+			<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html">FileWritingMessageHandler</ulink>.
 			This class can deal with <emphasis>File</emphasis>,
 			<emphasis>String</emphasis>, or <emphasis>byte array</emphasis>
 			payloads.
@@ -280,10 +280,10 @@
 				In its simplest form, the <classname>FileWritingMessageHandler</classname>
 				only requires a destination directory for writing the files. The
 				name of the file to be written is determined by the handler's
-				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink></classname>.
+				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink>.
 				The <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html">default implementation</ulink>
 				looks for a Message header whose key matches the constant defined
-				as <code><ulink url="http://static.springsource.org/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME">FileHeaders.FILENAME</ulink></code>.
+				as <ulink url="http://static.springsource.org/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME">FileHeaders.FILENAME</ulink>.
 			</para>
 			<para>
 				Alternatively, you can specify an expression
@@ -516,7 +516,7 @@
 				mode. In that case the pre-existing destination file is returned.
 				If the payload of the request message was a file, you still have
 				access to that original file through the Message Header
-				<emphasis><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileHeaders.html">FileHeaders.ORIGINAL_FILE</ulink></emphasis>.
+				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileHeaders.html">FileHeaders.ORIGINAL_FILE</ulink>.
 			</para>
 			<note>
 				The 'outbound-gateway' works well in cases where you want to first move a file and then send it

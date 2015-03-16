@@ -1,0 +1,4 @@
+[[migration-4.1-4.2]]
+=== Changes between 4.1 and 4.2
+
+For an overview of the changes in Spring Integration 4.2 since version 4.1, please see <<whats-new>>.

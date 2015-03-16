@@ -1,0 +1,52 @@
+[[bridge]]
+=== Messaging Bridge
+
+[[bridge-introduction]]
+==== Introduction
+
+A Messaging Bridge is a relatively trivial endpoint that simply connects two Message Channels or Channel Adapters.
+For example, you may want to connect a `PollableChannel` to a `SubscribableChannel` so that the subscribing endpoints do not have to worry about any polling configuration.
+Instead, the Messaging Bridge provides the polling configuration.
+
+By providing an intermediary poller between two channels, a Messaging Bridge can be used to throttle inbound Messages.
+The poller's trigger will determine the rate at which messages arrive on the second channel, and the poller's "maxMessagesPerPoll" property will enforce a limit on the throughput.
+
+Another valid use for a Messaging Bridge is to connect two different systems.
+In such a scenario, Spring Integration's role would be limited to making the connection between these systems and managing a poller if necessary.
+It is probably more common to have at least a _Transformer_ between the two systems to translate between their formats, and in that case, the channels would be provided as the 'input-channel' and 'output-channel' of a Transformer endpoint.
+If data format translation is not required, the Messaging Bridge may indeed be sufficient.
+
+[[bridge-namespace]]
+==== Configuring Bridge
+
+The <bridge> element is used to create a Messaging Bridge between two Message Channels or Channel Adapters.
+Simply provide the "input-channel" and "output-channel" attributes:
+[source,xml]
+----
+<int:bridge input-channel="input" output-channel="output"/>
+----
+
+As mentioned above, a common use case for the Messaging Bridge is to connect a `PollableChannel` to a `SubscribableChannel`, and when performing this role, the Messaging Bridge may also serve as a throttler:
+[source,xml]
+----
+<int:bridge input-channel="pollable" output-channel="subscribable">
+     <int:poller max-messages-per-poll="10" fixed-rate="5000"/>
+ </int:bridge>
+----
+
+Connecting Channel Adapters is just as easy.
+Here is a simple echo example between the "stdin" and "stdout" adapters from Spring Integration's "stream" namespace.
+[source,xml]
+----
+<int-stream:stdin-channel-adapter id="stdin"/>
+
+ <int-stream:stdout-channel-adapter id="stdout"/>
+
+ <int:bridge id="echo" input-channel="stdin" output-channel="stdout"/>
+----
+
+Of course, the configuration would be similar for other (potentially more useful) Channel Adapter bridges, such as File to JMS, or Mail to File.
+The various Channel Adapters will be discussed in upcoming chapters.
+
+NOTE: If no 'output-channel' is defined on a bridge, the reply channel provided by the inbound Message will be used, if available.
+If neither output or reply channel is available, an Exception will be thrown.

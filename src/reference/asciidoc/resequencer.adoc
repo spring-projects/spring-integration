@@ -1,0 +1,167 @@
+[[resequencer]]
+=== Resequencer
+
+==== Introduction
+
+Related to the Aggregator, albeit different from a functional standpoint, is the Resequencer.
+
+[[resequencer-functionality]]
+==== Functionality
+
+The Resequencer works in a similar way to the Aggregator, in the sense that it uses the CORRELATION_ID to store messages in groups, the difference being that the Resequencer does not process the messages in any way.
+It simply releases them in the order of their SEQUENCE_NUMBER header values.
+
+With respect to that, the user might opt to release all messages at once (after the whole sequence, according to the SEQUENCE_SIZE, has been released), or as soon as a valid sequence is available.
+
+==== Configuring a Resequencer
+
+Configuring a resequencer requires only including the appropriate element in XML.
+
+A sample resequencer configuration is shown below.
+
+[source,xml]
+----
+<int:channel id="inputChannel"/>
+
+<int:channel id="outputChannel"/>
+
+<int:resequencer id="completelyDefinedResequencer"  <1>
+  input-channel="inputChannel"  <2>
+  output-channel="outputChannel"  <3>
+  discard-channel="discardChannel"  <4>
+  release-partial-sequences="true"  <5>
+  message-store="messageStore"  <6>
+  send-partial-result-on-expiry="true"  <7>
+  send-timeout="86420000"  <8>
+  correlation-strategy="correlationStrategyBean"  <9>
+  correlation-strategy-method="correlate"  <10>
+  correlation-strategy-expression="headers['foo']"  <11>
+  release-strategy="releaseStrategyBean"  <12>
+  release-strategy-method="release"  <13>
+  release-strategy-expression="size() == 10"  <14>
+  empty-group-min-timeout="60000"  <15>
+
+  lock-registry="lockRegistry"  <16>
+
+  group-timeout="60000"  <17>
+  group-timeout-expression="size() ge 2 ? 100 : -1"  <18>
+  scheduler="taskScheduler" />  <19>
+  expire-group-upon-timeout="false" />  <20>
+----
+
+<1> The id of the resequencer is _optional_.
+
+
+
+<2> The input channel of the resequencer.
+_Required_.
+
+
+
+<3> The channel to which the resequencer will send the reordered messages.
+_Optional_.
+
+
+
+<4> The channel to which the resequencer will send the messages that timed out (if `send-partial-result-on-timeout` is _false)_.
+_Optional_.
+
+
+
+<5> Whether to send out ordered sequences as soon as they are available, or only after the whole message group arrives._Optional (false by default)_.
+
+
+
+<6> A reference to a `MessageGroupStore` that can be used to store groups of messages under their correlation key until they are complete.
+_Optional_ with default a volatile in-memory store.
+
+
+
+<7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some of the messages are missing)._Optional (false by default)_.
+See <<reaper>>.
+
+
+
+<8> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
+By default the send will block for one second.
+It is applied only if the output channel has some 'sending' limitations, e.g.
+`QueueChannel` with a fixed 'capacity'.
+In this case a `MessageDeliveryException` is thrown.
+The `send-timeout` is ignored in case of `AbstractSubscribableChannel` implementations.
+In case of `group-timeout(-expression)` the `MessageDeliveryException` from the scheduled expire task leads this task to be rescheduled.
+_Optional_.
+
+
+
+<9> A reference to a bean that implements the message correlation (grouping) algorithm.
+The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.
+In the latter case the correlation-strategy-method attribute must be defined as well.
+_Optional (by default, the aggregator will use
+          the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header) _.
+
+
+
+<10> A method defined on the bean referenced by `correlation-strategy`, that implements the correlation decision algorithm.
+_Optional, with
+          restrictions (requires `correlation-strategy` to be
+          present)._
+
+
+
+<11> A SpEL expression representing the correlation strategy.
+Example: `"headers['foo']"`.
+Only one of `correlation-strategy` or `correlation-strategy-expression` is allowed.
+
+
+
+<12> A reference to a bean that implements the release strategy.
+The bean can be an implementation of the `ReleaseStrategy` interface or a POJO.
+In the latter case the release-strategy-method attribute must be defined as well.
+_Optional (by default, the
+          aggregator will use the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header attribute)_.
+
+
+
+<13> A method defined on the bean referenced by `release-strategy`, that implements the completion decision algorithm.
+_Optional, with
+          restrictions (requires `release-strategy` to be
+          present)._
+
+
+
+<14> A SpEL expression representing the release strategy; the root object for the expression is a `Collection` of `Message` s.
+Example: `"size() == 5"`.
+Only one of `release-strategy` or `release-strategy-expression` is allowed.
+
+
+
+<15> Only applies if a `MessageGroupStoreReaper` is configured for the `<resequcencer>`'s `MessageStore`.
+By default, when a `MessageGroupStoreReaper` is configured to expire partial groups, empty groups are also removed.
+Empty groups exist after a group is released normally.
+This is to enable the detection and discarding of late-arriving messages.
+If you wish to expire empty groups on a longer schedule than expiring partial groups, set this property.
+Empty groups will then not be removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
+Note that the actual time to expire an empty group will also be affected by the reaper's _timeout_ property and it could be as much as this value plus the timeout.
+
+
+<16> See <<aggregator-xml>>.
+
+
+
+<17> See <<aggregator-xml>>.
+
+
+<18> See <<aggregator-xml>>.
+
+
+<19> See <<aggregator-xml>>.
+
+
+<20> When a group is completed due to a timeout (or by a `MessageGroupStoreReaper`), the empty group's metadata is retained by default.
+Late arriving messages will be immediately discarded.
+Set this to `true` to remove the group completely; then, late arriving messages will start a new group and won't be discarded until the group again times out.
+The new group will never be released normally because of the "hole" in the sequence range that caused the timeout.
+Empty groups can be expired (completely removed) later using a `MessageGroupStoreReaper` together with the `empty-group-min-timeout` attribute.
+Default: 'false'.
+
+NOTE: Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it.

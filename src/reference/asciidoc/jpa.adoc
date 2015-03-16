@@ -1,0 +1,1016 @@
+[[jpa]]
+== JPA Support
+
+Spring Integration's JPA (Java Persistence API) module provides components for performing various database operations using JPA.
+The following components are provided:
+
+* _<<jpa-inbound-channel-adapter,Inbound Channel Adapter>>_
+* _<<jpa-outbound-channel-adapter,Outbound Channel Adapter>>_
+* _<<jpa-updating-outbound-gateway,Updating Outbound Gateway>>_
+* _<<jpa-retrieving-outbound-gateway,Retrieving Outbound Gateway>>_
+
+
+
+These components can be used to perform _select_, _create_, _update_ and _delete_ operations on the targeted databases by sending/receiving messages to them.
+
+The JPA _Inbound Channel Adapter_ lets you poll and retrieve (select) data from the database using JPA whereas the JPA_Outbound Channel Adapter_ lets you create, update and delete entities.
+
+Outbound Gateways for JPA can be used to persist entities to the database, yet allowing you to continue with the flow and execute further components downstream.
+Similarly, you can use an Outbound Gateway to retrieve entities from the database.
+
+For example, you may use the Outbound Gateway, which receives a Message with a user Id as payload on its request channel, to query the database and retrieve the User entity and pass it downstream for further processing.
+
+Recognizing these semantic differences, Spring Integration provides 2 separate JPA Outbound Gateways:
+
+* _Retrieving Outbound Gateway_
+* _Updating Outbound Gateway_
+
+
+
+_Functionality_
+
+All JPA components perform their respective JPA operations by using either one of the following:
+
+* _Entity classes_
+* _Java Persistence Query Language (JPQL) for update, select and delete (inserts are not supported by JPQL)_
+* _Native Query_
+* _Named Query_
+
+
+
+In the following sections we will describe each of these components in more detail.
+
+[[jpa-supported-persistence-providers]]
+=== Supported Persistence Providers
+
+The Spring Integration JPA support has been tested using the following persistence providers:
+
+* _Hibernate_
+* _OpenJPA_
+* _EclipseLink_
+
+
+
+When using a persistence provider, please ensure that the provider is compatible with JPA 2.0.
+
+[[jpa-java-implementation]]
+=== Java Implementation
+
+Each of the provided components will use the `o.s.i.jpa.core.JpaExecutor` class which in turn will use an implementation of the `o.s.i.jpa.core.JpaOperations` interface.
+`JpaOperations` operates like a typical Data Access Object (DAO) and provides methods such as_find_, _persist_, _executeUpdate_ etc.
+For most use cases the provided default implementation `o.s.i.jpa.core.DefaultJpaOperations` should be sufficient.
+Nevertheless, you have the option to optionally specify your own implementation in case you require custom behavior.
+
+For initializing a `JpaExecutor` you have to use one of 3 available constructors that accept one of:
+
+* _EntityManagerFactory_
+* _EntityManager_ or
+* _JpaOperations_
+
+
+
+NOTE: The XML Namespace Support described further below is also very flexible and provides configuration attributes for each JPA component to pass in an _EntityManagerFactory_, _EntityManager_ or _JpaOperations_ reference.
+
+_Java Configuration Example_
+
+The following example of a JPA _Retrieving Outbound Gateway_ is configured purely through Java.
+In typical usage scenarios you will most likely prefer the XML Namespace Support described further below.
+However, the example illustrates how the classes are wired up.
+Understanding the inner workings can also be very helpful for debugging or customizing the individual JPA components.
+
+First, we instantiate a `JpaExecutor` using an `EntityManager` as constructor argument.
+The `JpaExecutor` is then in return used as constructor argument for the `o.s.i.jpa.outbound.JpaOutboundGateway` and the `JpaOutboundGateway` will be passed as constructor argument into the `EventDrivenConsumer`.
+
+[source,xml]
+----
+<bean id="jpaExecutor" class="o.s.i.jpa.core.JpaExecutor">
+    <constructor-arg name="entityManager" ref="entityManager"/>
+    <property name="entityClass"        value="o.s.i.jpa.test.entity.StudentDomain"/>
+    <property name="jpaQuery"           value="select s from Student s where s.id = :id"/>
+    <property name="expectSingleResult" value="true"/>
+    <property name="jpaParameters" >
+        <util:list>
+            <bean class="org.springframework.integration.jpa.support.JpaParameter">
+                <property name="name"       value="id"/>
+                <property name="expression" value="payload"/>
+            </bean>
+        </util:list>
+    </property>
+</bean>
+
+<bean id="jpaOutboundGateway" class="o.s.i.jpa.outbound.JpaOutboundGateway">
+    <constructor-arg ref="jpaExecutor"/>
+    <property        name="gatewayType"   value="RETRIEVING"/>
+    <property        name="outputChannel" ref="studentReplyChannel"/>
+</bean>
+
+<bean id="getStudentEndpoint"
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg name="inputChannel" ref="getStudentChannel"/>
+    <constructor-arg name="handler"      ref="jpaOutboundGateway"/>
+</bean>
+----
+
+NOTE: For more examples of constructing JPA components purely through Java, see the JUnit test-cases for the JPA Adapters.
+
+[[jpa-namespace-support]]
+=== Namespace Support
+
+When using XML namespace support, the underlying parser classes will instantiate the relevant Java classes for you.
+Thus, you typically don't have to deal with the inner workings of the JPA adapter.
+This section will document the XML Namespace Support provided by the Spring Integration and will show you how to use the XML Namespace Support to configure the Jpa components.
+
+[[jpa-namespace-support-common-attributes]]
+==== Common XML Namespace Configuration Attributes
+
+Certain configuration parameters are shared amongst all JPA components and are described below:
+
+*auto-startup*
+
+Lifecycle attribute signaling if this component should be started during Application Context startup.
+Defaults to `true`.
+_Optional_.
+
+*id*
+
+Identifies the underlying Spring bean definition, which is an instance of either `EventDrivenConsumer` or `PollingConsumer`.
+_Optional_.
+
+*entity-manager-factory*
+
+The reference to the JPA Entity Manager Factory that will be used by the adapter to create the `EntityManager`.
+Either this attribute or the _entity-manager_ attribute or the _jpa-operations_ attribute must be provided.
+
+*entity-manager*
+
+The reference to the JPA Entity Manager that will be used by the component.
+Either this attribute or the _enity-manager-factory_ attribute or the _jpa-operations_ attribute must be provided.
+
+NOTE: Usually your Spring Application Context only defines a JPA Entity Manager Factory and the EntityManager is injected using the @PersistenceContext annotation.
+This, however, is not applicable for the Spring Integration JPA components.
+Usually, injecting the JPA Entity Manager Factory will be best but in case you want to inject an EntityManager explicitly, you have to define a `SharedEntityManagerBean`.
+For more information, please see the relevanthttp://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/orm/jpa/support/SharedEntityManagerBean.html[JavaDoc].
+
+[source,xml]
+----
+<bean id="entityManager"
+      class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+    <property name="entityManagerFactory" ref="entityManagerFactoryBean" />
+</bean>
+----
+
+*jpa-operations*
+
+Reference to a bean implementing the `JpaOperations` interface.
+In rare cases it might be advisable to provide your own implementation of the `JpaOperations` interface, instead of relying on the default implementation `org.springframework.integration.jpa.core.DefaultJpaOperations`.
+As `JpaOperations` wraps the necessary datasource; the JPA Entity Manager or JPA Entity Manager Factory must not be provided, if the _jpa-operations_ attribute is used.
+
+*entity-class*
+
+The fully qualified name of the entity class.
+The exact semantics of this attribute vary, depending on whether we are performing a persist/update operation or whether we are retrieving objects from the database.
+
+When retrieving data, you can specify the _entity-class_ attribute to indicate that you would like to retrieve objects of this type from the database.
+In that case you must not define any of the query attributes ( _jpa-query_, _native-query_ or _named-query_ )
+
+When persisting data, the _entity-class_ attribute will indicate the type of object to persist.
+If not specified (for persist operations) the entity class will be automatically retrieved from the Message's payload.
+
+*jpa-query*
+
+Defines the JPA query (Java Persistence Query Language) to be used.
+
+*native-query*
+
+Defines the native SQL query to be used.
+
+*named-query*
+
+This attribute refers to a named query.
+A named query can either be defined in Native SQL or JPAQL but the underlying JPA persistence provider handles that distinction internally.
+
+[[jpa-parameters]]
+==== Providing JPA Query Parameters
+
+For providing parameters, the _parameter_ XML sub-element can be used.
+It provides a mechanism to provide parameters for the queries that are either based on the Java Persistence Query Language (JPQL) or native SQL queries.
+Parameters can also be provided for Named Queries.
+
+_Expression based Parameters_
+
+[source,xml]
+----
+<int-jpa:parameter expression="payload.name" name="firstName"/>
+----
+
+_Value based Parameters_
+
+[source,xml]
+----
+<int-jpa:parameter name="name" type="java.lang.String" value="myName"/>
+----
+
+_Positional Parameters_
+
+[source,xml]
+----
+<int-jpa:parameter expression="payload.name"/>
+<int-jpa:parameter type="java.lang.Integer" value="21"/>
+----
+
+[[jpa-transactions]]
+==== Transaction Handling
+
+All JPA operations like Insert, Update and Delete require a transaction to be active whenever they are performed.
+For Inbound Channel Adapters there is nothing special to be done, it is similar to the way we configure transaction managers with pollers used with other inbound channel adapters.The xml snippet below shows a sample where a transaction manager is configured with the poller used with an _Inbound Channel Adapter_.
+
+[source,xml]
+----
+<int-jpa:inbound-channel-adapter
+    channel="inboundChannelAdapterOne"
+    entity-manager="em"
+    auto-startup="true"
+    jpa-query="select s from Student s"
+    expect-single-result="true"
+    delete-after-poll="true">
+    <int:poller fixed-rate="2000" >
+        <int:transactional propagation="REQUIRED"
+            transaction-manager="transactionManager"/>
+    </int:poller>
+</int-jpa:inbound-channel-adapter>
+----
+
+However, it may be necessary to specifically start a transaction when using an _Outbound Channel Adapter_/_Gateway_.
+If a _DirectChannel_ is an input channel for the outbound adapter/gateway, and if transaction is active in the current thread of execution, the JPA operation will be performed in the same transaction context.
+We can also configure to execute this JPA operation in a new transaction as below.
+
+[source,xml]
+----
+<int-jpa:outbound-gateway
+    request-channel="namedQueryRequestChannel"
+    reply-channel="namedQueryResponseChannel"
+    named-query="updateStudentByRollNumber"
+    entity-manager="em"
+    gateway-type="UPDATING">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+		<int-jpa:transactional propagation="REQUIRES_NEW"
+        transaction-manager="transactionManager"/>
+</int-jpa:outbound-gateway>
+----
+
+As we can see above, the _transactional_ sub element of the outbound gateway/adapter will be used to specify the transaction attributes.
+It is optional to define this child element if you have _DirectChannel_ as an input channel to the adapter and you want the adapter to execute the operations in the same transaction context as the caller.
+If, however, you are using an _ExecutorChannel_, it is required to have the _transactional_ sub element as the invoking client's transaction context is not propagated.
+
+NOTE: Unlike the _transactional_ sub element of the poller which is defined in the spring integration's namespace, the _transactional_ sub element for the outbound gateway/adapter is defined in the jpa namespace.
+
+[[jpa-inbound-channel-adapter]]
+=== Inbound Channel Adapter
+
+An _Inbound Channel Adapter_ is used to execute a _select_ query over the database using JPA QL and return the result.
+The message payload will be either a single entity or a `List` of entities.
+Below is a sample xml snippet that shows a sample usage of _inbound-channel-adapter_.
+
+[source,xml]
+----
+<int-jpa:inbound-channel-adapter channel="inboundChannelAdapterOne"  <1>
+                    entity-manager="em"  <2>
+                    auto-startup="true"  <3>
+                    query="select s from Student s"  <4>
+                    expect-single-result="true"  <5>
+                    max-number-of-results=""  <6>
+                    max-results=""  <7>
+                    max-results-expression=""  <8>
+                    delete-after-poll="true"  <9>
+                    flush-after-delete="true">  <10>
+    <int:poller fixed-rate="2000" >
+      <int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
+    </int:poller>
+</int-jpa:inbound-channel-adapter>
+
+----
+
+<1> The channel over which the _inbound-channel-adapter_ will put the messages with the payload received after executing the provided JPA QL in the_query_ attribute.
+
+
+<2> The `EntityManager` instance that will be used to perform the required JPA operations.
+
+
+<3> Attribute signalling if the component should be automatically started on startup of the Application Context.
+The value defaults to `true`
+
+
+<4> The JPA QL that needs to be executed and whose result needs to be sent out as the payload of the message
+
+
+<5> The attribute that tells if the executed JPQL query gives a single entity in the result or a `List` of entities.
+If the value is set to `true`, the single entity retrieved is sent as the payload of the message.
+If, however, multiple results are returned after setting this to `true`, a `MessagingException` is thrown.
+The value defaults to `false`.
+
+
+<6> _Deprecated_.
+Use `max-results` instead.
+_Optional_.
+
+
+<7> This non zero, non negative integer value tells the adapter not to select more than given number of rows on execution of the select operation.
+By default, if this attribute is not set, all the possible records are selected by given query.
+This attribute is mutually exclusive with `max-results-expression`.
+_Optional_.
+
+
+<8> An expression, mutually exclusive with `max-results`, that can be used to provide an expression that will be evaluated to find the maximum number of results in a result set.
+_Optional_.
+
+
+<9> Set this value to `true` if you want to delete the rows received after execution of the query.
+Please ensure that the component is operating as part of a transaction.
+Otherwise, you may encounter an Exception such as: _java.lang.IllegalArgumentException: Removing
+                         a detached instance ..._
+
+
+<10> Set this value to `true` if you want to the persistence context immediately after deleting received entities and if you don't want rely on the `EntityManager`'s flushMode.
+The default value is set to `false`.
+
+
+[[jpaInboundChannelAdapterParameters]]
+==== Configuration Parameter Reference
+
+[source,xml]
+----
+<int-jpa:inbound-channel-adapter
+  auto-startup="true"  <1>
+  channel=""  <2>
+  delete-after-poll="false"   <3>
+  delete-per-row="false"   <4>
+  entity-class=""   <5>
+  entity-manager=""  <6>
+  entity-manager-factory=""  <7>
+  expect-single-result="false"  <8>
+  id=""
+  jpa-operations=""  <9>
+  jpa-query=""  <10>
+  named-query=""  <11>
+  native-query=""  <12>
+  parameter-source=""  <13>
+  send-timeout="">  <14>
+  <int:poller ref="myPoller"/>
+ </int-jpa:inbound-channel-adapter>
+----
+
+<1> This _Lifecycle_ attribute signaled if this component should be started during startup of the Application Context.
+This attribute defaults to true._Optional_.
+
+
+<2> The channel to which the adapter will send a message with the payload that was received after performing the desired JPA operation.
+
+
+<3> A boolean flag that indicates whether the records selected are to be deleted after they are being polled by the adapter.
+By default the value is `false`, that is, the records will not be deleted.
+Please ensure that the component is operating as part of a transaction.
+Otherwise, you may encounter an Exception such as: _java.lang.IllegalArgumentException: Removing a detached instance ..._._Optional_.
+
+
+<4> A boolean flag that indicates whether the records can be deleted in bulk or are deleted one record at a time.
+By default the value is `false`, that is, the records are bulk deleted._Optional_.
+
+
+<5> The fully qualified name of the entity class that would be queried from the database.
+The adapter will automatically build a JPA Query to be executed based on the entity class name provided._Optional_.
+
+
+<6> An instance of `javax.persistence.EntityManager` that will be used to perform the JPA operations.
+_Optional_.
+
+
+<7> An instance of `javax.persistence.EntityManagerFactory` that will be used to obtain an instance of `javax.persistence.EntityManager` that will perform the JPA operations.
+_Optional_.
+
+
+<8> A boolean flag indicating whether the select operation is expected to return a single result or a `List` of results.
+If this flag is set to `true`, the single entity selected is sent as the payload of the message.
+If multiple entities are returned, an exception is thrown.
+If `false`, the `List` of entities is being sent as the payload of the message.
+By default the value is `false`._Optional_.
+
+
+<9> An implementation of `org.springframework.integration.jpa.core.JpaOperations` that would be used to perform the JPA operations.
+It is recommended not to provide an implementation of your own but use the default `org.springframework.integration.jpa.core.DefaultJpaOperations` implementation.
+Either of the _entity-manager_, _entity-manager-factory_ or _jpa-operations_ attributes is to be used.
+_Optional_.
+
+
+<10> The JPA QL that needs to be executed by this adapter._Optional_.
+
+
+<11> The named query that needs to be executed by this adapter._Optional_.
+
+
+<12> The native query that will be executed by this adapter.
+Either of the _jpa-query_, _named-query_,_entity-class_ or _native-query_ attributes are to be used.
+_Optional_.
+
+
+<13> An implementation of `o.s.i.jpa.support.parametersource.ParameterSource` which will be used to resolve the values of the parameters provided in the query.
+Ignored if _entity-class_ attribute is provided._Optional_.
+
+
+<14> Maximum amount of time in milliseconds to wait when sending a message to the channel._Optional_.
+
+
+[[jpa-outbound-channel-adapter]]
+=== Outbound Channel Adapter
+
+The JPA Outbound channel adapter allows you to accept messages over a request channel.
+The payload can either be used as the entity to be persisted, or used along with the headers in parameter expressions for a defined JPQL query to be executed.
+In the following sub sections we shall see what those possible ways of performing these operations are.
+
+==== Using an Entity Class
+
+The XML snippet below shows how we can use the Outbound Channel Adapter to persist an entity to the database.
+
+[source,xml]
+----
+<int-jpa:outbound-channel-adapter channel="entityTypeChannel"  <1>
+    entity-class="org.springframework.integration.jpa.test.entity.Student"  <2>
+    persist-mode="PERSIST"  <3>
+    entity-manager="em"/ > <4>
+----
+
+<1> The channel over which a valid JPA entity will be sent to the JPA Outbound Channel Adapter.
+
+
+<2> The fully qualified name of the entity class that would be accepted by the adapter to be persisted in the database.
+You can actually leave off this attribute in most cases as the adapter can determine the entity class automatically from the Spring Integration Message payload.
+
+
+<3> The operation that needs to be done by the adapter, valid values are _PERSIST_, _MERGE_ and _DELETE_.
+The default value is _MERGE_.
+
+
+<4> The JPA entity manager to be used.
+
+
+As we can see above these 4 attributes of the _outbound-channel-adapter_ are all we need to configure it to accept entities over the input channel and process them to _PERSIST_,_MERGE_ or _DELETE_ it from the underlying data source.
+
+NOTE: As of _Spring Integration 3.0_, payloads to _persist_ or _merge_ can also be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
+_NULL_ values returned by the iterator are ignored.
+
+==== Using JPA Query Language (JPA QL)
+
+We have seen in the above sub section how to perform a _PERSIST_ action using an entity We will now see how to use the outbound channel adapter which uses JPA QL (Java Persistence API Query Language)
+
+[source,xml]
+----
+<int-jpa:outbound-channel-adapter channel="jpaQlChannel"  <1>
+  jpa-query="update Student s set s.firstName = :firstName where s.rollNumber = :rollNumber"  <2>
+  entity-manager="em">  <3>
+    <int-jpa:parameter name="firstName"  expression="payload['firstName']"/>  <4>
+    <int-jpa:parameter name="rollNumber" expression="payload['rollNumber']"/>
+</int-jpa:outbound-channel-adapter>
+----
+
+<1> The input channel over which the message is being sent to the outbound channel adapter
+
+
+<2> The JPA QL that needs to be executed.This query may contain parameters that will be evaluated using the _parameter_ child tag.
+
+
+<3> The entity manager used by the adapter to perform the JPA operations
+
+
+<4> This sub element, one for each parameter will be used to evaluate the value of the parameter names specified in the JPA QL specified in the _query_ attribute
+
+
+The _parameter_ sub element accepts an attribute _name_ which corresponds to the named parameter specified in the provided JPA QL (point 2 in the above mentioned sample).
+The value of the parameter can either be static or can be derived using an expression.
+The static value and the expression to derive the value is specified using the _value_ and the _expression_ attributes respectively.
+These attributes are mutually exclusive.
+
+If the _value_ attribute is specified we can provide an optional _type_ attribute.
+The value of this attribute is the fully qualified name of the class whose value is represented by the _value_ attribute.
+By default the type is assumed to be a `java.lang.String`.
+
+[source,xml]
+----
+<int-jpa:outbound-channel-adapter ...
+>
+    <int-jpa:parameter name="level" value="2" type="java.lang.Integer"/>
+    <int-jpa:parameter name="name" expression="payload['name']"/>
+</int-jpa:outbound-channel-adapter>
+----
+
+As seen in the above snippet, it is perfectly valid to use multiple _parameter_ sub elements within an outbound channel adapter tag and derive some parameters using expressions and some with static value.
+However, care should be taken not to specify the same parameter name multiple times, and, provide one _parameter_ sub element for each named parameter specified in the JPA query.
+For example, we are specifying two parameters_level_ and _name_ where _level_ attribute is a static value of type `java.lang.Integer`, where as the _name_ attribute is derived from the payload of the message
+
+NOTE: Though specifying _select_ is valid for JPA QL, it makes no sense as outbound channel adapters will not be returning any result.
+If you want to select some values, consider using the outbound gateway instead.
+
+==== Using Native Queries
+
+In this section we will see how to use native queries to perform the operations using JPA outbound channel adapter.
+Using native queries is similar to using JPA QL, except that the query specified here is a native database query.
+By choosing native queries we lose the database vendor independence which we get using JPA QL.
+
+One of the things we can achieve using native queries is to perform database inserts, which is not possible using JPA QL (To perform inserts we send JPA entities to the channel adapter as we have seen earlier).
+Below is a small xml fragment that demonstrates the use of native query to insert values in a table.
+Please note that we have only mentioned the important attributes below.
+All other attributes like _channel_, _entity-manager_ and the _parameter_ sub element has the same semantics as when we use JPA QL.
+
+IMPORTANT: Please be aware that named parameters may not be supported by your JPA provider in conjunction with native SQL queries.
+While they work fine using Hibernate, OpenJPA and EclipseLink do NOT support them: https://issues.apache.org/jira/browse/OPENJPA-111 Section 3.8.12 of the JPA 2.0 spec states: "Only positional parameter binding and positional access to result items may be portably used for native queries."
+
+
+[source,xml]
+----
+<int-jpa:outbound-channel-adapter channel="nativeQlChannel"
+  native-query="insert into STUDENT_TABLE(FIRST_NAME,LAST_UPDATED) values (:lastName,:lastUpdated)"  <1>
+  entity-manager="em">
+    <int-jpa:parameter name="lastName" expression="payload['updatedLastName']"/>
+    <int-jpa:parameter name="lastUpdated" expression="new java.util.Date()"/>
+</int-jpa:outbound-channel-adapter>
+----
+
+
+
+<1> The native query that will be executed by this outbound channel adapter
+
+==== Using Named Queries
+
+We will now see how to use named queries after seeing using entity, JPA QL and native query in previous sub sections.
+Using named query is also very similar to using JPA QL or a native query, except that we specify a named query instead of a query.
+Before we go further and see the xml fragment for the declaration of the _outbound-channel-adapter_, we will see how named JPA named queries are defined.
+
+In our case, if we have an entity called `Student`, then we have the following in the class to define two named queries _selectStudent_ and _updateStudent_.
+Below is a way to define named queries using annotations
+
+
+[source,java]
+----
+@Entity
+@Table(name="Student")
+@NamedQueries({
+    @NamedQuery(name="selectStudent",
+        query="select s from Student s where s.lastName = 'Last One'"),
+    @NamedQuery(name="updateStudent",
+        query="update Student s set s.lastName = :lastName,
+               lastUpdated = :lastUpdated where s.id in (select max(a.id) from Student a)")
+})
+public class Student {
+
+...
+----
+
+You can alternatively use the _orm.xml_ to define named queries as seen below
+
+
+[source,xml]
+----
+<entity-mappings ...>
+    ...
+    <named-query name="selectStudent">
+        <query>select s from Student s where s.lastName = 'Last One'</query>
+    </named-query>
+</entity-mappings>
+----
+
+Now that we have seen how we can define named queries using annotations or using _orm.xml_, we will now see a small xml fragment for defining an _outbound-channel-adapter_ using named query
+
+
+[source,xml]
+----
+<int-jpa:outbound-channel-adapter channel="namedQueryChannel"
+            named-query="updateStudent"	 <1>
+            entity-manager="em">
+        <int-jpa:parameter name="lastName" expression="payload['updatedLastName']"/>
+        <int-jpa:parameter name="lastUpdated" expression="new java.util.Date()"/>
+</int-jpa:outbound-channel-adapter>
+----
+
+
+
+<1> The named query that we want the adapter to execute when it receives a message over the channel
+
+[[jpaOutboundChannelAdapterParameters]]
+==== Configuration Parameter Reference
+
+[source,xml]
+----
+<int-jpa:outbound-channel-adapter
+  auto-startup="true"  <1>
+  channel=""  <2>
+  entity-class=""  <3>
+  entity-manager=""  <4>
+  entity-manager-factory=""  <5>
+  id=""
+  jpa-operations=""  <6>
+  jpa-query=""  <7>
+  named-query=""  <8>
+  native-query=""  <9>
+  order=""  <10>
+  parameter-source-factory=""   <11>
+  persist-mode="MERGE"   <12>
+  flush="true"   <13>
+  flush-size="10"   <14>
+  clear-on-flush="true"   <15>
+  use-payload-as-parameter-source="true"   <16>
+	<int:poller/>
+	<int-jpa:transactional/>    <17>
+	<int-jpa:parameter/>    <18>
+</int-jpa:outbound-channel-adapter>
+----
+
+<1> Lifecycle attribute signaling if this component should be started during Application Context startup.
+Defaults to `true`.
+_Optional_.
+
+
+<2> The channel from which the outbound adapter will receive messages for performing the desired operation.
+
+
+<3> The fully qualified name of the entity class for the JPA Operation.
+The attributes _entity-class_, _query_ and _named-query_ are mutually exclusive.
+_Optional_.
+
+
+<4> An instance of `javax.persistence.EntityManager` that will be used to perform the JPA operations.
+_Optional_.
+
+
+<5> An instance of `javax.persistence.EntityManagerFactory` that will be used to obtain an instance of `javax.persistence.EntityManager` that will perform the JPA operations.
+_Optional_.
+
+
+<6> An implementation of `org.springframework.integration.jpa.core.JpaOperations` that would be used to perform the JPA operations.
+It is recommended not to provide an implementation of your own but use the default `org.springframework.integration.jpa.core.DefaultJpaOperations` implementation.
+Either of the _entity-manager_, _entity-manager-factory_ or _jpa-operations_ attributes is to be used.
+_Optional_.
+
+
+<7> The JPA QL that needs to be executed by this adapter._Optional_.
+
+
+<8> The named query that needs to be executed by this adapter._Optional_.
+
+
+<9> The native query that will be executed by this adapter.
+Either of the _jpa-query_, _named-query_ or _native-query_ attributes are to be used.
+_Optional_.
+
+
+<10> The order for this consumer when multiple consumers are registered thereby managing load- balancing and/or failover.
+Optional (Defaults to _Ordered.LOWEST_PRECEDENCE_).
+
+
+<11> An instance of `o.s.i.jpa.support.parametersource.ParameterSourceFactory` that will be used to get an instance of `o.s.i.jpa.support.parametersource.ParameterSource` which will be used to resolve the values of the parameters provided in the query.
+Ignored if operations are performed using a JPA entity.
+If a parameter sub element is used, the factory must be of type `ExpressionEvaluatingParameterSourceFactory` located in package `o.s.i.jpa.support.parametersource`.
+_Optional_.
+
+
+<12> Accepts one of the following: _PERSIST_, _MERGE_ or _DELETE_.
+Indicates the operation that the adapter needs to perform.
+Relevant only if an entity is being used for JPA operations.
+Ignored if JPA QL, named query or native query is provided.
+Defaults to _MERGE_.
+_Optional_.
+As of *Spring Integration 3.0*, payloads to _persist_ or _merge_ can also be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
+_NULL_ values returned by the iterator are ignored.
+
+
+<13> Set this value to `true` if you want to flush the persistence context immediately after persist, merge or delete operations and don't want to rely on the `EntityManager`'s flushMode.
+The default value is set to `false`.
+Applies only if the `flush-size` attribute isn't specified.
+If this attribute is set to `true`, then `flush-size` will be implicitly set to `1`, if it wasn't configured to any other value.
+
+
+<14> Set this attribute to a value greater than '0' if you want to flush the persistence context immediately after persist, merge or delete operations and don't want to rely on the `EntityManager`'s flushMode.
+The default value is set to `0` which means 'no flush'.
+This attribute is geared towards messages with `Iterable` payloads.
+For instance, if `flush-size` is set to `3`, then `entityManager.flush()` is called after every third entity.
+Furthermore, `entityManager.flush()` will be called once more after the entire loop.
+There is no reason to configure the `flush` attribute, if the 'flush-size' attribute is specified with a value greater than '0'.
+
+
+<15> Set this value to 'true' if you want to clear persistence context immediately after each flush operation.
+The attribute's value is applied only if the `flush` attribute is set to `true` or if the `flush-size` attribute is set to a value greater than `0`.
+
+
+<16> If set to true, the payload of the Message will be used as a source for providing parameters.
+If false, however, the entire Message will be available as a source for parameters._Optional_.
+
+
+<17> Defines the transaction management attributes and the reference to transaction manager to be used by the JPA adapter._Optional_.
+
+
+<18> One or more _parameter_ attributes, one for each parameter used in the query.
+The value or expression provided will be evaluated to compute the value of the parameter._Optional_.
+
+
+[[jpa-outbound-gateways]]
+=== Outbound Gateways
+
+The JPA _Inbound Channel Adapter_ allows you to poll a database in order to retrieve one or more JPA entities and the retrieved data is consequently used to start a Spring Integration flow using the retrieved data as message payload.
+
+Additionally, you may use JPA _Outbound Channel Adapters_ at the end of your flow in order to persist data, essentially terminating the flow at the end of the persistence operation.
+
+However, how can you execute JPA persistence operation in the middle of a flow? For example, you may have business data that you are processing in your Spring Integration message flow, that you would like to persist, yet you still need to execute other components further downstream.
+Or instead of polling the database using a poller, you rather have the need to execute JPQL queries and retrieve data actively which then is used to being processed in subsequent components within your flow.
+
+This is where JPA Outbound Gateways come into play.
+They give you the ability to persist data as well as retrieving data.
+To facilitate these uses, Spring Integration provides two types of JPA Outbound Gateways:
+
+* _Updating Outbound Gateway_
+* _Retrieving Outbound Gateway_
+
+
+
+Whenever the Outbound Gateway is used to perform an action that saves, updates or soley deletes some records in the database, you need to use an _Updating Outbound Gateway_ gateway.
+If for example an _entity_ is used to persist it, then a merged/persisted entity is returned as a result.
+In other cases the number of records affected (updated or deleted) is returned instead.
+
+When retrieving (selecting) data from the database, we use a _Retrieving Outbound Gateway_.
+With a _Retrieving Outbound Gateway_ gateway, we can use either JPQL, Named Queries (native or JPQL-based) or Native Queries (SQL) for selecting the data and retrieving the results.
+
+An _Updating Outbound Gateway_ is functionally very similar to an _Outbound Channel Adapter_, except that an _Updating Outbound Gateway_ is used to send a result to the Gateway's _reply channel_ after performing the given JPA operation.
+
+A _Retrieving Outbound Gateway_ is quite similar to an _Inbound Channel Adapter_.
+
+NOTE: We recommend you to first refer to the JPA Outbound Channel Adapter section and the JPA Inbound Channel Adapter sections above, as most of the common concepts are being explained there.
+
+This similarity was the main factor to use the central `JpaExecutor` class to unify common functionality as much as possible.
+
+Common for all JPA Outbound Gateways and simlar to the _outbound-channel-adapter_, we can use
+
+* _Entity classes_
+* _JPA Query Language (JPQL)_
+* _Native query_
+* _Named query_
+
+
+
+for performing various JPA operations.
+For configuration examples please see <<outboundGatewaySamples>>.
+
+[[jpa-outbound-gateway-common-parameters]]
+==== Common Configuration Parameters
+
+JPA Outbound Gateways always have access to the Spring Integration Message as input.
+As such the following parameters are available:
+
+_parameter-source-factory_
+
+An instance of `o.s.i.jpa.support.parametersource.ParameterSourceFactory` that will be used to get an instance of `o.s.i.jpa.support.parametersource.ParameterSource`.
+The _ParameterSource_ is used to resolve the values of the parameters provided in the query.
+The_parameter-source-factory_ attribute is ignored, if operations are performed using a JPA entity.
+If a_parameter_ sub-element is used, the factory must be of type `ExpressionEvaluatingParameterSourceFactory`, located in package _o.s.i.jpa.support.parametersource_.
+_Optional_.
+
+_use-payload-as-parameter-source_
+
+If set to _true_, the payload of the Message will be used as a source for providing parameters.
+If set to_false_, the entire Message will be available as a source for parameters.
+If no JPA Parameters are passed in, this property will default to _true_.
+This means that using a default `BeanPropertyParameterSourceFactory`, the bean properties of the payload will be used as a source for parameter values for the to-be-executed JPA query.
+However, if JPA Parameters are passed in, then this property will by default evaluate to _false_.
+The reason is that JPA Parameters allow for SpEL Expressions to be provided and therefore it is highly beneficial to have access to the entire Message, including the Headers.
+
+[[jpa-updating-outbound-gateway]]
+==== Updating Outbound Gateway
+
+[source,xml]
+----
+<int-jpa:updating-outbound-gateway request-channel=""  <1>
+    auto-startup="true"
+    entity-class=""
+    entity-manager=""
+    entity-manager-factory=""
+    id=""
+    jpa-operations=""
+    jpa-query=""
+    named-query=""
+    native-query=""
+    order=""
+    parameter-source-factory=""
+    persist-mode="MERGE"
+    reply-channel=""  <2>
+    reply-timeout=""  <3>
+    use-payload-as-parameter-source="true">
+
+    <int:poller/>
+    <int-jpa:transactional/>
+
+    <int-jpa:parameter name="" type="" value=""/>
+    <int-jpa:parameter name="" expression=""/>
+</int-jpa:updating-outbound-gateway>
+----
+
+<1> The channel from which the outbound gateway will receive messages for performing the desired operation.
+This attribute is similar to _channel_ attribute of the outbound-channel-adapter._Optional_.
+
+
+<2> The channel to which the gateway will send the response after performing the required JPA operation.
+If this attribute is not defined, the request message must have a replyChannel header.
+_Optional_.
+
+
+<3> Specifies the time the gateway will wait to send the result to the reply channel.
+Only applies when the reply channel itself might block the send (for example a bounded QueueChannel that is currently full).
+By default the Gateway will wait indefinitely.
+The value is specified in milliseconds.
+_Optional_.
+
+
+[[jpa-retrieving-outbound-gateway]]
+==== Retrieving Outbound Gateway
+
+[source,xml]
+----
+<int-jpa:retrieving-outbound-gateway request-channel=""
+    auto-startup="true"
+    delete-after-poll="false"
+    delete-in-batch="false"
+    entity-class=""
+    id-expression=""  <1>
+    entity-manager=""
+    entity-manager-factory=""
+    expect-single-result="false"  <2>
+    id=""
+    jpa-operations=""
+    jpa-query=""
+    max-number-of-results=""  <3>
+    max-results=""  <4>
+    max-results-expression=""  <5>
+    first-result=""  <6>
+    first-result-expression=""  <7>
+    named-query=""
+    native-query=""
+    order=""
+    parameter-source-factory=""
+    reply-channel=""
+    reply-timeout=""
+    use-payload-as-parameter-source="true">
+    <int:poller></int:poller>
+    <int-jpa:transactional/>
+
+    <int-jpa:parameter name="" type="" value=""/>
+    <int-jpa:parameter name="" expression=""/>
+</int-jpa:retrieving-outbound-gateway>
+----
+
+<1> (Since _Spring Integration 4.0_) The SpEL expression to determine the `primaryKey` value for `EntityManager.find(Class entityClass, Object primaryKey)` method against the `requestMessage` as root object of evaluation context.
+The `entityClass` argument is determined from `entity-class` attribute, if presented, otherwise from `payload` class.
+All other attributed are disallowed in case of `id-expression`.
+_Optional_.
+
+
+<2> A boolean flag indicating whether the select operation is expected to return a single result or a `List` of results.
+If this flag is set to `true`, the single entity selected is sent as the payload of the message.
+If multiple entities are returned, an exception is thrown.
+If `false`, the `List` of entities is being sent as the payload of the message.
+By default the value is `false`.
+_Optional_.
+
+
+<3> _Deprecated_.
+Use `max-results` instead.
+_Optional_.
+
+
+<4> This non zero, non negative integer value tells the adapter not to select more than given number of rows on execution of the select operation.
+By default, if this attribute is not set, all the possible records are selected by given query.
+This attribute is mutually exclusive with `max-results-expression`.
+_Optional_.
+
+
+<5> An expression, mutually exclusive with `max-results`, that can be used to provide an expression that will be evaluated to find the maximum number of results in a result set.
+_Optional_.
+
+
+<6> This non zero, non negative integer value tells the adapter the first record from which the results are to be retrieved This attribute is mutually exclusive to `first-result-expression`.
+This attribute is introduced since version 3.0.
+_Optional_.
+
+
+<7> This expression is evaluated against the message to find the position of first record in the result set to be retrieved This attribute is mutually exclusive to `first-result`.
+This attribute is introduced since version 3.0.
+_Optional_.
+
+
+[IMPORTANT]
+=====
+When choosing to delete entities upon retrieval and you have retrieved a collection of entities, please be aware that by default entities are deleted on a per entity basis.
+This may cause performance issues.
+
+Alternatively, you can set attribute _deleteInBatch_ to _true_, which will perform a batch delete.
+However, please be aware of the limitation that in that case cascading deletes are not supported.
+
+_JSR 317: Java™ Persistence 2.0_ states in chapter Chapter 4.10, Bulk Update and Delete Operations that:
+
+"A delete operation only applies to entities of the specified class and its subclasses.
+It does not cascade to related entities."
+
+For more information please see http://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
+=====
+
+[[outboundGatewaySamples]]
+==== JPA Outbound Gateway Samples
+
+This section contains various examples of the _Updating Outbound Gateway_ and _Retrieving Outbound Gateway_
+
+_Update using an Entity Class_
+
+In this example an _Updating Outbound Gateway_ is persisted using solely the entity class `org.springframework.integration.jpa.test.entity.Student` as JPA defining parameter.
+
+[source,xml]
+----
+<int-jpa:updating-outbound-gateway request-channel="entityRequestChannel"  <1>
+    reply-channel="entityResponseChannel"  <2>
+    entity-class="org.springframework.integration.jpa.test.entity.Student"
+    entity-manager="em"/>
+----
+
+<1> This is the request channel for the outbound gateway, this is similar to the _channel_ attribute of the _outbound-channel-adapter_
+
+
+<2> This is where a gateway differs from an outbound adapter, this is the channel over which the reply of the performed JPA operation is received.
+If,however, you are not interested in the reply received and just want to perform the operation, then using a JPA _outbound-channel-adapter_ is the appropriate choice.
+In above case, where we are using entity class, the reply will be the entity object that was created/merged as a result of the JPA operation.
+
+
+_Update using JPQL_
+
+In this example, we will see how we can update an entity using the Java Persistence Query Language (JPQL).
+For this we use an_Updating Outbound Gateway_.
+
+[source,xml]
+----
+<int-jpa:updating-outbound-gateway request-channel="jpaqlRequestChannel"
+  reply-channel="jpaqlResponseChannel"
+  jpa-query="update Student s set s.lastName = :lastName where s.rollNumber = :rollNumber"  <1>
+  entity-manager="em">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+</int-jpa:updating-outbound-gateway>
+----
+
+<1> The JPQL query that will be executed by the gateway.
+Since an _Updating Outbound Gateway_ is used, only _update_ and _delete_ JPQL queries would be sensible choices.
+
+
+When sending a message with a String payload and containing a header _rollNumber_ with a _long_ value, the last name of the student with the provided roll number is updated to the value provided in the message payload.
+When using an_UPDATING_ gateway, the return value is _always_ an integer value which denotes the number of records affected by execution of the JPA QL.
+
+_Retrieving an Entity using JPQL_
+
+The following examples uses a _Retrieving Outbound Gateway_ together with JPQL to retrieve (select) one or more entities from the database.
+
+[source,xml]
+----
+<int-jpa:retrieving-outbound-gateway request-channel="retrievingGatewayReqChannel"
+    reply-channel="retrievingGatewayReplyChannel"
+    jpa-query="select s from Student s where s.firstName = :firstName and s.lastName = :lastName"
+    entity-manager="em">
+    <int-jpa:parameter name="firstName" expression="payload"/>
+    <int-jpa:parameter name="lastName" expression="headers['lastName']"/>
+</int-jpa:outbound-gateway>
+----
+
+_Retrieving an Entity using id-expression_
+
+The following examples uses a _Retrieving Outbound Gateway_ together with `id-expression` to retrieve (find) one and only one entity from the database.
+The `primaryKey` is the result of `id-expression` evaluation.
+The `entityClass` is a class of Message `payload`.
+
+[source,xml]
+----
+<int-jpa:retrieving-outbound-gateway
+	request-channel="retrievingGatewayReqChannel"
+    reply-channel="retrievingGatewayReplyChannel"
+    id-expression="payload.id"
+    entity-manager="em"/>
+----
+
+_Update using a Named Query_
+
+Using a Named Query is basically the same as using a JPQL query directly.
+The difference is that the _named-query_ attribute is used instead, as seen in the xml snippet below.
+
+[source,xml]
+----
+<int-jpa:updating-outbound-gateway request-channel="namedQueryRequestChannel"
+    reply-channel="namedQueryResponseChannel"
+    named-query="updateStudentByRollNumber"
+    entity-manager="em">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+</int-jpa:outbound-gateway>
+----
+
+NOTE: You can find a complete Sample application for using Spring Integration's JPA adapter at https://github.com/spring-projects/spring-integration-samples/tree/master/basic/jpa[jpa sample].

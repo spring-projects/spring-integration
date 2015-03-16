@@ -1,0 +1,95 @@
+[[stream]]
+== Stream Support
+
+[[stream-intro]]
+=== Introduction
+
+In many cases application data is obtained from a stream.
+It is _not_ recommended to send a reference to a Stream as a message payload to a consumer.
+Instead messages are created from data that is read from an input stream and message payloads are written to an output stream one by one.
+
+[[stream-reading]]
+=== Reading from streams
+
+Spring Integration provides two adapters for streams.
+Both `ByteStreamReadingMessageSource` and `CharacterStreamReadingMessageSource` implement `MessageSource`.
+By configuring one of these within a channel-adapter element, the polling period can be configured, and the Message Bus can automatically detect and schedule them.
+The byte stream version requires an `InputStream`, and the character stream version requires a `Reader` as the single constructor argument.
+The `ByteStreamReadingMessageSource` also accepts the 'bytesPerMessage' property to determine how many bytes it will attempt to read into each `Message`.
+The default value is 1024
+[source,xml]
+----
+<bean class="org.springframework.integration.stream.ByteStreamReadingMessageSource">
+  <constructor-arg ref="someInputStream"/>
+  <property name="bytesPerMessage" value="2048"/>
+</bean>
+
+<bean class="org.springframework.integration.stream.CharacterStreamReadingMessageSource">
+  <constructor-arg ref="someReader"/>
+</bean>
+
+----
+
+[[stream-writing]]
+=== Writing to streams
+
+For target streams, there are also two implementations: `ByteStreamWritingMessageHandler` and `CharacterStreamWritingMessageHandler`.
+Each requires a single constructor argument - `OutputStream` for byte streams or `Writer` for character streams, and each provides a second constructor that adds the optional 'bufferSize'.
+Since both of these ultimately implement the `MessageHandler` interface, they can be referenced from a _channel-adapter_ configuration as described in more detail in <<channel-adapter>>.
+
+[source,xml]
+----
+<bean class="org.springframework.integration.stream.ByteStreamWritingMessageHandler">
+  <constructor-arg ref="someOutputStream"/>
+  <constructor-arg value="1024"/>
+</bean>
+
+<bean class="org.springframework.integration.stream.CharacterStreamWritingMessageHandler">
+  <constructor-arg ref="someWriter"/>
+</bean>
+
+----
+
+[[stream-namespace]]
+=== Stream namespace support
+
+To reduce the configuration needed for stream related channel adapters there is a namespace defined.
+The following schema locations are needed to use it.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/integration/stream
+      http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+----
+
+To configure the inbound channel adapter the following code snippet shows the different configuration options that are supported.
+
+[source,xml]
+----
+<int-stream:stdin-channel-adapter id="adapterWithDefaultCharset"/>
+
+<int-stream:stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>
+----
+
+To configure the outbound channel adapter you can use the namespace support as well.
+The following code snippet shows the different configuration for an outbound channel adapters.
+
+[source,xml]
+----
+<int-stream:stdout-channel-adapter id="stdoutAdapterWithDefaultCharset"
+    channel="testChannel"/>
+
+<int-stream:stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8"
+    channel="testChannel"/>
+
+<int-stream:stderr-channel-adapter id="stderrAdapter" channel="testChannel"/>
+
+<int-stream:stdout-channel-adapter id="newlineAdapter" append-newline="true"
+    channel="testChannel"/>
+----

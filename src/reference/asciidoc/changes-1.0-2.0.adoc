@@ -1,0 +1,178 @@
+[[migration-1.0-2.0]]
+=== Changes between 1.0 and 2.0
+
+For a detailed migration guide in regards to upgrading an existing application that uses Spring Integration older than version 2.0, please see:
+
+null
+
+[[migration-spring-30-support]]
+==== Spring 3 support
+
+Spring Integration 2.0 is built on top of Spring 3.0.5 and makes many of its features available to our users.
+
+[[spel-support]]
+===== Support for the Spring Expression Language (SpEL)
+
+You can now use SpEL expressions within the _transformer, router, filter,
+            splitter, aggregator, service-activator, header-enricher_, and many more elements of the Spring Integration core namespace as well as various adapters.
+There are many samples provided throughout this manual.
+
+[[conversion-support]]
+===== ConversionService and Converter
+
+You can now benefit from _Conversion Service_ support provided with Spring while configuring many Spring Integration components such as http://www.eaipatterns.com/DatatypeChannel.html[Datatype Channel].
+See <<channel-implementations>> as well <<service-activator-introduction>>.
+Also, the SpEL support mentioned in the previous point also relies upon the ConversionService.
+Therefore, you can register Converters once, and take advantage of them anywhere you are using SpEL expressions.
+
+[[task-scheduler-poller-support]]
+===== TaskScheduler and Trigger
+
+Spring 3.0 defines two new strategies related to scheduling: _TaskScheduler and Trigger_ Spring Integration (which uses a lot of scheduling) now builds upon these.
+In fact, Spring Integration 1.0 had originally defined some of the components (e.g.
+CronTrigger) that have now been migrated into Spring 3.0's core API.
+Now, you can benefit from reusing the same components within the entire Application Context (not just Spring Integration configuration).
+Configuration of Spring Integration Pollers has been greatly simplified as well by providing attributes for directly configuring rates, delays, cron expressions, and trigger references.
+See <<channel-adapter>> for sample configurations.
+
+[[rest-support]]
+===== RestTemplate and HttpMessageConverter
+
+Our outbound HTTP adapters now delegate to Spring's RestTemplate for executing the HTTP request and handling its response.
+This also means that you can reuse any custom HttpMessageConverter implementations.
+See <<http-outbound>> for more details.
+
+[[new-eip]]
+==== Enterprise Integration Pattern Additions
+
+Also in 2.0 we have added support for even more of the patterns described in Hohpe and Woolf's http://www.eaipatterns.com/[Enterprise Integration Patterns] book.
+
+[[new-message-history]]
+===== Message History
+
+We now provide support for the http://www.eaipatterns.com/MessageHistory.html[Message History] pattern allowing you to keep track of all traversed components, including the name of each channel and endpoint as well as the timestamp of that traversal.
+See <<message-history>> for more details.
+
+[[new-message-store]]
+===== Message Store
+
+We now provide support for the http://www.eaipatterns.com/MessageStore.html[Message Store] pattern.
+The Message Store provides a strategy for persisting messages on behalf of any process whose scope extends beyond a single transaction, such as the Aggregator and Resequencer.
+Many sections of this document provide samples on how to use a Message Store as it affects several areas of Spring Integration.
+See <<message-store>>, <<claim-check>>, <<channel>>, <<aggregator>>, <<jdbc>>, and <<resequencer>> for more details
+
+[[new-claim-check]]
+===== Claim Check
+
+We have added an implementation of the http://www.eaipatterns.com/StoreInLibrary.html[Claim Check] pattern.
+The idea behind the Claim Check pattern is that you can exchange a Message payload for a "claim ticket" and vice-versa.
+This allows you to reduce bandwidth and/or avoid potential security issues when sending Messages across channels.
+See <<claim-check>> for more details.
+
+[[new-control-bus]]
+===== Control Bus
+
+We have provided implementations of the http://www.eaipatterns.com/ControlBus.html[Control Bus] pattern which allows you to use messaging to manage and monitor endpoints and channels.
+The implementations include both a SpEL-based approach and one that executes Groovy scripts.
+See <<control-bus>> and <<groovy-control-bus>> for more details.
+
+[[new-adapters]]
+==== New Channel Adapters and Gateways
+
+We have added several new Channel Adapters and Messaging Gateways in Spring Integration 2.0.
+
+[[new-ip]]
+===== TCP/UDP Adapters
+
+We have added Channel Adapters for receiving and sending messages over the TCP and UDP internet protocols.
+See <<ip>> for more details.
+Also, you can checkout the following blog: http://blog.springsource.com/2010/03/29/using-udp-and-tcp-adapters-in-spring-integration-2-0-m3/[TCP/UDP support]
+
+[[new-twitter]]
+===== Twitter Adapters
+
+Twitter adapters provides support for sending and receiving Twitter Status updates as well as Direct Messages.
+You can also perform Twitter Searches with an inbound Channel Adapter.
+See <<twitter>> for more details.
+
+[[new-xmpp]]
+===== XMPP Adapters
+
+The new XMPP adapters support both Chat Messages and Presence events.
+See <<xmpp>> for more details.
+
+[[new-ftp]]
+===== FTP/FTPS Adapters
+
+Inbound and outbound File transfer support over FTP/FTPS is now available.
+See <<ftp>> for more details.
+
+[[new-sftp]]
+===== SFTP Adapters
+
+Inbound and outbound File transfer support over SFTP is now available.
+See <<sftp>> for more details.
+
+[[new-feed]]
+===== Feed Adapters
+
+We have also added Channel Adapters for receiving news feeds (ATOM/RSS).
+See <<feed>> for more details.
+
+[[new-other]]
+==== Other Additions
+
+[[new-groovy]]
+===== Groovy Support
+
+With Spring Integration 2.0 we've added Groovy support allowing you to use Groovy scripting language to provide integration and/or business logic.
+See <<groovy>> for more details.
+
+[[new-map-transformer]]
+===== Map Transformers
+
+These symmetrical transformers convert payload objects to and from a Map.
+See <<transformer>> for more details.
+
+[[new-json-transformer]]
+===== JSON Transformers
+
+These symmetrical transformers convert payload objects to and from JSON.
+See <<transformer>> for more details.
+
+[[new-serialize-transformer]]
+===== Serialization Transformers
+
+These symmetrical transformers convert payload objects to and from byte arrays.
+They also support the Serializer and Deserializer strategy interfaces that have been added as of Spring 3.0.5.
+See <<transformer>> for more details.
+
+[[new-refactoring]]
+==== Framework Refactoring
+
+The core API went through some significant refactoring to make it simpler and more usable.
+Although we anticipate that the impact to the end user should be minimal, please read through this document to find what was changed.
+Especially, visit <<dynamic-routers>> , <<gateway>>, <<http-outbound>>, <<message>>, and <<aggregator>> for more details.
+If you are depending directly on some of the core components (Message, MessageHeaders, MessageChannel, MessageBuilder, etc.), you will notice that you need to update any import statements.
+We restructured some packaging to provide the flexibility we needed for extending the domain model while avoiding any cyclical dependencies (it is a policy of the framework to avoid such "tangles").
+
+[[new-infrastructure]]
+==== New Source Control Management and Build Infrastructure
+
+With Spring Integration 2.0 we have switched our build environment to use Git for source control.
+To access our repository simply follow this URL: http://git.springsource.org/spring-integration[http://git.springsource.org/spring-integration].
+We have also switched our build system to http://gradle.org/[Gradle].
+
+[[new-samples]]
+==== New Spring Integration Samples
+
+With Spring Integration 2.0 we have decoupled the samples from our main release distribution.
+Please read this blog to get more info http://blog.springsource.com/2010/09/29/new-spring-integration-samples/[New Spring Integration Samples] We have also created many new samples, including samples for every new Adapter.
+
+[[new-sts]]
+==== Spring Tool Suite Visual Editor for Spring Integration
+
+There is an amazing new visual editor for Spring Integration included within the latest version of SpringSource Tool Suite.
+If you are not already using STS, please download it here:
+
+https://spring.io/tools/sts[Spring Tool Suite]

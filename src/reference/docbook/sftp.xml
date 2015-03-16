@@ -91,14 +91,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	</para>
 	<note>
 		A more practical way to provide values for the <emphasis>SFTP Session Factory</emphasis> would be via Spring's
-		<emphasis><ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer">property
-		placeholder support</ulink></emphasis>.
+		<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer">property
+		placeholder support</ulink>.
 	</note>
 		<section id="sftp-session-factory-properties">
 			<title>Configuration Properties</title>
 			<para>
 				Below you will find all properties that are exposed by the
-				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html">DefaultSftpSessionFactory</ulink></classname>.
+				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html">DefaultSftpSessionFactory</ulink>.
 			</para>
 			<para><emphasis role="bold">isSharedSession (constructor argument)</emphasis></para>
 			<para>
@@ -151,7 +151,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			<para><emphasis role="bold">privateKey</emphasis></para>
 			<para>
 				Allows you to set a
-				<interfacename><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html">Resource</ulink></interfacename>,
+				<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html">Resource</ulink>,
 				which represents the location of the private key used for
 				authenticating against the remote host. If the
 				<emphasis>privateKey</emphasis> is not provided, then the
@@ -165,7 +165,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			<para><emphasis role="bold">proxy</emphasis></para>
 			<para>
 				Allows for specifying a JSch-based
-				<interfacename><ulink url="http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html">Proxy</ulink></interfacename>.
+				<ulink url="http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html">Proxy</ulink>.
 				If set, then the proxy object is used to create the connection to
 				the remote host.
 			</para>
@@ -188,7 +188,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			<para><emphasis role="bold">socketFactory</emphasis></para>
 			<para>
 				Allows you to pass in a
-				<interfacename><ulink url="http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html">SocketFactory</ulink></interfacename>.
+				<ulink url="http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html">SocketFactory</ulink>.
 				The socket factory is used to create a socket to the target host.
 				When a proxy is used, the socket factory is passed to the proxy.
 				By default plain TCP sockets are used.

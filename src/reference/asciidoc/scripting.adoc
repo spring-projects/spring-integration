@@ -1,0 +1,146 @@
+[[scripting]]
+=== Scripting support
+
+With Spring Integration 2.1 we've added support for the http://jcp.org/aboutJava/communityprocess/pr/jsr223/[JSR223 Scripting for Java specification], introduced in Java version 6.
+This allows you to use scripts written in any supported language including Ruby/JRuby, Javascript and Groovy to provide the logic for various integration components similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
+For more information about JSR223 please refer to the http://java.sun.com/developer/technicalArticles/J2SE/Desktop/scripting/[documentation]
+
+IMPORTANT: Note that this feature requires Java 6 or higher.
+Sun developed a JSR223 reference implementation which works with Java 5 but it is not officially supported and we have not tested it with Spring Integration.
+
+In order to use a JVM scripting language, a JSR223 implementation for that language must be included in your class path.
+Java 6 natively supports Javascript.
+The http://groovy.codehaus.org[Groovy] and http://jruby.org/[JRuby] projects provide JSR233 support in their standard distribution.
+Other language implementations may be available or under development.
+Please refer to the appropriate project website for more information.
+
+IMPORTANT: Various JSR223 language implementations have been developed by third parties.
+A particular implementation's compatibility with Spring Integration depends on how well it conforms to the specification and/or the implementer's interpretation of the specification.
+
+TIP: If you plan to use Groovy as your scripting language, we recommended you use <<groovy,Spring-Integration's Groovy Support>> as it offers additional features specific to Groovy.
+_However you will find this section relevant as well_.
+
+[[scripting-config]]
+==== Script configuration
+
+Depending on the complexity of your integration requirements scripts may be provided inline as CDATA in XML configuration or as a reference to a Spring resource containing the script.
+To enable scripting support Spring Integration defines a `ScriptExecutingMessageProcessor` which will bind the Message Payload to a variable named `payload` and the Message Headers to a `headers` variable, both accessible within the script execution context.
+All that is left for you to do is write a script that uses these variables.
+Below are a couple of sample configurations:
+
+_Filter_
+[source,xml]
+----
+<int:filter input-channel="referencedScriptInput">
+   <int-script:script lang="ruby" location="some/path/to/ruby/script/RubyFilterTests.rb"/>
+</int:filter>
+
+<int:filter input-channel="inlineScriptInput">
+     <int-script:script lang="groovy">
+     <![CDATA[
+     return payload == 'good'
+   ]]>
+  </int-script:script>
+</int:filter>
+----
+
+Here, you see that the script can be included inline or can reference a resource location via the `location` attribute.
+Additionally the `lang` attribute corresponds to the language name (or JSR223 alias)
+
+Other Spring Integration endpoint elements which support scripting include _router_, _service-activator_, _transformer_, and _splitter_.
+The scripting configuration in each case would be identical to the above (besides the endpoint element).
+
+Another useful feature of Scripting support is the ability to update (reload) scripts without having to restart the Application Context.
+To accomplish this, specify the `refresh-check-delay` attribute on the _script_ element:
+[source,xml]
+----
+<int-script:script location="..." refresh-check-delay="5000"/>
+----
+
+In the above example, the script location will be checked for updates every 5 seconds.
+If the script is updated, any invocation that occurs later than 5 seconds since the update will result in execution of the new script.
+[source,xml]
+----
+<int-script:script location="..." refresh-check-delay="0"/>
+----
+
+In the above example the context will be updated with any script modifications as soon as such modification occurs, providing a simple mechanism for 'real-time' configuration.
+Any negative number value means the script will not be reloaded after initialization of the application context.
+This is the default behavior.
+
+IMPORTANT: Inline scripts can not be reloaded.
+
+[source,xml]
+----
+<int-script:script location="..." refresh-check-delay="-1"/>
+----
+
+_Script variable bindings_
+
+Variable bindings are required to enable the script to reference variables externally provided to the script's execution context.
+As we have seen, `payload` and `headers` are used as binding variables by default.
+You can bind additional variables to a script via `<variable>` sub-elements:
+[source,xml]
+----
+<script:script lang="js" location="foo/bar/MyScript.js">
+	<script:variable name="foo" value="foo"/>
+	<script:variable name="bar" value="bar"/>
+	<script:variable name="date" ref="date"/>
+</script:script>
+----
+
+As shown in the above example, you can bind a script variable either to a scalar value or a Spring bean reference.
+Note that `payload` and `headers` will still be included as binding variables.
+
+With _Spring Integration 3.0_, in addition to the `variable` sub-element, the `variables` attribute has been introduced.
+This attribute and `variable` sub-elements aren't mutually exclusive and you can combine them within one `script` component.
+However variables must be unique, regardless of where they are defined.
+Also, since _Spring Integration 3.0_, variable bindings are allowed for inline scripts too:
+[source,xml]
+----
+<service-activator input-channel="input">
+	<script:script lang="ruby" variables="foo=FOO, date-ref=dateBean">
+		<script:variable name="bar" ref="barBean"/>
+		<script:variable name="baz" value="bar"/>
+		<![CDATA[
+   			payload.foo = foo
+   			payload.date = date
+   			payload.bar = bar
+   			payload.baz = baz
+  			payload
+		]]>
+	</script:script>
+</service-activator>
+----
+
+The example above shows a combination of an inline script, a `variable` sub-element and a `variables` attribute.
+The `variables` attribute is a comma-separated value, where each segment contains an '=' separated pair of the variable and its value.
+The variable name can be suffixed with `-ref`, as in the `date-ref` variable above.
+That means that the binding variable will have the name `date`, but the value will be a reference to the `dateBean` bean from the application context.
+This may be useful when using _Property Placeholder Configuration_ or command line arguments.
+
+If you need more control over how variables are generated, you can implement your own Java class using the `ScriptVariableGenerator` strategy:
+[source,java]
+----
+public interface ScriptVariableGenerator {
+
+	Map<String, Object> generateScriptVariables(Message<?> message);
+
+}
+----
+
+This interface requires you to implement the method `generateScriptVariables(Message)`.
+The Message argument allows you to access any data available in the Message payload and headers and the return value is the Map of bound variables.
+This method will be called every time the script is executed for a Message.
+All you need to do is provide an implementation of `ScriptVariableGenerator` and reference it with the `script-variable-generator` attribute:
+[source,xml]
+----
+<int-script:script location="foo/bar/MyScript.groovy"
+		script-variable-generator="variableGenerator"/>
+
+<bean id="variableGenerator" class="foo.bar.MyScriptVariableGenerator"/>
+----
+
+If a `script-variable-generator` is not provided, script components use `org.springframework.integration.scripting.DefaultScriptVariableGenerator`, which merges any provided `<variable>` s with _payload_ and _headers_ variables from the `Message` in its `generateScriptVariables(Message)` method.
+
+IMPORTANT: You cannot provide both the `script-variable-generator` attribute and `<variable>` sub-element(s) as they are mutually exclusive.

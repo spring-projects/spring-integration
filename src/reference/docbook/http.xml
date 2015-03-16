@@ -20,7 +20,7 @@
 		within a servlet container such as <ulink url="http://tomcat.apache.org/">Apache Tomcat</ulink>
 		or <ulink url="http://www.eclipse.org/jetty/">Jetty</ulink>. The easiest
 		way to do this is to use Spring's
-		<classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html">HttpRequestHandlerServlet</ulink></classname>,
+		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html">HttpRequestHandlerServlet</ulink>,
 		by providing the following servlet definition in the <emphasis>web.xml</emphasis> file:
 	</para>
 	<programlisting language="xml"><![CDATA[<servlet>
@@ -237,15 +237,15 @@ By default the HTTP request will be generated using an instance of <classname>Si
 	<para><emphasis>Request Mapping support</emphasis></para>
 	<note>
 		<emphasis>Spring Integration 3.0</emphasis> is improving the REST support by introducing the
-		<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
-		>IntegrationRequestMappingHandlerMapping</ulink></interfacename>. The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
+		<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
+		>IntegrationRequestMappingHandlerMapping</ulink>. The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
 	</note>
 	<para>
 		The parsing of the <emphasis>HTTP Inbound Gateway</emphasis> or the
 		<emphasis>HTTP Inbound Channel Adapter</emphasis> registers an <code>integrationRequestMappingHandlerMapping</code>
 		bean of type
-		<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
-		>IntegrationRequestMappingHandlerMapping</ulink></interfacename>, in case there is none registered, yet. This particular implementation of the
+		<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
+		>IntegrationRequestMappingHandlerMapping</ulink>, in case there is none registered, yet. This particular implementation of the
 		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
 		><interfacename>HandlerMapping</interfacename></ulink> delegates its logic to the
 		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html"
@@ -671,7 +671,7 @@ where <code>uriVariablesBean</code> might be:
         making active HTTP requests using the <emphasis>HTTP Oubound Gateway</emphasis>
         or the <emphasis>HTTP Outbound Channel Adapter</emphasis>. In those
         instances, these two components use Spring's
-        <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html">RestTemplate</ulink></classname>
+        <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html">RestTemplate</ulink>
         support to execute HTTP requests.
     </para>
     <para>
@@ -680,22 +680,22 @@ where <code>uriVariablesBean</code> might be:
         <emphasis>HTTP Outbound Channel Adapter</emphasis>, you can either
         reference a <classname>RestTemplate</classname> bean directly, using the
         <emphasis>rest-template</emphasis> attribute, or you can provide a reference to a
-        <emphasis><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></emphasis>
+        <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink>
         bean using the <emphasis>request-factory</emphasis> attribute. Spring provides
         the following implementations of the
         <interfacename>ClientHttpRequestFactory</interfacename> interface:
     </para>
 
    <para>
-        <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html">SimpleClientHttpRequestFactory</ulink></classname>
+       <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html">SimpleClientHttpRequestFactory</ulink>
         - Uses standard J2SE facilities for making HTTP Requests
    </para>
    <para>
-       <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html">HttpComponentsClientHttpRequestFactory</ulink></classname>
+       <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html">HttpComponentsClientHttpRequestFactory</ulink>
        - Uses <ulink url="http://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink> (Since Spring 3.1)
    </para>
    <para>
-       <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/CommonsClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></classname>
+       <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/CommonsClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink>
        - Uses <ulink url="http://hc.apache.org/httpclient-3.x/">Jakarta Commons HttpClient</ulink> (Deprecated as of Spring 3.1)
    </para>
 
@@ -720,7 +720,7 @@ where <code>uriVariablesBean</code> might be:
        <para>
 	       Please test your timeouts if you have specific needs. Consider using the
 	       <classname>HttpComponentsClientHttpRequestFactory</classname> which, in turn, uses
-	       <emphasis><ulink url="http://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink></emphasis>
+	       <ulink url="http://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink>
 	       instead.
        </para>
    </note>

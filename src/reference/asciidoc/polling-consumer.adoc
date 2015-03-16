@@ -1,0 +1,53 @@
+[[polling-consumer]]
+=== Poller (Polling Consumer)
+
+When Message Endpoints (Channel Adapters) are connected to channels and instantiated, they produce one of the following 2 instances:
+
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/EventDrivenConsumer.html[EventDrivenConsumer]
+
+
+
+The actual implementation depends on which type of channel these Endpoints are connected to.
+A channel adapter connected to a channel that implements the http://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/SubscribableChannel.html[org.springframework.messaging.SubscribableChannel] interface will produce an instance of `EventDrivenConsumer`.
+On the other hand, a channel adapter connected to a channel that implements the  http://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/PollableChannel.html[org.springframework.messaging.PollableChannel] interface (e.g. a QueueChannel) will produce an instance of `PollingConsumer`.
+
+Polling Consumers allow Spring Integration components to actively poll for Messages, rather than to process Messages in an event-driven manner.
+
+They represent a critical cross cutting concern in many messaging scenarios.
+In Spring Integration, Polling Consumers are based on the pattern with the same name, which is described in the book "Enterprise Integration Patterns" by Gregor Hohpe and Bobby Woolf.
+You can find a description of the pattern on the book's website at:
+
+http://www.enterpriseintegrationpatterns.com/PollingConsumer.html[http://www.enterpriseintegrationpatterns.com/PollingConsumer.html]
+
+
+
+Furthermore, in Spring Integration a second variation of the Polling Consumer pattern exists.
+When Inbound Channel Adapters are being used, these adapters are often wrapped by a `SourcePollingChannelAdapter`.
+For example, when retrieving messages from a remote FTP Server location, the adapter described in <<ftp-inbound>> is configured with a _poller_ to retrieve messages periodically.
+So, when components are configured with Pollers, the resulting instances are of one of the following types:
+
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/SourcePollingChannelAdapter.html[SourcePollingChannelAdapter]
+
+
+
+This means, Pollers are used in both inbound and outbound messaging scenarios.
+Here are some use-cases that illustrate the scenarios in which Pollers are used:
+
+* Polling certain external systems such as FTP Servers, Databases, Web Services
+* Polling internal (pollable) Message Channels
+* Polling internal services (E.g.
+repeatedly execute methods on a Java class)
+
+
+
+NOTE: AOP Advice classes can be applied to pollers, in an `advice-chain`.
+An example being a transaction advice to start a transaction.
+Starting with _version 4.1_ a `PollSkipAdvice` is provided.
+Pollers use triggers to determine the time of the next poll.
+The `PollSkipAdvice` can be used to suppress (skip) a poll, perhaps because there is some downstream condition that would prevent the message to be processed properly.
+To use this advice, you have to provide it with an implementation of a `PollSkipStrategy`.
+
+This chapter is meant to only give a high-level overview regarding Polling Consumers and how they fit into the concept of message channels - <<channel>> and channel adapters -<<channel-adapter>>.
+For more in-depth information regarding Messaging Endpoints in general and Polling Consumers in particular, please see<<endpoint>>.

@@ -1,0 +1,83 @@
+[[whats-new]]
+== What's new in Spring Integration 4.2?
+
+This chapter provides an overview of the new features and improvements that have been introduced with Spring Integration 4.1.
+If you are interested in more details, please see the Issue Tracker tickets that were resolved as part of the 4.1 development process.
+
+[[x4.2-new-components]]
+=== New Components
+
+[[x4.2-JMX]]
+==== Major JMX Rework
+
+A new `MetricsFactory` strategy interface has been introduced.
+This, together with other changes in the JMX infrastructure provides much more control over JMX configuration and runtime performance.
+
+However, this has some important implications for (some) user environments.
+
+For complete details, see <<jmx-42-improvements>>.
+
+[[x4.2-general]]
+=== General Changes
+
+[[x4.2-wire-tap]]
+==== Wire Tap
+
+As an alternative to the existing `selector` attribute, the `<wire-tap/>` now supports the `selector-expression` attribute.
+
+[[x4.2-file-outbound-channel-adapter]]
+==== File Outbound Channel Adapter
+
+The `<int-file:outbound-channel-adapter>` and `<int-file:outbound-gateway>` now support an `append-new-line` attribute.
+If set to `true`, a new line is appended to the file after a message is written.
+The default attribute value is `false`.
+
+[[x4.2-class-package-change]]
+==== Class Package Change
+
+The `ScatterGatherHandler` class has been moved from the `org.springframework.integration.handler` to the `org.springframework.integration.scattergather`.
+
+[[x4.2-tcp-serializers]]
+==== TCP Serializers
+
+The TCP `Serializers` no longer `flush()` the `OutputStream`; this is now done by the `TcpNxxConnection` classes.
+If you are using the serializers directly within user code, you may have to `flush()` the `OutputStream`.
+
+[[x4.2-tcp-server-exceptions]]
+==== Server Socket Exceptions
+
+`TcpConnectionServerExceptionEvent` s are now published whenever an unexpected exception occurs on a TCP server socket (also added to 4.1.3, 4.0.7).
+See <<tcp-events>> for more information.
+
+[[x4.2-tcp-gw-rto]]
+==== TCP Gateway Remote Timeout
+
+The `TcpOutboundGateway` now supports `remote-timeout-expression` as an alternative to the existing `remote-timeout` attribute.
+This allows setting the timeout based on each message.
+
+Also, the `remote-timeout` no longer defaults to the same value as `reply-timeout` which has a completely different meaning.
+
+See <<tcp-ob-gateway-attributes>> for more information.
+
+[[x4.2-inbound-channel-adapter-annotation]]
+==== @InboundChannelAdapter
+
+Previously, the `@Poller` on an inbound channel adapter defaulted the `maxMessagesPerPoll` attribute to `-1` (infinity).
+This was inconsistent with the XML configuration of `<inbound-channel-adapter/>` s, which defaults to 1.
+The annotation now defaults this attribute to 1.
+
+[[x4.2-api-changes]]
+==== API Changes
+
+`o.s.integtation.util.FunctionIterator` now requires a `o.s.integration.util.Function` instead of a `reactor.function.Function`.
+This was done to remove an unnecessary hard dependency on Reactor.
+Any uses of this iterator will need to change the import.
+
+Of course, Reactor is still supported for functionality such as the `Promise` gateway; the dependency was removed for those users who don't need it.
+
+[[x4.2-jms-changes]]
+==== JMS Changes
+
+The `error-channel` now is used for the conversion errors, which have caused a transaction rollback and message redelivery previously.
+
+See <<jms-message-driven-channel-adapter>> for more information.

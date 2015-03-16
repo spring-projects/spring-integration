@@ -478,13 +478,13 @@
     </para>
     <para>
       For convenience, a <code>&lt;int-ip:tcp-connection-event-inbound-channel-adapter/&gt;</code>
-      is provided. This adapter will receive all <classname>TcpConnectionEvent</classname>s (by
+      is provided. This adapter will receive all <classname>TcpConnectionEvent</classname> s (by
       default), and send them to its <code>channel</code>. The adapter accepts an <code>event-type</code>
       attribute, which is a list of class names for events that should be sent. This can be used
       if an application subclasses <classname>TcpConnectionEvent</classname> for some reason, and wishes
       to only receive those events. Omitting this attribute will mean that all
-      <classname>TcpConnectionEvent</classname>s will be sent. You can also use this to limit which
-      <classname>TcpConnectionEvent</classname>s you are interested in (
+      <classname>TcpConnectionEvent</classname> s will be sent. You can also use this to limit which
+      <classname>TcpConnectionEvent</classname> s you are interested in (
       <classname>TcpConnectionOpenEvent</classname>, <classname>TcpConnectionCloseEvent</classname>,
       or <classname>TcpConnectionExceptionEvent</classname>).
     </para>
@@ -722,7 +722,7 @@
      than another Spring Integration application. For this reason, only
      message payloads are sent and received, by default. Since 3.0, headers can
      be transferred, using JSON, Java serialization, or with custom
-     <interfacename>Serializer</interfacename>s and
+     <interfacename>Serializer</interfacename> s and
      <interfacename>Deserializer</interfacename>s; see <xref linkend="ip-headers"/>
      for more information.
      No message correlation is provided by the framework,
@@ -1998,7 +1998,7 @@ private CompositeExecutor compositeExecutor() {
   <section id="ip-msg-headers">
 	<title>IP Message Headers</title>
 	<para>
-		The following <code>MessageHeader</code>s are used by this module:
+		The following <code>MessageHeader</code> s are used by this module:
 	</para>
 	<table id="ip-msg-headers-tbl">
 		<tgroup cols="3">

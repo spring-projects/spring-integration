@@ -1,0 +1,8 @@
+[[resources]]
+== Additional Resources
+
+[[resources-home]]
+=== Spring Integration Home
+
+The definitive source of information about Spring Integration is the http://projects.spring.io/spring-integration/[Spring Integration Home] at http://spring.io[http://spring.io].
+That site serves as a hub of information and is the best place to find up-to-date announcements about the project as well as links to articles, blogs, and new sample applications.

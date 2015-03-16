@@ -1,0 +1,421 @@
+[[migration-2.2-3.0]]
+=== Changes Between 2.2 and 3.0
+
+[[x3.0-new-components]]
+==== New Components
+
+[[x3.0-request-mapping]]
+===== HTTP Request Mapping
+
+The HTTP module now provides powerful Request Mapping support for Inbound Endpoints.
+Class `UriPathHandlerMapping` was replaced by `IntegrationRequestMappingHandlerMapping`, which is registered under the bean name `integrationRequestMappingHandlerMapping` in the application context.
+Upon parsing of the HTTP Inbound Endpoint, a new `IntegrationRequestMappingHandlerMapping` bean is either registered or an existing bean is being reused.
+To achieve flexible Request Mapping configuration, Spring Integration provides the `<request-mapping/>` sub-element for the `<http:inbound-channel-adapter/>` and the `<http:inbound-gateway/>`.
+Both HTTP Inbound Endpoints are now fully based on the Request Mapping infrastructure that was introduced with Spring MVC 3.1.
+For example, multiple paths are supported on a single inbound endpoint.
+For more information see <<http-namespace>>.
+
+[[x3.0-spel-customization]]
+===== Spring Expression Language (SpEL) Configuration
+
+A new `IntegrationEvaluationContextFactoryBean` is provided to allow configuration of custom `PropertyAccessor` s and functions for use in SpEL expressions throughout the framework.
+For more information see <<spel>>.
+
+[[x3.0-spel-functions]]
+===== SpEL Functions Support
+
+To customize the SpEL `EvaluationContext` with static `Method` functions, the new `<spel-function/>` component is introduced.
+Two built-in functions are also provided (`#jsonPath` and `#xpath`).
+For more information see <<spel-functions>>.
+
+[[x3.0-spel-property-accessors]]
+===== SpEL PropertyAccessors Support
+
+To customize the SpEL `EvaluationContext` with `PropertyAccessor` implementations the new `<spel-property-accessors/>` component is introduced.
+For more information see <<spel-property-accessors>>.
+
+[[x3.0-redis-new-components]]
+===== Redis: New Components
+
+A new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html[MetadataStore] implementation has been added.
+The `RedisMetadataStore` can be used to maintain state of a `MetadataStore` across application restarts.
+This new `MetadataStore` implementation can be used with adapters such as:
+
+* Twitter Inbound Adapters
+* Feed Inbound Channel Adapter
+
+
+
+New queue-based components have been added.
+The `<int-redis:queue-inbound-channel-adapter/>` and the `<int-redis:queue-outbound-channel-adapter/>` components are provided to perform 'right pop' and 'left push' operations on a Redis List, respectively.
+
+For more information see <<redis>>.
+
+[[x3.0-hcr]]
+===== Header Channel Registry
+
+It is now possible to instruct the framework to store reply and error channels in a registry for later resolution.
+This is useful for cases where the `replyChannel` or `errorChannel` might be lost; for example when serializing a message.
+See <<header-enricher>> for more information.
+
+[[x3.0-configurable-mongo-MS]]
+===== MongoDB support: New ConfigurableMongoDbMessageStore
+
+In addition to the existing `eMongoDbMessageStore`, a new `ConfigurableMongoDbMessageStore` has been introduced.
+This provides a more robust and flexible implementation of `MessageStore` for MongoDB.
+It does not have backward compatibility, with the existing store, but it is recommended to use it for new applications.
+Existing applications can use it, but messages in the old store will not be available.
+See <<mongodb>> for more information.
+
+[[x3.0-syslog]]
+===== Syslog Support
+
+Building on the 2.2 `SyslogToMapTransformer` Spring Integration 3.0 now introduces `UDP` and `TCP` inbound channel adapters especially tailored for receiving SYSLOG messages.
+For more information, see<<syslog>>.
+
+[[x3.0-tail]]
+===== 'Tail' Support
+
+File 'tail'ing inbound channel adapters are now provided to generate messages when lines are added to the end of text files; see <<file-tailing>>.
+
+[[x3.0-jmx]]
+===== JMX Support
+
+* A new `<int-jmx:tree-polling-channel-adapter/>` is provided; this adapter queries the JMX MBean tree and sends a message with a payload that is the graph of objects that matches the query.
+By default the MBeans are mapped to primitives and simple Objects like Map, List and arrays - permitting simple transformation, for example, to JSON.
+
+* The `IntegrationMBeanExporter` now allows the configuration of a custom `ObjectNamingStrategy` using the `naming-strategy` attribute.
+
+For more information, see <<jmx>>.
+
+[[x3.0-tcp-events]]
+===== TCP/IP Connection Events and Connection Management
+
+`TcpConnection` s now emit `ApplicationEvent` s (specifically `TcpConnectionEvent` s) when connections are opened, closed, or an exception occurs.
+This allows applications to be informed of changes to TCP connections using the normal Spring `ApplicationListener` mechanism.
+
+`AbstractTcpConnection` has been renamed `TcpConnectionSupport`; custom connections that are subclasses of this class, can use its methods to publish events.
+Similarly, `AbstractTcpConnectionInterceptor` has been renamed to `TcpConnectionInterceptorSupport`.
+
+In addition, a new `<int-ip:tcp-connection-event-inbound-channel-adapter/>` is provided; by default, this adapter sends all `TcpConnectionEvent` s to a `Channel`.
+
+Further, the TCP Connection Factories, now provide a new method `getOpenConnectionIds()`, which returns a list of identifiers for all open connections; this allows applications, for example, to broadcast to all open connections.
+
+Finally, the connection factories also provide a new method `closeConnection(String connectionId)` which allows applications to explicitly close a connection using its ID.
+
+For more information see <<tcp-events>>.
+
+[[x3.0-inbound-script]]
+===== Inbound Channel Adapter Script Support
+
+The `<int:inbound-channel-adapter/>` now supports `<expression/>` and `<script/>` sub-elements to create a `MessageSource`; see <<channel-adapter-expressions-and-scripts>>.
+
+[[x3.0-content-enricher-headers]]
+===== Content Enricher: Headers Enrichment Support
+
+The Content Enricher now provides configuration for `<header/>` sub-elements, to enrich the outbound Message with headers based on the reply Message from the underlying message flow.
+For more information see <<payload-enricher>>.
+
+[[x3.0-general]]
+==== General Changes
+
+[[x3.0-message-id]]
+===== Message ID Generation
+
+Previously, message ids were generated using the JDK `UUID.randomUUID()` method.
+With this release, the default mechanism has been changed to use a more efficient algorithm which is significantly faster.
+In addition, the ability to change the strategy used to generate message ids has been added.
+For more information see <<message-id-generation>>.
+
+[[x3.0-gateway]]
+===== <gateway> Changes
+
+* It is now possible to set common headers across all gateway methods, and more options are provided for adding, to the message, information about which method was invoked.
+
+* It is now possible to entirely customize the way that gateway method calls are mapped to messages.
+
+* The `GatewayMethodMetadata` is now public class and it makes possible flexibly to configure the `GatewayProxyFactoryBean` programmatically from Java code.
+
+For more information see <<gateway>>.
+
+[[x3.0-http-endpointss]]
+===== HTTP Endpoint Changes
+
+* *Outbound Endpoint 'encode-uri'* - `<http:outbound-gateway/>` and `<http:outbound-channel-adapter/>` now provide an `encode-uri` attribute to allow disabling the encoding of the URI object before sending the request.
+
+* *Inbound Endpoint 'merge-with-default-converters'* - `<http:inbound-gateway/>` and `<http:inbound-channel-adapter/>` now have a `merge-with-default-converters` attribute to include the list of default `HttpMessageConverter` s after the custom message converters.
+
+* *'If-(Un)Modified-Since' HTTP Headers* - previously, 'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed within from/to HTTP headers mapping in the `DefaultHttpHeaderMapper`.
+Now, in addition correcting that issue, `DefaultHttpHeaderMapper` provides date parsing from formatted strings for any HTTP headers that accept date-time values.
+
+* *Inbound Endpoint Expression Variables* - In addition to the existing _#requestParams_ and _#pathVariables_, the `<http:inbound-gateway/>` and `<http:inbound-channel-adapter/>` now support additional useful variables: _#matrixVariables_, _#requestAttributes_, _#requestHeaders_ and _#cookies_.
+These variables are available in both payload and header expressions.
+
+* *Outbound Endpoint 'uri-variables-expression'* - HTTP Outbound Endpoints now support the `uri-variables-expression` attribute to specify an `Expression` to evaluate a `Map` for all URI variable placeholders within URL template.
+This allows selection of a different map of expressions based on the outgoing message.
+
+For more information see <<http>>.
+
+[[x3.0-json-transformers]]
+===== Jackson Support (JSON)
+
+* A new abstraction for JSON conversion has been introduced.
+Implementations for Jackson 1.x and Jackson 2 are currently provided, with the version being determined by presence on the classpath.
+Previously, only Jackson 1.x was supported.
+
+* The `ObjectToJsonTransformer` and `JsonToObjectTransformer` now emit/consume headers containing type information.
+
+For more information, see 'JSON Transformers' in <<transformer>>.
+
+[[x3.0-id-for-chain-sub-components]]
+===== Chain Elements 'id' Attribute
+
+Previously, the _id_ attribute for elements within a `<chain>` was ignored and, in some cases, disallowed.
+Now, the _id_ attribute is allowed for all elements within a `<chain>`.
+The bean names of chain elements is a combination of the surrounding chain's _id_ and the _id_ of the element itself.
+For example: 'fooChain$child.fooTransformer.handler'.
+For more information see <<chain>>.
+
+[[x3.0-corr-endpoint-empty-groups]]
+===== Aggregator 'empty-group-min-timeout' property
+
+The `AbstractCorrelatingMessageHandler` provides a new property `empty-group-min-timeout` to allow empty group expiry to run on a longer schedule than expiring partial groups.
+Empty groups will not be removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
+For more information see <<aggregator-config>>.
+
+[[x3.0-filelistfilter]]
+===== Persistent File List Filters (file, (S)FTP)
+
+New `FileListFilter` s that use a persistent `MetadataStore` are now available.
+These can be used to prevent duplicate files after a system restart.
+See<<file-reading>>, <<ftp-inbound>>, and <<sftp-inbound>> for more information.
+
+[[x3.0-scripting-variables]]
+===== Scripting Support: Variables Changes
+
+A new `variables` attribute has been introduced for scripting components.
+In addition, variable bindings are now allowed for inline scripts.
+See <<groovy>> and <<scripting>> for more information.
+
+[[x3.0-direct-channel-lb-ref]]
+===== Direct Channel Load Balancing configuration
+
+Previously, when configuring `LoadBalancingStrategy` on the channel's 'dispatcher' sub-element, the only available option was to use a pre-defined enumeration of values which did not allow one to set a custom implementation of the `LoadBalancingStrategy`.
+You can now use `load-balancer-ref` to provide a reference to a custom implementation of the `LoadBalancingStrategy`.
+For more information see <<channel-implementations-directchannel>>.
+
+[[x3.0-pub-sub]]
+===== PublishSubscribeChannel Behavior
+
+Previously, sending to a <publish-subscribe-channel/> that had no subscribers would return a `false` result.
+If used in conjunction with a `MessagingTemplate`, this would result in an exception being thrown.
+Now, the `PublishSubscribeChannel` has a property `minSubscribers` (default 0).
+If the message is sent to at least the minimum number of subscribers, the send is deemed to be successful (even if zero).
+If an application is expecting to get an exception under these conditions, set the minimum subscribers to at least 1.
+
+[[x3.0--s-ftp-changes]]
+===== FTP, SFTP and FTPS Changes
+
+*The FTP, SFTP and FTPS endpoints no longer cache sessions by default*
+
+The deprecated `cached-sessions` attribute has been removed from all endpoints.
+Previously, the embedded caching mechanism controlled by this attribute's value didn't provide a way to limit the size of the cache, which could grow indefinitely.
+The `CachingConnectionFactory` was introduced in release 2.1 and it became the preferred (and is now the only) way to cache sessions.
+
+The `CachingConnectionFactory` now provides a new method `resetCache()`.
+This immediately closes idle sessions and causes in-use sessions to be closed as and when they are returned to the cache.
+
+The `DefaultSftpSessionFactory` (in conjunction with a `CachingSessionFactory`) now supports multiplexing channels over a single SSH connection (SFTP Only).
+
+*FTP, SFTP and FTPS Inbound Adapters*
+
+Previously, there was no way to override the default filter used to process files retrieved from a remote server.
+The `filter` attribute determines which files are retrieved but the `FileReadingMessageSource` uses an `AcceptOnceFileListFilter`.
+This means that if a new copy of a file is retrieved, with the same name as a previously copied file, no message was sent from the adapter.
+
+With this release, a new attribute `local-filter` allows you to override the default filter, for example with an `AcceptAllFileListFilter`, or some other custom filter.
+
+For users that wish the behavior of the `AcceptOnceFileListFilter` to be maintained across JVM executions, a custom filter that retains state, perhaps on the file system, can now be configured.
+
+Inbound Channel Adapters now support the `preserve-timestamp` attribute, which sets the local file modified timestamp to the timestamp from the server (default false).
+
+*FTP, SFTP and FTPS Gateways*
+
+* The gateways now support the *mv* command, enabling the renaming of remote files.
+
+* The gateways now support recursive *ls* and *mget* commands, enabling the retrieval of a remote file tree.
+
+* The gateways now support *put* and *mput* commands, enabling sending file(s) to the remote server.
+
+* The `local-filename-generator-expression` attribute is now supported, enabling the naming of local files during retrieval.
+By default, the same name as the remote file is used.
+
+* The `local-directory-expression` attribute is now supported, enabling the naming of local directories during retrieval based on the remote directory.
+
+*Remote File Template*
+
+A new higher-level abstraction (`RemoteFileTemplate`) is provided over the `Session` implementations used by the FTP and SFTP modules.
+While it is used internally by endpoints, this abstraction can also be used programmatically and, like all Spring `*Template` implementations, reliably closes the underlying session while allowing low level access to the session when needed.
+
+For more information, see <<ftp>> and <<sftp>>.
+
+[[x3.0-outbound-gateway-requires-reply]]
+===== 'requires-reply' Attribute for Outbound Gateways
+
+All Outbound Gateways (e.g.
+`<jdbc:outbound-gateway/>` or `<jms:outbound-gateway/>`) are designed for 'request-reply' scenarios.
+A response is expected from the external service and will be published to the `reply-channel`, or the `replyChannel` message header.
+However, there are some cases where the external system might not always return a result, e.g.
+a `<jdbc:outbound-gateway/>`, when a SELECT ends with an empty `ResultSet` or, say, a Web Service is One-Way.
+An option is therefore needed to configure whether or not a _reply_ is required.
+For this purpose, the _requires-reply_ attribute has been introduced for Outbound Gateway components.
+In most cases, the default value for _requires-reply_ is `true` and, if there is not any result, a `ReplyRequiredException` will be thrown.
+Changing the value to `false` means that, if an external service doesn't return anything, the message-flow will end at that point, similar to an Outbound Channel Adapter.
+
+NOTE: The WebService outbound gateway has an additional attribute `ignore-empty-responses`; this is used to treat an empty String response as if no response was received.
+It is true by default but can be set to false to allow the application to receive an empty String in the reply message payload.
+When the attribute is true an empty string is treated as no response for the purposes of the _requires-reply_ attribute.
+_requires-reply_ is false by default for the WebService outbound gateway.
+
+Note, the `requiresReply` property was previously present in the `AbstractReplyProducingMessageHandler` but set to `false`, and there wasn't any way to configure it on Outbound Gateways using the XML namespace.
+
+IMPORTANT: Previously, a gateway receiving no reply would silently end the flow (with a DEBUG log message); with this change an exception will now be thrown by default by most gateways.
+To revert to the previous behavior, set `requires-reply` to false.
+
+[[x3.0-amqp-mapping]]
+===== AMQP Outbound Gateway Header Mapping
+
+Previously, the <int-amqp:outbound-gateway/> mapped headers before invoking the message converter, and the converter could overwrite headers such as `content-type`.
+The outbound adapter maps the headers after the conversion, which means headers like `content-type` from the outbound `Message` (if present) are used.
+
+Starting with this release, the gateway now maps the headers after the message conversion, consistent with the adapter.
+If your application relies on the previous behavior (where the converter's headers overrode the mapped headers), you either need to filter those headers (before the message reaches the gateway) or set them appropriately.
+The headers affected by the `SimpleMessageConverter` are `content-type` and `content-encoding`.
+Custom message converters may set other headers.
+
+[[x3.0-stored-proc-sql-return-type]]
+===== Stored Procedure Components Improvements
+
+For more complex database-specific types, not supported by the standard `CallableStatement.getObject` method, 2 new additional attributes were introduced to the `<sql-parameter-definition/>` element with OUT-direction:
+
+_type-name_
+
+
+_return-type_
+
+
+
+The `row-mapper` attribute of the Stored Procedure Inbound Channel Adapter `<returning-resultset/>` sub-element now supports a reference to a `RowMapper` bean definition.
+Previously, it contained just a class name (which is still supported).
+
+For more information see <<stored-procedures>>.
+
+[[x3.0-ws-outbound-uri-substitution]]
+===== Web Service Outbound URI Configuration
+
+Web Service Outbound Gateway 'uri' attribute now supports `<uri-variable/>` substitution for all URI-schemes supported by Spring Web Services.
+For more information see <<outbound-uri>>.
+
+[[x3.0-redis]]
+===== Redis Adapter Changes
+
+The Redis Inbound Channel Adapter can now use a `null` value for `serializer` property, with the raw data being the message payload.
+
+
+The Redis Outbound Channel Adapter now has the `topic-expression` property to determine the Redis topic against the Message at runtime.
+
+
+The Redis Inbound Channel Adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
+
+For more information, see <<redis>>.
+
+[[x3.0-advising-filters]]
+===== Advising Filters
+
+Previously, when a <filter/> had a <request-handler-advice-chain/>, the discard action was all performed within the scope of the advice chain (including any downstream flow on the `discard-channel`).
+The filter element now has an attribute `discard-within-advice` (default `true`), to allow the discard action to be performed after the advice chain completes.
+See <<advising-filters>>.
+
+[[x3.0-annotation-advice]]
+===== Advising Endpoints using Annotations
+
+Request Handler Advice Chains can now be configured using annotations.
+See <<advising-with-annotations>>.
+
+[[x3.0-o-t-s-t]]
+===== ObjectToStringTransformer Improvements
+
+This transformer now correctly transforms `byte[]` and `char[]` payloads to `String`.
+For more information see <<transformer>>.
+
+[[x3.0-jpa-changes]]
+===== JPA Support Changes
+
+Payloads to _persist_ or _merge_ can now be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+
+In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
+_NULL_ values returned by the iterator are ignored.
+
+The JPA adapters now have additional attributes to optionally 'flush' and 'clear' entities from the associated persistence context after performing persistence operations.
+
+Retrieving gateways had no mechanism to specify the first record to be retrieved which is a common use case.
+The retrieving gateways now support specifying this parameter using a `first-result` and `first-result-expression` attributes to the gateway definition.
+<<jpa-retrieving-outbound-gateway>>.
+
+The JPA retrieving gateway and inbound adapter now have an attribute to specify the maximum number of results in a result set as an expression.
+In addition, the `max-results` attribute has been introduced to replace `max-number-of-results`, which has been deprecated.
+`max-results` and `max-results-expression` are used to provide the maximum number of results, or an expression to compute the maximum number of results, respectively, in the result set.
+
+For more information see <<jpa>>.
+
+[[x3.0-dalay-expression]]
+===== Delayer: delay expression
+
+Previously, the `<delayer>` provided a `delay-header-name` attribute to determine the _delay_ value at runtime.
+In complex cases it was necessary to precede the `<delayer>` with a `<header-enricher>`.
+Spring Integration 3.0 introduced the `expression` attribute and `expression` sub-element for dynamic delay determination.
+The `delay-header-name` attribute is now deprecated because the header evaluation can be specified in the `expression`.
+In addition, the `ignore-expression-failures` was introduced to control the behavior when an expression evaluation fails.
+For more information see <<delayer>>.
+
+[[x3.0-jdbc-mysql-v5_6_4]]
+===== JDBC Message Store Improvements
+
+_Spring Integration 3.0_ adds a new set of DDL scripts for _MySQL_ version 5.6.4 and higher.
+Now _MySQL_ supports _fractional
+				seconds_ and is thus improving the FIFO ordering when polling from a MySQL-based Message Store.
+For more information, please see <<jdbc-message-store-generic>>.
+
+[[x3.0-event-for-imap-idle]]
+===== IMAP Idle Connection Exceptions
+
+Previously, if an IMAP idle connection failed, it was logged but there was no mechanism to inform an application.
+Such exceptions now generate `ApplicationEvent` s.
+Applications can obtain these events using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
+
+[[x3.0-tcp-headers]]
+===== Message Headers and TCP
+
+The TCP connection factories now enable the configuration of a flexible mechanism to transfer selected headers (as well as the payload) over TCP.
+A new `TcpMessageMapper` enables the selection of the headers, and an appropriate (de)serializer needs to be configured to write the resulting `Map` to the TCP stream.
+A `MapJsonSerializer` is provided as a convenient mechanism to transfer headers and payload over TCP.
+For more information see <<ip-headers>>.
+
+[[x3.0-jms-mdca-te]]
+===== JMS Message Driven Channel Adapter
+
+Previously, when configuring a `<message-driven-channel-adapter/>`, if you wished to use a specific `TaskExecutor`, it was necessary to declare a container bean and provide it to the adapter using the `container` attribute.
+The `task-executor` is now provided, allowing it to be set directly on the adapter.
+This is in addition to several other container attributes that were already available.
+
+[[x3.0-rmi-ec]]
+===== RMI Inbound Gateway
+
+The RMI Inbound Gateway now supports an `error-channel` attribute.
+See <<rmi-inbound>>.
+
+[[x3.0-xslt-transformer]]
+===== XsltPayloadTransformer
+
+You can now specify the transformer factory class name using the `transformer-factory-class` attribute.
+See <<xml-xslt-payload-transformers>>

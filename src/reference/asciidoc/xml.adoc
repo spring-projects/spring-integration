@@ -1,0 +1,1054 @@
+[[xml]]
+== XML Support - Dealing with XML Payloads
+
+[[xml-intro]]
+=== Introduction
+
+Spring Integration's XML support extends the core of Spring Integration with the following components:
+
+* _<<xml-transformation,Marshalling Transformer>>_
+* _<<xml-transformation,Unmarshalling Transformer>>_
+* _<<xml-transformation,Xslt Transformer>>_
+* _<<xml-xpath-transformer,XPath Transformer>>_
+* _<<xml-xpath-splitting,XPath Splitter>>_
+* _<<xml-xpath-routing,XPath Router>>_
+* _<<xml-xpath-header-enricher,XPath Header Enricher>>_
+* _<<xml-xpath-filter,XPath Filter>>_
+* _<<xpath-spel-function,#xpath SpEL Function>>_
+* _<<xml-validating-filter,Validating Filter>>_
+
+
+
+
+These components are designed to make working with XML messages in Spring Integration simple.
+The provided messaging components are designed to work with XML represented in a range of formats including instances of `java.lang.String`, `org.w3c.dom.Document` and `javax.xml.transform.Source`.
+It should be noted however that where a DOM representation is required, for example in order to evaluate an XPath expression, the `String` payload will be converted into the required type and then converted back again to `String`.
+Components that require an instance of `DocumentBuilder` will create a namespace-aware instance if one is not provided.
+In cases where you require greater control over document creation, you can provide an appropriately configured instance of `DocumentBuilder`.
+
+[[xpath-namespace-support]]
+=== Namespace Support
+
+All components within the Spring Integration XML module provide namespace support.
+In order to enable namespace support, you need to import the respective schema for the Spring Integration XML Module.
+A typical setup is shown below:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/xml
+    http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+</beans>
+----
+
+[[xml-xpath-expressions]]
+==== XPath Expressions
+
+Many of the components within the Spring Integration XML module work with XPath Expressions.
+Each of those components will either reference an XPath Expression that has been defined as top-level element or via a nested `<xpath-expression/>` element.
+
+All forms of XPath expressions result in the creation of an `XPathExpression` using the Spring `org.springframework.xml.xpath.XPathExpressionFactory`.
+When creating XPath expressions, the best XPath implementation that is available on the classpath is being used, either JAXP 1.3+ or Jaxen, whereby JAXP is preferred.
+
+NOTE: Spring Integration under the covers uses the XPath functionality as provided by the _Spring Web Services_ project (http://www.spring.io/spring-ws).
+Specifically, Spring Web Services' XML module (spring-xml-x.x.x.jar) is being used.
+Therefore, for a deeper understanding, please refer to the respective documentation as well at: +
+http://docs.spring.io/spring-ws/sites/2.0/reference/html/common.html#xpath
+
+Here is an overview of all available configuration parameters of the `xpath-expression` element:
+
+[source,xml]
+----
+<int-xml:xpath-expression expression="" <1>
+          id=""              <2>
+          namespace-map=""   <3>
+          ns-prefix=""       <4>
+          ns-uri="">         <5>
+    <map></map>              <6>
+</int-xml:xpath-expression>
+----
+
+<1> Defines an XPath xpression.
+_Required_.
+
+
+<2> The Identifier of the underlying bean definition.
+Will be an instance of `org.springframework.xml.xpath.XPathExpression`_Optional_.
+
+
+<3> Reference to a map containing namespaces.
+The key of the map defines the namespace prefix and the value of the map sets the namespace URI.
+It is not valid to specify both this attribute and the `map` sub element, or setting the `ns-prefix` and `ns-uri` attribute.
+_Optional_.
+
+
+<4> Allows you to set the namspace prefix directly as and attribute on the XPath expression element.
+If you set `ns-prefix`, you must also set the `ns-uri` attribute.
+_Optional_.
+
+
+<5> Allows you to set the namspace URI directly as an attribute on the XPath expression element.
+If you set `ns-uri`, you must also set the `ns-prefix` attribute.
+_Optional_.
+
+
+<6> Defines a map containing namespaces.
+Only one map child element is allowed.
+The key of the map defines the namespace prefix and the value of the map sets the namespace URI.
+
+It is not valid to specify both this sub-element and the `map` attribute, or setting the `ns-prefix` and `ns-uri` attributes.
+_Optional_.
+
+===== Providing Namespaces (Optional) to XPath Expressions
+
+For the XPath Expression Element, namespace information can be optionally provided as configuration parameters.
+As such, namespaces can be defined using one of the following 3 choices:
+
+* Reference a map using the `namespace-map` attribute
+* Provide a map of namespaces using the `map` sub-element
+* Specifying the `ns-prefix` and the `ns-uri` attribute
+
+
+
+All three options are mutially exlusive.
+Only one option can be set.
+
+Below, please find several different usage examples on how to use XPath expressions using the XML namespace support including the various option for setting the XML namespaces as discussed above.
+
+[source,xml]
+----
+<int-xml:xpath-filter id="filterReferencingXPathExpression"
+                      xpath-expression-ref="refToXpathExpression"/>
+
+<int-xml:xpath-expression id="refToXpathExpression" expression="/name"/>
+
+<int-xml:xpath-filter id="filterWithoutNamespace">
+   <int-xml:xpath-expression expression="/name"/>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithOneNamespace">
+    <int-xml:xpath-expression expression="/ns1:name"
+                              ns-prefix="ns1" ns-uri="www.example.org"/>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithTwoNamespaces">
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type">
+        <map>
+            <entry key="ns1" value="www.example.org/one"/>
+            <entry key="ns2" value="www.example.org/two"/>
+        </map>
+    </int-xml:xpath-expression>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithNamespaceMapReference">
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type"
+                              namespace-map="defaultNamespaces"/>
+</int-xml:xpath-filter>
+
+<util:map id="defaultNamespaces">
+    <util:entry key="ns1" value="www.example.org/one"/>
+    <util:entry key="ns2" value="www.example.org/two"/>
+</util:map>
+----
+
+===== Using XPath Expressions with Default Namespaces
+
+When working with default nanmespaces, you may run into situations that behave differently than originally expected.
+Let's assume we have the following XML document:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<order>
+	<orderItem>
+		<isbn>0321200683</isbn>
+		<quantity>2</quantity>
+	</orderItem>
+	<orderItem>
+		<isbn>1590596439</isbn>
+		<quantity>1</quantity>
+	</orderItem>
+</order>
+----
+
+This document is not declaring any namespace.
+Therefore, applying the following XPath Expression will work as expected:
+
+[source,xml]
+----
+<int-xml:xpath-expression expression="/order/orderItem" />
+----
+
+You might expect that the same expression will also work for the following XML file.
+It looks exactly the same as the previous example but in addition it also declares a default namespace:
+
+_http://www.example.org/orders_
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<order xmlns="http://www.example.org/orders">
+	<orderItem>
+		<isbn>0321200683</isbn>
+		<quantity>2</quantity>
+	</orderItem>
+	<orderItem>
+		<isbn>1590596439</isbn>
+		<quantity>1</quantity>
+	</orderItem>
+</order>
+----
+
+However, the XPath Expression used previously will fail in this case.
+
+In order to solve this issue, you must provide a namespace prefix and a namespace URI using either the _ns-prefix_ and _ns-uri_ attibute or by providing a _namespace-map_ attribute instead.
+The namespace URI must match the namespace declared in your XML document, which in this example is _http://www.example.org/orders_.
+
+The namespace prefix, however, can be arbitrarily chosen.
+In fact, just providing an empty String will actually work (Null is not allowed).
+In the case of a namespace prefix consisting of an empty String, your Xpath Expression will use a colon (":") to indicate the default namespace.
+If you leave the colon off, the XPath expression will not match.
+The following XPath Expression will match agains the XML document above:
+
+[source,xml]
+----
+<si-xml:xpath-expression expression="/:order/:orderItem"
+    ns-prefix="" ns-uri="http://www.example.org/prodcuts"/>
+----
+
+Of course you can also provide any other arbitrarily chosen namespace prefix.
+The following XPath expression using the _myorder_ namespace prefix will match also:
+
+[source,xml]
+----
+<si-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
+    ns-prefix="myorder" ns-uri="http://www.example.org/prodcuts"/>
+----
+
+It is important to remember that the namespace URI is the really important piece of information to declare, not the prefix itself.
+The http://jaxen.codehaus.org/faq.html[Jaxen FAQ] summarizes the point very well:
+
+[quote]
+In XPath 1.0, all unprefixed names are unqualified.
+There is no requirement that the prefixes used in the XPath expression are the same as the prefixes used in the document being queried.
+Only the namespace URIs need to match, not the prefixes.
+
+[[xml-transformation]]
+=== Transforming XML Payloads
+
+[[xml-transformation-beans]]
+==== Configuring Transformers as Beans
+
+This section will explain the workings of the following transformers and how to configure them as _beans_:
+
+* link:#xml-unmarshalling-transformer[UnmarshallingTransformer]
+
+
+* link:#xml-marshalling-transformer[MarshallingTransformer]
+
+
+* link:#xml-xslt-payload-transformers[XsltPayloadTransformer]
+
+
+
+All of the provided XML transformers extend http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html[AbstractTransformer] or  http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html[AbstractPayloadTransformer] and therefore implement  http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/Transformer.html[Transformer].
+When configuring XML transformers as beans in Spring Integration, you would normally configure the _Transformer_ in conjunction with a  http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html[MessageTransformingHandler].
+This allows the transformer to be used as an _Endpoint_.
+Finally, the namespace support will be discussed, which allows for the simple configuration of the transformers as elements in XML.
+
+[[xml-unmarshalling-transformer]]
+===== UnmarshallingTransformer
+
+An http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/UnmarshallingTransformer.html[UnmarshallingTransformer] allows an XML `Source` to be unmarshalled using implementations of the http://static.springsource.org/spring-ws/site/reference/html/oxm.html[Spring OXM] `Unmarshaller`.
+Spring's Object/XML Mapping support provides several implementations supporting marshalling and unmarshalling using http://en.wikipedia.org/wiki/Java_Architecture_for_XML_Binding[JAXB], http://www.castor.org/[Castor] and http://jibx.sourceforge.net/[JiBX] amongst others.
+The unmarshaller requires an instance of `Source`.
+If the message payload is not an instance of `Source`, conversion will be attempted.
+Currently `String`, `File` and `org.w3c.dom.Document` payloads are supported.
+Custom conversion to a `Source` is also supported by injecting an implementation of a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
+
+NOTE: If a `SourceFactory` is not set explicitly, the property on the `UnmarshallingTransformer` will by default be set to a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
+
+[source,xml]
+----
+<bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">
+    <constructor-arg>
+        <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+            <property name="contextPath" value="org.example" />
+        </bean>
+    </constructor-arg>
+</bean>
+----
+
+[[xml-marshalling-transformer]]
+===== MarshallingTransformer
+
+The http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/MarshallingTransformer.html[MarshallingTransformer] allows an object graph to be converted into XML using a Spring OXM `Marshaller`.
+By default the `MarshallingTransformer` will return a `DomResult`.
+However, the type of result can be controlled by configuring an alternative `ResultFactory` such as `StringResultFactory`.
+In many cases it will be more convenient to transform the payload into an alternative XML format.
+To achieve this, configure a `ResultTransformer`.
+Two implementations are provided, one which converts to `String` and another which converts to `Document`.
+
+[source,xml]
+----
+<bean id="marshallingTransformer" class="o.s.i.xml.transformer.MarshallingTransformer">
+    <constructor-arg>
+        <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+            <property name="contextPath" value="org.example"/>
+        </bean>
+    </constructor-arg>
+    <constructor-arg>
+        <bean class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
+    </constructor-arg>
+</bean>
+----
+
+By default, the `MarshallingTransformer` will pass the payload Object to the `Marshaller`, but if its boolean `extractPayload` property is set to `false`, the entire `Message` instance will be passed to the `Marshaller` instead.
+That may be useful for certain custom implementations of the `Marshaller` interface, but typically the payload is the appropriate source Object for marshalling when delegating to any of the various out-of-the-box `Marshaller` implementations.
+
+[[xml-xslt-payload-transformers]]
+===== XsltPayloadTransformer
+
+http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] transforms XML payloads using http://en.wikipedia.org/wiki/XSL_Transformations[Extensible Stylesheet Language Transformations] (XSLT).
+The transformer's constructor requires an instance of either http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource] or http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[Templates] to be passed in.
+Passing in a `Templates` instance allows for greater configuration of the `TransformerFactory` used to create the template instance.
+
+As with the link:#xml-unmarshalling-transformer[UnmarshallingTransformer], the `XsltPayloadTransformer` will do the actual XSLT transformation using instances of `Source`.
+Therefore, if the message payload is not an instance of `Source`, conversion will be attempted.
+`String` and `Document` payloads are supported directly.
+
+Custom conversion to a `Source` is also supported by injecting an implementation of a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
+
+NOTE: If a `SourceFactory` is not set explicitly, the property on the `XsltPayloadTransformer` will by default be set to a  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
+
+By default, the `XsltPayloadTransformer` will create a message with a http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html[Result] payload, similar to the `XmlPayloadMarshallingTransformer`.
+This can be customised by providing a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/ResultFactory.html[ResultFactory] and/or a  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html[ResultTransformer].
+
+[source,xml]
+----
+<bean id="xsltPayloadTransformer" class="o.s.i.xml.transformer.XsltPayloadTransformer">
+  <constructor-arg value="classpath:org/example/xsl/transform.xsl"/>
+  <constructor-arg>
+    <bean class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
+  </constructor-arg>
+</bean>
+----
+
+Starting with Spring Integration 3.0, you can now specify the transformer factory class name using a constructor argument.
+This is configured using the `transformer-factory-class` attribute when using the namespace.
+
+[[xml-using-result-transformers]]
+===== ResultTransformers
+
+Both the `MarshallingTransformer` and the `XsltPayloadTransformer` allow you to specify a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html[ResultTransformer].
+Thus, if the Marshalling or XSLT transformation returns a http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html[Result], than you have the option to also use a `ResultTransformer` to transform the `Result` into another format.
+Spring Integration provides 2 concrete`ResultTransformer` implementations:
+
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultToDocumentTransformer.html[ResultToDocumentTransformer]
+
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultToStringTransformer.html[ResultToStringTransformer]
+
+
+
+_Using ResultTransformers with the MarshallingTransformer_
+
+By default, the _MarshallingTransformer_ will always return a http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html[Result].
+By specifying a `ResultTransformer`, you can customize the type of payload returned.
+
+_Using ResultTransformers with the XsltPayloadTransformer_
+
+The behavior is slighly more complex for the _XsltPayloadTransformer_.
+By default, if the input payload is an instance of `String` or http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html[Document] the _resultTransformer_ property is ignored.
+
+However, if the input payload is a http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Source.html[Source] or any other type, then the _resultTransformer_ property is applied.
+Additionally, you can set the property _alwaysUseResultFactory_ to `true`, which will also cause the specified _resultTransformer_ to being used.
+
+For more information and examples, please see <<xml-using-result-transformers-namespace>>
+
+[[xml-transformer-namespace]]
+==== Namespace Support for XML Transformers
+
+Namespace support for all XML transformers is provided in the Spring Integration XML namespace, a template for which can be seen below.
+The namespace support for transformers creates an instance of either`EventDrivenConsumer` or `PollingConsumer` according to the type of the provided input channel.
+The namespace support is designed to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer using one element.
+
+_UnmarshallingTransformer_
+
+The namespace support for the `UnmarshallingTransformer` is shown below.
+Since the namespace is now creating an endpoint instance rather than a transformer, a poller can also be nested within the element to control the polling of the input channel.
+
+[source,xml]
+----
+<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
+    input-channel="input" output-channel="output"
+    unmarshaller="unmarshaller"/>
+
+<int-xml:unmarshalling-transformer id="unmarshallerWithPoller"
+    input-channel="input" output-channel="output"
+    unmarshaller="unmarshaller">
+    <int:poller fixed-rate="2000"/>
+<int-xml:unmarshalling-transformer/>
+----
+
+_MarshallingTransformer_
+
+The namespace support for the marshalling transformer requires an `input-channel`, `output-channel` and a reference to a `marshaller`.
+The optional `result-type` attribute can be used to control the type of result created.
+Valid values are `StringResult` or `DomResult` (the default).
+
+[source,xml]
+----
+<int-xml:marshalling-transformer
+     input-channel="marshallingTransformerStringResultFactory"
+     output-channel="output"
+     marshaller="marshaller"
+     result-type="StringResult" />
+
+<int-xml:marshalling-transformer
+    input-channel="marshallingTransformerWithResultTransformer"
+    output-channel="output"
+    marshaller="marshaller"
+    result-transformer="resultTransformer" />
+
+<bean id="resultTransformer" class="o.s.i.xml.transformer.ResultToStringTransformer"/>
+----
+
+Where the provided result types are not sufficient, a reference to a custom implementation of `ResultFactory` can be provided as an alternative to setting the `result-type` attribute, using the `result-factory` attribute.
+The attributes _result-type_ and _result-factory_ are mutually exclusive.
+
+NOTE: Internally, the result types `StringResult` and `DomResult` are represented by the `ResultFactory` s  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/StringResultFactory.html[StringResultFactory] and  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/DomResultFactory.html[DomResultFactory] respectively.
+
+_XsltPayloadTransformer_
+
+Namespace support for the `XsltPayloadTransformer` allows you to either pass in a `Resource`, in order to create the http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[Templates] instance, or alternatively, you can pass in a precreated `Templates` instance as a reference.
+In common with the marshalling transformer, the type of the result output can be controlled by specifying either the `result-factory` or `result-type` attribute.
+A `result-transfomer` attribute can also be used to reference an implementation of `ResultTransfomer` where conversion of the result is required before sending.
+
+IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, then the `alwaysUseResultFactory` property on the underlying http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] will be set to `true` by the http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/config/XsltPayloadTransformerParser.html[XsltPayloadTransformerParser].
+
+[source,xml]
+----
+<int-xml:xslt-transformer id="xsltTransformerWithResource"
+    input-channel="withResourceIn" output-channel="output"
+    xsl-resource="org/springframework/integration/xml/config/test.xsl"/>
+
+<int-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
+    input-channel="withTemplatesAndResultTransformerIn" output-channel="output"
+    xsl-templates="templates"
+    result-transformer="resultTransformer"/>
+----
+
+Often you may need to have access to Message data, such as the Message Headers, in order to assist with transformation.
+For example, you may need to get access to certain Message Headers and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)).
+Spring Integration provides two convenient ways to accomplish this, as illustrated in following example:
+
+[source,xml]
+----
+<int-xml:xslt-transformer id="paramHeadersCombo"
+    input-channel="paramHeadersComboChannel" output-channel="output"
+    xsl-resource="classpath:transformer.xslt"
+    xslt-param-headers="testP*, *foo, bar, baz">
+
+    <int-xml:xslt-param name="helloParameter" value="hello"/>
+    <int-xml:xslt-param name="firstName" expression="headers.fname"/>
+</int-xml:xslt-transformer>
+----
+
+If message header names match 1:1 to parameter names, you can simply use `xslt-param-headers` attribute.
+There you can also use wildcards for simple pattern matching, which supports the following simple pattern styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
+
+You can also configure individual Xslt parameters via the _<xslt-param/>_ sub element.
+There you can use either the `expression` or `value` attribute.
+The `expression` attribute should be any valid SpEL expression with Message being the root object of the expression evaluation context.
+The `value` attribute, just like any `value` in Spring beans, allows you to specify simple scalar values.
+You can also use property placeholders (e.g., ${some.value}).
+So as you can see, with the `expression` and `value` attribute, Xslt parameters could now be mapped to any accessible part of the Message as well as any literal value.
+
+Starting with Spring Integration 3.0, you can now specify the transformer factory class name using the `transformer-factory-class` attribute.
+
+[[xml-using-result-transformers-namespace]]
+==== Namespace Configuration and ResultTransformers
+
+The usage of `ResultTransformers` was previously introduced in <<xml-using-result-transformers>>.
+The following example illustrates several special use-cases using XML namespace configuration.
+First, we define the `ResultTransformer`:
+
+[source,xml]
+----
+<beans:bean id="resultToDoc" class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
+----
+
+This `ResultTransformer` will accept either a `StringResult` or a `DOMResult` as input and converts the input into a `Document`.
+
+Now, let's declare the transformer:
+
+[source,xml]
+----
+<int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
+    xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"/>
+----
+
+If the incoming message's payload is of type `Source`, then as first step the `Result` is determined using the `ResultFactory`.
+As we did not specify a `ResultFactory`, the default `DomResultFactory` is used, meaning that the transformation will yield a `DomResult`.
+
+However, as we specified a _ResultTransformer_, it will be used and the resulting Message payload will be of type`Document`.
+
+IMPORTANT: If the incoming message's payload is of type `String`, the payload after the Xslt transformation will be a String.
+Similarly, if the incoming message's payload is of type `Document`, the payload after the Xslt transformation will be a`Document`.
+The specified _ResultTransformer_ will be ignored with `String` or `Document` payloads.
+
+If the message payload is neither a `Source`, `String` or `Document`, as a fallback option, it is attempted to create a`Source` using the default  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
+As we did not specify a `SourceFactory` explicitly using the _source-factory_ attribute, the default  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory] is used.
+If successful, the XSLT transformation is executed as if the payload was of type `Source`, which we described in the previous paragraphs.
+
+NOTE: The `DomSourceFactory` supports the creation of a `DOMSource` from a either `Document`, `File` or `String` payloads.
+
+The next transformer declaration adds a _result-type_ attribute using `StringResult` as its value.
+First, the _result-type_ is internally represented by the `StringResultFactory`.
+Thus, you could have also added a reference to a `StringResultFactory`, using the _result-factory_ attribute, which would haven been the same.
+
+[source,xml]
+----
+<int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
+		xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"
+		result-type="StringResult"/>
+----
+
+Because we are using a `ResultFactory`, the _alwaysUseResultFactory_ property of the `XsltPayloadTransformer` class will be implicitly set to `true`.
+Consequently, the referenced `ResultToDocumentTransformer` will be used.
+
+Therefore, if you transform a payload of type `String`, the resulting payload will be of type http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html[Document].
+
+_XsltPayloadTransformer and <xsl:output method="text"/>_
+
+`<xsl:output method="text"/>` tells the XSLT template to only produce text content from the input source.
+In this particuliar case there is no reason to have a `DomResult`.
+Therefore, the http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] defaults to `StringResult` if the http://docs.oracle.com/javase/7/docs/api/javax/xml/transform/Transformer.html#getOutputProperties()[output property] called `method` of the underlying `javax.xml.transform.Transformer` returns `"text"`.
+This coercion is performed independent from the inbound payload type.
+Keep in mind that this [quote]
+smart behavior is only available, if the `result-type` or `result-factory` attributes aren't provided for the respective `<int-xml:xslt-transformer>` component.
+
+[[xml-xpath-transformer]]
+=== Transforming XML Messages Using XPath
+
+When it comes to message transformation XPath is a great way to transform Messages that have XML payloads by defining XPath transformers via <xpath-transformer/> element.
+
+_Simple XPath transformation_
+
+Let's look at the following transformer configuration:
+
+[source,xml]
+----
+<int-xml:xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
+      xpath-expression="/person/@name" />
+----
+
+\...and Message
+
+[source,java]
+----
+Message<?> message =
+  MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
+----
+
+After sending this message to the 'inputChannel' the XPath transformer configured above will transform this XML Message to a simple Message with payload of 'John Doe' all based on the simple XPath Expression specified in the `xpath-expression` attribute.
+
+XPath also has the capability to perform simple conversion of extracted elements to a desired type.
+Valid return types are defined in `javax.xml.xpath.XPathConstants` and follows the conversion rules specified by the `javax.xml.xpath.XPath` interface.
+
+The following constants are defined by the `XPathConstants` class: _BOOLEAN, DOM_OBJECT_MODEL, NODE, NODESET, NUMBER, STRING_
+
+You can configure the desired type by simply using the `evaluation-type` attribute of the `<xpath-transformer/>` element.
+
+[source,xml]
+----
+<int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
+                           evaluation-type="NUMBER_RESULT" output-channel="output"/>
+
+<int-xml:xpath-transformer input-channel="booleanInput"
+                           xpath-expression="/person/@married = 'true'"
+                           evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
+
+----
+
+_Node Mappers_
+
+If you need to provide custom mapping for the node extracted by the XPath expression simply provide a reference to the implementation of the `org.springframework.xml.xpath.NodeMapper` - an interface used by `XPathOperations` implementations for mapping Node objects on a per-node basis.
+To provide a reference to a `NodeMapper` simply use `node-mapper` attribute:
+
+[source,xml]
+----
+<int-xml:xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
+                           node-mapper="testNodeMapper" output-channel="output"/>
+----
+
+\...and Sample NodeMapper implementation:
+
+[source,java]
+----
+class TestNodeMapper implements NodeMapper {
+  public Object mapNode(Node node, int nodeNum) throws DOMException {
+    return node.getTextContent() + "-mapped";
+  }
+}
+----
+
+_XML Payload Converter_
+
+You can also use an implementation of the `org.springframework.integration.xml.XmlPayloadConverter` to provide more granular transformation:
+
+[source,xml]
+----
+<int-xml:xpath-transformer input-channel="customConverterInput"
+                           output-channel="output" xpath-expression="/test/@type"
+                           converter="testXmlPayloadConverter" />
+
+----
+
+\...and Sample XmlPayloadConverter implementation:
+
+[source,java]
+----
+class TestXmlPayloadConverter implements XmlPayloadConverter {
+  public Source convertToSource(Object object) {
+    throw new UnsupportedOperationException();
+  }
+  //
+  public Node convertToNode(Object object) {
+    try {
+      return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+          new InputSource(new StringReader("<test type='custom'/>")));
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+  //
+  public Document convertToDocument(Object object) {
+    throw new UnsupportedOperationException();
+  }
+}
+----
+
+The DefaultXmlPayloadConverter is used if this reference is not provided, and it should be sufficient in most cases since it can convert from Node, Document, Source, File, and String typed payloads.
+If you need to extend beyond the capabilities of that default implementation, then an upstream Transformer is probably a better option than providing a reference to a custom implementation of this strategy here.
+
+[[xml-xpath-splitting]]
+=== Splitting XML Messages
+
+`XPathMessageSplitter` supports messages with either `String` or `Document` payloads.
+The splitter uses the provided XPath expression to split the payload into a number of nodes.
+By default this will result in each `Node` instance becoming the payload of a new message.
+Where it is preferred that each message be a Document the `createDocuments` flag can be set.
+Where a `String` payload is passed in the payload will be converted then split before being converted back to a number of String messages.
+The XPath splitter implements `MessageHandler` and should therefore be configured in conjunction with an appropriate endpoint (see the namespace support below for a simpler configuration alternative).
+
+[source,xml]
+----
+<bean id="splittingEndpoint"
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg ref="orderChannel" />
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.splitter.XPathMessageSplitter">
+            <constructor-arg value="/order/items" />
+            <property name="documentBuilder" ref="customisedDocumentBuilder" />
+            <property name="outputChannel" ref="orderItemsChannel" />
+        </bean>
+    </constructor-arg>
+</bean>
+----
+
+XPath splitter namespace support allows the creation of a Message Endpoint with an input channel and output channel.
+
+[source,xml]
+----
+<!-- Split the order into items creating a new message for each item node -->
+<int-xml:xpath-splitter id="orderItemSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel">
+    <int-xml:xpath-expression expression="/order/items"/>
+</int-xml:xpath-splitter>
+
+<!-- Split the order into items creating a new document for each item-->
+<int-xml:xpath-splitter id="orderItemDocumentSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel"
+                       create-documents="true">
+    <int-xml:xpath-expression expression="/order/items"/>
+    <int:poller fixed-rate="2000"/>
+</int-xml:xpath-splitter>
+----
+
+[[xml-xpath-routing]]
+=== Routing XML Messages Using XPath
+
+Similar to SpEL-based routers, Spring Integration provides support for routing messages based on XPath expressions, allowing you to create a Message Endpoint with an input channel but no output channel.
+Instead, one or more output channels are determined dynamically.
+
+[source,xml]
+----
+<int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
+    <si-xml:xpath-expression expression="/order/type"/>
+</int-xml:xpath-router>
+----
+
+NOTE: For an overview of attributes that are common among Routers, please see chapter: _<<router-common-parameters>>_
+
+Internally XPath expressions will be evaluated as _NODESET_ type and converted to a `List<String>` representing channel names.
+Typically such a list will contain a single channel name.
+However, based on the results of an XPath Expression, the XPath router can also take on the characteristics of a _Recipient List Router_ if the XPath Expression returns more then one value.
+In that case, the `List<String>` will contain more then one channel name and consequently Messages will be sent to all channels in the list.
+
+Thus, assuming that the XML file passed to the router configured below contains many `responder` sub-elements representing channel names, the message will be sent to all of those channels.
+
+[source,xml]
+----
+<!-- route the order to all responders-->
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
+</int-xml:xpath-router>
+
+----
+
+If the returned values do not represent the channel names directly, additional mapping parameters can be specified, in order to map those returned values to actual channel names.
+For example if the `/request/responders` expression results in two values `responderA` and `responderB` but you don't want to couple the responder names to channel names, you may provide additional mapping configuration such as the following:
+
+[source,xml]
+----
+<!-- route the order to all responders-->
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
+    <int-xml:mapping value="responderA" channel="channelA"/>
+    <int-xml:mapping value="responderB" channel="channelB"/>
+</int-xml:xpath-router>
+
+----
+
+As already mentioned, the default evaluation type for XPath expressions is _NODESET_, which is converted to a `List<String>` of channel names, therefore handling single channel scenarios as well as multiple ones.
+
+Nonetheless, certain XPath expressions may evaluate as String type from the very beginning.
+Take for example the following XPath Expression:
+
+[source,xml]
+----
+name(./node())
+----
+
+This expression will return the name of the root node.
+It will resulting in an exception, if the default evaluation type _NODESET_ is being used.
+
+For these scenarious, you may use the `evaluate-as-string` attribute, which will allow you to manage the evaluation type.
+It is `FALSE` by default, however if set to `TRUE`, the String evaluation type will be used.
+
+[NOTE]
+=====
+To provide some background information: XPath 1.0 specifies 4 data types:
+
+* Node-sets
+* Strings
+* Number
+* Boolean
+
+When the XPath Router evaluates expressions using the optional `evaluate-as-string` attribute, the return value is determined per the `string()` function as defined in the XPath specification.
+This means that if the expression selects multiple nodes, it will return the string value of the first node.
+
+For further information, please see:
+
+* http://www.w3.org/TR/xpath/[Specification: XML Path Language (XPath) Version 1.0]
+
+* http://www.w3.org/TR/xpath/#function-string[XPath specification - string() function]
+=====
+
+For example if we want to route based on the name of the root node, we can use the following configuration:
+
+[source,xml]
+----
+<int-xml:xpath-router id="xpathRouterAsString"
+        input-channel="xpathStringChannel"
+        evaluate-as-string="true">
+    <int-xml:xpath-expression expression="name(./node())"/>
+</int-xml:xpath-router>
+
+----
+
+[[xpath-routing-converter]]
+==== XML Payload Converter
+
+For XPath Routers, you can also specify the Converter to use when converting payloads prior to XPath evaluation.
+As such, the XPath Router supports custom implementations of the `XmlPayloadConverter` strategy, and when configuring an `xpath-router` element in XML, a reference to such an implementation may be provided via the `converter` attribute.
+
+If this reference is not explicitly provided, the `DefaultXmlPayloadConverter` is used.
+It should be sufficient in most cases, since it can convert from Node, Document, Source, File, and String typed payloads.
+If you need to extend beyond the capabilities of that default implementation, then an upstream Transformer is generally a better option in most cases, rather than providing a reference to a custom implementation of this strategy here.
+
+[[xml-xpath-header-enricher]]
+=== XPath Header Enricher
+
+The XPath Header Enricher defines a Header Enricher Message Transformer that evaluates XPath expressions against the message payload and inserts the result of the evaluation into a messsage header.
+
+Please see below for an overview of all available configuration parameters:
+
+[source,xml]
+----
+<int-xml:xpath-header-enricher default-overwrite="true"    <1>
+	                           id=""                       <2>
+	                           input-channel=""            <3>
+	                           output-channel=""           <4>
+	                           should-skip-nulls="true">   <5>
+    <int:poller></int:poller>                              <6>
+    <int-xml:header name=""                                <7>
+                    evaluation-type="STRING_RESULT"        <8>
+                    header-type="int"                      <9>
+                    overwrite="true"                       <10>
+                    xpath-expression=""                    <11>
+                    xpath-expression-ref=""/>              <12>
+</int-xml:xpath-header-enricher>
+
+----
+
+<1> Specify the default boolean value for whether to overwrite existing header values.
+This will only take effect for sub-elements that do not provide their own 'overwrite' attribute.
+If the 'default- overwrite' attribute is not provided, then the specified header values will NOT overwrite any existing ones with the same header names.
+_Optional_.
+
+
+<2> Id for the underlying bean definition.
+_Optional_.
+
+
+<3> The receiving Message channel of this endpoint.
+_Optional_.
+
+
+<4> Channel to which enriched messages shall be send to.
+_Optional_.
+
+
+<5> Specify whether null values, such as might be returned from an expression evaluation, should be skipped.
+The default value is true.
+Set this to false if a null value should trigger removal of the corresponding header instead._Optional_.
+
+
+<6> _Optional_.
+
+
+<7> The name of the header to be enriched.
+_Mandatory_.
+
+
+<8> The result type expected from the XPath evaluation.
+This will be the type of the header value, if there is no `header-type` attribute provided.
+The following values are allowed: BOOLEAN_RESULT, STRING_RESULT, NUMBER_RESULT, NODE_RESULT and NODE_LIST_RESULT.
+Defaults internally to `XPathEvaluationType.STRING_RESULT` if not set.
+_Optional_.
+
+
+<9> The fully qualified class name for the header value type.
+The result of XPath evaluation will be converted to this type using the `ConversionService`.
+This allows, for example, a `NUMBER_RESULT` (a double) to be converted to an `Integer`.
+The type can be declared as a primitive (e.g.
+`int`) but the result will always be the equivalent wrapper class (e.g.
+`Integer`).
+The same integration `ConversionService` discussed in <<payload-type-conversion>> is used for the conversion, so conversion to custom types is supported, by adding a custom converter to the service._Optional_.
+
+
+<10> Boolean value to indicate whether this header value should overwrite an existing header value for the same name if already present on the input Message.
+
+
+<11> The XPath Expression as a String.
+Either this attribute or `xpath-expression-ref` must be provided, but not both.
+
+
+<12> The XPath Expression reference.
+Either this attribute or `xpath-expression` must be provided, but not both.
+
+[[xml-xpath-filter]]
+=== Using the XPath Filter
+
+This component defines an XPath-based Message Filter.
+Under the covers this components uses a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
+
+NOTE: Please also refer to the chapter on <<filter,Message Filters>> for further details.
+
+In order to use the XPath Filter you must as a minimum provide an XPath Expression either by declaring the `xpath-expression` sub-element or by referencing an XPath Expression using the `xpath-expression-ref` attribute.
+
+If the provided XPath expression will evaluate to a `boolean` value, no further configuration parameters are necessary.
+However, if the XPath expression will evaluate to a String, the `match-value` attribute should be specified against which the evaluation result will be matched.
+
+There are three options for the `match-type`:
+
+* *exact* - correspond to `equals` on `java.lang.String`.
+The underlying implementation uses a `StringValueTestXPathMessageSelector`
+
+* *case-insensitive* - correspond to `equals-ignore-case` on `java.lang.String`.
+The underlying implementation uses a `StringValueTestXPathMessageSelector`
+
+* *regex* - matches operations one `java.lang.String`.
+The underlying implementation uses a `RegexTestXPathMessageSelector`
+
+
+
+When providing a 'match-type' value of 'regex', the value provided with thos `match-value` attribute must be a valid Regular Expression.
+
+[source,xml]
+----
+<int-xml:xpath-filter discard-channel=""                      <1>
+                      id=""                                   <2>
+                      input-channel=""                        <3>
+                      match-type="exact"                      <4>
+                      match-value=""                          <5>
+                      output-channel=""                       <6>
+                      throw-exception-on-rejection="false"    <7>
+                      xpath-expression-ref="">                <8>
+    <int-xml:xpath-expression ... />                          <9>
+    <int:poller ... />                                        <10>
+</int-xml:xpath-filter>
+----
+
+<1> Message Channel where you want rejected messages to be sent.
+_Optional_.
+
+
+<2> Id for the underlying bean definition.
+_Optional_.
+
+
+<3> The receiving Message channel of this endpoint.
+_Optional_.
+
+
+<4> Type of match to apply between the XPath evaluation result and the _match-value_.
+Default is _exact_.
+_Optional_.
+
+
+<5> String value to be matched against the XPath evaluation result.
+If this attribute is not provided, then the XPath evaluation MUST produce a boolean result directly.
+_Optional_.
+
+
+<6> The channel to which Messages that matched the filter criterias shall be dispatched to.
+_Optional_.
+
+
+<7> By default, this property is set to _false_ and rejected Messages (Messages that did not match the filter criteria) will be silently dropped.
+However, if set to_true_ message rejection will result in an error condition and the exception will be propagated upstream to the caller.
+_Optional_.
+
+
+<8> Reference to an XPath expression instance to evaluate.
+
+
+<9> This sub-element sets the XPath expression to be evaluated.
+If this is not defined you MUST define the `xpath-expression-ref` attribute.
+Also, only one `xpath-expression` element can be set.
+
+
+<10> _Optional_.
+
+[[xpath-spel-function]]
+=== #xpath SpEL Function
+
+Spring Integration, since version _3.0_, provides the `#xpath` built-in SpEL function, which invokes the static method `XPathUtils.evaluate(...)`.
+This method delegates to an `org.springframework.xml.xpath.XPathExpression`.
+The following shows some usage examples:
+[source,xml]
+----
+<transformer expression="#xpath(payload, '/name')"/>
+
+<filter expression="#xpath(payload, headers.xpath, 'boolean')"/>
+
+<splitter expression="#xpath(payload, '//book', 'document_list')"/>
+
+<router expression="#xpath(payload, '/person/@age', 'number')">
+	<mapping channel="output1" value="16"/>
+	<mapping channel="output2" value="45"/>
+</router>
+----
+
+`#xpath` also supports a third optional parameter for converting the result of the xpath evaluation.
+It can be one of the String constants `'string'`, `'boolean'`, `'number'`, `'node'`, `'node_list'` and `'document_list'` or an `org.springframework.xml.xpath.NodeMapper` instance.
+By default the `#xpath` SpEL function returns a String representation of the xpath evaluation.
+
+NOTE: To enable the `#xpath` SpEL function, simply add the `spring-integration-xml.jar` to the CLASSPATH; there is no need to declare any component(s) from the Spring Integration Xml Namespace.
+
+For more information see <<spel>>.
+
+[[xml-validating-filter]]
+=== XML Validating Filter
+
+The XML Validating Filter allows you to validate incoming messages against provided schema instances.
+The following schema types are supported:
+
+* xml-schema (http://www.w3.org/2001/XMLSchema)
+
+
+* relax-ng (http://relaxng.org/ns/structure/1.0)
+
+
+
+Messages that fail validation can either be silently dropped or they can be forwarded to a definable `discard-channel`.
+Furthermore you can configure this filter to throw an `Exception` in case validation fails.
+
+Please see below for an overview of all available configuration parameters:
+
+[source,xml]
+----
+<int-xml:validating-filter discard-channel=""                    <1>
+                           id=""                                 <2>
+                           input-channel=""                      <3>
+                           output-channel=""                     <4>
+                           schema-location=""                    <5>
+                           schema-type="xml-schema"              <6>
+                           throw-exception-on-rejection="false"  <7>
+                           xml-validator="">                     <8>
+    <int:poller .../>                                            <9>
+</int-xml:validating-filter>
+----
+
+<1> Message Channel where you want rejected messages to be sent.
+_Optional_.
+
+
+<2> Id for the underlying bean definition.
+_Optional_.
+
+
+<3> The receiving Message channel of this endpoint.
+_Optional_.
+
+
+<4> Message Channel where you want accepted messages to be sent.
+_Optional_.
+
+
+<5> Sets the location of the schema to validate the Message's payload against.
+Internally uses the `org.springframework.core.io.Resource` interface.
+You can set this attribute or the `xml-validator` attribute but not both.
+_Optional_.
+
+
+<6> Sets the schema type.
+Can be either `xml-schema` or `relax-ng`.
+_Optional_.
+If not set it defaults to `xml-schema` which internally translates to `org.springframework.xml.validation.XmlValidatorFactory#SCHEMA_W3C_XML`
+
+
+<7> If `true` a `MessageRejectedException` is thrown in case validation fails for the provided Message's payload._Optional_.
+Defaults to `false` if not set.
+
+
+<8> Reference to a custom `sorg.springframework.xml.validation.XmlValidator` strategy.
+You can set this attribute or the `schema-location` attribute but not both.
+_Optional_.
+
+
+<9> _Optional_.

@@ -254,7 +254,7 @@ In the above example instead of relying on the default <classname>SearchTermStra
     </para>
     <note>
       Beginning with the 3.0 release, the IMAP idle adapter emits application events (specifically <classname>
-      ImapIdleExceptionEvent</classname>s) when exceptions occur. This allows applications to detect and act on those
+      ImapIdleExceptionEvent</classname> s) when exceptions occur. This allows applications to detect and act on those
       exceptions. The events can be obtained using an <code>&lt;int-event:inbound-channel-adapter&gt;</code>
       or any <interfacename>ApplicationListener</interfacename> configured to receive an
       <classname>ImapIdleExceptionEvent</classname> or one of its super classes.
