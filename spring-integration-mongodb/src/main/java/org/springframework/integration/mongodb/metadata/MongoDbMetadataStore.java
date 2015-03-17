@@ -65,7 +65,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param collectionName
 	 *            the collection name where it persists the data
 	 */
-	public MongoDbMetadataStore(final MongoTemplate template, final String collectionName) {
+	public MongoDbMetadataStore(MongoTemplate template, String collectionName) {
 		Assert.notNull(template, "'template' must not be null.");
 		Assert.hasText(collectionName, "'collectionName' must not be empty.");
 		this.template = template;
@@ -79,7 +79,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param template
 	 *            The mongodb template
 	 */
-	public MongoDbMetadataStore(final MongoTemplate template) {
+	public MongoDbMetadataStore(MongoTemplate template) {
 		this(template, DEFAULT_COLLECTION_NAME);
 	}
 
@@ -90,7 +90,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param factory
 	 *            The mongodb factory
 	 */
-	public MongoDbMetadataStore(final MongoDbFactory factory) {
+	public MongoDbMetadataStore(MongoDbFactory factory) {
 		this(factory, DEFAULT_COLLECTION_NAME);
 	}
 
@@ -103,7 +103,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param factory
 	 *            MongoDbFactory
 	 */
-	public MongoDbMetadataStore(final MongoDbFactory factory, final String collectionName) {
+	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
 		this(new MongoTemplate(factory), collectionName);
 	}
 
@@ -120,7 +120,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 *      String)
 	 */
 	@Override
-	public void put(final String key, final String value) {
+	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
 		final Map<String, String> entry = new HashMap<String, String>();
@@ -128,7 +128,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		entry.put(VALUE, value);
 		template.execute(collectionName, new CollectionCallback<Object>() {
 			@Override
-			public Object doInCollection(final DBCollection collection) throws MongoException,
+			public Object doInCollection(DBCollection collection) throws MongoException,
 			DataAccessException {
 				return collection.save(new BasicDBObject(entry));
 			}
@@ -144,12 +144,12 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @see org.springframework.integration.metadata.MetadataStore#get(String)
 	 */
 	@Override
-	public String get(final String key) {
+	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		final Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
-		final Map<String, String> result = template.findOne(query, Map.class, collectionName);
+		Map<String, String> result = template.findOne(query, Map.class, collectionName);
 		return result == null ? null : result.get(VALUE);
 
 	}
@@ -163,12 +163,12 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @see org.springframework.integration.metadata.MetadataStore#remove(String)
 	 */
 	@Override
-	public String remove(final String key) {
+	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		final Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
-		final Map<String, String> result = template.findAndRemove(query, Map.class, collectionName);
+		Map<String, String> result = template.findAndRemove(query, Map.class, collectionName);
 		return result == null ? null : result.get(VALUE);
 	}
 
@@ -185,17 +185,17 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 *      String)
 	 */
 	@Override
-	public String putIfAbsent(final String key, final String value) {
+	public String putIfAbsent(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
 
 		String result = null;
-		final Map<String, String> entry = new HashMap<String, String>();
+		Map<String, String> entry = new HashMap<String, String>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
 		try {
 			template.insert(entry, collectionName);
-		} catch (final DuplicateKeyException e) {
+		} catch (DuplicateKeyException e) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("DUPLICATE KEY VIOLOATION", e);
 			}
@@ -218,11 +218,11 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 *      String, String)
 	 */
 	@Override
-	public boolean replace(final String key, final String oldValue, final String newValue) {
+	public boolean replace(String key, String oldValue, String newValue) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
-		final Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
+		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
 		return template.updateFirst(query, Update.update(VALUE, newValue), collectionName)
 				.isUpdateOfExisting();
 	}
