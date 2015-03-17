@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Michael Bannister
+ * @author Gary Russell
  */
 public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinitionParser {
 
@@ -117,7 +118,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
-		
+
 	}
 
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {
@@ -177,7 +178,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-task-execution-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "cache-level");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-durable");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable-subscription-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable-subscription-name",
+				"subscriptionName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
 		builder.addPropertyValue("autoStartup", false);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
