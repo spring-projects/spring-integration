@@ -113,7 +113,9 @@ class ConcurrentMessageListenerDispatcher implements Lifecycle {
 	}
 
 	public void dispatch(KafkaMessage message) {
-		delegates.get(message.getMetadata().getPartition()).enqueue(message);
+		if (isRunning()) {
+			delegates.get(message.getMetadata().getPartition()).enqueue(message);
+		}
 	}
 
 	private void initializeAndStartDispatching() {
