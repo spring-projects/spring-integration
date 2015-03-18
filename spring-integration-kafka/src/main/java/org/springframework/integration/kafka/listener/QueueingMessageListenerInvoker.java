@@ -116,23 +116,25 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 		while (this.running) {
 			try {
 				KafkaMessage message = messages.take();
-				try {
-					if (messageListener != null) {
-						messageListener.onMessage(message);
+				if (isRunning()) {
+					try {
+						if (messageListener != null) {
+							messageListener.onMessage(message);
+						}
+						else {
+							acknowledgingMessageListener.onMessage(message, new DefaultAcknowledgment(offsetManager, message));
+						}
 					}
-					else {
-						acknowledgingMessageListener.onMessage(message, new DefaultAcknowledgment(offsetManager, message));
+					catch (Exception e) {
+						if (errorHandler != null) {
+							errorHandler.handle(e, message);
+						}
 					}
-				}
-				catch (Exception e) {
-					if (errorHandler != null) {
-						errorHandler.handle(e, message);
-					}
-				}
-				finally {
-					if (messageListener != null) {
-						offsetManager.updateOffset(message.getMetadata().getPartition(),
-								message.getMetadata().getNextOffset());
+					finally {
+						if (messageListener != null) {
+							offsetManager.updateOffset(message.getMetadata().getPartition(),
+									message.getMetadata().getNextOffset());
+						}
 					}
 				}
 			}

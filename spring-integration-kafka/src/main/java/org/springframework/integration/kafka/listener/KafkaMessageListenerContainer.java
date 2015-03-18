@@ -397,7 +397,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 							}
 							return;
 						}
-					} while (!hasErrors && !partitionsWithRemainingData.isEmpty());
+					} while (!hasErrors && isRunning() && !partitionsWithRemainingData.isEmpty());
 				}
 			}
 			if (wasInterrupted) {
