@@ -81,3 +81,9 @@ Of course, Reactor is still supported for functionality such as the `Promise` ga
 The `error-channel` now is used for the conversion errors, which have caused a transaction rollback and message redelivery previously.
 
 See <<jms-message-driven-channel-adapter>> for more information.
+
+[[x4.2-conditional-pollers]]
+==== Conditional Pollers
+Much more flexibility is now provided for dynamic polling.
+
+See <<conditional-pollers>> for more information.
