@@ -49,8 +49,71 @@
 			queue-size="${queue.size:1024}"
 			concurrency="${concurrency:10}"
 			max-fetch="${max.fetch:1000}"
-			topics="${topics:foo,bar}"/>
+			topics="${topics:foo,bar}" />
 
+	<int-kafka:message-driven-channel-adapter
+			id="withMBFactoryOverrideAndId"
+			auto-startup="false"
+			phase="100"
+			send-timeout="5000"
+			channel="nullChannel"
+			error-channel="errorChannel"
+			error-handler="errorHandler"
+			connection-factory="connectionFactory"
+			key-decoder="keyDecoder"
+			payload-decoder="payloadDecoder"
+			offset-manager="offsetManager"
+			task-executor="executor"
+			queue-size="${queue.size:1024}"
+			concurrency="${concurrency:10}"
+			max-fetch="${max.fetch:1000}"
+			topics="${topics:foo,bar}"
+			auto-commit="false"
+			use-context-message-builder="true"
+			set-id="true"
+			set-timestamp="false" />
+
+	<int-kafka:message-driven-channel-adapter
+			id="withMBFactoryOverrideAndTS"
+			auto-startup="false"
+			phase="100"
+			send-timeout="5000"
+			channel="nullChannel"
+			error-channel="errorChannel"
+			error-handler="errorHandler"
+			connection-factory="connectionFactory"
+			key-decoder="keyDecoder"
+			payload-decoder="payloadDecoder"
+			offset-manager="offsetManager"
+			task-executor="executor"
+			queue-size="${queue.size:1024}"
+			concurrency="${concurrency:10}"
+			max-fetch="${max.fetch:1000}"
+			topics="${topics:foo,bar}"
+			use-context-message-builder="true"
+			set-id="false"
+			set-timestamp="true" />
+
+	<int-kafka:message-driven-channel-adapter
+			id="withOverrideIdTS"
+			auto-startup="false"
+			phase="100"
+			send-timeout="5000"
+			channel="nullChannel"
+			error-channel="errorChannel"
+			error-handler="errorHandler"
+			connection-factory="connectionFactory"
+			key-decoder="keyDecoder"
+			payload-decoder="payloadDecoder"
+			offset-manager="offsetManager"
+			task-executor="executor"
+			queue-size="${queue.size:1024}"
+			concurrency="${concurrency:10}"
+			max-fetch="${max.fetch:1000}"
+			topics="${topics:foo,bar}"
+			use-context-message-builder="false"
+			set-id="true"
+			set-timestamp="true" />
 
 	<!-- Invalid config
 
