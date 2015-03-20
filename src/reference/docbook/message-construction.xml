@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="messaging-construction-chapter"
-    xmlns:xi="http://www.w3.org/2001/XInclude"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>Message Construction</title>
-
-  <xi:include href="./message.xml"/>
-
-</chapter>
