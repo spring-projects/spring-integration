@@ -1,0 +1,175 @@
+[[migration-2.1-2.2]]
+=== Changes between 2.1 and 2.2
+
+[[x2.2-new-components]]
+==== New Components
+
+[[x2.2-redis-store-adapters]]
+===== RedisStore Inbound and Outbound Channel Adapters
+
+Spring Integration now has RedisStore Inbound and Outbound Channel Adapters allowing you to write and read Message payloads to/from Redis collection(s).
+For more information please see <<redis-store-outbound-channel-adapter>> and <<redis-store-inbound-channel-adapter>>.
+
+[[x2.2-mongo-adapters]]
+===== MongoDB Inbound and Outbound Channel Adapters
+
+Spring Integration now has MongoDB Inbound and Outbound Channel Adapters allowing you to write and read Message payloads to/from a MongoDB document store.
+For more information please see <<mongodb-outbound-channel-adapter>> and <<mongodb-inbound-channel-adapter>>.
+
+[[x2.2-jpa]]
+===== JPA Endpoints
+
+Spring Integration now includes components for the Java Persistence API (JPA) for retrieving and persisting JPA entity objects.
+The JPA Adapter includes the following components:
+
+* _<<jpa-inbound-channel-adapter,Inbound Channel Adapter>>_
+* _<<jpa-outbound-channel-adapter,Outbound Channel Adapter>>_
+* _<<jpa-updating-outbound-gateway,Updating Outbound Gateway>>_
+* _<<jpa-retrieving-outbound-gateway,Retrieving Outbound Gateway>>_
+
+
+
+For more information please see <<jpa>>
+
+[[x2.2-general]]
+==== General Changes
+
+[[x2.2-spring-31]]
+===== Spring 3.1 Used by Default
+
+Spring Integration now uses Spring 3.1.
+
+[[x2.2-handler-advice]]
+===== Adding Behavior to Endpoints
+
+The ability to add an <advice-chain/> to a poller has been available for some time.
+However, the behavior added by this affects the entire integration flow.
+It did not address the ability to add, say, retry, to an individual endpoint.
+The 2.2.
+release introduces the <request-handler-advice-chain/> to many endpoints.
+
+In addition, 3 standard Advice classes have been provided for this purpose:
+
+* MessageHandlerRetryAdvice
+* MessageHandlerCircuitBreakerAdvice
+* ExpressionEvaluatingMessageHandlerAdvice
+
+
+
+For more information, see <<message-handler-advice-chain>>.
+
+[[x2.2-transaction-sync]]
+===== Transaction Synchronization and Pseudo Transactions
+
+Pollers can now participate in Spring's _Transaction Synchronization_ feature.
+This allows for synchronizing such operations as renaming files by an inbound channel adapter depending on whether the transaction commits, or rolls back.
+
+In addition, these features can be enabled when there is not a 'real' transaction present, by means of a `PseudoTransactionManager`.
+
+For more information see <<transaction-synchronization>>.
+
+[[x2.2-file-adapter]]
+===== File Adapter - Improved File Overwrite/Append Handling
+
+When using the _File Oubound Channel Adapter_ or the _File Outbound Gateway_, a new _mode_ property was added.
+Prior to _Spring Integration 2.2_, target files were replaced when they existed.
+Now you can specify the following options:
+
+* REPLACE (Default)
+* APPEND
+* FAIL
+* IGNORE
+
+
+
+For more information please see <<file-writing-destination-exists>>.
+
+[[x2.2-outbound-gateways]]
+===== Reply-Timeout added to more Outbound Gateways
+
+The XML Namespace support adds the _reply-timeout_ attribute to the following _Outbound Gateways_:
+
+* Amqp Outbound Gateway
+* File Outbound Gateway
+* Ftp Outbound Gateway
+* Sftp Outbound Gateway
+* Ws Outbound Gateway
+
+
+
+[[x2.2-amqp-11]]
+===== Spring-AMQP 1.1
+
+Spring Integration now uses Spring AMQP 1.1.
+This enables several features to be used within a Spring Integration application, including...
+
+* A fixed reply queue for the outbound gateway
+* HA (mirrored) queues
+* Publisher Confirms
+* Returned Messages
+* Support for Dead Letter Exchanges/Dead Letter Queues
+
+
+
+[[x2.2-jdbc-11]]
+===== JDBC Support - Stored Procedures Components
+
+_SpEL Support_
+
+When using the Stored Procedure components of the Spring Integration JDBC Adapter, you can now provide Stored Procedure Names or Stored Function Names using Spring Expression Language (SpEL).
+
+This allows you to specify the Stored Procedures to be invoked at runtime.
+For example, you can provide Stored Procedure names that you would like to execute via Message Headers.
+For more information please see <<stored-procedures>>.
+
+_JMX Support_
+
+The Stored Procedure components now provide basic JMX support, exposing some of their properties as MBeans:
+
+* Stored Procedure Name
+* Stored Procedure Name Expression
+* JdbcCallOperations Cache Statistics
+
+
+
+[[x2.2-jdbc-gateway-update-optional]]
+===== JDBC Support - Outbound Gateway
+
+When using the JDBC Outbound Gateway, the update query is no longer mandatory.
+You can now provide solely a select query using the request message as a source of parameters.
+
+[[x2.2-jdbc-message-store-channels]]
+===== JDBC Support - Channel-specific Message Store Implementation
+
+A new _Message Channel_-specific Message Store Implementation has been added, providing a more scalable solution using database-specific SQL queries.
+For more information please see: <<jdbc-message-store-channels>>.
+
+[[x2.2-shutdown]]
+===== Orderly Shutdown
+
+A method `stopActiveComponents()` has been added to the IntegrationMBeanExporter.
+This allows a Spring Integration application to be shut down in an orderly manner, disallowing new inbound messages to certain adapters and waiting for some time to allow in-flight messages to complete.
+
+[[x2.2-jms-og]]
+===== JMS Oubound Gateway Improvements
+
+The JMS Outbound Gateway can now be configured to use a`MessageListener` container to receive replies.
+This can improve performance of the gateway.
+
+[[x2.2-o-t-j-t]]
+===== object-to-json-transformer
+
+The `ObjectToJsonTransformer` now sets the _content-type_ header to _application/json_ by default.
+For more information see <<transformer>>.
+
+[[httpChanges]]
+===== HTTP Support
+
+Java serialization over HTTP is no longer enabled by default.
+Previously, when setting a `expected-response-type` to a `Serializable` object, the `Accept` header was not properly set up.
+The `SerializingHttpMessageConverter` has now been updated to set the Accept header to `application/x-java-serialized-object`.
+However, because this could cause incompatibility with existing applications, it was decided to no longer automatically add this converter to the HTTP endpoints.
+
+If you wish to use Java serialization, you will need to add the `SerializingHttpMessageConverter` to the appropriate endpoints, using the `message-converters` attribute, when using XML configuration, or using the `setMessageConverters()` method.
+
+Alternatively, you may wish to consider using JSON instead which is enabled by simply having `Jackson` on the classpath.

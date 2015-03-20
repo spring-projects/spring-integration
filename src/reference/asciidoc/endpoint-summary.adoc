@@ -1,0 +1,594 @@
+[[endpoint-summary]]
+== Endpoint Quick Reference Table
+
+As discussed in the sections above, Spring Integration provides a number of endpoints used to interface with external systems, file systems etc.
+The following is a summary of the various endpoints with quick links to the appropriate chapter.
+
+To recap, *Inbound Channel Adapters* are used for one-way integration bringing data into the messaging application.
+*Outbound Channel Adapters* are used for one-way integration to send data out of the messaging application.
+*Inbound Gateways* are used for a bidirectional integration flow where some other system invokes the messaging application and receives a reply.*Outbound Gateways* are used for a bidirectional integration flow where the messaging application invokes some external service or entity, expecting a result.
+
+.Endpoint Quick Reference
+
+[cols="1,1,1,1,1", options="header"]
+|===
+
+
+
+
+
+
+
+
+
+| Module
+
+
+| Inbound Adapter
+
+
+| Outbound Adapter
+
+
+| Inbound Gateway
+
+
+| Outbound Gateway
+
+
+
+
+
+
+
+
+| *AMQP*
+
+
+| <<amqp-inbound-channel-adapter>>
+
+
+| <<amqp-outbound-channel-adapter>>
+
+
+| <<amqp-inbound-gateway>>
+
+
+| <<amqp-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *Events*
+
+
+| <<applicationevent-inbound>>
+
+
+| <<applicationevent-outbound>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *Feed*
+
+
+| <<feed-inbound-channel-adapter>>
+
+
+| N
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *File*
+
+
+| <<file-reading>> and <<file-tailing>>
+
+
+| <<file-writing>>
+
+
+| N
+
+
+| <<file-writing>>
+
+
+
+
+
+
+
+
+| *FTP(S)*
+
+
+| <<ftp-inbound>>
+
+
+| <<ftp-outbound>>
+
+
+| N
+
+
+| <<ftp-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *Gemfire*
+
+
+| <<gemfire-inbound>> and <<gemfire-cq>>
+
+
+| <<gemfire-outbound>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *HTTP*
+
+
+| <<http-namespace>>
+
+
+| <<http-namespace>>
+
+
+| <<http-inbound>>
+
+
+| <<http-outbound>>
+
+
+
+
+
+
+
+
+| *JDBC*
+
+
+| <<jdbc-inbound-channel-adapter>> and <<stored-procedure-inbound-channel-adapter>>
+
+
+| <<jdbc-outbound-channel-adapter>> and <<stored-procedure-outbound-channel-adapter>>
+
+
+| N
+
+
+| <<jdbc-outbound-gateway>> and <<stored-procedure-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *JMS*
+
+
+| <<jms-inbound-channel-adapter>> and <<jms-message-driven-channel-adapter>>
+
+
+| <<jms-outbound-channel-adapter>>
+
+
+| <<jms-inbound-gateway>>
+
+
+| <<jms-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *JMX*
+
+
+| <<jmx-notification-listening-channel-adapter>> and <<jmx-attribute-polling-channel-adapter>> and <<tree-polling-channel-adapter>>
+
+
+| <<jmx-notification-publishing-channel-adapter>> and <<jmx-operation-invoking-channel-adapter>>
+
+
+| N
+
+
+| <<jmx-operation-invoking-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *JPA*
+
+
+| <<jpa-inbound-channel-adapter>>
+
+
+| <<jpa-outbound-channel-adapter>>
+
+
+| N
+
+
+| <<jpa-updating-outbound-gateway>> and <<jpa-retrieving-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *Mail*
+
+
+| <<mail-inbound>>
+
+
+| <<mail-outbound>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *MongoDB*
+
+
+| <<mongodb-inbound-channel-adapter>>
+
+
+| <<mongodb-outbound-channel-adapter>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *MQTT*
+
+
+| <<mqtt-inbound>>
+
+
+| <<mqtt-outbound>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *Redis*
+
+
+| <<redis-inbound-channel-adapter>> and <<redis-queue-inbound-channel-adapter>> and <<redis-store-inbound-channel-adapter>>
+
+
+| <<redis-outbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> and <<redis-store-outbound-channel-adapter>>
+
+
+| <<redis-queue-inbound-gateway>>
+
+
+| <<redis-outbound-gateway>> and <<redis-queue-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *Resource*
+
+
+| <<resource-inbound-channel-adapter>>
+
+
+| N
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *RMI*
+
+
+| N
+
+
+| N
+
+
+| <<rmi-inbound>>
+
+
+| <<rmi-outbound>>
+
+
+
+
+
+
+
+
+| *SFTP*
+
+
+| <<sftp-inbound>>
+
+
+| <<sftp-outbound>>
+
+
+| N
+
+
+| <<sftp-outbound-gateway>>
+
+
+
+
+
+
+
+
+| *Stream*
+
+
+| <<stream-reading>>
+
+
+| <<stream-writing>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *Syslog*
+
+
+| <<syslog-inbound-adapter>>
+
+
+| N
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *TCP*
+
+
+| <<tcp-adapters>>
+
+
+| <<tcp-adapters>>
+
+
+| <<tcp-gateways>>
+
+
+| <<tcp-gateways>>
+
+
+
+
+
+
+
+
+| *Twitter*
+
+
+| <<twitter-inbound>>
+
+
+| <<twitter-outbound>>
+
+
+| N
+
+
+| <<twitter-sog>>
+
+
+
+
+
+
+
+
+| *UDP*
+
+
+| <<udp-adapters>>
+
+
+| <<udp-adapters>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *Web Services*
+
+
+| N
+
+
+| N
+
+
+| <<webservices-inbound>>
+
+
+| <<webservices-outbound>>
+
+
+
+
+
+
+
+
+| *Web Sockets*
+
+
+| <<web-socket-inbound-adapter>>
+
+
+| <<web-socket-outbound-adapter>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
+| *XMPP*
+
+
+| <<xmpp-messages>> and <<xmpp-presence>>
+
+
+| <<xmpp-messages>> and <<xmpp-presence>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+|===
+
+In addition, as discussed in <<spring-integration-core-messaging>>, endpoints are provided for interfacing with Plain Old Java Objects (POJOs).
+As discussed in <<channel-adapter>>, the `<int:inbound-channel-adapter>` allows polling a java method for data; the `<int:outbound-channel-adapter>` allows sending data to a `void` method, and as discussed in <<gateway>>, the `<int:gateway>` allows any Java program to invoke a messaging flow.
+Each of these without requiring any source level dependencies on Spring Integration.
+The equivalent of an outbound gateway in this context would be to use a <<service-activator>> to invoke a method that returns an Object of some kind.

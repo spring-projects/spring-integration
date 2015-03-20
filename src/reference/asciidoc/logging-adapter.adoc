@@ -1,0 +1,42 @@
+[[logging-channel-adapter]]
+=== Logging Channel Adapter
+
+The `<logging-channel-adapter/>` is often used in conjunction with a Wire Tap, as discussed in<<channel-wiretap>>.
+However, it can also be used as the ultimate consumer of any flow.
+For example, consider a flow that ends with a `<service-activator/>` that returns a result, but you wish to discard that result.
+To do that, you could send the result to `NullChannel`.
+Alternatively, you can route it to an `INFO` level `<logging-channel-adapter/>`; that way, you can see the discarded message when logging at `INFO` level, but not see it when logging at, say, `WARN` level.
+With a `NullChannel`, you would only see the discarded message when logging at `DEBUG` level.
+
+[source]
+----
+
+<int:logging-channel-adapter
+	channel="" <1>
+	level="INFO" <2>
+	expression="" <3>
+	log-full-message="false" <4>
+	logger-name="" /> <5>
+
+----
+
+<1> The channel connecting the logging adapter to an upstream component.
+
+
+<2> The logging level at which messages sent to this adapter will be logged.
+Default: `INFO`.
+
+
+<3> A SpEL expression representing exactly what part(s) of the message will be logged.
+Default: `payload` - just the payload will be logged.
+This attribute cannot be specified if `log-full-message` is specified.
+
+
+<4> When `true`, the entire message will be logged (including headers).
+Default: `false` - just the payload will be logged.
+This attribute cannot be specified if `expression` is specified.
+
+
+<5> Specifies the _name_ of the logger (known as `category` in `log4j`) used for log messages created by this adapter.
+This enables setting the log name (in the logging subsystem) for individual adapters.
+By default, all adapters will log under the name `org.springframework.integration.handler.LoggingHandler`.

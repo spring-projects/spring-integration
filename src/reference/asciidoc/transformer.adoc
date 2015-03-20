@@ -1,0 +1,384 @@
+[[transformer]]
+=== Transformer
+
+[[transformer-introduction]]
+==== Introduction
+
+Message Transformers play a very important role in enabling the loose-coupling of Message Producers and Message Consumers.
+Rather than requiring every Message-producing component to know what type is expected by the next consumer, Transformers can be added between those components.
+Generic transformers, such as one that converts a String to an XML Document, are also highly reusable.
+
+For some systems, it may be best to provide a http://www.eaipatterns.com/CanonicalDataModel.html[Canonical Data Model], but Spring Integration's general philosophy is not to require any particular format.
+Rather, for maximum flexibility, Spring Integration aims to provide the simplest possible model for extension.
+As with the other endpoint types, the use of declarative configuration in XML and/or Annotations enables simple POJOs to be adapted for the role of Message Transformers.
+These configuration options will be described below.
+
+NOTE: For the same reason of maximizing flexibility, Spring does not require XML-based Message payloads.
+Nevertheless, the framework does provide some convenient Transformers for dealing with XML-based payloads if that is indeed the right choice for your application.
+For more information on those transformers, see <<xml>>.
+
+[[transformer-config]]
+==== Configuring Transformer
+
+[[transformer-namespace]]
+===== Configuring Transformer with XML
+
+The <transformer> element is used to create a Message-transforming endpoint.
+In addition to "input-channel" and "output-channel" attributes, it requires a "ref".
+The "ref" may either point to an Object that contains the @Transformer annotation on a single method (see below) or it may be combined with an explicit method name value provided via the "method" attribute.
+[source,xml]
+----
+<int:transformer id="testTransformer" ref="testTransformerBean" input-channel="inChannel"
+             method="transform" output-channel="outChannel"/>
+<beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />
+----
+
+Using a "ref" attribute is generally recommended if the custom transformer handler implementation can be reused in other `<transformer>` definitions.
+However if the custom transformer handler implementation should be scoped to a single definition of the `<transformer>`, you can define an inner bean definition:
+[source,xml]
+----
+<int:transformer id="testTransformer" input-channel="inChannel" method="transform"
+                output-channel="outChannel">
+  <beans:bean class="org.foo.TestTransformer"/>
+</transformer>
+----
+
+NOTE: Using both the "ref" attribute and an inner handler definition in the same `<transformer>` configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+
+The method that is used for transformation may expect either the `Message` type or the payload type of inbound Messages.
+It may also accept Message header values either individually or as a full map by using the `@Header` and `@Headers` parameter annotations respectively.
+The return value of the method can be any type.
+If the return value is itself a `Message`, that will be passed along to the transformer's output channel.
+
+As of Spring Integration 2.0, a Message Transformer's transformation method can no longer return `null`.
+Returning `null` will result in an exception since a Message Transformer should always be expected to transform each source Message into a valid target Message.
+In other words, a Message Transformer should not be used as a Message Filter since there is a dedicated <filter> option for that.
+However, if you do need this type of behavior (where a component might return NULL and that should not be considered an error), a_service-activator_ could be used.
+Its `requires-reply` value is FALSE by default, but that can be set to TRUE in order to have Exceptions thrown for NULL return values as with the transformer.
+
+_Transformers and Spring Expression Language (SpEL)_
+
+Just like Routers, Aggregators and other components, as of Spring Integration 2.0 Transformers can also benefit from SpEL support (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html) whenever transformation logic is relatively simple.
+
+[source,xml]
+----
+<int:transformer input-channel="inChannel"
+	output-channel="outChannel"
+	expression="payload.toUpperCase() + '- [' + T(java.lang.System).currentTimeMillis() + ']'"/>
+----
+
+In the above configuration we are achieving a simple transformation of the _payload_ with a simple SpEL expression and without writing a custom transformer.
+Our _payload_ (assuming String) will be upper-cased and concatenated with the current timestamp with some simple formatting.
+
+_Common Transformers_
+
+There are also a few Transformer implementations available out of the box.
+Because, it is fairly common to use the `toString()` representation of an Object, Spring Integration provides an `ObjectToStringTransformer` whose output is a Message with a String payload.
+That String is the result of invoking the toString() operation on the inbound Message's payload.
+[source,xml]
+----
+<int:object-to-string-transformer input-channel="in" output-channel="out"/>
+----
+
+A potential example for this would be sending some arbitrary object to the 'outbound-channel-adapter' in the _file_ namespace.
+Whereas that Channel Adapter only supports String, byte-array, or `java.io.File` payloads by default, adding this transformer immediately before the adapter will handle the necessary conversion.
+Of course, that works fine as long as the result of the `toString()` call is what you want to be written to the File.
+Otherwise, you can just provide a custom POJO-based Transformer via the generic 'transformer' element shown previously.
+
+TIP: When debugging, this transformer is not typically necessary since the 'logging-channel-adapter' is capable of logging the Message payload.
+Refer to <<channel-wiretap>> for more detail.
+
+[NOTE]
+=====
+The _object-to-string-transformer_ is very simple; it invokes `toString()` on the inbound payload.
+There are two exceptions to this (since 3.0): if the payload is a `char[]`, it invokes `new String(payload)`; if the payload is a `byte[]`, it invokes `new String(payload, charset)`, where `charset` is "UTF-8" by default.
+The `charset` can be modified by supplying the _charset_ attribute on the transformer.
+
+For more sophistication (such as selection of the charset dynamically, at runtime), you can use a SpEL expression-based transformer instead; for example:
+
+[source,xml]
+----
+<int:transformer input-channel="in" output-channel="out"
+		 expression="new java.lang.String(payload, headers['myCharset']" />
+----
+=====
+
+If you need to serialize an Object to a byte array or deserialize a byte array back into an Object, Spring Integration provides symmetrical serialization transformers.
+These will use standard Java serialization by default, but you can provide an implementation of Spring 3.0's Serializer or Deserializer strategies via the 'serializer' and 'deserializer' attributes, respectively.
+[source,xml]
+----
+<int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
+
+<int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>
+----
+
+_Object-to-Map Transformer_
+
+Spring Integration also provides _Object-to-Map_ and _Map-to-Object_ transformers which utilize the Spring Expression Language (SpEL) to serialize and de-serialize the object graphs.
+The object hierarchy is introspected to the most primitive types (String, int, etc.).
+The path to this type is described via SpEL, which becomes the _key_ in the transformed Map.
+The primitive type becomes the value.
+
+For example:
+[source,java]
+----
+public class Parent{
+    private Child child;
+    private String name; 
+    // setters and getters are omitted
+}
+
+public class Child{
+   private String name; 
+   private List<String> nickNames;
+   // setters and getters are omitted
+}
+----
+
+\...will be transformed to a Map which looks like this: `{person.name=George, person.child.name=Jenna, person.child.nickNames[0]=Bimbo ... etc}`
+
+The SpEL-based Map allows you to describe the object structure without sharing the actual types allowing you to restore/rebuild the object graph into a differently typed Object graph as long as you maintain the structure.
+
+For example: The above structure could be easily restored back to the following Object graph via the Map-to-Object transformer:
+[source,java]
+----
+public class Father {
+    private Kid child;
+    private String name; 
+    // setters and getters are omitted
+}
+
+public class Kid {
+   private String name; 
+   private List<String> nickNames;
+   // setters and getters are omitted
+}
+----
+
+If you need to create a "structured" map, you can provide the 'flatten' attribute.
+The default value for this attribute is 'true' meaning the default behavior; if you provide a 'false' value, then the structure will be a map of maps.
+
+For example:
+[source,java]
+----
+public class Parent {
+	private Child child;
+	private String name;
+	// setters and getters are omitted
+}
+
+public class Child {
+	private String name;
+	private List<String> nickNames;
+	// setters and getters are omitted
+}
+----
+
+\...will be transformed to a Map which looks like this: `{name=George, child={name=Jenna, nickNames=[Bimbo, ...]}}`
+
+To configure these transformers, Spring Integration provides namespace support Object-to-Map:
+[source,xml]
+----
+<int:object-to-map-transformer input-channel="directInput" output-channel="output"/>
+----
+
+or
+[source,xml]
+----
+<int:object-to-map-transformer input-channel="directInput" output-channel="output" flatten="false"/>
+----
+
+Map-to-Object
+[source,xml]
+----
+<int:map-to-object-transformer input-channel="input" 
+                         output-channel="output" 
+                          type="org.foo.Person"/>
+----
+
+or
+[source,xml]
+----
+<int:map-to-object-transformer input-channel="inputA" 
+                                output-channel="outputA" 
+                                ref="person"/>
+<bean id="person" class="org.foo.Person" scope="prototype"/>
+
+----
+
+NOTE: NOTE: 'ref' and 'type' attributes are mutually exclusive.
+You can only use one.
+Also, if using the 'ref' attribute, you must point to a 'prototype' scoped bean, otherwise a BeanCreationException will be thrown. 
+
+*JSON Transformers*
+
+_Object to JSON_ and _JSON to Object_ transformers are provided.
+
+[source,xml]
+----
+<int:object-to-json-transformer input-channel="objectMapperInput"/>
+----
+
+
+[source,xml]
+----
+<int:json-to-object-transformer input-channel="objectMapperInput"
+    type="foo.MyDomainObject"/>
+----
+
+These use a vanilla `JsonObjectMapper` by default based on implementation from classpath.
+You can provide your own custom `JsonObjectMapper` implementation with appropriate options or based on required library (e.g.
+GSON).
+
+[source,xml]
+----
+<int:json-to-object-transformer input-channel="objectMapperInput"
+    type="foo.MyDomainObject" object-mapper="customObjectMapper"/>
+----
+
+[NOTE]
+=====
+Beginning with version 3.0, the `object-mapper` attribute references an instance of a new strategy interface `JsonObjectMapper`.
+This abstraction allows multiple implementations of json mappers to be used.
+Implementations that wraphttps://github.com/RichardHightower/boon[Boon] and https://github.com/FasterXML[Jackson 2] are provided, with the version being detected on the classpath.
+These classes are `BoonJsonObjectMapper` and `Jackson2JsonObjectMapper`.
+
+Note, `BoonJsonObjectMapper` is provided since _version 4.1_.
+=====
+
+[IMPORTANT]
+=====
+If there are requirements to use both Jackson libraries and/or Boon in the same application, keep in mind that before version 3.0, the JSON transformers used only Jackson 1.x.
+From _4.1_ on, the framework will select Jackson 2 by default ahead of the Boon implementation if both are on the classpath.
+Jackson 1.x is no longer supported by the framework internally but, of course, you can still use it within your code.
+To avoid unexpected issues with JSON mapping features, when using annotations, there may be a need to apply annotations from both Jacksons and/or Boon on domain classes:
+[source,java]
+----
+@org.codehaus.jackson.annotate.JsonIgnoreProperties(ignoreUnknown=true)
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)
+@org.boon.json.annotations.JsonIgnoreProperties("foo")
+public class Foo {
+
+        @org.codehaus.jackson.annotate.JsonProperty("fooBar")
+        @com.fasterxml.jackson.annotation.JsonProperty("fooBar")
+        @org.boon.json.annotations.JsonProperty("fooBar")
+        public Object bar;
+
+}
+----
+=====
+
+You may wish to consider using a `FactoryBean` or simple factory method to create the `JsonObjectMapper` with the required characteristics.
+
+[source,java]
+----
+public class ObjectMapperFactory {
+
+    public static Jackson2JsonObjectMapper getMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+        return new Jackson2JsonObjectMapper(mapper);
+    }
+}
+----
+
+[source,xml]
+----
+<bean id="customObjectMapper" class="foo.ObjectMapperFactory"
+            factory-method="getMapper"/>
+----
+
+[IMPORTANT]
+=====
+Beginning with _version 2.2_, the `object-to-json-transformer` sets the _content-type_ header to `application/json`, by default, if the input message does not already have that header present.
+
+It you wish to set the _content type_ header to some other value, or explicitly overwrite any existing header with some value (including `application/json`), use the `content-type` attribute.
+If you wish to suppress the setting of the header, set the `content-type` attribute to an empty string (`""`).
+This will result in a message with no `content-type` header, unless such a header was present on the input message.
+=====
+
+Beginning with _version 3.0_, the `ObjectToJsonTransformer` adds headers, reflecting the source type, to the message.
+Similarly, the `JsonToObjectTransformer` can use those type headers when converting the JSON to an object.
+These headers are mapped in the AMQP adapters so that they are entirely compatible with the Spring-AMQP http://docs.spring.io/spring-amqp/api/[JsonMessageConverter].
+
+This enables the following flows to work without any special configuration...
+
+`...->amqp-outbound-adapter---->`
+
+`---->amqp-inbound-adapter->json-to-object-transformer->...`
+
+Where the outbound adapter is configured with a `JsonMessageConverter` and the inbound adapter uses the default `SimpleMessageConverter`.
+
+`...->object-to-json-transformer->amqp-outbound-adapter---->`
+
+`---->amqp-inbound-adapter->...`
+
+Where the outbound adapter is configured with a `SimpleMessageConverter` and the inbound adapter uses the default `JsonMessageConverter`.
+
+`...->object-to-json-transformer->amqp-outbound-adapter---->`
+
+`---->amqp-inbound-adapter->json-to-object-transformer->`
+
+Where both adapters are configured with a `SimpleMessageConverter`.
+
+NOTE: When using the headers to determine the type, you should *not* provide a `class` attribute, because it takes precedence over the headers.
+
+In addition to JSON Transformers, Spring Integration provides a built-in _#jsonPath_ SpEL function for use in expressions.
+For more information see <<spel>>.
+
+*#xpath SpEL Function*
+
+Since version _3.0_, Spring Integration also provides a built-in _#xpath_ SpEL function for use in expressions.
+For more information see <<xpath-spel-function>>.
+
+Beginning with _version 4.0_, the `ObjectToJsonTransformer` supports the `resultType` property, to specify the _node_ JSON representation.
+The result node tree representation depends on the implementation of the provided `JsonObjectMapper`.
+By default, the `ObjectToJsonTransformer` uses a `Jackson2JsonObjectMapper` and delegates the conversion of the object to the node tree to the `ObjectMapper#valueToTree` method.
+The node JSON representation provides efficiency for using the `JsonPropertyAccessor`, when the downstream message flow uses SpEL expressions with access to the properties of the JSON data.
+See <<spel-property-accessors>>.
+When using Boon, the `NODE` representation is a `Map<String, Object>`
+
+[[transformer-annotation]]
+===== Configuring a Transformer with Annotations
+
+The `@Transformer` annotation can also be added to methods that expect either the `Message` type or the message payload type.
+The return value will be handled in the exact same way as described above in the section describing the <transformer> element.
+
+[source,java]
+----
+@Transformer
+Order generateOrder(String productId) {
+    return new Order(productId);
+}
+----
+
+Transformer methods may also accept the @Header and @Headers annotations that is documented in <<annotations>>
+[source,java]
+----
+@Transformer
+Order generateOrder(String productId, @Header("customerName") String customer) {
+    return new Order(productId, customer);
+}
+----
+
+Also see <<advising-with-annotations>>.
+
+[[header-filter]]
+==== Header Filter
+
+Some times your transformation use case might be as simple as removing a few headers.
+  	For such a use case, Spring Integration provides a _Header Filter_which allows you to specify certain header names
+    that should be removed from the output Message (e.g.
+for security reasons or a value that was only needed temporarily).Basically the _Header Filter_is the opposite  of the _Header Enricher_.
+  	The latter is discussed in <<header-enricher>>[source,xml]
+----
+<int:header-filter input-channel="inputChannel"
+		output-channel="outputChannel" header-names="lastName, state"/>
+----
+
+As you can see, configuration of a _Header Filter_is quite simple.
+It is a typical endpoint with input/output channels
+	and a `header-names` attribute.
+That attribute accepts the names of the header(s) (delimited by commas if there are multiple)
+	that need to be removed.
+So, in the above example the headers named 'lastName' and 'state' will not be present on the outbound Message.

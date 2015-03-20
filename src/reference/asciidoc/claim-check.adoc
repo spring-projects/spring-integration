@@ -1,0 +1,214 @@
+[[claim-check]]
+=== Claim Check
+
+[[claim-check-introduction]]
+==== Introduction
+
+In the earlier sections we've covered several Content Enricher type components that help you deal with situations where a message is missing a piece of data.
+We also discussed Content Filtering which lets you remove data items from a message.
+However there are times when we want to hide data temporarily.
+For example, in a distributed system we may receive a Message with a very large payload.
+Some intermittent message processing steps may not need access to this payload and some may only need to access certain headers, so carrying the large Message payload through each processing step may cause performance degradation, may produce a security risk, and may make debugging more difficult.
+
+The http://www.eaipatterns.com/StoreInLibrary.html[Claim Check] pattern describes a mechanism that allows you to store data in a well known place while only maintaining a pointer (Claim Check) to where that data is located.
+You can pass that pointer around as a payload of a new Message thereby allowing any component within the message flow to get the actual data as soon as it needs it.
+This approach is very similar to the Certified Mail process where you'll get a Claim Check in your mailbox and would have to go to the Post Office to claim your actual package.
+Of course it's also the same idea as baggage-claim on a flight or in a hotel.
+
+Spring Integration provides two types of Claim Check transformers:
+
+* _Incoming Claim Check Transformer_
+* _Outgoing Claim Check Transformer_
+
+
+
+Convenient namespace-based mechanisms are available to configure them.
+
+[[claim-check-in]]
+==== Incoming Claim Check Transformer
+
+An _Incoming Claim Check Transformer_ will transform an incoming Message by storing it in the Message Store identified by its `message-store` attribute.
+
+[source,xml]
+----
+<int:claim-check-in id="checkin"
+        input-channel="checkinChannel"
+        message-store="testMessageStore"
+        output-channel="output"/>
+----
+
+In the above configuration the Message that is received on the `input-channel` will be persisted to the Message Store identified with the `message-store` attribute and indexed with generated ID.
+That ID is the Claim Check for that Message.
+The Claim Check will also become the payload of the new (transformed) Message that will be sent to the `output-channel`.
+
+Now, lets assume that at some point you do need access to the actual Message.
+You can of course access the Message Store manually and get the contents of the Message, or you can use the same approach as before except now you will be transforming the Claim Check to the actual Message by using an _Outgoing Claim Check Transformer_.
+
+Here is an overview of all available parameters of an Incoming Claim Check Transformer:
+
+[source,xml]
+----
+<int:claim-check-in auto-startup="true"  <1>
+                    id=""                           <2>
+                    input-channel=""                <3>
+                    message-store="messageStore"    <4>
+                    order=""                        <5>
+                    output-channel=""               <6>
+                    send-timeout="">                <7>
+    <int:poller></int:poller>                       <8>
+</int:claim-check-in>
+----
+
+<1> Lifecycle attribute signaling if this component should be started during Application Context startup.
+Defaults to true.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<2> Id identifying the underlying bean definition (`MessageTransformingHandler`).
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<3> The receiving Message channel of this endpoint.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<4> Reference to the MessageStore to be used by this Claim Check transformer.
+If not specified, the default reference will be to a bean named _messageStore_.
+_Optional_.
+
+
+<5> Specifies the order for invocation when this endpoint is connected as a subscriber to a channel.
+This is particularly relevant when that channel is using a _failover_ dispatching strategy.
+It has no effect when this endpoint itself is a Polling Consumer for a channel with a queue.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<6> Identifies the Message channel where Message will be sent after its being processed by this endpoint.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<7> Specify the maximum amount of time in milliseconds to wait when sending a reply Message to the output channel.
+By default the send will block for one second.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<8> Defines a poller.
+Element is not available inside a `Chain` element.
+_Optional_.
+
+[[claim-check-out]]
+==== Outgoing Claim Check Transformer
+
+An _Outgoing Claim Check Transformer_ allows you to transform a Message with a Claim Check payload into a Message with the original content as its payload.
+
+[source,xml]
+----
+<int:claim-check-out id="checkout"
+        input-channel="checkoutChannel"
+        message-store="testMessageStore"
+        output-channel="output"/>
+----
+
+In the above configuration, the Message that is received on the `input-channel` should have a Claim Check as its payload and the _Outgoing Claim Check Transformer_ will transform it into a Message with the original payload by simply querying the Message store for a Message identified by the provided Claim Check.
+It then sends the newly checked-out Message to the `output-channel`.
+
+Here is an overview of all available parameters of an Outgoing Claim Check Transformer:
+
+[source,xml]
+----
+<int:claim-check-out auto-startup="true"  <1>
+                     id=""                           <2>
+                     input-channel=""                <3>
+                     message-store="messageStore"    <4>
+                     order=""                        <5>
+                     output-channel=""               <6>
+                     remove-message="false"          <7>
+                     send-timeout="">                <8>
+    <int:poller></int:poller>                        <9>
+</int:claim-check-out>
+----
+
+<1> Lifecycle attribute signaling if this component should be started during Application Context startup.
+Defaults to true.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<2> Id identifying the underlying bean definition (`MessageTransformingHandler`).
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<3> The receiving Message channel of this endpoint.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<4> Reference to the MessageStore to be used by this Claim Check transformer.
+If not specified, the default reference will be to a bean named _messageStore_.
+_Optional_.
+
+
+<5> Specifies the order for invocation when this endpoint is connected as a subscriber to a channel.
+This is particularly relevant when that channel is using a _failover_ dispatching strategy.
+It has no effect when this endpoint itself is a Polling Consumer for a channel with a queue.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<6> Identifies the Message channel where Message will be sent after its being processed by this endpoint.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<7> If set to `true` the Message will be removed from the MessageStore by this transformer.
+Useful when Message can be "claimed" only once.
+Defaults to `false`.
+_Optional_.
+
+
+<8> Specify the maximum amount of time in milliseconds to wait when sending a reply Message to the output channel.
+By default the send will block for one second.
+Attribute is not available inside a `Chain` element.
+_Optional_.
+
+
+<9> Defines a poller.
+Element is not available inside a `Chain` element.
+_Optional_.
+
+_Claim Once_
+
+There are scenarios when a particular message must be claimed only once.
+As an analogy, consider the airplane luggage check-in/out process.
+Checking-in your luggage on departure and and then claiming it on arrival is a classic example of such a scenario.
+Once the luggage has been claimed, it can not be claimed again without first checking it back in.
+To accommodate such cases, we introduced a `remove-message` boolean attribute on the `claim-check-out` transformer.
+This attribute is set to `false` by default.
+However, if set to `true`, the claimed Message will be removed from the MessageStore, so that it can no longer be claimed again.
+
+This is also something to consider in terms of storage space, especially in the case of the in-memory Map-based `SimpleMessageStore`, where failing to remove the Messages could ultimately lead to an `OutOfMemoryException`.
+Therefore, if you don't expect multiple claims to be made, it's recommended that you set the `remove-message` attribute's value to `true`.
+
+[source,xml]
+----
+<int:claim-check-out id="checkout"
+        input-channel="checkoutChannel"
+        message-store="testMessageStore"
+        output-channel="output"
+        remove-message="true"/>
+----
+
+==== A word on Message Store
+
+Although we rarely care about the details of the claim checks as long as they work, it is still worth knowing that the current implementation of the actual Claim Check (the pointer) in Spring Integration is a UUID to ensure uniqueness.
+
+`org.springframework.integration.store.MessageStore` is a strategy interface for storing and retrieving messages.
+Spring Integration provides two convenient implementations of it.
+`SimpleMessageStore`: an in-memory, Map-based implementation (the default, good for testing) and `JdbcMessageStore`: an implementation that uses a relational database via JDBC.

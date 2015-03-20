@@ -1,0 +1,106 @@
+[[polling-consumer]]
+=== Poller
+
+==== Polling Consumer
+
+When Message Endpoints (Channel Adapters) are connected to channels and instantiated, they produce one of the following 2 instances:
+
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/EventDrivenConsumer.html[EventDrivenConsumer]
+
+
+
+The actual implementation depends on which type of channel these Endpoints are connected to.
+A channel adapter connected to a channel that implements the http://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/SubscribableChannel.html[org.springframework.messaging.SubscribableChannel] interface will produce an instance of `EventDrivenConsumer`.
+On the other hand, a channel adapter connected to a channel that implements the  http://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/PollableChannel.html[org.springframework.messaging.PollableChannel] interface (e.g. a QueueChannel) will produce an instance of `PollingConsumer`.
+
+Polling Consumers allow Spring Integration components to actively poll for Messages, rather than to process Messages in an event-driven manner.
+
+They represent a critical cross cutting concern in many messaging scenarios.
+In Spring Integration, Polling Consumers are based on the pattern with the same name, which is described in the book "Enterprise Integration Patterns" by Gregor Hohpe and Bobby Woolf.
+You can find a description of the pattern on the book's website at:
+
+http://www.enterpriseintegrationpatterns.com/PollingConsumer.html[http://www.enterpriseintegrationpatterns.com/PollingConsumer.html]
+
+==== Pollable Message Source
+
+Furthermore, in Spring Integration a second variation of the Polling Consumer pattern exists.
+When Inbound Channel Adapters are being used, these adapters are often wrapped by a `SourcePollingChannelAdapter`.
+For example, when retrieving messages from a remote FTP Server location, the adapter described in <<ftp-inbound>> is configured with a _poller_ to retrieve messages periodically.
+So, when components are configured with Pollers, the resulting instances are of one of the following types:
+
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
+* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/SourcePollingChannelAdapter.html[SourcePollingChannelAdapter]
+
+
+
+This means, Pollers are used in both inbound and outbound messaging scenarios.
+Here are some use-cases that illustrate the scenarios in which Pollers are used:
+
+* Polling certain external systems such as FTP Servers, Databases, Web Services
+* Polling internal (pollable) Message Channels
+* Polling internal services (E.g.
+repeatedly execute methods on a Java class)
+
+
+
+NOTE: AOP Advice classes can be applied to pollers, in an `advice-chain`.
+An example being a transaction advice to start a transaction.
+Starting with _version 4.1_ a `PollSkipAdvice` is provided.
+Pollers use triggers to determine the time of the next poll.
+The `PollSkipAdvice` can be used to suppress (skip) a poll, perhaps because there is some downstream condition that would prevent the message to be processed properly.
+To use this advice, you have to provide it with an implementation of a `PollSkipStrategy`.
+_Version 4.2_ added more flexibility in this area - see <<conditional-pollers>>.
+
+This chapter is meant to only give a high-level overview regarding Polling Consumers and how they fit into the concept of message channels - <<channel>> and channel adapters - <<channel-adapter>>.
+For more in-depth information regarding Messaging Endpoints in general and Polling Consumers in particular, please see<<endpoint>>.
+
+
+[[conditional-pollers]]
+==== Conditional Pollers for Message Sources
+
+===== Background
+
+`Advice` objects, in an `advice-chain` on a poller, advise the whole polling task (message retrieval and processing).
+These "around advice" methods do not have access to any context for the poll, just the poll itself.
+This is fine for requirements such as making a task transactional, or skipping a poll due to some external condition as discussed above.
+What if we wish to take some action depending on the result of the `receive` part of the poll, or if we want to adjust the poller depending on conditions?
+
+===== "Smart" Polling
+
+_Version 4.2_ introduced the `AbstractMessageSourceAdvice`.
+Any `Advice` objects in the `advice-chain` that subclass this class, are applied to just the receive operation.
+Such classes implement the following methods:
+
+[source, java]
+beforeReceive(MessageSource<?> source)
+
+This method is called before the `MessageSource.receive()` method.
+It enables you to examine and or reconfigure the source at this time. Returning `false` cancels this poll (similar to the `PollSkipAdvice` mentioned above).
+
+[source, java]
+Message<?> afterReceive(Message<?> result, MessageSource<?> source)
+
+This method is called after the `receive()` method; again, you can reconfigure the source, or take any action perhaps depending on the result (which can be `null` if there was no message created by the source).
+You can even return a different message!
+
+===== SimpleActiveIdleMessageSourceAdvice
+
+This advice is a simple implementation of `AbstractMessageSourceAdvice`, when used in conjunction with a `DynamicPeriodicTrigger`, it adjuststhe polling frequency depending on whether or not the previous poll resulted in a message or not.
+The poller must also have a reference to the same `DynamicPeriodicTrigger`.
+
+.Important: Async Handoff
+IMPORTANT: This advice modifies the trigger based on the `receive()` result.
+This will only work if the advice is called on the poller thread.
+It will *not* work if the poller has a `task-executor`.
+To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
+
+.Advice Chain Ordering
+[IMPORTANT]
+=====
+It is important to understand how the advice chain is processed during initialization.
+`Advice` objects that do not extend `AbstractMessageSourceAdvice` are applied to the whole poll process and are all invoked first, in order, before any `AbstractMessageSourceAdvice`; then `AbstractMessageSourceAdvice` objects are invoked in order around the `MessageSource` `receive()` method.
+If you have, say `Advice` objects `a, b, c, d`, where `b` and `d` are `AbstractMessageSourceAdvice`, they will be applied in the order `a, c, b, d`.
+Also, if a `MessageSource` is already a `Proxy`, the `AbstractMessageSourceAdvice` will be invoked after any existing `Advice` objects.
+If you wish to change the order, you should wire up the proxy yourself.
+=====

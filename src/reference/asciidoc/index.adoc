@@ -1,0 +1,130 @@
+[[spring-integration-reference]]
+
+= Spring Integration Reference Manual
+
+:toc:
+
+include::./preface.adoc[]
+[[whats-new-part]]
+= What's new?
+
+[[spring-integration-intro-new]]
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 4.2.
+If you are interested in the changes and features, that were introduced in earlier versions, please see chapter:<<history>>
+
+include::./whats-new.adoc[]
+[[spring-integration-introduction]]
+= Overview of Spring Integration Framework
+
+[[spring-integration-intro]]
+Spring Integration provides an extension of the Spring programming model to support the well-known http://www.eaipatterns.com/[Enterprise Integration Patterns].
+It enables lightweight messaging _within_ Spring-based applications and supports integration with external systems via declarative adapters.
+Those adapters provide a higher-level of abstraction over Spring's support for remoting, messaging, and scheduling.
+Spring Integration's primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
+
+include::./overview.adoc[]
+
+[[spring-integration-core-messaging]]
+= Core Messaging
+
+[[spring-integration-core-msg]]
+This section covers all aspects of the core messaging API in Spring Integration.
+Here you will learn about Messages, Message Channels, and Message Endpoints.
+Many of the Enterprise Integration Patterns are covered here as well, such as Filters, Routers, Transformers, Service-Activators, Splitters, and Aggregators.
+The section also contains material about System Management, including the Control Bus and Message History support.
+
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+include::./messaging-channels.adoc[]
+
+include::./message-construction.adoc[]
+
+include::./message-routing.adoc[]
+
+include::./message-transformation.adoc[]
+
+include::./messaging-endpoints.adoc[]
+
+include::./system-management.adoc[]
+[[spring-integration-endpoints]]
+= Integration Endpoints
+
+[[spring-integration-adapters]]
+This section covers the various Channel Adapters and Messaging Gateways provided by Spring Integration to support Message-based communication with external systems.
+
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+include::./endpoint-summary.adoc[]
+
+include::./amqp.adoc[]
+
+include::./event.adoc[]
+
+include::./feed.adoc[]
+
+include::./file.adoc[]
+
+include::./ftp.adoc[]
+
+include::./gemfire.adoc[]
+
+include::./http.adoc[]
+
+include::./jdbc.adoc[]
+
+include::./jpa.adoc[]
+
+include::./jms.adoc[]
+
+include::./mail.adoc[]
+
+include::./mongodb.adoc[]
+
+include::./mqtt.adoc[]
+
+include::./redis.adoc[]
+
+include::./resource.adoc[]
+
+include::./rmi.adoc[]
+
+include::./sftp.adoc[]
+
+include::./stream.adoc[]
+
+include::./syslog.adoc[]
+
+include::./ip.adoc[]
+
+include::./twitter.adoc[]
+
+include::./web-sockets.adoc[]
+
+include::./ws.adoc[]
+
+include::./xml.adoc[]
+
+include::./xmpp.adoc[]
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+
+[[spring-integration-appendices]]
+
+= Appendices
+
+[[spring-integration-adapters-advanced]]
+Advanced Topics and Additional Resources
+
+[appendix]
+include::./spel.adoc[]
+[appendix]
+include::./message-publishing.adoc[]
+[appendix]
+include::./transactions.adoc[]
+[appendix]
+include::./security.adoc[]
+[appendix]
+include::./samples.adoc[]
+[appendix]
+include::./configuration.adoc[]
+[appendix]
+include::./resources.adoc[]
+[appendix]
+include::./history.adoc[]

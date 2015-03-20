@@ -1,0 +1,436 @@
+[[files]]
+== File Support
+
+[[file-intro]]
+=== Introduction
+
+Spring Integration's File support extends the Spring Integration Core with a dedicated vocabulary to deal with reading, writing, and transforming files.
+It provides a namespace that enables elements defining Channel Adapters dedicated to files and support for Transformers that can read file contents into strings or byte arrays.
+
+This section will explain the workings of `FileReadingMessageSource` and `FileWritingMessageHandler` and how to configure them as _beans_.
+Also the support for dealing with files through file specific implementations of `Transformer` will be discussed.
+Finally the file specific namespace will be explained.
+
+[[file-reading]]
+=== Reading Files
+
+A `FileReadingMessageSource` can be used to consume files from the filesystem.
+This is an implementation of `MessageSource` that creates messages from a file system directory.
+
+[source,xml]
+----
+<bean id="pollableFileSource"
+    class="org.springframework.integration.file.FileReadingMessageSource"
+    p:directory="${input.directory}"/>
+----
+
+To prevent creating messages for certain files, you may supply a `FileListFilter`.
+By default, an `AcceptOnceFileListFilter` is used.
+This filter ensures files are picked up only once from the directory.
+
+[NOTE]
+=====
+The `AcceptOnceFileListFilter` stores its state in memory.
+If you wish the state to survive a system restart, consider using the`FileSystemPersistentAcceptOnceFileListFilter` instead.
+This filter stores the accepted file names in a `MetadataStore` implementation (<<metadata-store>>).
+This filter matches on the filename and modified time.
+
+Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
+When used with a shared data store (such as `Redis` with the `RedisMetadataStore`) this allows filter keys to be shared across multiple application instances, or when a network file share is being used by multiple servers.
+=====
+
+[source,xml]
+----
+<bean id="pollableFileSource"
+    class="org.springframework.integration.file.FileReadingMessageSource"
+    p:inputDirectory="${input.directory}"
+    p:filter-ref="customFilterBean"/>
+----
+
+A common problem with reading files is that a file may be detected before it is ready.
+The default `AcceptOnceFileListFilter` does not prevent this.
+In most cases, this can be prevented if the file-writing process renames each file as soon as it is ready for reading.
+A filename-pattern or filename-regex filter that accepts only files that are ready (e.g.
+based on a known suffix), composed with the default`AcceptOnceFileListFilter` allows for this.
+The `CompositeFileListFilter` enables the composition.
+[source,xml]
+----
+<bean id="pollableFileSource"
+    class="org.springframework.integration.file.FileReadingMessageSource"
+    p:inputDirectory="${input.directory}"
+    p:filter-ref="compositeFilter"/>
+<bean id="compositeFilter"
+    class="org.springframework.integration.file.filters.CompositeFileListFilter">
+    <constructor-arg>
+        <list>
+            <bean class="o.s.i.file.filters.AcceptOnceFileListFilter"/>
+            <bean class="o.s.i.file.filters.RegexPatternFileListFilter">
+                <constructor-arg value="^test.*$"/>
+            </bean>
+        </list>
+    </constructor-arg>
+</bean>
+----
+
+The configuration can be simplified using the file specific namespace.
+To do this use the following template.
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-file="http://www.springframework.org/schema/integration/file"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/file
+    http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+</beans>
+----
+
+Within this namespace you can reduce the FileReadingMessageSource and wrap it in an inbound Channel Adapter like this:
+[source,xml]
+----
+<int-file:inbound-channel-adapter id="filesIn1"
+    directory="file:${input.directory}" prevent-duplicates="true"/>
+
+<int-file:inbound-channel-adapter id="filesIn2"
+    directory="file:${input.directory}"
+    filter="customFilterBean" />
+
+<int-file:inbound-channel-adapter id="filesIn3"
+    directory="file:${input.directory}"
+    filename-pattern="test*" />
+
+<int-file:inbound-channel-adapter id="filesIn4"
+    directory="file:${input.directory}"
+    filename-regex="test[0-9]+\.txt" />
+----
+
+The first channel adapter is relying on the default filter that just prevents duplication, the second is using a custom filter, the third is using the_filename-pattern_ attribute to add an `AntPathMatcher` based filter, and the fourth is using the _filename-regex_ attribute to add a regular expression Pattern based filter to the `FileReadingMessageSource`.
+The _filename-pattern_ and _filename-regex_ attributes are each mutually exclusive with the regular _filter_ reference attribute.
+However, you can use the _filter_ attribute to reference an instance of `CompositeFileListFilter` that combines any number of filters, including one or more pattern based filters to fit your particular needs.
+
+When multiple processes are reading from the same directory it can be desirable to lock files to prevent them from being picked up concurrently.
+To do this you can use a `FileLocker`.
+There is a java.nio based implementation available out of the box, but it is also possible to implement your own locking scheme.
+The nio locker can be injected as follows
+[source,xml]
+----
+<int-file:inbound-channel-adapter id="filesIn"
+    directory="file:${input.directory}" prevent-duplicates="true">
+    <int-file:nio-locker/>
+</int-file:inbound-channel-adapter>
+----
+
+A custom locker you can configure like this:
+[source,xml]
+----
+<int-file:inbound-channel-adapter id="filesIn"
+    directory="file:${input.directory}" prevent-duplicates="true">
+    <int-file:locker ref="customLocker"/>
+</int-file:inbound-channel-adapter>
+----
+
+NOTE: When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a lock before the file is allowed to be received.
+*It will not assume the responsibility to unlock the file.* If you have processed the file and keeping the locks hanging around you have a memory leak.
+If this is a problem in your case you should call FileLocker.unlock(File file) yourself at the appropriate time.
+
+When filtering and locking files is not enough it might be needed to control the way files are listed entirely.
+To implement this type of requirement you can use an implementation of `DirectoryScanner`.
+This scanner allows you to determine entirely what files are listed each poll.
+This is also the interface that Spring Integration uses internally to wire FileListFilters FileLocker to the FileReadingMessageSource.
+A custom DirectoryScanner can be injected into the <int-file:inbound-channel-adapter/> on the `scanner` attribute.
+
+[source,xml]
+----
+<int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}"
+    prevent-duplicates="true" scanner="customDirectoryScanner"/>
+----
+
+This gives you full freedom to choose the ordering, listing and locking strategies.
+
+IMPORTANT: It is important to understand that filters (including patterns, regex, prevent-duplicates etc) and lockers, are actually used by the scanner.
+Any of these attributes set on the adapter are subsequently injected into the scanner.
+For this reason, if you need to provide a custom scanner and you have multiple file inbound adapters in the same application context, each adapter must be provided with its own instance of the scanner, either by declaring separate beans, or declaring `scope="prototype"` on the scanner bean so that the context will create a new instance for each use.
+
+[[file-tailing]]
+==== 'Tail'ing Files
+
+Another popular use case is to get 'lines' from the end (or tail) of a file, capturing new lines when they are added.
+Two implementations are provided; the first, `OSDelegatingFileTailingMessageProducer`, uses the native `tail` command (on operating systems that have one).
+This is likely the most efficient implementation on those platforms.
+For operating systems that do not have a `tail` command, the second implementation `ApacheCommonsFileTailingMessageProducer` which uses the Apache `commons-io
+            Tailer` class.
+
+In both cases, file system events, such as files being unavailable etc, are published as `ApplicationEvent` s using the normal Spring event publishing mechanism.
+Examples of such events are:
+
+`[message=tail: cannot open `/tmp/foo' for reading:
+               No such file or directory, file=/tmp/foo]`
+
+`[message=tail: `/tmp/foo' has become accessible, file=/tmp/foo]`
+
+`[message=tail: `/tmp/foo' has become inaccessible:
+               No such file or directory, file=/tmp/foo]`
+
+`[message=tail: `/tmp/foo' has appeared;
+               following end of new file, file=/tmp/foo]`
+
+This sequence of events might occur, for example, when a file is rotated.
+
+NOTE: Not all platforms supporting a `tail` command provide these status messages.
+
+Example configurations:
+
+[source,xml]
+----
+<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	task-executor="exec"
+	file="/tmp/foo"/>
+----
+
+This creates a native adapter with default '-F -n 0' options (follow the file name from the current end).
+
+[source,xml]
+----
+<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	native-options="-F -n +0"
+	task-executor="exec"
+	file-delay=10000
+	file="/tmp/foo"/>
+----
+
+This creates a native adapter with '-F -n +0' options (follow the file name, emitting all existing lines).
+If the tail command fails (on some platforms, a missing file causes the `tail` to fail, even with `-F` specified), the command will be retried every 10 seconds.
+
+[source,xml]
+----
+<int-file:tail-inbound-channel-adapter id="apache"
+	channel="input"
+	task-executor="exec"
+	file="/tmp/bar"
+	delay="2000"
+	end="false"
+	reopen="true"
+	file-delay="10000"/>
+----
+
+This creates an Apache commons-io `Tailer` adapter that examines the file for new lines every 2 seconds, and checks for existence of a missing file every 10 seconds.
+The file will be tailed from the beginning (`end="false"`) instead of the end (which is the default).
+The file will be reopened for each chunk (the default is to keep the file open).
+
+IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes, forces the use of the Apache commons-io adapter and the `native-options` attribute is not allowed.
+
+[[file-writing]]
+=== Writing files
+
+To write messages to the file system you can use a http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[FileWritingMessageHandler].
+This class can deal with _File_, _String_, or _byte array_ payloads.
+
+You can configure the encoding and the charset that will be used in case of a String payload.
+
+To make things easier, you can configure the `FileWritingMessageHandler` as part of an _Outbound Channel Adapter_ or _Outbound Gateway_ using the provided XML namespace support.
+
+[[file-writing-file-names]]
+==== Generating Filenames
+
+In its simplest form, the `FileWritingMessageHandler` only requires a destination directory for writing the files.
+The name of the file to be written is determined by the handler'shttp://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[FileNameGenerator].
+The http://static.springsource.org/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html[default implementation] looks for a Message header whose key matches the constant defined as http://static.springsource.org/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME[FileHeaders.FILENAME].
+
+Alternatively, you can specify an expression to be evaluated against the Message in order to generate a file name, e.g.:_headers['myCustomHeader'] + '.foo'_.
+The expression must evaluate to a `String`.
+For convenience, the `DefaultFileNameGenerator` also provides the _setHeaderName_ method, allowing you to explicitly specify the Message header whose value shall be used as the filename.
+
+Once setup, the `DefaultFileNameGenerator` will employ the following resolution steps to determine the filename for a given Message payload:
+
+. Evaluate the expression against the Message and, if the result is a non-empty `String`, use it as the filename.
+. Otherwise, if the payload is a `java.io.File`, use the file's filename.
+. Otherwise, use the Message ID appended with .`msg` as the filename.
+
+When using the XML namespace support, both, the _File Oubound Channel Adapter_ and the _File Outbound Gateway_ support the following two mutually exclusive configuration attributes:
+
+* `filename-generator` (a reference to a `FileNameGenerator`) implementation)
+* `filename-generator-expression` (an expression evaluating to a `String`)
+
+
+
+While writing files, a temporary file suffix will be used (default: `.writing`).
+It is appended to the filename while the file is being written.
+To customize the suffix, you can set the _temporary-file-suffix_ attribute on both the _File Oubound Channel Adapter_ and the _File Outbound Gateway_.
+
+NOTE: When using the _APPEND_ file _mode_, the _temporary-file-suffix_ attribute is ignored, since the data is appended to the file directly.
+
+[[file-writing-output-directory]]
+==== Specifying the Output Directory
+
+Both, the _File Oubound Channel Adapter_ and the _File Outbound Gateway_ provide two configuration attributes for specifying the output directory:
+
+* _directory_
+* _directory-expression_
+
+
+
+NOTE: The _directory-expression_ attribute is available since Spring Integration 2.2.
+
+*Using the directory attribute*
+
+When using the _directory_ attribute, the output directory will be set to a fixed value, that is set at intialization time of the `FileWritingMessageHandler`.
+If you don't specify this attribute, then you must use the_directory-expression_ attribute.
+
+*Using the directory-expression attribute*
+
+If you want to have full SpEL support you would choose the _directory-expression_ attribute.
+This attribute accepts a SpEL expression that is evaluated for each message being processed.
+Thus, you have full access to a Message's payload and its headers to dynamically specify the output file directory.
+
+The SpEL expression must resolve to either a `String` or to `java.io.File`.
+Furthermore the resulting `String` or `File` must point to a directory.
+If you don't specify the_directory-expression_ attribute, then you must set the _directory_ attribute.
+
+*Using the auto-create-directory attribute*
+
+If the destination directory does not exists, yet, by default the respective destination directory and any non-existing parent directories are being created automatically.
+You can set the _auto-create-directory_ attribute to _false_ in order to prevent that.
+This attribute applies to both, the _directory_ and the _directory-expression_ attribute.
+
+[NOTE]
+=====
+When using the _directory_ attribute and _auto-create-directory_ is `false`, the following change was made starting with Spring Integration 2.2:
+
+Instead of checking for the existence of the destination directory at initialization time of the adapter, this check is now performed for each message being processed.
+
+Furthermore, if _auto-create-directory_ is `true` and the directory was deleted between the processing of messages, the directory will be re-created for each message being processed.
+=====
+
+[[file-writing-destination-exists]]
+==== Dealing with Existing Destination Files
+
+When writing files and the destination file already exists, the default behavior is to overwrite that target file.
+This behavior, though, can be changed by setting the _mode_ attribute on the respective File Outbound components.
+The following options exist:
+
+* REPLACE (Default)
+* APPEND
+* FAIL
+* IGNORE
+
+
+
+NOTE: The _mode_ attribute and the options _APPEND_, _FAIL_ and _IGNORE_, are available since _Spring Integration 2.2_.
+
+_REPLACE_
+
+If the target file already exists, it will be overwritten.
+If the _mode_ attribute is not specified, then this is the default behavior when writing files.
+
+_APPEND_
+
+This mode allows you to append Message content to the existing file instead of creating a new file each time.
+Note that this attribute is mutually exclusive with _temporary-file-suffix_ attribute since when appending content to the existing file, the adapter no longer uses a temporary file.
+
+_FAIL_
+
+If the target file exists, a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[MessageHandlingException] is thrown.
+
+_IGNORE_
+
+If the target file exists, the message payload is silently ignored.
+
+NOTE: When using a temporary file suffix (default: `.writing`), the _IGNORE_ mode will apply if the final file name exists, or the temporary file name exists.
+
+[[file-outbound-channel-adapter]]
+==== File Outbound Channel Adapter
+
+[source,xml]
+----
+<int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>
+----
+
+The namespace based configuration also supports a `delete-source-files` attribute.
+If set to `true`, it will trigger the deletion of the original source files after writing to a destination.
+The default value for that flag is `false`.
+
+[source,xml]
+----
+<int-file:outbound-channel-adapter id="filesOut"
+    directory="${output.directory}"
+    delete-source-files="true"/>
+----
+
+NOTE: The `delete-source-files` attribute will only have an effect if the inbound Message has a File payload or if the `FileHeaders.ORIGINAL_FILE` header value contains either the source File instance or a String representing the original file path.
+
+Starting with _version 4.2_ The `FileWritingMessageHandler` supports an `append-new-line` option.
+If set to `true`, a new line is appended to the file after a message is written.
+The default attribute value is `false`.
+
+[source,xml]
+----
+<int-file:outbound-channel-adapter id="newlineAdapter"
+	append-new-line="true"
+    directory="${output.directory}"/>
+----
+
+[[file-writing-output-gateway]]
+==== Outbound Gateway
+
+In cases where you want to continue processing messages based on the written file, you can use the `outbound-gateway` instead.
+It plays a very similar role as the `outbound-channel-adapter`.
+However, after writing the file, it will also send it to the reply channel as the payload of a Message.
+
+[source,xml]
+----
+<int-file:outbound-gateway id="mover" request-channel="moveInput"
+    reply-channel="output"
+    directory="${output.directory}"
+    mode="REPLACE" delete-source-files="true"/>
+----
+
+As mentioned earlier, you can also specify the _mode_ attribute, which defines the behavior of how to deal with situations where the destination file already exists.
+Please see<<file-writing-destination-exists>> for further details.
+Generally, when using the_File Outbound Gateway_, the result file is returned as the Message payload on the reply channel.
+
+This also applies when specifying the _IGNORE_ mode.
+In that case the pre-existing destination file is returned.
+If the payload of the request message was a file, you still have access to that original file through the Message Header http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileHeaders.html[FileHeaders.ORIGINAL_FILE].
+
+NOTE: The 'outbound-gateway' works well in cases where you want to first move a file and then send it through a processing pipeline.
+In such cases, you may connect the file namespace's 'inbound-channel-adapter' element to the 'outbound-gateway' and then connect that gateway's reply-channel to the beginning of the pipeline.
+
+If you have more elaborate requirements or need to support additional payload types as input to be converted to file content you could extend the FileWritingMessageHandler, but a much better option is to rely on a `Transformer`.
+
+[[file-transforming]]
+=== File Transformers
+
+To transform data read from the file system to objects and the other way around you need to do some work.
+Contrary to `FileReadingMessageSource` and to a lesser extent `FileWritingMessageHandler`, it is very likely that you will need your own mechanism to get the job done.
+For this you can implement the`Transformer` interface.
+Or extend the `AbstractFilePayloadTransformer` for inbound messages.
+Some obvious implementations have been provided.
+
+`FileToByteArrayTransformer` transforms Files into byte[]s using Spring's `FileCopyUtils`.
+It is often better to use a sequence of transformers than to put all transformations in a single class.
+In that case the File to byte[] conversion might be a logical first step.
+
+`FileToStringTransformer` will convert Files to Strings as the name suggests.
+If nothing else, this can be useful for debugging (consider using with a Wire Tap).
+
+To configure File specific transformers you can use the appropriate elements from the file namespace.
+
+[source,xml]
+----
+<int-file:file-to-bytes-transformer  input-channel="input" output-channel="output"
+    delete-files="true"/>
+
+<int-file:file-to-string-transformer input-channel="input" output-channel="output"
+    delete-files="true" charset="UTF-8"/>
+----
+
+The _delete-files_ option signals to the transformer that it should delete the inbound File after the transformation is complete.
+This is in no way a replacement for using the`AcceptOnceFileListFilter` when the FileReadingMessageSource is being used in a multi-threaded environment (e.g.
+Spring Integration in general).

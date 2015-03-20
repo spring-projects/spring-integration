@@ -1,0 +1,149 @@
+[[ws]]
+== Web Services Support
+
+[[webservices-outbound]]
+=== Outbound Web Service Gateways
+
+To invoke a Web Service upon sending a message to a channel, there are two options - both of which build upon the http://static.springsource.org/spring-ws/site/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
+The former will accept either a `String` or `javax.xml.transform.Source` as the message payload.
+The latter provides support for any implementation of the `Marshaller` and `Unmarshaller` interfaces.
+Both require a Spring Web Services `DestinationProvider` for determining the URI of the Web Service to be called.
+[source,java]
+----
+ simpleGateway = new SimpleWebServiceOutboundGateway(destinationProvider);
+
+ marshallingGateway = new MarshallingWebServiceOutboundGateway(destinationProvider, marshaller);
+
+----
+
+NOTE: When using the namespace support described below, you will only need to set a URI.
+Internally, the parser will configure a fixed URI DestinationProvider implementation.
+If you do need dynamic resolution of the URI at runtime, however, then the DestinationProvider can provide such behavior as looking up the URI from a registry.
+See the Spring Web Serviceshttp://static.springsource.org/spring-ws/site/apidocs/org/springframework/ws/client/support/destination/DestinationProvider.html[DestinationProvider] JavaDoc for more information about this strategy.
+
+For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://static.springframework.org/spring-ws/site/reference/html/client.html[client access] as well as the chapter covering http://static.springframework.org/spring-ws/site/reference/html/oxm.html[Object/XML mapping].
+
+[[webservices-inbound]]
+=== Inbound Web Service Gateways
+
+To send a message to a channel upon receiving a Web Service invocation, there are two options again: `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway`.
+The former will extract a `javax.xml.transform.Source` from the `WebServiceMessage` and set it as the message payload.
+The latter provides support for implementation of the `Marshaller` and `Unmarshaller` interfaces.
+If the incoming web service message is a SOAP message the SOAP Action header will be added to the headers of the`Message` that is forwarded onto the request channel.
+
+[source,java]
+----
+ simpleGateway = new SimpleWebServiceInboundGateway();
+ simpleGateway.setRequestChannel(forwardOntoThisChannel);
+ simpleGateway.setReplyChannel(listenForResponseHere); //Optional
+
+ marshallingGateway = new MarshallingWebServiceInboundGateway(marshaller);
+ //set request and optionally reply channel
+
+----
+
+Both gateways implement the Spring Web Services `MessageEndpoint` interface, so they can be configured with a `MessageDispatcherServlet` as per standard Spring Web Services configuration.
+
+For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering http://static.springframework.org/spring-ws/site/reference/html/server.html[creating a Web Service].
+The chapter coveringhttp://static.springframework.org/spring-ws/site/reference/html/oxm.html[Object/XML mapping] is also applicable again.
+
+[[webservices-namespace]]
+=== Web Service Namespace Support
+
+To configure an outbound Web Service Gateway, use the "outbound-gateway" element from the "ws" namespace:
+[source,xml]
+----
+<int-ws:outbound-gateway id="simpleGateway"
+                     request-channel="inputChannel"
+                     uri="http://example.org"/>
+----
+
+NOTE: Notice that this example does not provide a 'reply-channel'.
+If the Web Service were to return a non-empty response, the Message containing that response would be sent to the reply channel provided in the request Message's REPLY_CHANNEL header, and if that were not available a channel resolution Exception would be thrown.
+If you want to send the reply to another channel instead, then provide a 'reply-channel' attribute on the 'outbound-gateway' element.
+
+TIP: When invoking a Web Service that returns an empty response after using a String payload for the request Message, _no reply Message will be sent by default_.
+Therefore you don't need to set a 'reply-channel' or have a REPLY_CHANNEL header in the request Message.
+If for any reason you actually _do_ want to receive the empty response as a Message, then provide the 'ignore-empty-responses' attribute with a value of _false_ (this only applies for Strings, because using a Source or Document object simply leads to a NULL response and will therefore_never_ generate a reply Message).
+
+To set up an inbound Web Service Gateway, use the "inbound-gateway":
+[source,xml]
+----
+<int-ws:inbound-gateway id="simpleGateway"
+                    request-channel="inputChannel"/>
+----
+
+To use Spring OXM Marshallers and/or Unmarshallers, provide bean references.
+For outbound:
+[source,xml]
+----
+<int-ws:outbound-gateway id="marshallingGateway"
+                     request-channel="requestChannel"
+                     uri="http://example.org"
+                     marshaller="someMarshaller"
+                     unmarshaller="someUnmarshaller"/>
+----
+
+And for inbound:
+[source,xml]
+----
+<int-ws:inbound-gateway id="marshallingGateway"
+                    request-channel="requestChannel"
+                    marshaller="someMarshaller"
+                    unmarshaller="someUnmarshaller"/>
+----
+
+NOTE: Most `Marshaller` implementations also implement the `Unmarshaller` interface.
+When using such a `Marshaller`, only the "marshaller" attribute is necessary.
+Even when using a `Marshaller`, you may also provide a reference for the "request-callback" on the outbound gateways.
+
+For either outbound gateway type, a "destination-provider" attribute can be specified instead of the "uri" (exactly one of them is required).
+You can then reference any Spring Web Services DestinationProvider implementation (e.g.
+to lookup the URI at runtime from a registry).
+
+For either outbound gateway type, the "message-factory" attribute can also be configured with a reference to any Spring Web Services `WebServiceMessageFactory` implementation.
+
+For the simple inbound gateway type, the "extract-payload" attribute can be set to false to forward the entire `WebServiceMessage` instead of just its payload as a `Message` to the request channel.
+This might be useful, for example, when a custom Transformer works against the `WebServiceMessage` directly.
+
+[[outbound-uri]]
+=== Outbound URI Configuration
+
+For all URI-schemes supported by Spring Web Services (http://static.springsource.org/spring-ws/site/reference/html/client.html#client-transports[URIs and Transports]) `<uri-variable/>` substitution is provided:
+
+[source,xml]
+----
+<ws:outbound-gateway id="gateway" request-channel="input"
+        uri="http://springsource.org/{foo}-{bar}">
+    <ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
+    <ws:uri-variable name="bar" expression="headers.x"/>
+</ws:outbound-gateway>
+
+<ws:outbound-gateway request-channel="inputJms"
+        uri="jms:{destination}?deliveryMode={deliveryMode}&amp;priority={priority}"
+        message-sender="jmsMessageSender">
+    <ws:uri-variable name="destination" expression="headers.jmsQueue"/>
+    <ws:uri-variable name="deliveryMode" expression="headers.deliveryMode"/>
+    <ws:uri-variable name="priority" expression="headers.jms_priority"/>
+</ws:outbound-gateway>
+----
+
+If a `DestinationProvider` is supplied, variable substitution is not supported and a configuration error will result if variables are provided.
+
+_Controlling URI Encoding_
+
+By default, the URL string is encoded (see http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
+In some scenarios with a non-standard URI it is undesirable to perform the encoding.
+Since _version 4.1 _ the `<ws:outbound-gateway/>` provides an `encode-uri` attribute.
+To disable encoding the URL, this attribute should be set to `false` (by default it is `true`).
+If you wish to partially encode some of the URL, this can be achieved using an `expression` within a `<uri-variable/>`:
+[source,xml]
+----
+<ws:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+          <http:uri-variable name="param"
+            expression="T(org.apache.commons.httpclient.util.URIUtil)
+                                             .encodeWithinQuery('Hellow World!')"/>
+</ws:outbound-gateway>
+----
+
+Note, `encode-uri` is ignored, if `DestinationProvider` is supplied.

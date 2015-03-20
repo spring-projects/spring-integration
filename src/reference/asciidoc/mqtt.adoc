@@ -1,0 +1,160 @@
+[[mqtt]]
+== MQTT Support
+
+[[mqtt-intro]]
+=== Introduction
+
+Spring Integration provides inbound and outbound channel adapters supporting the MQ Telemetry Transport (MQTT) protocol.
+The current implementation uses the http://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
+
+Configuration of both adapters is achieved using the `DefaultMqttPahoClientFactory`.
+Refer to the Paho documentation for more information about configuration options.
+
+[[mqtt-inbound]]
+=== Inbound (message-driven) Channel Adapter
+
+The inbound channel adapter is implemented by the `MqttPahoMessageDrivenChannelAdapter`.
+For convenience, it can be configured using the namespace.
+A minimal configuration might be:
+
+[source,xml]
+----
+<bean id="clientFactory"
+		class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+	<property name="userName" value="${mqtt.username}"/>
+	<property name="password" value="${mqtt.password}"/>
+</bean>
+
+<int-mqtt:message-driven-channel-adapter id="mqttInbound"
+	client-id="${mqtt.default.client.id}.src"
+	url="${mqtt.url}"
+	topics="sometopic"
+	client-factory="clientFactory"
+	channel="output"/>
+----
+
+Attributes:
+
+[source]
+----
+<int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
+	client-id="foo"  <1>
+	url="tcp://localhost:1883"  <2>
+	topics="bar,baz"  <3>
+	qos="1,2"  <4>
+	converter="myConverter"  <5>
+	client-factory="clientFactory"  <6>
+	send-timeout="123"  <7>
+	error-channel="errors"  <8>
+	channel="out" />
+----
+
+<1> The client id.
+
+
+<2> The broker URL.
+
+<3> A comma delimited list of topics from which this adapter will receive messages.
+
+
+<4> A comma delimited list of QoS values.
+Can be a single value that is applied to all topics, or a value for each topic (in which case the lists must the same length).
+
+
+<5> An `MqttMessageConverter` (optional).
+The default `DefaultPahoMessageConverter` produces a message with a `String` payload (by default) with the following headers: +
+`mqtt_topic` - the topic from which the message was received +
+`mqtt_duplicate` - true if the message is a duplicate +
+`mqtt_qos` - the quality of service +
+The `DefaultPahoMessageConverter` can be configured to return the raw `byte[]` in the payload by declaring it as a `<bean/>` and setting the `payloadAsBytes` property.
+
+
+<6> The client factory.
+
+
+<7> The send timeout - only applies if the channel might block (such as a bounded `QueueChannel` that is currently full).
+
+
+<8> The error channel - downstream exceptions will be sent to this channel, if supplied, in an `ErrorMessage`; the payload is a `MessagingException` containing the failed message and cause.
+
+NOTE: Starting with _version 4.1_ the url can be omitted and, instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
+This enables, for example, connection to a highly available (HA) cluster.
+
+
+
+==== Adding/Removing Topics at Runtime
+
+Starting with _version 4.1_, it is possible to programmatically change the topics to which the adapter is subscribed.
+Methods `addTopic()` and `removeTopic()` are provided.
+When adding topics, you can optionally specify the `QoS` (default: 1).
+You can also modify the topics by sending an appropriate message to a `<control-bus/>` with an appropriate payload: `"myMqttAdapter.addTopic('foo', 1)"`.
+
+Stopping/starting the adapter has no effect on the topic list (it does *not* revert to the original settings in the configuration).
+The changes are not retained beyond the life cycle of the application context; a new application context will revert to the configured settings.
+
+Changing the topics while the adapter is stopped (or disconnected from the broker) will take effect the next time a connection is established.
+
+[[mqtt-outbound]]
+=== Outbound Channel Adapter
+
+The outbound channel adapter is implemented by the `MqttPahoMessageHandler` which is wrapped in a `ConsumerEndpoint`.
+For convenience, it can be configured using the namespace.
+
+Starting with _version 4.1_, the adapter supports asynchronous sends, avoiding blocking until the delivery is confirmed; application events can be emitted to enable applications to confirm delivery if desired.
+
+Attributes:
+
+[source]
+----
+<int-mqtt:outbound-channel-adapter id="withConverter"
+	client-id="foo"  <1>
+	url="tcp://localhost:1883"  <2>
+	converter="myConverter"  <3>
+	client-factory="clientFactory"  <4>
+	default-qos="1"  <5>
+	default-retained="true"  <6>
+	default-topic="bar"  <7>
+	async="false"  <8>
+	async-events="false"  <9>
+	channel="target" />
+----
+
+<1> The client id.
+
+
+<2> The broker URL.
+
+
+<3> An `MqttMessageConverter` (optional).
+The default `DefaultPahoMessageConverter` recognizes the following headers: +
+`mqtt_topic` - the topic to which the message will be sent +
+`mqtt_retained` - true if the message is to be retained +
+`mqtt_qos` - the quality of service
+
+
+<4> The client factory.
+
+
+<5> The default quality of service (used if no `mqtt_qos` header is found).
+Not allowed if a custom `converter` is supplied.
+
+
+<6> The default value of the retained flag (used if no `mqtt_retaind` header is found).
+Not allowed if a custom `converter` is supplied.
+
+
+<7> The default topic to which the message will be sent (used if no `mqtt_topic` header is found).
+
+
+<8> When `true`, the caller will not block waiting for delivery confirmation when a message is sent.
+Default:false (the send blocks until delivery is confirmed).
+
+
+<9> When `async` and `async-events` are both `true`, an `MqttMessageSentEvent` is emitted, containing the message, the topic, the `messageId` generated by the client library, the `clientId` and the `clientInstance` (incremented each time the client is connected).
+When the delivery is confirmed by the client library, an `MqttMessageDeliveredEvent` is emitted, containing the the `messageId`, `clientId` and the `clientInstance`, enabling delivery to be correlated with the send.
+These events can be received by any `ApplicationListener`, or by an event inbound channel adapter.
+Note that it is possible that the `MqttMessageDeliveredEvent` might be received before the `MqttMessageSentEvent`.
+Default: `false`.
+
+NOTE: Starting with _version 4.1_ the url can be omitted and, instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
+This enables, for example, connection to a highly available (HA) cluster.

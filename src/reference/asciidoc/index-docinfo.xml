@@ -1,0 +1,62 @@
+<productname>Spring Integration</productname>
+<releaseinfo>{spring-integration-version}</releaseinfo>
+    <authorgroup>
+      <author>
+        <firstname>Mark</firstname>
+        <surname>Fisher</surname>
+      </author><author>
+        <firstname>Marius</firstname>
+        <surname>Bogoevici</surname>
+      </author><author>
+        <firstname>Iwein</firstname>
+        <surname>Fuld</surname>
+      </author><author>
+        <firstname>Jonas</firstname>
+        <surname>Partner</surname>
+      </author><author>
+        <firstname>Oleg</firstname>
+        <surname>Zhurakousky</surname>
+      </author><author>
+        <firstname>Gary</firstname>
+        <surname>Russell</surname>
+      </author><author>
+        <firstname>Dave</firstname>
+        <surname>Syer</surname>
+      </author><author>
+        <firstname>Josh</firstname>
+        <surname>Long</surname>
+      </author><author>
+        <firstname>David</firstname>
+        <surname>Turanski</surname>
+      </author><author>
+        <firstname>Gunnar</firstname>
+        <surname>Hillert</surname>
+      </author><author>
+        <firstname>Artem</firstname>
+        <surname>Bilan</surname>
+      </author><author>
+        <firstname>Amol</firstname>
+        <surname>Nayak</surname>
+      </author>
+    </authorgroup>
+
+    <copyright>
+      <year>2009</year>
+      <year>2010</year>
+      <year>2011</year>
+      <year>2012</year>
+      <year>2013</year>
+      <year>2014</year>
+      <year>2015</year>
+      <holder>
+          Pivotal Software, Inc. All Rights Reserved.
+      </holder>
+    </copyright>
+<legalnotice>
+	<para>
+		Copies of this document may be made for your own use and for distribution to
+		others, provided that you do not charge any fee for such copies and further
+		provided that each copy contains this Copyright Notice, whether distributed in
+		print or electronically.
+	</para>
+</legalnotice>

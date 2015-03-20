@@ -1,0 +1,57 @@
+[[feed]]
+== Feed Adapter
+
+Spring Integration provides support for Syndication via Feed Adapters
+
+[[feed-intro]]
+=== Introduction
+
+Web syndication is a form of publishing material such as news stories, press releases, blog posts, and other items typically available on a website but also made available in a feed format such as RSS or ATOM.
+
+Spring integration provides support for Web Syndication via its 'feed' adapter and provides convenient namespace-based configuration for it.
+To configure the 'feed' namespace, include the following elements within the headers of your XML configuration file:
+[source,xml]
+----
+xmlns:int-feed="http://www.springframework.org/schema/integration/feed"
+xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
+	http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"
+----
+
+[[feed-inbound-channel-adapter]]
+=== Feed Inbound Channel Adapter
+
+The only adapter that is really needed to provide support for retrieving feeds is an _inbound channel adapter_.
+This allows you to subscribe to a particular URL.
+Below is an example configuration:
+[source,xml]
+----
+<int-feed:inbound-channel-adapter id="feedAdapter"
+		channel="feedChannel"
+		url="http://feeds.bbci.co.uk/news/rss.xml">
+	<int:poller fixed-rate="10000" max-messages-per-poll="100" />
+</int-feed:inbound-channel-adapter>
+----
+
+In the above configuration, we are subscribing to a URL identified by the `url` attribute.
+
+As news items are retrieved they will be converted to Messages and sent to a channel identified by the `channel` attribute.
+The payload of each message will be a `com.sun.syndication.feed.synd.SyndEntry` instance.
+That encapsulates various data about a news item (content, dates, authors, etc.).
+
+You can also see that the _Inbound Feed Channel Adapter_ is a Polling Consumer.
+That means you have to provide a poller configuration.
+However, one important thing you must understand with regard to Feeds is that its inner-workings are slightly different then most other poling consumers.
+When an Inbound Feed adapter is started, it does the first poll and receives a `com.sun.syndication.feed.synd.SyndEntryFeed` instance.
+That is an object that contains multiple `SyndEntry` objects.
+Each entry is stored in the local entry queue and is released based on the value in the `max-messages-per-poll` attribute such that each Message will contain a single entry.
+If during retrieval of the entries from the entry queue the queue had become empty, the adapter will attempt to update the Feed thereby populating the queue with more entries (SyndEntry instances) if available.
+Otherwise the next attempt to poll for a feed will be determined by the trigger of the poller (e.g., every 10 seconds in the above configuration).
+
+_Duplicate Entries_
+
+Polling for a Feed might result in entries that have already been processed ("I already read that news item, why are you showing it to me again?").
+Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
+Each feed entry will have a _published date_ field.
+Every time a new Message is generated and sent, Spring Integration will store the value of the latest _published date_ in an instance of the `MetadataStore` strategy (<<metadata-store>>).
+
+NOTE: The key used to persist the latest _published date_ is the value of the (required) `id` attribute of the Feed Inbound Channel Adapter component plus the `feedUrl` from the adapter's configuration.

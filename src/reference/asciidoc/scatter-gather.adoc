@@ -1,0 +1,184 @@
+[[scatter-gather]]
+=== Scatter-Gather
+
+[[scatter-gather-introduction]]
+==== Introduction
+
+Starting with _version 4.1_, Spring Integration provides an implementation of the http://www.eaipatterns.com/BroadcastAggregate.html[Scatter-Gather] Enterprise Integration Pattern.
+It is a compound endpoint, where the goal is to send a message to the recipients and aggregate the results.
+Quoting the EIP Book, it is a component for scenarios like_best quote_, when we need to request information from several suppliers and decide which one provides us with the best term for the requested item.
+
+Previously, the pattern could be configured using discrete components, this enhancement brings more convenient configuration.
+
+The `ScatterGatherHandler` is a _request-reply_ endpoint that combines a`PublishSubscribeChannel` (or `RecipientListRouter`) and an `AggregatingMessageHandler`.
+The request message is sent to the `scatter` channel and the `ScatterGatherHandler` waits for the reply from the aggregator to sends to the `outputChannel`.
+
+[[scatter-gather-functionality]]
+==== Functionality
+
+The `Scatter-Gather` pattern suggests two scenarios - _Auction_ and _Distribution_.
+In both cases, the `aggregation` function is the same and provides all options available for the `AggregatingMessageHandler`.
+Actually the `ScatterGatherHandler` just requires an `AggregatingMessageHandler` as a constructor argument.
+See <<aggregator>> for more information.
+
+_Auction_
+
+The _Auction_`Scatter-Gather` variant uses `publish-subscribe` logic for the request message, where the `scatter` channel is a `PublishSubscribeChannel` with `apply-sequence="true"`.
+However, this channel can be any `MessageChannel` implementation as is the case with the `request-channel` in the `ContentEnricher` (see <<content-enricher>>) but, in this case, the end-user should support his own custom `correlationStrategy` for the `aggregation` function.
+
+_Distribution_
+
+The _Distribution_`Scatter-Gather` variant is based on the `RecipientListRouter` (see <<router-implementations-recipientlistrouter>>) with all available options for the `RecipientListRouter`.
+This is the second `ScatterGatherHandler` constructor argument.
+If you want to rely just on the default `correlationStrategy` for the `recipient-list-router` and the `aggregator`, you should specify `apply-sequence="true"`.
+Otherwise, a custom `correlationStrategy` should be supplied for the `aggregator`.
+Unlike the `PublishSubscribeChannel` (_Auction_) variant, having a `recipient-list-router` `selector` option, we can _filter_ target suppliers based on the message.
+With `apply-sequence="true"` the default `sequenceSize` will be supplied and the `aggregator` will be able to release the group correctly.
+The _Distribution_ option is mutually exclusive with the _Auction_ option.
+
+In both cases, the request (_scatter_) message is enriched with the `gatherResultChannel` `QueueChannel` header, to wait for a reply message from the `aggregator`.
+
+By default, all suppliers should send their result to the `replyChannel` header (usually by omitting the `output-channel` from the ultimate endpoint).
+However, the `gatherChannel` option is also provided, allowing suppliers to send their reply to that channel for the aggregation.
+
+[[scatter-gather-namespace]]
+==== Configuring a Scatter-Gather Endpoint
+
+For Java and Annotation configuration, the bean definition for the `Scatter-Gather` is:
+
+[source,java]
+----
+@Bean
+public MessageHandler distributor() {
+	RecipientListRouter router = new RecipientListRouter();
+	router.setApplySequence(true);
+	router.setChannels(Arrays.asList(distributionChannel1(), distributionChannel2(),
+	        distributionChannel3()));
+	return router;
+}
+
+@Bean
+public MessageHandler gatherer() {
+	return new AggregatingMessageHandler(
+			new ExpressionEvaluatingMessageGroupProcessor("^[payload gt 5] ?: -1D"),
+			new SimpleMessageStore(),
+			new HeaderAttributeCorrelationStrategy(
+			       IntegrationMessageHeaderAccessor.CORRELATION_ID),
+			new ExpressionEvaluatingReleaseStrategy("size() == 2"));
+}
+
+@Bean
+@ServiceActivator(inputChannel = "distributionChannel")
+public MessageHandler scatterGatherDistribution() {
+	ScatterGatherHandler handler = new ScatterGatherHandler(distributor(), gatherer());
+	handler.setOutputChannel(output());
+	return handler;
+}
+----
+
+Here, we configure the `RecipientListRouter` `distributor` bean, with `applySequence="true"` and the list of recipient channels.
+The next bean is for an `AggregatingMessageHandler`.
+Finally, we inject both those beans into the `ScatterGatherHandler` bean definition and mark it as a `@ServiceActivator` to wire the Scatter-Gather component into the integration flow.
+
+Configuring the `<scatter-gather>` endpoint using the XML namespace:
+
+[source,xml]
+----
+<scatter-gather
+		id=""  <1>
+		auto-startup=""  <2>
+		input-channel=""  <3>
+		output-channel=""  <4>
+		scatter-channel=""  <5>
+		gather-channel=""  <6>
+		order=""  <7>
+		phase=""  <8>
+		send-timeout=""  <9>
+		gather-timeout=""  <10>
+		requires-reply="" > <11>
+			<scatterer/>  <12>
+			<gatherer/>  <13>
+</scatter-gather>
+----
+
+<1> The id of the Endpoint.
+The `ScatterGatherHandler` bean is registered with `id + '.handler'` alias.
+The `RecipientListRouter` - with `id + '.scatterer'`.
+And the `AggregatingMessageHandler` with `id + '.gatherer'`.
+_Optional_ (a default id is generated value by `BeanFactory`).
+
+
+
+<2> Lifecycle attribute signaling if the Endpoint should be started during Application Context initialization.
+In addition, the `ScatterGatherHandler` also implements `Lifecycle` and starts/stops the `gatherEndpoint`, which is created internally if a `gather-channel` is provided.
+_Optional_ (default is `true`).
+
+
+
+<3> The channel to receive request messages to handle them in the `ScatterGatherHandler`.
+_Required_.
+
+
+
+<4> The channel to which the Scatter-Gather will send the aggregation results.
+_Optional (because incoming messages can specify a
+						reply channel themselves via `replyChannel` Message Header)_.
+
+
+
+<5> The channel to send the scatter message for the _Auction_ scenario.
+_Optional_.
+Mutually exclusive with `<scatterer>` sub -element.
+
+
+
+<6> The channel to receive replies from each supplier for the aggregation.
+is used as the `replyChannel` header in the scatter message.
+_Optional_.
+By default the `FixedSubscriberChannel` is created.
+
+
+
+<7> Order of this component when more than one handler is subscribed to the same DirectChannel (use for load balancing purposes)._Optional_.
+
+
+
+<8> Specify the phase in which the endpoint should be started and stopped.
+The startup order proceeds from lowest to highest, and the shutdown order is the reverse of that.
+By default this value is Integer.MAX_VALUE meaning that this container starts as late as possible and stops as soon as possible._Optional_.
+
+
+
+<9> The timeout interval to wait when sending a reply `Message` to the `output-channel`.
+By default the send will block for one second.
+It applies only if the output channel has some 'sending' limitations, e.g.
+a `QueueChannel` with a fixed 'capacity' and is full.
+In this case, a `MessageDeliveryException` is thrown.
+The `send-timeout` is ignored in case of `AbstractSubscribableChannel` implementations.
+In case of `group-timeout(-expression)` the `MessageDeliveryException` from the scheduled expire task leads this task to be rescheduled.
+_Optional_.
+
+
+
+<10> Allows you to specify how long the Scatter-Gather will wait for the reply message before returning.
+By default it will wait indefinitely.
+'null' is returned if the reply times out.
+_Optional_.
+Defaults to `-1` - indefinitely.
+
+
+
+<11> Specify whether the Scatter-Gather must return a non-null value.
+This value is `true` by default, hence a `ReplyRequiredException` will be thrown when the underlying aggregator returns a null value after `gather-timeout`.
+Note, if `null` is a possibility, the `gather-timeout` should be specified to avoid an indefinite wait.
+
+
+
+<12> The `<recipient-list-router>` options.
+_Optional_.
+Mutually exclusive with `scatter-channel` attribute.
+
+
+
+<13> The `<aggregator>` options.
+_Required_.

@@ -1,0 +1,38 @@
+[[jmx-shutdown]]
+=== Orderly Shutdown
+
+As described in <<jmx-mbean-exporter>>, the MBean exporter provides a JMX operation _stopActiveComponents_, which is used to stop the application in an orderly manner.
+The operation has a single long parameter.
+The parameter indicates how long (in milliseconds) the operation will wait to allow in-flight messages to complete.
+The operation works as follows:
+
+The first step calls `beforeShutdown()` on all beans that implement `OrderlyShutdownCapable`.
+This allows such components to prepare for shutdown.
+Examples of components that implement this interface, and what they do with this call include: JMS and AMQP message-driven adapters stop their listener containers; TCP server connection factories stop accepting new connections (while keeping existing connections open); TCP inbound endpoints drop (log) any new messages received; http inbound endpoints return _503 - Service Unavailable_ for any new requests.
+
+The second step stops any active channels, such as JMS- or AMQP-backed channels.
+
+The third step stops all `MessageSource` s.
+
+The fourth step stops all inbound `MessageProducer` s (that are not `OrderlyShutdownCapable`).
+
+The fifth step waits for any remaining time left, as defined by the value of the long parameter passed in to the operation.
+This is intended to allow any in-flight messages to complete their journeys.
+It is therefore important to select an appropriate timeout when invoking this operation.
+
+The sixth step calls `afterShutdown()` on all OrderlyShutdownCapable components.
+This allows such components to perform final shutdown tasks (closing all open sockets, for example).
+
+As discussed in <<jmx-mbean-shutdown>> this operation can be invoked using JMX.
+If you wish to programmatically invoke the method, you will need to inject, or otherwise get a reference to, the `IntegrationMBeanExporter`.
+If no `id` attribute is provided on the `<int-jmx:mbean-export/>` definition, the bean will have a generated name.
+This name contains a random component to avoid `ObjectName` collisions if multiple Spring Integration contexts exist in the same JVM (MBeanServer).
+
+For this reason, if you wish to invoke the method programmatically, it is recommended that you provide the exporter with an `id` attribute so it can easily be accessed in the application context.
+
+Finally, the operation can be invoked using the `<control-bus>`; see the https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/monitoring[monitoring Spring Integration sample application] for details.
+
+IMPORTANT: The above algorithm was improved in _version 4.1_.
+Previously, all task executors and schedulers were stopped.
+This could cause mid-flow messages in `QueueChannel` s to remain.
+Now, the shutdown leaves pollers running in order to allow these messages to be drained and processed.

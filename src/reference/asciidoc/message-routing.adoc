@@ -1,0 +1,18 @@
+[[messaging-routing-chapter]]
+== Message Routing
+
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+include::./router.adoc[]
+
+include::./filter.adoc[]
+
+include::./splitter.adoc[]
+
+include::./aggregator.adoc[]
+
+include::./resequencer.adoc[]
+
+include::./chain.adoc[]
+
+include::./scatter-gather.adoc[]
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297

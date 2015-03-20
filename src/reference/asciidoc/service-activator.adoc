@@ -1,0 +1,108 @@
+[[service-activator]]
+=== Service Activator
+
+[[service-activator-introduction]]
+==== Introduction
+
+The Service Activator is the endpoint type for connecting any Spring-managed Object to an input channel so that it may play the role of a service.
+If the service produces output, it may also be connected to an output channel.
+Alternatively, an output producing service may be located at the end of a processing pipeline or message flow in which case, the inbound Message's "replyChannel" header can be used.
+This is the default behavior if no output channel is defined, and as with most of the configuration options you'll see here, the same behavior actually applies for most of the other components we have seen.
+
+[[service-activator-namespace]]
+==== Configuring Service Activator
+
+To create a Service Activator, use the 'service-activator' element with the 'input-channel' and 'ref' attributes:
+[source,xml]
+----
+<int:service-activator input-channel="exampleChannel" ref="exampleHandler"/>
+----
+
+The configuration above assumes that "exampleHandler" either contains a single method annotated with the @ServiceActivator annotation or that it contains only one public method at all.
+To delegate to an explicitly defined method of any object, simply add the "method" attribute.
+
+[source,xml]
+----
+<int:service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/>
+----
+
+In either case, when the service method returns a non-null value, the endpoint will attempt to send the reply message to an appropriate reply channel.
+To determine the reply channel, it will first check if an "output-channel" was provided in the endpoint configuration:
+[source,xml]
+----
+<int:service-activator input-channel="exampleChannel" output-channel="replyChannel"
+                       ref="somePojo" method="someMethod"/>
+----
+
+If no "output-channel" is available, it will then check the Message's `replyChannel` header value.
+If that value is available, it will then check its type.
+If it is a`MessageChannel`, the reply message will be sent to that channel.
+If it is a `String`, then the endpoint will attempt to resolve the channel name to a channel instance.
+If the channel cannot be resolved, then a `DestinationResolutionException` will be thrown.
+It it can be resolved, the Message will be sent there.
+This is the technique used for Request Reply messaging in Spring Integration, and it is also an example of the Return Address pattern.
+
+The argument in the service method could be either a Message or an arbitrary type.
+If the latter, then it will be assumed that it is a Message payload, which will be extracted from the message and injected into such service method.
+This is generally the recommended approach as it follows and promotes a POJO model when working with Spring Integration.
+Arguments may also have @Header or @Headers annotations as described in <<annotations>>
+
+NOTE: The service method is not required to have any arguments at all, which means you can implement event-style Service Activators, where all you care about is an invocation of the service method, not worrying about the contents of the message.
+Think of it as a NULL JMS message.
+An example use-case for such an implementation could be a simple counter/monitor of messages deposited on the input channel.
+
+Starting with _version 4.1_ the framework correct converts Message properties (`payload` and `headers`) to the Java 8 `Optional` POJO method parameters:
+[source,java]
+----
+public class MyBean {
+    public String computeValue(Optional<String> payload,
+               @Header(value="foo", required=false) String foo1,
+               @Header(value="foo") Optional<String> foo2) {
+        if (payload.isPresent()) {
+            String value = payload.get();
+            ...
+        }
+        else {
+           ...
+       }
+    }
+
+}
+----
+
+Using a "ref" attribute is generally recommended if the custom Service Activator handler implementation can be reused in other `<service-activator>` definitions.
+However if the custom Service Activator handler implementation is only used within a single definition of the `<service-activator>`, you can provide an inner bean definition:
+[source,xml]
+----
+<int:service-activator id="exampleServiceActivator" input-channel="inChannel"
+            output-channel = "outChannel" method="foo">
+    <beans:bean class="org.foo.ExampleServiceActivator"/>
+</int:service-activator>
+----
+
+NOTE: Using both the "ref" attribute and an inner handler definition in the same `<service-activator>` configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+
+_Service Activators and the Spring Expression Language (SpEL)_
+
+Since Spring Integration 2.0, Service Activators can also benefit from SpEL (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
+
+For example, you may now invoke any bean method without pointing to the bean via a `ref` attribute or including it as an inner bean definition.
+For example:
+[source,xml]
+----
+<int:service-activator input-channel="in" output-channel="out"
+	expression="@accountService.processAccount(payload, headers.accountId)"/>
+
+	<bean id="accountService" class="foo.bar.Account"/>
+----
+
+In the above configuration instead of injecting 'accountService' using a `ref` or as an inner bean, we are simply using SpEL's `@beanId` notation and invoking a method which takes a type compatible with Message payload.
+We are also passing a header value.
+As you can see, any valid SpEL expression can be evaluated against any content in the Message.
+For simple scenarios your _Service Activators_ do not even have to reference a bean if all logic can be encapsulated by such an expression.
+[source,xml]
+----
+<int:service-activator input-channel="in" output-channel="out" expression="payload * 2"/>
+----
+
+In the above configuration our service logic is to simply multiply the payload value by 2, and SpEL lets us handle it relatively easy.

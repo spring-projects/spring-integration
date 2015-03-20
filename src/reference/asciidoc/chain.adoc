@@ -1,0 +1,161 @@
+[[chain]]
+=== Message Handler Chain
+
+[[chain-introduction]]
+==== Introduction
+
+The `MessageHandlerChain` is an implementation of `MessageHandler` that can be configured as a single Message Endpoint while actually delegating to a chain of other handlers, such as Filters, Transformers, Splitters, and so on.
+This can lead to a much simpler configuration when several handlers need to be connected in a fixed, linear progression.
+For example, it is fairly common to provide a Transformer before other components.
+Similarly, when providing a _Filter_ before some other component in a chain, you are essentially creating a http://www.eaipatterns.com/MessageSelector.html[Selective Consumer].
+In either case, the chain only requires a single `input-channel` and a single `output-channel` eliminating the need to define channels for each individual component.
+
+TIP: Spring Integration's `Filter` provides a boolean property `throwExceptionOnRejection`.
+When providing multiple Selective Consumers on the same point-to-point channel with different acceptance criteria, this value should be set to 'true' (the default is false) so that the dispatcher will know that the Message was rejected and as a result will attempt to pass the Message on to other subscribers.
+If the Exception were not thrown, then it would appear to the dispatcher as if the Message had been passed on successfully even though the Filter had _dropped_ the Message to prevent further processing.
+If you do indeed want to "drop" the Messages, then the Filter's 'discard-channel' might be useful since it does give you a chance to perform some operation with the dropped message (e.g.
+send to a JMS queue or simply write to a log).
+
+The handler chain simplifies configuration while internally maintaining the same degree of loose coupling between components, and it is trivial to modify the configuration if at some point a non-linear arrangement is required.
+
+Internally, the chain will be expanded into a linear setup of the listed endpoints, separated by anonymous channels.
+The reply channel header will not be taken into account within the chain: only after the last handler is invoked will the resulting message be forwarded on to the reply channel or the chain's output channel.
+Because of this setup all handlers except the last required to implement the MessageProducer interface (which provides a 'setOutputChannel()' method).
+The last handler only needs an output channel if the outputChannel on the MessageHandlerChain is set.
+
+NOTE: As with other endpoints, the `output-channel` is optional.
+If there is a reply Message at the end of the chain, the output-channel takes precedence, but if not available, the chain handler will check for a reply channel header on the inbound Message as a fallback.
+
+In most cases there is no need to implement MessageHandlers yourself.
+The next section will focus on namespace support for the chain element.
+Most Spring Integration endpoints, like Service Activators and Transformers, are suitable for use within a `MessageHandlerChain`.
+
+[[chain-namespace]]
+==== Configuring a Chain
+
+The <chain> element provides an `input-channel` attribute, and if the last element in the chain is capable of producing reply messages (optional), it also supports an `output-channel` attribute.
+The sub-elements are then filters, transformers, splitters, and service-activators.
+The last element may also be a router or an outbound-channel-adapter.
+[source,xml]
+----
+<int:chain input-channel="input" output-channel="output">
+    <int:filter ref="someSelector" throw-exception-on-rejection="true"/>
+    <int:header-enricher>
+        <int:header name="foo" value="bar"/>
+    </int:header-enricher>
+    <int:service-activator ref="someService" method="someMethod"/>
+</int:chain>
+----
+
+The <header-enricher> element used in the above example will set a message header named "foo" with a value of "bar" on the message.
+A header enricher is a specialization of `Transformer` that touches only header values.
+You could obtain the same result by implementing a MessageHandler that did the header modifications and wiring that as a bean, but the header-enricher is obviously a simpler option.
+
+The <chain> can be configured as the last 'black-box' consumer of the message flow.
+For this solution it is enough to put at the end of the <chain> some <outbound-channel-adapter>:
+[source,xml]
+----
+<int:chain input-channel="input">
+    <si-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
+    <int:service-activator ref="someService" method="someMethod"/>
+    <int:header-enricher>
+        <int:header name="foo" value="bar"/>
+    </int:header-enricher>
+    <int:logging-channel-adapter level="INFO" log-full-message="true"/>
+</int:chain>
+----
+
+_Disallowed Attributes and Elements_
+
+It is important to note that certain attributes, such as *order* and *input-channel* are not allowed to be specified on components used within a _chain_.
+The same is true for the *poller* sub-element.
+
+[IMPORTANT]
+=====
+For the _Spring Integration_ core components, the XML Schema itself will enforce some of these constraints.
+However, for non-core components or your own custom components, these constraints are enforced by the XML namespace parser, not by the XML Schema.
+
+These XML namespace parser constraints were added with _Spring Integration 2.2_.
+The XML namespace parser will throw an `BeanDefinitionParsingException` if you try to use disallowed attributes and elements.
+=====
+
+_'id' Attribute_
+
+Beginning with Spring Integration 3.0, if a chain element is given an _id_, the bean name for the element is a combination of the chain's _id_ and the _id_ of the element itself.
+Elements without an _id_ are not registered as beans, but they are given `componentName` s that include the chain id.
+For example:
+[source,xml]
+----
+<int:chain id="fooChain" input-channel="input">
+    <int:service-activator id="fooService" ref="someService" method="someMethod"/>
+    <int:object-to-json-transformer/>
+</int:chain>
+----
+
+
+
+* The `<chain>` root element has an _id_ 'fooChain'.
+So, the `AbstractEndpoint` implementation (`PollingConsumer` or `EventDrivenConsumer`, depending on the _input-channel_ type) bean takes this value as it's bean name.
+
+* The `MessageHandlerChain` bean acquires a bean alias 'fooChain.handler', which allows direct access to this bean from the `BeanFactory`.
+
+* The `<service-activator>` is not a fully-fledged Messaging Endpoint (`PollingConsumer` or `EventDrivenConsumer`) - it is simply a `MessageHandler` within the `<chain>`.
+In this case, the bean name registered with the `BeanFactory` is 'fooChain$child.fooService.handler'.
+
+* The _componentName_ of this `ServiceActivatingHandler` takes the same value, but without the '.handler' suffix - 'fooChain$child.fooService'.
+
+* The last `<chain>` sub-component, `<object-to-json-transformer>`, doesn't have an _id_ attribute.
+Its _componentName_ is based on its position in the `<chain>`.
+In this case, it is 'fooChain$child#1'.
+(The final element of the name is the order within the chain, beginning with '#0').
+Note, this transformer isn't registered as a bean within the application context, so, it doesn't get a _beanName_, however its _componentName_ has a value which is useful for logging etc.
+
+The _id_ attribute for `<chain>` elements allows them to be eligible for <<jmx-mbean-exporter,JMX export>> and they are trackable via <<message-history,Message History>>.
+They can also be accessed from the `BeanFactory` using the appropriate bean name as discussed above.
+
+TIP: It is useful to provide an explicit _id_ attribute on `<chain>` s to simplify the identification of sub-components in logs, and to provide access to them from the `BeanFactory` etc.
+
+_Calling a Chain from within a Chain_
+
+Sometimes you need to make a nested call to another chain from within a chain and then come back and continue execution within the original chain.
+To accomplish this you can utilize a Messaging Gateway by including a <gateway> element.
+For example:
+
+[source,xml]
+----
+<int:chain id="main-chain" input-channel="in" output-channel="out">
+    <int:header-enricher>
+      <int:header name="name" value="Many" />
+    </int:header-enricher>
+    <int:service-activator>
+      <bean class="org.foo.SampleService" />
+    </int:service-activator>
+    <int:gateway request-channel="inputA"/>  
+</int:chain>
+
+<int:chain id="nested-chain-a" input-channel="inputA">
+    <int:header-enricher>
+        <int:header name="name" value="Moe" />
+    </int:header-enricher>
+    <int:gateway request-channel="inputB"/> 
+    <int:service-activator>
+        <bean class="org.foo.SampleService" />
+    </int:service-activator>
+</int:chain>
+
+<int:chain id="nested-chain-b" input-channel="inputB">
+    <int:header-enricher>
+        <int:header name="name" value="Jack" />
+    </int:header-enricher>
+    <int:service-activator>
+        <bean class="org.foo.SampleService" />
+    </int:service-activator>
+</int:chain>
+----
+
+In the above example the _nested-chain-a_ will be called at the end of _main-chain_ processing by the 'gateway' element configured there.
+While in _nested-chain-a_ a call to a _nested-chain-b_ will be made after header enrichment and then it will come back to finish execution in _nested-chain-b_.
+Finally the flow returns to the _main-chain_.
+When the nested version of a <gateway> element is defined in the chain, it does not require the `service-interface` attribute.
+Instead, it simple takes the message in its current state and places it on the channel defined via the `request-channel` attribute.
+When the downstream flow initiated by that gateway completes, a `Message` will be returned to the gateway and continue its journey within the current chain.

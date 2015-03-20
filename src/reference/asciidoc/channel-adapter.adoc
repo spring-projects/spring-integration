@@ -1,0 +1,142 @@
+[[channel-adapter]]
+=== Channel Adapter
+
+A Channel Adapter is a Message Endpoint that enables connecting a single sender or receiver to a Message Channel.
+Spring Integration provides a number of adapters out of the box to support various transports, such as JMS, File, HTTP, Web Services, Mail, and more.
+Those will be discussed in upcoming chapters of this reference guide.
+However, this chapter focuses on the simple but flexible Method-invoking Channel Adapter support.
+There are both inbound and outbound adapters, and each may be configured with XML elements provided in the core namespace.
+These provide an easy way to extend Spring Integration as long as you have a method that can be invoked as either a source or destination.
+
+[[channel-adapter-namespace-inbound]]
+==== Configuring An Inbound Channel Adapter
+
+An "inbound-channel-adapter" element can invoke any method on a Spring-managed Object and send a non-null return value to a `MessageChannel` after converting it to a `Message`.
+When the adapter's subscription is activated, a poller will attempt to receive messages from the source.
+The poller will be scheduled with the `TaskScheduler` according to the provided configuration.
+To configure the polling interval or cron expression for an individual channel-adapter, provide a 'poller' element with one of the scheduling attributes, such as 'fixed-rate' or 'cron'.
+
+[source,xml]
+----
+<int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
+    <int:poller fixed-rate="5000"/>
+</int:inbound-channel-adapter>
+
+<int:inbound-channel-adapter ref="source2" method="method2" channel="channel2">
+    <int:poller cron="30 * 9-17 * * MON-FRI"/>
+</int:channel-adapter>
+----
+
+Also see <<channel-adapter-expressions-and-scripts>>.
+
+NOTE: If no poller is provided, then a single default poller must be registered within the context.
+See <<endpoint-namespace>> for more detail.
+
+[IMPORTANT]
+.Important: Poller Configuration
+=====
+
+
+Some `inbound-channel-adapter` types are backed by a `SourcePollingChannelAdapter` which means they contain Poller configuration which will poll the `MessageSource` (invoke a custom method which produces the value that becomes a `Message` payload) based on the configuration specified in the Poller.
+
+For example:
+
+
+[source,xml]
+----
+<int:poller max-messages-per-poll="1" fixed-rate="1000"/>
+
+<int:poller max-messages-per-poll="10" fixed-rate="1000"/>
+----
+
+In the the first configuration the polling task will be invoked once per poll and during such task (poll) the method (which results in the production of the Message) will be invoked once based on the `max-messages-per-poll` attribute value.
+In the second configuration the polling task will be invoked 10 times per poll or until it returns 'null' thus possibly producing 10 Messages per poll while each poll happens at 1 second intervals.
+However what if the configuration looks like this:
+
+
+[source,xml]
+----
+<int:poller fixed-rate="1000"/>
+----
+
+Note there is no `max-messages-per-poll` specified.
+As you'll learn later the identical poller configuration in the `PollingConsumer` (e.g., service-activator, filter, router etc.) would have a default value of -1 for `max-messages-per-poll` which means "execute poling task non-stop unless polling method returns null (e.g., no more Messages in the QueueChannel)" and then sleep for 1 second.
+
+However in the SourcePollingChannelAdapter it is a bit different.
+The default value for `max-messages-per-poll` will be set to 1 by default unless you explicitly set it to a negative value (e.g., -1).
+It is done so to make sure that poller can react to a LifeCycle events (e.g., start/stop) and prevent it from potentially spinning in the infinite loop if the implementation of the custom method of the `MessageSource` has a potential to never return null and happened to be non-interruptible.
+
+However if you are sure that your method can return null and you need the behavior where you want to poll for as many sources as available per each poll, then you should explicitly set `max-messages-per-poll` to a negative value.
+
+
+[source,xml]
+----
+<int:poller max-messages-per-poll="-1" fixed-rate="1000"/>
+----
+=====
+
+[[channel-adapter-namespace-outbound]]
+==== Configuring An Outbound Channel Adapter
+
+An "outbound-channel-adapter" element can also connect a `MessageChannel` to any POJO consumer method that should be invoked with the payload of Messages sent to that channel.
+[source,xml]
+----
+<int:outbound-channel-adapter channel="channel1" ref="target" method="handle"/>
+
+<beans:bean id="target" class="org.Foo"/>
+
+----
+
+If the channel being adapted is a `PollableChannel`, provide a poller sub-element:
+[source,xml]
+----
+<int:outbound-channel-adapter channel="channel2" ref="target" method="handle">
+    <int:poller fixed-rate="3000" />
+</int:outbound-channel-adapter>
+
+<beans:bean id="target" class="org.Foo"/>
+
+----
+
+Using a "ref" attribute is generally recommended if the POJO consumer implementation can be reused in other `<outbound-channel-adapter>` definitions.
+However if the consumer implementation is only referenced by a single definition of the `<outbound-channel-adapter>`, you can define it as inner bean:
+[source,xml]
+----
+<int:outbound-channel-adapter channel="channel" method="handle">
+    <beans:bean class="org.Foo"/>
+</int:outbound-channel-adapter>
+
+----
+
+NOTE: Using both the "ref" attribute and an inner handler definition in the same `<outbound-channel-adapter>` configuration is not allowed as it creates an ambiguous condition.
+Such a configuration will result in an Exception being thrown.
+
+Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an instance of `DirectChannel`.
+The created channel's name will match the "id" attribute of the `<inbound-channel-adapter>` or `<outbound-channel-adapter>` element.
+Therefore, if the "channel" is not provided, the "id" is required.
+
+[[channel-adapter-expressions-and-scripts]]
+==== Channel Adapter Expressions and Scripts
+
+Like many other Spring Integration components, the `<inbound-channel-adapter>` and `<outbound-channel-adapter>` also provide support for SpEL expression evaluation.
+To use SpEL, provide the expression string via the 'expression' attribute instead of providing the 'ref' and 'method' attributes that are used for method-invocation on a bean.
+When an Expression is evaluated, it follows the same contract as method-invocation where: the _expression_ for an `<inbound-channel-adapter>` will generate a message anytime the evaluation result is a _non-null_ value, while the _expression_ for an `<outbound-channel-adapter>` must be the equivalent of a _void_ returning method invocation.
+
+Starting with Spring Integration 3.0, an `<int:inbound-channel-adapter/>` can also be configured with a SpEL `<expression/>` (or even with `<script/>`) sub-element, for when more sophistication is required than can be achieved with the simple 'expression' attribute.
+If you provide a script as a `Resource` using the `location` attribute, you can also set the _refresh-check-delay_ allowing the resource to be refreshed periodically.
+If you want the script to be checked on each poll, you would need to coordinate this setting with the poller's trigger:
+
+[source,xml]
+----
+<int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
+    <int:poller max-messages-per-poll="1" fixed-delay="5000"/>
+    <script:script lang="ruby" location="Foo.rb" refresh-check-delay="5000"/>
+</int:inbound-channel-adapter>
+----
+
+Also see the `cacheSeconds` property on the `ReloadableResourceBundleExpressionSource` when using the `<expression/>` sub-element.
+For more information regarding expressions see <<spel>>, and for scripts - <<groovy>> and <<scripting>>.
+
+IMPORTANT: The `<int:inbound-channel-adapter/>` is an endpoint that starts a message flow via periodic triggering to poll some underlying `MessageSource`.
+Since, at the time of polling, there is not yet a message object, expressions and scripts don't have access to a root `Message`, so there are no _payload_ or _headers_ properties that are available in most other messaging SpEL expressions.
+Of course, the script *can* generate and return a complete `Message` object with headers and payload, or just a payload, which will be added to a message with basic headers.

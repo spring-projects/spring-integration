@@ -1,0 +1,764 @@
+[[aggregator]]
+=== Aggregator
+
+[[aggregator-introduction]]
+==== Introduction
+
+Basically a mirror-image of the Splitter, the Aggregator is a type of Message Handler that receives multiple Messages and combines them into a single Message.
+In fact, an Aggregator is often a downstream consumer in a pipeline that includes a Splitter.
+
+Technically, the Aggregator is more complex than a Splitter, because it is stateful as it must hold the Messages to be aggregated and determine when the complete group of Messages is ready to be aggregated.
+In order to do this it requires a `MessageStore`.
+
+[[aggregator-functionality]]
+==== Functionality
+
+The Aggregator combines a group of related messages, by correlating and storing them, until the group is deemed complete.
+At that point, the Aggregator will create a single message by processing the whole group, and will send the aggregated message as output.
+
+Implementing an Aggregator requires providing the logic to perform the aggregation (i.e., the creation of a single message from many).
+Two related concepts are correlation and release.
+
+Correlation determines how messages are grouped for aggregation.
+In Spring Integration correlation is done by default based on the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header.
+Messages with the same `IntegrationMessageHeaderAccessor.CORRELATION_ID` will be grouped together.
+However, the correlation strategy may be customized to allow other ways of specifying how the messages should be grouped together by implementing a `CorrelationStrategy` (see below).
+
+To determine the point at which a group of messages is ready to be processed, a `ReleaseStrategy` is consulted.
+The default release strategy for the Aggregator will release a group when all messages included in a sequence are present, based on the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header.
+This default strategy may be overridden by providing a reference to a custom `ReleaseStrategy` implementation.
+
+[[aggregator-api]]
+==== Programming model
+
+The Aggregation API consists of a number of classes:
+
+* The interface `MessageGroupProcessor`, and its subclasses:`MethodInvokingAggregatingMessageGroupProcessor` and `ExpressionEvaluatingMessageGroupProcessor`
+
+* The `ReleaseStrategy` interface and its default implementation `SequenceSizeReleaseStrategy`
+
+* The `CorrelationStrategy` interface and its default implementation `HeaderAttributeCorrelationStrategy`
+
+
+
+===== AggregatingMessageHandler
+
+The `AggregatingMessageHandler` (subclass of `AbstractCorrelatingMessageHandler`) is a `MessageHandler` implementation, encapsulating the common functionalities of an Aggregator (and other correlating use cases), which are:
+
+* correlating messages into a group to be aggregated
+
+* maintaining those messages in a `MessageStore` until the group can be released
+
+* deciding when the group can be released
+
+* aggregating the released group into a single message
+
+* recognizing and responding to an expired group
+
+
+
+The responsibility of deciding how the messages should be grouped together is delegated to a `CorrelationStrategy` instance.
+The responsibility of deciding whether the message group can be released is delegated to a `ReleaseStrategy` instance.
+
+Here is a brief highlight of the base `AbstractAggregatingMessageGroupProcessor` (the responsibility of implementing the `aggregatePayloads` method is left to the developer):
+
+[source,java]
+----
+public abstract class AbstractAggregatingMessageGroupProcessor
+              implements MessageGroupProcessor {
+
+    protected Map<String, Object> aggregateHeaders(MessageGroup group) {
+        // default implementation exists
+    }
+
+    protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);
+
+}
+----
+
+The `CorrelationStrategy` is owned by the `AbstractCorrelatingMessageHandler` and it has a default value based on the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header:
+
+[source,java]
+----
+public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
+        CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+    ...
+    this.correlationStrategy = correlationStrategy == null ?
+        new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
+    this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
+    ...
+}
+----
+
+As for actual processing of the message group, the default implementation is the `DefaultAggregatingMessageGroupProcessor`.
+It creates a single Message whose payload is a List of the payloads received for a given group.
+This works well for simple Scatter Gather implementations with either a Splitter, Publish Subscribe Channel, or Recipient List Router upstream.
+
+NOTE: When using a Publish Subscribe Channel or Recipient List Router in this type of scenario, be sure to enable the flag to `apply-sequence`.
+That will add the necessary headers (CORRELATION_ID, SEQUENCE_NUMBER and SEQUENCE_SIZE).
+That behavior is enabled by default for Splitters in Spring Integration, but it is not enabled for the Publish Subscribe Channel or Recipient List Router because those components may be used in a variety of contexts in which these headers are not necessary.
+
+When implementing a specific aggregator strategy for an application, a developer can extend `AbstractAggregatingMessageGroupProcessor` and implement the `aggregatePayloads` method.
+However, there are better solutions, less coupled to the API, for implementing the aggregation logic which can be configured easily either through XML or through annotations.
+
+In general, any POJO can implement the aggregation algorithm if it provides a method that accepts a single `java.util.List` as an argument (parameterized lists are supported as well).
+This method will be invoked for aggregating messages as follows:
+
+* if the argument is a `java.util.List<T>`, and the parameter type T is assignable to `Message`, then the whole list of messages accumulated for aggregation will be sent to the aggregator
+
+* if the argument is a non-parameterized `java.util.List` or the parameter type is not assignable to `Message`, then the method will receive the payloads of the accumulated messages
+
+* if the return type is not assignable to `Message`, then it will be treated as the payload for a Message that will be created automatically by the framework.
+
+
+
+NOTE: In the interest of code simplicity, and promoting best practices such as low coupling, testability, etc., the preferred way of implementing the aggregation logic is through a POJO, and using the XML or annotation support for configuring it in the application.
+
+===== ReleaseStrategy
+
+The `ReleaseStrategy` interface is defined as follows:
+
+[source,java]
+----
+public interface ReleaseStrategy {
+
+  boolean canRelease(MessageGroup group);
+
+}
+----
+
+In general, any POJO can implement the completion decision logic if it provides a method that accepts a single `java.util.List` as an argument (parameterized lists are supported as well), and returns a boolean value.
+This method will be invoked after the arrival of each new message, to decide whether the group is complete or not, as follows:
+
+if the argument is a `java.util.List<T>`, and the parameter type T is assignable to `Message`, then the whole list of messages accumulated in the group will be sent to the method
+
+
+
+if the argument is a non-parametrized `java.util.List` or the parameter type is not assignable to `Message`, then the method will receive the payloads of the accumulated messages
+
+
+
+the method must return true if the message group is ready for aggregation, and false otherwise.
+
+
+
+For example:
+
+[source,java]
+----
+public class MyReleaseStrategy {
+
+    @ReleaseStrategy
+    public boolean canMessagesBeReleased(List<Message<?>>) {...}
+}
+----
+
+[source,java]
+----
+public class MyReleaseStrategy {
+
+    @ReleaseStrategy
+    public boolean canMessagesBeReleased(List<String>) {...}
+}
+----
+
+As you can see based on the above signatures, the POJO-based Release Strategy will be passed a `Collection` of not-yet-released Messages (if you need access to the whole `Message`) or a `Collection` of payload objects (if the type parameter is anything other than `Message`).
+Typically this would satisfy the majority of use cases.
+However if, for some reason, you need to access the full `MessageGroup` then you should simply provide an implementation of the `ReleaseStrategy` interface.
+
+[WARNING]
+=====
+When handling potentially large groups, it is important to understand how these methods are invoked because the release strategy may be invoked multiple times before the group is released.
+The most efficient is an implementation of `ReleaseStrategy` because the aggregator can invoke it directly.
+The second most efficient is a POJO method with a `Collection<Message<?>>` parameter type.
+The least efficient is a POJO method with a `Collection<Foo>` type - the framework has to copy the payloads from the messages in the group into a new collection (and possibly attempt conversion on the payloads to `Foo`) every time the release strategy is called.
+`Collection<?>` avoids the conversion but still requires creating the new `Collection`.
+
+*For these reasons, for large groups, it is recommended that you implement
+	`ReleaseStrategy`.*
+=====
+
+When the group is released for aggregation, all its not-yet-released messages are processed and removed from the group.
+If the group is also complete (i.e.
+if all messages from a sequence have arrived or if there is no sequence defined), then the group is marked as complete.
+Any new messages for this group will be sent to the discard channel (if defined).
+Setting `expire-groups-upon-completion` to `true` (default is `false`) removes the entire group and any new messages, with the same correlation id as the removed group, will form a new group.
+Partial sequences can be released by using a `MessageGroupStoreReaper` together with `send-partial-result-on-expiry` being set to `true`.
+
+IMPORTANT: To facilitate discarding of late-arriving messages, the aggregator must maintain state about the group after it has been released.
+This can eventually cause out of memory conditions.
+To avoid such situations, you should consider configuring a `MessageGroupStoreReaper` to remove the group metadata; the expiry parameters should be set to expire groups after it is not expected that late messages will arrive.
+For information about configuring a reaper, see<<reaper>>.
+
+Spring Integration provides an out-of-the box implementation for `ReleaseStrategy`, the `SequenceSizeReleaseStrategy`.
+This implementation consults the SEQUENCE_NUMBER and SEQUENCE_SIZE headers of each arriving message to decide when a message group is complete and ready to be aggregated.
+As shown above, it is also the default strategy.
+
+===== CorrelationStrategy
+
+The `CorrelationStrategy` interface is defined as follows:
+
+[source,java]
+----
+public interface CorrelationStrategy {
+
+  Object getCorrelationKey(Message<?> message);
+
+}
+----
+
+The method returns an Object which represents the correlation key used for associating the message with a message group.
+The key must satisfy the criteria used for a key in a Map with respect to the implementation of equals() and hashCode().
+
+In general, any POJO can implement the correlation logic, and the rules for mapping a message to a method's argument (or arguments) are the same as for a `ServiceActivator` (including support for @Header annotations).
+The method must return a value, and the value must not be `null`.
+
+Spring Integration provides an out-of-the box implementation for `CorrelationStrategy`, the `HeaderAttributeCorrelationStrategy`.
+This implementation returns the value of one of the message headers (whose name is specified by a constructor argument) as the correlation key.
+By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` returning the value of the CORRELATION_ID header attribute.
+If you have a custom header name you would like to use for correlation, then simply configure that on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the Aggregator's correlation-strategy.
+
+[[aggregator-config]]
+==== Configuring an Aggregator
+
+[[aggregator-xml]]
+===== Configuring an Aggregator with XML
+
+Spring Integration supports the configuration of an aggregator via XML through the `<aggregator/>` element.
+Below you can see an example of an aggregator.
+
+[source,xml]
+----
+<channel id="inputChannel"/>
+
+<int:aggregator id=""myAggregator"  <1>
+		auto-startup="true"  <2>
+		input-channel="inputChannel"  <3>
+		output-channel="outputChannel"  <4>
+		discard-channel="throwAwayChannel"  <5>
+		message-store="persistentMessageStore"  <6>
+		order="1"  <7>
+		send-partial-result-on-expiry="false"  <8>
+		send-timeout="1000"  <9>
+
+		correlation-strategy="correlationStrategyBean"  <10>
+		correlation-strategy-method="correlate"  <11>
+		correlation-strategy-expression="headers['foo']"  <12>
+
+		ref="aggregatorBean"  <13>
+		method="aggregate"  <14>
+
+		release-strategy="releaseStrategyBean"  <15>
+		release-strategy-method="release"  <16>
+		release-strategy-expression="size() == 5"  <17>
+
+		expire-groups-upon-completion="false"  <18>
+		empty-group-min-timeout="60000"  <19>
+
+		lock-registry="lockRegistry"  <20>
+
+		group-timeout="60000"  <21>
+		group-timeout-expression="size() ge 2 ? 100 : -1"  <22>
+		expire-groups-on-timeout="true"  <23>
+
+		scheduler="taskScheduler" >  <24>
+			<expire-transactional/>  <25>
+			<expire-advice-chain/>  <26>
+</aggregator>
+
+<int:channel id="outputChannel"/>
+
+<int:channel id="throwAwayChannel"/>
+
+<bean id="persistentMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
+	<constructor-arg ref="dataSource"/>
+</bean>
+
+<bean id="aggregatorBean" class="sample.PojoAggregator"/>
+
+<bean id="releaseStrategyBean" class="sample.PojoReleaseStrategy"/>
+
+<bean id="correlationStrategyBean" class="sample.PojoCorrelationStrategy"/>
+----
+
+<1> The id of the aggregator is _Optional_.
+
+
+
+<2> Lifecycle attribute signaling if aggregator should be started during Application Context startup.
+_Optional (default is 'true')_.
+
+
+
+<3> The channel from which where aggregator will receive messages.
+_Required_.
+
+
+
+<4> The channel to which the aggregator will send the aggregation results.
+_Optional (because incoming messages can specify a
+        reply channel themselves via 'replyChannel' Message Header)_.
+
+
+
+<5> The channel to which the aggregator will send the messages that timed out (if `send-partial-result-on-expiry` is _false_).
+_Optional_.
+
+
+
+<6> A reference to a `MessageGroupStore` used to store groups of messages under their correlation key until they are complete.
+_Optional_, by default a volatile in-memory store.
+
+
+
+<7> Order of this aggregator when more than one handle is subscribed to the same DirectChannel (use for load balancing purposes)._Optional_.
+
+
+
+<8> Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' once their containing `MessageGroup` is expired (see `MessageGroupStore.expireMessageGroups(long)`).
+One way of expiring `MessageGroup` s is by configuring a `MessageGroupStoreReaper`.
+However `MessageGroup` s can alternatively be expired by simply calling `MessageGroupStore.expireMessageGroup(groupId)`.
+That could be accomplished via a Control Bus operation or by simply invoking that method if you have a reference to the `MessageGroupStore` instance.
+Otherwise by itself this attribute has no behavior.
+It only serves as an indicator of what to do (discard or send to the output/reply channel) with Messages that are still in the `MessageGroup` that is about to be expired.
+_Optional_.
+_Default - 'false'_.
+*NOTE:* This attribute is more properly 'send-partial-result-on-timeout' because the group may not actually expire if `expire-groups-on-timeout` is set to `false`.
+
+
+
+<9> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
+By default the send will block for one second.
+It is applied only if the output channel has some 'sending' limitations, e.g.
+`QueueChannel` with a fixed 'capacity'.
+In this case a `MessageDeliveryException` is thrown.
+The `send-timeout` is ignored in case of `AbstractSubscribableChannel` implementations.
+In case of `group-timeout(-expression)` the `MessageDeliveryException` from the scheduled expire task leads this task to be rescheduled.
+_Optional_.
+
+
+
+<10> A reference to a bean that implements the message correlation (grouping) algorithm.
+The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.
+In the latter case the correlation-strategy-method attribute must be defined as well.
+_Optional (by default, the aggregator will use
+        the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header) _.
+
+
+
+<11> A method defined on the bean referenced by `correlation-strategy`, that implements the correlation decision algorithm.
+_Optional, with
+        restrictions (requires `correlation-strategy` to be
+        present)._
+
+
+
+<12> A SpEL expression representing the correlation strategy.
+Example: `"headers['foo']"`.
+Only one of `correlation-strategy` or `correlation-strategy-expression` is allowed.
+
+
+
+<13> A reference to a bean defined in the application context.
+The bean must implement the aggregation logic as described above.
+_Optional (by default the list of aggregated Messages will become a
+    payload of the output message)._
+
+
+<14> A method defined on the bean referenced by `ref`, that implements the message aggregation algorithm.
+_Optional, depends on `ref` attribute being defined._
+
+
+
+<15> A reference to a bean that implements the release strategy.
+The bean can be an implementation of the `ReleaseStrategy` interface or a POJO.
+In the latter case the release-strategy-method attribute must be defined as well.
+_Optional (by default, the
+        aggregator will use the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header attribute)_.
+
+
+
+<16> A method defined on the bean referenced by `release-strategy`, that implements the completion decision algorithm.
+_Optional, with
+        restrictions (requires `release-strategy` to be
+        present)._
+
+
+
+<17> A SpEL expression representing the release strategy; the root object for the expression is a `Collection` of `Message` s.
+Example: `"size() == 5"`.
+Only one of `release-strategy` or `release-strategy-expression` is allowed.
+
+
+
+<18> When set to true (default false), completed groups are removed from the message store, allowing subsequent messages with the same correlation to form a new group.
+The default behavior is to send messages with the same correlation as a completed group to the _discard-channel_.
+
+
+
+<19> Only applies if a `MessageGroupStoreReaper` is configured for the `<aggregator>`'s `MessageStore`.
+By default, when a `MessageGroupStoreReaper` is configured to expire partial groups, empty groups are also removed.
+Empty groups exist after a group is released normally.
+This is to enable the detection and discarding of late-arriving messages.
+If you wish to expire empty groups on a longer schedule than expiring partial groups, set this property.
+Empty groups will then not be removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
+Note that the actual time to expire an empty group will also be affected by the reaper's _timeout_ property and it could be as much as this value plus the timeout.
+
+
+
+<20> A reference to a `org.springframework.integration.util.LockRegistry` bean; used to obtain a `Lock` based on the `groupId` for concurrent operations on the `MessageGroup`.
+By default, an internal `DefaultLockRegistry` is used.
+Use of a distributed `LockRegistry`, such as the `RedisLockRegistry`, ensures only one instance of the aggregator will operate on a group concurrently.
+See <<redis-lock-registry>> for more information.
+
+
+
+<21> A timeout in milliseconds to force the `MessageGroup` complete, when the `ReleaseStrategy` doesn't _release_ the group when the current Message arrives.
+This attribute provides a built-in _Time-base Release Strategy_ for the aggregator, when there is a need to emit a partial result (or discard the group), if a new Message does not arrive for the `MessageGroup` within the timeout.
+When a new Message arrives at the aggregator, any existing `ScheduledFuture<?>` for its `MessageGroup` is canceled.
+If the `ReleaseStrategy` returns `false` (don't release) and the `groupTimeout > 0` a new task will be scheduled to expire the group.
+Setting this attribute to zero is not advised because it will effectively disable the aggregator because every message group will be immediately completed.
+It is possible, however to conditionally set it to zero using an expression; see `group-timeout-expression` for information.
+The action taken during the completion depends on the `ReleaseStrategy` and the `send-partial-group-on-expiry` attribute.
+See <<agg-and-group-to>> for more information.
+Mutually exclusive with 'group-timeout-expression' attribute.
+
+
+<22> The SpEL expression that evaluates to a `groupTimeout` with the `MessageGroup` as the `#root` evaluation context object.
+Used for scheduling the `MessageGroup` to be forced complete.
+If the expression evaluates to null or `< 0`, the completion is not scheduled.
+If it evaluates to zero, the group is completed immediately on the current thread.
+In effect, this provides a dynamic `group-timeout` property.
+See `group-timeout` for more information.
+Mutually exclusive with 'group-timeout' attribute.
+
+
+<23> When a group is completed due to a timeout (or by a `MessageGroupStoreReaper`), the group is expired (completely removed) by default.
+Late arriving messages will start a new group.
+Set this to `false` to complete the group but have its metadata remain so that late arriving messages will be discarded.
+Empty groups can be expired later using a `MessageGroupStoreReaper` together with the `empty-group-min-timeout` attribute.
+Default: 'true'.
+
+
+<24> A `TaskScheduler` bean reference to schedule the `MessageGroup` to be forced complete if no new message arrives for the `MessageGroup` within the `groupTimeout`.
+If not provided, the default scheduler `taskScheduler`, registered in the `ApplicationContext` (`ThreadPoolTaskScheduler`) will be used.
+This attribute does not apply if `group-timeout` or `group-timeout-expression` is not specified.
+
+
+<25> Since _version 4.1_.
+Allows a transaction to be started for the `forceComplete` operation.
+It is initiated from a `group-timeout(-expression)` or by a `MessageGroupStoreReaper` and is not applied to the normal `add/release/discard` operations.
+Only this sub-element or `<expire-advice-chain/>` is allowed.
+
+
+<26> Since _version 4.1_.
+Allows the configuration of any `Advice` for the `forceComplete` operation.
+It is initiated from a `group-timeout(-expression)` or by a `MessageGroupStoreReaper` and is not applied to the normal `add/release/discard` operations.
+Only this sub-element or `<expire-transactional/>` is allowed.
+A transaction `Advice` can also be configured here using the Spring `tx` namespace.
+
+
+
+[IMPORTANT]
+.Expiring Groups
+=====
+There are two attributes related to expiring (completely removing) groups.
+When a group is expired, there is no record of it and if a new message arrives with the same correlation, a new group is started.
+When a group is completed (without expiry), the empty group remains and late arriving messages are discarded.
+Empty groups can be removed later using a `MessageGroupStoreReaper` in combination with the `empty-group-min-timeout` attribute.
+
+`expire-groups-upon-completion` relates to "normal" completion - when the `ReleaseStrategy` releases the group.
+This defaults to `false`.
+
+If a group is not completed normally, but is released or discarded because of a timeout, the group is normally expired.
+Since _version 4.1_, you can now control this behavior using `expire-groups-upon-timeout`; this defaults to `true` for backwards compatibility.
+
+NOTE: When a group is timed out, the `ReleaseStrategy` is given one more opportunity to release the group; if it does so, and `expire-groups-upon-timeout` is false, then expiration is controlled by `expire-groups-upon-completion`.
+If the group is not released by the release strategy during timeout, then the expiration is controlled by the `expire-groups-upon-timeout`.
+Timed-out groups are either discarded, or a partial release occurs (based on `send-partial-result-on-expiry`).
+=====
+
+Using a `ref` attribute is generally recommended if a custom aggregator handler implementation may be referenced in other`<aggregator>` definitions.
+However if a custom aggregator implementation is only being used by a single definition of the `<aggregator>`, you can use an inner bean definition (starting with version 1.0.3) to configure the aggregation POJO within the `<aggregator>` element:
+[source,xml]
+----
+<aggregator input-channel="input" method="sum" output-channel="output">
+    <beans:bean class="org.foo.PojoAggregator"/>
+</aggregator>
+----
+
+NOTE: Using both a `ref` attribute and an inner bean definition in the same `<aggregator>` configuration is not allowed, as it creates an ambiguous condition.
+In such cases, an Exception will be thrown.
+
+An example implementation of the aggregator bean looks as follows:
+
+[source,java]
+----
+public class PojoAggregator {
+
+  public Long add(List<Long> results) {
+    long total = 0l;
+    for (long partialResult: results) {
+      total += partialResult;
+    }
+    return total;
+  }
+
+}
+----
+
+An implementation of the completion strategy bean for the example above may be as follows:
+
+[source,java]
+----
+public class PojoReleaseStrategy {
+...
+  public boolean canRelease(List<Long> numbers) {
+    int sum = 0;
+    for (long number: numbers) {
+      sum += number;
+    }
+    return sum >= maxValue;
+  }
+}
+----
+
+NOTE: Wherever it makes sense, the release strategy method and the aggregator method can be combined in a single bean.
+
+An implementation of the correlation strategy bean for the example above may be as follows:
+
+[source,java]
+----
+public class PojoCorrelationStrategy {
+...
+  public Long groupNumbersByLastDigit(Long number) {
+    return number % 10;
+  }
+}
+----
+
+For example, this aggregator would group numbers by some criterion (in our case the remainder after dividing by 10) and will hold the group until the sum of the numbers provided by the payloads exceeds a certain value.
+
+NOTE: Wherever it makes sense, the release strategy method, correlation strategy method and the aggregator method can be combined in a single bean (all of them or any two).
+
+_Aggregators and Spring Expression Language (SpEL)_
+
+Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html[SpEL] which is recommended if the logic behind such _release strategy_ is relatively simple.
+Let's say you have a legacy component that was designed to receive an array of objects.
+We know that the default release strategy will assemble all aggregated messages in the List.
+So now we have two problems.
+First we need to extract individual messages from the list, and then we need to extract the payload of each message and assemble the array of objects (see code below).
+
+[source,java]
+----
+public String[] processRelease(List<Message<String>> messages){
+    List<String> stringList = new ArrayList<String>();
+    for (Message<String> message : messages) {
+        stringList.add(message.getPayload());
+    }
+    return stringList.toArray(new String[]{});
+}
+----
+
+However, with SpEL such a requirement could actually be handled relatively easily with a one-line expression, thus sparing you from writing a custom class and configuring it as a bean.
+
+[source,xml]
+----
+<int:aggregator input-channel="aggChannel"
+    output-channel="replyChannel"
+    expression="#this.![payload].toArray()"/>
+----
+
+In the above configuration we are using a http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113[Collection Projection] expression to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus achieving the same result as the java code above.
+
+The same expression-based approach can be applied when dealing with custom _Release_ and _Correlation_ strategies.
+
+Instead of defining a bean for a custom `CorrelationStrategy` via the `correlation-strategy` attribute, you can implement your simple correlation logic via a SpEL expression and configure it via the `correlation-strategy-expression` attribute.
+
+For example:
+[source,xml]
+----
+correlation-strategy-expression="payload.person.id"
+----
+
+In the above example it is assumed that the payload has an attribute `person` with an `id` which is going to be used to correlate messages.
+
+Likewise, for the `ReleaseStrategy` you can implement your release logic as a SpEL expression and configure it via the `release-strategy-expression` attribute.
+The only difference is that since ReleaseStrategy is passed the List of Messages, the root object in the SpEL evaluation context is the List itself.
+That List can be referenced as `#this` within the expression.
+
+For example:
+[source,xml]
+----
+release-strategy-expression="#this.size() gt 5"
+----
+
+In this example the root object of the SpEL Evaluation Context is the `MessageGroup` itself, and you are simply stating that as soon as there are more than 5 messages in this group, it should be released.
+
+[[agg-and-group-to]]
+====== Aggregator and Group Timeout
+
+Starting with _version 4.0_, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression` (see the description above).
+There are some cases where it is needed to emit the aggregator result (or discard the group) after a timeout if the `ReleaseStrategy` doesn't _release_ when the current Message arrives.
+For this purpose the `groupTimeout` option allows scheduling the `MessageGroup` to be forced complete:
+[source,xml]
+----
+<aggregator input-channel="input" output-channel="output"
+		send-partial-result-on-expiry="true"
+		group-timeout-expression="size() ge 2 ? 10000 : -1"
+		release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+----
+
+With this example, the normal _release_ will be possible if the aggregator receives the last message in sequence as defined by the `release-strategy-expression`.
+If that specific message does not arrive, the `groupTimeout` will force the group complete after 10 seconds as long as the group contains at least 2 Messages.
+
+The results of forcing the group complete depends on the `ReleaseStrategy` and the `send-partial-result-on-expiry`.
+First, the release strategy is again consulted to see if a _normal_ release is to be made - while the group won't have changed, the `ReleaseStrategy` can decide to release the group at this time.
+If the release strategy still does not release the group, it will be expired.
+If `send-partial-result-on-expiry` is `true`, existing messages in the (partial) `MessageGroup` will be released as a normal aggregator reply Message to the `output-channel`, otherwise it will be discarded.
+
+There is a difference between `groupTimeout` behavior and `MessageGroupStoreReaper` (see <<aggregator-config>>).
+The reaper initiates forced completion for all `MessageGroup` s in the `MessageGroupStore` periodically.
+The `groupTimeout` does it for each `MessageGroup` individually, if a new Message doesn't arrive during the `groupTimeout`.
+Also, the reaper can be used to remove empty groups (empty groups are retained in order to discard late messages, if `expire-groups-upon-completion` is false).
+
+[[aggregator-annotations]]
+===== Configuring an Aggregator with Annotations
+
+An aggregator configured using annotations would look like this.
+
+[source,java]
+----
+public class Waiter {
+  ...
+
+  @Aggregator  <1>
+  public Delivery aggregatingMethod(List<OrderItem> items) {
+    ...
+  }
+
+  @ReleaseStrategy  <2>
+  public boolean releaseChecker(List<Message<?>> messages) {
+    ...
+  }
+
+  @CorrelationStrategy  <3>
+  public String correlateBy(OrderItem item) {
+    ...
+  }
+
+}
+----
+
+<1> An annotation indicating that this method shall be used as an aggregator.
+Must be specified if this class will be used as an aggregator.
+
+
+
+<2> An annotation indicating that this method shall be used as the release strategy of an aggregator.
+If not present on any method, the aggregator will use the SequenceSizeReleaseStrategy.
+
+
+
+<3> An annotation indicating that this method shall be used as the correlation strategy of an aggregator.
+If no correlation strategy is indicated, the aggregator will use the HeaderAttributeCorrelationStrategy based on CORRELATION_ID.
+
+
+All of the configuration options provided by the xml element are also available for the @Aggregator annotation.
+
+The aggregator can be either referenced explicitly from XML or, if the @MessageEndpoint is defined on the class, detected automatically through classpath scanning.
+
+[[reaper]]
+==== Managing State in an Aggregator: MessageGroupStore
+
+Aggregator (and some other patterns in Spring Integration) is a stateful pattern that requires decisions to be made based on a group of messages that have arrived over a period of time, all with the same correlation key.
+The design of the interfaces in the stateful patterns (e.g.
+`ReleaseStrategy`) is driven by the principle that the components (whether defined by the framework or a user) should be able to remain stateless.
+All state is carried by the `MessageGroup` and its management is delegated to the `MessageGroupStore`.
+
+[source,java]
+----
+public interface MessageGroupStore {
+    int getMessageCountForAllMessageGroups();
+
+    int getMarkedMessageCountForAllMessageGroups();
+
+    int getMessageGroupCount();
+
+    MessageGroup getMessageGroup(Object groupId);
+
+    MessageGroup addMessageToGroup(Object groupId, Message<?> message);
+
+    MessageGroup markMessageGroup(MessageGroup group);
+
+    MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
+
+    MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark);
+
+    void removeMessageGroup(Object groupId);
+
+    void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
+
+    int expireMessageGroups(long timeout);
+}
+----
+
+For more information please refer to the http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[JavaDoc].
+
+The `MessageGroupStore` accumulates state information in `MessageGroups` while waiting for a release strategy to be triggered, and that event might not ever happen.
+So to prevent stale messages from lingering, and for volatile stores to provide a hook for cleaning up when the application shuts down, the `MessageGroupStore` allows the user to register callbacks to apply to its `MessageGroups` when they expire.
+The interface is very straightforward:
+
+[source,java]
+----
+public interface MessageGroupCallback {
+
+    void execute(MessageGroupStore messageGroupStore, MessageGroup group);
+
+}
+----
+
+The callback has direct access to the store and the message group so it can manage the persistent state (e.g.
+by removing the group from the store entirely).
+
+The `MessageGroupStore` maintains a list of these callbacks which it applies, on demand, to all messages whose timestamp is earlier than a time supplied as a parameter (see the `registerMessageGroupExpiryCallback(..)` and `expireMessageGroups(..)` methods above).
+
+The `expireMessageGroups` method can be called with a timeout value.
+Any message older than the current time minus this value will be expired, and have the callbacks applied.
+Thus it is the user of the store that defines what is meant by message group "expiry".
+
+As a convenience for users, Spring Integration provides a wrapper for the message expiry in the form of a `MessageGroupStoreReaper`:
+
+[source,xml]
+----
+<bean id="reaper" class="org...MessageGroupStoreReaper">
+    <property name="messageGroupStore" ref="messageStore"/>
+    <property name="timeout" value="30000"/>
+</bean>
+
+<task:scheduled-tasks scheduler="scheduler">
+    <task:scheduled ref="reaper" method="run" fixed-rate="10000"/>
+</task:scheduled-tasks>
+----
+
+The reaper is a `Runnable`, and all that is happening in the example above is that the message group store's expire method is being called once every 10 seconds.
+The timeout itself is 30 seconds.
+
+NOTE: It is important to understand that the 'timeout' property of the `MessageGroupStoreReaper` is an approximate value and is impacted by the the rate of the task scheduler since this property will only be checked on the next scheduled execution of the `MessageGroupStoreReaper` task.
+For example if the timeout is set for 10 min, but the `MessageGroupStoreReaper` task is scheduled to run every 60 min and the last execution of the `MessageGroupStoreReaper` task happened 1 min before the timeout, the `MessageGroup` will not expire for the next 59 min.
+So it is recommended to set the rate at least equal to the value of the timeout or shorter.
+
+In addition to the reaper, the expiry callbacks are invoked when the application shuts down via a lifecycle callback in the `AbstractCorrelatingMessageHandler`.
+
+The `AbstractCorrelatingMessageHandler` registers its own expiry callback, and this is the link with the boolean flag` send-partial-result-on-expiry` in the XML configuration of the aggregator.
+If the flag is set to true, then when the expiry callback is invoked, any unmarked messages in groups that are not yet released can be sent on to the output channel.
+
+[IMPORTANT]
+=====
+When using a `MessageGroupStoreReaper`, it is generally recommended to use a separate `MessageStore` for each correlating endpoint.
+Otherwise, unexpected results may occur because one endpoint may remove another endpoint's groups.
+
+Some `MessageStore` implementations allow using the same physical resources, by partitioning the data; for example, the `JdbcMessageStore` has a `region` property; the `MongoDbMessageStore` has a `collectionName` property.
+
+For more information about `MessageStore` interface and its implementations, please read <<message-store>>.
+=====

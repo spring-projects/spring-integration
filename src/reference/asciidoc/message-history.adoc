@@ -1,0 +1,82 @@
+[[message-history]]
+=== Message History
+
+The key benefit of a messaging architecture is loose coupling where participating components do not maintain any awareness about one another.
+This fact alone makes your application extremely flexible, allowing you to change components without affecting the rest of the flow, change messaging routes,   message consuming styles (polling vs event driven), and so on.
+However, this unassuming style of architecture could prove to be difficult when things go wrong.
+When debugging, you would probably like to get as much information about the message as you can (its origin, channels it has traversed, etc.)
+
+Message History is one of those patterns that helps by giving you an option to maintain some level of awareness of a message path either for debugging purposes or to maintain an audit trail.
+Spring integration provides a simple way to configure your message flows to maintain the Message History by adding a header to the Message and updating that header every time a message passes through a tracked component.
+
+[[message-history-config]]
+==== Message History Configuration
+
+To enable Message History all you need is to define the `message-history` element in your configuration.
+
+[source,xml]
+----
+<int:message-history/>
+----
+
+Now every named component (component that has an 'id' defined) will be tracked.
+The framework will set the 'history' header in your Message.
+Its value is very simple - `List<Properties>`.
+
+[source,xml]
+----
+<int:gateway id="sampleGateway" 
+    service-interface="org.springframework.integration.history.sample.SampleGateway"
+    default-request-channel="bridgeInChannel"/>
+
+<int:chain id="sampleChain" input-channel="chainChannel" output-channel="filterChannel">
+  <int:header-enricher>
+    <int:header name="baz" value="baz"/>
+  </int:header-enricher>
+</int:chain>
+----
+
+The above configuration will produce a very simple Message History structure:
+[source,java]
+----
+[{name=sampleGateway, type=gateway, timestamp=1283281668091},
+ {name=sampleChain, type=chain, timestamp=1283281668094}]
+----
+
+To get access to Message History all you need is access the MessageHistory header.
+For example:
+[source,java]
+----
+Iterator<Properties> historyIterator =
+    message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+assertTrue(historyIterator.hasNext());
+Properties gatewayHistory = historyIterator.next();
+assertEquals("sampleGateway", gatewayHistory.get("name"));
+assertTrue(historyIterator.hasNext());
+Properties chainHistory = historyIterator.next();
+assertEquals("sampleChain", chainHistory.get("name"));
+----
+
+You might not want to track all of the components.
+To limit the history to certain components based on their names, all you need is provide the `tracked-components` attribute and specify a comma-delimited list of component names and/or patterns that match the components you want to track.
+[source,xml]
+----
+<int:message-history tracked-components="*Gateway, sample*, foo"/>
+----
+
+In the above example, Message History will only be maintained for all of the components that end with 'Gateway', start with 'sample', or match the name 'foo' exactly.
+
+Starting with _version 4.0_, you can also use the `@EnableMessageHistory` annotation in a `@Configuration` class.
+In addition, the `MessageHistoryConfigurer` bean is now exposed as a JMX MBean by the `IntegrationMBeanExporter` (see <<jmx-mbean-exporter>>), allowing the patterns to be changed at runtime.
+Note, however, that the bean must be stopped (turning off message history) in order to change the patterns.
+This feature might be useful to temporarily turn on history to analyze a system.
+The MBean's object name is `"<domain>:name=messageHistoryConfigurer,type=MessageHistoryConfigurer"`.
+
+IMPORTANT: If multiple beans (declared by `@EnableMessageHistory` and/or `<message-history/>`) they all must have identical component name patterns (when trimmed and sorted).
+*Do not use a generic
+	`<bean/>` definition for the `MessageHistoryConfigurer`*.
+
+NOTE: Remember that by definition the Message History header is immutable (you can't re-write history, although some try).
+Therefore, when writing Message History values, the components are either creating brand new Messages (when the component is an origin), or they are copying the history from a request Message, modifying it and setting the new list on a reply Message.
+In either case, the values can be appended even if the Message itself is crossing thread boundaries.
+That means that the history values can greatly simplify debugging in an asynchronous message flow.

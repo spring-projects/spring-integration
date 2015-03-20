@@ -1,0 +1,4 @@
+[[messaging-construction-chapter]]
+== Message Construction
+
+include::./message.adoc[]
