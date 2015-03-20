@@ -73,6 +73,14 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 		this.payloadDecoder = payloadDecoder;
 	}
 
+	/**
+	 * Automatically commit the offsets when 'true'. When 'false', the
+	 * adapter inserts a 'kafka_acknowledgment` header allowing the user to manually
+	 * commit the offset using the {@link Acknowledgment#acknowledge()} method.
+	 * Default 'true'.
+	 *
+	 * @param autoCommitOffset false to not auto-commit (default true).
+	 */
 	public void setAutoCommitOffset(boolean autoCommitOffset) {
 		this.autoCommitOffset = autoCommitOffset;
 	}
@@ -80,7 +88,8 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	/**
 	 * Generate {@link Message} {@code ids} for produced messages.
 	 * If set to {@code false}, will try to use a default value. By default set to {@code false}.
-	 * Note that this option only works in conjunction with {@link #setUseMessageBuilderFactory(boolean)}.
+	 * Note that this option is only guaranteed to work when
+	 * {@link #setUseMessageBuilderFactory(boolean) useMessageBuilderFactory} is false (default).
 	 * If the latter is set to {@code true}, then some {@link MessageBuilderFactory} implementations such as
 	 * {@link DefaultMessageBuilderFactory} may ignore it.
 	 * @param generateMessageId true if a message id should be generated
@@ -93,7 +102,8 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	/**
 	 * Generate {@code timestamp} for produced messages. If set to {@code false}, -1 is used instead.
 	 * By default set to {@code false}.
-	 * Note that this option only works in conjunction with {@link #setUseMessageBuilderFactory(boolean)}.
+	 * Note that this option is only guaranteed to work when
+	 * {@link #setUseMessageBuilderFactory(boolean) useMessageBuilderFactory} is false (default).
 	 * If the latter is set to {@code true}, then some {@link MessageBuilderFactory} implementations such as
 	 * {@link DefaultMessageBuilderFactory} may ignore it.
 	 * @param generateTimestamp true if a timestamp should be generated
@@ -220,7 +230,7 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 
 	/**
 	 * Special subclass of {@link Message}. It is used for lower message generation overhead, unless the default
-	 * strategy of the superclass is set via {@link #setUseMessageBuilderFactory(boolean)}
+	 * strategy of the outer class is set via {@link #setUseMessageBuilderFactory(boolean)}
 	 * @since 1.1
 	 */
 	private class KafkaMessage implements Message<Object> {
@@ -242,6 +252,20 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 		@Override
 		public MessageHeaders getHeaders() {
 			return this.messageHeaders;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+			sb.append(" [payload=");
+			if (this.payload instanceof byte[]) {
+				sb.append("byte[").append(((byte[]) this.payload).length).append("]");
+			}
+			else {
+				sb.append(this.payload);
+			}
+			sb.append(", headers=").append(this.messageHeaders).append("]");
+			return sb.toString();
 		}
 
 	}

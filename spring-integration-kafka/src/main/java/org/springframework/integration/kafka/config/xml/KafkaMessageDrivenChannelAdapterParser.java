@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -92,6 +91,15 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "key-decoder");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "payload-decoder");
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				"auto-commit", "autoCommitOffset");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				"use-context-message-builder", "useMessageBuilderFactory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				"set-id", "generateMessageId");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				"set-timestamp", "generateTimestamp");
 
 		return builder.getBeanDefinition();
 	}
