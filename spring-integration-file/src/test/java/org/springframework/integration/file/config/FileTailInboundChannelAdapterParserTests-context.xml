@@ -19,7 +19,7 @@
 		channel="input"
 		task-executor="exec"
 		file="/tmp/baz"
-		auto-startup="false"
+		auto-startup="true"
 		phase="123"
 		error-channel="tailErrorChannel"/>
 
@@ -30,7 +30,7 @@
 		task-scheduler="sched"
 		file-delay="456"
 		file="/tmp/foo"
-		auto-startup="false"
+		auto-startup="true"
 		delay="${empty}"
 		end="${empty}"
 		reopen="${empty}"
@@ -66,7 +66,8 @@
 
 	<int:channel id="input" />
 
-	<task:executor id="exec" />
-
 	<task:scheduler id="sched" />
+
+	<bean class="org.springframework.integration.file.config.FileTailInboundChannelAdapterParserTests$Config" />
+
 </beans>
