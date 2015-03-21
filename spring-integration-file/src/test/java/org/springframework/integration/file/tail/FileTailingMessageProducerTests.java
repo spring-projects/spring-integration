@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package org.springframework.integration.file.tail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
@@ -40,6 +43,7 @@ import org.springframework.integration.file.tail.FileTailingMessageProducerSuppo
 
 /**
  * @author Gary Russell
+ * @author Gavin Gray
  * @since 3.0
  *
  */
@@ -86,6 +90,37 @@ public class FileTailingMessageProducerTests {
 		adapter.setPollingDelay(100);
 		adapter.setEnd(false);
 		testGuts(adapter, "tailer");
+	}
+
+	@Test
+	@TailAvailable
+	public void canRecalculateCommandWhenFileOrOptionsChanged() throws IOException {
+		File firstFile = File.createTempFile("first", ".txt");
+		String firstOptions = "-f options";
+		File secondFile = File.createTempFile("second", ".txt");
+		String secondOptions = "-f newoptions";
+		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
+		adapter.setFile(firstFile);
+		adapter.setOptions(firstOptions);
+
+		adapter.setOutputChannel(new QueueChannel());
+		adapter.setTailAttemptsDelay(500);
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
+
+		adapter.start();
+		assertEquals("tail " + firstOptions + " " + firstFile.getAbsolutePath(), adapter.getCommand());
+		adapter.stop();
+
+		adapter.setFile(secondFile);
+		adapter.start();
+		assertEquals("tail " + firstOptions + " " + secondFile.getAbsolutePath(), adapter.getCommand());
+		adapter.stop();
+
+		adapter.setOptions(secondOptions);
+		adapter.start();
+		assertEquals("tail " + secondOptions + " " + secondFile.getAbsolutePath(), adapter.getCommand());
+		adapter.stop();
 	}
 
 	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
