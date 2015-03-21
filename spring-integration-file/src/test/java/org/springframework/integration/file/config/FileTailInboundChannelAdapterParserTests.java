@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gavin Gray
  * @since 3.0
  */
 @ContextConfiguration
@@ -74,7 +75,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		String fileName = TestUtils.getPropertyValue(defaultAdapter, "file", File.class).getAbsolutePath();
 		String normalizedName = getNormalizedPath(fileName);
 		assertEquals("/tmp/baz", normalizedName);
-		assertEquals("tail -F -n 0 " + fileName, TestUtils.getPropertyValue(defaultAdapter, "command"));
+		assertEquals("ADAPTER_NOT_INITIALIZED", TestUtils.getPropertyValue(defaultAdapter, "command"));
 		assertSame(exec, TestUtils.getPropertyValue(defaultAdapter, "taskExecutor"));
 		assertFalse(TestUtils.getPropertyValue(defaultAdapter, "autoStartup", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(defaultAdapter, "phase"));
@@ -86,7 +87,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		String fileName = TestUtils.getPropertyValue(nativeAdapter, "file", File.class).getAbsolutePath();
 		String normalizedName = getNormalizedPath(fileName);
 		assertEquals("/tmp/foo", normalizedName);
-		assertEquals("tail -F -n 6 " + fileName, TestUtils.getPropertyValue(nativeAdapter, "command"));
+		assertEquals("ADAPTER_NOT_INITIALIZED", TestUtils.getPropertyValue(nativeAdapter, "command"));
 		assertSame(exec, TestUtils.getPropertyValue(nativeAdapter, "taskExecutor"));
 		assertSame(sched, TestUtils.getPropertyValue(nativeAdapter, "taskScheduler"));
 		assertFalse(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class));
