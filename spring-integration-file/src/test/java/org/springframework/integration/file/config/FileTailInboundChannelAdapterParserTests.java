@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.file.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
@@ -27,6 +29,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
@@ -39,6 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gavin Gray
  * @since 3.0
  */
 @ContextConfiguration
@@ -76,9 +80,13 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertEquals("/tmp/baz", normalizedName);
 		assertEquals("tail -F -n 0 " + fileName, TestUtils.getPropertyValue(defaultAdapter, "command"));
 		assertSame(exec, TestUtils.getPropertyValue(defaultAdapter, "taskExecutor"));
-		assertFalse(TestUtils.getPropertyValue(defaultAdapter, "autoStartup", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(defaultAdapter, "autoStartup", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(defaultAdapter, "phase"));
 		assertSame(this.tailErrorChannel, TestUtils.getPropertyValue(defaultAdapter, "errorChannel"));
+		this.defaultAdapter.stop();
+		this.defaultAdapter.setOptions("-F -n 6");
+		this.defaultAdapter.start();
+		assertEquals("tail -F -n 6 " + fileName, TestUtils.getPropertyValue(defaultAdapter, "command"));
 	}
 
 	@Test
@@ -89,7 +97,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertEquals("tail -F -n 6 " + fileName, TestUtils.getPropertyValue(nativeAdapter, "command"));
 		assertSame(exec, TestUtils.getPropertyValue(nativeAdapter, "taskExecutor"));
 		assertSame(sched, TestUtils.getPropertyValue(nativeAdapter, "taskScheduler"));
-		assertFalse(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(nativeAdapter, "phase"));
 		assertEquals(456L, TestUtils.getPropertyValue(nativeAdapter, "tailAttemptsDelay"));
 	}
@@ -133,4 +141,14 @@ public class FileTailInboundChannelAdapterParserTests {
 		}
 		return absolutePath;
 	}
+
+	public static class Config {
+
+		@Bean
+		public TaskExecutor exec() {
+			return mock(TaskExecutor.class);
+		}
+
+	}
+
 }
