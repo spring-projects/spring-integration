@@ -16,7 +16,11 @@
 
 package org.springframework.integration.kafka.inbound;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
 
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -32,12 +36,6 @@ import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
-
-import com.gs.collections.api.map.MutableMap;
-import com.gs.collections.impl.map.mutable.UnifiedMap;
-
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
 
 /**
  * @author Marius Bogoevici
@@ -195,21 +193,22 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	private Message<Object> toMessage(Object key, Object payload, KafkaMessageMetadata metadata,
 			Acknowledgment acknowledgment) {
 
-		final MutableMap<String, Object> headers = UnifiedMap.<String, Object>newMap()
-				.withKeyValue(KafkaHeaders.MESSAGE_KEY, key)
-				.withKeyValue(KafkaHeaders.TOPIC, metadata.getPartition().getTopic())
-				.withKeyValue(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId())
-				.withKeyValue(KafkaHeaders.OFFSET, metadata.getOffset())
-				.withKeyValue(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
+		final Map<String, Object> headers = new HashMap<String, Object>();
+
+		headers.put(KafkaHeaders.MESSAGE_KEY, key);
+		headers.put(KafkaHeaders.TOPIC, metadata.getPartition().getTopic());
+		headers.put(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId());
+		headers.put(KafkaHeaders.OFFSET, metadata.getOffset());
+		headers.put(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
 
 		// pre-set the message id header if set to not generate
 		if (!this.generateMessageId) {
-			headers.withKeyValue(MessageHeaders.ID, MessageHeaders.ID_VALUE_NONE);
+			headers.put(MessageHeaders.ID, MessageHeaders.ID_VALUE_NONE);
 		}
 
 		// pre-set the timestamp header if set to not generate
 		if (!this.generateTimestamp) {
-			headers.withKeyValue(MessageHeaders.TIMESTAMP, -1L);
+			headers.put(MessageHeaders.TIMESTAMP, -1L);
 		}
 
 		if (!this.autoCommitOffset) {
@@ -239,7 +238,7 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 
 		private final MessageHeaders messageHeaders;
 
-		public KafkaMessage(Object payload, MutableMap<String, Object> headers) {
+		public KafkaMessage(Object payload, Map<String, Object> headers) {
 			this.payload = payload;
 			this.messageHeaders = new KafkaMessageHeaders(headers, generateMessageId, generateTimestamp);
 		}
