@@ -1796,6 +1796,11 @@
 				<xsd:documentation>Fixed delay trigger (in milliseconds).</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="initial-delay" type="xsd:string">
+		    <xsd:annotation>
+		        <xsd:documentation>Initial delay (in milliseconds).</xsd:documentation>
+		    </xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
