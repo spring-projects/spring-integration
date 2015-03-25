@@ -18,8 +18,9 @@ package org.springframework.integration.kafka.listener;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.kafka.core.KafkaMessage;
 
 /**
@@ -28,11 +29,7 @@ import org.springframework.integration.kafka.core.KafkaMessage;
  *
  * @author Marius Bogoevici
  */
-class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
-
-	private BlockingQueue<KafkaMessage> messages;
-
-	private volatile boolean running = false;
+class QueueingMessageListenerInvoker implements Runnable {
 
 	private final MessageListener messageListener;
 
@@ -41,6 +38,12 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 	private final OffsetManager offsetManager;
 
 	private final ErrorHandler errorHandler;
+
+	private BlockingQueue<KafkaMessage> messages;
+
+	private volatile boolean running = false;
+
+	private volatile CountDownLatch shutdownLatch = null;
 
 	public QueueingMessageListenerInvoker(int capacity, OffsetManager offsetManager, Object delegate,
 			ErrorHandler errorHandler) {
@@ -90,19 +93,20 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 		}
 	}
 
-	@Override
 	public void start() {
 		this.running = true;
 	}
 
-	@Override
-	public void stop() {
+	public void stop(long stopTimeout) {
+		shutdownLatch = new CountDownLatch(1);
 		this.running = false;
-	}
-
-	@Override
-	public boolean isRunning() {
-		return this.running;
+		try {
+			shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		messages.clear();
 	}
 
 	/**
@@ -115,7 +119,7 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 		while (this.running) {
 			try {
 				KafkaMessage message = messages.take();
-				if (isRunning()) {
+				if (this.running) {
 					try {
 						if (messageListener != null) {
 							messageListener.onMessage(message);
@@ -140,6 +144,9 @@ class QueueingMessageListenerInvoker implements Runnable, Lifecycle {
 			catch (InterruptedException e) {
 				wasInterrupted = true;
 			}
+		}
+		if (shutdownLatch != null) {
+			shutdownLatch.countDown();
 		}
 		if (wasInterrupted) {
 			Thread.currentThread().interrupt();

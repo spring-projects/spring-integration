@@ -71,6 +71,8 @@ import kafka.common.ErrorMapping;
  */
 public class KafkaMessageListenerContainer implements SmartLifecycle {
 
+	private static final int DEFAULT_STOP_TIMEOUT = 1000;
+
 	private static final Log log = LogFactory.getLog(KafkaMessageListenerContainer.class);
 
 	public static final Function<Map.Entry<Partition, ?>, Partition> keyFunction = Functions.getKeyFunction();
@@ -104,6 +106,8 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	private int maxFetch = KafkaConsumerDefaults.FETCH_SIZE_INT;
 
 	private int queueSize = 1024;
+
+	private int stopTimeout = DEFAULT_STOP_TIMEOUT;
 
 	private Object messageListener;
 
@@ -176,6 +180,19 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 		this.concurrency = concurrency;
 	}
 
+	/**
+	 * The timeout for waiting for each concurrent {@link MessageListener} to finish on stopping.
+	 * @param stopTimeout timeout in milliseconds
+	 * @since 1.1
+	 */
+	public void setStopTimeout(int stopTimeout) {
+		this.stopTimeout = stopTimeout;
+	}
+
+	public int getStopTimeout() {
+		return stopTimeout;
+	}
+
 	public Executor getFetchTaskExecutor() {
 		return fetchTaskExecutor;
 	}
@@ -243,7 +260,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 				catch (IOException e) {
 					log.error("Error while flushing:", e);
 				}
-				this.messageDispatcher.stop();
+				this.messageDispatcher.stop(stopTimeout);
 			}
 		}
 		if (callback != null) {
@@ -268,6 +285,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 				this.messageDispatcher = new ConcurrentMessageListenerDispatcher(messageListener, errorHandler,
 						Arrays.asList(partitions), offsetManager, concurrency, queueSize);
 				this.messageDispatcher.start();
+				partitionsByBrokerMap.clear();
 				partitionsByBrokerMap.putAll(partitionsAsList.groupBy(getLeader));
 				if (fetchTaskExecutor == null) {
 					fetchTaskExecutor = Executors.newFixedThreadPool(partitionsByBrokerMap.size());

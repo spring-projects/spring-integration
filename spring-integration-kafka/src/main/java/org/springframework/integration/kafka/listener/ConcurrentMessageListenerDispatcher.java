@@ -22,16 +22,14 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.gs.collections.api.block.procedure.Procedure;
-import com.gs.collections.api.block.procedure.Procedure2;
-import com.gs.collections.api.map.MutableMap;
-import com.gs.collections.impl.factory.Maps;
-
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
+
+import com.gs.collections.api.block.procedure.Procedure2;
+import com.gs.collections.api.map.MutableMap;
+import com.gs.collections.impl.factory.Maps;
 
 /**
  * Dispatches {@link KafkaMessage}s to a {@link MessageListener}. Messages may be
@@ -40,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Marius Bogoevici
  */
-class ConcurrentMessageListenerDispatcher implements Lifecycle {
+class ConcurrentMessageListenerDispatcher {
 
 	public static final CustomizableThreadFactory THREAD_FACTORY = new CustomizableThreadFactory("dispatcher-");
 
@@ -54,17 +52,17 @@ class ConcurrentMessageListenerDispatcher implements Lifecycle {
 
 	private final int consumers;
 
-	private volatile boolean running;
-
 	private final Object delegateListener;
 
 	private final ErrorHandler errorHandler;
 
 	private final OffsetManager offsetManager;
 
-	private MutableMap<Partition, QueueingMessageListenerInvoker> delegates;
-
 	private final int queueSize;
+
+	private volatile boolean running;
+
+	private MutableMap<Partition, QueueingMessageListenerInvoker> delegates;
 
 	private Executor taskExecutor;
 
@@ -87,33 +85,26 @@ class ConcurrentMessageListenerDispatcher implements Lifecycle {
 		this.queueSize = queueSize;
 	}
 
-	@Override
 	public void start() {
 		synchronized (lifecycleMonitor) {
-			if (!isRunning()) {
+			if (!this.running) {
 				initializeAndStartDispatching();
 				this.running = true;
 			}
 		}
 	}
 
-	@Override
-	public void stop() {
+	public void stop(int stopTimeout) {
 		synchronized (lifecycleMonitor) {
-			if (isRunning()) {
+			if (this.running) {
 				this.running = false;
-				delegates.flip().keyBag().toSet().forEach(stopDelegateProcedure);
+				delegates.flip().keyBag().toSet().forEachWith(stopDelegateProcedure, stopTimeout);
 			}
 		}
 	}
 
-	@Override
-	public boolean isRunning() {
-		return running;
-	}
-
 	public void dispatch(KafkaMessage message) {
-		if (isRunning()) {
+		if (this.running) {
 			delegates.get(message.getMetadata().getPartition()).enqueue(message);
 		}
 	}
@@ -141,11 +132,11 @@ class ConcurrentMessageListenerDispatcher implements Lifecycle {
 	}
 
 	@SuppressWarnings("serial")
-	private static class StopDelegateProcedure implements Procedure<QueueingMessageListenerInvoker> {
+	private static class StopDelegateProcedure implements Procedure2<QueueingMessageListenerInvoker, Integer> {
 
 		@Override
-		public void value(QueueingMessageListenerInvoker delegate) {
-			delegate.stop();
+		public void value(QueueingMessageListenerInvoker delegate, Integer stopTimeout) {
+			delegate.stop(stopTimeout);
 		}
 
 	}

@@ -547,7 +547,7 @@
 					<xsd:documentation>
 						A 'org.springframework.integration.kafka.listener.KafkaMessageListenerContainer' bean reference.
 						Mutually exclusive with 'connection-factory', 'topics', 'offset-manager', 'error-handler',
-						'task-executor', 'concurrency', 'max-fetch', 'queue-size'.
+						'task-executor', 'concurrency', 'stop-timeout', 'max-fetch', 'queue-size'.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -628,6 +628,15 @@
 						The number of internal concurrent
 						'org.springframework.integration.kafka.listener.QueueingMessageListenerInvoker'.
 						Defaults to '1'.
+						Mutually exclusive with 'listener-container'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="stop-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The maximum amount of time (in milliseconds) to wait for each 'org.springframework.integration.kafka.listener.QueueingMessageListenerInvoker' to finish before stopping.
+						Defaults to '1000'.
 						Mutually exclusive with 'listener-container'.
 					</xsd:documentation>
 				</xsd:annotation>
