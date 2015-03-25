@@ -94,14 +94,17 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void testPutIfAbsent() throws Exception {
 		String fileID = store.get(file1);
-		assertNull(fileID);
+		assertNull("Get First time, Key doesnt exists", fileID);
 
 		fileID = store.putIfAbsent(file1, file1Id);
-		assertNull(fileID);
+		assertNull("Insert First time, Key insertion successful", fileID);
 
 		fileID = store.putIfAbsent(file1, "56789");
-		assertNotNull(fileID);
-		assertEquals(file1Id, fileID);
+		assertNotNull("Key Already Exists - Insertion Failed, for different value", fileID);
+		assertEquals("Retrieving the Old Value", file1Id, fileID);
+
+		assertEquals("Retrieving the Old Value", file1Id, store.get(file1));
+
 	}
 
 	@Test

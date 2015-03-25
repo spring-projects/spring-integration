@@ -21,20 +21,18 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.ScriptOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.script.ExecutableMongoScript;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoException;
 
 /**
  * MongoDbMetadataStore implementation of {@link ConcurrentMetadataStore}.
@@ -108,9 +106,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * @Method
-	 *         put method uses mongo template execute method to save the
-	 *         key-value pair
 	 *
 	 * @param key
 	 *            Its metadata key usually filename
@@ -126,18 +121,11 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		final Map<String, String> entry = new HashMap<String, String>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
-		template.execute(collectionName, new CollectionCallback<Object>() {
-			@Override
-			public Object doInCollection(DBCollection collection) throws MongoException,
-			DataAccessException {
-				return collection.save(new BasicDBObject(entry));
-			}
-		});
+		template.execute(collectionName, (CollectionCallback<Object>) collection -> collection
+				.save(new BasicDBObject(entry)));
 	}
 
 	/**
-	 * @Method
-	 *         get method uses mongo template findOne method
 	 * @param key
 	 *            Its metadata key usually filename
 	 * @return String
@@ -155,8 +143,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * @Method
-	 *         remove method uses mongo template findAndRemove method
 	 * @param key
 	 *            Its metadata key usually filename
 	 * @return String
@@ -173,9 +159,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	/**
-	 * @Method
-	 *         putIfAbsent method uses mongo template insert method and throws
-	 *         exception due to duplicate constraint
 	 * @param key
 	 *            Its metadata key usually filename
 	 * @param value
@@ -188,25 +171,14 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public String putIfAbsent(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-
-		String result = null;
-		Map<String, String> entry = new HashMap<String, String>();
-		entry.put(ID_FIELD, key);
-		entry.put(VALUE, value);
-		try {
-			template.insert(entry, collectionName);
-		} catch (DuplicateKeyException e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("DUPLICATE KEY VIOLOATION", e);
-			}
-			result = get(key);
-		}
-		return result;
+		ScriptOperations operations = template.scriptOps();
+		ExecutableMongoScript script = new ExecutableMongoScript(buildQuery());
+		operations.register(script);
+		BasicDBObject result = (BasicDBObject) operations.execute(script, key, value);
+		return (result == null) ? null : (String) result.get(VALUE);
 	}
 
 	/**
-	 * @Method
-	 *         Replace method uses mongo template updateFirst method,
 	 * @param key
 	 *            Its metadata key usually filename
 	 * @param oldValue
@@ -225,6 +197,15 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
 		return template.updateFirst(query, Update.update(VALUE, newValue), collectionName)
 				.isUpdateOfExisting();
+	}
+
+	private String buildQuery() {
+		return "function putIfAbsent(key,value){ " + " key = key.substring(1,key.length-1);"
+				+ " value = value.substring(1,value.length-1);" + " var alreadyPresent = db."
+				+ collectionName + ".find({\"_id\":key.toString()},{\"_id\":0}); "
+				+ "if(alreadyPresent.length() < 1){ " + "   db." + collectionName + ".insert({"
+				+ "\"_id\":key.toString(),\"value\":value.toString()}); " + "  return null; "
+				+ "} " + "return alreadyPresent.toArray()[0]; " + "} ";
 	}
 
 }

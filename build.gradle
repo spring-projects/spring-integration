@@ -120,7 +120,7 @@ subprojects { subproject ->
 		smack3Version = '3.2.1'
 		smackVersion = '4.0.6'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.5.0.BUILD-SNAPSHOT'
-		springDataMongoVersion = '1.7.0.M1'
+		springDataMongoVersion = '1.7.0.RC1'
 		springDataRedisVersion = '1.5.0.M1'
 		springGemfireVersion = '1.6.0.M1'
 		springSecurityVersion = '3.2.5.RELEASE'
