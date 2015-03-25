@@ -121,7 +121,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 		assertEquals(10, container.getConcurrency());
 		assertEquals(1000, container.getMaxFetch());
 		assertEquals(1024, container.getQueueSize());
-		assertEquals(1024, container.getQueueSize());
+		assertEquals(5000, container.getStopTimeout());
 		assertArrayEquals(new String[] {"foo", "bar"}, TestUtils.getPropertyValue(container, "topics", String[].class));
 		assertOverrides(this.kafkaListener, false, false, false, true);
 		assertOverrides(this.withMBFactoryOverrideAndId, true, true, false, false);

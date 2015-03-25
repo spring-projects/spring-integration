@@ -46,6 +46,7 @@
 			payload-decoder="payloadDecoder"
 			offset-manager="offsetManager"
 			task-executor="executor"
+			stop-timeout="${stop.timeout:5000}"
 			queue-size="${queue.size:1024}"
 			concurrency="${concurrency:10}"
 			max-fetch="${max.fetch:1000}"

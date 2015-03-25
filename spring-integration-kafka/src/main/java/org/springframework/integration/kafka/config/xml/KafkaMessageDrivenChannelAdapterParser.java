@@ -44,6 +44,7 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 		String errorHandler = element.getAttribute("error-handler");
 		String taskExecutor = element.getAttribute("task-executor");
 		String concurrency = element.getAttribute("concurrency");
+		String stopTimeout = element.getAttribute("stop-timeout");
 		String maxFetch = element.getAttribute("max-fetch");
 		String queueSize = element.getAttribute("queue-size");
 
@@ -51,10 +52,11 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 				(StringUtils.hasText(connectionFactory) || StringUtils.hasText(topics)
 						|| StringUtils.hasText(offsetManager) || StringUtils.hasText(errorHandler)
 						|| StringUtils.hasText(taskExecutor) || StringUtils.hasText(concurrency)
-						|| StringUtils.hasText(maxFetch) || StringUtils.hasText(queueSize))) {
+						|| StringUtils.hasText(maxFetch) || StringUtils.hasText(queueSize)
+						|| StringUtils.hasText(stopTimeout))) {
 			parserContext.getReaderContext().error("The 'listener-container' is mutually exclusive with " +
 					"'connection-factory', 'topics', 'offset-manager', 'error-handler', 'task-executor', " +
-					"'concurrency', 'max-fetch' and 'queue-size'.", element);
+					"'concurrency', 'stop-timeout', 'max-fetch' and 'queue-size'.", element);
 		}
 
 		if (StringUtils.hasText(container)) {
@@ -81,6 +83,7 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 					containerBuilder, element, "task-executor", "fetchTaskExecutor");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "concurrency");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "max-fetch");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "stop-timeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "queue-size");
 
 			builder.addConstructorArgValue(containerBuilder.getBeanDefinition());

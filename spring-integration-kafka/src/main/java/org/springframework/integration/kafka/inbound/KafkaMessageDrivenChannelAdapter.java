@@ -19,9 +19,6 @@ package org.springframework.integration.kafka.inbound;
 import java.util.HashMap;
 import java.util.Map;
 
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
-
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.kafka.core.KafkaMessageMetadata;
@@ -36,6 +33,9 @@ import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
 
 /**
  * @author Marius Bogoevici
@@ -76,7 +76,6 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	 * adapter inserts a 'kafka_acknowledgment` header allowing the user to manually
 	 * commit the offset using the {@link Acknowledgment#acknowledge()} method.
 	 * Default 'true'.
-	 *
 	 * @param autoCommitOffset false to not auto-commit (default true).
 	 */
 	public void setAutoCommitOffset(boolean autoCommitOffset) {

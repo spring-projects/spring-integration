@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.gs.collections.api.multimap.list.MutableListMultimap;
+import com.gs.collections.impl.list.mutable.FastList;
+import com.gs.collections.impl.multimap.list.SynchronizedPutFastListMultimap;
+import kafka.message.NoCompressionCodec$;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,12 +47,6 @@ import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-
-import com.gs.collections.api.multimap.list.MutableListMultimap;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.multimap.list.SynchronizedPutFastListMultimap;
-
-import kafka.message.NoCompressionCodec$;
 
 /**
  * @author Marius Bogoevici
@@ -220,4 +218,5 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 			assertThat(metadataStore.get(offsetManager.generateKey(readPartition)), equalTo(String.valueOf(20)));
 		}
 	}
+
 }
