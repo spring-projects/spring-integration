@@ -28,7 +28,7 @@ import org.springframework.data.mongodb.core.ScriptOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.script.ExecutableMongoScript;
+import org.springframework.data.mongodb.core.script.NamedMongoScript;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
@@ -49,7 +49,9 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	protected final Log logger = LogFactory.getLog(getClass());
 	private final MongoTemplate template;
 	private static final String DEFAULT_COLLECTION_NAME = "metadataStore";
+	private static final String PUT_IF_ABSENT = "putIfAbsent";
 	private final String collectionName;
+	private final ScriptOperations operations;
 	private static final String ID_FIELD = "_id";
 	private static final String VALUE = "value";
 
@@ -68,6 +70,8 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.hasText(collectionName, "'collectionName' must not be empty.");
 		this.template = template;
 		this.collectionName = collectionName;
+		operations = template.scriptOps();
+		operations.register(new NamedMongoScript(PUT_IF_ABSENT, buildQuery()));
 	}
 
 	/**
@@ -171,10 +175,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public String putIfAbsent(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		ScriptOperations operations = template.scriptOps();
-		ExecutableMongoScript script = new ExecutableMongoScript(buildQuery());
-		operations.register(script);
-		BasicDBObject result = (BasicDBObject) operations.execute(script, key, value);
+		BasicDBObject result = (BasicDBObject) operations.call(PUT_IF_ABSENT, key, value);
 		return (result == null) ? null : (String) result.get(VALUE);
 	}
 
@@ -200,9 +201,8 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	private String buildQuery() {
-		return "function putIfAbsent(key,value){ " + " key = key.substring(1,key.length-1);"
-				+ " value = value.substring(1,value.length-1);" + " var alreadyPresent = db."
-				+ collectionName + ".find({\"_id\":key.toString()},{\"_id\":0}); "
+		return "function putIfAbsent(key,value){ " + " var alreadyPresent = db." + collectionName
+				+ ".find({\"_id\":key.toString()},{\"_id\":0}); "
 				+ "if(alreadyPresent.length() < 1){ " + "   db." + collectionName + ".insert({"
 				+ "\"_id\":key.toString(),\"value\":value.toString()}); " + "  return null; "
 				+ "} " + "return alreadyPresent.toArray()[0]; " + "} ";
