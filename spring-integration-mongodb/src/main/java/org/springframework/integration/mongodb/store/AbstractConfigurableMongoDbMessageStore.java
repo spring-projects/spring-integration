@@ -36,10 +36,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.DbCallback;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -58,9 +56,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
-
-import com.mongodb.DB;
-import com.mongodb.MongoException;
 
 /**
  * The abstract MongoDB {@link BasicMessageGroupStore} implementation to provide configuration for common options
@@ -112,7 +107,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, 
+	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory,
 			MappingMongoConverter mappingMongoConverter, String collectionName) {
 		Assert.notNull("'mongoDbFactory' must not be null");
 		Assert.hasText("'collectionName' must not be empty");
@@ -143,9 +138,9 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 				this.mongoTemplate.setApplicationContext(this.applicationContext);
 			}
 		}
-		
+
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
-		
+
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 
 		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
@@ -191,38 +186,32 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	}
 
 	protected void addMessageDocument(final MessageDocument document) {
-		this.mongoTemplate.executeInSession(new DbCallback<Void>() {
-			@Override
-			public Void doInDB(DB db) throws MongoException, DataAccessException {
-				Message<?> message = document.getMessage();
-				if (message.getHeaders().containsKey(SAVED_KEY)) {
-					Message<?> saved = getMessage(message.getHeaders().getId());
-					if (saved != null) {
-						if (saved.equals(message)) {
-							return null;
-						} // We need to save it under its own id
-					}
-				}
-
-				final long createdDate = document.getCreatedTime() == 0 
-						? System.currentTimeMillis() 
-						: document.getCreatedTime();
-
-				Message<?> result = messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-						.setHeader(CREATED_DATE_KEY, createdDate).build();
-
-				@SuppressWarnings("unchecked")
-				Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders())
-						.getPropertyValue("headers");
-				// using reflection to set ID since it is immutable through MessageHeaders
-				innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
-				innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
-
-				document.setCreatedTime(createdDate);
-				mongoTemplate.insert(document, collectionName);
-				return null;
+		Message<?> message = document.getMessage();
+		if (message.getHeaders().containsKey(SAVED_KEY)) {
+			Message<?> saved = getMessage(message.getHeaders().getId());
+			if (saved != null) {
+				if (saved.equals(message)) {
+					return;
+				} // We need to save it under its own id
 			}
-		});
+		}
+
+		final long createdDate = document.getCreatedTime() == 0
+				? System.currentTimeMillis()
+				: document.getCreatedTime();
+
+		Message<?> result = messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+				.setHeader(CREATED_DATE_KEY, createdDate).build();
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders())
+				.getPropertyValue("headers");
+		// using reflection to set ID since it is immutable through MessageHeaders
+		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
+		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
+
+		document.setCreatedTime(createdDate);
+		mongoTemplate.insert(document, collectionName);
 	}
 
 	protected static Query groupIdQuery(Object groupId) {
@@ -230,9 +219,9 @@ public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMe
 	}
 
 	/**
-	 * A {@link org.springframework.core.convert.converter.GenericConverter} implementation to convert {@link org.springframework.messaging.Message} to
-	 * serialized {@link byte[]} to store {@link org.springframework.messaging.Message} to the MongoDB.
-	 * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link org.springframework.messaging.Message}.
+	 * A {@link GenericConverter} implementation to convert {@link Message} to
+	 * serialized {@link byte[]} to store {@link Message} to the MongoDB.
+	 * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link Message}.
 	 */
 	private static class MongoDbMessageBytesConverter implements GenericConverter {
 

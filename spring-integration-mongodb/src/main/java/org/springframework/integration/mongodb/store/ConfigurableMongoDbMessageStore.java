@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.DbCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -40,9 +38,6 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import com.mongodb.DB;
-import com.mongodb.MongoException;
 
 /**
  * An alternate MongoDB {@link MessageStore} and {@link MessageGroupStore} which allows the user to
@@ -85,14 +80,14 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter, String collectionName) {
+	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
+			String collectionName) {
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
 
 	/**
 	 * Convenient injection point for expiry callbacks in the message store. Each of the callbacks provided will simply
 	 * be registered with the store using {@link #registerMessageGroupExpiryCallback(MessageGroupCallback)}.
-	 *
 	 * @param expiryCallbacks the expiry callbacks to add
 	 */
 	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
@@ -110,7 +105,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	 * the {@link MessageGroup} was created. If you want the timeout to be based on the time
 	 * the {@link MessageGroup} was idling (e.g., inactive from the last update) invoke this method with 'true'.
 	 * Default is 'false'.
-	 *
 	 * @param timeoutOnIdle The boolean.
 	 */
 	public void setTimeoutOnIdle(boolean timeoutOnIdle) {
@@ -177,36 +171,31 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
 
-		return this.mongoTemplate.executeInSession(new DbCallback<MessageGroup>() {
+		Query query = groupOrderQuery(groupId);
+		MessageDocument messageDocument = mongoTemplate.findOne(query, MessageDocument.class, collectionName);
 
-			@Override
-			public MessageGroup doInDB(DB db) throws MongoException, DataAccessException {
-				Query query = groupOrderQuery(groupId);
-				MessageDocument messageDocument = mongoTemplate.findOne(query, MessageDocument.class, collectionName);
+		long createdTime = 0;
+		int lastReleasedSequence = 0;
+		boolean complete = false;
 
-				long createdTime = 0;
-				int lastReleasedSequence = 0;
-				boolean complete = false;
+		if (messageDocument != null) {
+			createdTime = messageDocument.getCreatedTime();
+			lastReleasedSequence = messageDocument.getLastReleasedSequence();
+			complete = messageDocument.isComplete();
+		}
 
-				if (messageDocument != null) {
-					createdTime = messageDocument.getCreatedTime();
-					lastReleasedSequence = messageDocument.getLastReleasedSequence();
-					complete = messageDocument.isComplete();
-				}
+		MessageDocument document = new MessageDocument(message);
+		document.setGroupId(groupId);
+		document.setComplete(complete);
+		document.setLastReleasedSequence(lastReleasedSequence);
+		document.setCreatedTime(createdTime == 0 ? System.currentTimeMillis() : createdTime);
+		document.setLastModifiedTime(System.currentTimeMillis());
+		document.setSequence(getNextId());
 
-				MessageDocument document = new MessageDocument(message);
-				document.setGroupId(groupId);
-				document.setComplete(complete);
-				document.setLastReleasedSequence(lastReleasedSequence);
-				document.setCreatedTime(createdTime == 0 ? System.currentTimeMillis() : createdTime);
-				document.setLastModifiedTime(System.currentTimeMillis());
-				document.setSequence(getNextId());
+		addMessageDocument(document);
 
-				addMessageDocument(document);
+		return getMessageGroup(groupId);
 
-				return getMessageGroup(groupId);
-			}
-		});
 	}
 
 	@Override
@@ -214,38 +203,27 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 
-		return this.mongoTemplate.executeInSession(new DbCallback<MessageGroup>() {
+		Query query = groupIdQuery(groupId)
+				.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
+		mongoTemplate.remove(query, collectionName);
+		updateGroup(groupId, lastModifiedUpdate());
+		return getMessageGroup(groupId);
 
-			@Override
-			public MessageGroup doInDB(DB db) throws MongoException, DataAccessException {
-				Query query = groupIdQuery(groupId)
-						.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
-				mongoTemplate.remove(query, collectionName);
-				updateGroup(groupId, lastModifiedUpdate());
-				return getMessageGroup(groupId);
-			}
-		});
 	}
 
 	@Override
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		return this.mongoTemplate.executeInSession(new DbCallback<Message<?>>() {
-
-			@Override
-			public Message<?> doInDB(DB db) throws MongoException, DataAccessException {
-				Sort sort = new Sort(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
-				Query query = groupIdQuery(groupId).with(sort);
-				MessageDocument document = mongoTemplate.findAndRemove(query, MessageDocument.class, collectionName);
-				Message<?> message = null;
-				if (document != null) {
-					message = document.getMessage();
-					updateGroup(groupId, lastModifiedUpdate());
-				}
-				return message;
-			}
-		});
+		Sort sort = new Sort(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
+		Query query = groupIdQuery(groupId).with(sort);
+		MessageDocument document = mongoTemplate.findAndRemove(query, MessageDocument.class, collectionName);
+		Message<?> message = null;
+		if (document != null) {
+			message = document.getMessage();
+			updateGroup(groupId, lastModifiedUpdate());
+		}
+		return message;
 	}
 
 	@Override
@@ -260,24 +238,18 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		return this.mongoTemplate.executeInSession(new DbCallback<Iterator<MessageGroup>>() {
+		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
 
-			@Override
-			public Iterator<MessageGroup> doInDB(DB db) throws MongoException, DataAccessException {
-				List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
+		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
+		@SuppressWarnings("rawtypes")
+		List groupIds = mongoTemplate.getCollection(collectionName)
+				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject());
 
-				Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-				@SuppressWarnings("rawtypes")
-				List groupIds = mongoTemplate.getCollection(collectionName)
-						.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject());
+		for (Object groupId : groupIds) {
+			messageGroups.add(getMessageGroup(groupId));
+		}
 
-				for (Object groupId : groupIds) {
-					messageGroups.add(getMessageGroup(groupId));
-				}
-
-				return messageGroups.iterator();
-			}
-		});
+		return messageGroups.iterator();
 	}
 
 	@Override
@@ -364,7 +336,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	private static Query groupOrderQuery(Object groupId) {
-		Sort sort = new Sort(Sort.Direction.DESC, MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
+		Sort sort = new Sort(Sort.Direction.DESC, MessageDocumentFields.LAST_MODIFIED_TIME,
+				MessageDocumentFields.SEQUENCE);
 		return groupIdQuery(groupId).with(sort);
 	}
 
