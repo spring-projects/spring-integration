@@ -58,8 +58,6 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 
 	private final GetBrokersByPartitionFunction getBrokersByPartitionFunction = new GetBrokersByPartitionFunction();
 
-	private final ConnectionInstantiationFunction connectionInstantiationFunction = new ConnectionInstantiationFunction();
-
 	private final Configuration configuration;
 
 	private final AtomicReference<MetadataCache> metadataCacheHolder =
@@ -137,7 +135,33 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	 */
 	@Override
 	public Connection connect(BrokerAddress brokerAddress) {
-		return this.kafkaBrokersCache.getIfAbsentPutWithKey(brokerAddress, connectionInstantiationFunction);
+		Connection connection = null;
+		try {
+			this.lock.readLock().lock();
+			connection = this.kafkaBrokersCache.get(brokerAddress);
+		}
+		finally {
+			this.lock.readLock().unlock();
+		}
+		if (connection == null) {
+			try {
+				this.lock.writeLock().lock();
+				connection = this.kafkaBrokersCache.get(brokerAddress);
+				if (connection == null) {
+					connection = new DefaultConnection(brokerAddress,
+							DefaultConnectionFactory.this.configuration.getClientId(),
+							DefaultConnectionFactory.this.configuration.getBufferSize(),
+							DefaultConnectionFactory.this.configuration.getSocketTimeout(),
+							DefaultConnectionFactory.this.configuration.getMinBytes(),
+							DefaultConnectionFactory.this.configuration.getMaxWait());
+					kafkaBrokersCache.put(brokerAddress, connection);
+				}
+			}
+			finally {
+				this.lock.writeLock().unlock();
+			}
+		}
+		return connection;
 	}
 
 	/**
@@ -221,21 +245,6 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 		public boolean accept(TopicMetadata topicMetadata) {
 			return topicMetadata.errorCode() == ErrorMapping.NoError();
 		}
-	}
-
-	@SuppressWarnings("serial")
-	private class ConnectionInstantiationFunction implements Function<BrokerAddress, Connection> {
-
-		@Override
-		public Connection valueOf(BrokerAddress brokerAddress) {
-			return new DefaultConnection(brokerAddress,
-					DefaultConnectionFactory.this.configuration.getClientId(),
-					DefaultConnectionFactory.this.configuration.getBufferSize(),
-					DefaultConnectionFactory.this.configuration.getSocketTimeout(),
-					DefaultConnectionFactory.this.configuration.getMinBytes(),
-					DefaultConnectionFactory.this.configuration.getMaxWait());
-		}
-
 	}
 
 	@SuppressWarnings("serial")
