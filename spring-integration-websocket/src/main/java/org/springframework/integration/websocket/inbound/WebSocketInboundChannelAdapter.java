@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -30,6 +32,7 @@ import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.ServerWebSocketContainer;
 import org.springframework.integration.websocket.WebSocketListener;
+import org.springframework.integration.websocket.event.ReceiptEvent;
 import org.springframework.integration.websocket.support.PassThruSubProtocolHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
@@ -48,6 +51,7 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -55,16 +59,20 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
 /**
  * @author Artem Bilan
  * @since 4.1
  */
-public class WebSocketInboundChannelAdapter extends MessageProducerSupport implements WebSocketListener {
+public class WebSocketInboundChannelAdapter extends MessageProducerSupport
+		implements WebSocketListener, ApplicationEventPublisherAware {
 
 	private static final byte[] EMPTY_PAYLOAD = new byte[0];
 
 	private final List<MessageConverter> defaultConverters = new ArrayList<MessageConverter>(3);
+
+	private ApplicationEventPublisher eventPublisher;
 
 	{
 		this.defaultConverters.add(new StringMessageConverter());
@@ -171,6 +179,11 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 	}
 
 	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.eventPublisher = applicationEventPublisher;
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		this.webSocketContainer.setMessageListener(this);
@@ -258,11 +271,15 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 		return this.active;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void handleMessageAndSend(Message<?> message) throws Exception {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
+		StompCommand stompCommand = (StompCommand) headerAccessor.getHeader("stompCommand");
 		SimpMessageType messageType = headerAccessor.getMessageType();
 		if ((messageType == null || SimpMessageType.MESSAGE.equals(messageType)
-				|| (SimpMessageType.CONNECT.equals(messageType) && !this.useBroker))
+				|| (SimpMessageType.CONNECT.equals(messageType) && !this.useBroker)
+				|| StompCommand.CONNECTED.equals(stompCommand)
+				|| StompCommand.RECEIPT.equals(stompCommand))
 				&& !checkDestinationPrefix(headerAccessor.getDestination())) {
 			if (SimpMessageType.CONNECT.equals(messageType)) {
 				String sessionId = headerAccessor.getSessionId();
@@ -272,6 +289,12 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport imple
 				Message<byte[]> ackMessage = MessageBuilder.createMessage(EMPTY_PAYLOAD, connectAck.getMessageHeaders());
 				WebSocketSession session = this.webSocketContainer.getSession(sessionId);
 				this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, ackMessage);
+			}
+			else if (StompCommand.CONNECTED.equals(stompCommand)) {
+				this.eventPublisher.publishEvent(new SessionConnectedEvent(this, (Message<byte[]>) message));
+			}
+			else if (StompCommand.RECEIPT.equals(stompCommand)) {
+				this.eventPublisher.publishEvent(new ReceiptEvent(this, (Message<byte[]>) message));
 			}
 			else {
 				headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
