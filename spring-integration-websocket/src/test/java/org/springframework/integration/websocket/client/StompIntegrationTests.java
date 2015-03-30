@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -50,6 +52,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
@@ -61,8 +64,10 @@ import org.springframework.integration.websocket.support.SubProtocolHandlerRegis
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
@@ -70,6 +75,7 @@ import org.springframework.messaging.simp.broker.SubscriptionRegistry;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
@@ -79,6 +85,8 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
@@ -93,6 +101,8 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 @DirtiesContext
 public class StompIntegrationTests {
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
 
@@ -104,10 +114,21 @@ public class StompIntegrationTests {
 	@Qualifier("webSocketInputChannel")
 	private QueueChannel webSocketInputChannel;
 
+	@Autowired
+	@Qualifier("webSocketEvents")
+	private PollableChannel webSocketEvents;
+
 	@Test
 	public void sendMessageToController() throws Exception {
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECT);
+		this.webSocketOutputChannel.send(MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build());
 
-		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SEND);
+		Message<?> receive = this.webSocketEvents.receive(10000);
+		assertNotNull(receive);
+		headers = StompHeaderAccessor.wrap(receive);
+		assertEquals(StompCommand.CONNECTED, headers.getCommand());
+
+		headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setSubscriptionId("sub1");
 		headers.setDestination("/app/simple");
 		Message<String> message = MessageBuilder.withPayload("foo").setHeaders(headers).build();
@@ -124,22 +145,29 @@ public class StompIntegrationTests {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
 		headers.setDestination("/topic/increment");
+		headers.setReceipt("myReceipt");
 		Message<byte[]> message = MessageBuilder.withPayload(ByteBuffer.allocate(0).array())
 				.setHeaders(headers)
 				.build();
+
+		this.webSocketOutputChannel.send(message);
+
+		Message<?> receive = this.webSocketEvents.receive(10000);
+		assertNotNull(receive);
+		headers = StompHeaderAccessor.wrap(receive);
+		assertEquals(StompCommand.RECEIPT, headers.getCommand());
+		assertEquals("myReceipt", headers.getReceiptId());
+
+		waitForSubscribe("increment");
 
 		headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setSubscriptionId("subs1");
 		headers.setDestination("/app/increment");
 		Message<Integer> message2 = MessageBuilder.withPayload(5).setHeaders(headers).build();
 
-		this.webSocketOutputChannel.send(message);
-
-		waitForSubscribe("increment");
-
 		this.webSocketOutputChannel.send(message2);
 
-		Message<?> receive = webSocketInputChannel.receive(10000);
+		receive = webSocketInputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("6", receive.getPayload());
 	}
@@ -330,6 +358,20 @@ public class StompIntegrationTests {
 					new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
 		}
 
+		@Bean
+		public PollableChannel webSocketEvents() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@SuppressWarnings("unchecked")
+		public ApplicationListener<ApplicationEvent> webSocketEventListener() {
+			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
+			producer.setEventTypes(AbstractSubProtocolEvent.class);
+			producer.setExpressionPayload(PARSER.parseExpression("message"));
+			producer.setOutputChannel(webSocketEvents());
+			return producer;
+		}
 	}
 
 	// WebSocket Server part
@@ -425,6 +467,28 @@ public class StompIntegrationTests {
 		public void configureMessageBroker(MessageBrokerRegistry configurer) {
 			configurer.setApplicationDestinationPrefixes("/app");
 			configurer.enableSimpleBroker("/topic", "/queue");
+		}
+
+		//TODO SimpleBrokerMessageHandler doesn't support RECEIPT frame, hence we emulate it this way
+		@Bean
+		@SuppressWarnings("unchecked")
+		public ApplicationListener<SessionSubscribeEvent> webSocketEventListener(
+				final AbstractSubscribableChannel clientOutboundChannel) {
+			return new ApplicationListener<SessionSubscribeEvent>() {
+
+				@Override
+				public void onApplicationEvent(SessionSubscribeEvent event) {
+					Message<byte[]> message = event.getMessage();
+					StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(message);
+					if (stompHeaderAccessor.getReceipt() != null) {
+						stompHeaderAccessor.setHeader("stompCommand", StompCommand.RECEIPT);
+						stompHeaderAccessor.setReceiptId(stompHeaderAccessor.getReceipt());
+						clientOutboundChannel.send(
+								MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.getMessageHeaders()));
+					}
+				}
+
+			};
 		}
 
 	}
