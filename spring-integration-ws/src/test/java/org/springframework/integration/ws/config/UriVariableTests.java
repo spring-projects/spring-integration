@@ -249,7 +249,7 @@ public class UriVariableTests {
 			else {
 				throw new IllegalStateException("expected WebServiceConnection in the TransportContext");
 			}
-			return false;
+			return true;
 		}
 
 		public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
