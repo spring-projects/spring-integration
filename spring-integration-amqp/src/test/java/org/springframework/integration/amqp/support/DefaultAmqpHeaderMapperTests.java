@@ -25,13 +25,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.MimeType;
 
 /**
  * @author Mark Fisher
@@ -103,6 +105,21 @@ public class DefaultAmqpHeaderMapperTests {
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 
 		MediaType contentType = MediaType.parseMediaType("text/html");
+		headerMap.put(AmqpHeaders.CONTENT_TYPE, contentType);
+
+		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
+		MessageProperties amqpProperties = new MessageProperties();
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
+
+		assertEquals("text/html", amqpProperties.getContentType());
+	}
+
+	@Test
+	public void fromHeadersWithContentTypeAsMimeType() {
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		Map<String, Object> headerMap = new HashMap<String, Object>();
+
+		MimeType contentType = MimeType.valueOf("text/html");
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, contentType);
 
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);

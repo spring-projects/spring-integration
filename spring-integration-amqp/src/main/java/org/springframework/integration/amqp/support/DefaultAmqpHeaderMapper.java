@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
 
 /**
@@ -363,7 +364,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (contentType != null){
 			String contentTypeClassName = contentType.getClass().getName();
 
-			if (contentTypeClassName.equals("org.springframework.http.MediaType")){ // see INT-2713
+			if (contentType instanceof MimeType ||
+					contentTypeClassName.equals("org.springframework.http.MediaType")) { // see INT-2713
 				contentTypeStringValue = contentType.toString();
 			}
 			else if (contentType instanceof String) {
