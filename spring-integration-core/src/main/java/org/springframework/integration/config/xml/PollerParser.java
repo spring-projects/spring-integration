@@ -113,6 +113,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		String triggerAttribute = pollerElement.getAttribute("trigger");
 		String fixedRateAttribute = pollerElement.getAttribute("fixed-rate");
 		String fixedDelayAttribute = pollerElement.getAttribute("fixed-delay");
+		String initialDelayAttribute = pollerElement.getAttribute("initial-delay");
 		String cronAttribute = pollerElement.getAttribute("cron");
 		String timeUnit = pollerElement.getAttribute("time-unit");
 
@@ -129,6 +130,9 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			if (StringUtils.hasText(timeUnit)) {
 				builder.addConstructorArgValue(timeUnit);
 			}
+			if (StringUtils.hasText(initialDelayAttribute)) {
+			    builder.addPropertyValue("initialDelay", initialDelayAttribute);
+			}
 			builder.addPropertyValue("fixedRate", Boolean.TRUE);
 			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					builder.getBeanDefinition(), parserContext.getRegistry());
@@ -140,6 +144,9 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			if (StringUtils.hasText(timeUnit)) {
 				builder.addConstructorArgValue(timeUnit);
 			}
+	        if (StringUtils.hasText(initialDelayAttribute)) {
+	            builder.addPropertyValue("initialDelay", initialDelayAttribute);
+	        }
 			builder.addPropertyValue("fixedRate", Boolean.FALSE);
 			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					builder.getBeanDefinition(), parserContext.getRegistry());
