@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Default options are "-F -n 0" (follow file name, no existing records).
  *
  * @author Gary Russell
+ * @author Gavin Gray
  * @since 3.0
  *
  */
@@ -71,13 +72,13 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	protected void onInit() {
 		Assert.notNull(getFile(), "File cannot be null");
 		super.onInit();
-		this.command = "tail " + this.options + " " + this.getFile().getAbsolutePath();
 	}
 
 	@Override
 	protected void doStart() {
 		super.doStart();
 		destroyProcess();
+        this.command = "tail " + this.options + " " + this.getFile().getAbsolutePath();
 		this.getTaskExecutor().execute(new Runnable() {
 
 			@Override
@@ -263,5 +264,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		}
 	}
 
-
+    public String getCommand() {
+        return this.command;
+    }
 }
