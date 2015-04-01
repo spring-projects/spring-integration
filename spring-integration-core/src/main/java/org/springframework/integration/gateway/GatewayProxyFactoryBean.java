@@ -444,21 +444,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
+		String requestChannelName = null;
 		MessageChannel replyChannel = this.defaultReplyChannel;
+		String replyChannelName = null;
 		Long requestTimeout = this.defaultRequestTimeout;
 		Long replyTimeout = this.defaultReplyTimeout;
 		String payloadExpression = this.globalMethodMetadata != null ? this.globalMethodMetadata.getPayloadExpression()
 				: null;
 		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 		if (gatewayAnnotation != null) {
-			String requestChannelName = gatewayAnnotation.requestChannel();
-			if (StringUtils.hasText(requestChannelName)) {
-				requestChannel = this.resolveChannelName(requestChannelName);
-			}
-			String replyChannelName = gatewayAnnotation.replyChannel();
-			if (StringUtils.hasText(replyChannelName)) {
-				replyChannel = this.resolveChannelName(replyChannelName);
-			}
+			requestChannelName = gatewayAnnotation.requestChannel();
+			replyChannelName = gatewayAnnotation.replyChannel();
 			/*
 			 * INT-2636 Unspecified annotation attributes should not
 			 * override the default values supplied by explicit configuration.
@@ -503,14 +499,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				if (!CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
 					headerExpressions.putAll(methodMetadata.getHeaderExpressions());
 				}
-				String requestChannelName = methodMetadata.getRequestChannelName();
-				if (StringUtils.hasText(requestChannelName)) {
-					requestChannel = this.resolveChannelName(requestChannelName);
-				}
-				String replyChannelName = methodMetadata.getReplyChannelName();
-				if (StringUtils.hasText(replyChannelName)) {
-					replyChannel = this.resolveChannelName(replyChannelName);
-				}
+				requestChannelName = methodMetadata.getRequestChannelName();
+				replyChannelName = methodMetadata.getReplyChannelName();
 				String reqTimeout = methodMetadata.getRequestTimeout();
 				if (StringUtils.hasText(reqTimeout)){
 					requestTimeout = this.convert(reqTimeout, Long.class);
@@ -535,8 +525,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}
 		gateway.setBeanName(this.getComponentName());
-		gateway.setRequestChannel(requestChannel);
-		gateway.setReplyChannel(replyChannel);
+		if (StringUtils.hasText(requestChannelName)) {
+			gateway.setRequestChannelName(requestChannelName);
+		}
+		else {
+			gateway.setRequestChannel(requestChannel);
+		}
+		if (StringUtils.hasText(replyChannelName)) {
+			gateway.setReplyChannelName(replyChannelName);
+		}
+		else {
+			gateway.setReplyChannel(replyChannel);
+		}
 		if (requestTimeout == null) {
 			gateway.setRequestTimeout(-1);
 		}
@@ -555,13 +555,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		gateway.setShouldTrack(this.shouldTrack);
 		gateway.afterPropertiesSet();
 		return gateway;
-	}
-
-	private MessageChannel resolveChannelName(String channelName) {
-		Assert.state(this.channelResolver != null, "ChannelResolver is required");
-		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
-		Assert.notNull(channel, "failed to resolve channel '" + channelName + "'");
-		return channel;
 	}
 
 	// Lifecycle implementation
