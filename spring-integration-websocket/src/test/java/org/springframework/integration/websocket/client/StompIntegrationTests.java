@@ -16,8 +16,10 @@
 
 package org.springframework.integration.websocket.client;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.annotation.ElementType;
@@ -58,6 +60,7 @@ import org.springframework.integration.transformer.ExpressionEvaluatingTransform
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
+import org.springframework.integration.websocket.event.ReceiptEvent;
 import org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter;
 import org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
@@ -86,6 +89,7 @@ import org.springframework.web.socket.config.annotation.AbstractWebSocketMessage
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
@@ -125,7 +129,10 @@ public class StompIntegrationTests {
 
 		Message<?> receive = this.webSocketEvents.receive(10000);
 		assertNotNull(receive);
-		headers = StompHeaderAccessor.wrap(receive);
+		Object event = receive.getPayload();
+		assertThat(event, instanceOf(SessionConnectedEvent.class));
+		Message<?> connectedMessage = ((SessionConnectedEvent) event).getMessage();
+		headers = StompHeaderAccessor.wrap(connectedMessage);
 		assertEquals(StompCommand.CONNECTED, headers.getCommand());
 
 		headers = StompHeaderAccessor.create(StompCommand.SEND);
@@ -154,7 +161,10 @@ public class StompIntegrationTests {
 
 		Message<?> receive = this.webSocketEvents.receive(10000);
 		assertNotNull(receive);
-		headers = StompHeaderAccessor.wrap(receive);
+		Object event = receive.getPayload();
+		assertThat(event, instanceOf(ReceiptEvent.class));
+		Message<?> receiptMessage = ((ReceiptEvent) event).getMessage();
+		headers = StompHeaderAccessor.wrap(receiptMessage);
 		assertEquals(StompCommand.RECEIPT, headers.getCommand());
 		assertEquals("myReceipt", headers.getReceiptId());
 
@@ -368,7 +378,6 @@ public class StompIntegrationTests {
 		public ApplicationListener<ApplicationEvent> webSocketEventListener() {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(AbstractSubProtocolEvent.class);
-			producer.setExpressionPayload(PARSER.parseExpression("message"));
 			producer.setOutputChannel(webSocketEvents());
 			return producer;
 		}
