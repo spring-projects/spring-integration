@@ -10,11 +10,13 @@ If a component is not directly provided with a reference to a `MetadataStore`, t
 If one is found then it will be used, otherwise it will create a new instance of `SimpleMetadataStore` which is an in-memory implementation that will only persist metadata within the lifecycle of the currently running Application Context.
 This means that upon restart you may end up with duplicate entries.
 
-If you need to persist metadata between Application Context restarts, two persistent `MetadataStores` are provided by the framework:
+If you need to persist metadata between Application Context restarts, these persistent `MetadataStores` are provided by
+the framework:
 
-* PropertiesPersistingMetadataStore
+* `PropertiesPersistingMetadataStore`
 * <<redis-metadata-store>>
 * <<gemfire-metadata-store>>
+* <<mongodb-metadata-store>>
 
 
 

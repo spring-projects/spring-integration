@@ -17,6 +17,11 @@ However, this has some important implications for (some) user environments.
 
 For complete details, see <<jmx-42-improvements>>.
 
+[[x4.2-mongodb-metadata-store]]
+==== MongodDB Metadata Store
+
+The `MongoDbMetadataStore` is now available. For more information, see <<mongodb-metadata-store>>.
+
 [[x4.2-general]]
 === General Changes
 

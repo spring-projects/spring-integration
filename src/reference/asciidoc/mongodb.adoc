@@ -140,6 +140,38 @@ To configure that scenario, simply extend one message store bean from the other:
 </int:channel>
 ----
 
+[[mongodb-metadata-store]]
+==== MongodDB Metadata Store
+
+As of _Spring Integration 4.2_, a new MongodDB-based `MetadataStore` (<<metadata-store>>) implementation is available.
+The `MongoDbMetadataStore` can be used to maintain metadata state across application restarts.
+This new `MetadataStore` implementation can be used with adapters such as:
+
+* <<twitter-inbound>>
+* <<feed-inbound-channel-adapter>>
+* <<file-reading>>
+* <<ftp-inbound>>
+* <<sftp-inbound>>
+
+In order to instruct these adapters to use the new `MongoDbMetadataStore`, simply declare a Spring bean using the
+bean name *metadataStore*. The _Twitter Inbound Channel Adapter_ and the _Feed Inbound Channel Adapter_ will both
+automatically pick up and use the declared `MongoDbMetadataStore`:
+
+[source,java]
+----
+@Bean
+public MetadataStore metadataStore(MongoDbFactory factory) {
+    return new MongoDbMetadataStore(factory, "integrationMetadataStore");
+}
+----
+
+The `MongoDbMetadataStore` also implements `ConcurrentMetadataStore`, allowing it to be reliably shared across multiple
+application instances where only one instance will be allowed to store or modify a key's value.
+All these operations are _atomic_ via MongoDB guarantees. For this purpose the `putIfAbsent` operation is implemented
+as a _stored_ JavaScript function. Fom more information see
+http://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/#mongo.server-side-scripts[Script Operations]
+and `MongoDbMetadataStore` JavaDocs.
+
 [[mongodb-inbound-channel-adapter]]
 === MongoDB Inbound Channel Adapter
 
