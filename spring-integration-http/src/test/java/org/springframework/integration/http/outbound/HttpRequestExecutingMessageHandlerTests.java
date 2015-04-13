@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.outbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,26 +34,18 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -736,7 +727,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 				.exchange(Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http%20Outbound%20Gateway%20Within%20Chain")),
 						Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.eq(new ParameterizedTypeReference<List<String>>() {
 
-				}));
+						}));
 	}
 
 	@Test
@@ -771,47 +762,6 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		catch (Exception e) {}
 		assertEquals("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar", restTemplate.actualUrl.get());
-	}
-
-	@Test
-	public void nonCompatibleConversionService() throws Exception {
-		HttpRequestExecutingMessageHandler handler =
-				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
-		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
-		ConversionService mockConversionService = mock(ConversionService.class);
-		bf.registerSingleton("integrationConversionService", mockConversionService);
-		handler.setBeanFactory(bf);
-		try {
-			handler.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			fail("Unexpected exception during initialization " + e.getMessage());
-		}
-		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
-	}
-
-	@Test
-	public void compatibleConversionService() throws Exception {
-		HttpRequestExecutingMessageHandler handler =
-				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
-		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
-		ProxyFactory pf = new ProxyFactory(new Class<?>[] {ConversionService.class, ConverterRegistry.class});
-		final AtomicInteger converterCount = new AtomicInteger();
-		pf.addAdvice(new MethodInterceptor() {
-
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				if (invocation.getMethod().getName().equals("addConverter")) {
-					converterCount.incrementAndGet();
-				}
-				return null;
-			}
-		});
-		ConversionService mockConversionService = (ConversionService) pf.getProxy();
-		bf.registerSingleton("integrationConversionService", mockConversionService);
-		handler.setBeanFactory(bf);
-		handler.afterPropertiesSet();
-		assertEquals(2, converterCount.get());
-		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
 	}
 
 	@Test
@@ -895,7 +845,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		when(clientRequest.getHeaders()).thenReturn(headers);
 
 		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class)))
-			.thenReturn(clientRequest );
+			.thenReturn(clientRequest);
 
 		ClientHttpResponse response = mock(ClientHttpResponse.class);
 		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
@@ -912,20 +862,25 @@ public class HttpRequestExecutingMessageHandlerTests {
 		return headers;
 	}
 
-	public static class City{
+	public static class City {
+
 		private final String name;
+
 		public City(String name){
 			this.name = name;
 		}
+
 		@Override
 		public String toString(){
 			return name;
 		}
+
 	}
 
 	private static class MockRestTemplate extends RestTemplate {
 
 		private final AtomicReference<HttpEntity<?>> lastRequestEntity = new AtomicReference<HttpEntity<?>>();
+
 		private final AtomicReference<String> actualUrl = new AtomicReference<String>();
 
 		@Override
@@ -935,6 +890,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 			this.lastRequestEntity.set(requestEntity);
 			throw new RuntimeException("intentional");
 		}
+
 	}
 
 	@SuppressWarnings("unused")
@@ -951,6 +907,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 											  ParameterizedTypeReference<T> responseType) throws RestClientException {
 			return new ResponseEntity<T>(HttpStatus.OK);
 		}
+
 	}
 
 	private static class Foo implements Serializable {
@@ -958,4 +915,5 @@ public class HttpRequestExecutingMessageHandlerTests {
 		private static final long serialVersionUID = 1L;
 
 	}
+
 }

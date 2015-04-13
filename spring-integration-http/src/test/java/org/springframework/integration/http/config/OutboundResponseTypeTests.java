@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.config;
 
 import static org.junit.Assert.assertNotNull;
@@ -36,11 +37,11 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -154,14 +155,14 @@ public class OutboundResponseTypeTests {
 	public void testInt3052InvalidResponseType() throws Exception {
 		try {
 			this.invalidResponseTypeChannel.send(new GenericMessage<byte[]>("hello".getBytes()));
-			fail("IllegalArgumentException expected.");
+			fail("IllegalStateException expected.");
 		}
 		catch (Exception e) {
 			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
 			Throwable t = e.getCause();
-			assertThat(t, Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(t.getMessage(),
-					Matchers.containsString("'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'"));
+			assertThat(t, Matchers.instanceOf(IllegalStateException.class));
+			assertThat(t.getMessage(), Matchers.containsString("'expectedResponseType' can be an instance of " +
+					"'Class<?>', 'String' or 'ParameterizedTypeReference<?>'"));
 		}
 	}
 
@@ -185,6 +186,7 @@ public class OutboundResponseTypeTests {
 			this.httpMethod = httpMethod;
 		}
 
+		@Override
 		public void handle(HttpExchange t) throws IOException {
 			String requestMethod = t.getRequestMethod();
 			String response = null;
