@@ -490,7 +490,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private boolean shouldMapOutboundHeader(String headerName) {
-		String[] outboundHeaderNamesLower = this.outboundHeaderNamesLower;
+		String[] outboundHeaderNamesLower = this.outboundHeaderNamesLowerWithContentType;
 
 		if (this.isDefaultInboundMapper) {
 			/*

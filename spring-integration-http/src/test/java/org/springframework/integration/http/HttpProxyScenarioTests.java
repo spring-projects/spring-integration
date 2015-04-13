@@ -41,6 +41,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
@@ -101,6 +102,7 @@ public class HttpProxyScenarioTests {
 		request.addHeader("If-Modified-Since", ifModifiedSinceValue);
 		request.addHeader("If-Unmodified-Since", ifUnmodifiedSinceValue);
 		request.addHeader("Connection", "Keep-Alive");
+		request.setContentType("text/plain");
 
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 		assertNotNull(handler);
@@ -142,6 +144,7 @@ public class HttpProxyScenarioTests {
 		assertNull(response.getHeaderValue("If-Unmodified-Since"));
 		assertEquals("close", response.getHeaderValue("Connection"));
 		assertEquals(contentDispositionValue, response.getHeader("Content-Disposition"));
+		assertEquals("text/plain", response.getContentType());
 
 		Message<?> message = this.checkHeadersChannel.receive(2000);
 		MessageHeaders headers = message.getHeaders();

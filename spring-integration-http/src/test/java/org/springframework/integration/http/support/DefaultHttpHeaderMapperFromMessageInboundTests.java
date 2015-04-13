@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -42,8 +41,8 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -550,7 +549,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
         HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
         HttpHeaders headers = new HttpHeaders();
         // suppressed in response on inbound, by default
-        headers.put("Content-Length", Arrays.asList("3"));
+        headers.put("Content-Length", Collections.singletonList("3"));
         Map<String, Object> messageHeaders = mapper.toHeaders(headers);
         headers = new HttpHeaders();
         mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -570,6 +569,18 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		c.set(Calendar.MILLISECOND, 0);
 		assertEquals(c.getTimeInMillis(), result.get("If-Modified-Since"));
 	}
+
+	@Test
+	public void testContentTypeHeader() throws Exception{
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(MessageHeaders.CONTENT_TYPE, "text/plain");
+		MessageHeaders messageHeaders = new MessageHeaders(map);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		mapper.fromHeaders(messageHeaders, httpHeaders);
+		assertEquals(MediaType.valueOf("text/plain"), httpHeaders.getContentType());
+	}
+
 
 	public static class TestClass {
 
