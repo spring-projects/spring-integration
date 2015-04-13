@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,17 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -47,6 +51,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Wallace Wadge
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UriVariableExpressionTests {
@@ -119,7 +124,13 @@ public class UriVariableExpressionTests {
 				throw new RuntimeException("intentional");
 			}
 		});
-		handler.setBeanFactory(mock(BeanFactory.class));
+
+		AbstractApplicationContext context = TestUtils.createTestApplicationContext();
+		IntegrationRegistrar registrar = new IntegrationRegistrar();
+		registrar.setBeanClassLoader(context.getClassLoader());
+		registrar.registerBeanDefinitions(null, (BeanDefinitionRegistry) context.getBeanFactory());
+		context.refresh();
+		handler.setBeanFactory(context);
 		handler.setUriVariablesExpression(new SpelExpressionParser().parseExpression("headers.uriVariables"));
 		handler.afterPropertiesSet();
 
