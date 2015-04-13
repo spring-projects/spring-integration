@@ -30,14 +30,9 @@ import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -351,47 +346,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService == null){
-			conversionService = new GenericConversionService();
-		}
-		if (conversionService instanceof ConverterRegistry){
-			ConverterRegistry converterRegistry =
-					(ConverterRegistry) conversionService;
-
-			converterRegistry.addConverter(new ClassToStringConverter());
-			converterRegistry.addConverter(new ObjectToStringConverter());
-
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-		}
-		else {
-			logger.warn("ConversionService is not an instance of ConverterRegistry therefore" +
-					"ClassToStringConverter and ObjectToStringConverter will not be registered");
-		}
-	}
-
-	private class ClassToStringConverter implements Converter<Class<?>, String> {
-		@Override
-		public String convert(Class<?> source) {
-			return source.getName();
-		}
-	}
-
-	/**
-	 *  Spring 3.0.7.RELEASE unfortunately does not trigger the ClassToStringConverter.
-	 *  Therefore, this converter will also test for Class instances and do a
-	 *  respective type conversion.
-	 *
-	 */
-	private class ObjectToStringConverter implements Converter<Object, String> {
-		@Override
-		public String convert(Object source) {
-			if (source instanceof Class) {
-				return ((Class<?>) source).getName();
-			}
-			return source.toString();
-		}
 	}
 
 	@Override
@@ -640,7 +594,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		Map<String, ?> expressions;
 
 		if (this.uriVariablesExpression != null) {
-			expressions = this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
+			Object expressionsObject = this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage);
+			Assert.state(expressionsObject instanceof Map,
+					"The 'uriVariablesExpression' must be evaluated to the 'Map'.");
+			expressions = (Map<String, ?>) expressionsObject;
 		}
 		else {
 			expressions = this.uriVariableExpressions;
