@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,18 @@ import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Jonas Partner
  */
 public class XPathMessageSplitterTests {
-	
-	private String splittingXPath = "/orders/order";
-	
+
 	private XPathMessageSplitter splitter;
 
 	private QueueChannel replyChannel = new QueueChannel();
@@ -47,8 +46,10 @@ public class XPathMessageSplitterTests {
 
 	@Before
 	public void setUp(){
+		String splittingXPath = "/orders/order";
 		splitter = new XPathMessageSplitter(splittingXPath);
 		splitter.setOutputChannel(replyChannel);
+		splitter.setRequiresReply(true);
 	}
 
 
@@ -64,7 +65,7 @@ public class XPathMessageSplitterTests {
 		}
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = ReplyRequiredException.class)
 	public void splitDocumentThatDoesNotMatch() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<wrongDocument/>");
 		splitter.handleMessage(new GenericMessage<Document>(doc));
@@ -95,7 +96,7 @@ public class XPathMessageSplitterTests {
 		}
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void invalidPayloadType() {
 		splitter.handleMessage(new GenericMessage<Integer>(123));
 	}

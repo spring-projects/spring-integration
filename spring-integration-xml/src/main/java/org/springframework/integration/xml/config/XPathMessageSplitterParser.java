@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.xml.config;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -34,8 +33,6 @@ import org.springframework.util.StringUtils;
  */
 public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 
-	private final XPathExpressionParser xpathParser = new XPathExpressionParser();
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(XPathMessageSplitter.class);
@@ -46,8 +43,9 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		boolean hasReference = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(hasChild ^ hasReference, "Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (hasChild) {
-			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
-			builder.addConstructorArgValue(beanDefinition);
+			Element xpathExpressionElement = (Element) xPathExpressionNodes.item(0);
+			builder.addConstructorArgValue(xpathExpressionElement.getAttribute("expression"));
+			XPathExpressionParser.parseAndPopulateNamespaceMap(xpathExpressionElement, parserContext, builder);
 		}
 		else {
 			builder.addConstructorArgReference(xPathExpressionRef);
@@ -55,6 +53,8 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "doc-builder-factory", "documentBuilder");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "create-documents");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "iterator");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "output-properties");
 		return builder;
 	}
 
