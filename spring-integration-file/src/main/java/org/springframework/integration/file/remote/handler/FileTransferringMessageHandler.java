@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,18 +59,34 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 
+	/**
+	 * @param autoCreateDirectory true to automatically create the direcotory.
+	 * @see RemoteFileTemplate#setAutoCreateDirectory(boolean)
+	 */
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.remoteFileTemplate.setAutoCreateDirectory(autoCreateDirectory);
 	}
 
+	/**
+	 * @param remoteFileSeparator the remote file separator.
+	 * @see RemoteFileTemplate#setRemoteFileSeparator(String)
+	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		this.remoteFileTemplate.setRemoteFileSeparator(remoteFileSeparator);
 	}
 
+	/**
+	 * @param remoteDirectoryExpression the remote directory expression
+	 * @see RemoteFileTemplate#setRemoteDirectoryExpression(Expression)
+	 */
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		this.remoteFileTemplate.setRemoteDirectoryExpression(remoteDirectoryExpression);
 	}
 
+	/**
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression
+	 * @see RemoteFileTemplate#setTemporaryRemoteDirectoryExpression(Expression)
+	 */
 	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
 		this.remoteFileTemplate.setTemporaryRemoteDirectoryExpression(temporaryRemoteDirectoryExpression);
 	}
@@ -83,18 +99,34 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		return this.remoteFileTemplate.isUseTemporaryFileName();
 	}
 
+	/**
+	 * @param useTemporaryFileName true to use a temporary file name.
+	 * @see RemoteFileTemplate#setUseTemporaryFileName(boolean)
+	 */
 	public void setUseTemporaryFileName(boolean useTemporaryFileName) {
 		this.remoteFileTemplate.setUseTemporaryFileName(useTemporaryFileName);
 	}
 
+	/**
+	 * @param fileNameGenerator the file name generator.
+	 * @see RemoteFileTemplate#setFileNameGenerator(FileNameGenerator)
+	 */
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.remoteFileTemplate.setFileNameGenerator(fileNameGenerator);
 	}
 
+	/**
+	 * @param charset the charset.
+	 * @see RemoteFileTemplate#setCharset(String)
+	 */
 	public void setCharset(String charset) {
 		this.remoteFileTemplate.setCharset(charset);
 	}
 
+	/**
+	 * @param temporaryFileSuffix the temporary file suffix.
+	 * @see RemoteFileTemplate#setTemporaryFileSuffix(String)
+	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
 	}

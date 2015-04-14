@@ -265,6 +265,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * @param remoteFileSeparator the remoteFileSeparator to set
+	 * @see RemoteFileTemplate#setRemoteFileSeparator(String)
 	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		this.remoteFileTemplate.setRemoteFileSeparator(remoteFileSeparator);
@@ -292,6 +293,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * @param temporaryFileSuffix the temporaryFileSuffix to set
+	 * @see RemoteFileTemplate#setTemporaryFileSuffix(String)
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
