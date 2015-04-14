@@ -749,6 +749,30 @@
 							<xsd:union memberTypes="xsd:boolean xsd:string" />
 						</xsd:simpleType>
 					</xsd:attribute>
+					<xsd:attribute name="output-properties">
+						<xsd:annotation>
+							<xsd:documentation>
+								A set of output properties that will be used to override any of the same properties
+								in affect for the transformation.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.util.Properties"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="iterator" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								The iterator mode: 'true' (default) to return an 'java.util.Iterator'
+								for splitting 'payload', 'false to return a 'java.util.List'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -862,14 +886,14 @@
 			<xsd:attribute name="expression" type="xsd:string" use="optional"/>
 			<xsd:attribute name="value" type="xsd:string" use="optional"/>
 	</xsd:complexType>
-	
+
 	<xsd:simpleType name="resultType">
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="DOMResult"/>
 			<xsd:enumeration value="StringResult"/>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType name="evaluationType">
 		<xsd:restriction base="xsd:string">
 		<xsd:enumeration value="BOOLEAN_RESULT"/>
@@ -879,12 +903,12 @@
 		<xsd:enumeration value="NODE_LIST_RESULT"/>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType name="schemaType">
 		<xsd:restriction base="xsd:string">
 		<xsd:enumeration value="xml-schema"/>
 		<xsd:enumeration value="relax-ng"/>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 </xsd:schema>

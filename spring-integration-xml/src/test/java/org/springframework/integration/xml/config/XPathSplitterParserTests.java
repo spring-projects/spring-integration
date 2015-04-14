@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.*;
+
+import java.util.Properties;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,10 +41,15 @@ public class XPathSplitterParserTests {
 	@Autowired @Qualifier("xpathSplitter.handler")
 	private MessageHandler xpathSplitter;
 
+	@Autowired @Qualifier("outputProperties")
+	private Properties outputProperties;
+
 	@Test
 	public void testXpathSplitterConfig() {
 		assertTrue(TestUtils.getPropertyValue(this.xpathSplitter, "createDocuments", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(this.xpathSplitter, "applySequence", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(this.xpathSplitter, "iterator", Boolean.class));
+		assertSame(this.outputProperties, TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties"));
 		assertEquals("/orders/order",
 				TestUtils.getPropertyValue(this.xpathSplitter,
 						"xpathExpression.xpathExpression.xpath.m_patternString",

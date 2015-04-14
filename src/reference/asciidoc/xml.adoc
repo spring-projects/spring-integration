@@ -687,6 +687,25 @@ XPath splitter namespace support allows the creation of a Message Endpoint with 
 </int-xml:xpath-splitter>
 ----
 
+Starting with `4.2 version` the `XPathMessageSplitter` exposes `outputProperties`
+(such as `OutputKeys.OMIT_XML_DECLARATION`) property for the `javax.xml.transform.Transformer` instances when a
+request `payload` isn't of `org.w3c.dom.Node` type:
+
+[source,xml]
+----
+<util:properties id="outputProperties">
+	<beans:prop key="#{T (javax.xml.transform.OutputKeys).OMIT_XML_DECLARATION}">yes</beans:prop>
+</util:properties>
+
+<xpath-splitter input-channel="input"
+				output-properties="outputProperties">
+	<xpath-expression expression="/orders/order"/>
+</xpath-splitter>
+----
+
+Starting with `4.2 version` the `XPathMessageSplitter` exposes an `iterator` mode option as `boolean` flag (defaults
+to `true`). This allows to "stream" splitted nodes in the downstream flow. See <<splitter>> for more information.
+
 [[xml-xpath-routing]]
 === Routing XML Messages Using XPath
 

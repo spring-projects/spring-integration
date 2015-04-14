@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,39 @@ package org.springframework.integration.xml.splitter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.integration.util.Function;
+import org.springframework.integration.util.FunctionIterator;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
+import org.springframework.xml.namespace.SimpleNamespaceContext;
 import org.springframework.xml.transform.StringResult;
+import org.springframework.xml.xpath.XPathException;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 
@@ -49,13 +61,20 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * The return value will be either Strings or {@link Node}s depending on the
  * received payload type. Additionally, node types will be converted to
  * Documents if the 'createDocuments' property is set to <code>true</code>.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class XPathMessageSplitter extends AbstractMessageSplitter {
 
+	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+
+	private final Object documentBuilderFactoryMonitor = new Object();
+
 	private final XPathExpression xpathExpression;
+
+	private javax.xml.xpath.XPathExpression jaxpExpression;
 
 	private volatile boolean createDocuments;
 
@@ -63,6 +82,9 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private volatile XmlPayloadConverter xmlPayloadConverter = new DefaultXmlPayloadConverter();
 
+	private volatile Properties outputProperties;
+
+	private volatile boolean iterator = true;
 
 	public XPathMessageSplitter(String expression) {
 		this(expression, new HashMap<String, String>());
@@ -70,9 +92,22 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	public XPathMessageSplitter(String expression, Map<String, String> namespaces) {
 		this(XPathExpressionFactory.createXPathExpression(expression, namespaces));
+
+		XPath xpath = XPathFactory.newInstance().newXPath();
+		SimpleNamespaceContext namespaceContext = new SimpleNamespaceContext();
+		namespaceContext.setBindings(namespaces);
+		xpath.setNamespaceContext(namespaceContext);
+		try {
+			this.jaxpExpression = xpath.compile(expression);
+		}
+		catch (XPathExpressionException e) {
+			throw new org.springframework.xml.xpath.XPathParseException(
+					"Could not compile [" + expression + "] to a XPathExpression: " + e.getMessage(), e);
+		}
 	}
 
 	public XPathMessageSplitter(XPathExpression xpathExpression) {
+		Assert.notNull(xpathExpression, "'xpathExpression' must not be null.");
 		this.xpathExpression = xpathExpression;
 		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		this.documentBuilderFactory.setNamespaceAware(true);
@@ -97,6 +132,37 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		this.xmlPayloadConverter = xmlPayloadConverter;
 	}
 
+	/**
+	 * The {@code iterator} mode: {@code true} (default) to return an {@link Iterator}
+	 * for splitting {@code payload}, {@code false} to return a {@link List}.
+	 * @param iterator {@code boolean} flag for iterator mode. Default to {@code true}.
+	 * @since 4.2
+	 */
+	public void setIterator(boolean iterator) {
+		this.iterator = iterator;
+	}
+
+	/**
+	 * A set of output properties that will be
+	 * used to override any of the same properties in affect
+	 * for the transformation.
+	 * @param outputProperties the {@link Transformer} output properties.
+	 * @see Transformer#setOutputProperties(Properties)
+	 * @since 4.2
+	 */
+	public void setOutputProperties(Properties outputProperties) {
+		this.outputProperties = outputProperties;
+	}
+
+	@Override
+	protected void doInit() {
+		super.doInit();
+		if (this.iterator && this.jaxpExpression == null) {
+			logger.info("The 'iterator' option isn't available for an external XPathExpression. Will be ignored");
+			this.iterator = false;
+		}
+	}
+
 	@Override
 	protected Object splitMessage(Message<?> message) {
 		try {
@@ -113,51 +179,134 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			return result;
 		}
 		catch (ParserConfigurationException e) {
-			throw new MessagingException(message, "failed to create DocumentBuilder", e);
+			throw new MessageConversionException(message, "failed to create DocumentBuilder", e);
 		}
 		catch (Exception e) {
-			throw new MessagingException(message, "failed to split Message payload", e);
+			throw new MessageHandlingException(message, "failed to split Message payload", e);
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object splitDocument(Document document) throws Exception {
-		List<Node> nodes = splitNode(document);
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		List<String> splitStrings = new ArrayList<String>(nodes.size());
-		for (Node nodeFromList : nodes) {
-			StringResult result = new StringResult();
-			transformer.transform(new DOMSource(nodeFromList), result);
-			splitStrings.add(result.toString());
+		Object nodes = splitNode(document);
+		final Transformer transformer;
+		synchronized (this.transformerFactory) {
+			transformer = this.transformerFactory.newTransformer();
 		}
-		return splitStrings;
+		if (this.outputProperties != null) {
+			transformer.setOutputProperties(this.outputProperties);
+		}
+
+		if (nodes instanceof List) {
+			List<Node> items = (List<Node>) nodes;
+			List<String> splitStrings = new ArrayList<String>(items.size());
+			for (Node nodeFromList : items) {
+				StringResult result = new StringResult();
+				transformer.transform(new DOMSource(nodeFromList), result);
+				splitStrings.add(result.toString());
+			}
+			return splitStrings;
+		}
+		else {
+			return new FunctionIterator<Node, String>((Iterator<Node>) nodes, new Function<Node, String>() {
+
+				@Override
+				public String apply(Node node) {
+					StringResult result = new StringResult();
+					try {
+						transformer.transform(new DOMSource(node), result);
+					}
+					catch (TransformerException e) {
+						throw new IllegalStateException("failed to create DocumentBuilder", e);
+					}
+					return result.toString();
+				}
+
+			});
+		}
 	}
 
-	private List<Node> splitNode(Node node) throws ParserConfigurationException {
-		List<Node> nodeList = this.xpathExpression.evaluateAsNodeList(node);
-		if (nodeList.size() == 0) {
-			throw new IllegalArgumentException("failed to split message with XPath expression: " + this.xpathExpression);
+	private Object splitNode(Node node) throws ParserConfigurationException {
+		if (this.iterator) {
+			try {
+				NodeList nodeList = (NodeList) this.jaxpExpression.evaluate(node, XPathConstants.NODESET);
+				return new NodeListIterator(nodeList);
+			}
+			catch (XPathExpressionException e) {
+				throw new XPathException("Could not evaluate XPath expression:" + e.getMessage(), e);
+			}
 		}
-		if (this.createDocuments) {
-			return convertNodesToDocuments(nodeList);
+		else {
+			List<Node> nodeList = this.xpathExpression.evaluateAsNodeList(node);
+			if (this.createDocuments) {
+				return convertNodesToDocuments(nodeList);
+			}
+			return nodeList;
 		}
-		return nodeList;
 	}
 
 	private List<Node> convertNodesToDocuments(List<Node> nodes) throws ParserConfigurationException {
-		DocumentBuilder documentBuilder = this.getNewDocumentBuilder();
+		DocumentBuilder documentBuilder = getNewDocumentBuilder();
 		List<Node> documents = new ArrayList<Node>(nodes.size());
 		for (Node node : nodes) {
-			Document document = documentBuilder.newDocument();
-			document.appendChild(document.importNode(node, true));
+			Document document = convertNodeToDocument(documentBuilder, node);
 			documents.add(document);
 		}
 		return documents;
 	}
 
+	private Document convertNodeToDocument(DocumentBuilder documentBuilder, Node node) {
+		Document document = documentBuilder.newDocument();
+		document.appendChild(document.importNode(node, true));
+		return document;
+	}
+
 	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (this.documentBuilderFactory) {
+		synchronized (this.documentBuilderFactoryMonitor) {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}
+	}
+
+	private class NodeListIterator implements Iterator<Node> {
+
+		private final DocumentBuilder documentBuilder;
+
+		private final NodeList nodeList;
+
+		private int index;
+
+		public NodeListIterator(NodeList nodeList) throws ParserConfigurationException {
+			this.nodeList = nodeList;
+			if (XPathMessageSplitter.this.createDocuments) {
+				this.documentBuilder = getNewDocumentBuilder();
+			}
+			else {
+				this.documentBuilder = null;
+			}
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < nodeList.getLength();
+		}
+
+		@Override
+		public Node next() {
+			if (!hasNext())
+				return null;
+
+			Node node = nodeList.item(index++);
+			if (this.documentBuilder != null) {
+				node = convertNodeToDocument(this.documentBuilder, node);
+			}
+			return node;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException("Operation not supported");
+		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.springframework.integration.xml.config;
 
+import java.util.Map;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -47,7 +50,11 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		Assert.isTrue(hasChild ^ hasReference, "Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (hasChild) {
 			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
-			builder.addConstructorArgValue(beanDefinition);
+			Map<Integer, ConstructorArgumentValues.ValueHolder> indexedArgumentValues =
+					beanDefinition.getConstructorArgumentValues().getIndexedArgumentValues();
+			for (ConstructorArgumentValues.ValueHolder valueHolder : indexedArgumentValues.values()) {
+				builder.addConstructorArgValue(valueHolder.getValue());
+			}
 		}
 		else {
 			builder.addConstructorArgReference(xPathExpressionRef);
@@ -55,6 +62,8 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "doc-builder-factory", "documentBuilder");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "create-documents");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "iterator");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "output-properties");
 		return builder;
 	}
 
