@@ -40,6 +40,7 @@ import org.springframework.messaging.MessageChannel;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
+@SuppressWarnings("serial")
 public class ChannelSecurityInterceptorBeanPostProcessor extends AbstractAutoProxyCreator {
 
 	private final Map<String, Set<Pattern>> securityInterceptorMappings;

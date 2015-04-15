@@ -53,7 +53,7 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 		boolean sendAccessDefined = StringUtils.hasText(sendAccess);
 		boolean receiveAccessDefined = StringUtils.hasText(receiveAccess);
 		Assert.isTrue(sendAccessDefined || receiveAccessDefined,
-				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
+				"At least one of 'sendAccess' and 'receiveAccess' must not be null and have at least one entry.");
 		if (sendAccessDefined) {
 			String[] sendAccessValues = StringUtils.commaDelimitedListToStringArray(sendAccess);
 			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
