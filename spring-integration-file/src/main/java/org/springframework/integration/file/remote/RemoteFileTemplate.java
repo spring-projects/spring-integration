@@ -145,8 +145,9 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	/**
-	 * Set the file name expression to determine the name of the local file when retrieving
-	 * a remote file.
+	 * Set the file name expression to determine the full path to the remote file when retrieving
+	 * a file using the {@link #get(Message, InputStreamCallback)} method, with the message
+	 * being the root object of the evaluation.
 	 * @param fileNameExpression the file name expression.
 	 */
 	public void setFileNameExpression(Expression fileNameExpression) {
@@ -179,7 +180,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	/**
-	 * Set the file name generator used to determine the remote filename to be used when transferring
+	 * Set the file name generator used to generate the remote filename to be used when transferring
 	 * files to the remote system. Default {@link DefaultFileNameGenerator}.
 	 * @param fileNameGenerator the file name generator.
 	 */
@@ -364,6 +365,9 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		});
 	}
 
+	/**
+	 * @see #setFileNameExpression(Expression)
+	 */
 	@Override
 	public boolean get(Message<?> message, InputStreamCallback callback) {
 		Assert.notNull(this.fileNameProcessor, "A 'fileNameExpression' is needed to use get");
