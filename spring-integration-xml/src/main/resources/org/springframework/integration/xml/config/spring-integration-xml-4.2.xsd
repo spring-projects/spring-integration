@@ -753,7 +753,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								A set of output properties that will be used to override any of the same properties
-								in affect for the transformation.
+								in effect for the transformation.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -767,6 +767,8 @@
 							<xsd:documentation>
 								The iterator mode: 'true' (default) to return an 'java.util.Iterator'
 								for splitting 'payload', 'false to return a 'java.util.List'.
+								Note: the 'list' contains transformed nodes whereas with the
+								'iterator' each node is transformed while iterating.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>

@@ -704,7 +704,9 @@ request `payload` isn't of `org.w3c.dom.Node` type:
 ----
 
 Starting with `4.2 version` the `XPathMessageSplitter` exposes an `iterator` mode option as `boolean` flag (defaults
-to `true`). This allows to "stream" splitted nodes in the downstream flow. See <<splitter>> for more information.
+to `true`). This allows to "stream" splitted nodes in the downstream flow. For example in the `iterator` mode
+each node is transformed while iterating, whereas the `list` contains already transformed nodes. See <<splitter>> for
+more information.
 
 [[xml-xpath-routing]]
 === Routing XML Messages Using XPath

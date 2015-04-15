@@ -9,9 +9,7 @@
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<rabbit:queue id="fooQueue" name="my.case.fooQueue" auto-delete="true" durable="false"/>
-
-	<amqp:channel id="channelWithInterceptor" queue-name="my.case.fooQueue">
+	<amqp:channel id="channelWithInterceptor">
 		<amqp:interceptors>
 			<bean class="org.springframework.integration.amqp.config.AmqpChannelParserTests$TestInterceptor"/>
 		</amqp:interceptors>

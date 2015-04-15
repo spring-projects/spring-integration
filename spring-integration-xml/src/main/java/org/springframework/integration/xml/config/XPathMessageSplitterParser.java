@@ -16,13 +16,9 @@
 
 package org.springframework.integration.xml.config;
 
-import java.util.Map;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -37,8 +33,6 @@ import org.springframework.util.StringUtils;
  */
 public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 
-	private final XPathExpressionParser xpathParser = new XPathExpressionParser();
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(XPathMessageSplitter.class);
@@ -49,12 +43,9 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		boolean hasReference = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(hasChild ^ hasReference, "Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (hasChild) {
-			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
-			Map<Integer, ConstructorArgumentValues.ValueHolder> indexedArgumentValues =
-					beanDefinition.getConstructorArgumentValues().getIndexedArgumentValues();
-			for (ConstructorArgumentValues.ValueHolder valueHolder : indexedArgumentValues.values()) {
-				builder.addConstructorArgValue(valueHolder.getValue());
-			}
+			Element xpathExpressionElement = (Element) xPathExpressionNodes.item(0);
+			builder.addConstructorArgValue(xpathExpressionElement.getAttribute("expression"));
+			XPathExpressionParser.parseAndPopulateNamespaceMap(xpathExpressionElement, parserContext, builder);
 		}
 		else {
 			builder.addConstructorArgReference(xPathExpressionRef);
