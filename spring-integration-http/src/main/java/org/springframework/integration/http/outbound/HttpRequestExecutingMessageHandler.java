@@ -43,6 +43,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -92,7 +93,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean encodeUri = true;
 
-	private volatile Expression httpMethodExpression = new LiteralExpression(HttpMethod.POST.name());
+	private volatile Expression httpMethodExpression = new ValueExpression<HttpMethod>(HttpMethod.POST);
 
 	private volatile boolean expectReply = true;
 
@@ -118,7 +119,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(URI uri) {
-		this(uri.toString());
+		this(new ValueExpression<URI>(uri));
 	}
 
 	/**
@@ -194,7 +195,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @param httpMethod The method.
 	 */
 	public void setHttpMethod(HttpMethod httpMethod) {
-		this.httpMethodExpression = new LiteralExpression(httpMethod.name());
+		Assert.notNull(httpMethod, "'httpMethod' must not be null");
+		this.httpMethodExpression = new ValueExpression<HttpMethod>(httpMethod);
 	}
 
 	/**
@@ -350,8 +352,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		String uri = this.uriExpression.getValue(this.evaluationContext, requestMessage, String.class);
-		Assert.notNull(uri, "URI Expression evaluation cannot result in null");
+		Object uri = this.uriExpression.getValue(this.evaluationContext, requestMessage);
+		Assert.state(uri instanceof String || uri instanceof URI,
+				"'uriExpression' evaluation must result in 'String' or 'URI' instance, but not in the: " + uri);
 		URI realUri = null;
 		try {
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
@@ -367,7 +370,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
 			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
-			UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
+			UriComponentsBuilder uriComponentsBuilder = uri instanceof String
+					? UriComponentsBuilder.fromUriString((String) uri)
+					: UriComponentsBuilder.fromUri((URI) uri);
+			UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 			ResponseEntity<?> httpResponse;
 			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
@@ -402,8 +408,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI ["
-					+ (realUri == null ? uri : realUri.toString())
-					+ "]", e);
+					+ (realUri == null ? uri : realUri) + "]", e);
 		}
 	}
 
@@ -566,10 +571,22 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	private HttpMethod determineHttpMethod(Message<?> requestMessage) {
-		String strHttpMethod = httpMethodExpression.getValue(this.evaluationContext, requestMessage, String.class);
-		Assert.isTrue(StringUtils.hasText(strHttpMethod) && !Arrays.asList(HttpMethod.values()).contains(strHttpMethod),
-				"The 'httpMethodExpression' returned an invalid HTTP Method value: " + strHttpMethod);
-		return HttpMethod.valueOf(strHttpMethod);
+		Object httpMethod = this.httpMethodExpression.getValue(this.evaluationContext, requestMessage);
+		Assert.state(httpMethod != null && (httpMethod instanceof String || httpMethod instanceof HttpMethod),
+				"'httpMethodExpression' must be evaluated to the 'HttpMethod' enum or its String representation, " +
+						"but not to the " + httpMethod);
+		if (httpMethod instanceof HttpMethod) {
+			return (HttpMethod) httpMethod;
+		}
+		else {
+			try {
+				return HttpMethod.valueOf((String) httpMethod);
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("The 'httpMethodExpression' returned an invalid HTTP Method value: "
+						+ httpMethod);
+			}
+		}
 	}
 
 	private Object determineExpectedResponseType(Message<?> requestMessage) throws Exception{
@@ -578,9 +595,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			expectedResponseType = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage);
 		}
 		if (expectedResponseType != null) {
-			Assert.isTrue(expectedResponseType instanceof Class<?>
-					|| expectedResponseType instanceof String
-					|| expectedResponseType instanceof ParameterizedTypeReference,
+			Assert.state(expectedResponseType instanceof Class<?>
+							|| expectedResponseType instanceof String
+							|| expectedResponseType instanceof ParameterizedTypeReference,
 					"'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'.");
 			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)){
 				expectedResponseType = ClassUtils.forName((String) expectedResponseType, ClassUtils.getDefaultClassLoader());
