@@ -45,6 +45,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * A general abstraction for dealing with remote files.
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Josh Long
@@ -87,60 +89,121 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private volatile BeanFactory beanFactory;
 
+	/**
+	 * Construct a {@link RemoteFileTemplate} with the supplied session factory.
+	 * @param sessionFactory the session factory.
+	 */
 	public RemoteFileTemplate(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
 
+	/**
+	 * Determine whether the remote directory should automatically be created when
+	 * sending files to the remote system.
+	 * @param autoCreateDirectory true to create the directory.
+	 */
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
 	}
 
+	/**
+	 * Set the file separator when dealing with remote files; default '/'.
+	 * @param remoteFileSeparator the separator.
+	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
+	/**
+	 * @return the remote file separator.
+	 */
 	public final String getRemoteFileSeparator() {
 		return remoteFileSeparator;
 	}
 
+	/**
+	 * Set the remote directory expression used to determine the remote directory to which
+	 * files will be sent.
+	 * @param remoteDirectoryExpression the remote directory expression.
+	 */
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
 
+	/**
+	 * Set a temporary remote directory expression; used when transferring files to the remote
+	 * system. After a successful transfer the file is renamed using the
+	 * {@link #setRemoteDirectoryExpression(Expression) remoteDirectoryExpression}.
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression.
+	 */
 	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
 		Assert.notNull(temporaryRemoteDirectoryExpression, "temporaryRemoteDirectoryExpression must not be null");
 		this.temporaryDirectoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(temporaryRemoteDirectoryExpression, String.class);
 	}
 
+	/**
+	 * Set the file name expression to determine the full path to the remote file when retrieving
+	 * a file using the {@link #get(Message, InputStreamCallback)} method, with the message
+	 * being the root object of the evaluation.
+	 * @param fileNameExpression the file name expression.
+	 */
 	public void setFileNameExpression(Expression fileNameExpression) {
 		Assert.notNull(fileNameExpression, "fileNameExpression must not be null");
 		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(fileNameExpression, String.class);
 	}
 
+	/**
+	 * @return the temporary file suffix.
+	 */
 	public String getTemporaryFileSuffix() {
 		return this.temporaryFileSuffix;
 	}
 
+	/**
+	 * @return whether a temporary file name is used when sending files to the remote
+	 * system.
+	 */
 	public boolean isUseTemporaryFileName() {
 		return useTemporaryFileName;
 	}
 
+	/**
+	 * Set whether a temporary file name is used when sending files to the remote system.
+	 * @param useTemporaryFileName true to use a temporary file name.
+	 * @see #setTemporaryFileSuffix(String)
+	 */
 	public void setUseTemporaryFileName(boolean useTemporaryFileName) {
 		this.useTemporaryFileName = useTemporaryFileName;
 	}
 
+	/**
+	 * Set the file name generator used to generate the remote filename to be used when transferring
+	 * files to the remote system. Default {@link DefaultFileNameGenerator}.
+	 * @param fileNameGenerator the file name generator.
+	 */
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = (fileNameGenerator != null) ? fileNameGenerator : new DefaultFileNameGenerator();
 		this.fileNameGeneratorSet = fileNameGenerator != null;
 	}
 
+	/**
+	 * Set the charset to use when converting String payloads to bytes as the content of the
+	 * remote file. Default {@code UTF-8}.
+	 * @param charset the charset.
+	 */
 	public void setCharset(String charset) {
 		this.charset = charset;
 	}
 
+	/**
+	 * Set the temporary suffix to use when transferring files to the remote system.
+	 * Default ".writing".
+	 * @param temporaryFileSuffix the suffix
+	 * @see #setUseTemporaryFileName(boolean)
+	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
 		this.hasExplicitlySetSuffix = true;
@@ -302,6 +365,9 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		});
 	}
 
+	/**
+	 * @see #setFileNameExpression(Expression)
+	 */
 	@Override
 	public boolean get(Message<?> message, InputStreamCallback callback) {
 		Assert.notNull(this.fileNameProcessor, "A 'fileNameExpression' is needed to use get");

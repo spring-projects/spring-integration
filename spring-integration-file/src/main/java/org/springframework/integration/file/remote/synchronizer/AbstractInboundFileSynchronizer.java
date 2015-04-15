@@ -108,16 +108,28 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 
+	/**
+	 * @param remoteFileSeparator the remote file separator.
+	 * @see RemoteFileTemplate#setRemoteFileSeparator(String)
+	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
+	/**
+	 * Set an expression used to determine the local file name.
+	 * @param localFilenameGeneratorExpression the expression.
+	 */
 	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
 		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
 		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
 	}
 
+	/**
+	 * Set a temporary file suffix to be used while transferring files. Default ".writing".
+	 * @param temporaryFileSuffix the file suffix.
+	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
@@ -131,14 +143,27 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.remoteDirectory = remoteDirectory;
 	}
 
+	/**
+	 * Set the filter to be applied to the remote files before transferring.
+	 * @param filter the file list filter.
+	 */
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 
+	/**
+	 * Set to true to enable deletion of remote files after successful transfer.
+	 * @param deleteRemoteFiles true to delete.
+	 */
 	public void setDeleteRemoteFiles(boolean deleteRemoteFiles) {
 		this.deleteRemoteFiles = deleteRemoteFiles;
 	}
 
+	/**
+	 * Set to true to enable the preservation of the remote file timestamp when
+	 * transferring.
+	 * @param preserveTimestamp true to preserve.
+	 */
 	public void setPreserveTimestamp(boolean preserveTimestamp) {
 		this.preserveTimestamp = preserveTimestamp;
 	}
