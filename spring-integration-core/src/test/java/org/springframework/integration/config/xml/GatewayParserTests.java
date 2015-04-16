@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.gateway.TestService;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -103,6 +106,20 @@ public class GatewayParserTests {
 	public void testAsyncDisabledGateway() throws Exception {
 		Object service = context.getBean("&asyncOff");
 		assertNull(TestUtils.getPropertyValue(service, "asyncExecutor"));
+	}
+
+	@Test
+	public void testFactoryBeanObjectTypeWithServiceInterface() throws Exception {
+		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext)context).getBeanFactory();
+		Object attribute = beanFactory.getMergedBeanDefinition("&oneWay").getAttribute("factoryBeanObjectType");
+		assertEquals(TestService.class.getName(), attribute);
+	}
+
+	@Test
+	public void testFactoryBeanObjectTypeWithNoServiceInterface() throws Exception {
+		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext)context).getBeanFactory();
+		Object attribute = beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute("factoryBeanObjectType");
+		assertEquals(RequestReplyExchanger.class.getName(), attribute);
 	}
 
 	@Test
