@@ -40,7 +40,10 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @since 4.0
+ * @deprecated in favor of direct {@link ChannelSecurityInterceptor} usage and
+ * {@link org.springframework.integration.security.channel.SecuredChannel} annotation.
  */
+@Deprecated
 public class ChannelSecurityInterceptorFactoryBean implements FactoryBean<ChannelSecurityInterceptor>, BeanNameAware, BeanFactoryAware {
 
 	private final ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(new ChannelSecurityMetadataSource());

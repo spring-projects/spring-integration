@@ -55,8 +55,13 @@ Where this is not the case references to the appropriate beans can be configured
 
 ----
 
-Starting with _version 4.0_, the same configuration is available when using `@Configuration` classes, by declaring a `ChannelSecurityInterceptorFactoryBean`.
-This class delegates all options for the `ChannelSecurityInterceptor` with a _builder_ pattern:
+Starting with _version 4.2_, the `@SecuredChannel` annotation is available in favor of deprecated
+`ChannelSecurityInterceptorFactoryBean`, which has been introduced since _version 4.0_ for the Java & Annotation
+configuration in the `@Configuration` classes. The `ChannelSecurityInterceptorFactoryBean` has been deprecated to
+avoid some undesired early load for dependant beans from the `BeanFactory` during `ApplicationContext` initialization
+phase.
+
+With the `@SecuredChannel` annotation the Java configuration variant of the XML config above looks like:
 
 [source,java]
 ----
@@ -64,22 +69,26 @@ This class delegates all options for the `ChannelSecurityInterceptor` with a _bu
 @EnableIntegration
 public class ContextConfiguration {
 
-	@Autowired
-	private AuthenticationManager authenticationManager;
-
-	@Autowired
-	private AccessDecisionManager accessDecisionManager;
-
 	@Bean
-	public ChannelSecurityInterceptorFactoryBean channelSecurityInterceptor() {
-		return new ChannelSecurityInterceptorFactoryBean()
-				.authenticationManager(this.authenticationManager)
-				.accessDecisionManager(this.accessDecisionManager)
-				.accessPolicy("admin.*", "ROLE_ADMIN")
-				.accessPolicy("user.*", null, "ROLE_USER");
-	}
+    @SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = "ROLE_ADMIN")
+    public SubscribableChannel adminChannel() {
+    	return new DirectChannel();
+    }
+
+    @Bean
+    @SecuredChannel(interceptor = "channelSecurityInterceptor", receiveAccess = "ROLE_USER")
+    public SubscribableChannel userChannel() {
+    	return new DirectChannel();
+    }
+
+    @Bean
+    public ChannelSecurityInterceptor channelSecurityInterceptor(AuthenticationManager authenticationManager,
+    		AccessDecisionManager accessDecisionManager) {
+    	ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
+    	channelSecurityInterceptor.setAuthenticationManager(authenticationManager);
+    	channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
+    	return channelSecurityInterceptor;
+    }
+
 }
 ----
-
-NOTE: The `@EnableIntegration` annotation is required to provide the Spring Integration infrastructure (including Security) to the Application Context.
-In addition this `FactoryBean` falls back to `AuthenticationManager` and `AccessDecisionManager` beans with names `authenticationManager` and `accessDecisionManager` respectively, if they aren't provided in the `ChannelSecurityInterceptorFactoryBean` bean definition.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,14 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
+import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
+import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,7 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class ChannelSecurityInterceptorFactoryBeanTests {
+public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 	@Autowired
 	MessageChannel securedChannel;
@@ -133,11 +137,13 @@ public class ChannelSecurityInterceptorFactoryBeanTests {
 	public static class ContextConfiguration {
 
 		@Bean
+		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
 		public SubscribableChannel securedChannel() {
 			return new DirectChannel();
 		}
 
 		@Bean
+		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
 		public SubscribableChannel securedChannel2() {
 			return new DirectChannel();
 		}
@@ -157,9 +163,12 @@ public class ChannelSecurityInterceptorFactoryBeanTests {
 		}
 
 		@Bean
-		public ChannelSecurityInterceptorFactoryBean channelSecurityInterceptor() {
-			return new ChannelSecurityInterceptorFactoryBean()
-					.accessPolicy("securedChannel.*", "ROLE_ADMIN, ROLE_PRESIDENT");
+		public ChannelSecurityInterceptor channelSecurityInterceptor(AuthenticationManager authenticationManager,
+				AccessDecisionManager accessDecisionManager) {
+			ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
+			channelSecurityInterceptor.setAuthenticationManager(authenticationManager);
+			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
+			return channelSecurityInterceptor;
 		}
 
 	}
