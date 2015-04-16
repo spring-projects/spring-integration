@@ -38,12 +38,12 @@ import com.rometools.rome.feed.synd.SyndEntry;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Aaron Loes
  * @since 2.0
  */
 public class FeedEntryMessageSourceTests {
 
 	private final FeedFetcher feedFetcher = new FileUrlFeedFetcher();
-
 
 	@Before
 	public void prepare() {
@@ -87,6 +87,40 @@ public class FeedEntryMessageSourceTests {
 		assertTrue(time1 < time2);
 		assertTrue(time2 < time3);
 		assertNull(source.receive());
+	}
+	
+	// verifies that when entry has been updated since publish, that is taken into 
+	// account when determining if the feed entry has been seen before
+	@Test
+	public void testReceiveAtomFeedWithEntryHavingBeenUpdatedAfterPublishAndRepeatWithPersistentMetadataStore() throws Exception {
+		URL url = new URL("file:src/test/java/org/springframework/integration/feed/atom.xml");
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
+		feedEntrySource.setBeanName("feedReader");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
+		feedEntrySource.setMetadataStore(metadataStore);
+		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.afterPropertiesSet();
+		
+		SyndEntry entry1 = feedEntrySource.receive().getPayload();
+		assertNull(feedEntrySource.receive()); // only 1 entries in the test feed
+
+		assertEquals("Atom draft-07 snapshot", entry1.getTitle().trim());
+		assertEquals(1071318569000L, entry1.getPublishedDate().getTime());
+		assertEquals(1122812969000L, entry1.getUpdatedDate().getTime());
+
+		metadataStore.destroy();
+		metadataStore.afterPropertiesSet();
+
+		// now test that what's been read is no longer retrieved
+		feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
+		feedEntrySource.setBeanName("feedReader");
+		metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
+		feedEntrySource.setMetadataStore(metadataStore);
+		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.afterPropertiesSet();
+		assertNull(feedEntrySource.receive());
 	}
 
 	// will test that last feed entry is remembered between the sessions
