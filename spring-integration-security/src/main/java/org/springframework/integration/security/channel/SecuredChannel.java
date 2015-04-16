@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 
 /**
  * An annotation to be applied for the {@link org.springframework.messaging.MessageChannel} bean definition
- * from JavaConfig - on {@link @Bean} method level.
+ * from JavaConfig - on {@code @Bean} method level.
  * <p>
  * Applies the {@link ChannelSecurityInterceptor}(s) using provided {@link #interceptor()} bean name(s).
  * <p>
