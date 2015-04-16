@@ -34,6 +34,9 @@ public final class IntegrationConfigUtils {
 
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 
+	// TODO: Boot constant - move to Spring Framework?
+	public static final String FACTORY_BEAN_OBJECT_TYPE = "factoryBeanObjectType";
+
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
 												String methodSignature) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)

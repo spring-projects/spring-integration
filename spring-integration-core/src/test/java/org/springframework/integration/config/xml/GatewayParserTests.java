@@ -30,8 +30,12 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.gateway.TestService;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -103,6 +107,22 @@ public class GatewayParserTests {
 	public void testAsyncDisabledGateway() throws Exception {
 		Object service = context.getBean("&asyncOff");
 		assertNull(TestUtils.getPropertyValue(service, "asyncExecutor"));
+	}
+
+	@Test
+	public void testFactoryBeanObjectTypeWithServiceInterface() throws Exception {
+		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext)context).getBeanFactory();
+		Object attribute = beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(
+				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
+		assertEquals(TestService.class.getName(), attribute);
+	}
+
+	@Test
+	public void testFactoryBeanObjectTypeWithNoServiceInterface() throws Exception {
+		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext)context).getBeanFactory();
+		Object attribute = beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(
+				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
+		assertEquals(RequestReplyExchanger.class.getName(), attribute);
 	}
 
 	@Test

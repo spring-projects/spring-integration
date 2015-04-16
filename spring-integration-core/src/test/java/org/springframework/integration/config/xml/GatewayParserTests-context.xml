@@ -49,7 +49,7 @@
 			 reactor-environment="reactorEnvironment"/>
 
 	<!-- no assertions for this. The fact that this config does not result in error is sufficient -->
-	<gateway default-request-channel="nullChannel"/>
+	<gateway id="defaultConfig" default-request-channel="nullChannel"/>
 
 	<beans:bean id="testExecutor" class="org.springframework.integration.config.xml.GatewayParserTests$TestExecutor"/>
 
