@@ -22,6 +22,13 @@ For complete details, see <<jmx-42-improvements>>.
 
 The `MongoDbMetadataStore` is now available. For more information, see <<mongodb-metadata-store>>.
 
+[[x4.2-secured-channel-annotation]]
+==== SecuredChannel Annotation
+
+The `@SecuredChannel` annotation has been introduced in favor of deprecated `ChannelSecurityInterceptorFactoryBean`.
+For more information, see <<security>>.
+
+
 [[x4.2-general]]
 === General Changes
 
