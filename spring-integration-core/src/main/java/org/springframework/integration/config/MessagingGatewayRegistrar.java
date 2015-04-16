@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.beans.BeanMetadataAttribute;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -163,7 +164,10 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
 
-		return new BeanDefinitionHolder(gatewayProxyBuilder.getBeanDefinition(), id);
+		AbstractBeanDefinition beanDefinition = gatewayProxyBuilder.getBeanDefinition();
+		beanDefinition.addMetadataAttribute(new BeanMetadataAttribute("factoryBeanObjectType", serviceInterface));
+
+		return new BeanDefinitionHolder(beanDefinition, id);
 	}
 
 	/**
