@@ -17,18 +17,18 @@
 package org.springframework.integration.security.channel;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.security.MockAuthenticationManager;
 import org.springframework.integration.security.SecurityTestUtils;
-import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
@@ -78,12 +78,13 @@ public class ChannelSecurityInterceptorTests {
 		return (MessageChannel) proxyFactory.getProxy();
 	}
 
+	@SuppressWarnings("rawtypes")
 	private static ChannelSecurityInterceptor createInterceptor(String role) throws Exception {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
 		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy(role, null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
-		@SuppressWarnings("rawtypes")
-		AffirmativeBased accessDecisionManager = new AffirmativeBased(Collections.<AccessDecisionVoter>singletonList(new RoleVoter()));
+		AffirmativeBased accessDecisionManager = AffirmativeBased.class.getConstructor(List.class)
+				.newInstance(Collections.singletonList(new RoleVoter()));;
 		accessDecisionManager.afterPropertiesSet();
 		interceptor.setAccessDecisionManager(accessDecisionManager);
 		interceptor.setAuthenticationManager(new MockAuthenticationManager(true));
