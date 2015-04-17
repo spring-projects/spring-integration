@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.net.URL;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
 
@@ -38,12 +38,12 @@ import com.rometools.rome.feed.synd.SyndEntry;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Aaron Loes
  * @since 2.0
  */
 public class FeedEntryMessageSourceTests {
 
 	private final FeedFetcher feedFetcher = new FileUrlFeedFetcher();
-
 
 	@Before
 	public void prepare() {
@@ -56,14 +56,14 @@ public class FeedEntryMessageSourceTests {
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testFailureWhenNotInitialized() throws Exception {
-		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
+		URL url = new ClassPathResource("org/springframework/integration/feed/sample.rss").getURL();
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo");
 		feedEntrySource.receive();
 	}
 
 	@Test
 	public void testReceiveFeedWithNoEntries() throws Exception {
-		URL url = new URL("file:src/test/java/org/springframework/integration/feed/empty.rss");
+		URL url = new ClassPathResource("org/springframework/integration/feed/empty.rss").getURL();
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
@@ -73,7 +73,7 @@ public class FeedEntryMessageSourceTests {
 
 	@Test
 	public void testReceiveFeedWithEntriesSorted() throws Exception {
-		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
+		URL url = new ClassPathResource("org/springframework/integration/feed/sample.rss").getURL();
 		FeedEntryMessageSource source = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		source.setComponentName("feedReader");
 		source.setBeanFactory(mock(BeanFactory.class));
@@ -89,11 +89,45 @@ public class FeedEntryMessageSourceTests {
 		assertNull(source.receive());
 	}
 
+	// verifies that when entry has been updated since publish, that is taken into
+	// account when determining if the feed entry has been seen before
+	@Test
+	public void testEntryHavingBeenUpdatedAfterPublishAndRepeat() throws Exception {
+		URL url = new ClassPathResource("org/springframework/integration/feed/atom.xml").getURL();
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
+		feedEntrySource.setBeanName("feedReader");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
+		feedEntrySource.setMetadataStore(metadataStore);
+		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.afterPropertiesSet();
+
+		SyndEntry entry1 = feedEntrySource.receive().getPayload();
+		assertNull(feedEntrySource.receive()); // only 1 entries in the test feed
+
+		assertEquals("Atom draft-07 snapshot", entry1.getTitle().trim());
+		assertEquals(1071318569000L, entry1.getPublishedDate().getTime());
+		assertEquals(1122812969000L, entry1.getUpdatedDate().getTime());
+
+		metadataStore.destroy();
+		metadataStore.afterPropertiesSet();
+
+		// now test that what's been read is no longer retrieved
+		feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
+		feedEntrySource.setBeanName("feedReader");
+		metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
+		feedEntrySource.setMetadataStore(metadataStore);
+		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.afterPropertiesSet();
+		assertNull(feedEntrySource.receive());
+	}
+
 	// will test that last feed entry is remembered between the sessions
 	// and no duplicate entries are retrieved
 	@Test
 	public void testReceiveFeedWithRealEntriesAndRepeatWithPersistentMetadataStore() throws Exception {
-		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
+		URL url = new ClassPathResource("org/springframework/integration/feed/sample.rss").getURL();
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
@@ -135,7 +169,7 @@ public class FeedEntryMessageSourceTests {
 	// no persistent MetadataStore is provided and the same entries are retrieved again
 	@Test
 	public void testReceiveFeedWithRealEntriesAndRepeatNoPersistentMetadataStore() throws Exception {
-		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
+		URL url = new ClassPathResource("org/springframework/integration/feed/sample.rss").getURL();
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
