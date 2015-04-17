@@ -10,15 +10,13 @@
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:annotation-config/>	
+	<context:annotation-config/>
 
 	<beans:bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.security.access.vote.RoleVoter"/>
+		</beans:constructor-arg>
 		<beans:property name="allowIfAllAbstainDecisions" value="true"/>
-		<beans:property name="decisionVoters">
-			<beans:list>
-				<beans:bean class="org.springframework.security.access.vote.RoleVoter"/>
-			</beans:list>
-		</beans:property>
 	</beans:bean>
 
 	<security:authentication-manager alias="authenticationManager">
