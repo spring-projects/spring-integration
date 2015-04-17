@@ -35,6 +35,7 @@ import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,9 +49,14 @@ import org.apache.log4j.LogManager;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -83,6 +89,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -92,6 +99,7 @@ import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -112,10 +120,12 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
@@ -140,6 +150,20 @@ import reactor.spring.context.config.EnableReactor;
 public class EnableIntegrationTests {
 
 	private final Log logger = LogFactory.getLog(EnableIntegrationTests.class);
+
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+
+		protected void starting(Description description) {
+			logger.debug("STARTING TEST: " + description.getMethodName());
+		}
+
+		@Override
+		protected void finished(Description description) {
+			logger.debug("FINISHED TEST: " + description.getMethodName());
+		}
+
+	};
 
 	@Autowired
 	private ApplicationContext context;
@@ -921,6 +945,34 @@ public class EnableIntegrationTests {
 				}
 
 			};
+		}
+
+		@Bean(name = IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)
+		public TaskScheduler taskScheduler(BeanFactory beanFactory) {
+			@SuppressWarnings("serial")
+			ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler() {
+
+				@Override
+				public void afterPropertiesSet() {
+					logger.debug("INITIALIZING taskScheduler...");
+					super.afterPropertiesSet();
+				}
+
+				@Override
+				public void destroy() {
+					logger.debug("DESTROYING taskScheduler...");
+					super.destroy();
+				}
+
+			};
+
+			taskScheduler.setPoolSize(20);
+			taskScheduler.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+			taskScheduler.setThreadNamePrefix("my-task-scheduler-");
+			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+			errorHandler.setBeanFactory(beanFactory);
+			taskScheduler.setErrorHandler(errorHandler);
+			return taskScheduler;
 		}
 
 		@Bean
