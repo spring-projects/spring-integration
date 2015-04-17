@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public class FeedInboundChannelAdapterParserTests {
 		latch = spy(new CountDownLatch(3));
 		context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
-		latch.await(5, TimeUnit.SECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		verify(latch, times(0)).countDown();
 		context.destroy();
 	}
