@@ -52,6 +52,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Aaron Loes
  * @since 2.0
  */
 public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
@@ -165,8 +166,10 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		if (next == null) {
 			return null;
 		}
-		if (next.getPublishedDate() != null) {
-			this.lastTime = next.getPublishedDate().getTime();
+		
+		Date lastModifiedDate = FeedEntryMessageSource.getLastModifiedDate(next);
+		if (lastModifiedDate != null) {
+			this.lastTime = lastModifiedDate.getTime();
 		}
 		else {
 			this.lastTime += 1;//NOSONAR - single poller thread
