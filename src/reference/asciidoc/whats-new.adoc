@@ -99,3 +99,12 @@ See <<jms-message-driven-channel-adapter>> for more information.
 Much more flexibility is now provided for dynamic polling.
 
 See <<conditional-pollers>> for more information.
+
+[[x4.2-xpath-splitter]]
+==== XPath Splitter improvements
+
+The `XPathMessageSplitter` (`<int-xml:xpath-splitter>`) now allows to configure `output-properties`
+for the internal `javax.xml.transform.Transformer` and supports an `Iterator` mode (defaults to `true`) for the xpath
+evaluation `org.w3c.dom.NodeList` result.
+
+See <<xml-xpath-splitting>> for more information.
