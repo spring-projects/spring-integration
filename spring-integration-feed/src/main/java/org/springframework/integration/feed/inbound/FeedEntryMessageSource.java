@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Aaron Loes
  * @since 2.0
  */
 public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
@@ -159,8 +160,10 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		if (next == null) {
 			return null;
 		}
-		if (next.getPublishedDate() != null) {
-			this.lastTime = next.getPublishedDate().getTime();
+
+		Date lastModifiedDate = FeedEntryMessageSource.getLastModifiedDate(next);
+		if (lastModifiedDate != null) {
+			this.lastTime = lastModifiedDate.getTime();
 		}
 		else {
 			this.lastTime += 1;

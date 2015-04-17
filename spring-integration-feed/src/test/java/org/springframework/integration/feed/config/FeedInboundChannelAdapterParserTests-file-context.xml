@@ -6,12 +6,12 @@
 			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd">
 
-	<feed:inbound-channel-adapter id="feedAdapter" 
-						channel="feedChannel" 
-						auto-startup="false" 
+	<feed:inbound-channel-adapter id="feedAdapter"
+						channel="feedChannel"
+						auto-startup="false"
 						feed-fetcher="fileUrlFeedFetcher"
 						metadata-store="customMetadataStore"
-						url="file:src/test/java/org/springframework/integration/feed/sample.rss">
+						url="classpath:org/springframework/integration/feed/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</feed:inbound-channel-adapter>
 
