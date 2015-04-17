@@ -52,6 +52,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Aaron Loes
  * @since 2.0
  */
 public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
@@ -169,7 +170,8 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		Date lastModifiedDate = FeedEntryMessageSource.getLastModifiedDate(next);
 		if (lastModifiedDate != null) {
 			this.lastTime = lastModifiedDate.getTime();
-		} else {
+		}
+		else {
 			this.lastTime += 1;//NOSONAR - single poller thread
 		}
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
@@ -179,24 +181,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	private void populateEntryList() {
 		SyndFeed syndFeed = this.getFeed();
 		if (syndFeed != null) {
-			
-			/* 
-			 * 
-			 * QUESTION:
-			 * shouldn't there be a check here to see if the feed itself has been 
-			 * published/updated since last check? rfc4287 states that "atom:feed 
-			 * elements MUST contain exactly one atom:updated element." SyndFeed
-			 * doesnt seem to have a #getUpdatedDate method but since published
-			 * date is optional in spec, maybe the #getPublishDate takes care of 
-			 * this? My guess that why this is not happening is due to some oddity
-			 * with different implementations of the ATOM specification?
-			 * 
-			 * if (syndFeed.getPublistDate().getTime() > this.lastTime) {
-			 *   ...
-			 * }
-			 * 
-			 */
-			
 			List<SyndEntry> retrievedEntries = syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
 				boolean withinNewEntries = false;
