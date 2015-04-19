@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
@@ -68,6 +69,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 
 /**
  * @author Artem Bilan
@@ -184,8 +189,14 @@ public class IdempotentReceiverIntegrationTests {
 		}
 
 		@Bean
+		public HazelcastInstance hazelcastInstance() {
+			return Hazelcast.newHazelcastInstance(new Config().setProperty( "hazelcast.logging.type", "log4j" ));
+		}
+
+
+		@Bean
 		public ConcurrentMetadataStore store() {
-			return new SimpleMetadataStore();
+			return new SimpleMetadataStore(hazelcastInstance().<String, String>getMap("idempotentReceiverMetadataStore"));
 		}
 
 		@Bean
@@ -296,7 +307,7 @@ public class IdempotentReceiverIntegrationTests {
 	@Component
 	private static class FooService {
 
-		private List<Message<?>> messages = new ArrayList<Message<?>>();
+		private final List<Message<?>> messages = new ArrayList<Message<?>>();
 
 		@ServiceActivator(inputChannel = "annotatedMethodChannel")
 		@IdempotentReceiver("idempotentReceiverInterceptor")
