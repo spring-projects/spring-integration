@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
@@ -195,7 +196,7 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		public ConcurrentMetadataStore store() {
-			return new SimpleMetadataStore(hazelcastInstance().getMap("idempotentReceiverMetadataStore"));
+			return new SimpleMetadataStore(hazelcastInstance().<String, String>getMap("idempotentReceiverMetadataStore"));
 		}
 
 		@Bean
