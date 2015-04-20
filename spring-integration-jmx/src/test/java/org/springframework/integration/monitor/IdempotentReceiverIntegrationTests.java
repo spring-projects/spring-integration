@@ -69,6 +69,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+
 /**
  * @author Artem Bilan
  * @since 4.1
@@ -184,8 +188,14 @@ public class IdempotentReceiverIntegrationTests {
 		}
 
 		@Bean
+		public HazelcastInstance hazelcastInstance() {
+			return Hazelcast.newHazelcastInstance(new Config());
+		}
+
+
+		@Bean
 		public ConcurrentMetadataStore store() {
-			return new SimpleMetadataStore();
+			return new SimpleMetadataStore(hazelcastInstance().getMap("idempotentReceiverMetadataStore"));
 		}
 
 		@Bean

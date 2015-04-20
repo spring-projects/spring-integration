@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,19 +16,37 @@ package org.springframework.integration.metadata;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.util.Assert;
+
 
 /**
- * Simple implementation of {@link MetadataStore} that uses an in-memory map only.
- * The metadata will not be persisted across application restarts.
+ * Simple implementation of {@link MetadataStore} that uses a {@link ConcurrentMap} for the data store.
+ * The metadata may not be persisted across application restarts, if provided {@link ConcurrentMap}
+ * is in-memory instance.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class SimpleMetadataStore implements ConcurrentMetadataStore {
 
-	private final ConcurrentMap<String, String> metadata = new ConcurrentHashMap<String, String>();
+	private final ConcurrentMap<String, String> metadata;
 
+	public SimpleMetadataStore() {
+		this(new ConcurrentHashMap<String, String>());
+	}
+
+	/**
+	 * Instantiate {@link SimpleMetadataStore} based on the provided {@link ConcurrentMap}.
+	 * The implementation may be some distributed map provided by NoSQL stores like Redis and Hazelcast.
+	 * @param metadata the {@link ConcurrentMap} instance for metadata.
+	 * @since 4.1.4
+	 */
+	public SimpleMetadataStore(ConcurrentMap<String, String> metadata) {
+		Assert.notNull(metadata, "'metadata' must not be null.");
+		this.metadata = metadata;
+	}
 
 	@Override
 	public void put(String key, String value) {
