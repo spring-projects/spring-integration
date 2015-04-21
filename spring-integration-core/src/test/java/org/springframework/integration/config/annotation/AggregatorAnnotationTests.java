@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
@@ -56,8 +55,7 @@ public class AggregatorAnnotationTests {
 		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
 		assertNull(getPropertyValue(aggregator, "outputChannel"));
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
-		assertEquals(AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT, getPropertyValue(aggregator,
-				"messagingTemplate.sendTimeout"));
+		assertEquals(-1L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 

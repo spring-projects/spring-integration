@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,36 @@ public @interface Transformer {
 
 	String[] adviceChain() default {};
 
-	/*
-	 {@code SmartLifecycle} options.
-	 Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	/**
+	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
+	 * {@link org.springframework.messaging.Message} to the {@code outputChannel}.
+	 * Defaults to {@code -1} - blocking indefinitely.
+	 * It is applied only if the output channel has some 'sending' limitations, e.g.
+	 * {@link org.springframework.integration.channel.QueueChannel} with
+	 * fixed a 'capacity'. In this case a {@link org.springframework.messaging.MessageDeliveryException} is thrown.
+	 * The 'sendTimeout' is ignored in case of
+	 * {@link org.springframework.integration.channel.AbstractSubscribableChannel} implementations.
+	 * Can be specified as 'property placeholder', e.g. {@code ${spring.integration.sendTimeout}}.
+	 * @return The timeout for sending results to the reply target (in milliseconds)
 	 */
-	String autoStartup() default "true";
+	String sendTimeout() default "";
 
-	String phase() default "0";
+	/**
+	 * The {@link org.springframework.context.SmartLifecycle} {@code autoStartup} option.
+	 * Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	 * Defaults to {@code true}.
+	 * @return the auto startup {@code boolean} flag.
+	 */
+	String autoStartup() default "";
+
+	/**
+	 * Specify a {@link org.springframework.context.SmartLifecycle} {@code phase} option.
+	 * Defaults {@code 0} for {@link org.springframework.integration.endpoint.PollingConsumer}
+	 * and {@code Integer.MIN_VALUE} for {@link org.springframework.integration.endpoint.EventDrivenConsumer}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${foo.phase}}.
+	 * @return the {@code SmartLifecycle} phase.
+	 */
+	String phase() default "";
 
 	/**
 	 * @return the {@link Poller} options for a polled endpoint
@@ -58,4 +81,5 @@ public @interface Transformer {
 	 * Only one {@link Poller} element is allowed.
 	 */
 	Poller[] poller() default {};
+
 }

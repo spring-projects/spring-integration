@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -39,7 +38,6 @@ import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -47,6 +45,7 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 
 /**
  * @author Iwein Fuld
@@ -86,7 +85,7 @@ public class CorrelatingMessageHandlerTests {
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 		when(processor.processMessageGroup(any(MessageGroup.class))).thenReturn(MessageBuilder.withPayload("grouped").build());
-		when(outputChannel.send(any(Message.class), anyLong())).thenReturn(true);
+		when(outputChannel.send(any(Message.class))).thenReturn(true);
 
 		handler.handleMessage(message1);
 
@@ -142,7 +141,7 @@ public class CorrelatingMessageHandlerTests {
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 		when(processor.processMessageGroup(any(MessageGroup.class))).thenReturn(MessageBuilder.withPayload("grouped").build());
-		when(outputChannel.send(any(Message.class), anyLong())).thenReturn(true);
+		when(outputChannel.send(any(Message.class))).thenReturn(true);
 
 		handler.handleMessage(message1);
 		bothMessagesHandled.countDown();

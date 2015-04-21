@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 
 /**
  * Indicates that a method is capable of aggregating messages.
@@ -56,22 +54,51 @@ public @interface Aggregator {
 	String discardChannel() default "";
 
 	/**
+	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
+	 * {@link org.springframework.messaging.Message} to the {@link #outputChannel()}.
+	 * Defaults to {@code -1} - blocking indefinitely.
+	 * It is applied only if the output channel has some 'sending' limitations, e.g.
+	 * {@link org.springframework.integration.channel.QueueChannel} with
+	 * a fixed 'capacity' and is currently full.
+	 * In this case a {@link org.springframework.messaging.MessageDeliveryException} is thrown.
+	 * The 'sendTimeout' is ignored in case of
+	 * {@link org.springframework.integration.channel.AbstractSubscribableChannel} implementations.
+	 * Can be specified as 'property placeholder', e.g. {@code ${spring.integration.sendTimeout}}.
 	 * @return The timeout for sending results to the reply target (in milliseconds)
 	 */
-	long sendTimeout() default AbstractCorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
+	String sendTimeout() default "";
 
 	/**
+	 * Specify whether messages that expired should be aggregated and sent to the {@link #outputChannel()}
+	 * or {@code replyChannel} from message headers. Messages are expired when their containing
+	 * {@link org.springframework.integration.store.MessageGroup} expires. One of the ways of expiring MessageGroups
+	 * is by configuring a {@link org.springframework.integration.store.MessageGroupStoreReaper}.
+	 * However MessageGroups can alternatively be expired by simply calling
+	 * {@code MessageGroupStore.expireMessageGroup(groupId)}. That could be accomplished via a ControlBus operation
+	 * or by simply invoking that method if you have a reference to the
+	 * {@link org.springframework.integration.store.MessageGroupStore} instance.
+	 * Defaults to {@code false}.
+	 * * Can be specified as 'property placeholder', e.g. {@code ${spring.integration.sendPartialResultsOnExpiry}}.
 	 * @return Indicates whether to send an incomplete aggregate on expiry of the message group
 	 */
-	boolean sendPartialResultsOnExpiry() default false;
+	String sendPartialResultsOnExpiry() default "";
 
-	/*
-	 {@code SmartLifecycle} options.
-	 Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	/**
+	 * The {@link org.springframework.context.SmartLifecycle} {@code autoStartup} option.
+	 * Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	 * Defaults to {@code true}.
+	 * @return the auto startup {@code boolean} flag.
 	 */
-	String autoStartup() default "true";
+	String autoStartup() default "";
 
-	String phase() default "0";
+	/**
+	 * Specify a {@link org.springframework.context.SmartLifecycle} {@code phase} option.
+	 * Defaults {@code 0} for {@link org.springframework.integration.endpoint.PollingConsumer}
+	 * and {@code Integer.MIN_VALUE} for {@link org.springframework.integration.endpoint.EventDrivenConsumer}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${foo.phase}}.
+	 * @return the {@code SmartLifecycle} phase.
+	 */
+	String phase() default "";
 
 	/**
 	 * @return the {@link Poller} options for a polled endpoint
@@ -80,4 +107,5 @@ public @interface Aggregator {
 	 * Only one {@link Poller} element is allowed.
 	 */
 	Poller[] poller() default {};
+
 }
