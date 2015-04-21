@@ -328,7 +328,7 @@ _Default - 'false'_.
 
 
 <9> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
-By default the send will block for one second.
+Defaults to `-1` - blocking indefinitely.
 It is applied only if the output channel has some 'sending' limitations, e.g.
 `QueueChannel` with a fixed 'capacity'.
 In this case a `MessageDeliveryException` is thrown.

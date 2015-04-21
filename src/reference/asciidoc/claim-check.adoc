@@ -93,7 +93,7 @@ _Optional_.
 
 
 <7> Specify the maximum amount of time in milliseconds to wait when sending a reply Message to the output channel.
-By default the send will block for one second.
+Defaults to `-1` - blocking indefinitely.
 Attribute is not available inside a `Chain` element.
 _Optional_.
 
@@ -174,7 +174,7 @@ _Optional_.
 
 
 <8> Specify the maximum amount of time in milliseconds to wait when sending a reply Message to the output channel.
-By default the send will block for one second.
+Defaults to `-1` - blocking indefinitely.
 Attribute is not available inside a `Chain` element.
 _Optional_.
 

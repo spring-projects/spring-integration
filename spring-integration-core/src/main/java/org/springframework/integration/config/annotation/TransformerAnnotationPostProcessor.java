@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -41,17 +42,19 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 	public TransformerAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		super(beanFactory, environment);
+		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "adviceChain"));
 	}
-
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		org.springframework.integration.transformer.Transformer transformer;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			transformer = this.extractTypeIfPossible(target, org.springframework.integration.transformer.Transformer.class);
+			transformer = this.extractTypeIfPossible(target,
+					org.springframework.integration.transformer.Transformer.class);
 			if (transformer == null) {
 				if (this.extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class) != null) {
+					checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 					return (MessageHandler) target;
 				}
 				transformer = new MethodInvokingTransformer(target);

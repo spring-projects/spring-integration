@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -65,7 +65,7 @@ public class ResequencerParserTests {
 				ResequencingMessageHandler.class);
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
 		assertTrue(getPropertyValue(resequencer, "discardChannel") instanceof NullChannel);
-		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", 1000l, getPropertyValue(
+		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", -1L, getPropertyValue(
 				resequencer, "messagingTemplate.sendTimeout"));
 		assertEquals(
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",

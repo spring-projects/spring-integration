@@ -29,7 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -53,7 +52,6 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -87,8 +85,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		implements DisposableBean, IntegrationEvaluationContextAware, ApplicationEventPublisherAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
-
-	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new SequenceNumberComparator();
 
@@ -141,7 +137,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
 				: correlationStrategy);
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
-		setSendTimeout(DEFAULT_SEND_TIMEOUT);
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 

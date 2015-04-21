@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -43,8 +44,8 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 	public SplitterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		super(beanFactory, environment);
+		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "applySequence", "adviceChain"));
 	}
-
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
@@ -65,6 +66,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 				}
 			}
 			else {
+				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 				return splitter;
 			}
 		}

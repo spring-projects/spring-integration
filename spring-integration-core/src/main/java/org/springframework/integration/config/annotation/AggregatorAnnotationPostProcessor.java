@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,14 +77,11 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		if (StringUtils.hasText(outputChannelName)) {
 			handler.setOutputChannelName(outputChannelName);
 		}
-		Long sendTimeout = MessagingAnnotationUtils.resolveAttribute(annotations, "sendTimeout", Long.class);
-		if (sendTimeout != null) {
-			handler.setSendTimeout(sendTimeout);
-		}
-		Boolean sendPartialResultsOnExpiry = MessagingAnnotationUtils.resolveAttribute(annotations,
-				"sendPartialResultsOnExpiry", Boolean.class);
+		String sendPartialResultsOnExpiry = MessagingAnnotationUtils.resolveAttribute(annotations,
+				"sendPartialResultsOnExpiry", String.class);
 		if (sendPartialResultsOnExpiry != null) {
-			handler.setSendPartialResultOnExpiry(sendPartialResultsOnExpiry);
+			handler.setSendPartialResultOnExpiry(
+					Boolean.parseBoolean(this.environment.resolvePlaceholders(sendPartialResultsOnExpiry)));
 		}
 		handler.setBeanFactory(this.beanFactory);
 		return handler;
