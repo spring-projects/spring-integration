@@ -16,17 +16,22 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.apache.commons.logging.Log;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.selector.UnexpiredMessageSelector;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
+import reactor.io.codec.JavaSerializationCodec;
+import reactor.io.queue.PersistentQueue;
+import reactor.io.queue.spec.PersistentQueueSpec;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -34,23 +39,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.selector.UnexpiredMessageSelector;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
-
-import reactor.io.codec.JavaSerializationCodec;
-import reactor.io.queue.PersistentQueue;
-import reactor.io.queue.spec.PersistentQueueSpec;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Mark Fisher
@@ -278,14 +269,14 @@ public class QueueChannelTests {
 	public final TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@Test
-	@Ignore //INT-3644
-	public void testReactorPersistentQueue() throws InterruptedException {
+	public void testReactorPersistentQueue() throws InterruptedException, IOException {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		PersistentQueue<Message<?>> queue = new PersistentQueueSpec<Message<?>>()
 				.codec(new JavaSerializationCodec<Message<?>>())
 				.basePath(this.tempFolder.getRoot().getAbsolutePath())
 				.get();
+
 		final QueueChannel channel = new QueueChannel(queue);
 		new Thread(new Runnable() {
 			@Override
