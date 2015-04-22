@@ -27,6 +27,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -35,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -133,7 +133,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingReceiveWithNoTimeout() throws Exception{
+	public void testBlockingReceiveWithNoTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -154,7 +154,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingReceiveWithTimeout() throws Exception{
+	public void testBlockingReceiveWithTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -188,7 +188,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingSendWithNoTimeout() throws Exception{
+	public void testBlockingSendWithNoTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
@@ -210,7 +210,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingSendWithTimeout() throws Exception{
+	public void testBlockingSendWithTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
@@ -278,14 +278,14 @@ public class QueueChannelTests {
 	public final TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@Test
-	@Ignore //INT-3644
-	public void testReactorPersistentQueue() throws InterruptedException {
+	public void testReactorPersistentQueue() throws InterruptedException, IOException {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		PersistentQueue<Message<?>> queue = new PersistentQueueSpec<Message<?>>()
 				.codec(new JavaSerializationCodec<Message<?>>())
 				.basePath(this.tempFolder.getRoot().getAbsolutePath())
 				.get();
+
 		final QueueChannel channel = new QueueChannel(queue);
 		new Thread(new Runnable() {
 			@Override

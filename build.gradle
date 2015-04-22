@@ -82,7 +82,7 @@ subprojects { subproject ->
 		aspectjVersion = '1.8.4'
 		apacheSshdVersion = '0.13.0'
 		boonVersion = '0.31'
-		chronicleVersion = '3.3.4'
+		chronicleVersion = '3.4.3'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
@@ -113,8 +113,8 @@ subprojects { subproject ->
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
-		reactorVersion = '2.0.0.RC1'
-		reactorSpringVersion = '2.0.0.RC1'
+		reactorVersion = '2.0.1.BUILD-SNAPSHOT'
+		reactorSpringVersion = '2.0.1.BUILD-SNAPSHOT'
 		romeToolsVersion = '1.5.0'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
@@ -263,7 +263,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
-		compile ("io.projectreactor:reactor-core:$reactorVersion", optional)
+		compile ("io.projectreactor:reactor-stream:$reactorVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
 		compile("io.fastjson:boon:$boonVersion", optional)
