@@ -313,7 +313,7 @@ public class StompIntegrationTests {
 	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {
 		Map sessions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
 		for (Object info : sessions.values()) {
-			Map subscriptions = TestUtils.getPropertyValue(info, "subscriptions", Map.class);
+			Map subscriptions = TestUtils.getPropertyValue(info, "destinationLookup", Map.class);
 			for (Object dest : subscriptions.keySet()) {
 				if (((String) dest).contains(destination)) {
 					return true;
