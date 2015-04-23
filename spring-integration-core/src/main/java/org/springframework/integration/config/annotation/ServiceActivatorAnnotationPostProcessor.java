@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -44,6 +45,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 	public ServiceActivatorAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		super(beanFactory, environment);
+		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "requiresReply", "adviceChain"));
 	}
 
 
@@ -66,6 +68,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 				}
 			}
 			else {
+				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 				return (MessageHandler) target;
 			}
 		}

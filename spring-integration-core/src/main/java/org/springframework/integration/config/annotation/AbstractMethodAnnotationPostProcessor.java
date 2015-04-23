@@ -32,6 +32,7 @@ import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -51,7 +52,9 @@ import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.MessagingAnnotationUtils;
@@ -82,6 +85,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	private static final String ADVICE_CHAIN_ATTRIBUTE = "adviceChain";
 
+	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout";
+
+	protected final List<String> messageHandlerAttributes = new ArrayList<String>();
 
 	protected final ConfigurableListableBeanFactory beanFactory;
 
@@ -98,6 +104,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
 				"'beanFactory' must be instanceOf ConfigurableListableBeanFactory");
+		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 		ConversionService conversionService = this.beanFactory.getConversionService();
 		if (conversionService != null) {
@@ -121,6 +128,18 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
 				((Orderable) handler).setOrder(orderAnnotation.value());
+			}
+		}
+		if (handler instanceof AbstractMessageProducingHandler || handler instanceof AbstractMessageRouter) {
+			String sendTimeout = MessagingAnnotationUtils.resolveAttribute(annotations, "sendTimeout", String.class);
+			if (sendTimeout != null) {
+				Long value = Long.valueOf(this.environment.resolvePlaceholders(sendTimeout));
+				if (handler instanceof AbstractMessageProducingHandler) {
+					((AbstractMessageProducingHandler) handler).setSendTimeout(value);
+				}
+				else {
+					((AbstractMessageRouter) handler).setTimeout(value);
+				}
 			}
 		}
 
@@ -356,6 +375,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected Object resolveTargetBeanFromMethodWithBeanAnnotation(Method method) {
+		String id = resolveTargetBeanName(method);
+		return this.beanFactory.getBean(id);
+	}
+
+	protected String resolveTargetBeanName(Method method) {
 		String id = null;
 		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name();
 		if (!ObjectUtils.isEmpty(names)) {
@@ -364,7 +388,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (!StringUtils.hasText(id)) {
 			id = method.getName();
 		}
-		return this.beanFactory.getBean(id);
+		return id;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -387,6 +411,22 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 		return null;
+	}
+
+	protected void checkMessageHandlerAttributes(String handlerBeanName, List<Annotation> annotations) {
+		for (String attribute : this.messageHandlerAttributes) {
+			for (Annotation annotation : annotations) {
+				Object value = AnnotationUtils.getValue(annotation, attribute);
+				if (MessagingAnnotationUtils.hasValue(value)) {
+					throw new BeanDefinitionValidationException("The MessageHandler [" + handlerBeanName + "] can not" +
+							" be populated because of ambiguity with annotation attributes " +
+							this.messageHandlerAttributes + " which are not allowed in case of @Bean definition for " +
+							"MessageHandler." +
+							"\nThe wrong attribute is: [" + attribute + "]." +
+							"\nConsider to use appropriate setters on the MessageHandler directly.");
+				}
+			}
+		}
 	}
 
 	/**

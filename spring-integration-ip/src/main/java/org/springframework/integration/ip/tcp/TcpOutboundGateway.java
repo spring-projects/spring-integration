@@ -134,7 +134,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
 			}
 			if (logger.isDebugEnabled()) {
-				logger.debug("Respose " + replyMessage);
+				logger.debug("Response " + replyMessage);
 			}
 			return replyMessage;
 		}
@@ -301,7 +301,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		/**
 		 * We have a race condition when a socket is closed right after the reply is received. The close "error"
 		 * might arrive before the actual reply. Overwrite an error with a good reply, but not vice-versa.
-		 * @param reply
+		 * @param reply the reply message.
 		 */
 		public void setReply(Message<?> reply) {
 			if (this.reply == null) {

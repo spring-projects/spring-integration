@@ -933,8 +933,11 @@
 			<xsd:attribute name="send-timeout" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-		Maximum amount of time in milliseconds to wait when sending a message to the channel if such channel may block.
-		For example, a Queue Channel can block until space is available if its maximum capacity has been reached.
+						Maximum amount of time in milliseconds to wait when sending a message to the channel
+						if such channel may block.
+						For example, a Queue Channel can block until space is available if its maximum capacity
+						has been reached.
+						Defaults to '-1' - blocking indefinitely.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -4596,7 +4599,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify the maximum amount of time in milliseconds to wait when sending a reply
-					Message to the output channel. By default the send will block for one second.
+					Message to the output channel. Defaults to '-1' - blocking indefinitely.
 					It is applied only if the output channel has some 'sending' limitations, e.g. QueueChannel with
 					fixed a 'capacity'. In this case a MessageDeliveryException is thrown. The 'send-timeout'
 					is ignored in case of AbstractSubscribableChannel implementations.

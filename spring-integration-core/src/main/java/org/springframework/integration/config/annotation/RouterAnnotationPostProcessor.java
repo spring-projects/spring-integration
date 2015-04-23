@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -46,8 +47,9 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 	public RouterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		super(beanFactory, environment);
+		this.messageHandlerAttributes.addAll(Arrays.<String>asList("defaultOutputChannel", "applySequence",
+				"ignoreSendFailures", "resolutionRequired", "channelMappings", "prefix", "suffix"));
 	}
-
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
@@ -57,10 +59,10 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			router = this.extractTypeIfPossible(target, AbstractMessageRouter.class);
 			if (router == null) {
 				if (target instanceof MessageHandler) {
-					Assert.isTrue(this.routerAttributesProvided(annotations), "'defaultOutputChannel', "
-							+ "'applySequence', 'ignoreSendFailures', 'resolutionRequired' and 'channelMappings' "
-							+ "can be applied to 'AbstractMessageRouter' implementations, but target handler is: "
-							+ target.getClass());
+					Assert.isTrue(this.routerAttributesProvided(annotations), "'defaultOutputChannel', 'applySequence', " +
+							"'ignoreSendFailures', 'resolutionRequired', 'channelMappings', 'prefix' and 'suffix' " +
+							"can be applied to 'AbstractMessageRouter' implementations, but target handler is: " +
+							target.getClass());
 					return (MessageHandler) target;
 				}
 				else {
@@ -68,6 +70,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				}
 			}
 			else {
+				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 				return router;
 			}
 		}

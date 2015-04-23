@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.springframework.integration.config.annotation;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +34,10 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.BeanDefinitionValidationException;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.ExpressionParser;
@@ -67,13 +73,12 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 /**
  * @author Artem Bilan
  * @since 4.0
  */
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class MessagingAnnotationsWithBeanAnnotationTests {
@@ -106,6 +111,19 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			assertThat(messageHistoryString, Matchers.containsString("splitterChannel"));
 			assertThat(messageHistoryString, Matchers.containsString("serviceChannel"));
 			assertThat(messageHistoryString, Matchers.not(Matchers.containsString("discardChannel")));
+		}
+	}
+
+	@Test
+	public void testInvalidMessagingAnnotationsConfig() {
+		try {
+			new AnnotationConfigApplicationContext(InvalidContextConfiguration.class);
+			fail("BeanCreationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanCreationException.class));
+			assertThat(e.getCause(), instanceOf(BeanDefinitionValidationException.class));
+			assertThat(e.getMessage(), containsString("The wrong attribute is: [applySequence]."));
 		}
 	}
 
@@ -219,5 +237,18 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 	}
+
+	@Configuration
+	@EnableIntegration
+	static class InvalidContextConfiguration {
+
+		@Bean
+		@Splitter(inputChannel = "splitterChannel", applySequence = "false")
+		public MessageHandler splitter() {
+			return new DefaultMessageSplitter();
+		}
+
+	}
+
 
 }

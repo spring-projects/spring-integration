@@ -531,7 +531,7 @@ public class EnableIntegrationTests {
 		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
 		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.discardChannelName"));
 		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "trigger.period"));
-		assertEquals(1000L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertEquals(-1L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
 		assertFalse(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class));
 
 		consumer = this.context.getBean("annotationTestService.annAgg2.aggregator", PollingConsumer.class);
@@ -1356,7 +1356,7 @@ public class EnableIntegrationTests {
 			outputChannel = "annOutput",
 			adviceChain = {"annAdvice"},
 			poller = @Poller(fixedDelay = "1000"))
-	public static @interface MyServiceActivator {
+	public @interface MyServiceActivator {
 
 		String inputChannel() default "";
 
@@ -1374,7 +1374,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator
-	public static @interface MyServiceActivator1 {
+	public @interface MyServiceActivator1 {
 
 		String inputChannel() default "";
 
@@ -1392,7 +1392,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator1
-	public static @interface MyServiceActivator2 {
+	public @interface MyServiceActivator2 {
 
 		String inputChannel() default "";
 
@@ -1401,7 +1401,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator2
-	public static @interface MyServiceActivator3 {
+	public @interface MyServiceActivator3 {
 
 		String inputChannel() default "";
 
@@ -1410,7 +1410,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator3(inputChannel = "annInput3")
-	public static @interface MyServiceActivator4 {
+	public @interface MyServiceActivator4 {
 
 		String inputChannel() default "";
 
@@ -1419,7 +1419,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator4
-	public static @interface MyServiceActivator5 {
+	public @interface MyServiceActivator5 {
 
 		String inputChannel() default "";
 
@@ -1430,7 +1430,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator5
-	public static @interface MyServiceActivator6 {
+	public @interface MyServiceActivator6 {
 
 		String inputChannel() default "";
 
@@ -1439,7 +1439,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator8
-	public static @interface MyServiceActivator7 {
+	public @interface MyServiceActivator7 {
 
 		String inputChannel() default "";
 
@@ -1448,7 +1448,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator7
-	public static @interface MyServiceActivator8 {
+	public @interface MyServiceActivator8 {
 
 		String inputChannel() default "";
 
@@ -1463,7 +1463,7 @@ public class EnableIntegrationTests {
 			outputChannel = "annOutput",
 			adviceChain = {"annAdvice"},
 			poller = @Poller(fixedDelay = "1000"))
-	public static @interface MyServiceActivatorNoLocalAtts {
+	public @interface MyServiceActivatorNoLocalAtts {
 	}
 
 	@Target(ElementType.METHOD)
@@ -1474,7 +1474,7 @@ public class EnableIntegrationTests {
 			outputChannel = "annOutput",
 			discardChannel = "annOutput",
 			poller = @Poller(fixedDelay = "1000"))
-	public static @interface MyAggregator {
+	public @interface MyAggregator {
 
 		String inputChannel() default "";
 
@@ -1482,7 +1482,7 @@ public class EnableIntegrationTests {
 
 		String discardChannel() default "";
 
-		long sendTimeout() default AbstractCorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
+		long sendTimeout() default 1000L;
 
 		boolean sendPartialResultsOnExpiry() default false;
 
@@ -1500,21 +1500,21 @@ public class EnableIntegrationTests {
 			inputChannel = "annInput",
 			outputChannel = "annOutput",
 			discardChannel = "annOutput",
-			sendPartialResultsOnExpiry = false,
-			sendTimeout = 1000L,
+			sendPartialResultsOnExpiry = "false",
+			sendTimeout = "1000",
 			poller = @Poller(fixedDelay = "1000"))
-	public static @interface MyAggregatorDefaultOverrideDefaults {
+	public @interface MyAggregatorDefaultOverrideDefaults {
 
-		boolean sendPartialResultsOnExpiry() default true;
+		String sendPartialResultsOnExpiry() default "true";
 
-		long sendTimeout() default 75;
+		String sendTimeout() default "75";
 
 	}
 
 	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@InboundChannelAdapter(value = "counterChannel", autoStartup = "false", phase = "23")
-	public static @interface MyInboundChannelAdapter {
+	public @interface MyInboundChannelAdapter {
 
 		String value() default "";
 
@@ -1529,14 +1529,14 @@ public class EnableIntegrationTests {
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyInboundChannelAdapter
-	public static @interface MyInboundChannelAdapter1 {
+	public @interface MyInboundChannelAdapter1 {
 
 	}
 
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@BridgeFrom(value = "metaBridgeInput", autoStartup = "false")
-	public static @interface MyBridgeFrom {
+	public @interface MyBridgeFrom {
 
 		String value() default "";
 	}
@@ -1544,7 +1544,7 @@ public class EnableIntegrationTests {
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@BridgeTo(autoStartup = "false")
-	public static @interface MyBridgeTo {
+	public @interface MyBridgeTo {
 	}
 
 	// Error because the annotation is on a class; it must be on an interface

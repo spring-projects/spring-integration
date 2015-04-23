@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -45,6 +46,8 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 	public FilterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
 		super(beanFactory, environment);
+		this.messageHandlerAttributes.addAll(Arrays.<String>asList("discardChannel", "throwExceptionOnRejection",
+				"adviceChain", "discardWithinAdvice"));
 	}
 
 
@@ -57,6 +60,7 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				selector = (MessageSelector) target;
 			}
 			else if (this.extractTypeIfPossible(target, MessageFilter.class) != null) {
+				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 				return (MessageHandler) target;
 			}
 			else {
