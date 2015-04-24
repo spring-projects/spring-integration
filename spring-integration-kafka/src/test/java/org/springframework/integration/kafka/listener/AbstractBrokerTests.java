@@ -105,7 +105,9 @@ public abstract class AbstractBrokerTests {
 
 
 	public Configuration getKafkaConfiguration() {
-		return new BrokerAddressListConfiguration(getKafkaRule().getBrokerAddresses());
+		BrokerAddressListConfiguration configuration = new BrokerAddressListConfiguration(getKafkaRule().getBrokerAddresses());
+		configuration.setSocketTimeout(500);
+		return configuration;
 	}
 
 	public static scala.collection.Seq<KeyedMessage<String, String>> createMessages(int count, String topic) {

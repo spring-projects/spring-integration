@@ -21,6 +21,7 @@ import static scala.collection.JavaConversions.asScalaBuffer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -45,6 +46,13 @@ import org.junit.rules.ExternalResource;
 import scala.collection.JavaConversions;
 
 import org.springframework.integration.kafka.core.BrokerAddress;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.backoff.BackOffPolicy;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author Marius Bogoevici
@@ -78,7 +86,7 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 
 	@Override
 	protected void before() throws Throwable {
-		zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
+		startZookeeper();
 		int zkConnectionTimeout = 6000;
 		int zkSessionTimeout = 6000;
 		zookeeperClient = new ZkClient(TestZKUtils.zookeeperConnect(), zkSessionTimeout, zkConnectionTimeout,
@@ -166,9 +174,46 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 		}
 	}
 
-	public void bounce(int index) {
+	public void startZookeeper() {
+		zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
+	}
+
+	public void bounce(int index, boolean waitForPropagation) {
 		kafkaServers.get(index).shutdown();
-		TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), "test-topic", 0, 5000L);
+		if (waitForPropagation) {
+			TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), "test-topic", 0, 5000L);
+		}
+	}
+
+	public void bounce(int index) {
+		bounce(index, true);
+	}
+
+	public void restart(final int index) throws Exception {
+
+		// retry restarting repeatedly, first attempts may fail
+
+		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(10,
+				Collections.<Class<? extends Throwable>,Boolean>singletonMap(Exception.class, true));
+
+		ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+		backOffPolicy.setInitialInterval(100);
+		backOffPolicy.setMaxInterval(1000);
+		backOffPolicy.setMultiplier(2);
+
+		RetryTemplate retryTemplate = new RetryTemplate();
+		retryTemplate.setRetryPolicy(retryPolicy);
+		retryTemplate.setBackOffPolicy(backOffPolicy);
+
+
+		retryTemplate.execute(new RetryCallback<Void, Exception>() {
+			@Override
+			public Void doWithRetry(RetryContext context) throws Exception {
+				System.out.println("Retrying restart");
+				kafkaServers.get(index).startup();
+				return null;
+			}
+		});
 	}
 
 	@Override
