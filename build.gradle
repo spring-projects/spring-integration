@@ -110,6 +110,7 @@ subprojects { subproject ->
 		log4jVersion = '1.2.17'
 		mockitoVersion = '1.9.5'
 		mysqlVersion = '5.1.34'
+		nettyVersion = '4.0.27.Final'
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
@@ -527,6 +528,24 @@ project('spring-integration-sftp') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
+	}
+}
+
+project('spring-integration-stomp') {
+	description = 'Spring Integration STOMP Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile ("org.springframework:spring-websocket:$springVersion", optional)
+
+		testCompile project(":spring-integration-websocket")
+		testCompile project(":spring-integration-websocket").sourceSets.test.output
+		testCompile project(":spring-integration-event")
+		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
+		testCompile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
+		testCompile "org.apache.activemq:activemq-stomp:$activeMqVersion"
+
+		testRuntime "io.projectreactor:reactor-net:$reactorVersion"
+		testRuntime "io.netty:netty-all:$nettyVersion"
 	}
 }
 

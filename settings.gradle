@@ -1,33 +1,7 @@
 rootProject.name = 'spring-integration'
 
-include 'spring-integration-amqp'
-include 'spring-integration-core'
-include 'spring-integration-event'
-include 'spring-integration-feed'
-include 'spring-integration-file'
-include 'spring-integration-ftp'
-include 'spring-integration-gemfire'
-include 'spring-integration-groovy'
-include 'spring-integration-http'
-include 'spring-integration-ip'
-include 'spring-integration-jdbc'
-include 'spring-integration-jms'
-include 'spring-integration-jmx'
-include 'spring-integration-jpa'
-include 'spring-integration-mail'
-include 'spring-integration-mongodb'
-include 'spring-integration-mqtt'
-include 'spring-integration-redis'
-include 'spring-integration-rmi'
-include 'spring-integration-scripting'
-include 'spring-integration-security'
-include 'spring-integration-sftp'
-include 'spring-integration-stream'
-include 'spring-integration-syslog'
-include 'spring-integration-test'
-include 'spring-integration-twitter'
-include 'spring-integration-websocket'
-include 'spring-integration-ws'
-include 'spring-integration-xml'
-include 'spring-integration-xmpp'
-include 'spring-integration-bom'
+rootDir.eachDir { dir ->
+	if (dir.name.startsWith('spring-integration-')) {
+		include ":${dir.name}"
+	}
+}
