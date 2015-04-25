@@ -266,7 +266,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private boolean isActive() {
 		if (!this.active) {
-			logger.warn("MessageProducer '" + this + "'isn't started to accept WebSocket events");
+			logger.warn("MessageProducer '" + this + " 'isn't started to accept WebSocket events.");
 		}
 		return this.active;
 	}

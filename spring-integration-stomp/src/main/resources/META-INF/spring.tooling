@@ -1,0 +1,4 @@
+# Tooling related information for the integration STOMP namespace
+http\://www.springframework.org/schema/integration/stomp@name=integration STOMP Namespace
+http\://www.springframework.org/schema/integration/stomp@prefix=int-stomp
+http\://www.springframework.org/schema/integration/stomp@icon=org/springframework/integration/stomp/config/spring-integration-stomp.gif
