@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.inbound;
 
 import org.springframework.http.HttpMethod;
@@ -36,15 +37,16 @@ public class RequestMapping {
 
 	private HttpMethod[] methods = new HttpMethod[]{HttpMethod.GET, HttpMethod.POST};
 
-	private String[] params;
+	private String[] params = new String[0];
 
-	private String[] headers;
+	private String[] headers = new String[0];
 
-	private String[] consumes;
+	private String[] consumes = new String[0];
 
-	private String[] produces;
+	private String[] produces = new String[0];
 
 	public void setPathPatterns(String... pathPatterns) {
+		Assert.notEmpty(pathPatterns, "at least one path pattern is required");
 		this.pathPatterns = pathPatterns;
 	}
 
@@ -62,6 +64,7 @@ public class RequestMapping {
 	}
 
 	public void setParams(String... params) {
+		Assert.notEmpty(params, "at least one param is required");
 		this.params = params;
 	}
 
@@ -70,6 +73,7 @@ public class RequestMapping {
 	}
 
 	public void setHeaders(String... headers) {
+		Assert.notEmpty(headers, "at least one header is required");
 		this.headers = headers;
 	}
 
@@ -78,6 +82,7 @@ public class RequestMapping {
 	}
 
 	public void setConsumes(String... consumes) {
+		Assert.notEmpty(consumes, "at least one consume value is required");
 		this.consumes = consumes;
 	}
 
@@ -86,6 +91,7 @@ public class RequestMapping {
 	}
 
 	public void setProduces(String... produces) {
+		Assert.notEmpty(produces, "at least one produce value is required");
 		this.produces = produces;
 	}
 

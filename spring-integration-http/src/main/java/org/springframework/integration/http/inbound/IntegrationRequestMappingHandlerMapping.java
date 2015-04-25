@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.integration.http.inbound;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,10 +26,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
@@ -113,51 +114,17 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 			return null;
 		}
 
-		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
-				new org.springframework.web.bind.annotation.RequestMapping() {
+		Map<String, Object> requestMappingAttributes = new HashMap<String, Object>();
+		requestMappingAttributes.put("name", endpoint.getComponentName());
+		requestMappingAttributes.put("path", requestMapping.getPathPatterns());
+		requestMappingAttributes.put("method", requestMapping.getRequestMethods());
+		requestMappingAttributes.put("params", requestMapping.getParams());
+		requestMappingAttributes.put("headers", requestMapping.getHeaders());
+		requestMappingAttributes.put("consumes", requestMapping.getConsumes());
+		requestMappingAttributes.put("produces", requestMapping.getProduces());
 
-					//TODO consider add 'name' support when SF 4.1 will be minimal
-					public String name() {
-						return null;
-					}
-
-					@Override
-					public String[] value() {
-						return requestMapping.getPathPatterns();
-					}
-
-					@Override
-					public RequestMethod[] method() {
-						return requestMapping.getRequestMethods();
-					}
-
-					@Override
-					public String[] params() {
-						return requestMapping.getParams();
-					}
-
-					@Override
-					public String[] headers() {
-						return requestMapping.getHeaders();
-					}
-
-					@Override
-					public String[] consumes() {
-						return requestMapping.getConsumes();
-					}
-
-					@Override
-					public String[] produces() {
-						return requestMapping.getProduces();
-					}
-
-					@Override
-					public Class<? extends Annotation> annotationType() {
-						return org.springframework.web.bind.annotation.RequestMapping.class;
-					}
-				};
-
-        return this.createRequestMappingInfo(requestMappingAnnotation, this.getCustomTypeCondition(endpoint.getClass()));
+        return createRequestMappingInfo(AnnotationAttributes.fromMap(requestMappingAttributes),
+				getCustomTypeCondition(endpoint.getClass()));
 	}
 
 	@Override
