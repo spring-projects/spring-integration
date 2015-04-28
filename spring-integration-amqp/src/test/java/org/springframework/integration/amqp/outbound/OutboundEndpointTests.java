@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  */
 public class OutboundEndpointTests {
@@ -88,7 +89,8 @@ public class OutboundEndpointTests {
 				amqpMessage.set((Message) invocation.getArguments()[2]);
 				return null;
 			}
-		}).when(amqpTemplate).doSendAndReceiveWithTemporary(anyString(), anyString(), any(Message.class));
+		}).when(amqpTemplate)
+				.doSendAndReceiveWithTemporary(anyString(), anyString(), any(Message.class), any(CorrelationData.class));
 		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(MessageHeaders.CONTENT_TYPE, "bar")
 				.setReplyChannel(new QueueChannel())
@@ -110,8 +112,8 @@ public class OutboundEndpointTests {
 
 		@Override
 		public org.springframework.amqp.core.Message doSendAndReceiveWithTemporary(String exchange,
-				String routingKey, org.springframework.amqp.core.Message message) {
-			return super.doSendAndReceiveWithTemporary(exchange, routingKey, message);
+				String routingKey, org.springframework.amqp.core.Message message, CorrelationData correlationData) {
+			return super.doSendAndReceiveWithTemporary(exchange, routingKey, message, correlationData);
 		}
 
 	}

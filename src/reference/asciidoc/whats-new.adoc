@@ -99,3 +99,11 @@ See <<jms-message-driven-channel-adapter>> for more information.
 Much more flexibility is now provided for dynamic polling.
 
 See <<conditional-pollers>> for more information.
+
+[[x4.2-amqp-changes]]
+==== AMQP Changes
+
+The `<int-amqp:outbound-gateway>` now supports `confirm-correlation-expression` and `confirm-(n)ack-channel`
+attributes with similar purpose as for `<int-amqp:outbound-channel-adapter>`.
+
+See <<amqp>> for more information.

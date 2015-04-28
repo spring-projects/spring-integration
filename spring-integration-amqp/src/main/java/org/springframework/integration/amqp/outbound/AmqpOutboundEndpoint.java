@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -213,8 +213,6 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	protected void doInit() {
 		Assert.state(exchangeNameExpression == null || exchangeName == null,
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
-		Assert.state(this.confirmCorrelationExpression == null || !this.expectReply,
-				"Confirm correlation expression does not apply to a gateway");
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.exchangeNameExpression != null) {
 			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(this.exchangeNameExpression,
@@ -317,7 +315,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			routingKey = this.routingKeyGenerator.processMessage(requestMessage);
 		}
 		if (this.expectReply) {
-			return this.sendAndReceive(exchangeName, routingKey, requestMessage);
+			return this.sendAndReceive(exchangeName, routingKey, requestMessage, correlationData);
 		}
 		else {
 			this.send(exchangeName, routingKey, requestMessage, correlationData);
@@ -355,7 +353,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Message<?> sendAndReceive(String exchangeName, String routingKey, Message<?> requestMessage) {
+	private Message<?> sendAndReceive(String exchangeName, String routingKey, Message<?> requestMessage,
+			CorrelationData correlationData) {
 		Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
 				"RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
@@ -365,7 +364,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
 		checkDeliveryMode(requestMessage, amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpReplyMessage =
-				this.amqpTemplate.sendAndReceive(exchangeName, routingKey, amqpMessage);
+				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey,amqpMessage,
+						correlationData);
+
 		if (amqpReplyMessage == null) {
 			return null;
 		}

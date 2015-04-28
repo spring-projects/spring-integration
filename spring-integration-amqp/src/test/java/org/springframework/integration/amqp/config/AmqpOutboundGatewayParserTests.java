@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.config;
 
 import static org.junit.Assert.assertEquals;
@@ -21,6 +22,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -28,12 +34,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.support.CorrelationData;
+import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -45,7 +56,10 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.util.ReflectionUtils;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * @author Oleg Zhurakousky
@@ -119,7 +133,7 @@ public class AmqpOutboundGatewayParserTests {
 			}
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("toRabbit1", MessageChannel.class);
@@ -127,7 +141,8 @@ public class AmqpOutboundGatewayParserTests {
 		requestChannel.send(message);
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
-				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+				any(CorrelationData.class));
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -185,7 +200,7 @@ public class AmqpOutboundGatewayParserTests {
 			}
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("toRabbit2", MessageChannel.class);
@@ -193,7 +208,8 @@ public class AmqpOutboundGatewayParserTests {
 		requestChannel.send(message);
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
-				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+				any(CorrelationData.class));
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -238,7 +254,7 @@ public class AmqpOutboundGatewayParserTests {
 			}
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("toRabbit3", MessageChannel.class);
@@ -246,7 +262,8 @@ public class AmqpOutboundGatewayParserTests {
 		requestChannel.send(message);
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
-				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+				any(CorrelationData.class));
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -292,7 +309,7 @@ public class AmqpOutboundGatewayParserTests {
 			}
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 
@@ -301,7 +318,8 @@ public class AmqpOutboundGatewayParserTests {
 		requestChannel.send(message);
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
-				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+				any(CorrelationData.class));
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -329,6 +347,31 @@ public class AmqpOutboundGatewayParserTests {
 		}
 	}
 
+	@Test
+	public void testPublisherConfirms() throws Exception {
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
+		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
+		Connection mockConnection = mock(Connection.class);
+		Channel mockChannel = mock(Channel.class);
+
+		when(connectionFactory.createConnection()).thenReturn(mockConnection);
+		PublisherCallbackChannelImpl publisherCallbackChannel = spy(new PublisherCallbackChannelImpl(mockChannel));
+		doAnswer(new DoesNothing()).when(publisherCallbackChannel).close();
+		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
+
+		MessageChannel requestChannel = context.getBean("pcRequestChannel", MessageChannel.class);
+		Message<?> message = MessageBuilder.withPayload("hello")
+				.setHeader("amqp_confirmCorrelationData", "foo")
+				.build();
+		requestChannel.send(message);
+		PollableChannel ackChannel = context.getBean("ackChannel", PollableChannel.class);
+		publisherCallbackChannel.handleAck(0, false);
+		Message<?> ack = ackChannel.receive(1000);
+		assertNotNull(ack);
+		assertEquals("foo", ack.getPayload());
+		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 

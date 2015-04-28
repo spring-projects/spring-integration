@@ -381,9 +381,10 @@ _Optional_.
 
 <10> An expression defining correlation data.
 When provided, this configures the underlying amqp template to receive publisher confirms.
-Requires a dedicated`RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to `true`.
-When a publisher confirm is received, and correlation data is supplied, it is written to either the confirm-ack-channel, or the confirm-nack-channel, depending on the confirmation type.
-The payload of the confirm is the correlation data as defined by this expression and the message will have a header 'amqp_publishConfirm' set to true (ack) or false (nack).
+Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to
+`true`. When a publisher confirm is received, and correlation data is supplied, it is written to either the
+confirm-ack-channel, or the confirm-nack-channel, depending on the confirmation type. The payload of the confirm is
+the correlation data as defined by this expression and the message will have a header 'amqp_publishConfirm' set to true (ack) or false (nack).
 Examples: "headers['myCorrelationData']", "payload".
 _Optional_.
 Starting with _version 4.1_ the `amqp_publishConfirmNackCause` message header has been added.
@@ -450,8 +451,11 @@ A configuration sample for an AMQP Outbound Gateway is shown below.
                            routing-key="" <10>
                            routing-key-expression="" <11>
                            default-delivery-mode"" <12>
-                           return-channel="" <13>
-                           lazy-connect="true" /> <14>
+                           confirm-correlation-expression="" <13>
+                           confirm-ack-channel="" <14>
+                           confirm-nack-channel="" <15>
+                           return-channel="" <16>
+                           lazy-connect="true" /> <17>
 
 ----
 
@@ -512,15 +516,31 @@ The 'DefaultHeaderMapper' sets the value if the Spring Integration message heade
 If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter' used by the 'RabbitTemplate'.
 If that is not customized at all, the default is 'PERSISTENT'._Optional_.
 
+<13> Since _version 4.2_. An expression defining correlation data.
+When provided, this configures the underlying amqp template to receive publisher confirms.
+Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to
+`true`. When a publisher confirm is received, and correlation data is supplied, it is written to either the
+confirm-ack-channel, or the confirm-nack-channel, depending on the confirmation type. The payload of the confirm is
+the correlation data as defined by this expression and the message will have a header 'amqp_publishConfirm' set to true (ack) or false (nack).
+Examples: "headers['myCorrelationData']", "payload".
+_Optional_.
+Starting with _version 4.1_ the `amqp_publishConfirmNackCause` message header has been added.
+It contains the `cause` of a 'nack' for publisher confirms.
 
-<13> The channel to which returned messages are sent.
+<14> Since _version 4.2_. The channel to which positive (ack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+_Optional, default=nullChannel_.
+
+<15> Since _version 4.2_. The channel to which negative (nack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+_Optional, default=nullChannel_.
+
+<16> The channel to which returned messages are sent.
 When provided, the underlying amqp template is configured to return undeliverable messages to the gateway.
 The message will be constructed from the data received from amqp, with the following additional headers: _amqp_returnReplyCode,
                 amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey_.
 _Optional_.
 
 
-<14> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
+<17> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
 This allows "fail fast" detection of bad configuration, but will also cause initialization to fail if the broker is down.
 When true (default), the connection is established (if it doesn't already exist because some other component established it) when the first message is sent.
 

@@ -43,49 +43,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="confirm-correlation-expression" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-			Expression for correlating publisher confirms to sent messages. The Rabbit API only correlates confirms
-			to a channel; this is used to further correlate a confirm to a message. An example is
-			"headers['amqp_confirmCorrelationData']", assuming that header contains the data.
-			Messages that do not have correlation data do not generate publisher confirm messages.
-			Requires a CachingConnectionFactory with the 'publisherConfirms' property set to TRUE.
-							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="confirm-ack-channel" type="xsd:string" default="nullChannel">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-			Channel to which positive publisher confirms will be sent; the payload will be the correlation data from
-			the sent message. The message will also contain a header 'amqp_publishConfirm' with a value true.
-			Requires a connection factory that is configured to request publisher confirms. Default
-			is nullChannel in case an adapter doesn't want to use publisher confirms, but is using a
-			connection factory that is configured to request them.
-							]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="confirm-nack-channel" type="xsd:string" default="nullChannel">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-			Channel to which negative publisher confirms will be sent; the payload will be the correlation data from
-			the sent message. The message will also contain a header 'amqp_publishConfirm' with a value false.
-			Requires a connection factory that is configured to request publisher confirms. Default
-			is nullChannel in case an adapter doesn't want to use publisher confirms, but is using a
-			connection factory that is configured to request them.
-							]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -500,6 +457,49 @@ property set to TRUE.
 			<xsd:simpleType>
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="confirm-correlation-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+			Expression for correlating publisher confirms to sent messages. The Rabbit API only correlates confirms
+			to a channel; this is used to further correlate a confirm to a message. An example is
+			"headers['amqp_confirmCorrelationData']", assuming that header contains the data.
+			Messages that do not have correlation data do not generate publisher confirm messages.
+			Requires a CachingConnectionFactory with the 'publisherConfirms' property set to TRUE.
+							]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="confirm-ack-channel" type="xsd:string" default="nullChannel">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+			Channel to which positive publisher confirms will be sent; the payload will be the correlation data from
+			the sent message. The message will also contain a header 'amqp_publishConfirm' with a value true.
+			Requires a connection factory that is configured to request publisher confirms. Default
+			is nullChannel in case an adapter doesn't want to use publisher confirms, but is using a
+			connection factory that is configured to request them.
+							]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="confirm-nack-channel" type="xsd:string" default="nullChannel">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+			Channel to which negative publisher confirms will be sent; the payload will be the correlation data from
+			the sent message. The message will also contain a header 'amqp_publishConfirm' with a value false.
+			Requires a connection factory that is configured to request publisher confirms. Default
+			is nullChannel in case an adapter doesn't want to use publisher confirms, but is using a
+			connection factory that is configured to request them.
+							]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 
