@@ -165,7 +165,8 @@ Basically a mirror-image of the Splitter, the Aggregator is a type of Message En
 In fact, Aggregators are often downstream consumers in a pipeline that includes a Splitter.
 Technically, the Aggregator is more complex than a Splitter, because it is required to maintain state (the Messages to-be-aggregated), to decide when the complete group of Messages is available, and to timeout if necessary.
 Furthermore, in case of a timeout, the Aggregator needs to know whether to send the partial results or to discard them to a separate channel.
-Spring Integration provides a `CompletionStrategy` as well as configurable settings for timeout, whether to send partial results upon timeout, and the discard channel.
+Spring Integration provides a `CorrelationStrategy`, a `ReleaseStrategy` and configurable settings for: timeout, whether
+to send partial results upon timeout, and a discard channel.
 
 [[overview-endpoints-service-activator]]
 ==== Service Activator
