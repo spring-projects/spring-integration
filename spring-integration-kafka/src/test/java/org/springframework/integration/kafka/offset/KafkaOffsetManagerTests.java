@@ -16,7 +16,6 @@
 
 package org.springframework.integration.kafka.offset;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.integration.kafka.core.Partition;
@@ -37,8 +36,6 @@ public class KafkaOffsetManagerTests extends AbstractOffsetManagerTests {
 				"offsets-spring-test",
 				initialOffsets);
 		kafkaTopicOffsetManager.setConsumerId(consumerId);
-		// do not batch writes during tests for deterministic behaviour
-		kafkaTopicOffsetManager.setBatchWrites(false);
 		kafkaTopicOffsetManager.afterPropertiesSet();
 		kafkaTopicOffsetManager.setReferenceTimestamp(referenceTimestamp);
 		return kafkaTopicOffsetManager;

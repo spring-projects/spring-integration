@@ -25,13 +25,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.utility.ListIterate;
-
-import kafka.Kafka;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
+import kafka.server.NotRunning;
 import kafka.utils.SystemTime$;
 import kafka.utils.TestUtils;
 import kafka.utils.TestZKUtils;
@@ -42,17 +38,18 @@ import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.junit.rules.ExternalResource;
-
-import scala.collection.JavaConversions;
-
 import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryPolicy;
-import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
+
+import scala.collection.JavaConversions;
+
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.impl.list.mutable.FastList;
+import com.gs.collections.impl.utility.ListIterate;
 
 /**
  * @author Marius Bogoevici
@@ -93,8 +90,9 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 				ZKStringSerializer$.MODULE$);
 		kafkaServers = new ArrayList<KafkaServer>();
 		for (int i = 0; i < count; i++) {
-			Properties brokerConfigProperties = TestUtils.createBrokerConfig(i, kafkaPorts.get(i));
-			brokerConfigProperties.put("controlled.shutdown.enable", Boolean.toString(controlledShutdown));
+			Properties brokerConfigProperties = TestUtils.createBrokerConfig(i, kafkaPorts.get(i),controlledShutdown);
+			brokerConfigProperties.setProperty("replica.socket.timeout.ms","1000");
+			brokerConfigProperties.setProperty("controller.socket.timeout.ms","1000");
 			KafkaServer server = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
 			kafkaServers.add(server);
 		}
@@ -104,7 +102,10 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 	protected void after() {
 		for (KafkaServer kafkaServer : kafkaServers) {
 			try {
-				kafkaServer.shutdown();
+				if (kafkaServer.brokerState().currentState() != (NotRunning.state())) {
+					kafkaServer.shutdown();
+					kafkaServer.awaitShutdown();
+				}
 			}
 			catch (Exception e) {
 				// do nothing
@@ -170,6 +171,7 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 		for (KafkaServer kafkaServer : getKafkaServers()) {
 			if (brokerAddress.equals(new BrokerAddress(kafkaServer.config().hostName(), kafkaServer.config().port()))) {
 				kafkaServer.shutdown();
+				kafkaServer.awaitShutdown();
 			}
 		}
 	}

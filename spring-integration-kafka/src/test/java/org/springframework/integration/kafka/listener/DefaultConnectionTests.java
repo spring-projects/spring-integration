@@ -17,7 +17,7 @@
 
 package org.springframework.integration.kafka.listener;
 
-import kafka.producer.Producer;
+import org.apache.kafka.clients.producer.Producer;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -62,8 +62,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 	@Test
 	public void testReceiveMessages() throws Exception {
 		createTopic(TEST_TOPIC, 1, 1, 1);
-		Producer<String, String> producer = createStringProducer(0);
-		producer.send( createMessages(10, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(10, TEST_TOPIC, 1));
 		Connection brokerConnection =
 				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);
@@ -85,8 +84,7 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 	@Test
 	public void testReceiveMessagesWithGZipCompression() throws Exception {
 		createTopic(TEST_TOPIC, 1, 1, 1);
-		Producer<String, String> producer = createStringProducer(1);
-		producer.send( createMessages(10, TEST_TOPIC));
+		createMessageSender("gzip").send(createMessages(10, TEST_TOPIC, 1));
 		Connection brokerConnection =
 				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);
@@ -108,15 +106,12 @@ public class DefaultConnectionTests extends AbstractBrokerTests {
 	@Test
 	@Ignore
 	/**
-	 * The compression codec '2' is for Snappy:
-	 * {@code producerConfig.put("compression.codec",  2);}
-	 * Since it relies on the native library we can't test it on all environment,
+	 * Since the test relies on the native library we can't test it on all environments,
 	 * because we may not have permission to load dll(so).
 	 */
 	public void testReceiveMessagesWithSnappyCompression() throws Exception {
 		createTopic(TEST_TOPIC, 1, 1, 1);
-		Producer<String, String> producer = createStringProducer(2);
-		producer.send( createMessages(10, TEST_TOPIC));
+		createMessageSender("snappy").send( createMessages(10, TEST_TOPIC,1));
 		Connection brokerConnection =
 				new DefaultConnection(getKafkaRule().getBrokerAddresses()[0], "client", 64*1024, 3000, 1, 10000);
 		Partition partition = new Partition(TEST_TOPIC, 0);

@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import com.gs.collections.api.multimap.list.MutableListMultimap;
 import com.gs.collections.impl.list.mutable.FastList;
 import com.gs.collections.impl.multimap.list.SynchronizedPutFastListMultimap;
-import kafka.message.NoCompressionCodec$;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -64,11 +63,13 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 	@Test
 	@SuppressWarnings("serial")
 	public void testLowVolumeLowConcurrency() throws Exception {
-		createTopic(TEST_TOPIC, 5, 1, 1);
+		int partitionCount = 5;
+
+		createTopic(TEST_TOPIC, partitionCount, 1, 1);
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < partitionCount; i++) {
 			readPartitions.add(new Partition(TEST_TOPIC, i));
 		}
 
@@ -116,7 +117,7 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		createStringProducer(NoCompressionCodec$.MODULE$.codec()).send(createMessages(100, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(100, TEST_TOPIC, partitionCount));
 
 		latch.await((expectedMessageCount / 5000) + 1, TimeUnit.MINUTES);
 		kafkaMessageListenerContainer.stop();
@@ -125,18 +126,20 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 2, 5, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 2, partitionCount, expectedMessageCount, 1);
 
 	}
 
 	@Test
 	@SuppressWarnings("serial")
 	public void testManualAck() throws Exception {
-		createTopic(TEST_TOPIC, 5, 1, 1);
+		int partitionCount = 5;
+
+		createTopic(TEST_TOPIC, partitionCount, 1, 1);
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < partitionCount; i++) {
 			readPartitions.add(new Partition(TEST_TOPIC, i));
 		}
 
@@ -191,7 +194,7 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		createStringProducer(NoCompressionCodec$.MODULE$.codec()).send(createMessages(100, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(100, TEST_TOPIC, partitionCount));
 
 		latch.await((expectedMessageCount / 5000) + 1, TimeUnit.MINUTES);
 		kafkaMessageListenerContainer.stop();
@@ -200,7 +203,7 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 2, 5, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 2, partitionCount, expectedMessageCount, 1);
 
 		// at this point, all messages have been processed but not acknowledged
 		for (Partition readPartition : readPartitions) {

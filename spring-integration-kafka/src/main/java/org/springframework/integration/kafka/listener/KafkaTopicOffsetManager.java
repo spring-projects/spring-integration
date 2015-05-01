@@ -25,10 +25,20 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import kafka.admin.AdminUtils$;
+import kafka.api.OffsetRequest;
+import kafka.common.ErrorMapping$;
+import kafka.common.TopicExistsException;
+import kafka.serializer.Decoder;
+import kafka.utils.ZKStringSerializer$;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Serializer;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
@@ -55,17 +65,6 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import kafka.admin.AdminUtils$;
-import kafka.api.OffsetRequest;
-import kafka.common.ErrorMapping$;
-import kafka.common.TopicExistsException;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.DefaultPartitioner;
-import kafka.producer.KeyedMessage;
-import kafka.serializer.Decoder;
-import kafka.serializer.Encoder;
-import kafka.utils.ZKStringSerializer$;
-
 /**
  * Implementation of an {@link OffsetManager} that uses a Kafka topic as the underlying support.
  * For its proper functioning, the Kafka server(s) must set {@code log.cleaner.enable=true}. It relies on the property
@@ -77,9 +76,9 @@ import kafka.utils.ZKStringSerializer$;
  */
 public class KafkaTopicOffsetManager extends AbstractOffsetManager implements InitializingBean {
 
-	private static final KeyEncoderDecoder KEY_CODEC = new KeyEncoderDecoder();
+	private static final KeySerializerDecoder KEY_CODEC = new KeySerializerDecoder();
 
-	private static final LongEncoderDecoder VALUE_CODEC = new LongEncoderDecoder();
+	private static final LongSerializerDecoder VALUE_CODEC = new LongSerializerDecoder();
 
 	public static final String CLEANUP_POLICY = "cleanup.policy";
 
@@ -97,13 +96,11 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 
 	private final ConcurrentMap<Partition, Long> data = new ConcurrentHashMap<Partition, Long>();
 
-	private String compressionCodec = "default";
+	private ProducerMetadata.CompressionType compressionType = ProducerMetadata.CompressionType.none;
 
 	private Producer<Key, Long> producer;
 
 	private int maxSize = 10 * 1024;
-
-	private int maxQueueBufferingTime = 1000;
 
 	private int segmentSize = 25 * 1024;
 
@@ -111,11 +108,11 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 
 	private int replicationFactor;
 
-	private int maxBatchSize = 200;
-
-	private boolean batchWrites = true;
+	private int batchBytes = 200;
 
 	private int requiredAcks = 1;
+
+	private int maxQueueBufferingTime;
 
 	public KafkaTopicOffsetManager(ZookeeperConnect zookeeperConnect, String topic) {
 		this(zookeeperConnect, topic, new HashMap<Partition, Long>());
@@ -140,12 +137,12 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 	}
 
 	/**
-	 * The compression codec for writing to the offset topic
+	 * The compression type for writing to the offset topic
 	 *
-	 * @param compressionCodec the compression codec
+	 * @param compressionType the compression type
 	 */
-	public void setCompressionCodec(String compressionCodec) {
-		this.compressionCodec = compressionCodec;
+	public void setCompressionCodec(ProducerMetadata.CompressionType compressionType) {
+		this.compressionType = compressionType;
 	}
 
 	/**
@@ -185,21 +182,12 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 	}
 
 	/**
-	 * The maximum batch size for offset writes
+	 * The maximum batch size in bytes for offset writes
 	 *
-	 * @param maxBatchSize maximum batching window
+	 * @param batchBytes maximum batching window
 	 */
-	public void setMaxBatchSize(int maxBatchSize) {
-		this.maxBatchSize = maxBatchSize;
-	}
-
-	/**
-	 * Whether offset writes should be batched or not
-	 *
-	 * @param batchWrites true if writes are batched
-	 */
-	public void setBatchWrites(boolean batchWrites) {
-		this.batchWrites = batchWrites;
+	public void setBatchBytes(int batchBytes) {
+		this.batchBytes = batchBytes;
 	}
 
 	/**
@@ -218,7 +206,6 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 				Integer.parseInt(this.zookeeperConnect.getZkSessionTimeout()),
 				Integer.parseInt(this.zookeeperConnect.getZkConnectionTimeout()),
 				ZKStringSerializer$.MODULE$);
-
 		try {
 			createCompactedTopicIfNotFound(zkClient);
 			validateOffsetTopic(zkClient);
@@ -240,13 +227,13 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 	@Override
 	protected void doUpdateOffset(Partition partition, long offset) {
 		this.data.put(partition, offset);
-		this.producer.send(new KeyedMessage<Key, Long>(this.topic, new Key(this.consumerId, partition), offset));
+		this.producer.send(new ProducerRecord<>(this.topic, new Key(this.consumerId, partition), offset));
 	}
 
 	@Override
 	protected void doRemoveOffset(Partition partition) {
 		this.data.remove(partition);
-		this.producer.send(new KeyedMessage<Key, Long>(this.topic, new Key(this.consumerId, partition), null));
+		this.producer.send(new ProducerRecord<Key, Long>(this.topic, new Key(this.consumerId, partition), null));
 	}
 
 	@Override
@@ -385,28 +372,16 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 
 
 	private void initializeProducer(BrokerAddress leader) throws Exception {
-		ProducerMetadata<Key, Long> producerMetadata = new ProducerMetadata<Key, Long>(this.topic);
-
-		producerMetadata.setValueEncoder(VALUE_CODEC);
-		producerMetadata.setValueClassType(Long.class);
-		producerMetadata.setKeyEncoder(KEY_CODEC);
-		producerMetadata.setKeyClassType(Key.class);
-		producerMetadata.setPartitioner(new DefaultPartitioner(null));
-
+		ProducerMetadata<Key,Long> producerMetadata = new ProducerMetadata<>(this.topic, Key.class, Long.class,
+				KEY_CODEC, VALUE_CODEC);
+		producerMetadata.setBatchBytes(batchBytes);
+		producerMetadata.setCompressionType(compressionType);
 		Properties additionalProps = new Properties();
-
-		producerMetadata.setAsync(this.batchWrites);
-		if (this.batchWrites) {
-			producerMetadata.setBatchNumMessages(String.valueOf(this.maxBatchSize));
-			producerMetadata.setCompressionCodec(this.compressionCodec);
-			additionalProps.put("request.required.acks", String.valueOf(this.requiredAcks));
-			additionalProps.put("queue.buffering.max.ms", String.valueOf(this.maxQueueBufferingTime));
-		}
-
-		ProducerFactoryBean<Key, Long> producerFB
-				= new ProducerFactoryBean<Key, Long>(producerMetadata, leader.toString(), additionalProps);
-
-		this.producer = producerFB.getObject();
+		additionalProps.setProperty(ProducerConfig.LINGER_MS_CONFIG, Integer.toString(maxQueueBufferingTime));
+		additionalProps.setProperty(ProducerConfig.ACKS_CONFIG, Integer.toString(requiredAcks));
+		ProducerFactoryBean<Key,Long> producerFactoryBean = new ProducerFactoryBean<>(producerMetadata,
+				leader.toString(), additionalProps);
+		this.producer = producerFactoryBean.getObject();
 	}
 
 	private static int intFromBytes(byte[] bytes, int start) {
@@ -468,9 +443,9 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 
 	}
 
-	public static class KeyEncoderDecoder implements Encoder<Key>, Decoder<Key> {
+	public static class KeySerializerDecoder implements Serializer<Key>, Decoder<Key> {
 
-		private static final Log log = LogFactory.getLog(KeyEncoderDecoder.class);
+		private static final Log log = LogFactory.getLog(KeySerializerDecoder.class);
 
 		@Override
 		public Key fromBytes(byte[] bytes) {
@@ -495,14 +470,19 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 		}
 
 		@Override
-		public byte[] toBytes(Key key) {
-			if (key == null) {
+		public void configure(Map<String, ?> configs, boolean isKey) {
+			// no-op
+		}
+
+		@Override
+		public byte[] serialize(String topic, Key data) {
+			if (data == null) {
 				return null;
 			}
 			try {
-				byte[] consumerIdBytes = key.consumerId.getBytes("UTF-8");
-				byte[] topicNameBytes = key.partition.getTopic().getBytes("UTF-8");
-				byte[] partitionIdBytes = intToBytes(key.partition.getId());
+				byte[] consumerIdBytes = data.consumerId.getBytes("UTF-8");
+				byte[] topicNameBytes = data.partition.getTopic().getBytes("UTF-8");
+				byte[] partitionIdBytes = intToBytes(data.partition.getId());
 				byte[] result = new byte[4 + consumerIdBytes.length + 4 + topicNameBytes.length + 4];
 				System.arraycopy(intToBytes(consumerIdBytes.length), 0, result, 0, 4);
 				System.arraycopy(consumerIdBytes, 0, result, 4, consumerIdBytes.length);
@@ -514,6 +494,11 @@ public class KafkaTopicOffsetManager extends AbstractOffsetManager implements In
 			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
+		}
+
+		@Override
+		public void close() {
+			//no-op
 		}
 
 	}

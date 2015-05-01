@@ -55,7 +55,9 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 
 	@Test
 	public void testCompleteShutdown() throws Exception {
-		createTopic(TEST_TOPIC, 1, 1, 1);
+		int partitionCount = 1;
+
+		createTopic(TEST_TOPIC, partitionCount, 1, 1);
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
@@ -68,7 +70,7 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 
 		final int expectedMessageCount = 100;
 
-		createStringProducer(0).send(createMessages(10, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(10, TEST_TOPIC,partitionCount));
 
 		final MutableListMultimap<Integer, KeyedMessageWithOffset> receivedData =
 				new SynchronizedPutFastListMultimap<Integer, KeyedMessageWithOffset>();
@@ -100,7 +102,7 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 		kafkaEmbeddedBrokerRule.restart(0);
 
 		// now start sending messages again
-		createStringProducer(0).send(createMessages(90, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(90, TEST_TOPIC,partitionCount));
 
 		latch.await(50, TimeUnit.SECONDS);
 		kafkaMessageListenerContainer.stop();
@@ -109,7 +111,7 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 1, 1, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 1, partitionCount, expectedMessageCount, 1);
 
 	}
 

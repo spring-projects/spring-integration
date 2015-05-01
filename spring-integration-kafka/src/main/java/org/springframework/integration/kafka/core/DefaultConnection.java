@@ -24,17 +24,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.api.block.function.Function2;
-import com.gs.collections.api.tuple.Pair;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.tuple.Tuples;
-import com.gs.collections.impl.utility.LazyIterate;
-import com.gs.collections.impl.utility.MapIterate;
 import kafka.api.FetchRequestBuilder;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.cluster.Broker;
 import kafka.common.ErrorMapping;
+import kafka.common.OffsetAndMetadata;
 import kafka.common.OffsetMetadataAndError;
 import kafka.common.TopicAndPartition;
 import kafka.javaapi.FetchResponse;
@@ -51,10 +45,18 @@ import kafka.javaapi.TopicMetadataResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.message.ByteBufferMessageSet;
 import kafka.message.MessageAndOffset;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.util.Assert;
+
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.api.block.function.Function2;
+import com.gs.collections.api.tuple.Pair;
+import com.gs.collections.impl.list.mutable.FastList;
+import com.gs.collections.impl.tuple.Tuples;
+import com.gs.collections.impl.utility.LazyIterate;
+import com.gs.collections.impl.utility.MapIterate;
 
 /**
  * A connection to a Kafka broker.
@@ -213,13 +215,13 @@ public class DefaultConnection implements Connection {
 	@Override
 	public Result<Void> commitOffsetsForConsumer(String consumerId, Map<Partition, Long> offsets)
 			throws ConsumerException {
-		Map<TopicAndPartition, OffsetMetadataAndError> requestInfo =
+		Map<TopicAndPartition, OffsetAndMetadata> requestInfo =
 				MapIterate.collect(offsets, new CreateRequestInfoMapEntryFunction());
 		OffsetCommitResponse offsetCommitResponse = null;
 		try {
 			offsetCommitResponse = simpleConsumer.commitOffsets(
-					new OffsetCommitRequest(consumerId, requestInfo, kafka.api.OffsetCommitRequest.CurrentVersion(),
-							createCorrelationId(), simpleConsumer.clientId()));
+					new OffsetCommitRequest(consumerId, requestInfo, createCorrelationId(),
+							simpleConsumer.clientId(), kafka.api.OffsetCommitRequest.CurrentVersion()));
 		}
 		catch (Exception e) {
 			throw new ConsumerException(e);
@@ -309,12 +311,12 @@ public class DefaultConnection implements Connection {
 
 	@SuppressWarnings("serial")
 	private static class CreateRequestInfoMapEntryFunction
-			implements Function2<Partition, Long, Pair<TopicAndPartition, OffsetMetadataAndError>> {
+			implements Function2<Partition, Long, Pair<TopicAndPartition, OffsetAndMetadata>> {
 
 		@Override
-		public Pair<TopicAndPartition, OffsetMetadataAndError> value(Partition partition, Long offset) {
+		public Pair<TopicAndPartition, OffsetAndMetadata> value(Partition partition, Long offset) {
 			return Tuples.pair(new TopicAndPartition(partition.getTopic(), partition.getId()),
-					new OffsetMetadataAndError(offset, OffsetMetadataAndError.NoMetadata(), ErrorMapping.NoError()));
+					new OffsetAndMetadata(offset, OffsetAndMetadata.NoMetadata(), ErrorMapping.NoError()));
 		}
 
 	}

@@ -17,23 +17,24 @@
 package org.springframework.integration.kafka.listener;
 
 import java.nio.ByteBuffer;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.integration.kafka.util.LoggingUtils;
+import java.util.Map;
 
 import kafka.serializer.Decoder;
 import kafka.serializer.Encoder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.common.serialization.Serializer;
+
+import org.springframework.integration.kafka.util.LoggingUtils;
 
 /**
  * Kafka {@link Encoder} and {@link Decoder} for Long values.
  *
  * @author Marius Bogoevici
  */
-public class LongEncoderDecoder implements Encoder<Long>, Decoder<Long> {
+public class LongSerializerDecoder implements Serializer<Long>, Decoder<Long> {
 
-	private Log log = LogFactory.getLog(LongEncoderDecoder.class);
+	private Log log = LogFactory.getLog(LongSerializerDecoder.class);
 
 	@Override
 	public Long fromBytes(byte[] bytes) {
@@ -54,13 +55,22 @@ public class LongEncoderDecoder implements Encoder<Long>, Decoder<Long> {
 	}
 
 	@Override
-	public byte[] toBytes(Long value) {
-		if (value == null) {
+	public void configure(Map<String, ?> configs, boolean isKey) {
+		// no-op
+	}
+
+	@Override
+	public byte[] serialize(String topic, Long data) {
+		if (data == null) {
 			return null;
 		}
 		else {
-			return ByteBuffer.allocate(8).putLong(value).array();
+			return ByteBuffer.allocate(8).putLong(data).array();
 		}
 	}
 
+	@Override
+	public void close() {
+		// no-op
+	}
 }

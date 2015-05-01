@@ -135,7 +135,11 @@ public abstract class AbstractOffsetManager implements OffsetManager, Disposable
 				Connection connection = this.connectionFactory.connect(leader);
 				Result<Long> offsetResult = connection.fetchInitialOffset(this.referenceTimestamp, partition);
 				if (offsetResult.getErrors().size() > 0) {
-					throw new ConsumerException(ErrorMapping.exceptionFor(offsetResult.getError(partition)));
+					short errorCode = offsetResult.getError(partition);
+					if (log.isWarnEnabled()) {
+						log.warn("Error code while retrieving offset for partition " + partition.toString() + " : " + errorCode);
+					}
+					throw new ConsumerException(ErrorMapping.exceptionFor(errorCode));
 				}
 				if (!offsetResult.getResults().containsKey(partition)) {
 					throw new IllegalStateException("Result does not contain an expected value");

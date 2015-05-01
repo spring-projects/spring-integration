@@ -55,7 +55,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testLowVolumeLowConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 5, 1, 1);
-		runMessageListenerTest(100, 2, 5, 100, 1, 0, topicName);
+		runMessageListenerTest(100, 2, 5, 100, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -63,7 +63,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testMediumVolumeLowConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 5, 1, 1);
-		runMessageListenerTest(100, 2, 5, 1000, 1, 0, topicName);
+		runMessageListenerTest(100, 2, 5, 1000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -72,7 +72,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testHighVolumeLowConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 5, 1, 1);
-		runMessageListenerTest(100, 2, 5, 10000, 1, 0, topicName);
+		runMessageListenerTest(100, 2, 5, 10000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -80,7 +80,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testLowVolumeMediumConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 5, 1, 1);
-		runMessageListenerTest(100, 5, 5, 100, 1, 0, topicName);
+		runMessageListenerTest(100, 5, 5, 100, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -88,7 +88,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testMediumVolumeMediumConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 5, 1, 1);
-		runMessageListenerTest(100, 5, 5, 1000, 1, 0, topicName);
+		runMessageListenerTest(100, 5, 5, 1000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -97,7 +97,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testHighVolumeMediumConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 5, 1, 1);
-		runMessageListenerTest(100, 5, 5, 100000, 1, 0, topicName);
+		runMessageListenerTest(100, 5, 5, 100000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -106,7 +106,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testLowVolumeHighConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 1000, 1, 0, topicName);
+		runMessageListenerTest(100, 20, 100, 1000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -115,7 +115,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testMediumVolumeHighConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 10000, 1, 0, topicName);
+		runMessageListenerTest(100, 20, 100, 10000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 
@@ -124,7 +124,7 @@ public class SingleBrokerExternalTests extends AbstractMessageListenerContainerT
 	public void testHighVolumeHighConcurrency() throws Exception {
 		String topicName = generateTopicName();
 		createTopic(topicName, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 100000, 1, 0, topicName);
+		runMessageListenerTest(100, 20, 100, 100000, 1, "none", topicName);
 		deleteTopic(topicName);
 	}
 

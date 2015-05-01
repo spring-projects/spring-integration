@@ -15,8 +15,9 @@
  */
 package org.springframework.integration.kafka.support;
 
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Assert;
-import kafka.javaapi.producer.Producer;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -24,41 +25,19 @@ import org.mockito.Mockito;
  * @author Soby Chacko
  * @since 0.5
  */
-public class ProducerFactoryBeanTests<K,V> {
+public class ProducerFactoryBeanTests {
 
 	@Test
 	public void createProducerWithDefaultMetadata() throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
+		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test", byte[].class, byte[].class, new ByteArraySerializer(), new ByteArraySerializer());
 		final ProducerMetadata<byte[], byte[]> tm = Mockito.spy(producerMetadata);
 		final ProducerFactoryBean<byte[], byte[]> producerFactoryBean = new ProducerFactoryBean<byte[], byte[]>(tm, "localhost:9092");
 		final Producer<byte[], byte[]> producer = producerFactoryBean.getObject();
 
 		Assert.assertTrue(producer != null);
 
-		Mockito.verify(tm, Mockito.times(1)).getPartitioner();
-		Mockito.verify(tm, Mockito.times(1)).getCompressionCodec();
-		Mockito.verify(tm, Mockito.times(1)).getValueEncoder();
-		Mockito.verify(tm, Mockito.times(1)).getKeyEncoder();
-		Mockito.verify(tm, Mockito.times(1)).isAsync();
-		Mockito.verify(tm, Mockito.times(0)).getBatchNumMessages();
-	}
-
-	@Test
-	public void createProducerWithAsyncFeatures() throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
-		producerMetadata.setAsync(true);
-		producerMetadata.setBatchNumMessages("300");
-		final ProducerMetadata<byte[], byte[]> tm = Mockito.spy(producerMetadata);
-		final ProducerFactoryBean<byte[], byte[]> producerFactoryBean = new ProducerFactoryBean<byte[], byte[]>(tm, "localhost:9092");
-		final Producer<byte[], byte[]> producer = producerFactoryBean.getObject();
-
-		Assert.assertTrue(producer != null);
-
-		Mockito.verify(tm, Mockito.times(1)).getPartitioner();
-		Mockito.verify(tm, Mockito.times(1)).getCompressionCodec();
-		Mockito.verify(tm, Mockito.times(1)).getValueEncoder();
-		Mockito.verify(tm, Mockito.times(1)).getKeyEncoder();
-		Mockito.verify(tm, Mockito.times(1)).isAsync();
-		Mockito.verify(tm, Mockito.times(2)).getBatchNumMessages();
+		Mockito.verify(tm, Mockito.times(1)).getCompressionType();
+		Mockito.verify(tm, Mockito.times(1)).getValueSerializer();
+		Mockito.verify(tm, Mockito.times(1)).getKeySerializer();
 	}
 }

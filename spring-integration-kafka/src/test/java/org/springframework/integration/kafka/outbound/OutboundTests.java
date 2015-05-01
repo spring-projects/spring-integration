@@ -26,11 +26,19 @@ import static org.junit.Assert.assertThat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.gs.collections.api.multimap.MutableMultimap;
+import com.gs.collections.impl.factory.Multimaps;
+import kafka.admin.AdminUtils;
+import kafka.api.OffsetRequest;
+import kafka.common.TopicExistsException;
+import kafka.serializer.Decoder;
+import kafka.serializer.Encoder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,18 +62,10 @@ import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
+import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.integration.kafka.util.MessageUtils;
 import org.springframework.integration.kafka.util.TopicUtils;
 import org.springframework.messaging.support.MessageBuilder;
-
-import com.gs.collections.api.multimap.MutableMultimap;
-import com.gs.collections.impl.factory.Multimaps;
-
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.common.TopicExistsException;
-import kafka.serializer.Decoder;
-import kafka.serializer.Encoder;
 
 /**
  * @author Gary Russell
@@ -124,9 +124,9 @@ public class OutboundTests {
 
 		kafkaMessageListenerContainer.start();
 
-		KafkaProducerContext<String, String> producerContext = createProducerContext();
-		KafkaProducerMessageHandler<String, String> handler =
-				new KafkaProducerMessageHandler<String, String>(producerContext);
+		KafkaProducerContext producerContext = createProducerContext();
+		KafkaProducerMessageHandler handler =
+				new KafkaProducerMessageHandler(producerContext);
 
 		handler.handleMessage(MessageBuilder.withPayload("foo" + suffix)
 				.setHeader(KafkaHeaders.MESSAGE_KEY, "3")
@@ -195,9 +195,9 @@ public class OutboundTests {
 
 		kafkaMessageListenerContainer.start();
 
-		KafkaProducerContext<String, String> producerContext = createProducerContext();
-		KafkaProducerMessageHandler<String, String> handler
-				= new KafkaProducerMessageHandler<String, String>(producerContext);
+		KafkaProducerContext producerContext = createProducerContext();
+		KafkaProducerMessageHandler handler
+				= new KafkaProducerMessageHandler(producerContext);
 
 		handler.handleMessage(MessageBuilder.withPayload("fooTopic1" + suffix)
 				.setHeader(KafkaHeaders.MESSAGE_KEY, "3")
@@ -273,9 +273,8 @@ public class OutboundTests {
 
 		kafkaMessageListenerContainer.start();
 
-		KafkaProducerContext<String, String> producerContext = createProducerContext();
-		KafkaProducerMessageHandler<String, String> handler
-				= new KafkaProducerMessageHandler<String, String>(producerContext);
+		KafkaProducerContext producerContext = createProducerContext();
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(producerContext);
 
 		handler.handleMessage(MessageBuilder.withPayload("fooTopic1" + suffix).build());
 
@@ -309,22 +308,18 @@ public class OutboundTests {
 		return kafkaMessageListenerContainer;
 	}
 
-	private KafkaProducerContext<String, String> createProducerContext() throws Exception {
-		KafkaProducerContext<String, String> kafkaProducerContext = new KafkaProducerContext<String, String>();
-		ProducerMetadata<String, String> producerMetadata = new ProducerMetadata<String, String>(TOPIC);
-		producerMetadata.setValueClassType(String.class);
-		producerMetadata.setKeyClassType(String.class);
-		Encoder<String> encoder = new StringEncoder<String>();
-		producerMetadata.setValueEncoder(encoder);
-		producerMetadata.setKeyEncoder(encoder);
-		producerMetadata.setAsync(true);
+	private KafkaProducerContext createProducerContext() throws Exception {
+		KafkaProducerContext kafkaProducerContext = new KafkaProducerContext();
+		Encoder<String> encoder = new StringEncoder();
+		ProducerMetadata<String, String> producerMetadata = new ProducerMetadata<String, String>(TOPIC, String.class, String.class, new EncoderAdaptingSerializer<String>(encoder), new EncoderAdaptingSerializer<String>(encoder));
 		Properties props = new Properties();
-		props.put("queue.buffering.max.ms", "15000");
+		props.put("linger.ms", "15000");
 		ProducerFactoryBean<String, String> producer =
 				new ProducerFactoryBean<String, String>(producerMetadata, kafkaRule.getBrokersAsString(), props);
 		ProducerConfiguration<String, String> config =
 				new ProducerConfiguration<String, String>(producerMetadata, producer.getObject());
-		kafkaProducerContext.setProducerConfigurations(Collections.singletonMap(TOPIC, config));
+		Map<String, ProducerConfiguration<?, ?>> producerConfigurationMap = Collections.<String, ProducerConfiguration<?, ?>>singletonMap(TOPIC, config);
+		kafkaProducerContext.setProducerConfigurations(producerConfigurationMap);
 		return kafkaProducerContext;
 	}
 

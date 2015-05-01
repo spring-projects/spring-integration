@@ -60,6 +60,13 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 			kafkaProducerMessageHandlerBuilder.addPropertyValue("messageKeyExpression", messageKeyExpressionDef);
 		}
 
+		BeanDefinition partitionIdExpressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("partition-id",
+						"partition-id-expression", parserContext, element, false);
+		if (partitionIdExpressionDef != null) {
+			kafkaProducerMessageHandlerBuilder.addPropertyValue("partitionIdExpression", partitionIdExpressionDef);
+		}
+
 		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
 	}
 

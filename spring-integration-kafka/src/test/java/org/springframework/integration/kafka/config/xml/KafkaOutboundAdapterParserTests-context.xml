@@ -38,10 +38,12 @@
 											  topic="test1"
 											  value-encoder="kafkaEncoder"
 											  key-encoder="kafkaEncoder"
-											  compression-codec="default"/>
+											  compression-type="none"/>
 			<int-kafka:producer-configuration broker-list="localhost:9092"
 											  topic="test2"
-											  compression-codec="default"/>
+											  value-encoder="kafkaEncoder"
+											  key-encoder="kafkaEncoder"
+											  compression-type="none"/>
 		</int-kafka:producer-configurations>
 	</int-kafka:producer-context>
 

@@ -31,10 +31,10 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 0.5
  */
-public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler
+public class KafkaProducerMessageHandler extends AbstractMessageHandler
 		implements IntegrationEvaluationContextAware {
 
-	private final KafkaProducerContext<K,V> kafkaProducerContext;
+	private final KafkaProducerContext kafkaProducerContext;
 
 	private EvaluationContext evaluationContext;
 
@@ -42,7 +42,10 @@ public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler
 
 	private volatile Expression messageKeyExpression;
 
-	public KafkaProducerMessageHandler(final KafkaProducerContext<K,V> kafkaProducerContext) {
+	private volatile Expression partitionExpression;
+
+	@SuppressWarnings("unchecked")
+	public KafkaProducerMessageHandler(final KafkaProducerContext kafkaProducerContext) {
 		this.kafkaProducerContext = kafkaProducerContext;
 	}
 
@@ -59,7 +62,11 @@ public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler
 		this.messageKeyExpression = messageKeyExpression;
 	}
 
-	public KafkaProducerContext<K,V> getKafkaProducerContext() {
+	public void setPartitionExpression(Expression partitionExpression) {
+		this.partitionExpression = partitionExpression;
+	}
+
+	public KafkaProducerContext getKafkaProducerContext() {
 		return this.kafkaProducerContext;
 	}
 
@@ -70,15 +77,19 @@ public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler
 
 	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
-		String topic = this.topicExpression != null
-				? this.topicExpression.getValue(this.evaluationContext, message, String.class)
+		String topic = this.topicExpression != null ?
+				this.topicExpression.getValue(this.evaluationContext, message, String.class)
 				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
+
+		Integer partitionId = this.partitionExpression != null ?
+				this.partitionExpression.getValue(this.evaluationContext, message, Integer.class)
+				: message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class);
 
 		Object messageKey = this.messageKeyExpression != null
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
-		this.kafkaProducerContext.send(topic, messageKey, message);
+		this.kafkaProducerContext.send(topic, partitionId, messageKey, message.getPayload());
 	}
 
 	@Override

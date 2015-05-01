@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -41,6 +44,8 @@ import com.gs.collections.impl.factory.Maps;
 class ConcurrentMessageListenerDispatcher {
 
 	public static final CustomizableThreadFactory THREAD_FACTORY = new CustomizableThreadFactory("dispatcher-");
+
+	private static final Log log = LogFactory.getLog(ConcurrentMessageListenerDispatcher.class);
 
 	private static final StartDelegateProcedure startDelegateProcedure = new StartDelegateProcedure();
 
@@ -67,7 +72,7 @@ class ConcurrentMessageListenerDispatcher {
 	private Executor taskExecutor;
 
 	public ConcurrentMessageListenerDispatcher(Object delegateListener, ErrorHandler errorHandler,
-			Collection<Partition> partitions, OffsetManager offsetManager, int consumers, int queueSize) {
+			Collection<Partition> partitions, OffsetManager offsetManager, int consumers, int queueSize, Executor taskExecutor) {
 		Assert.isTrue
 				(delegateListener instanceof MessageListener
 								|| delegateListener instanceof AcknowledgingMessageListener,
@@ -83,6 +88,7 @@ class ConcurrentMessageListenerDispatcher {
 		this.offsetManager = offsetManager;
 		this.consumers = consumers;
 		this.queueSize = queueSize;
+		this.taskExecutor = taskExecutor;
 	}
 
 	public void start() {
@@ -100,6 +106,7 @@ class ConcurrentMessageListenerDispatcher {
 				this.running = false;
 				delegates.flip().keyBag().toSet().forEachWith(stopDelegateProcedure, stopTimeout);
 			}
+			this.delegates = null;
 		}
 	}
 
@@ -136,7 +143,14 @@ class ConcurrentMessageListenerDispatcher {
 
 		@Override
 		public void value(QueueingMessageListenerInvoker delegate, Integer stopTimeout) {
-			delegate.stop(stopTimeout);
+			try {
+				delegate.stop(stopTimeout);
+			} catch (Exception e) {
+				// ignore the exception, but log it
+				if(log.isInfoEnabled()) {
+					log.info("Exception thrown while stopping dispatcher:", e);
+				}
+			}
 		}
 
 	}

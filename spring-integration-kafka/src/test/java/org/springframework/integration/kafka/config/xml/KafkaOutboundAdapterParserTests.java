@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class KafkaOutboundAdapterParserTests<K, V> {
+public class KafkaOutboundAdapterParserTests {
 
 	@ClassRule
 	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
@@ -53,13 +53,13 @@ public class KafkaOutboundAdapterParserTests<K, V> {
 	@SuppressWarnings("unchecked")
 	public void testOutboundAdapterConfiguration() {
 		PollingConsumer pollingConsumer = this.appContext.getBean("kafkaOutboundChannelAdapter", PollingConsumer.class);
-		KafkaProducerMessageHandler<K, V> messageHandler = this.appContext.getBean(KafkaProducerMessageHandler.class);
+		KafkaProducerMessageHandler messageHandler = this.appContext.getBean(KafkaProducerMessageHandler.class);
 		assertNotNull(pollingConsumer);
 		assertNotNull(messageHandler);
 		assertEquals(messageHandler.getOrder(), 3);
 		assertEquals("foo", TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue"));
 		assertEquals("'bar'", TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression"));
-		KafkaProducerContext<K, V> producerContext = messageHandler.getKafkaProducerContext();
+		KafkaProducerContext producerContext = messageHandler.getKafkaProducerContext();
 		assertNotNull(producerContext);
 		assertEquals(producerContext.getProducerConfigurations().size(), 2);
 	}
