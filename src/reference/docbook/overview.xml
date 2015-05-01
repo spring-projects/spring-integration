@@ -251,7 +251,8 @@
         is required to maintain state (the Messages to-be-aggregated), to decide when the complete group of Messages
         is available, and to timeout if necessary. Furthermore, in case of a timeout, the Aggregator needs to know
         whether to send the partial results or to discard them to a separate channel. Spring Integration provides
-        a <interfacename>CompletionStrategy</interfacename> as well as configurable settings for timeout, whether
+        a <interfacename>CorrelationStrategy</interfacename>,
+        a <interfacename>ReleaseStrategy</interfacename> and configurable settings for: timeout, whether
         to send partial results upon timeout, and the discard channel.
       </para>
     </section>
