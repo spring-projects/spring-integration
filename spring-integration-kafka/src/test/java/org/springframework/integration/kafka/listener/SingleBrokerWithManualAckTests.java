@@ -64,9 +64,7 @@ public class SingleBrokerWithManualAckTests extends AbstractMessageListenerConta
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
 		for (int i = 0; i < 5; i++) {
-			if (i % 1 == 0) {
-				readPartitions.add(new Partition(TEST_TOPIC, i));
-			}
+			readPartitions.add(new Partition(TEST_TOPIC, i));
 		}
 		final KafkaMessageListenerContainer kafkaMessageListenerContainer = new KafkaMessageListenerContainer(
 				connectionFactory, readPartitions.toArray(new Partition[readPartitions.size()]));
@@ -78,11 +76,13 @@ public class SingleBrokerWithManualAckTests extends AbstractMessageListenerConta
 
 	@Test
 	public void testLowVolumeLowConcurrency() throws Exception {
-		createTopic(TEST_TOPIC, 5, 1, 1);
+		int partitionCount = 5;
+
+		createTopic(TEST_TOPIC, partitionCount, 1, 1);
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < partitionCount; i++) {
 			if (i % 1 == 0) {
 				readPartitions.add(new Partition(TEST_TOPIC, i));
 			}
@@ -118,7 +118,7 @@ public class SingleBrokerWithManualAckTests extends AbstractMessageListenerConta
 
 		kafkaMessageListenerContainer.start();
 
-		createStringProducer(0).send(createMessages(100, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(100, TEST_TOPIC, partitionCount));
 
 		latch.await((expectedMessageCount / 5000) + 1, TimeUnit.MINUTES);
 		kafkaMessageListenerContainer.stop();
@@ -127,7 +127,7 @@ public class SingleBrokerWithManualAckTests extends AbstractMessageListenerConta
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 2, 5, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 2, partitionCount, expectedMessageCount, 1);
 
 		// at this point, all messages have been processed but not acknowledged
 		for (Partition readPartition : readPartitions) {

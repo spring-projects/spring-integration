@@ -37,9 +37,9 @@ public class CodecTests {
 
 	@Test
 	public void testKeyCodec() {
-		KafkaTopicOffsetManager.KeyEncoderDecoder codec = new KafkaTopicOffsetManager.KeyEncoderDecoder();
+		KafkaTopicOffsetManager.KeySerializerDecoder codec = new KafkaTopicOffsetManager.KeySerializerDecoder();
 
-		byte[] encodedValue = codec.toBytes(new KafkaTopicOffsetManager.Key(SOME_CONSUMER, 
+		byte[] encodedValue = codec.serialize("#unused", new KafkaTopicOffsetManager.Key(SOME_CONSUMER,
 				new Partition(SOME_TOPIC, SOME_PARTITION_ID)));
 
 		KafkaTopicOffsetManager.Key key = codec.fromBytes(encodedValue);

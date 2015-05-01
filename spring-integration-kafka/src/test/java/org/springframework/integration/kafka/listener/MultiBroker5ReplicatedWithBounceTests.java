@@ -57,11 +57,15 @@ public class MultiBroker5ReplicatedWithBounceTests extends AbstractMessageListen
 
 	@Test
 	public void testLowVolumeLowConcurrency() throws Exception {
-		createTopic(TEST_TOPIC, 5, 5, 3);
+		int partitionCount = 5;
+
+		createTopic(TEST_TOPIC, partitionCount, 5, 3);
+
+		Thread.sleep(1000);
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < partitionCount; i++) {
 			readPartitions.add(new Partition(TEST_TOPIC, i));
 		}
 		final KafkaMessageListenerContainer kafkaMessageListenerContainer =
@@ -72,7 +76,7 @@ public class MultiBroker5ReplicatedWithBounceTests extends AbstractMessageListen
 
 		final int expectedMessageCount = 100;
 
-		createStringProducer(0).send(createMessages(100, TEST_TOPIC));
+		createMessageSender("none").send(createMessages(100, TEST_TOPIC, partitionCount));
 
 
 		final MutableListMultimap<Integer, KeyedMessageWithOffset> receivedData =
@@ -100,14 +104,14 @@ public class MultiBroker5ReplicatedWithBounceTests extends AbstractMessageListen
 			}
 		}
 
-		latch.await(50, TimeUnit.SECONDS);
+		latch.await(120, TimeUnit.SECONDS);
 		kafkaMessageListenerContainer.stop();
 
 		assertThat(receivedData.valuesView().toList(), hasSize(expectedMessageCount));
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 2, 5, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 2, partitionCount, expectedMessageCount, 1);
 
 	}
 

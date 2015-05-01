@@ -24,6 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import kafka.api.OffsetRequest;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,17 +36,11 @@ import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.PartitionNotFoundException;
 import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.listener.OffsetManager;
-import org.springframework.integration.kafka.listener.TestPartitioner;
 import org.springframework.integration.kafka.rule.KafkaEmbedded;
 import org.springframework.integration.kafka.rule.KafkaRule;
+import org.springframework.integration.kafka.serializer.common.StringEncoder;
+import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.integration.kafka.util.TopicUtils;
-
-import kafka.api.OffsetRequest;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-import kafka.serializer.StringEncoder;
-import kafka.utils.TestUtils;
 
 /**
  * @author Marius Bogoevici
@@ -81,7 +79,7 @@ public abstract class AbstractOffsetManagerTests {
 		// send data to increase offsets on topics
 		Producer<String, String> producer = createProducer();
 		for (int i = 0; i < 10; i++) {
-			producer.send(new KeyedMessage<String, String>(TEST_TOPIC, String.valueOf(i), i, String.valueOf(i)));
+			producer.send(new ProducerRecord<String, String>(TEST_TOPIC, i%3, String.valueOf(i), String.valueOf(i))).get();
 		}
 
 		// earliest time resets at the start of the queue
@@ -89,6 +87,8 @@ public abstract class AbstractOffsetManagerTests {
 		assertThat(offsetManager2.getOffset(partitions[0]), equalTo(0L));
 		assertThat(offsetManager2.getOffset(partitions[1]), equalTo(0L));
 		assertThat(offsetManager2.getOffset(partitions[2]), equalTo(0L));
+
+		offsetManager1.close();
 
 		// latest time resets at the end of the queue
 		OffsetManager offsetManager3 = createOffsetManager(OffsetRequest.LatestTime(), "offset3");
@@ -118,7 +118,8 @@ public abstract class AbstractOffsetManagerTests {
 		// send data to increase offsets on topics
 		Producer<String, String> producer = createProducer();
 		for (int i = 0; i < 10; i++) {
-			producer.send(new KeyedMessage<String, String>(TEST_TOPIC, String.valueOf(i), i, String.valueOf(i)));
+			producer.send(new ProducerRecord<String, String>(TEST_TOPIC,
+					i%numPartitions, String.valueOf(i), String.valueOf(i))).get();
 		}
 
 		assertThat(offsetManager1.getOffset(partitions[0]), equalTo(0L));
@@ -138,6 +139,8 @@ public abstract class AbstractOffsetManagerTests {
 		assertThat(newOffsetManager1.getOffset(partitions[0]), equalTo(5L));
 		assertThat(newOffsetManager1.getOffset(partitions[1]), equalTo(4L));
 		assertThat(newOffsetManager1.getOffset(partitions[2]), equalTo(3L));
+
+		offsetManager1.close();
 
 		// a new offset manager with a different consumerId will not observe the updates
 		OffsetManager offsetManager2 = createOffsetManager(OffsetRequest.EarliestTime(), "offset2");
@@ -167,7 +170,7 @@ public abstract class AbstractOffsetManagerTests {
 		// send data to increase offsets on topics
 		Producer<String, String> producer = createProducer();
 		for (int i = 0; i < 6; i++) {
-			producer.send(new KeyedMessage<String, String>(TEST_TOPIC, String.valueOf(i), i, String.valueOf(i)));
+			producer.send(new ProducerRecord<String, String>(TEST_TOPIC, i%numPartitions, String.valueOf(i), String.valueOf(i))).get();
 		}
 
 		assertThat(offsetManager1.getOffset(partitions[0]), equalTo(0L));
@@ -192,6 +195,8 @@ public abstract class AbstractOffsetManagerTests {
 		assertThat(newOffsetManager1.getOffset(partitions[1]), equalTo(0L));
 		assertThat(newOffsetManager1.getOffset(partitions[2]), equalTo(0L));
 
+		offsetManager1.close();
+
 		// a new offset manager with a different consumerId will not observe the updates
 		OffsetManager offsetManager2 = createOffsetManager(OffsetRequest.LatestTime(), "offset2");
 		assertThat(offsetManager2.getOffset(partitions[0]), equalTo(2L));
@@ -215,12 +220,14 @@ public abstract class AbstractOffsetManagerTests {
 		initialOffsets.put(partitions[1], 9L);
 		initialOffsets.put(partitions[2], 10L);
 
+
+
 		OffsetManager offsetManager1 = createOffsetManager(OffsetRequest.EarliestTime(), "offset1", initialOffsets);
 
 		// send data to increase offsets on topics
 		Producer<String, String> producer = createProducer();
 		for (int i = 0; i < 6; i++) {
-			producer.send(new KeyedMessage<String, String>(TEST_TOPIC, String.valueOf(i), i, String.valueOf(i)));
+			producer.send(new ProducerRecord<String, String>(TEST_TOPIC, i%numPartitions, String.valueOf(i), String.valueOf(i))).get();
 		}
 
 		// The offset manager starts at the configured offsets
@@ -262,6 +269,8 @@ public abstract class AbstractOffsetManagerTests {
 		assertThat(offsetManager1.getOffset(partitions[1]), equalTo(0L));
 		assertThat(offsetManager1.getOffset(partitions[2]), equalTo(0L));
 
+		offsetManager1.close();
+
 		// a new offset manager with a different consumerId will not observe the updates
 		OffsetManager offsetManager2 = createOffsetManager(OffsetRequest.LatestTime(), "offset2");
 		assertThat(offsetManager2.getOffset(partitions[0]), equalTo(2L));
@@ -277,13 +286,11 @@ public abstract class AbstractOffsetManagerTests {
 	}
 
 	protected Producer<String, String> createProducer() {
-		Properties properties = TestUtils.getProducerConfig(kafkaRule.getBrokersAsString(),
-				TestPartitioner.class.getCanonicalName());
-		properties.put("serializer.class", StringEncoder.class.getCanonicalName());
-		properties.put("key.serializer.class", StringEncoder.class.getCanonicalName());
-		ProducerConfig producerConfig = new ProducerConfig(properties);
-		return new Producer<String, String>(new kafka.producer.Producer<String, String>(producerConfig));
-	}
+		Properties properties = new Properties();
+		properties.setProperty("bootstrap.servers", kafkaRule.getBrokersAsString());
+		EncoderAdaptingSerializer<String> serializer = new EncoderAdaptingSerializer<>(new StringEncoder());
+		return new KafkaProducer<String, String>(properties, serializer, serializer);
+		}
 
 	protected OffsetManager createOffsetManager(long referenceTimestamp, String consumerId) throws Exception {
 		return createOffsetManager(referenceTimestamp, consumerId, new HashMap<Partition, Long>());

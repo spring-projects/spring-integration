@@ -17,24 +17,27 @@
 package org.springframework.integration.kafka.support;
 
 import java.io.ByteArrayInputStream;
-import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder;
 import org.springframework.integration.kafka.test.utils.NonSerializableTestKey;
 import org.springframework.integration.kafka.test.utils.NonSerializableTestPayload;
 import org.springframework.integration.kafka.test.utils.TestKey;
 import org.springframework.integration.kafka.test.utils.TestPayload;
+import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
 import kafka.serializer.DefaultEncoder;
 import kafka.serializer.StringEncoder;
 
@@ -43,34 +46,30 @@ import kafka.serializer.StringEncoder;
  * @author Artem Bilan
  * @since 0.5
  */
-public class ProducerConfigurationTests<K, V> {
+public class ProducerConfigurationTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithNonDefaultKeyAndValueEncoders() throws Exception {
-		final ProducerMetadata<String, String> producerMetadata = new ProducerMetadata<String, String>("test");
-		producerMetadata.setValueEncoder(new StringEncoder(null));
-		producerMetadata.setKeyEncoder(new StringEncoder(null));
-		producerMetadata.setKeyClassType(String.class);
-		producerMetadata.setValueClassType(String.class);
+		final ProducerMetadata<String, String> producerMetadata = new ProducerMetadata<String, String>("test", String.class, String.class, new StringSerializer(), new StringSerializer());
 		final Producer<String, String> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<String, String> configuration =
 				new ProducerConfiguration<String, String>(producerMetadata, producer);
 
-		configuration.send("test", "key", new GenericMessage<String>("test message"));
+		configuration.send("test", "key", "test message");
 
-		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(KeyedMessage.class));
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
 
-		final ArgumentCaptor<KeyedMessage<String, String>> argument =
-				(ArgumentCaptor<KeyedMessage<String, String>>) (Object)
-						ArgumentCaptor.forClass(KeyedMessage.class);
+		final ArgumentCaptor<ProducerRecord<String, String>> argument =
+				(ArgumentCaptor<ProducerRecord<String, String>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
 		Mockito.verify(producer).send(argument.capture());
 
-		final KeyedMessage<String, String> capturedKeyMessage = argument.getValue();
+		final ProducerRecord<String, String> capturedKeyMessage = argument.getValue();
 
 		Assert.assertEquals(capturedKeyMessage.key(), "key");
-		Assert.assertEquals(capturedKeyMessage.message(), "test message");
+		Assert.assertEquals(capturedKeyMessage.value(), "test message");
 		Assert.assertEquals(capturedKeyMessage.topic(), "test");
 	}
 
@@ -81,26 +80,23 @@ public class ProducerConfigurationTests<K, V> {
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithDefaultKeyAndValueEncodersAndCustomSerializableKeyAndPayloadObject()
 			throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
-		producerMetadata.setValueEncoder(new DefaultEncoder(null));
-		producerMetadata.setKeyEncoder(new DefaultEncoder(null));
+		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test",
+				byte[].class,byte[].class, new ByteArraySerializer(), new ByteArraySerializer());
 		final Producer<byte[], byte[]> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<byte[], byte[]> configuration =
 				new ProducerConfiguration<byte[], byte[]>(producerMetadata, producer);
 
-		Message<TestPayload> message = new GenericMessage<TestPayload>(new TestPayload("part1", "part2"));
+		configuration.convertAndSend("test", new TestKey("compositePart1", "compositePart2"), new TestPayload("part1", "part2"));
 
-		configuration.send("test", new TestKey("compositePart1", "compositePart2"), message);
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
 
-		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(KeyedMessage.class));
-
-		final ArgumentCaptor<KeyedMessage<byte[], byte[]>> argument =
-				(ArgumentCaptor<KeyedMessage<byte[], byte[]>>) (Object)
-						ArgumentCaptor.forClass(KeyedMessage.class);
+		final ArgumentCaptor<ProducerRecord<byte[], byte[]>> argument =
+				(ArgumentCaptor<ProducerRecord<byte[], byte[]>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
 		Mockito.verify(producer).send(argument.capture());
 
-		final KeyedMessage<byte[], byte[]> capturedKeyMessage = argument.getValue();
+		final ProducerRecord<byte[], byte[]> capturedKeyMessage = argument.getValue();
 
 		final byte[] keyBytes = capturedKeyMessage.key();
 
@@ -113,7 +109,7 @@ public class ProducerConfigurationTests<K, V> {
 		Assert.assertEquals(tk.getKeyPart1(), "compositePart1");
 		Assert.assertEquals(tk.getKeyPart2(), "compositePart2");
 
-		final byte[] messageBytes = capturedKeyMessage.message();
+		final byte[] messageBytes = capturedKeyMessage.value();
 
 		final ByteArrayInputStream messageInputStream = new ByteArrayInputStream(messageBytes);
 		final ObjectInputStream messageObjectInputStream = new ObjectInputStream(messageInputStream);
@@ -133,28 +129,26 @@ public class ProducerConfigurationTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithDefaultKeyEncoderAndNonDefaultValueEncoderAndCorrespondingData() throws Exception {
-		final ProducerMetadata<byte[], TestPayload> producerMetadata = new ProducerMetadata<byte[], TestPayload>("test");
 		final AvroReflectDatumBackedKafkaEncoder<TestPayload> encoder =
 				new AvroReflectDatumBackedKafkaEncoder<TestPayload>(TestPayload.class);
-		producerMetadata.setValueEncoder(encoder);
-		producerMetadata.setKeyEncoder(new DefaultEncoder(null));
-		producerMetadata.setValueClassType(TestPayload.class);
+		final ProducerMetadata<byte[], TestPayload> producerMetadata = new ProducerMetadata<byte[], TestPayload>("test", byte[].class,TestPayload.class, new ByteArraySerializer(), new EncoderAdaptingSerializer<TestPayload>(encoder));
+
 		final Producer<byte[], TestPayload> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<byte[], TestPayload> configuration =
-				new ProducerConfiguration<byte[], TestPayload>(producerMetadata, producer);
+				new ProducerConfiguration<>(producerMetadata, producer);
 
 		TestPayload tp = new TestPayload("part1", "part2");
-		configuration.send("test", "key", new GenericMessage<TestPayload>(tp));
+		configuration.convertAndSend("test", "key", tp);
 
-		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(KeyedMessage.class));
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
 
-		final ArgumentCaptor<KeyedMessage<byte[], TestPayload>> argument =
-				(ArgumentCaptor<KeyedMessage<byte[], TestPayload>>) (Object)
-						ArgumentCaptor.forClass(KeyedMessage.class);
+		final ArgumentCaptor<ProducerRecord<byte[], TestPayload>> argument =
+				(ArgumentCaptor<ProducerRecord<byte[], TestPayload>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
 		Mockito.verify(producer).send(argument.capture());
 
-		final KeyedMessage<byte[], TestPayload> capturedKeyMessage = argument.getValue();
+		final ProducerRecord<byte[], TestPayload> capturedKeyMessage = argument.getValue();
 
 		final byte[] keyBytes = capturedKeyMessage.key();
 
@@ -163,7 +157,7 @@ public class ProducerConfigurationTests<K, V> {
 		final Object keyObj = keyObjectInputStream.readObject();
 
 		Assert.assertEquals("key", keyObj);
-		Assert.assertEquals(capturedKeyMessage.message(), tp);
+		Assert.assertEquals(capturedKeyMessage.value(), tp);
 
 		Assert.assertEquals(capturedKeyMessage.topic(), "test");
 	}
@@ -174,11 +168,9 @@ public class ProducerConfigurationTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithNonDefaultKeyEncoderAndDefaultValueEncoderAndCorrespondingData() throws Exception {
-		final ProducerMetadata<TestKey, byte[]> producerMetadata = new ProducerMetadata<TestKey, byte[]>("test");
 		final AvroReflectDatumBackedKafkaEncoder<TestKey> encoder = new AvroReflectDatumBackedKafkaEncoder<TestKey>(TestKey.class);
-		producerMetadata.setKeyEncoder(encoder);
-		producerMetadata.setValueEncoder(new DefaultEncoder(null));
-		producerMetadata.setKeyClassType(TestKey.class);
+		final ProducerMetadata<TestKey, byte[]> producerMetadata = new ProducerMetadata<TestKey, byte[]>("test", TestKey.class, byte[].class, new EncoderAdaptingSerializer<TestKey>(encoder), new ByteArraySerializer());
+
 		final Producer<TestKey, byte[]> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<TestKey, byte[]> configuration =
@@ -186,20 +178,20 @@ public class ProducerConfigurationTests<K, V> {
 
 		final TestKey tk = new TestKey("part1", "part2");
 
-		configuration.send("test", tk, new GenericMessage<String>("test message"));
+		configuration.convertAndSend("test", tk, "test message");
 
-		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(KeyedMessage.class));
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
 
-		final ArgumentCaptor<KeyedMessage<TestKey, byte[]>> argument =
-				(ArgumentCaptor<KeyedMessage<TestKey, byte[]>>) (Object)
-						ArgumentCaptor.forClass(KeyedMessage.class);
+		final ArgumentCaptor<ProducerRecord<TestKey, byte[]>> argument =
+				(ArgumentCaptor<ProducerRecord<TestKey, byte[]>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
 		Mockito.verify(producer).send(argument.capture());
 
-		final KeyedMessage<TestKey, byte[]> capturedKeyMessage = argument.getValue();
+		final ProducerRecord<TestKey, byte[]> capturedKeyMessage = argument.getValue();
 
 		Assert.assertEquals(capturedKeyMessage.key(), tk);
 
-		final byte[] payloadBytes = capturedKeyMessage.message();
+		final byte[] payloadBytes = capturedKeyMessage.value();
 
 		final ByteArrayInputStream payloadBis = new ByteArrayInputStream(payloadBytes);
 		final ObjectInputStream payloadOis = new ObjectInputStream(payloadBis);
@@ -216,24 +208,22 @@ public class ProducerConfigurationTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithDefaultKeyAndValueEncodersAndStringKeyAndValue() throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
-		producerMetadata.setValueEncoder(new DefaultEncoder(null));
-		producerMetadata.setKeyEncoder(new DefaultEncoder(null));
+		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test", byte[].class, byte[].class, new ByteArraySerializer(), new ByteArraySerializer());
 		final Producer<byte[], byte[]> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<byte[], byte[]> configuration =
 				new ProducerConfiguration<byte[], byte[]>(producerMetadata, producer);
 
-		configuration.send("test", "key", new GenericMessage<String>("test message"));
+		configuration.convertAndSend("test", "key", "test message");
 
-		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(KeyedMessage.class));
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
 
-		final ArgumentCaptor<KeyedMessage<byte[], byte[]>> argument =
-				(ArgumentCaptor<KeyedMessage<byte[], byte[]>>) (Object)
-						ArgumentCaptor.forClass(KeyedMessage.class);
+		final ArgumentCaptor<ProducerRecord<byte[], byte[]>> argument =
+				(ArgumentCaptor<ProducerRecord<byte[], byte[]>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
 		Mockito.verify(producer).send(argument.capture());
 
-		final KeyedMessage<byte[], byte[]> capturedKeyMessage = argument.getValue();
+		final ProducerRecord<byte[], byte[]> capturedKeyMessage = argument.getValue();
 		final byte[] keyBytes = capturedKeyMessage.key();
 
 		final ByteArrayInputStream keyBis = new ByteArrayInputStream(keyBytes);
@@ -242,7 +232,7 @@ public class ProducerConfigurationTests<K, V> {
 
 		Assert.assertEquals("key", keyObj);
 
-		final byte[] payloadBytes = capturedKeyMessage.message();
+		final byte[] payloadBytes = capturedKeyMessage.value();
 
 		final ByteArrayInputStream payloadBis = new ByteArrayInputStream(payloadBytes);
 		final ObjectInputStream payloadOis = new ObjectInputStream(payloadBis);
@@ -255,12 +245,10 @@ public class ProducerConfigurationTests<K, V> {
 	/**
 	 * User does not set an explicit key/value encoder, but send non-serializable object for both key/value
 	 */
-	@Test(expected = NotSerializableException.class)
+	@Test(expected = ConversionFailedException.class)
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithDefaultKeyAndValueEncodersButNonSerializableKeyAndValue() throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
-		producerMetadata.setValueEncoder(new DefaultEncoder(null));
-		producerMetadata.setKeyEncoder(new DefaultEncoder(null));
+		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test", byte[].class, byte[].class, new ByteArraySerializer(), new ByteArraySerializer());
 		final Producer<byte[], byte[]> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<byte[], byte[]> configuration =
@@ -269,48 +257,39 @@ public class ProducerConfigurationTests<K, V> {
 		Message<NonSerializableTestPayload> message =
 				new GenericMessage<NonSerializableTestPayload>(new NonSerializableTestPayload("part1", "part2"));
 
-		configuration.send("test", new NonSerializableTestKey("compositePart1", "compositePart2"), message);
+		configuration.convertAndSend("test", new NonSerializableTestKey("compositePart1", "compositePart2"), message);
 	}
 
 	/**
 	 * User does not set an explicit key/value encoder, but send non-serializable key and serializable value
 	 */
-	@Test(expected = NotSerializableException.class)
+	@Test(expected = ConversionFailedException.class)
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithDefaultKeyAndValueEncodersButNonSerializableKeyAndSerializableValue()
 			throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
-		producerMetadata.setValueEncoder(new DefaultEncoder(null));
-		producerMetadata.setKeyEncoder(new DefaultEncoder(null));
+		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test", byte[].class, byte[].class, new ByteArraySerializer(), new ByteArraySerializer());
 		final Producer<byte[], byte[]> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<byte[], byte[]> configuration =
 				new ProducerConfiguration<byte[], byte[]>(producerMetadata, producer);
 
-		Message<TestPayload> message = new GenericMessage<TestPayload>(new TestPayload("part1", "part2"));
-
-		configuration.send("test", new NonSerializableTestKey("compositePart1", "compositePart2"), message);
+		configuration.convertAndSend("test", new NonSerializableTestKey("compositePart1", "compositePart2"), new TestPayload("part1", "part2"));
 	}
 
 	/**
 	 * User does not set an explicit key/value encoder, but send serializable key and non-serializable value
 	 */
-	@Test(expected = NotSerializableException.class)
+	@Test(expected = ConversionFailedException.class)
 	@SuppressWarnings("unchecked")
 	public void testSendMessageWithDefaultKeyAndValueEncodersButSerializableKeyAndNonSerializableValue()
 			throws Exception {
-		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
-		producerMetadata.setValueEncoder(new DefaultEncoder(null));
-		producerMetadata.setKeyEncoder(new DefaultEncoder(null));
+		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test", byte[].class, byte[].class, new EncoderAdaptingSerializer<byte[]>(new DefaultEncoder(null)), new EncoderAdaptingSerializer<byte[]>(new DefaultEncoder(null)));
 		final Producer<byte[], byte[]> producer = Mockito.mock(Producer.class);
 
 		final ProducerConfiguration<byte[], byte[]> configuration =
 				new ProducerConfiguration<byte[], byte[]>(producerMetadata, producer);
 
-		Message<NonSerializableTestPayload> message =
-				new GenericMessage<NonSerializableTestPayload>(new NonSerializableTestPayload("part1", "part2"));
-
-		configuration.send("test", new TestKey("compositePart1", "compositePart2"), message);
+		configuration.convertAndSend("test", new TestKey("compositePart1", "compositePart2"), new NonSerializableTestPayload("part1", "part2"));
 	}
 
 }

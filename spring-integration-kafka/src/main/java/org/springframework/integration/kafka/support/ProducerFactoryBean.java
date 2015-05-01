@@ -15,69 +15,55 @@
  */
 package org.springframework.integration.kafka.support;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.ProducerConfig;
-import kafka.producer.ProducerPool;
-import kafka.producer.async.DefaultEventHandler;
-import kafka.producer.async.EventHandler;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+
 import org.springframework.beans.factory.FactoryBean;
-
-import scala.collection.mutable.HashMap;
-
-import java.util.Properties;
 
 /**
  * @author Soby Chacko
+ * @author Marius Bogoevici
+ *
  * @since 0.5
  */
-public class ProducerFactoryBean<K,V> implements FactoryBean<Producer<K,V>> {
+public class ProducerFactoryBean<K, V> implements FactoryBean<Producer<K, V>> {
 
-    private static final Log LOGGER = LogFactory.getLog(ProducerFactoryBean.class);
+	private static final Log LOGGER = LogFactory.getLog(ProducerFactoryBean.class);
 
 	private final String brokerList;
-	private final ProducerMetadata<K,V> producerMetadata;
-    private Properties producerProperties = new Properties();
 
-    public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList,
-            final Properties producerProperties) {
+	private final ProducerMetadata<K, V> producerMetadata;
+
+	private Properties producerProperties = new Properties();
+
+	public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList,
+														 final Properties producerProperties) {
 		this.producerMetadata = producerMetadata;
 		this.brokerList = brokerList;
 		if (producerProperties != null) {
 			this.producerProperties = producerProperties;
 		}
-    }
+	}
 
-    public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList) {
-        this(producerMetadata, brokerList, null);
+	public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList) {
+		this(producerMetadata, brokerList, null);
 	}
 
 	@Override
 	public Producer<K, V> getObject() throws Exception {
 		final Properties props = new Properties();
 		props.putAll(producerProperties);
-		props.put("metadata.broker.list", brokerList);
-		props.put("compression.codec", producerMetadata.getCompressionCodec());
-
-		if (producerMetadata.isAsync()){
-			props.put("producer.type", "async");
-			if (producerMetadata.getBatchNumMessages() != null){
-				props.put("batch.num.messages", producerMetadata.getBatchNumMessages());
-			}
-		}
-
-        LOGGER.info("Using producer properties => " + props);
-		final ProducerConfig config = new ProducerConfig(props);
-		final EventHandler<K, V> eventHandler = new DefaultEventHandler<K, V>(config,
-				producerMetadata.getPartitioner() == null ? new DefaultPartitioner() : producerMetadata.getPartitioner(),
-				producerMetadata.getValueEncoder(), producerMetadata.getKeyEncoder(),
-				new ProducerPool(config), new HashMap<String, kafka.api.TopicMetadata>());
-
-		final kafka.producer.Producer<K, V> prod = new kafka.producer.Producer<K, V>(config,
-				eventHandler);
-		return new Producer<K, V>(prod);
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+		props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, producerMetadata.getCompressionType().name());
+		LOGGER.info("Using producer properties => " + props);
+		return new KafkaProducer<>(props,
+				producerMetadata.getKeySerializer(),
+				producerMetadata.getValueSerializer());
 	}
 
 	@Override

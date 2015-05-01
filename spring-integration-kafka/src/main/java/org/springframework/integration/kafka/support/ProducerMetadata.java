@@ -16,118 +16,95 @@
 package org.springframework.integration.kafka.support;
 
 import kafka.producer.Partitioner;
-import kafka.serializer.DefaultEncoder;
-import kafka.serializer.Encoder;
-
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.springframework.beans.factory.InitializingBean;
+import org.apache.kafka.common.serialization.Serializer;
+
+import org.springframework.util.Assert;
 
 /**
+ *
  * @author Soby Chacko
  * @author Rajasekar Elango
+ * @author Marius Bogoevici
+ *
  * @since 0.5
  */
-public class ProducerMetadata<K,V> implements InitializingBean {
-	private Encoder<K> keyEncoder;
-	private Encoder<V> valueEncoder;
-	private Class<K> keyClassType;
-	private Class<V> valueClassType;
-	private final String topic;
-	private String compressionCodec = "default";
-	private Partitioner partitioner;
-	private boolean async = false;
-	private String batchNumMessages;
+public class ProducerMetadata<K,V> {
 
-	public ProducerMetadata(final String topic) {
+	private final Class<K> keyClassType;
+
+	private final Class<V> valueClassType;
+
+	private Serializer<K> keySerializer;
+
+	private Serializer<V> valueSerializer;
+
+	private final String topic;
+
+	private Partitioner partitioner;
+
+	private CompressionType compressionType = CompressionType.none;
+
+	private int batchBytes = 16384;
+
+	public ProducerMetadata(final String topic, Class<K> keyClassType, Class<V> valueClassType, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+		Assert.notNull(topic, "Topic cannot be null");
+		Assert.notNull(keyClassType, "Key class type serializer cannot be null");
+		Assert.notNull(valueClassType, "Value class type cannot be null");
+		Assert.notNull(keySerializer, "Value serializer cannot be null");
+		Assert.notNull(valueSerializer, "Value serializer cannot be null");
 		this.topic = topic;
+		this.keyClassType = keyClassType;
+		this.valueClassType = valueClassType;
+		this.keySerializer = keySerializer;
+		this.valueSerializer = valueSerializer;
 	}
 
 	public String getTopic() {
 		return topic;
 	}
 
-	public Encoder<K> getKeyEncoder() {
-		return keyEncoder;
+	public Serializer<K> getKeySerializer() {
+		return keySerializer;
 	}
 
-	public void setKeyEncoder(final Encoder<K> keyEncoder) {
-		this.keyEncoder = keyEncoder;
+	public Serializer<V> getValueSerializer() {
+		return valueSerializer;
 	}
 
-	public Encoder<V> getValueEncoder() {
-		return valueEncoder;
+	public CompressionType getCompressionType() {
+		return compressionType;
 	}
 
-	public void setValueEncoder(final Encoder<V> valueEncoder) {
-		this.valueEncoder = valueEncoder;
+	public void setCompressionType(CompressionType compressionType) {
+		Assert.notNull(compressionType, "Compression type cannot be null");
+		this.compressionType = compressionType;
 	}
 
-	public Class<K> getKeyClassType() {
-		return keyClassType;
+	public int getBatchBytes() {
+		return batchBytes;
 	}
 
-	public void setKeyClassType(final Class<K> keyClassType) {
-		this.keyClassType = keyClassType;
-	}
-
-	public Class<V> getValueClassType() {
-		return valueClassType;
-	}
-
-	public void setValueClassType(final Class<V> valueClassType) {
-		this.valueClassType = valueClassType;
-	}
-
-	//TODO: Use an enum
-	public String getCompressionCodec() {
-		if (compressionCodec.equalsIgnoreCase("gzip")) {
-			return "1";
-		} else if (compressionCodec.equalsIgnoreCase("snappy")) {
-			return "2";
-		}
-
-		return "0";
-	}
-
-	public void setCompressionCodec(final String compressionCodec) {
-		this.compressionCodec = compressionCodec;
+	public void setBatchBytes(int batchBytes) {
+		Assert.isTrue(batchBytes > 0, "Buffer size must be greater than zero");
+		this.batchBytes = batchBytes;
 	}
 
 	public Partitioner getPartitioner() {
 		return partitioner;
 	}
 
-	public void setPartitioner(final Partitioner partitioner) {
+	public void setPartitioner(Partitioner partitioner) {
 		this.partitioner = partitioner;
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public void afterPropertiesSet() throws Exception {
-		if (valueEncoder == null) {
-			setValueEncoder((Encoder<V>) new DefaultEncoder(null));
-		}
-
-		if (keyEncoder == null) {
-			setKeyEncoder((Encoder<K>) getValueEncoder());
-		}
+	public Class<K> getKeyClassType() {
+		return keyClassType;
 	}
 
-	public boolean isAsync() {
-		return async;
-	}
-
-	public void setAsync(final boolean async) {
-		this.async = async;
-	}
-
-	public String getBatchNumMessages() {
-		return batchNumMessages;
-	}
-
-	public void setBatchNumMessages(final String batchNumMessages) {
-		this.batchNumMessages = batchNumMessages;
+	public Class<V> getValueClassType() {
+		return valueClassType;
 	}
 
 	@Override
@@ -143,10 +120,17 @@ public class ProducerMetadata<K,V> implements InitializingBean {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ProducerMetadata [keyEncoder=").append(keyEncoder).append(", valueEncoder=")
-				.append(valueEncoder).append(", topic=").append(topic).append(", compressionCodec=")
-				.append(compressionCodec).append(", partitioner=").append(partitioner).append(", async=").append(async)
-				.append(", batchNumMessages=").append(batchNumMessages).append("]");
+		builder.append("ProducerMetadata [keyEncoder=").append(keySerializer)
+				.append(", valueEncoder=").append(valueSerializer)
+				.append(", topic=").append(topic)
+				.append(", compressionType=").append(compressionType)
+				.append("batchBytes").append(batchBytes).append("]");
 		return builder.toString();
+	}
+
+	public enum CompressionType {
+		none,
+		gzip,
+		snappy
 	}
 }

@@ -16,27 +16,26 @@
 
 package org.springframework.integration.kafka.support;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.serializer.DefaultEncoder;
 
 /**
  * @author Soby Chacko
  * @author Rajasekar Elango
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
+ * @author Marius Bogoevici
  * @since 0.5
  */
 public class ProducerConfiguration<K, V> {
@@ -45,63 +44,76 @@ public class ProducerConfiguration<K, V> {
 
 	private final ProducerMetadata<K, V> producerMetadata;
 
+	private ConversionService conversionService;
+
 	public ProducerConfiguration(ProducerMetadata<K, V> producerMetadata, Producer<K, V> producer) {
 		Assert.notNull(producerMetadata);
 		Assert.notNull(producer);
 		this.producerMetadata = producerMetadata;
 		this.producer = producer;
+		GenericConversionService genericConversionService = new GenericConversionService();
+		genericConversionService.addConverter(Object.class, byte[].class, new SerializingConverter());
+		conversionService = genericConversionService;
+	}
+
+	public void setConversionService(ConversionService conversionService) {
+		Assert.notNull(conversionService, "Conversion service must not be null");
+		this.conversionService = conversionService;
 	}
 
 	public ProducerMetadata<K, V> getProducerMetadata() {
 		return this.producerMetadata;
 	}
 
-	public Producer<K, V> getProducer() {
-		return this.producer;
+	public Future<RecordMetadata> send(String topic, K messageKey, V messagePayload) {
+		if (this.getProducerMetadata().getPartitioner() != null) {
+			String targetTopic = StringUtils.hasText(topic) ? topic : this.producerMetadata.getTopic();
+			int partition = this.getProducerMetadata().getPartitioner().partition(messageKey,
+					this.producer.partitionsFor(targetTopic).size());
+			return this.send(targetTopic, partition, messageKey, messagePayload);
+		}
+		return this.send(topic, null, messageKey, messagePayload);
 	}
 
-	public void send(String topic, Object messageKey, final Message<?> message) throws Exception {
-		final V v = getPayload(message);
-
-		if (!StringUtils.hasText(topic)) {
-			topic = this.producerMetadata.getTopic();
-		}
-
-		this.producer.send(new KeyedMessage<K, V>(topic, (messageKey != null ? getKey(messageKey) : null), v));
+	public Future<RecordMetadata> send(String topic, Integer partition, K messageKey, V messagePayload) {
+		String targetTopic = StringUtils.hasText(topic) ? topic : this.producerMetadata.getTopic();
+		return this.producer.send(new ProducerRecord<>(targetTopic, partition, messageKey, messagePayload));
 	}
 
-	@SuppressWarnings("unchecked")
-	private V getPayload(final Message<?> message) throws Exception {
-		if (this.producerMetadata.getValueEncoder() instanceof DefaultEncoder) {
-			return (V) getByteStream(message.getPayload());
-		}
-		else if (producerMetadata.getValueClassType().isAssignableFrom(message.getPayload().getClass())) {
-			return producerMetadata.getValueClassType().cast(message.getPayload());
-		}
-		throw new MessageHandlingException(message, "Message payload type is not matching with what is configured");
+	public Future<RecordMetadata> convertAndSend(String topic, Integer partition, Object messageKey, Object messagePayload) {
+		return this.send(topic, partition, convertKeyIfNecessary(messageKey), convertPayloadIfNecessary(messagePayload));
 	}
 
-	@SuppressWarnings("unchecked")
-	private K getKey(Object messageKey) throws Exception {
-		if (this.producerMetadata.getKeyEncoder() instanceof DefaultEncoder) {
-			return (K) getByteStream(messageKey);
-		}
-
-		return (K) messageKey;
+	public Future<RecordMetadata> convertAndSend(String topic, Object messageKey, Object messagePayload) {
+		return this.send(topic, convertKeyIfNecessary(messageKey), convertPayloadIfNecessary(messagePayload));
 	}
 
-	private static boolean isRawByteArray(final Object obj) {
-		return obj instanceof byte[];
+	private K convertKeyIfNecessary(Object messageKey) {
+		if (messageKey != null) {
+			if (getProducerMetadata().getKeyClassType().isAssignableFrom(
+					messageKey.getClass())) {
+				return getProducerMetadata().getKeyClassType().cast(messageKey);
+			}
+			return conversionService.convert(messageKey,
+					producerMetadata.getKeyClassType());
+		}
+		else {
+			return null;
+		}
 	}
 
-	private static byte[] getByteStream(final Object obj) throws IOException {
-		if (isRawByteArray(obj)) {
-			return (byte[]) obj;
+	private V convertPayloadIfNecessary(Object messagePayload) {
+		if (messagePayload != null) {
+			if (getProducerMetadata().getKeyClassType().isAssignableFrom(
+					messagePayload.getClass())) {
+				return getProducerMetadata().getValueClassType().cast(messagePayload);
+			}
+			return conversionService.convert(messagePayload,
+					producerMetadata.getValueClassType());
 		}
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final ObjectOutputStream os = new ObjectOutputStream(out);
-		os.writeObject(obj);
-		return out.toByteArray();
+		else {
+			return null;
+		}
 	}
 
 	@Override

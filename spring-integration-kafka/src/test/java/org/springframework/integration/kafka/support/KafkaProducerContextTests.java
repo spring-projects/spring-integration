@@ -18,13 +18,11 @@ package org.springframework.integration.kafka.support;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.kafka.clients.producer.Producer;
 import org.junit.Assert;
-
-import kafka.javaapi.producer.Producer;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.ListableBeanFactory;
 
 /**
  * @author Rajasekar Elango
@@ -47,7 +45,7 @@ public class KafkaProducerContextTests {
 
 		final ProducerConfiguration<String, String> producerConfiguration = new ProducerConfiguration<String, String>(producerMetadata, producer);
 
-		final Map<String, ProducerConfiguration> topicConfigurations = new HashMap<String, ProducerConfiguration>();
+		final Map<String, ProducerConfiguration<?,?>> topicConfigurations = new HashMap<String, ProducerConfiguration<?,?>>();
 		topicConfigurations.put(testRegex, producerConfiguration);
 		kafkaProducerContext.setProducerConfigurations(topicConfigurations);
 

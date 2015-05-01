@@ -45,8 +45,6 @@ import org.springframework.messaging.MessagingException;
 import com.gs.collections.api.multimap.list.MutableListMultimap;
 import com.gs.collections.impl.multimap.list.SynchronizedPutFastListMultimap;
 
-import kafka.message.NoCompressionCodec$;
-
 /**
  * @author Marius Bogoevici
  */
@@ -76,8 +74,7 @@ public class KafkaMessageDrivenChannelAdapterWithKafkaOffsetManagerTests extends
 		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(
 				new ZookeeperConnect(getKafkaRule().getZookeeperConnectionString()), "si-offsets");
 		offsetManager.afterPropertiesSet();
-		kafkaMessageListenerContainer.setOffsetManager(
-				offsetManager);
+		kafkaMessageListenerContainer.setOffsetManager(offsetManager);
 		kafkaMessageListenerContainer.setMaxFetch(100);
 		kafkaMessageListenerContainer.setConcurrency(2);
 
@@ -114,12 +111,7 @@ public class KafkaMessageDrivenChannelAdapterWithKafkaOffsetManagerTests extends
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		createStringProducer(NoCompressionCodec$.MODULE$.codec()).send(createMessages(expectedMessageCount, TEST_TOPIC));
-
-		Thread.sleep(100);
-
-		kafkaMessageDrivenChannelAdapter.stop();
-		kafkaMessageDrivenChannelAdapter.start();
+		createMessageSender("none").send(createMessages(expectedMessageCount, TEST_TOPIC, 5));
 
 		latch.await((expectedMessageCount / 5000) + 1, TimeUnit.MINUTES);
 		kafkaMessageListenerContainer.stop();
@@ -128,7 +120,19 @@ public class KafkaMessageDrivenChannelAdapterWithKafkaOffsetManagerTests extends
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 2, 5, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 2, 5, expectedMessageCount, 1);
+
+		offsetManager.close();
+
+		KafkaTopicOffsetManager offsetManager2 =
+				new KafkaTopicOffsetManager(new ZookeeperConnect(getKafkaRule().getZookeeperConnectionString()), "si-offsets");
+		offsetManager2.afterPropertiesSet();
+
+		assertThat(offsetManager2.getOffset(new Partition(TEST_TOPIC,0)),equalTo(20L));
+		assertThat(offsetManager2.getOffset(new Partition(TEST_TOPIC,1)),equalTo(20L));
+		assertThat(offsetManager2.getOffset(new Partition(TEST_TOPIC,2)),equalTo(20L));
+		assertThat(offsetManager2.getOffset(new Partition(TEST_TOPIC,3)),equalTo(20L));
+		assertThat(offsetManager2.getOffset(new Partition(TEST_TOPIC,4)),equalTo(20L));
 
 	}
 

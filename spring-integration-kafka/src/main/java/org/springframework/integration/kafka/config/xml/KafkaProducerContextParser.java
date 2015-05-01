@@ -18,6 +18,8 @@ package org.springframework.integration.kafka.config.xml;
 
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -31,6 +33,8 @@ import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
+import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -41,6 +45,8 @@ import org.springframework.util.xml.DomUtils;
  * @since 0.5
  */
 public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionParser {
+
+	private static final Log log = LogFactory.getLog(KafkaProducerContextParser.class);
 
 	@Override
 	protected Class<?> getBeanClass(final Element element) {
@@ -73,22 +79,54 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 			BeanDefinitionBuilder producerMetadataBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ProducerMetadata.class);
 			producerMetadataBuilder.addConstructorArgValue(producerConfiguration.getAttribute("topic"));
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"value-encoder");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"key-encoder");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"key-class-type");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"value-class-type");
+			producerMetadataBuilder.addConstructorArgValue(producerConfiguration.getAttribute("key-class-type"));
+			producerMetadataBuilder.addConstructorArgValue(producerConfiguration.getAttribute("value-class-type"));
+
+			String keySerializer = producerConfiguration.getAttribute("key-serializer");
+			String keyEncoder = producerConfiguration.getAttribute("key-encoder");
+			Assert.isTrue((StringUtils.hasText(keySerializer) ^ StringUtils.hasText(keyEncoder)),
+					"Exactly one of 'key-serializer' or 'key-encoder' must be specified");
+			if (StringUtils.hasText(keyEncoder)) {
+				if (log.isWarnEnabled()) {
+					log.warn("'key-encoder' is a deprecated option, use 'key-serializer' instead.");
+				}
+				BeanDefinitionBuilder encoderAdaptingSerializerBean = BeanDefinitionBuilder.genericBeanDefinition(EncoderAdaptingSerializer.class);
+				encoderAdaptingSerializerBean.addConstructorArgReference(keyEncoder);
+				producerMetadataBuilder.addConstructorArgValue(encoderAdaptingSerializerBean.getBeanDefinition());
+			}
+			else {
+				producerMetadataBuilder.addConstructorArgReference(keySerializer);
+			}
+
+			String valueSerializer = producerConfiguration.getAttribute("value-serializer");
+			String valueEncoder = producerConfiguration.getAttribute("value-encoder");
+			Assert.isTrue((StringUtils.hasText(valueSerializer) ^ StringUtils.hasText(valueEncoder)),
+					"Exactly one of 'value-serializer' or 'value-encoder' must be specified");
+			if (StringUtils.hasText(valueEncoder)) {
+				if (log.isWarnEnabled()) {
+					log.warn("'value-encoder' is a deprecated option, use 'value-serializer' instead.");
+				}
+				BeanDefinitionBuilder encoderAdaptingSerializerBean =
+						BeanDefinitionBuilder.genericBeanDefinition(EncoderAdaptingSerializer.class);
+				encoderAdaptingSerializerBean.addConstructorArgReference(valueEncoder);
+				producerMetadataBuilder.addConstructorArgValue(encoderAdaptingSerializerBean.getBeanDefinition());
+			}
+			else {
+				producerMetadataBuilder.addConstructorArgReference(valueSerializer);
+			}
+
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
 					"partitioner");
+			if (StringUtils.hasText(producerConfiguration.getAttribute("partitioner"))) {
+				if (log.isWarnEnabled()) {
+					log.warn("'partitioner' is a deprecated option. Use the 'kafka_partitionId' message header or " +
+							"the partition argument in the send() or convertAndSend() methods");
+				}
+			}
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"compression-codec");
+					"compression-type");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"async");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
-					"batch-num-messages");
+					"batch-bytes");
 			AbstractBeanDefinition producerMetadataBeanDefinition = producerMetadataBuilder.getBeanDefinition();
 
 			String producerPropertiesBean = parentElem.getAttribute("producer-properties");
@@ -108,13 +146,14 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 
 			AbstractBeanDefinition producerFactoryBeanDefinition = producerFactoryBuilder.getBeanDefinition();
 
-			AbstractBeanDefinition producerConfigurationBeanDefinition =
+			BeanDefinitionBuilder producerConfigurationBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ProducerConfiguration.class)
 							.addConstructorArgValue(producerMetadataBeanDefinition)
-							.addConstructorArgValue(producerFactoryBeanDefinition)
-							.getBeanDefinition();
+							.addConstructorArgValue(producerFactoryBeanDefinition);
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerConfigurationBuilder, producerConfiguration,
+					"conversion-service");
 			producerConfigurationsMap.put(producerConfiguration.getAttribute("topic"),
-					producerConfigurationBeanDefinition);
+					producerConfigurationBuilder.getBeanDefinition());
 		}
 
 		builder.addPropertyValue("producerConfigurations", producerConfigurationsMap);

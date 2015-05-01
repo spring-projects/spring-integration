@@ -18,10 +18,13 @@ package org.springframework.integration.kafka.support;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
@@ -38,15 +41,15 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @since 0.5
  */
-public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponent, BeanNameAware {
+public class KafkaProducerContext implements SmartLifecycle, NamedComponent, BeanNameAware {
 
 	private static final Log logger = LogFactory.getLog(KafkaProducerContext.class);
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
-	private volatile Map<String, ProducerConfiguration<K, V>> producerConfigurations;
+	private volatile Map<String, ProducerConfiguration<?, ?>> producerConfigurations;
 
-	private volatile ProducerConfiguration<K, V> theProducerConfiguration;
+	private volatile ProducerConfiguration<?,?> theProducerConfiguration;
 
 	private String beanName = "not_specified";
 
@@ -54,16 +57,16 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 
 	private boolean autoStartup = true;
 
-	public ProducerConfiguration<K, V> getTopicConfiguration(final String topic) {
+	public ProducerConfiguration<?, ?> getTopicConfiguration(final String topic) {
 		if (this.theProducerConfiguration != null) {
 			if (topic.matches(this.theProducerConfiguration.getProducerMetadata().getTopic())) {
 				return this.theProducerConfiguration;
 			}
 		}
 
-		Collection<ProducerConfiguration<K, V>> topics = this.producerConfigurations.values();
+		Collection<ProducerConfiguration<?, ?>> topics = this.producerConfigurations.values();
 
-		for (final ProducerConfiguration<K, V> producerConfiguration : topics) {
+		for (final ProducerConfiguration<?, ?> producerConfiguration : topics) {
 			if (topic.matches(producerConfiguration.getProducerMetadata().getTopic())) {
 				return producerConfiguration;
 			}
@@ -71,11 +74,11 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 		return null;
 	}
 
-	public Map<String, ProducerConfiguration<K, V>> getProducerConfigurations() {
+	public Map<String, ProducerConfiguration<?, ?>> getProducerConfigurations() {
 		return this.producerConfigurations;
 	}
 
-	public void setProducerConfigurations(Map<String, ProducerConfiguration<K, V>> producerConfigurations) {
+	public void setProducerConfigurations(Map<String, ProducerConfiguration<?, ?>> producerConfigurations) {
 		this.producerConfigurations = producerConfigurations;
 		if (this.producerConfigurations.size() == 1) {
 			this.theProducerConfiguration = this.producerConfigurations.values().iterator().next();
@@ -183,7 +186,11 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 		callback.run();
 	}
 
-	public void send(String topic, Object messageKey, final Message<?> message) throws Exception {
+	public Future<RecordMetadata> send(String topic, Object messageKey, Object messagePayload) {
+		return this.send(topic, null, messageKey, messagePayload);
+	}
+
+	public Future<RecordMetadata> send(String topic, Integer partition, Object messageKey, Object messagePayload) {
 		if (!running.get()) {
 			start();
 		}
@@ -191,14 +198,14 @@ public class KafkaProducerContext<K, V> implements SmartLifecycle, NamedComponen
 		// only try to look up for a producer configuration if the topic is passed as argument
 		// if no topic is configured, then we'll fall back to the default if a single
 		// producer configuration is available
-		ProducerConfiguration<K, V> producerConfiguration = StringUtils.hasText(topic) ? getTopicConfiguration(topic) : null;
+		ProducerConfiguration<?, ?> producerConfiguration = StringUtils.hasText(topic) ? getTopicConfiguration(topic) : null;
 
 		if (producerConfiguration != null) {
-			producerConfiguration.send(topic, messageKey, message);
+			return producerConfiguration.convertAndSend(topic, partition, messageKey, messagePayload);
 		}
 		// if there is a single producer configuration then use that config to send message.
 		else if (this.theProducerConfiguration != null) {
-			this.theProducerConfiguration.send(topic, messageKey, message);
+			return this.theProducerConfiguration.convertAndSend(topic, partition, messageKey, messagePayload);
 		}
 		else {
 			throw new IllegalStateException("Could not send messages as there are multiple producer configurations " +

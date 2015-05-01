@@ -37,8 +37,6 @@ import com.gs.collections.impl.list.mutable.FastList;
 import com.gs.collections.impl.multimap.list.SynchronizedPutFastListMultimap;
 import com.gs.collections.impl.utility.Iterate;
 
-import kafka.message.NoCompressionCodec$;
-
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -73,13 +71,14 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 		// we will send 300 messages: first 200, then another 100
 		// we will start reading from all partitions at offset 100
 		int expectedMessageCount = 200;
+		int partitionCount = 5;
 
-		createTopic(TEST_TOPIC, 5, 1, 1);
+		createTopic(TEST_TOPIC, partitionCount, 1, 1);
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
 		Map<Partition, Long> startingOffsets = new HashMap<Partition, Long>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < partitionCount; i++) {
 			Partition partition = new Partition(TEST_TOPIC, i);
 			readPartitions.add(partition);
 			startingOffsets.put(partition, 20L);
@@ -93,8 +92,8 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 		MetadataStoreOffsetManager offsetManager = new MetadataStoreOffsetManager(connectionFactory, startingOffsets);
 		kafkaMessageListenerContainer.setOffsetManager(offsetManager);
 
-		// we send 100 messages
-		createStringProducer(NoCompressionCodec$.MODULE$.codec()).send(createMessagesInRange(0, 199, TEST_TOPIC));
+		// we send 200 messages
+		createMessageSender("none").send(createMessagesInRange(0, 199, TEST_TOPIC, partitionCount));
 
 		final MutableListMultimap<Integer, KeyedMessageWithOffset> receivedData =
 				new SynchronizedPutFastListMultimap<Integer, KeyedMessageWithOffset>();
@@ -132,7 +131,7 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		createStringProducer(NoCompressionCodec$.MODULE$.codec()).send(createMessagesInRange(200, 299, TEST_TOPIC));
+		createMessageSender("none").send(createMessagesInRange(200, 299, TEST_TOPIC, partitionCount));
 
 		latch.await((expectedMessageCount / 5000) + 1, TimeUnit.MINUTES);
 		kafkaMessageListenerContainer.stop();
@@ -141,7 +140,7 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, 2, 5, 100, expectedMessageCount, readPartitions, 1);
+		validateMessageReceipt(receivedData, 2, partitionCount, expectedMessageCount, 1);
 
 		// For all received messages
 		Collection<KeyedMessageWithOffset> allReceivedMessages =
@@ -166,7 +165,7 @@ public class KafkaMessageDrivenChannelAdapterWithSpecialOffsetTests extends Abst
 		}).min();
 
 		// The lowest received value is 100. That is correct, because messages are evenly distributed across partitions
-		// and we start reading only at partition 200
+		// and we start reading only at offset 20
 		assertThat(minValueInMessage, equalTo(100));
 	}
 

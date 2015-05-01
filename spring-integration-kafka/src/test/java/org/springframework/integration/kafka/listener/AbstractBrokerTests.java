@@ -20,19 +20,11 @@ import static org.springframework.integration.kafka.util.TopicUtils.ensureTopicC
 import static scala.collection.JavaConversions.asScalaBuffer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-
-import org.springframework.integration.kafka.core.BrokerAddressListConfiguration;
-import org.springframework.integration.kafka.core.Configuration;
-import org.springframework.integration.kafka.core.ConnectionFactory;
-import org.springframework.integration.kafka.core.DefaultConnectionFactory;
-import org.springframework.integration.kafka.rule.KafkaRule;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import com.gs.collections.api.RichIterable;
 import com.gs.collections.api.block.function.Function2;
@@ -41,18 +33,29 @@ import com.gs.collections.api.multimap.MutableMultimap;
 import com.gs.collections.api.tuple.Pair;
 import com.gs.collections.impl.factory.Multimaps;
 import com.gs.collections.impl.tuple.Tuples;
-
 import kafka.admin.AdminUtils;
-import kafka.producer.KeyedMessage;
-import kafka.producer.Producer;
-import kafka.producer.ProducerConfig;
-import kafka.serializer.StringEncoder;
 import kafka.utils.TestUtils;
+import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.junit.After;
 import scala.collection.JavaConversions;
 import scala.collection.Map;
 import scala.collection.immutable.List$;
 import scala.collection.immutable.Map$;
 import scala.collection.immutable.Seq;
+
+import org.springframework.integration.kafka.core.BrokerAddressListConfiguration;
+import org.springframework.integration.kafka.core.Configuration;
+import org.springframework.integration.kafka.core.ConnectionFactory;
+import org.springframework.integration.kafka.core.DefaultConnectionFactory;
+import org.springframework.integration.kafka.rule.KafkaRule;
+import org.springframework.integration.kafka.serializer.common.StringEncoder;
+import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 
 /**
  * @author Marius Bogoevici
@@ -110,26 +113,27 @@ public abstract class AbstractBrokerTests {
 		return configuration;
 	}
 
-	public static scala.collection.Seq<KeyedMessage<String, String>> createMessages(int count, String topic) {
-		return createMessagesInRange(0, count - 1, topic);
+	public static Collection<ProducerRecord<String, String>> createMessages(int count, String topic, int partitionCount) {
+		return createMessagesInRange(0, count - 1, topic, partitionCount);
 	}
 
-	public static scala.collection.Seq<KeyedMessage<String, String>> createMessagesInRange(int start, int end,
-			String topic) {
-		List<KeyedMessage<String, String>> messages = new ArrayList<KeyedMessage<String, String>>();
+	public static Collection<ProducerRecord<String, String>> createMessagesInRange(int start, int end,
+			String topic, int partitionCount) {
+		List<ProducerRecord<String, String>> messages = new ArrayList<>();
 		for (int i = start; i <= end; i++) {
-			messages.add(new KeyedMessage<String, String>(topic, "Key " + i, i, "Message " + i));
+			messages.add(new ProducerRecord<>(topic, i % partitionCount, "Key " + i, "Message " + i));
 		}
-		return asScalaBuffer(messages).toSeq();
+		return messages;
 	}
 
-	public Producer<String, String> createStringProducer(int compression) {
-		Properties producerConfig = TestUtils.getProducerConfig(getKafkaRule().getBrokersAsString(),
-				TestPartitioner.class.getCanonicalName());
-		producerConfig.put("serializer.class", StringEncoder.class.getCanonicalName());
-		producerConfig.put("key.serializer.class", StringEncoder.class.getCanonicalName());
-		producerConfig.put("compression.codec", Integer.toString(compression));
-		return new Producer<String, String>(new ProducerConfig(producerConfig));
+	public Sender<String, String> createMessageSender(String compression) {
+		Properties producerConfig = new Properties();
+		producerConfig.setProperty("bootstrap.servers", getKafkaRule().getBrokersAsString());
+		producerConfig.setProperty("compression.type", compression);
+		KafkaProducer<String, String> producer = new KafkaProducer<>(producerConfig,
+				new EncoderAdaptingSerializer<>(new StringEncoder()),
+				new EncoderAdaptingSerializer<>(new StringEncoder()));
+		return new Sender<>(producer);
 	}
 
 	public ConnectionFactory getKafkaBrokerConnectionFactory() throws Exception {
@@ -159,6 +163,34 @@ public abstract class AbstractBrokerTests {
 		}
 		catch (InterruptedException e) {
 			log.error(e);
+		}
+	}
+
+	public class Sender<K,V> {
+
+		private Producer<K,V> producer;
+
+		public Sender(Producer<K, V> producer) {
+			this.producer = producer;
+		}
+
+		public void send(Collection<ProducerRecord<K,V>> records) {
+			Future<RecordMetadata> lastFuture = null;
+			for (ProducerRecord<K, V> record : records) {
+					lastFuture = producer.send(record);
+			}
+			// only block if there is at least one message to be sent
+			if (lastFuture != null) {
+				try {
+					// block until the last message has been sent, so we make this deterministic
+					lastFuture.get();
+				} catch (InterruptedException e) {
+					// not being able to confirm that all messages have been sent, fail the test
+					throw new RuntimeException(e);
+				} catch (ExecutionException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 	}
 

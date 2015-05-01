@@ -105,14 +105,50 @@
                                             ]]></xsd:documentation>
 										</xsd:annotation>
 									</xsd:attribute>
+									<xsd:attribute name="key-class-type" use="optional" type="xsd:string" default="[B">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Class type used for the key
+												</xsd:documentation>
+												<tool:annotation kind="direct">
+													<tool:expected-type type="java.lang.Class"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="value-class-type" use="optional" type="xsd:string" default="[B">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Class type used for the value
+												</xsd:documentation>
+												<tool:annotation kind="direct">
+													<tool:expected-type type="java.lang.Class"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
 									<xsd:attribute name="value-encoder" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
-													Custom implementation of a Kafka Encoder for encoding message values.
+													Custom implementation of a Kafka Encoder for encoding message values. This option is deprecated, 'value-serializer' is the recommended option.
 												</xsd:documentation>
 												<tool:annotation kind="ref">
 													<tool:expected-type type="kafka.serializer.Encoder"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="value-serializer" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Custom implementation of a Kafka Serializer for message values.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="org.apache.kafka.common.serialization.Serializer"/>
 												</tool:annotation>
 											</xsd:appinfo>
 										</xsd:annotation>
@@ -129,31 +165,31 @@
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="key-class-type" use="optional" type="xsd:string">
+									<xsd:attribute name="key-serializer" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
-													Class type used for the key
+													Custom implementation of a Kafka Serializer for message keys.
 												</xsd:documentation>
-												<tool:annotation kind="direct">
-													<tool:expected-type type="java.lang.Class"/>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="kafka.serializer.Encoder"/>
 												</tool:annotation>
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="value-class-type" use="optional" type="xsd:string">
+									<xsd:attribute name="conversion-service" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
-													Class type used for the value
+													Conversion service for transforming inbound objects into the target key and value
 												</xsd:documentation>
-												<tool:annotation kind="direct">
-													<tool:expected-type type="java.lang.Class"/>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="org.springframework.core.convert.ConversionService"/>
 												</tool:annotation>
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="compression-codec" use="optional" type="xsd:string">
+									<xsd:attribute name="compression-type" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
                                                 Indicates the type of compression codec used for message compression.
@@ -172,17 +208,7 @@
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="async" use="optional">
-										<xsd:annotation>
-											<xsd:documentation>
-												Indicates if this producer is async or not.
-											</xsd:documentation>
-										</xsd:annotation>
-										<xsd:simpleType>
-											<xsd:union memberTypes="xsd:boolean xsd:string"/>
-										</xsd:simpleType>
-									</xsd:attribute>
-									<xsd:attribute name="batch-num-messages" use="optional" type="xsd:string">
+									<xsd:attribute name="batch-bytes" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation>
 												number of messages to batch at this producer.
@@ -467,6 +493,23 @@
 								Specifies the expression to determine the Key for Kafka message
 								against the Message at runtime.
 								This attribute is mutually exclusive with 'message-key' attribute.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="partition-id" type="xsd:integer">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the target partition for the Kafka message.
+								This attribute is mutually exclusive with 'partition-id-expression' attribute.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="partition-id-expression" type="xsd:integer">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the expression to determine the partition for Kafka message
+								against the Message at runtime.
+								This attribute is mutually exclusive with 'partition-id' attribute.
 							]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

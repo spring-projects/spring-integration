@@ -20,8 +20,6 @@ package org.springframework.integration.kafka.listener;
 import static org.hamcrest.Matchers.notNullValue;
 
 
-import kafka.message.NoCompressionCodec$;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,9 +48,11 @@ public class ChannelAdapterWithXmlConfigurationTests extends AbstractMessageList
 
 		System.setProperty("kafka.test.topic", TEST_TOPIC);
 
-		createTopic(TEST_TOPIC, 1, 1, 1);
+		int partitionCount = 1;
 
-		createStringProducer(NoCompressionCodec$.MODULE$.codec()).send(createMessages(100, TEST_TOPIC));
+		createTopic(TEST_TOPIC, partitionCount, 1, 1);
+
+		createMessageSender("none").send(createMessages(100, TEST_TOPIC, partitionCount));
 
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ChannelAdapterWithXmlConfigurationTests-context.xml",
@@ -65,5 +65,4 @@ public class ChannelAdapterWithXmlConfigurationTests extends AbstractMessageList
 			Assert.assertThat(received, notNullValue());
 		}
 	}
-
 }

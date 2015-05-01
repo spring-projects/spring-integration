@@ -39,42 +39,42 @@ public class SingleBrokerWithPartitionSubsetTests extends AbstractMessageListene
 	@Test
 	public void testLowVolumeLowConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 4, 1, 1);
-		runMessageListenerTest(100, 2, 4, 100, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 2, 4, 100, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testMediumVolumeLowConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 4, 1, 1);
-		runMessageListenerTest(100, 2, 4, 1000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 2, 4, 1000, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testHighVolumeLowConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 4, 1, 1);
-		runMessageListenerTest(100, 2, 4, 10000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 2, 4, 10000, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testLowVolumeMediumConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 10, 1, 1);
-		runMessageListenerTest(100, 5, 10, 100, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 5, 10, 100, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testMediumVolumeMediumConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 10, 1, 1);
-		runMessageListenerTest(100, 5, 10, 1000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 5, 10, 1000, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testHighVolumeMediumConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 10, 1, 1);
-		runMessageListenerTest(100, 5, 10, 100000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 5, 10, 100000, 2, "none", TEST_TOPIC);
 	}
 
 
@@ -82,21 +82,21 @@ public class SingleBrokerWithPartitionSubsetTests extends AbstractMessageListene
 	@Ignore
 	public void testLowVolumeHighConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 1000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 20, 100, 1000, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testMediumVolumeHighConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 10000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 20, 100, 10000, 2, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testHighVolumeHighConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 100000, 2, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 20, 100, 100000, 2, "none", TEST_TOPIC);
 	}
 
 

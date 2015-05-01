@@ -11,8 +11,8 @@
 	<bean id="producerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
 			<props>
-				<prop key="topic.metadata.refresh.interval.ms">3600000</prop>
-                <prop key="message.send.max.retries">5</prop>
+				<prop key="metadata.max.age.ms">3600000</prop>
+                <prop key="retries">5</prop>
                 <prop key="send.buffer.bytes">5242880</prop>
 			</props>
 		</property>
@@ -36,14 +36,27 @@
                                            key-encoder="valueEncoder"
                                            value-encoder="valueEncoder"
                                            topic="${topic1}"
-                                           compression-codec="default"/>
+                                           compression-type="none"/>
             <int-kafka:producer-configuration broker-list="${brokerList2}"
                                            topic="${topic2}"
-                                           compression-codec="default"/>
+                                              key-class-type="java.lang.String"
+                                              value-class-type="java.lang.String"
+                                              key-serializer="stringSerializer"
+                                              value-serializer="stringSerializer"
+                                              batch-bytes="9876"
+                                              partitioner="partitioner"
+                                              conversion-service="conversionService"
+                                           compression-type="none"/>
         </int-kafka:producer-configurations>
     </int-kafka:producer-context>
 
     <bean id="valueEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder">
             <constructor-arg value="java.lang.String" />
     </bean>
+
+    <bean id="stringSerializer" class="org.apache.kafka.common.serialization.StringSerializer"/>
+
+    <bean id="partitioner" class="org.springframework.integration.kafka.support.DefaultPartitioner"/>
+
+    <bean id="conversionService" class="org.springframework.integration.kafka.config.xml.KafkaProducerContextParserTests.StubConversionService"/>
 </beans>

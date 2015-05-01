@@ -56,7 +56,8 @@ import org.springframework.integration.kafka.core.KafkaMessage;
  */
 public abstract class AbstractMessageListenerContainerTests extends AbstractBrokerTests {
 
-	public void runMessageListenerTest(int maxReceiveSize, int concurrency, int partitionCount, int testMessageCount, int divisionFactor, int compressionCodec, String topic) throws Exception {
+	public void runMessageListenerTest(int maxReceiveSize, int concurrency, int partitionCount, int testMessageCount,
+																		 int divisionFactor, String compressionCodec, String topic) throws Exception {
 
 		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
 		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
@@ -65,7 +66,8 @@ public abstract class AbstractMessageListenerContainerTests extends AbstractBrok
 				readPartitions.add(new Partition(topic, i));
 			}
 		}
-		final KafkaMessageListenerContainer kafkaMessageListenerContainer = new KafkaMessageListenerContainer(connectionFactory, readPartitions.toArray(new Partition[readPartitions.size()]));
+		final KafkaMessageListenerContainer kafkaMessageListenerContainer =
+				new KafkaMessageListenerContainer(connectionFactory, readPartitions.toArray(new Partition[readPartitions.size()]));
 		kafkaMessageListenerContainer.setMaxFetch(maxReceiveSize);
 		kafkaMessageListenerContainer.setConcurrency(concurrency);
 
@@ -77,14 +79,18 @@ public abstract class AbstractMessageListenerContainerTests extends AbstractBrok
 			@Override
 			public void onMessage(KafkaMessage message) {
 				StringDecoder decoder = new StringDecoder(new VerifiableProperties());
-				receivedData.put(message.getMetadata().getPartition().getId(),new KeyedMessageWithOffset(decodeKey(message, decoder), decodePayload(message, decoder), message.getMetadata().getOffset(), Thread.currentThread().getName(), message.getMetadata().getPartition().getId()));
+				receivedData.put(message.getMetadata().getPartition().getId(),
+						new KeyedMessageWithOffset(decodeKey(message, decoder),
+								decodePayload(message, decoder), message.getMetadata().getOffset(),
+								Thread.currentThread().getName(),
+								message.getMetadata().getPartition().getId()));
 				latch.countDown();
 			}
 		});
 
 		kafkaMessageListenerContainer.start();
 
-		createStringProducer(compressionCodec).send(createMessages(testMessageCount, topic));
+		createMessageSender(compressionCodec).send(createMessages(testMessageCount, topic, partitionCount));
 
 		latch.await((expectedMessageCount/5000) + 1, TimeUnit.MINUTES);
 		kafkaMessageListenerContainer.stop();
@@ -93,12 +99,14 @@ public abstract class AbstractMessageListenerContainerTests extends AbstractBrok
 		assertThat(latch.getCount(), equalTo(0L));
 		System.out.println("All messages received ... checking ");
 
-		validateMessageReceipt(receivedData, concurrency, partitionCount, testMessageCount, expectedMessageCount, readPartitions, divisionFactor);
+		validateMessageReceipt(receivedData, concurrency, partitionCount, expectedMessageCount,
+				divisionFactor);
 
 	}
 
 	@SuppressWarnings("serial")
-	public void validateMessageReceipt(MutableListMultimap<Integer, KeyedMessageWithOffset> receivedData, int concurrency, int partitionCount, int testMessageCount, int expectedMessageCount, ArrayList<Partition> readPartitions, int divisionFactor) {
+	public void validateMessageReceipt(MutableListMultimap<Integer, KeyedMessageWithOffset> receivedData,
+																		 int concurrency, int partitionCount, int expectedMessageCount, int divisionFactor) {
 		// Group messages received by processing thread
 		MutableListMultimap<String, KeyedMessageWithOffset> messagesByThread = receivedData.valuesView().toList().groupBy(new Function<KeyedMessageWithOffset, String>() {
 			@Override
@@ -108,6 +116,12 @@ public abstract class AbstractMessageListenerContainerTests extends AbstractBrok
 		});
 
 		// Execution has taken place on as many distinct threads as configured
+		messagesByThread.keysView().forEach(new Procedure<String>() {
+			@Override
+			public void value(String s) {
+				System.out.println(s);
+			}
+		});
 		assertThat(messagesByThread.keysView().size(), Matchers.equalTo(concurrency));
 
 		// Group partitions by thread

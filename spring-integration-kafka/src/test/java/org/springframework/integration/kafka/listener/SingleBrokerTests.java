@@ -39,60 +39,60 @@ public class SingleBrokerTests extends AbstractMessageListenerContainerTests {
 	@Test
 	public void testLowVolumeLowConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 5, 1, 1);
-		runMessageListenerTest(100, 2, 5, 100, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 2, 5, 100, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	public void testMediumVolumeLowConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 5, 1, 1);
-		runMessageListenerTest(100, 2, 5, 1000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 2, 5, 1000, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testHighVolumeLowConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 5, 1, 1);
-		runMessageListenerTest(100, 2, 5, 10000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 2, 5, 10000, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	public void testLowVolumeMediumConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 5, 1, 1);
-		runMessageListenerTest(100, 5, 5, 100, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 5, 5, 100, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	public void testMediumVolumeMediumConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 5, 1, 1);
-		runMessageListenerTest(100, 5, 5, 1000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 5, 5, 1000, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testHighVolumeMediumConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 5, 1, 1);
-		runMessageListenerTest(100, 5, 5, 100000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 5, 5, 100000, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testLowVolumeHighConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 1000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 20, 100, 1000, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testMediumVolumeHighConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 10000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 20, 100, 10000, 1, "none", TEST_TOPIC);
 	}
 
 	@Test
 	@Ignore
 	public void testHighVolumeHighConcurrency() throws Exception {
 		createTopic(TEST_TOPIC, 100, 1, 1);
-		runMessageListenerTest(100, 20, 100, 100000, 1, 0, TEST_TOPIC);
+		runMessageListenerTest(100, 20, 100, 100000, 1, "none", TEST_TOPIC);
 	}
 
 }

@@ -100,6 +100,8 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 
 	private Executor adminTaskExecutor = Executors.newSingleThreadExecutor();
 
+	private Executor dispatcherTaskExecutor;
+
 	private int concurrency = 1;
 
 	private volatile boolean running = false;
@@ -206,15 +208,25 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 		this.fetchTaskExecutor = fetchTaskExecutor;
 	}
 
-	/**
-	 * @return the task executor for leader and offset updates.
-	 */
+
 	public Executor getAdminTaskExecutor() {
 		return adminTaskExecutor;
 	}
 
+	/**
+	 * The task executor for leader and offset updates
+	 * @param adminTaskExecutor the task executor for leader and offset updates.
+	 */
 	public void setAdminTaskExecutor(Executor adminTaskExecutor) {
 		this.adminTaskExecutor = adminTaskExecutor;
+	}
+
+	/**
+	 * The task executor for invoking the MessageListener
+	 * @param dispatcherTaskExecutor the task executor for invoking the MessageListener
+	 */
+	public void setDispatcherTaskExecutor(Executor dispatcherTaskExecutor) {
+		this.dispatcherTaskExecutor = dispatcherTaskExecutor;
 	}
 
 	/**
@@ -284,7 +296,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 				ImmutableList<Partition> partitionsAsList = Lists.immutable.with(partitions);
 				this.fetchOffsets = new ConcurrentHashMap<Partition, Long>(partitionsAsList.toMap(passThru, getOffset));
 				this.messageDispatcher = new ConcurrentMessageListenerDispatcher(messageListener, errorHandler,
-						Arrays.asList(partitions), offsetManager, concurrency, queueSize);
+						Arrays.asList(partitions), offsetManager, concurrency, queueSize, dispatcherTaskExecutor);
 				this.messageDispatcher.start();
 				partitionsByBrokerMap.clear();
 				partitionsByBrokerMap.putAll(partitionsAsList.groupBy(getLeader));
