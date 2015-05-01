@@ -439,11 +439,6 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		}
 
 		@Override
-		@Deprecated
-		public void basicRecoverAsync(boolean requeue) throws IOException {
-		}
-
-		@Override
 		public com.rabbitmq.client.AMQP.Tx.SelectOk txSelect() throws IOException {
 			return null;
 		}
