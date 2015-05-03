@@ -43,13 +43,13 @@ public class SysLogTransformerTests {
 		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
 		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
-		assertEquals("TESTING[70729]", transformed.get(SyslogToMapTransformer.TAG));
-		assertEquals("TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+		assertEquals("TESTING", transformed.get(SyslogToMapTransformer.TAG));
+		assertEquals("[70729]: TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
 
 		String[] fields = new String[] {SyslogToMapTransformer.FACILITY,
 				SyslogToMapTransformer.SEVERITY, SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
 				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
-		Object[] values = new Object[] {19, 6, date, "WEBERN", "TESTING[70729]", "TEST SYSLOG MESSAGE"};
+		Object[] values = new Object[] {19, 6, date, "WEBERN", "TESTING", "[70729]: TEST SYSLOG MESSAGE"};
 		// check iteration order
 		int n = 0;
 		for (Entry<String, ?> entry : transformed.entrySet()) {
@@ -89,7 +89,7 @@ public class SysLogTransformerTests {
 	public void testWithoutTag() throws Exception {
 		SyslogToMapTransformer t = new SyslogToMapTransformer();
 		Map<String, ?> transformed = t.transformPayload(
-				"<158>JUL 26 22:08:35 WEBERN TEST SYSLOG MESSAGE".getBytes());
+				"<158>JUL 26 22:08:35 WEBERN [70729]: TEST SYSLOG MESSAGE".getBytes());
 		assertEquals(5, transformed.size());
 		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
 		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
@@ -97,13 +97,48 @@ public class SysLogTransformerTests {
 		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
 		assertFalse(transformed.containsKey(SyslogToMapTransformer.TAG));
-		assertEquals("TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+		assertEquals("[70729]: TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
 
 		String[] fields = new String[] {SyslogToMapTransformer.FACILITY,
 				SyslogToMapTransformer.SEVERITY, SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
 				SyslogToMapTransformer.MESSAGE};
 
-		Object[] values = new Object[] {19, 6, date, "WEBERN", "TEST SYSLOG MESSAGE"};
+		Object[] values = new Object[] {19, 6, date, "WEBERN", "[70729]: TEST SYSLOG MESSAGE"};
+		// check iteration order
+		int n = 0;
+		for (Entry<String, ?> entry : transformed.entrySet()) {
+			assertEquals(fields[n++], entry.getKey());
+		}
+		n = 0;
+		for (String key : transformed.keySet()) {
+			assertEquals(fields[n++], key);
+		}
+		n = 0;
+		for (Object value : transformed.values()) {
+			assertEquals(values[n++], value);
+		}
+	}
+
+	@Test
+	public void testTagMaxLength() throws Exception {
+		SyslogToMapTransformer t = new SyslogToMapTransformer();
+		Map<String, ?> transformed = t.transformPayload(
+				"<158>JUL 26 22:08:35 WEBERN ABCDE1234567890ABCDE1234567890UVXYZ TEST SYSLOG MESSAGE".getBytes());
+		assertEquals(6, transformed.size());
+		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
+		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
+		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
+		assertTrue(date instanceof Date || date instanceof String);
+		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
+		assertEquals("ABCDE1234567890ABCDE1234567890UV", transformed.get(SyslogToMapTransformer.TAG));
+		assertEquals("XYZ TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+
+		String[] fields = new String[] {SyslogToMapTransformer.FACILITY,
+				SyslogToMapTransformer.SEVERITY, SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
+				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
+
+		Object[] values = new Object[] {19, 6, date, "WEBERN", "ABCDE1234567890ABCDE1234567890UV",
+				"XYZ TEST SYSLOG MESSAGE"};
 		// check iteration order
 		int n = 0;
 		for (Entry<String, ?> entry : transformed.entrySet()) {
