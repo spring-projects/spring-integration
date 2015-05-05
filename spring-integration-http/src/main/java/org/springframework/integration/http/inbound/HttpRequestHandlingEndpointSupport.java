@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile RequestMapping requestMapping = new RequestMapping();
+
+	private volatile CrossOrigin crossOrigin;
 
 	private volatile Class<?> requestPayloadType = null;
 
@@ -281,6 +283,20 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	public final RequestMapping getRequestMapping() {
 		return requestMapping;
+	}
+
+
+	/**
+	 * Set the {@link CrossOrigin} to permit cross origin requests for this endpoint.
+	 * @param crossOrigin the CrossOrigin config.
+	 * @since 4.2
+	 */
+	public void setCrossOrigin(CrossOrigin crossOrigin) {
+		this.crossOrigin = crossOrigin;
+	}
+
+	public CrossOrigin getCrossOrigin() {
+		return crossOrigin;
 	}
 
 	/**
