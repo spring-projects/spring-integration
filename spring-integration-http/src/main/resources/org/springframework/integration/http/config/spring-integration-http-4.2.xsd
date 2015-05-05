@@ -32,6 +32,13 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
+				<xsd:element name="cross-origin" type="crossOriginType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							 Marks this endpoint as permitting cross origin requests (CORS).
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
 				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -107,6 +114,13 @@
 									</xsd:extension>
 								</xsd:complexContent>
 							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="cross-origin" type="crossOriginType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									Marks this endpoint as permitting cross origin requests (CORS).
+								</xsd:documentation>
+							</xsd:annotation>
 						</xsd:element>
 						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded">
 							<xsd:annotation>
@@ -586,6 +600,79 @@
 					all requests with a Content-Type other than "text/plain".
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="crossOriginType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines configuration for org.springframework.web.cors.CorsConfiguration.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="origin" type="xsd:string" default="*">
+			<xsd:annotation>
+				<xsd:documentation>
+					List of allowed origins. "*" means that all origins are allowed. These values
+					are placed in the 'Access-Control-Allow-Origin' header of both the pre-flight
+					and actual responses. Default value is "*".
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="allowed-headers" type="xsd:string" default="*">
+			<xsd:annotation>
+				<xsd:documentation>
+					Indicates which request headers can be used during the actual request. "*" means
+					that all headers asked by the client are allowed. This property controls the value of
+					pre-flight response's 'Access-Control-Allow-Headers' header.
+					Default value is "*".
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="exposed-headers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					List of response headers that the user-agent will allow the client to access. This property
+					controls the value of actual response's 'Access-Control-Expose-Headers' header.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="method">
+			<xsd:annotation>
+				<xsd:documentation>
+					The HTTP request methods to allow: GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE, TRACE.
+					Methods specified here overrides 'supported-methods' ones.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="allow-credentials" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Set to "true" if the the browser should include any cookies associated to the domain
+					of the request being annotated, or "false" if it should not. Empty string "" means undefined.
+					If true, the pre-flight response will include the header
+					'Access-Control-Allow-Credentials=true'. Default value is "true".
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="max-age" default="1800">
+			<xsd:annotation>
+				<xsd:documentation>
+					Controls the cache duration for pre-flight responses. Setting this to a reasonable
+					value can reduce the number of pre-flight request/response interaction required by
+					the browser. This property controls the value of the 'Access-Control-Max-Age' header
+					in the pre-flight response. Value set to '-1' means undefined.
+					Default value is 1800 seconds, or 30 minutes.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:long xsd:string" />
+			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
 

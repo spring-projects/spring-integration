@@ -27,11 +27,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.mvc.condition.NameValueExpression;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -98,8 +102,48 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 		}
 		RequestMappingInfo mapping = this.getMappingForEndpoint((HttpRequestHandlingEndpointSupport) handler);
 		if (mapping != null) {
-			this.registerMapping(mapping, handler, HANDLE_REQUEST_METHOD);
+			registerMapping(mapping, handler, HANDLE_REQUEST_METHOD);
 		}
+	}
+
+	@Override
+	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
+		CrossOrigin crossOrigin = ((HttpRequestHandlingEndpointSupport) handler).getCrossOrigin();
+		if (crossOrigin != null) {
+			CorsConfiguration config = new CorsConfiguration();
+			for (String origin : crossOrigin.getOrigin()) {
+				config.addAllowedOrigin(origin);
+			}
+			for (RequestMethod requestMethod : crossOrigin.getMethod()) {
+				config.addAllowedMethod(requestMethod.name());
+			}
+			for (String header : crossOrigin.getAllowedHeaders()) {
+				config.addAllowedHeader(header);
+			}
+			for (String header : crossOrigin.getExposedHeaders()) {
+				config.addExposedHeader(header);
+			}
+			if (crossOrigin.getAllowCredentials() != null) {
+				config.setAllowCredentials(crossOrigin.getAllowCredentials());
+			}
+			if (crossOrigin.getMaxAge() != -1) {
+				config.setMaxAge(crossOrigin.getMaxAge());
+			}
+			if (CollectionUtils.isEmpty(config.getAllowedMethods())) {
+				for (RequestMethod allowedMethod : mappingInfo.getMethodsCondition().getMethods()) {
+					config.addAllowedMethod(allowedMethod.name());
+				}
+			}
+			if (CollectionUtils.isEmpty(config.getAllowedHeaders())) {
+				for (NameValueExpression<String> headerExpression : mappingInfo.getHeadersCondition().getExpressions()) {
+					if (!headerExpression.isNegated()) {
+						config.addAllowedHeader(headerExpression.getName());
+					}
+				}
+			}
+			return config;
+		}
+		return null;
 	}
 
 	/**

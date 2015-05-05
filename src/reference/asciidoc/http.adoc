@@ -156,6 +156,8 @@ Of course, this can be an abstract class, or even an interface (such as `java.io
 [[http-namespace]]
 === HTTP Namespace Support
 
+==== Introduction
+
 Spring Integration provides an _http_ namespace and the corresponding schema definition.
 To include it in your configuration, simply provide the following namespace declaration in your application context configuration file:
 
@@ -177,7 +179,7 @@ To include it in your configuration, simply provide the following namespace decl
 </beans>
 ----
 
-_Inbound_
+==== Inbound
 
 The XML Namespace provides two components for handling HTTP Inbound requests.
 In order to process requests without returning a dedicated response, use the _inbound-channel-adapter_:
@@ -197,7 +199,7 @@ To process requests that do expect a response, use an _inbound-gateway_:
     reply-channel="responses"/>
 ----
 
-_Request Mapping support_
+==== Request Mapping Support
 
 NOTE: _Spring Integration 3.0_ is improving the REST support by introducing the http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html[IntegrationRequestMappingHandlerMapping].
 The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
@@ -265,9 +267,48 @@ This allows you to get the `Message` into the flow as early as possibly, e.g.:
 
 For more information regarding _Handler Mappings_, please see: http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping[Handler Mappings].
 
+[[cors]]
+==== Cross-Origin Resource Sharing (CORS) Support
 
+Starting with _version 4.2_ the `<http:inbound-channel-adapter>` and `<http:inbound-gateway>` can be configured with
+a `<cross-origin>` sub-element.
+It represents the same options as Spring MVC's `@CrossOrigin` for `@Controller` methods
+and allows the configuration of Cross-origin resource sharing (CORS) for Spring Integration HTTP endpoints:
 
-_Response StatusCode_
+* `origin` - List of allowed origins.
+`*` means that all origins are allowed.
+These values are placed in the `Access-Control-Allow-Origin` header of both the pre-flight
+and actual responses.
+Default value is `*`.
+
+* `allowed-headers` - Indicates which request headers can be used during the actual request.
+`*` means that all headers asked by the client are allowed.
+This property controls the value of the pre-flight response's `Access-Control-Allow-Headers` header.
+Default value is `*`.
+
+* `exposed-headers` - List of response headers that the user-agent will allow the client to access.
+This property controls the value of the actual response's `Access-Control-Expose-Headers` header.
+
+* `method` - The HTTP request methods to allow: GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE, TRACE.
+Methods specified here overrides those in `supported-methods`.
+
+* `allow-credentials` - Set to `true` if the the browser should include any cookies associated to the domain
+of the request, or `false` if it should not.
+Empty string "" means undefined.
+If `true`, the pre-flight response will include the header `Access-Control-Allow-Credentials=true`.
+Default value is `true`.
+
+* `max-age` - Controls the cache duration for pre-flight responses.
+Setting this to a reasonable value can reduce the number of pre-flight request/response interactions required by
+the browser.
+This property controls the value of the `Access-Control-Max-Age` header in the pre-flight response.
+A value of `-1` means undefined.
+Default value is 1800 seconds, or 30 minutes.
+
+The CORS Java Configuration is represented by the `org.springframework.integration.http.inbound.CrossOrigin` class,
+instances of which can be injected to the `HttpRequestHandlingEndpointSupport` beans.
+
+==== Response StatusCode
 
 Starting with _version 4.1_ the `<http:inbound-channel-adapter>` can be configured with a `status-code-expression` to override the default `200 OK` status.
 The expression must return an object which can be converted to an `org.springframework.http.HttpStatus` enum value.
@@ -285,7 +326,7 @@ By default, `status-code-expression` is null meaning that the normal '200 OK' re
 
 The `<http:inbound-gateway>` resolves the 'status code' from the `http_statusCode` header of the reply Message.
 
-_URI Template Variables and Expressions_
+==== URI Template Variables and Expressions
 
 By Using the _path_ attribute in conjunction with the _payload-expression_ attribute as well as the _header_ sub-element, you have a high degree of flexibility for mapping inbound request data.
 
@@ -334,7 +375,7 @@ Note, all these values (and others) can be accessed within expressions in the do
 
 ----
 
-_Outbound_
+==== Outbound
 
 To configure the outbound gateway you can use the namespace support as well.
 The following code snippet shows the different configuration options for an outbound Http gateway.
@@ -417,7 +458,7 @@ Changes in Spring 3.1 can cause some issues with escaped characters, such as '?'
 For this reason, it is recommended that if you wish to generate the URL entirely at runtime, you use the 'url-expression' attribute.
 =====
 
-_Mapping URI Variables_
+==== Mapping URI Variables
 
 If your URL contains URI variables, you can map them using the `uri-variable` sub-element.
 This sub-element is available for the _Http Outbound Gateway_ and the _Http Outbound Channel Adapter_.
@@ -475,7 +516,7 @@ NOTE: The `uri-variables-expression` must evaluate to a `Map`.
 The values of the Map must be instances of `String` or `Expression`.
 This Map is provided to an `ExpressionEvalMap` for further resolution of URI variable placeholders using those expressions in the context of the outbound `Message`.
 
-_Controlling URI Encoding_
+==== Controlling URI Encoding
 
 By default, the URL string is encoded (see http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
 In some scenarios with a non-standard URI (e.g.
