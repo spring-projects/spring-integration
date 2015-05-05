@@ -98,7 +98,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 		}
 		RequestMappingInfo mapping = this.getMappingForEndpoint((HttpRequestHandlingEndpointSupport) handler);
 		if (mapping != null) {
-			this.registerHandlerMethod(handler, HANDLE_REQUEST_METHOD, mapping);
+			this.registerMapping(mapping, handler, HANDLE_REQUEST_METHOD);
 		}
 	}
 
