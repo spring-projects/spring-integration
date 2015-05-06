@@ -122,7 +122,7 @@ See <<splitter>> for more information.
 [[x4.1-aggregator]]
 ===== Aggregator
 
-`Aggregator` s now support a new attribute `expire-groups-on-timeout`.
+`Aggregator` s now support a new attribute `expire-groups-upon-timeout`.
 See <<aggregator-config>> for more information.
 
 [[x4.1-content-enricher-improvement]]

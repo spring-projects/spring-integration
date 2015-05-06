@@ -259,7 +259,7 @@ Below you can see an example of an aggregator.
 
 		group-timeout="60000"  <21>
 		group-timeout-expression="size() ge 2 ? 100 : -1"  <22>
-		expire-groups-on-timeout="true"  <23>
+		expire-groups-upon-timeout="true"  <23>
 
 		scheduler="taskScheduler" >  <24>
 			<expire-transactional/>  <25>
@@ -323,7 +323,8 @@ Otherwise by itself this attribute has no behavior.
 It only serves as an indicator of what to do (discard or send to the output/reply channel) with Messages that are still in the `MessageGroup` that is about to be expired.
 _Optional_.
 _Default - 'false'_.
-*NOTE:* This attribute is more properly 'send-partial-result-on-timeout' because the group may not actually expire if `expire-groups-on-timeout` is set to `false`.
+*NOTE:* This attribute is more properly 'send-partial-result-on-timeout' because the group may not actually expire if
+`expire-groups-upon-timeout` is set to `false`.
 
 
 
