@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Transforms a packet in Syslog (RFC3164) format to a Map.
@@ -35,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Karol Dowbecki
  * @since 2.2
  *
  */
@@ -54,7 +56,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	public static final String UNDECODED = "UNDECODED";
 
-	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) (?:([^:]+): )?(.*)", Pattern.DOTALL);
+	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) ([a-zA-Z0-9]{0,32})(.*)", Pattern.DOTALL);
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss");
 
@@ -126,7 +128,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 					map.put(TIMESTAMP, timestamp);
 				}
 				map.put(HOST, matcher.group(3));
-				if (matcher.group(4) != null) {
+				if (StringUtils.isNotEmpty(matcher.group(4))) {
 					map.put(TAG, matcher.group(4));
 				}
 				map.put(MESSAGE, matcher.group(5));

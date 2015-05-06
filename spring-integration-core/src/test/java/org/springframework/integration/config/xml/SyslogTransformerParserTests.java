@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2012-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Karol Dowbecki
  * @since 2.2
  *
  */
@@ -59,7 +60,8 @@ public class SyslogTransformerParserTests {
 		Object date = map.get(SyslogToMapTransformer.TIMESTAMP);
 		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", map.get(SyslogToMapTransformer.HOST));
-		assertEquals("TESTING[70729]", map.get(SyslogToMapTransformer.TAG));
-		assertEquals("TEST SYSLOG MESSAGE", map.get(SyslogToMapTransformer.MESSAGE));
+		assertEquals("TESTING", map.get(SyslogToMapTransformer.TAG));
+		assertEquals("[70729]: TEST SYSLOG MESSAGE", map.get(SyslogToMapTransformer.MESSAGE));
 	}
+
 }
