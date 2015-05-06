@@ -167,7 +167,7 @@
 		<section id="4.1-aggregator">
 			<title>Aggregator</title>
 			<para>
-				<code>Aggregator</code>s now support a new attribute <code>expire-groups-on-timeout</code>.
+				<code>Aggregator</code>s now support a new attribute <code>expire-groups-upon-timeout</code>.
 				See <xref linkend="aggregator-config"/> for more information.
 			</para>
 		</section>

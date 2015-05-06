@@ -374,7 +374,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
 		group-timeout="60000" ]]><co id="aggxml20" linkends="aggxml20-txt" /><![CDATA[
 		group-timeout-expression="size() ge 2 ? 100 : -1" ]]><co id="aggxml21" linkends="aggxml21-txt" /><![CDATA[
-		expire-groups-on-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
+		expire-groups-upon-timeout="true" ]]><co id="aggxml22" linkends="aggxml22-txt" /><![CDATA[
 
 		scheduler="taskScheduler" > ]]><co id="aggxml23" linkends="aggxml23-txt" /><![CDATA[
 			<expire-transactional/> ]]><co id="aggxml24" linkends="aggxml24-txt" /><![CDATA[
@@ -449,7 +449,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         <emphasis>Optional</emphasis>. <emphasis>Default - 'false'</emphasis>.
         <note>
           This attribute is more properly 'send-partial-result-on-timeout' because the group may not actually expire
-          if <code>expire-groups-on-timeout</code> is set to <code>false</code>.
+          if <code>expire-groups-upon-timeout</code> is set to <code>false</code>.
         </note>
         </para>
       </callout>
