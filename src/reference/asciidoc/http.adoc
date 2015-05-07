@@ -265,7 +265,45 @@ This allows you to get the `Message` into the flow as early as possibly, e.g.:
 
 For more information regarding _Handler Mappings_, please see: http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping[Handler Mappings].
 
+_Cross-origin resource sharing (CORS) support_
 
+Starting with _version 4.2_ the `<http:inbound-channel-adapter>` and `<http:inbound-gateway>` can be configured with
+`<cross-origin>` sub-element.
+It represents the same options as Spring MVC `@CrossOrigin` for `@Controller` methods
+and allows to configure Cross-origin resource sharing (CORS) for Spring Integration HTTP endpoints:
+
+* origin - List of allowed origins.
+`*` means that all origins are allowed.
+These values are placed in the `Access-Control-Allow-Origin` header of both the pre-flight
+and actual responses.
+Default value is `*`.
+
+* allowed-headers - Indicates which request headers can be used during the actual request.
+`*` means that all headers asked by the client are allowed.
+This property controls the value of	pre-flight response's `Access-Control-Allow-Headers` header.
+Default value is `*`.
+
+* exposed-headers - List of response headers that the user-agent will allow the client to access.
+This property controls the value of actual response's `Access-Control-Expose-Headers` header.
+
+* method - The HTTP request methods to allow: GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE, TRACE.
+Methods specified here overrides `supported-methods` ones.
+
+* allow-credentials - Set to `true` if the the browser should include any cookies associated to the domain
+of the request being annotated, or `false` if it should not.
+Empty string "" means undefined.
+If `true`, the pre-flight response will include the header `Access-Control-Allow-Credentials=true`.
+Default value is `true`.
+
+* max-age - Controls the cache duration for pre-flight responses.
+Setting this to a reasonable value can reduce the number of pre-flight request/response interaction required by
+the browser.
+This property controls the value of the `Access-Control-Max-Age` header in the pre-flight response.
+Value set to `-1` means undefined.
+Default value is 1800 seconds, or 30 minutes.
+
+The CORS Java Configuration is represented with `org.springframework.integration.http.inbound.CrossOrigin` class,
+which instances can be injected to the `HttpRequestHandlingEndpointSupport` beans.
 
 _Response StatusCode_
 

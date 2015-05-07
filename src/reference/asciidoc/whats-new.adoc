@@ -116,3 +116,11 @@ for the internal `javax.xml.transform.Transformer` and supports an `Iterator` mo
 evaluation `org.w3c.dom.NodeList` result.
 
 See <<xml-xpath-splitting>> for more information.
+
+[[x4.2-http-changes]]
+==== HTTP changes
+
+The HTTP Inbound Endpoints (`<int-http:inbound-channel-adapter>` and `<int-http:inbound-gateway>`) now allow the
+configuration of _cross-origin resource sharing (CORS)_.
+
+See <<http>> for more information.
