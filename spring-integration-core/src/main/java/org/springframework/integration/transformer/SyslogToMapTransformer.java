@@ -128,7 +128,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 					map.put(TIMESTAMP, timestamp);
 				}
 				map.put(HOST, matcher.group(3));
-				if (StringUtils.isNotEmpty(matcher.group(4))) {
+				if (StringUtils.hasLength(matcher.group(4))) {
 					map.put(TAG, matcher.group(4));
 				}
 				map.put(MESSAGE, matcher.group(5));
