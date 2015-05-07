@@ -103,7 +103,7 @@ subprojects { subproject ->
 		jmsApiVersion = '1.1-rev-1'
 		jpaApiVersion = '2.0.0'
 		jrubyVersion = '1.7.19'
-		jschVersion = '0.1.51'
+		jschVersion = '0.1.52'
 		jsonpathVersion = '1.2.0'
 		junitVersion = '4.11'
 		jythonVersion = '2.5.3'
@@ -111,7 +111,7 @@ subprojects { subproject ->
 		mockitoVersion = '1.9.5'
 		mysqlVersion = '5.1.34'
 		openJpaVersion = '2.3.0'
-		pahoMqttClientVersion = '0.4.0'
+		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
 		reactorVersion = '2.0.1.BUILD-SNAPSHOT'
 		reactorSpringVersion = '2.0.1.BUILD-SNAPSHOT'
@@ -468,7 +468,7 @@ project('spring-integration-mqtt') {
 	description = 'Spring Integration MQTT Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.eclipse.paho:mqtt-client:$pahoMqttClientVersion"
+		compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
 	}
 }
 
