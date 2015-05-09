@@ -19,25 +19,24 @@ package org.springframework.integration.stomp;
 import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
+ * The {@link Reactor2TcpStompClient} based {@link AbstractStompSessionManager} implementation.
+ *
  * @author Artem Bilan
+ * @see Reactor2TcpStompClient
  * @since 4.2
  */
 public class Reactor2TcpStompSessionManager extends AbstractStompSessionManager {
 
-	private final Reactor2TcpStompClient reactor2TcpStompClient;
-
 	public Reactor2TcpStompSessionManager(Reactor2TcpStompClient reactor2TcpStompClient) {
-		Assert.notNull(reactor2TcpStompClient, "'reactor2TcpStompClient' is required.");
-		this.reactor2TcpStompClient = reactor2TcpStompClient;
+		super(reactor2TcpStompClient);
 	}
 
 	@Override
 	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
-		return this.reactor2TcpStompClient.connect(getConnectHeaders(), handler);
+		return ((Reactor2TcpStompClient) this.stompClient).connect(getConnectHeaders(), handler);
 	}
 
 }

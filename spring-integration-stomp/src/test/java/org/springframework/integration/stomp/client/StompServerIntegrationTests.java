@@ -16,7 +16,7 @@
 
 package org.springframework.integration.stomp.client;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -37,6 +37,7 @@ import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
+import org.springframework.integration.support.converter.PassThruMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -67,6 +68,7 @@ public class StompServerIntegrationTests {
 		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.start();
 		stompClient = new Reactor2TcpStompClient("127.0.0.1", port);
+		stompClient.setMessageConverter(new PassThruMessageConverter());
 	}
 
 	@AfterClass
@@ -85,7 +87,7 @@ public class StompServerIntegrationTests {
 		MessageChannel stompOutputChannel1 = context1.getBean("stompOutputChannel", MessageChannel.class);
 		MessageChannel stompOutputChannel2 = context2.getBean("stompOutputChannel", MessageChannel.class);
 
-		stompOutputChannel1.send(new GenericMessage<String>("Hello, Client#2!"));
+		stompOutputChannel1.send(new GenericMessage<byte[]>("Hello, Client#2!".getBytes()));
 
 		Message<?> receive11 = stompInputChannel1.receive(10000);
 		Message<?> receive21 = stompInputChannel2.receive(10000);
@@ -93,10 +95,10 @@ public class StompServerIntegrationTests {
 		assertNotNull(receive11);
 		assertNotNull(receive21);
 
-		assertEquals("Hello, Client#2!", receive11.getPayload());
-		assertEquals("Hello, Client#2!", receive21.getPayload());
+		assertArrayEquals("Hello, Client#2!".getBytes(), (byte[]) receive11.getPayload());
+		assertArrayEquals("Hello, Client#2!".getBytes(), (byte[]) receive21.getPayload());
 
-		stompOutputChannel2.send(new GenericMessage<String>("Hello, Client#1!"));
+		stompOutputChannel2.send(new GenericMessage<byte[]>("Hello, Client#1!".getBytes()));
 
 		Message<?> receive12 = stompInputChannel1.receive(10000);
 		Message<?> receive22 = stompInputChannel2.receive(10000);
@@ -104,13 +106,13 @@ public class StompServerIntegrationTests {
 		assertNotNull(receive12);
 		assertNotNull(receive22);
 
-		assertEquals("Hello, Client#1!", receive12.getPayload());
-		assertEquals("Hello, Client#1!", receive22.getPayload());
+		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) receive12.getPayload());
+		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) receive22.getPayload());
 
 		Lifecycle stompInboundChannelAdapter2 = context2.getBean("stompInboundChannelAdapter", Lifecycle.class);
 		stompInboundChannelAdapter2.stop();
 
-		stompOutputChannel1.send(new GenericMessage<String>("How do you do?"));
+		stompOutputChannel1.send(new GenericMessage<byte[]>("How do you do?".getBytes()));
 
 		Message<?> receive13 = stompInputChannel1.receive(10000);
 		assertNotNull(receive13);
@@ -120,11 +122,11 @@ public class StompServerIntegrationTests {
 
 		stompInboundChannelAdapter2.start();
 
-		stompOutputChannel1.send(new GenericMessage<String>("???"));
+		stompOutputChannel1.send(new GenericMessage<byte[]>("???".getBytes()));
 
 		Message<?> receive24 = stompInputChannel2.receive(10000);
 		assertNotNull(receive24);
-		assertEquals("???", receive24.getPayload());
+		assertArrayEquals("???".getBytes(), (byte[]) receive24.getPayload());
 
 		context1.close();
 		context2.close();

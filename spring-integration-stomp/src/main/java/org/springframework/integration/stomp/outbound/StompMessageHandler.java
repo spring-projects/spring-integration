@@ -41,6 +41,8 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link AbstractMessageHandler} implemntation to send messages to STOMP destinations.
+ *
  * @author Artem Bilan
  * @since 4.2
  */
@@ -95,6 +97,11 @@ public class StompMessageHandler extends AbstractMessageHandler implements Integ
 
 	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
+		if (!this.isRunning()) {
+			throw new MessageDeliveryException(message, "The StompMessageHandler [" + getComponentName() +
+					"] hasn't been connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
+		}
+
 		StompHeaders stompHeaders = new StompHeaders();
 		this.headerMapper.fromHeaders(message.getHeaders(), stompHeaders);
 		if (stompHeaders.getDestination() == null) {
@@ -103,6 +110,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Integ
 			String destination = this.destinationExpression.getValue(this.evaluationContext, message, String.class);
 			stompHeaders.setDestination(destination);
 		}
+
 		final StompSession.Receiptable receiptable = this.stompSession.send(stompHeaders, message.getPayload());
 		if (this.stompSessionManager.isAutoReceiptEnabled()) {
 			final String destination = stompHeaders.getDestination();
@@ -142,7 +150,6 @@ public class StompMessageHandler extends AbstractMessageHandler implements Integ
 	@Override
 	public void start() {
 		this.stompSessionManager.connect(this.sessionHandler);
-		this.running = true;
 	}
 
 	@Override
@@ -162,6 +169,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Integ
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			StompMessageHandler.this.stompSession = session;
+			StompMessageHandler.this.running = true;
 		}
 
 		@Override

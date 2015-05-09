@@ -18,33 +18,52 @@ package org.springframework.integration.stomp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
+import org.springframework.messaging.simp.stomp.StompClientSupport;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
+ * Base {@link StompSessionManager} implementation to manage the single {@link StompSession}
+ * over its {@link ListenableFuture} from the target implementation of this class.
+ * <p>
+ * The connect to {@link StompSession} is done during {@link #afterPropertiesSet()}.
+ * <p>
+ * The {@link #destroy()} lifecycle method manages {@link StompSession#disconnect()}.
+ * <p>
+ * The {@link #connect(StompSessionHandler)} and {@link #disconnect(StompSessionHandler)} method
+ * implementations populate/remove provided {@link StompSessionHandler} to/from an internal
+ * {@link AbstractStompSessionManager.CompositeStompSessionHandler}, which delegates all operations
+ * to the provided {@link StompSessionHandler}s.
+ * This {@link AbstractStompSessionManager.CompositeStompSessionHandler} is used for the
+ * {@link {@link StompSession} connection.
+ *
  * @author Artem Bilan
  * @since 4.2
  */
 public abstract class AbstractStompSessionManager implements StompSessionManager, ApplicationEventPublisherAware,
-		DisposableBean {
+		InitializingBean, DisposableBean, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final CompositeStompSessionHandler compositeStompSessionHandler = new CompositeStompSessionHandler();
+
+	protected final StompClientSupport stompClient;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -52,11 +71,20 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private volatile ListenableFuture<StompSession> stompSessionListenableFuture;
 
-	private volatile StompSession stompSession;
-
 	private volatile boolean autoReceipt;
 
-	private volatile long destroyTimeout = 3000L;
+	private volatile boolean connected;
+
+	private String name;
+
+	public AbstractStompSessionManager(StompClientSupport stompClient) {
+		Assert.notNull(stompClient, "'stompClient' is required.");
+		this.stompClient = stompClient;
+	}
+
+	public void setConnectHeaders(StompHeaders connectHeaders) {
+		this.connectHeaders = connectHeaders;
+	}
 
 	public void setAutoReceipt(boolean autoReceipt) {
 		this.autoReceipt = autoReceipt;
@@ -67,16 +95,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		return this.autoReceipt;
 	}
 
-	public void setDestroyTimeout(long destroyTimeout) {
-		this.destroyTimeout = destroyTimeout;
-	}
-
-	public void setConnectHeaders(StompHeaders connectHeaders) {
-		this.connectHeaders = connectHeaders;
-	}
-
-	protected StompHeaders getConnectHeaders() {
-		return connectHeaders;
+	@Override
+	public boolean isConnected() {
+		return this.connected;
 	}
 
 	@Override
@@ -85,31 +106,54 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	@Override
-	public synchronized void connect(StompSessionHandler handler) {
+	public void setBeanName(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
+		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
+
+			@Override
+			public void onFailure(Throwable e) {
+				logger.error("STOMP connect error.", e);
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(
+							new StompExceptionEvent(AbstractStompSessionManager.this, e));
+				}
+			}
+
+			@Override
+			public void onSuccess(StompSession stompSession) {
+				stompSession.setAutoReceipt(autoReceipt);
+				AbstractStompSessionManager.this.connected = true;
+			}
+
+		});
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
+
+			@Override
+			public void onFailure(Throwable ex) {
+				AbstractStompSessionManager.this.connected = false;
+			}
+
+			@Override
+			public void onSuccess(StompSession session) {
+				session.disconnect();
+				AbstractStompSessionManager.this.connected = false;
+			}
+
+		});
+	}
+
+	@Override
+	public void connect(StompSessionHandler handler) {
 		this.compositeStompSessionHandler.addHandler(handler);
-		if (this.stompSessionListenableFuture == null) {
-			this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
-			this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
-
-				@Override
-				public void onFailure(Throwable e) {
-					logger.error("STOMP connect error.", e);
-					if (applicationEventPublisher != null) {
-						applicationEventPublisher.publishEvent(
-								new StompExceptionEvent(AbstractStompSessionManager.this, e));
-					}
-					AbstractStompSessionManager.this.stompSession = null;
-					AbstractStompSessionManager.this.stompSessionListenableFuture = null;
-				}
-
-				@Override
-				public void onSuccess(StompSession stompSession) {
-					AbstractStompSessionManager.this.stompSession = stompSession;
-					AbstractStompSessionManager.this.stompSession.setAutoReceipt(autoReceipt);
-				}
-
-			});
-		}
 	}
 
 	@Override
@@ -117,33 +161,16 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		this.compositeStompSessionHandler.removeHandler(handler);
 	}
 
+	protected StompHeaders getConnectHeaders() {
+		return connectHeaders;
+	}
+
 	@Override
-	public void destroy() throws Exception {
-		if (this.stompSession != null) {
-			this.stompSession.disconnect();
-		}
-		else if (this.stompSessionListenableFuture != null) {
-			if (!this.stompSessionListenableFuture.isDone()) {
-				this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
-					@Override
-					public void onFailure(Throwable ex) {
-
-					}
-
-					@Override
-					public void onSuccess(StompSession session) {
-						session.disconnect();
-					}
-				});
-			}
-			else {
-				StompSession stompSession =
-						this.stompSessionListenableFuture.get(this.destroyTimeout, TimeUnit.MILLISECONDS);
-				if (stompSession != null) {
-					stompSession.disconnect();
-				}
-			}
-		}
+	public String toString() {
+		return "StompSessionManager{" +
+				"connected=" + connected +
+				", name='" + name + '\'' +
+				'}';
 	}
 
 	protected abstract ListenableFuture<StompSession> doConnect(StompSessionHandler handler);

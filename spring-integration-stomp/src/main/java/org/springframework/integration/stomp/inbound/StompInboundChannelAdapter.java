@@ -50,6 +50,14 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link MessageProducerSupport} for STOMP protocol to handle STOMP frames from
+ * provided destination and send messages to the {@code outputChannel}.
+ * <p>
+ * Destinations can be added and removed at runtime.
+ * <p>
+ * The {@link StompReceiptEvent} is emitted for each {@code Subscribe STOMP frame}
+ * if provided {@link StompSessionManager} supports {@code autoReceiptEnabled}.
+ *
  * @author Artem Bilan
  * @since 4.2
  */
@@ -199,10 +207,16 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 						}
 
 						@Override
-						public void handleFrame(StompHeaders headers, Object payload) {
-							Message<Object> message = getMessageBuilderFactory().withPayload(payload)
-									.copyHeaders(headerMapper.toHeaders(headers))
-									.build();
+						public void handleFrame(StompHeaders headers, Object body) {
+							Message<?> message;
+							if (body instanceof Message) {
+								message = (Message<?>) body;
+							}
+							else {
+								message = getMessageBuilderFactory().withPayload(body)
+										.copyHeaders(headerMapper.toHeaders(headers))
+										.build();
+							}
 							sendMessage(message);
 						}
 
@@ -239,6 +253,10 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 				});
 			}
 			this.subscriptions.put(destination, subscription);
+		}
+		else {
+			logger.warn("The StompInboundChannelAdapter [" + getComponentName() +
+					"] hasn't been connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
 		}
 	}
 

@@ -172,6 +172,8 @@ subprojects { subproject ->
 			testCompile project(":spring-integration-test")
 		}
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.7.2.201409121644", classifier: "runtime"
+
+		testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -461,7 +463,6 @@ project('spring-integration-mongodb') {
 			exclude group: 'org.springframework', module: 'spring-expression'
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
-		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 }
 
@@ -485,7 +486,6 @@ project('spring-integration-redis') {
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		testCompile "redis.clients:jedis:$jedisVersion"
-		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 }
 
@@ -540,10 +540,10 @@ project('spring-integration-stomp') {
 		testCompile project(":spring-integration-websocket")
 		testCompile project(":spring-integration-websocket").sourceSets.test.output
 		testCompile project(":spring-integration-event")
-		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-		testCompile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
 		testCompile "org.apache.activemq:activemq-stomp:$activeMqVersion"
+		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
 
+		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 		testRuntime "io.projectreactor:reactor-net:$reactorVersion"
 		testRuntime "io.netty:netty-all:$nettyVersion"
 	}
@@ -609,7 +609,8 @@ project('spring-integration-websocket') {
 
 		testCompile project(":spring-integration-event")
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-		testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion")
+
+		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 	}
 }
 

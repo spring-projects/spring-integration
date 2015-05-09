@@ -24,12 +24,13 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 /**
+ * The {@link WebSocketStompClient} based {@link AbstractStompSessionManager} implementation.
+ *
  * @author Artem Bilan
+ * @see WebSocketStompClient
  * @since 4.2
  */
 public class WebSocketStompSessionManager extends AbstractStompSessionManager {
-
-	private final WebSocketStompClient webSocketStompClient;
 
 	private final String url;
 
@@ -38,9 +39,8 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 	private volatile WebSocketHttpHeaders handshakeHeaders;
 
 	public WebSocketStompSessionManager(WebSocketStompClient webSocketStompClient, String url, Object... uriVariables) {
-		Assert.notNull(webSocketStompClient, "'webSocketStompClient' is required.");
+		super(webSocketStompClient);
 		Assert.hasText(url, "'url' must not be empty.");
-		this.webSocketStompClient = webSocketStompClient;
 		this.url = url;
 		this.uriVariables = uriVariables;
 	}
@@ -51,8 +51,8 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
 	@Override
 	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
-		return this.webSocketStompClient.connect(this.url, handler, this.handshakeHeaders, getConnectHeaders(),
-				this.uriVariables);
+		return ((WebSocketStompClient) this.stompClient).connect(this.url, handler, this.handshakeHeaders,
+				getConnectHeaders(), this.uriVariables);
 	}
 
 }

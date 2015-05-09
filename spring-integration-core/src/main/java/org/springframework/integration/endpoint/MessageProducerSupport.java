@@ -66,7 +66,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.shouldTrack = shouldTrack;
 	}
 
-	public MessagingTemplate getMessagingTemplate() {
+	protected MessagingTemplate getMessagingTemplate() {
 		return messagingTemplate;
 	}
 

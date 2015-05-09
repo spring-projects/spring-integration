@@ -20,8 +20,12 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompCommand;
 
 /**
+ * The {@link StompIntegrationEvent} for the STOMP {@code RECEIPT} Frames or lost receipts.
+ *
  * @author Artem Bilan
  * @since 4.2
+ * @see org.springframework.integration.stomp.inbound.StompInboundChannelAdapter
+ * @see org.springframework.integration.stomp.outbound.StompMessageHandler
  */
 @SuppressWarnings("serial")
 public class StompReceiptEvent extends StompIntegrationEvent {

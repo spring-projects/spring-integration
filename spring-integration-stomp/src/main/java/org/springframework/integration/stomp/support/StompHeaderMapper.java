@@ -37,8 +37,11 @@ import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * The STOMP {@link HeaderMapper} implementation.
+ *
  * @author Artem Bilan
  * @since 4.2
+ * @see StompHeaders
  */
 public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 
@@ -63,7 +66,9 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 			StompHeaders.CONTENT_LENGTH,
 			StompHeaders.CONTENT_TYPE,
 			StompHeaders.DESTINATION,
-			StompHeaders.RECEIPT
+			StompHeaders.RECEIPT,
+			IntegrationStompHeaders.DESTINATION,
+			IntegrationStompHeaders.RECEIPT
 	};
 
 	private final static List<String> STOMP_OUTBOUND_HEADER_NAMES_LIST =
@@ -148,7 +153,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 				}
 			}
 		}
-		else if (StompHeaders.DESTINATION.equals(name)) {
+		else if (StompHeaders.DESTINATION.equals(name) || IntegrationStompHeaders.DESTINATION.equals(name)) {
 			if (value instanceof String) {
 				target.setDestination((String) value);
 			}
@@ -158,7 +163,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 						"Expected String value for 'destination' header value, but received: " + clazz);
 			}
 		}
-		else if (StompHeaders.RECEIPT.equals(name)) {
+		else if (StompHeaders.RECEIPT.equals(name) || IntegrationStompHeaders.RECEIPT.equals(name)) {
 			if (value instanceof String) {
 				target.setReceipt((String) value);
 			}
@@ -189,7 +194,11 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 					target.put(MessageHeaders.CONTENT_TYPE, source.getContentType());
 				}
 				else {
-					target.put(name, source.getFirst(name));
+					String key = name;
+					if (IntegrationStompHeaders.HEADERS.contains(name)) {
+						key = IntegrationStompHeaders.PREFIX + name;
+					}
+					target.put(key, source.getFirst(name));
 				}
 			}
 		}
