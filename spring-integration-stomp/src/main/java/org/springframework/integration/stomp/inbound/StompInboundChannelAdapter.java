@@ -141,7 +141,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			for (String d : destination) {
 				if (this.destinations.add(d)) {
 					if (this.logger.isDebugEnabled()) {
-						logger.debug("Removed '" + d + "' from subscriptions.");
+						logger.debug("Subscribe to destination '" + d + "'.");
 					}
 					subscribeDestination(d);
 				}
@@ -158,6 +158,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 	 */
 	@ManagedOperation
 	public void removeDestination(String... destination) {
+		Assert.notNull(destination, "'destination' cannot be null");
 		this.destinationLock.lock();
 		try {
 			for (String d : destination) {
@@ -168,6 +169,11 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 					StompSession.Subscription subscription = this.subscriptions.get(d);
 					if (subscription != null) {
 						subscription.unsubscribe();
+					}
+					else {
+						if (this.logger.isDebugEnabled()) {
+							logger.debug("No subscription for destination '" + d + "'.");
+						}
 					}
 				}
 			}
