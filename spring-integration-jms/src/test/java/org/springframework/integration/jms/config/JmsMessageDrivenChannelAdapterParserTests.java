@@ -173,6 +173,29 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
 		adapter.start();
 		FooContainer container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
+		assertSame(container, context.getBean("adapterWithIdleConsumerLimit.container"));
+		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
+		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		assertSame(context.getBean("adapterWithIdleConsumerLimit.listener"),
+				TestUtils.getPropertyValue(container, "messageListener"));
+		adapter.stop();
+
+		adapter = context.getBean("adapterWithIdleConsumerLimit2.adapter", JmsMessageDrivenEndpoint.class);
+		channel = context.getBean("adapterWithIdleConsumerLimit2", MessageChannel.class);
+		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
+		adapter.start();
+		container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
+		assertSame(container, context.getBean("adapterWithIdleConsumerLimit2.container"));
+		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
+		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		adapter.stop();
+
+		adapter = context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0", JmsMessageDrivenEndpoint.class);
+		channel = context.getBean("in", MessageChannel.class);
+		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
+		adapter.start();
+		container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
+		assertSame(container, context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0.container"));
 		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
 		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
 		adapter.stop();
