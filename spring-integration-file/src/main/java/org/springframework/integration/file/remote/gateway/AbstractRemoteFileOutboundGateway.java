@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,9 +43,11 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -214,6 +217,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private volatile Expression localFilenameGeneratorExpression;
 
+	private volatile FileExistsMode fileExistsMode;
+
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
 			String expression) {
 		Assert.notNull(sessionFactory, "'sessionFactory' cannot be null");
@@ -336,6 +341,19 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
 	}
 
+	/**
+	 * Determine the action to take when using GET and MGET operations when the file
+	 * already exists locally, or PUT and MPUT when the file exists on the remote
+	 * system.
+	 * @param fileExistsMode the fileExistsMode to set.
+	 * @since 4.2
+	 */
+	public void setFileExistsMode(FileExistsMode fileExistsMode) {
+		this.fileExistsMode = fileExistsMode;
+		if (FileExistsMode.APPEND.equals(fileExistsMode)) {
+			this.remoteFileTemplate.setUseTemporaryFileName(false);
+		}
+	}
 
 	@Override
 	protected void doInit() {
@@ -492,7 +510,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private String doPut(Message<?> requestMessage, String subDirectory) {
-		String path = this.remoteFileTemplate.send(requestMessage, subDirectory);
+		String path = this.remoteFileTemplate.send(requestMessage, subDirectory, this.fileExistsMode);
 		if (path == null) {
 			throw new MessagingException(requestMessage, "No local file found for " + requestMessage);
 		}
@@ -659,10 +677,22 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 		}
 		File localFile = new File(this.generateLocalDirectory(message, remoteDir), this.generateLocalFileName(message, remoteFilename));
-		if (!localFile.exists()) {
+		FileExistsMode fileExistsMode = this.fileExistsMode;
+		boolean appending = FileExistsMode.APPEND.equals(fileExistsMode);
+		boolean replacing = FileExistsMode.REPLACE.equals(fileExistsMode);
+		if (!localFile.exists() || appending || replacing) {
+			OutputStream outputStream;
 			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();
 			File tempFile = new File(tempFileName);
-			BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+			if (appending) {
+				outputStream = new BufferedOutputStream(new FileOutputStream(localFile, true));
+			}
+			else {
+				outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+			}
+			if (replacing) {
+				localFile.delete();
+			}
 			try {
 				session.read(remoteFilePath, outputStream);
 			}
@@ -688,17 +718,22 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					//Ignore it
 				}
 			}
-			if (!tempFile.renameTo(localFile)) {
+			if (!appending && !tempFile.renameTo(localFile)) {
 				throw new MessagingException("Failed to rename local file");
 			}
 			if (lsFirst && this.options.contains(Option.PRESERVE_TIMESTAMP)) {
 				localFile.setLastModified(getModified(files[0]));
 			}
-			return localFile;
+		}
+		else if (FileExistsMode.IGNORE != fileExistsMode) {
+			throw new MessageHandlingException(message, "Local file " + localFile + " already exists");
 		}
 		else {
-			throw new MessagingException("Local file " + localFile + " already exists");
+			if (logger.isDebugEnabled()) {
+				logger.debug("Existing file skipped: " + localFile);
+			}
 		}
+		return localFile;
 	}
 
 	protected List<File> mGet(Message<?> message, Session<F> session, String remoteDirectory,

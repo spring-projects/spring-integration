@@ -33,6 +33,7 @@
 							  command-options="-1 -f"
 							  expression="payload"
 							  order="1"
+							  mode="APPEND"
 							  mput-regex=".*">
 		<int:poller fixed-delay="1000"/>
 	</int-ftp:outbound-gateway>

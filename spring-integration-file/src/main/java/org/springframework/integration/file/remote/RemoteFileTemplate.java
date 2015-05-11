@@ -195,7 +195,9 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	@Override
 	public String send(final Message<?> message, String subDirectory, FileExistsMode... mode) {
-		FileExistsMode modeToUse = mode == null || mode.length < 1 ? FileExistsMode.REPLACE : mode[0];
+		FileExistsMode modeToUse = mode == null || mode.length < 1 || mode[0] == null
+				? FileExistsMode.REPLACE
+				: mode[0];
 		return send(message, subDirectory, modeToUse);
 	}
 

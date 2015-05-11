@@ -39,6 +39,7 @@ import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Command;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Option;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -105,6 +106,7 @@ public class FtpOutboundGatewayParserTests {
 		assertEquals(Long.valueOf(777), sendTimeout);
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(RegexPatternFileListFilter.class));
+		assertEquals(FileExistsMode.APPEND, TestUtils.getPropertyValue(gateway, "fileExistsMode"));
 	}
 
 	@Test
