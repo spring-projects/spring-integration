@@ -16,6 +16,7 @@
 package org.springframework.integration.file.remote.gateway;
 
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
@@ -29,10 +30,14 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,6 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -58,8 +64,10 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -616,6 +624,78 @@ public class RemoteFileOutboundGatewayTests {
 				out.getHeaders().get(FileHeaders.REMOTE_FILE));
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetExists() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+				(sessionFactory, "get", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir));
+		gw.afterPropertiesSet();
+		File outFile = new File(this.tmpDir + "/f1");
+		FileOutputStream fos = new FileOutputStream(outFile);
+		fos.write("foo".getBytes());
+		fos.close();
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
+
+			@Override
+			public TestLsEntry[] list(String path) throws IOException {
+				return new TestLsEntry[]{
+						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
+				};
+			}
+
+			@Override
+			public void read(String source, OutputStream outputStream)
+					throws IOException {
+				outputStream.write("testfile".getBytes());
+			}
+
+		});
+
+		// default (null)
+		Message<File> out;
+		try {
+			out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
+			fail("Exception expected");
+		}
+		catch (MessageHandlingException e) {
+			assertThat(e.getMessage(), containsString("already exists"));
+		}
+
+		gw.setFileExistsMode(FileExistsMode.FAIL);
+		try {
+			out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
+			fail("Exception expected");
+		}
+		catch (MessageHandlingException e) {
+			assertThat(e.getMessage(), containsString("already exists"));
+		}
+
+		gw.setFileExistsMode(FileExistsMode.IGNORE);
+		out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
+		assertEquals(outFile, out.getPayload());
+		assertContents("foo", outFile);
+
+		gw.setFileExistsMode(FileExistsMode.APPEND);
+		out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
+		assertEquals(outFile, out.getPayload());
+		assertContents("footestfile", outFile);
+
+		gw.setFileExistsMode(FileExistsMode.REPLACE);
+		out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
+		assertEquals(outFile, out.getPayload());
+		assertContents("testfile", outFile);
+
+		outFile.delete();
+	}
+
+	private void assertContents(String expected, File outFile) throws Exception {
+		BufferedReader reader = new BufferedReader(new FileReader(outFile));
+		assertEquals(expected, reader.readLine());
+		reader.close();
+	}
+
 	@Test
 	public void testGetTempFileDelete() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
@@ -752,7 +832,14 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
 		@SuppressWarnings("unchecked")
 		Session<TestLsEntry> session = mock(Session.class);
-		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<TestLsEntry>(sessionFactory);
+		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<TestLsEntry>(sessionFactory) {
+
+			@Override
+			public boolean exists(String path) {
+				return false;
+			}
+
+		};
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
@@ -763,21 +850,83 @@ public class RemoteFileOutboundGatewayTests {
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
-		final AtomicReference<String> written = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				written.set((String) invocation.getArguments()[1]);
-				return null;
-			}
-		}).when(session).write(any(InputStream.class), anyString());
 		Message<String> requestMessage = MessageBuilder.withPayload("hello")
 				.setHeader(FileHeaders.FILENAME, "bar.txt")
 				.build();
 		String path = (String) gw.handleRequestMessage(requestMessage);
 		assertEquals("foo/bar.txt", path);
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(session).write(any(InputStream.class), captor.capture());
+		assertEquals("foo/bar.txt.writing", captor.getValue());
 		verify(session).rename("foo/bar.txt.writing", "foo/bar.txt");
+	}
+
+	@Test
+	public void testPutExists() throws Exception {
+		@SuppressWarnings("unchecked")
+		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
+		@SuppressWarnings("unchecked")
+		Session<TestLsEntry> session = mock(Session.class);
+		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<TestLsEntry>(sessionFactory) {
+
+			@Override
+			public boolean exists(String path) {
+				return true;
+			}
+
+		};
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", null);
+		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<TestLsEntry>(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		gw.afterPropertiesSet();
+		when(sessionFactory.getSession()).thenReturn(session);
+		Message<String> requestMessage = MessageBuilder.withPayload("hello")
+				.setHeader(FileHeaders.FILENAME, "bar.txt")
+				.build();
+
+		// default (null) == REPLACE
+		String path = (String) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo/bar.txt", path);
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(session).write(any(InputStream.class), captor.capture());
+		assertEquals("foo/bar.txt.writing", captor.getValue());
+		verify(session).rename("foo/bar.txt.writing", "foo/bar.txt");
+
+		gw.setFileExistsMode(FileExistsMode.FAIL);
+		try {
+			path = (String) gw.handleRequestMessage(requestMessage);
+			fail("Exception expected");
+		}
+		catch (Exception e) {
+			assertThat(e.getMessage(), containsString("The destination file already exists"));
+		}
+
+		gw.setFileExistsMode(FileExistsMode.REPLACE);
+		path = (String) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo/bar.txt", path);
+		captor = ArgumentCaptor.forClass(String.class);
+		verify(session, times(2)).write(any(InputStream.class), captor.capture());
+		assertEquals("foo/bar.txt.writing", captor.getValue());
+		verify(session, times(2)).rename("foo/bar.txt.writing", "foo/bar.txt");
+
+		gw.setFileExistsMode(FileExistsMode.APPEND);
+		path = (String) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo/bar.txt", path);
+		captor = ArgumentCaptor.forClass(String.class);
+		verify(session).append(any(InputStream.class), captor.capture());
+		assertEquals("foo/bar.txt", captor.getValue());
+
+		gw.setFileExistsMode(FileExistsMode.IGNORE);
+		path = (String) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo/bar.txt", path);
+		// no more writes/appends
+		verify(session, times(2)).write(any(InputStream.class), anyString());
+		verify(session, times(1)).append(any(InputStream.class), anyString());
 	}
 
 	@Test

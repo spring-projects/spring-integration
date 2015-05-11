@@ -497,6 +497,12 @@ If the `command-options` was omitted, it would be a list of `FileInfo` objects.
 Options are provided space-delimited, e.g.
 `command-options="-1 -dirs -links"`.
 
+Starting with _version 4.2_, the `GET`, `MGET`, `PUT` and `MPUT` commands support a `FileExistsMode` property (`mode`
+when using the namespace support). This affects the behavior when the local file exists (`GET` and `MGET`) or the remote
+file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL` and `IGNORE`.
+For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE` and for `GET` and `MGET`
+operations, the default is `FAIL`.
+
 [[sftp-jsch-logging]]
 === SFTP/JSCH Logging
 
