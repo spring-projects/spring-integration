@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.util.StringUtils;
@@ -111,8 +112,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String containerBeanName = this.parseMessageListenerContainer(element, parserContext);
-		String listenerBeanName = this.parseMessageListener(element, parserContext);
+		String containerBeanName = this.parseMessageListenerContainer(element, parserContext, builder.getRawBeanDefinition());
+		String listenerBeanName = this.parseMessageListener(element, parserContext, builder.getRawBeanDefinition());
 		builder.addConstructorArgReference(containerBeanName);
 		builder.addConstructorArgReference(listenerBeanName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
@@ -121,7 +122,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	}
 
-	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {
+	private String parseMessageListenerContainer(Element element, ParserContext parserContext,
+			BeanDefinition adapterBeanDefinition) {
 		String containerClass = element.getAttribute("container-class");
 		if (element.hasAttribute("container")) {
 			if (StringUtils.hasText(containerClass)) {
@@ -182,12 +184,16 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				"subscriptionName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
 		builder.addPropertyValue("autoStartup", false);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+		String beanName = adapterBeanNameRoot(element, parserContext, adapterBeanDefinition)
+				+ ".container";
+		parserContext.getRegistry().registerBeanDefinition(beanName, builder.getBeanDefinition());
+		return beanName;
 	}
 
-	private String parseMessageListener(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.jms.ChannelPublishingJmsMessageListener");
+	private String parseMessageListener(Element element, ParserContext parserContext,
+			BeanDefinition adapterBeanDefinition) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition(ChannelPublishingJmsMessageListener.class);
 		builder.addPropertyValue("expectReply", this.expectReply);
 		if (this.expectReply) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
@@ -233,10 +239,21 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
+		String alias = adapterBeanNameRoot(element, parserContext, adapterBeanDefinition)
+				+ ".listener";
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName);
+		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName, new String[] { alias });
 		parserContext.registerBeanComponent(component);
+		return beanName;
+	}
+
+	private String adapterBeanNameRoot(Element element, ParserContext parserContext,
+			BeanDefinition adapterBeanDefinition) {
+		String beanName = element.getAttribute(ID_ATTRIBUTE);
+		if (!StringUtils.hasText(beanName)) {
+			beanName = BeanDefinitionReaderUtils.generateBeanName(adapterBeanDefinition, parserContext.getRegistry());
+		}
 		return beanName;
 	}
 

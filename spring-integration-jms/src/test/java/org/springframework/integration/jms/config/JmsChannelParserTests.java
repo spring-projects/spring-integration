@@ -17,8 +17,6 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import java.util.List;
@@ -116,6 +114,9 @@ public class JmsChannelParserTests {
 
 	@Autowired
 	private MessageChannel withContainerClass;
+
+	@Autowired
+	private MessageChannel withContainerClassSpEL;
 
 	@Autowired
 	private MessageBuilderFactory messageBuilderFactory;
@@ -296,6 +297,14 @@ public class JmsChannelParserTests {
 	public void withContainerClass() {
 		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(
 				withContainerClass, "container",
+				CustomTestMessageListenerContainer.class);
+		assertEquals("custom.container.queue", container.getDestinationName());
+	}
+
+	@Test
+	public void withContainerClassSpEL() {
+		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(
+				withContainerClassSpEL, "container",
 				CustomTestMessageListenerContainer.class);
 		assertEquals("custom.container.queue", container.getDestinationName());
 	}

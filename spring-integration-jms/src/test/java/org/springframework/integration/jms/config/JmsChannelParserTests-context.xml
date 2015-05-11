@@ -79,6 +79,9 @@
 		container-type="simple"/>
 
 	<jms:channel id="withContainerClass" queue-name="custom.container.queue"
-		container-class="org.springframework.integration.jms.config.JmsChannelParserTests$CustomTestMessageListenerContainer" />
+		container-class="${container.class}" />
+
+	<jms:channel id="withContainerClassSpEL" queue-name="custom.container.queue"
+		container-class="#{'org.springframework.integration.jms.config.JmsChannelParserTests$CustomTestMessageListenerContainer'}" />
 
 </beans>
