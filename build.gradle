@@ -65,6 +65,7 @@ subprojects { subproject ->
 		}
 	}
 
+	task listAllDependencies(type: DependencyReportTask) {}
 
 	compileJava {
 		sourceCompatibility = 1.6
@@ -76,6 +77,11 @@ subprojects { subproject ->
 		targetCompatibility = 1.6
 	}
 
+	configurations.all {
+		resolutionStrategy {
+			force 'xml-apis:xml-apis:1.4.01'
+		}
+	}
 
 	ext {
 		activeMqVersion = '5.11.0'
