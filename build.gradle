@@ -129,7 +129,7 @@ subprojects { subproject ->
 		springSecurityVersion = '3.2.5.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.4.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.1.6.RELEASE'
 		springWsVersion = '2.2.1.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
