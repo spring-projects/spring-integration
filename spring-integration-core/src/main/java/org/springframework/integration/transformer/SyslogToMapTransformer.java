@@ -22,6 +22,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +44,8 @@ import org.springframework.util.StringUtils;
  */
 public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, Map<String, ?>> {
 
+	private static final BlockingQueue<SimpleDateFormat> dateFormats = new LinkedBlockingQueue<SimpleDateFormat>();
+
 	public static final String FACILITY = "FACILITY";
 
 	public static final String SEVERITY = "SEVERITY";
@@ -57,8 +61,6 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 	public static final String UNDECODED = "UNDECODED";
 
 	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) ([a-zA-Z0-9]{0,32})(.*)", Pattern.DOTALL);
-
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss");
 
 	@Override
 	protected Map<String, ?> transformPayload(Object payload) throws Exception {
@@ -88,6 +90,10 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 	private Map<String, ?> transform(String payload) {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		Matcher matcher = pattern.matcher(payload);
+		SimpleDateFormat dateFormat = dateFormats.poll();
+		if (dateFormat == null) {
+			dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss");
+		}
 		if (matcher.matches()) {
 			try {
 				String facilityString = matcher.group(1);
@@ -99,7 +105,8 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 				String timestamp = matcher.group(2);
 				Date date;
 				try {
-					date = this.dateFormat.parse(timestamp);
+					date = dateFormat.parse(timestamp);
+					dateFormats.offer(dateFormat);
 					Calendar calendar = Calendar.getInstance();
 					int year = calendar.get(Calendar.YEAR);
 					int month = calendar.get(Calendar.MONTH);
