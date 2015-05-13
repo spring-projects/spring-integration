@@ -438,7 +438,6 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 			return null;
 		}
 
-		@Override
 		@Deprecated
 		public void basicRecoverAsync(boolean requeue) throws IOException {
 		}
