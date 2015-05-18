@@ -90,9 +90,22 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	protected final HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
 		if (handler instanceof HandlerMethod) {
 			HandlerMethod handlerMethod = (HandlerMethod) handler;
-			handler = handlerMethod.getBean();
+			Object bean = handlerMethod.getBean();
+			if (bean instanceof HttpRequestHandlingEndpointSupport) {
+				handler = bean;
+			}
 		}
 		return super.getHandlerExecutionChain(handler, request);
+	}
+
+	@Override
+	protected CorsConfiguration getCorsConfiguration(Object handler, HttpServletRequest request) {
+		if (handler instanceof HandlerMethod) {
+			return super.getCorsConfiguration(handler, request);
+		}
+		else {
+			return super.getCorsConfiguration(new HandlerMethod(handler, HANDLE_REQUEST_METHOD), request);
+		}
 	}
 
 	@Override

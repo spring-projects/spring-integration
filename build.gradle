@@ -61,7 +61,7 @@ subprojects { subproject ->
 		apply plugin: 'spring-io'
 
 		dependencies {
-			springIoVersions "io.spring.platform:platform-versions:${platformVersion}@properties"
+			springIoVersions "io.spring.platform:platform-bom:${platformVersion}@properties"
 		}
 	}
 
@@ -104,7 +104,7 @@ subprojects { subproject ->
 		jpaApiVersion = '2.0.0'
 		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.52'
-		jsonpathVersion = '1.2.0'
+		jsonpathVersion = '2.0.0'
 		junitVersion = '4.11'
 		jythonVersion = '2.5.3'
 		log4jVersion = '1.2.17'
