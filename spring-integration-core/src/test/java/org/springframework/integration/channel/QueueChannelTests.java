@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -34,17 +29,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.selector.UnexpiredMessageSelector;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -64,10 +54,6 @@ public class QueueChannelTests {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final QueueChannel channel = new QueueChannel();
-		Log logger = spy(TestUtils.getPropertyValue(channel, "logger", Log.class));
-		when(logger.isDebugEnabled()).thenReturn(true);
-		when(logger.isTraceEnabled()).thenReturn(true);
-		new DirectFieldAccessor(channel).setPropertyValue("logger", logger);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -82,12 +68,6 @@ public class QueueChannelTests {
 		channel.send(new GenericMessage<String>("testing"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertTrue(messageReceived.get());
-		ArgumentCaptor<String> preCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<String> postCaptor = ArgumentCaptor.forClass(String.class);
-		verify(logger).trace(preCaptor.capture());
-		verify(logger, times(3)).debug(postCaptor.capture());
-		assertThat(preCaptor.getValue(), startsWith("preReceive"));
-		assertThat(postCaptor.getValue(), startsWith("postReceive"));
 	}
 
 	@Test
@@ -133,7 +113,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingReceiveWithNoTimeout() throws Exception{
+	public void testBlockingReceiveWithNoTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -154,7 +134,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingReceiveWithTimeout() throws Exception{
+	public void testBlockingReceiveWithTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -188,7 +168,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingSendWithNoTimeout() throws Exception{
+	public void testBlockingSendWithNoTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
@@ -210,7 +190,7 @@ public class QueueChannelTests {
 	}
 
 	@Test
-	public void testBlockingSendWithTimeout() throws Exception{
+	public void testBlockingSendWithTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
@@ -278,13 +258,14 @@ public class QueueChannelTests {
 	public final TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@Test
-	public void testReactorPersistentQueue() throws InterruptedException {
+	public void testReactorPersistentQueue() throws InterruptedException, IOException {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		PersistentQueue<Message<?>> queue = new PersistentQueueSpec<Message<?>>()
 				.codec(new JavaSerializationCodec<Message<?>>())
 				.basePath(this.tempFolder.getRoot().getAbsolutePath())
 				.get();
+
 		final QueueChannel channel = new QueueChannel(queue);
 		new Thread(new Runnable() {
 			@Override
