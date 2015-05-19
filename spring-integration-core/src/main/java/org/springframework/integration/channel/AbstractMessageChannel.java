@@ -273,10 +273,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			if (logger.isDebugEnabled()) {
+			boolean debugEnabled = logger.isDebugEnabled();
+			if (debugEnabled) {
 				logger.debug("preSend on channel '" + this + "', message: " + message);
 			}
-			if (interceptors.getInterceptors().size() > 0) {
+			if (interceptors.getSize() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 				message = this.interceptors.preSend(message, this, interceptorStack);
 				if (message == null) {
@@ -285,7 +286,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 			sent = this.doSend(message, timeout);
 
-			if (logger.isDebugEnabled()) {
+			if (debugEnabled) {
 				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + message);
 			}
 			if (interceptorStack != null) {
@@ -356,6 +357,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 
+		private volatile int size;
+
 		public ChannelInterceptorList(Log logger) {
 			this.logger = logger;
 		}
@@ -363,21 +366,28 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		public boolean set(List<ChannelInterceptor> interceptors) {
 			synchronized (this.interceptors) {
 				this.interceptors.clear();
+				this.size = interceptors.size();
 				return this.interceptors.addAll(interceptors);
 			}
 		}
 
+		public int getSize() {
+			return this.size;
+		}
+
 		public boolean add(ChannelInterceptor interceptor) {
+			this.size++;
 			return this.interceptors.add(interceptor);
 		}
 
 		public void add(int index, ChannelInterceptor interceptor) {
+			this.size++;
 			this.interceptors.add(index, interceptor);
 		}
 
 		public Message<?> preSend(Message<?> message, MessageChannel channel,
 				Deque<ChannelInterceptor> interceptorStack) {
-			if (this.interceptors.size() > 0) {
+			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
@@ -395,7 +405,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-			if (this.interceptors.size() > 0) {
+			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					interceptor.postSend(message, channel, sent);
 				}
@@ -416,7 +426,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public boolean preReceive(MessageChannel channel, Deque<ChannelInterceptor> interceptorStack) {
-			if (this.interceptors.size() > 0) {
+			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					if (!interceptor.preReceive(channel)) {
 						afterReceiveCompletion(null, channel, null, interceptorStack);
@@ -429,7 +439,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-			if (this.interceptors.size() > 0) {
+			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : interceptors) {
 					message = interceptor.postReceive(message, channel);
 					if (message == null) {
@@ -458,10 +468,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public boolean remove(ChannelInterceptor interceptor) {
+			this.size--;
 			return this.interceptors.remove(interceptor);
 		}
 
 		public ChannelInterceptor remove(int index) {
+			this.size--;
 			return this.interceptors.remove(index);
 		}
 
