@@ -621,13 +621,21 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public boolean remove(ChannelInterceptor interceptor) {
-			this.size--;
-			return this.interceptors.remove(interceptor);
+			if (this.interceptors.remove(interceptor)) {
+				this.size--;
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 
 		public ChannelInterceptor remove(int index) {
-			this.size--;
-			return this.interceptors.remove(index);
+			ChannelInterceptor removed = this.interceptors.remove(index);
+			if (removed != null) {
+				this.size--;
+			}
+			return removed;
 		}
 
 	}
