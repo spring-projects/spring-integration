@@ -101,6 +101,17 @@ Only files matching this regular expression will be picked up by this adapter.
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
+			<xsd:attribute name="ignore-hidden">
+				<xsd:annotation><xsd:documentation><![CDATA[
+					A boolean flag indicating whether hidden files shall be ignored.
+					If set to 'false', hidden files will be processed. If not specified,
+					this value will default to 'true' and an 'IgnoreHiddenFileListFilter'
+					will be added.
+				]]></xsd:documentation></xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
             <xsd:attribute name="prevent-duplicates" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[

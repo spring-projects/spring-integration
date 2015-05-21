@@ -46,6 +46,7 @@ public class FileListFilterFactoryBeanTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void customFilterAndFilenamePatternAreMutuallyExclusive() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		factory.setFilter(new TestFilter());
 		factory.setFilenamePattern("foo");
 		factory.getObject();
@@ -54,6 +55,7 @@ public class FileListFilterFactoryBeanTests {
 	@Test
 	public void customFilterAndPreventDuplicatesNull() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		TestFilter testFilter = new TestFilter();
 		factory.setFilter(testFilter);
 		FileListFilter<File> result = factory.getObject();
@@ -64,6 +66,7 @@ public class FileListFilterFactoryBeanTests {
 	@Test
 	public void customFilterAndPreventDuplicatesTrue() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		TestFilter testFilter = new TestFilter();
 		factory.setFilter(testFilter);
 		factory.setPreventDuplicates(Boolean.TRUE);
@@ -77,6 +80,7 @@ public class FileListFilterFactoryBeanTests {
 	@Test
 	public void customFilterAndPreventDuplicatesFalse() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		TestFilter testFilter = new TestFilter();
 		factory.setFilter(testFilter);
 		factory.setPreventDuplicates(Boolean.FALSE);
@@ -89,6 +93,7 @@ public class FileListFilterFactoryBeanTests {
 	@SuppressWarnings("unchecked")
 	public void filenamePatternAndPreventDuplicatesNull() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		factory.setFilenamePattern("foo");
 		FileListFilter<File> result = factory.getObject();
 		assertTrue(result instanceof CompositeFileListFilter);
@@ -103,6 +108,7 @@ public class FileListFilterFactoryBeanTests {
 	@SuppressWarnings("unchecked")
 	public void filenamePatternAndPreventDuplicatesTrue() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		factory.setFilenamePattern(("foo"));
 		factory.setPreventDuplicates(Boolean.TRUE);
 		FileListFilter<File> result = factory.getObject();
@@ -117,13 +123,13 @@ public class FileListFilterFactoryBeanTests {
 	@Test
 	public void filenamePatternAndPreventDuplicatesFalse() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+		factory.setIgnoreHidden(false);
 		factory.setFilenamePattern(("foo"));
 		factory.setPreventDuplicates(Boolean.FALSE);
 		FileListFilter<File> result = factory.getObject();
 		assertFalse(result instanceof CompositeFileListFilter);
 		assertThat(result, is(instanceOf(SimplePatternFileListFilter.class)));
 	}
-
 
 	private static class TestFilter extends AbstractFileListFilter<File> {
 		@Override

@@ -37,12 +37,18 @@ For more information, see <<security>>.
 
 As an alternative to the existing `selector` attribute, the `<wire-tap/>` now supports the `selector-expression` attribute.
 
-[[x4.2-file-outbound-channel-adapter]]
-==== File Outbound Channel Adapter
+[[x4.2-file-changes]]
+==== File Changes
 
 The `<int-file:outbound-channel-adapter>` and `<int-file:outbound-gateway>` now support an `append-new-line` attribute.
 If set to `true`, a new line is appended to the file after a message is written.
 The default attribute value is `false`.
+
+The `ignore-hidden` attribute has been introduced for the `<int-file:inbound-channel-adapter>` to pick up or not
+the _hidden_ files from the source directory.
+It is `true` by default.
+
+See <<files>> for more information.
 
 [[x4.2-class-package-change]]
 ==== Class Package Change

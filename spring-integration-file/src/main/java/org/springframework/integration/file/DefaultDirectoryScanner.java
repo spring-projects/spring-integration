@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,29 @@
 package org.springframework.integration.file;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.messaging.MessagingException;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
 
 /**
  * Default directory scanner and base class for other directory scanners.
  * Manages the default interrelations between filtering, scanning and locking.
  *
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class DefaultDirectoryScanner implements DirectoryScanner {
 
-	private volatile FileListFilter<File> filter = new AcceptOnceFileListFilter<File>();
+	private volatile FileListFilter<File> filter;
 
 	private volatile FileLocker locker;
-
 
 	public void setFilter(FileListFilter<File> filter) {
 		this.filter = filter;
@@ -49,6 +52,20 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 		this.locker = locker;
 	}
 
+	/**
+	 * Initializes {@link DefaultDirectoryScanner#filter} with a default list of
+	 * {@link FileListFilter}s using a {@link CompositeFileListFilter}:
+	 * <ul>
+	 *	<li>{@link IgnoreHiddenFileListFilter}</li>
+	 *	<li>{@link AcceptOnceFileListFilter}</li>
+	 * </ul>
+	 */
+	public DefaultDirectoryScanner() {
+		final List<FileListFilter<File>> defaultFilters = new ArrayList<FileListFilter<File>>(2);
+		defaultFilters.add(new IgnoreHiddenFileListFilter());
+		defaultFilters.add(new AcceptOnceFileListFilter<File>());
+		this.filter = new CompositeFileListFilter<File>(defaultFilters);
+	}
 
 	/**
 	 * {@inheritDoc}

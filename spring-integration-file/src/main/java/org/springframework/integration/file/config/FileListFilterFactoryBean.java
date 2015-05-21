@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.file.filters.*;
+import org.springframework.integration.file.filters.AcceptAllFileListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
+import org.springframework.integration.file.filters.RegexPatternFileListFilter;
+import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 1.0.3
  */
 public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<File>> {
@@ -37,10 +44,11 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 	private volatile String filenameRegex;
 
+	private volatile Boolean ignoreHidden = Boolean.TRUE;
+
 	private volatile Boolean preventDuplicates;
 
 	private final Object monitor = new Object();
-
 
 	public void setFilter(FileListFilter<File> filter) {
 		this.filter = filter;
@@ -52,6 +60,16 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 	public void setFilenameRegex(String filenameRegex) {
 		this.filenameRegex = filenameRegex;
+	}
+
+	/**
+	 * Specify whether hidden files shall be ignored.
+	 * This is {@code true} by default.
+	 * @param ignoreHidden Can be null, which triggers default behavior.
+	 * @since 4.2
+	 */
+	public void setIgnoreHidden(Boolean ignoreHidden) {
+		this.ignoreHidden = ignoreHidden;
 	}
 
 	public void setPreventDuplicates(Boolean preventDuplicates) {
@@ -89,19 +107,26 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 			throw new IllegalArgumentException("The 'filename-pattern' and 'filename-regex' attributes are mutually exclusive.");
 		}
 
+		final List<FileListFilter<File>> filtersNeeded = new ArrayList<FileListFilter<File>>();
+
+		if (!Boolean.FALSE.equals(this.ignoreHidden)) {
+			filtersNeeded.add(new IgnoreHiddenFileListFilter());
+		}
+
 		//'filter' is set
 		if (this.filter != null) {
 			if (Boolean.TRUE.equals(this.preventDuplicates)) {
-				createdFilter = this.createCompositeWithAcceptOnceFilter(this.filter);
+				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
+				filtersNeeded.add(this.filter);
 			}
 			else { // preventDuplicates is either FALSE or NULL
-				createdFilter = this.filter;
+				filtersNeeded.add(this.filter);
 			}
 		}
 
 		// 'file-pattern' or 'file-regex' is set
 		else if (this.filenamePattern != null || this.filenameRegex != null) {
-			List<FileListFilter<File>> filtersNeeded = new ArrayList<FileListFilter<File>>();
+
 			if (!Boolean.FALSE.equals(this.preventDuplicates)) {
 				//preventDuplicates is either null or true
 				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
@@ -112,30 +137,24 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 			if (this.filenameRegex != null) {
 				filtersNeeded.add(new RegexPatternFileListFilter(this.filenameRegex));
 			}
-			if (filtersNeeded.size() == 1) {
-				createdFilter = filtersNeeded.get(0);
-			}
-			else {
-				createdFilter = new CompositeFileListFilter<File>(filtersNeeded);
-			}
 		}
 
 		// no filters are provided
 		else if (Boolean.FALSE.equals(this.preventDuplicates)) {
-			createdFilter = new AcceptAllFileListFilter<File>();
+			filtersNeeded.add(new AcceptAllFileListFilter<File>());
 		}
 		else { // preventDuplicates is either TRUE or NULL
-			createdFilter = new AcceptOnceFileListFilter<File>();
+			filtersNeeded.add(new AcceptOnceFileListFilter<File>());
+		}
+
+		if (filtersNeeded.size() == 1) {
+			createdFilter = filtersNeeded.get(0);
+		}
+		else {
+			createdFilter = new CompositeFileListFilter<File>(filtersNeeded);
 		}
 
 		this.result = createdFilter;
-	}
-
-	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File> otherFilter) {
-		CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
-		compositeFilter.addFilter(new AcceptOnceFileListFilter<File>());
-		compositeFilter.addFilter(otherFilter);
-		return compositeFilter;
 	}
 
 }
