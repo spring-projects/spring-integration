@@ -266,6 +266,9 @@ Use the `local-filter` attribute to configure the behavior of the local file sys
 To solve these particular use cases, you can use a`FileSystemPersistentAcceptOnceFileListFilter` as a local filter instead.
 This filter also stores the accepted file names and modified timestamp in an instance of the`MetadataStore` strategy (<<metadata-store>>), and will detect the change in the local file modified time.
 
+Since __version 4.1.5__, these filters have a new property `flushOnUpdate` which will cause them to flush the
+metadata store on every update (if the store implements `Flushable`).
+
 IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<redis-metadata-store>> or <<gemfire-metadata-store>>) you can have multiple instances of the same adapter/application and be sure that one and only one will process a file.
 
 The actual local filter is a `CompositeFileListFilter` containing the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`); files are downloaded with this suffix (default: `.writing`) and the file is renamed to its final name when the transfer is complete, making it 'visible' to the filter.

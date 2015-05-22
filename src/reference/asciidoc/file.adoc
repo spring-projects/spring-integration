@@ -37,6 +37,9 @@ This filter matches on the filename and modified time.
 
 Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
 When used with a shared data store (such as `Redis` with the `RedisMetadataStore`) this allows filter keys to be shared across multiple application instances, or when a network file share is being used by multiple servers.
+
+Since __version 4.1.5__, this filter has a new property `flushOnUpdate` which will cause it to flush the
+metadata store on every update (if the store implements `Flushable`).
 =====
 
 [source,xml]
