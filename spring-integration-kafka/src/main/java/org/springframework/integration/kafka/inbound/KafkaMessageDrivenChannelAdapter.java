@@ -16,8 +16,10 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
 
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -31,11 +33,11 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
-
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
 
 /**
  * @author Marius Bogoevici
@@ -168,7 +170,7 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 
 		@Override
 		public void doOnMessage(Object key, Object payload, KafkaMessageMetadata metadata) {
-			KafkaMessageDrivenChannelAdapter.this.sendMessage(toMessage(key, payload, metadata, null));
+			sendMessage(toMessage(key, payload, metadata, null));
 		}
 
 	}
@@ -184,95 +186,38 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 		@Override
 		public void doOnMessage(Object key, Object payload, KafkaMessageMetadata metadata,
 				Acknowledgment acknowledgment) {
-			KafkaMessageDrivenChannelAdapter.this.sendMessage(toMessage(key, payload, metadata, acknowledgment));
-		}
 
+			sendMessage(toMessage(key, payload, metadata, acknowledgment));
+		}
 	}
 
 	private Message<Object> toMessage(Object key, Object payload, KafkaMessageMetadata metadata,
 			Acknowledgment acknowledgment) {
 
-		final Map<String, Object> headers = new HashMap<String, Object>();
+		final MessageHeaderAccessor headerAccessor = new MessageHeaderAccessor();
 
-		headers.put(KafkaHeaders.MESSAGE_KEY, key);
-		headers.put(KafkaHeaders.TOPIC, metadata.getPartition().getTopic());
-		headers.put(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId());
-		headers.put(KafkaHeaders.OFFSET, metadata.getOffset());
-		headers.put(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
+		headerAccessor.setHeader(KafkaHeaders.MESSAGE_KEY, key);
+		headerAccessor.setHeader(KafkaHeaders.TOPIC, metadata.getPartition().getTopic());
+		headerAccessor.setHeader(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId());
+		headerAccessor.setHeader(KafkaHeaders.OFFSET, metadata.getOffset());
+		headerAccessor.setHeader(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
 
 		// pre-set the message id header if set to not generate
-		if (!this.generateMessageId) {
-			headers.put(MessageHeaders.ID, MessageHeaders.ID_VALUE_NONE);
-		}
+		headerAccessor.setLeaveMutable(!(this.generateMessageId || this.generateTimestamp));
 
-		// pre-set the timestamp header if set to not generate
-		if (!this.generateTimestamp) {
-			headers.put(MessageHeaders.TIMESTAMP, -1L);
-		}
 
 		if (!this.autoCommitOffset) {
-			headers.put(KafkaHeaders.ACKNOWLEDGMENT, acknowledgment);
+			headerAccessor.setHeader(KafkaHeaders.ACKNOWLEDGMENT, acknowledgment);
 		}
 
 		if (this.useMessageBuilderFactory) {
 			return getMessageBuilderFactory()
 					.withPayload(payload)
-					.copyHeaders(headers)
+					.copyHeaders(headerAccessor.toMessageHeaders())
 					.build();
 		}
 		else {
-			return new KafkaMessage(payload, headers);
-		}
-
-	}
-
-	/**
-	 * Special subclass of {@link Message}. It is used for lower message generation overhead, unless the default
-	 * strategy of the outer class is set via {@link #setUseMessageBuilderFactory(boolean)}
-	 * @since 1.1
-	 */
-	private class KafkaMessage implements Message<Object> {
-
-		private final Object payload;
-
-		private final MessageHeaders messageHeaders;
-
-		public KafkaMessage(Object payload, Map<String, Object> headers) {
-			this.payload = payload;
-			this.messageHeaders = new KafkaMessageHeaders(headers, generateMessageId, generateTimestamp);
-		}
-
-		@Override
-		public Object getPayload() {
-			return this.payload;
-		}
-
-		@Override
-		public MessageHeaders getHeaders() {
-			return this.messageHeaders;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder sb = new StringBuilder(getClass().getSimpleName());
-			sb.append(" [payload=");
-			if (this.payload instanceof byte[]) {
-				sb.append("byte[").append(((byte[]) this.payload).length).append("]");
-			}
-			else {
-				sb.append(this.payload);
-			}
-			sb.append(", headers=").append(this.messageHeaders).append("]");
-			return sb.toString();
-		}
-
-	}
-
-	@SuppressWarnings("serial")
-	private class KafkaMessageHeaders extends MessageHeaders {
-
-		public KafkaMessageHeaders(Map<String, Object> headers, boolean generateId, boolean generateTimestamp) {
-			super(headers, generateId ? null : ID_VALUE_NONE, generateTimestamp ? null : -1L);
+			return MessageBuilder.createMessage(payload, headerAccessor.getMessageHeaders());
 		}
 
 	}
