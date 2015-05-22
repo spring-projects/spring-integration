@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,13 @@
 package org.springframework.integration.file.filters;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.Flushable;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -28,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -93,6 +98,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		assertEquals(Integer.valueOf(0), theResult); // lost the race, key changed
 
 		file.delete();
+		filter.close();
 	}
 
 	@Override
@@ -115,7 +121,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 	}
 
 	@Test
-	public void testRollbackFileSystem() {
+	public void testRollbackFileSystem() throws Exception {
 		FileSystemPersistentAcceptOnceFileListFilter filter = new FileSystemPersistentAcceptOnceFileListFilter(
 				new SimpleMetadataStore(), "rollback:");
 		File[] files = new File[] {new File("foo"), new File("bar"), new File("baz")};
@@ -130,6 +136,66 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		assertEquals("baz", now.get(1).getName());
 		now = filter.filterFiles(files);
 		assertEquals(0, now.size());
+		filter.close();
+	}
+
+	@Test
+	/*
+	 * INT-3721: Test all operations that can cause the metadata to be flushed.
+	 */
+	public void testFlush() throws Exception {
+		final AtomicInteger flushes = new AtomicInteger();
+		final AtomicBoolean replaced = new AtomicBoolean();
+		class MS extends SimpleMetadataStore implements Flushable, Closeable {
+
+			@Override
+			public void flush() throws IOException {
+				flushes.incrementAndGet();
+			}
+
+			@Override
+			public void close() throws IOException {
+				flush();
+			}
+
+			@Override
+			public boolean replace(String key, String oldValue, String newValue) {
+				replaced.set(true);
+				return super.replace(key, oldValue, newValue);
+			}
+
+		}
+		MS store = new MS();
+		String prefix = "flush:";
+		FileSystemPersistentAcceptOnceFileListFilter filter = new FileSystemPersistentAcceptOnceFileListFilter(
+				store, prefix);
+		final File file = File.createTempFile("foo", ".txt");
+		File[] files = new File[] { file };
+		List<File> passed = filter.filterFiles(files);
+		assertTrue(Arrays.equals(files, passed.toArray()));
+		filter.rollback(passed.get(0), passed);
+		assertEquals(0, flushes.get());
+		filter.setFlushOnUpdate(true);
+		passed = filter.filterFiles(files);
+		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertEquals(1, flushes.get());
+		filter.rollback(passed.get(0), passed);
+		assertEquals(2, flushes.get());
+		passed = filter.filterFiles(files);
+		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertEquals(3, flushes.get());
+		passed = filter.filterFiles(files);
+		assertEquals(0, passed.size());
+		assertEquals(3, flushes.get());
+		assertFalse(replaced.get());
+		store.put(prefix + file.getAbsolutePath(), "1");
+		passed = filter.filterFiles(files);
+		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertEquals(4, flushes.get());
+		assertTrue(replaced.get());
+		file.delete();
+		filter.close();
+		assertEquals(5, flushes.get());
 	}
 
 }

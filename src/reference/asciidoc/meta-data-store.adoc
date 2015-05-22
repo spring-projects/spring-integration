@@ -22,6 +22,9 @@ the framework:
 
 The `PropertiesPersistingMetadataStore` is backed by a properties file and a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html[PropertiesPersister].
 
+By default, it only persists the state when the application context is closed normally. It implements `Flushable` so you
+can persist the state at will, be invoking `flush()`.
+
 [source,xml]
 ----
 <bean id="metadataStore"
