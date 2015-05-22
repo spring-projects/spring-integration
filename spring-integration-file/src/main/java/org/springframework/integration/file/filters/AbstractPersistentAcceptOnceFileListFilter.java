@@ -17,6 +17,7 @@
 package org.springframework.integration.file.filters;
 
 import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 import java.util.List;
 
@@ -38,7 +39,11 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 
 	protected final ConcurrentMetadataStore store;
 
+	protected final Flushable flushableStore;
+
 	protected final String prefix;
+
+	protected volatile boolean flushOnUpdate;
 
 	private final Object monitor = new Object();
 
@@ -47,6 +52,22 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 		Assert.notNull(prefix, "'prefix' cannot be null");
 		this.store = store;
 		this.prefix = prefix;
+		if (store instanceof Flushable) {
+			this.flushableStore = (Flushable) store;
+		}
+		else {
+			this.flushableStore = null;
+		}
+	}
+
+	/**
+	 * Determine whether the metastore should be flushed on each update (if
+	 * {@link Flushable}).
+	 * @param flushOnUpdate true to flush.
+	 * @since 1.4.5
+	 */
+	public void setFlushOnUpdate(boolean flushOnUpdate) {
+		this.flushOnUpdate = flushOnUpdate;
 	}
 
 	@Override
@@ -56,10 +77,17 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 			String newValue = value(file);
 			String oldValue = this.store.putIfAbsent(key, newValue);
 			if (oldValue == null) { // not in store
+				flushIfNeeded();
 				return true;
 			}
 			// same value in store
-			return !isEqual(file, oldValue) && this.store.replace(key, oldValue, newValue);
+			if (!isEqual(file, oldValue)) {
+				if (this.store.replace(key, oldValue, newValue)) {
+					flushIfNeeded();
+					return true;
+				};
+			}
+			return false;
 		}
 	}
 
@@ -76,6 +104,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 			}
 			if (rollingBack) {
 				this.store.remove(buildKey(fileToRollback));
+				flushIfNeeded();
 			}
 		}
 	}
@@ -114,6 +143,22 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	 */
 	protected String buildKey(F file) {
 		return this.prefix + this.fileName(file);
+	}
+
+	/**
+	 * Flush the store if it's a {@link Flushable} and
+	 * {@link #setFlushOnUpdate(boolean) flushOnUpdate} is true.
+	 * @since 1.4.5
+	 */
+	protected void flushIfNeeded() {
+		if (this.flushOnUpdate && this.flushableStore != null) {
+			try {
+				this.flushableStore.flush();
+			}
+			catch (IOException e) {
+				// store's responsibility to log
+			}
+		}
 	}
 
 	protected abstract long modified(F file);

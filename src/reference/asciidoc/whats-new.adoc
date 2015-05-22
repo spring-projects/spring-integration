@@ -109,7 +109,7 @@ attributes with similar purpose as for `<int-amqp:outbound-channel-adapter>`.
 See <<amqp>> for more information.
 
 [[x4.2-xpath-splitter]]
-==== XPath Splitter improvements
+==== XPath Splitter Improvements
 
 The `XPathMessageSplitter` (`<int-xml:xpath-splitter>`) now allows the configuration of `output-properties`
 for the internal `javax.xml.transform.Transformer` and supports an `Iterator` mode (defaults to `true`) for the xpath
@@ -118,9 +118,15 @@ evaluation `org.w3c.dom.NodeList` result.
 See <<xml-xpath-splitting>> for more information.
 
 [[x4.2-http-changes]]
-==== HTTP changes
+==== HTTP Changes
 
 The HTTP Inbound Endpoints (`<int-http:inbound-channel-adapter>` and `<int-http:inbound-gateway>`) now allow the
 configuration of _Cross-Origin Resource Sharing (CORS)_.
 
 See <<cors>> for more information.
+
+[[x4.2-file-filter]]
+==== Persistent File List Filter Changes
+
+The `AbstractPersistentFileListFilter` has a new property `flushOnUpdate` which, when set to true, will `flush()` the
+metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetadataStore`).
