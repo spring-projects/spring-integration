@@ -78,8 +78,6 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.configuration, "Kafka configuration cannot be empty");
-		refreshMetadata(this.configuration.getDefaultTopic() == null ? Collections.<String>emptyList() :
-				Collections.singletonList(this.configuration.getDefaultTopic()));
 	}
 
 	@Override
