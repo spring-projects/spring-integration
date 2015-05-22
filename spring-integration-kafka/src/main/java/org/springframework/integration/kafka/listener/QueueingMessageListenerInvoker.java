@@ -16,20 +16,29 @@
 
 package org.springframework.integration.kafka.listener;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
+import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.kafka.core.KafkaMessage;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+
+import reactor.core.processor.RingBufferProcessor;
 
 /**
  * Invokes a delegate {@link MessageListener} for all the messages passed to it, storing them
  * in an internal queue.
  *
  * @author Marius Bogoevici
+ * @author Stephane Maldini
  */
-class QueueingMessageListenerInvoker implements Runnable {
+class QueueingMessageListenerInvoker {
 
 	private final MessageListener messageListener;
 
@@ -39,14 +48,19 @@ class QueueingMessageListenerInvoker implements Runnable {
 
 	private final ErrorHandler errorHandler;
 
-	private BlockingQueue<KafkaMessage> messages;
+	private final int capacity;
+
+	private final ExecutorService executorService;
+
+	private RingBufferProcessor<KafkaMessage> ringBufferProcessor;
 
 	private volatile boolean running = false;
 
-	private volatile CountDownLatch shutdownLatch = null;
+	private volatile CountDownLatch shutdownLatch;
 
-	public QueueingMessageListenerInvoker(int capacity, OffsetManager offsetManager, Object delegate,
-			ErrorHandler errorHandler) {
+	public QueueingMessageListenerInvoker(int capacity, final OffsetManager offsetManager, Object delegate,
+										  final ErrorHandler errorHandler, Executor executor) {
+		this.capacity = capacity;
 		if (delegate instanceof MessageListener) {
 			this.messageListener = (MessageListener) delegate;
 			this.acknowledgingMessageListener = null;
@@ -62,95 +76,92 @@ class QueueingMessageListenerInvoker implements Runnable {
 		}
 		this.offsetManager = offsetManager;
 		this.errorHandler = errorHandler;
-		this.messages = new ArrayBlockingQueue<KafkaMessage>(capacity);
+		if (executor != null) {
+			this.executorService = new ExecutorServiceAdapter(new ConcurrentTaskExecutor(executor));
+		}
+		else {
+			this.executorService = null;
+		}
 	}
 
 	/**
 	 * Add a message to the queue, blocking if the queue has reached its maximum capacity.
 	 * Interrupts will be ignored for as long as the component's {@code running} flag is set to true, but will
 	 * be deferred for when the method returns.
+	 *
 	 * @param message the KafkaMessage to add
 	 */
 	public void enqueue(KafkaMessage message) {
-		boolean wasInterruptedWhileRunning = false;
 		if (this.running) {
-			boolean added = false;
-			// handle the case when the thread is interrupted while the adapter is still running
-			// retry adding the message to the queue until either we succeed, or the adapter is stopped
-			while (!added && this.running) {
-				try {
-					this.messages.put(message);
-					added = true;
-				}
-				catch (InterruptedException e) {
-					// we ignore the interruption signal if we are still running, but pass it on if we are stopped
-					wasInterruptedWhileRunning = true;
-				}
-			}
-		}
-		if (wasInterruptedWhileRunning) {
-			Thread.currentThread().interrupt();
+			ringBufferProcessor.onNext(message);
 		}
 	}
 
 	public void start() {
 		this.running = true;
+		ExecutorService service = executorService != null ? executorService : Executors.newSingleThreadExecutor();
+		this.ringBufferProcessor = RingBufferProcessor.share(service, capacity);
+		this.ringBufferProcessor.subscribe(new KafkaMessageDispatchingSubscriber());
 	}
 
 	public void stop(long stopTimeout) {
-		shutdownLatch = new CountDownLatch(1);
 		this.running = false;
-		try {
-			shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		messages.clear();
-	}
-
-	/**
-	 * Runs uninterruptibly as long as {@code running} is true, but if interrupted, will defer
-	 * propagating the interruption flag at the end.
-	 */
-	@Override
-	public void run() {
-		boolean wasInterrupted = false;
-		while (this.running) {
+		if (ringBufferProcessor != null) {
+			ringBufferProcessor.onComplete();
+			ringBufferProcessor = null;
+			shutdownLatch = new CountDownLatch(1);
 			try {
-				KafkaMessage message = messages.take();
-				if (this.running) {
-					try {
-						if (messageListener != null) {
-							messageListener.onMessage(message);
-						}
-						else {
-							acknowledgingMessageListener.onMessage(message, new DefaultAcknowledgment(offsetManager, message));
-						}
-					}
-					catch (Exception e) {
-						if (errorHandler != null) {
-							errorHandler.handle(e, message);
-						}
-					}
-					finally {
-						if (messageListener != null) {
-							offsetManager.updateOffset(message.getMetadata().getPartition(),
-									message.getMetadata().getNextOffset());
-						}
-					}
-				}
+				shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
 			}
 			catch (InterruptedException e) {
-				wasInterrupted = true;
+				Thread.currentThread().interrupt();
 			}
-		}
-		if (shutdownLatch != null) {
-			shutdownLatch.countDown();
-		}
-		if (wasInterrupted) {
-			Thread.currentThread().interrupt();
 		}
 	}
 
+	private class KafkaMessageDispatchingSubscriber implements Subscriber<KafkaMessage> {
+
+		@Override
+		public void onSubscribe(Subscription s) {
+			s.request(Long.MAX_VALUE);
+		}
+
+		@Override
+		public void onNext(KafkaMessage kafkaMessage) {
+			try {
+				if (messageListener != null) {
+					messageListener.onMessage(kafkaMessage);
+				}
+				else {
+					acknowledgingMessageListener.onMessage(kafkaMessage, new DefaultAcknowledgment(offsetManager, kafkaMessage));
+				}
+			}
+			catch (Exception e) {
+				// we handle errors here so that we make sure that offsets are handled concurrently
+				if (errorHandler != null) {
+					errorHandler.handle(e, kafkaMessage);
+				}
+			}
+			finally {
+				if (messageListener != null) {
+					offsetManager.updateOffset(kafkaMessage.getMetadata().getPartition(),
+							kafkaMessage.getMetadata().getNextOffset());
+				}
+			}
+		}
+
+		@Override
+		public void onError(Throwable t) {
+			//ignore
+		}
+
+		@Override
+		public void onComplete() {
+			CountDownLatch latch = shutdownLatch;
+			if (latch != null) {
+				shutdownLatch = null;
+				latch.countDown();
+			}
+		}
+	}
 }

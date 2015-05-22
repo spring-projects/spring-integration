@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.support;
 
 import java.util.Properties;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.FactoryBean;
 /**
  * @author Soby Chacko
  * @author Marius Bogoevici
- *
  * @since 0.5
  */
 public class ProducerFactoryBean<K, V> implements FactoryBean<Producer<K, V>> {
@@ -42,7 +42,7 @@ public class ProducerFactoryBean<K, V> implements FactoryBean<Producer<K, V>> {
 	private Properties producerProperties = new Properties();
 
 	public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList,
-														 final Properties producerProperties) {
+							   final Properties producerProperties) {
 		this.producerMetadata = producerMetadata;
 		this.brokerList = brokerList;
 		if (producerProperties != null) {
@@ -60,6 +60,7 @@ public class ProducerFactoryBean<K, V> implements FactoryBean<Producer<K, V>> {
 		props.putAll(producerProperties);
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
 		props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, producerMetadata.getCompressionType().name());
+		props.put(ProducerConfig.BATCH_SIZE_CONFIG, producerMetadata.getBatchBytes());
 		LOGGER.info("Using producer properties => " + props);
 		return new KafkaProducer<>(props,
 				producerMetadata.getKeySerializer(),
