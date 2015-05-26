@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/stomp=org.springframework.integration.stomp.config.StompNamespaceHandler

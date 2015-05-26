@@ -66,6 +66,10 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.shouldTrack = shouldTrack;
 	}
 
+	protected MessagingTemplate getMessagingTemplate() {
+		return messagingTemplate;
+	}
+
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.outputChannel, "outputChannel is required");
