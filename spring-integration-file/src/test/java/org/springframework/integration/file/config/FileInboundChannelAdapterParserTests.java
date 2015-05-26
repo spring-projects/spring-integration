@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,69 +41,70 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileInboundChannelAdapterParserTests {
 
-    @Autowired(required = true)
-    private ApplicationContext context;
+	@Autowired(required = true)
+	private ApplicationContext context;
 
-    @Autowired
-    private FileReadingMessageSource source;
+	@Autowired
+	private FileReadingMessageSource source;
 
-    private DirectFieldAccessor accessor;
+	private DirectFieldAccessor accessor;
 
-    @Before
-    public void init() {
-        accessor = new DirectFieldAccessor(source);
-    }
+	@Before
+	public void init() {
+		accessor = new DirectFieldAccessor(source);
+	}
 
-    @Test
-    public void channelName() throws Exception {
-    	context.getBean("inputDirPoller");
-        AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
-        assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
-    }
+	@Test
+	public void channelName() throws Exception {
+		context.getBean("inputDirPoller");
+		AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
+		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
+	}
 
-    @Test
-    public void inputDirectory() {
-        File expected = new File(System.getProperty("java.io.tmpdir"));
-        File actual = (File) accessor.getPropertyValue("directory");
-        assertEquals("'directory' should be set", expected, actual);
-    }
+	@Test
+	public void inputDirectory() {
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) accessor.getPropertyValue("directory");
+		assertEquals("'directory' should be set", expected, actual);
+	}
 
-    @Test
-    public void filter() throws Exception {
-        DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
-        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
-        Object filter = scannerAccessor.getPropertyValue("filter");
-        assertTrue("'filter' should be set",
-                filter instanceof AcceptOnceFileListFilter);
-    }
+	@Test
+	public void filter() throws Exception {
+		DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
+		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
+		Object filter = scannerAccessor.getPropertyValue("filter");
+		assertTrue("'filter' should be set and be of instance AcceptOnceFileListFilter but got "
+			+ filter.getClass().getSimpleName(), filter instanceof AcceptOnceFileListFilter);
+	}
 
-    @Test
-    public void comparator() throws Exception {
-        Object priorityQueue = accessor.getPropertyValue("toBeReceived");
-        assertEquals(PriorityBlockingQueue.class, priorityQueue.getClass());
-        Object expected = context.getBean("testComparator");
-        DirectFieldAccessor queueAccessor = new DirectFieldAccessor(priorityQueue);
-        Object innerQueue = queueAccessor.getPropertyValue("q");
-        Object actual;
-        if (innerQueue != null) {
-            actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
-        }
-        else {
-            // probably running under JDK 7
-            actual = queueAccessor.getPropertyValue("comparator");
-        }
-        assertSame("comparator reference not set, ", expected, actual);
-    }
+	@Test
+	public void comparator() throws Exception {
+		Object priorityQueue = accessor.getPropertyValue("toBeReceived");
+		assertEquals(PriorityBlockingQueue.class, priorityQueue.getClass());
+		Object expected = context.getBean("testComparator");
+		DirectFieldAccessor queueAccessor = new DirectFieldAccessor(priorityQueue);
+		Object innerQueue = queueAccessor.getPropertyValue("q");
+		Object actual;
+		if (innerQueue != null) {
+			actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
+		}
+		else {
+			// probably running under JDK 7
+			actual = queueAccessor.getPropertyValue("comparator");
+		}
+		assertSame("comparator reference not set, ", expected, actual);
+	}
 
-    static class TestComparator implements Comparator<File> {
+	static class TestComparator implements Comparator<File> {
 
-        public int compare(File f1, File f2) {
-            return 0;
-        }
+		public int compare(File f1, File f2) {
+			return 0;
+		}
 	}
 }

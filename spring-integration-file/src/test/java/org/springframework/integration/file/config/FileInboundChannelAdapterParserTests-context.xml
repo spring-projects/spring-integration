@@ -14,6 +14,7 @@
 							 directory="${java.io.tmpdir}"
 							 filter="filter"
 							 comparator="testComparator"
+							 ignore-hidden="false"
 							 auto-startup="false">
 		<integration:poller fixed-rate="5000">
 		    <integration:transactional synchronization-factory="syncFactory"/>
@@ -22,7 +23,9 @@
 
 	<integration:channel id="successChannel" />
 
-	<beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean"/>
+	<beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean">
+		<beans:property name="ignoreHidden" value="false"/>
+	</beans:bean>
 
 	<beans:bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
 		<beans:constructor-arg>
@@ -34,9 +37,9 @@
 
 	<beans:bean id="testComparator"
 				class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
-				
+
 	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
-	
+
 	<beans:bean id="syncFactory" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<beans:constructor-arg>
 			<beans:bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">

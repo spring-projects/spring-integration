@@ -24,9 +24,23 @@ This is an implementation of `MessageSource` that creates messages from a file s
     p:directory="${input.directory}"/>
 ----
 
-To prevent creating messages for certain files, you may supply a `FileListFilter`.
-By default, an `AcceptOnceFileListFilter` is used.
-This filter ensures files are picked up only once from the directory.
+To prevent creating messages for certain files, you may supply a `FileListFilter`. By default the following 2 filters are used:
+
+* `IgnoreHiddenFileListFilter`
+* `AcceptOnceFileListFilter`
+
+The `IgnoreHiddenFileListFilter` ensures that *hidden* files are not being processed.
+Please keep in mind that the exact definition of *hidden* is system-dependent. For example,
+on _UNIX_-based systems, a file beginning with a period character is considered to be hidden.
+_Microsoft Windows_, on the other hand, has a dedicated file attribute to indicate
+hidden files.
+
+[IMPORTANT]
+=====
+The `IgnoreHiddenFileListFilter` was introduced with _version 4.2_. In prior versions hidden files *were being picked up*. With the default configuration, the `IgnoreHiddenFileListFilter` will be triggered first, then the `AcceptOnceFileListFilter`.
+=====
+
+The `AcceptOnceFileListFilter` ensures files are picked up only once from the directory.
 
 [NOTE]
 =====
@@ -93,11 +107,11 @@ To do this use the following template.
 </beans>
 ----
 
-Within this namespace you can reduce the FileReadingMessageSource and wrap it in an inbound Channel Adapter like this:
+Within this namespace you can reduce the `FileReadingMessageSource` and wrap it in an inbound Channel Adapter like this:
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn1"
-    directory="file:${input.directory}" prevent-duplicates="true"/>
+    directory="file:${input.directory}" prevent-duplicates="true" ignore-hidden="true"/>
 
 <int-file:inbound-channel-adapter id="filesIn2"
     directory="file:${input.directory}"
@@ -112,7 +126,19 @@ Within this namespace you can reduce the FileReadingMessageSource and wrap it in
     filename-regex="test[0-9]+\.txt" />
 ----
 
-The first channel adapter is relying on the default filter that just prevents duplication, the second is using a custom filter, the third is using the_filename-pattern_ attribute to add an `AntPathMatcher` based filter, and the fourth is using the _filename-regex_ attribute to add a regular expression Pattern based filter to the `FileReadingMessageSource`.
+The first channel adapter example is relying on the default `FileListFilter`s:
+
+* `IgnoreHiddenFileListFilter` (Do not process hidden files)
+* `AcceptOnceFileListFilter` (Prevents duplication)
+
+Therefore, you can also leave off the 2 attributes `prevent-duplicates` and `ignore-hidden` as they are `true` by default.
+
+[IMPORTANT]
+=====
+The `ignore-hidden` attribute was introduced with _Spring Integration 4.2_. In prior versions hidden files *were being picked up*.
+=====
+
+The second channel adapter example is using a custom filter, the third is using the_filename-pattern_ attribute to add an `AntPathMatcher` based filter, and the fourth is using the _filename-regex_ attribute to add a regular expression Pattern based filter to the `FileReadingMessageSource`.
 The _filename-pattern_ and _filename-regex_ attributes are each mutually exclusive with the regular _filter_ reference attribute.
 However, you can use the _filter_ attribute to reference an instance of `CompositeFileListFilter` that combines any number of filters, including one or more pattern based filters to fit your particular needs.
 
