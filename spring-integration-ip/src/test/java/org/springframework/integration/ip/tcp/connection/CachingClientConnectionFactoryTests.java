@@ -27,9 +27,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,6 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
@@ -56,10 +59,14 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.tcp.TcpOutboundGateway;
+import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
@@ -588,6 +595,91 @@ public class CachingClientConnectionFactoryTests {
 		assertSame(connectionIds.get(0), connectionIds.get(101));
 		in.stop();
 		cache.stop();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test //INT-3722
+	public void testGatewayRelease() throws Exception {
+		int port = SocketUtils.findAvailableTcpPort();
+		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(port);
+		in.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+		final TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(in);
+		final AtomicInteger count = new AtomicInteger(2);
+		in.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				if (!(message instanceof ErrorMessage)) {
+					if (count.decrementAndGet() < 1) {
+						try {
+							Thread.sleep(1000);
+						}
+						catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
+					}
+					handler.handleMessage(message);
+				}
+				return false;
+			}
+
+		});
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
+		int n = 0;
+		while (n++ < 100 && !in.isListening()) {
+			Thread.sleep(100);
+		}
+		assertTrue(in.isListening());
+		TcpNetClientConnectionFactory out = new TcpNetClientConnectionFactory("localhost", port);
+		out.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+		CachingClientConnectionFactory cache = new CachingClientConnectionFactory(out, 2);
+		final TcpOutboundGateway gate = new TcpOutboundGateway();
+		gate.setConnectionFactory(cache);
+		QueueChannel outputChannel = new QueueChannel();
+		gate.setOutputChannel(outputChannel);
+		gate.setBeanFactory(mock(BeanFactory.class));
+		gate.afterPropertiesSet();
+		Log logger = spy(TestUtils.getPropertyValue(gate, "logger", Log.class));
+		new DirectFieldAccessor(gate).setPropertyValue("logger", logger);
+		when(logger.isDebugEnabled()).thenReturn(true);
+		doAnswer(new Answer<Void>() {
+
+			private final CountDownLatch latch = new CountDownLatch(2);
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				String log = (String) invocation.getArguments()[0];
+				if (log.startsWith("Response")) {
+					Executors.newSingleThreadScheduledExecutor().execute(new Runnable() {
+
+						@Override
+						public void run() {
+							gate.handleMessage(new GenericMessage<String>("bar"));
+						}
+					});
+					// hold up the first thread until the second has added its pending reply
+					latch.await(10, TimeUnit.SECONDS);
+				}
+				else if (log.startsWith("Added")) {
+					latch.countDown();
+				}
+				return null;
+			}
+		}).when(logger).debug(anyString());
+		gate.start();
+		gate.handleMessage(new GenericMessage<String>("foo"));
+		Message<byte[]> result = (Message<byte[]>) outputChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals("foo", new String(result.getPayload()));
+		result = (Message<byte[]>) outputChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals("bar", new String(result.getPayload()));
+		handler.stop();
+		gate.stop();
+		verify(logger, never()).error(anyString());
 	}
 
 	public TcpConnectionSupport makeMockConnection() {
