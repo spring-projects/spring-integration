@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import org.springframework.core.serializer.Deserializer;
@@ -37,11 +39,16 @@ import org.springframework.messaging.support.ErrorMessage;
  * @since 2.2
  *
  */
-public class CachingClientConnectionFactory extends AbstractClientConnectionFactory {
+public class CachingClientConnectionFactory extends AbstractClientConnectionFactory implements CloseDeferrable {
 
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
 	private final SimplePool<TcpConnectionSupport> pool;
+
+	private final Map<String, CachedConnection> deferredClosures =
+			new ConcurrentHashMap<String, CachedConnection>();
+
+	private volatile boolean deferClose;
 
 	/**
 	 * Construct a caching connection factory that delegates to the provided factory, with
@@ -135,6 +142,19 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return cachedConnection;
 	}
 
+	@Override
+	public void enableCloseDeferral(boolean defer) {
+		this.deferClose = defer;
+	}
+
+	@Override
+	public void closeDeferred(String connectionId) {
+		CachedConnection deferred = this.deferredClosures.remove(connectionId);
+		if (deferred != null) {
+			deferred.doClose();
+		}
+	}
+
 	private class CachedConnection extends TcpConnectionInterceptorSupport {
 
 		private volatile boolean released;
@@ -146,6 +166,15 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		@Override
 		public synchronized void close() {
+			if (deferClose && !this.released) {
+				deferredClosures.put(getConnectionId(), this);
+			}
+			else {
+				doClose();
+			}
+		}
+
+		private synchronized void doClose() {
 			if (this.released) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Connection " + getConnectionId() + " has already been released");

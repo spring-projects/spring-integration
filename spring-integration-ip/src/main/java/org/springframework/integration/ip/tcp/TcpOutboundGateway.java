@@ -29,6 +29,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.CloseDeferrable;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
@@ -151,6 +152,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					logger.debug("released semaphore");
 				}
 			}
+			if (this.connectionFactory instanceof CloseDeferrable) {
+				((CloseDeferrable) this.connectionFactory).closeDeferred(connectionId);
+			}
 		}
 	}
 
@@ -217,6 +221,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	public void start() {
+		if (this.connectionFactory instanceof CloseDeferrable) {
+			((CloseDeferrable) this.connectionFactory).enableCloseDeferral(true);
+		}
 		this.connectionFactory.start();
 	}
 
