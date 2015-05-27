@@ -16,7 +16,9 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
@@ -47,6 +49,8 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	private final Map<String, CachedConnection> deferredClosures =
 			new ConcurrentHashMap<String, CachedConnection>();
+
+	private final Set<String> okToRelease = new HashSet<String>();
 
 	private volatile boolean deferClose;
 
@@ -149,9 +153,14 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public void closeDeferred(String connectionId) {
-		CachedConnection deferred = this.deferredClosures.remove(connectionId);
-		if (deferred != null) {
-			deferred.doClose();
+		synchronized(this.okToRelease) {
+			CachedConnection deferred = this.deferredClosures.remove(connectionId);
+			if (deferred != null) {
+				deferred.doClose();
+			}
+			else {
+				this.okToRelease.add(connectionId);
+			}
 		}
 	}
 
@@ -165,12 +174,14 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		}
 
 		@Override
-		public synchronized void close() {
-			if (deferClose && !this.released) {
-				deferredClosures.put(getConnectionId(), this);
-			}
-			else {
-				doClose();
+		public void close() {
+			synchronized(okToRelease) {
+				if (deferClose && !this.released && !okToRelease.remove(getConnectionId())) {
+					deferredClosures.put(getConnectionId(), this);
+				}
+				else {
+					doClose();
+				}
 			}
 		}
 
