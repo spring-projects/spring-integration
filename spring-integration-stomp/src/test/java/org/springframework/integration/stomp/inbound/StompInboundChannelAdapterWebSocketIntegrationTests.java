@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Map;
@@ -45,6 +46,7 @@ import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.WebSocketStompSessionManager;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -52,6 +54,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
+import org.springframework.messaging.simp.broker.SubscriptionRegistry;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -111,6 +115,8 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
 		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
 
+		waitForSubscribe("myTopic");
+
 		SimpMessagingTemplate messagingTemplate = this.serverContext.getBean("brokerMessagingTemplate",
 				SimpMessagingTemplate.class);
 
@@ -140,6 +146,9 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		this.stompInboundChannelAdapter.addDestination("/topic/myTopic");
 		receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
+
+		waitForSubscribe("myTopic");
+
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
 		receive = this.errorChannel.receive(10000);
 		assertNotNull(receive);
@@ -150,6 +159,35 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		assertThat(throwable.getCause(), instanceOf(MessageConversionException.class));
 		assertThat(throwable.getMessage(), containsString("No suitable converter, payloadType=interface java.util.Map"));
 	}
+
+	private void waitForSubscribe(String destination) throws InterruptedException {
+		SimpleBrokerMessageHandler serverBrokerMessageHandler =
+				this.serverContext.getBean("simpleBrokerMessageHandler", SimpleBrokerMessageHandler.class);
+
+		SubscriptionRegistry subscriptionRegistry = serverBrokerMessageHandler.getSubscriptionRegistry();
+
+		int n = 0;
+		while (!containsDestination(destination, subscriptionRegistry) && n++ < 100) {
+			Thread.sleep(100);
+		}
+
+		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
+	}
+
+	@SuppressWarnings("rawtypes")
+	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {
+		Map sessions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
+		for (Object info : sessions.values()) {
+			Map subscriptions = TestUtils.getPropertyValue(info, "destinationLookup", Map.class);
+			for (Object dest : subscriptions.keySet()) {
+				if (((String) dest).contains(destination)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 
 	// STOMP Client
 
