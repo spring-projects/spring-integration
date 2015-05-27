@@ -131,7 +131,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
 			}
 			if (logger.isDebugEnabled()) {
-				logger.debug("Respose " + replyMessage);
+				logger.debug("Response " + replyMessage);
 			}
 			return replyMessage;
 		}
