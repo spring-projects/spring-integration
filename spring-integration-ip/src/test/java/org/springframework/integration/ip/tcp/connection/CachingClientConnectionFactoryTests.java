@@ -42,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -60,6 +61,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
@@ -109,6 +111,10 @@ public class CachingClientConnectionFactoryTests {
 
 	@Autowired
 	PollableChannel fromGateway;
+
+	@Autowired
+	@Qualifier("gateway.caching.ccf")
+	CachingClientConnectionFactory gatewayCF;
 
 	@Test
 	public void testReuse() throws Exception {
@@ -463,8 +469,13 @@ public class CachingClientConnectionFactoryTests {
 		assertNotNull(m);
 		assertEquals("foo:" + "Hello, world!", new String((byte[]) m.getPayload()));
 
-		// wait a short time to allow the connection to be returned to the pool
-		Thread.sleep(1000);
+		BlockingQueue<?> connections = TestUtils
+				.getPropertyValue(this.gatewayCF, "pool.available", BlockingQueue.class);
+		// wait until the connection is returned to the pool
+		int n = 0;
+		while (n++ < 100 && connections.size() == 0) {
+			Thread.sleep(100);
+		}
 
 		// assert we use the same connection from the pool
 		toGateway.send(new GenericMessage<String>("Hello, world2!"));
