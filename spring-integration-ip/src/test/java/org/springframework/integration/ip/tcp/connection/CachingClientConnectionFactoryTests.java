@@ -444,6 +444,7 @@ public class CachingClientConnectionFactoryTests {
 	}
 
 	@Test
+//	@Repeat(1000) // INT-3722
 	public void gatewayIntegrationTest() throws Exception {
 		final List<String> connectionIds = new ArrayList<String>();
 		final AtomicBoolean okToRun = new AtomicBoolean(true);
