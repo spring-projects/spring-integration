@@ -31,23 +31,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.gs.collections.api.RichIterable;
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.api.block.predicate.Predicate;
-import com.gs.collections.api.block.procedure.Procedure;
-import com.gs.collections.api.block.procedure.Procedure2;
-import com.gs.collections.api.collection.MutableCollection;
-import com.gs.collections.api.list.ImmutableList;
-import com.gs.collections.api.list.MutableList;
-import com.gs.collections.api.multimap.MutableMultimap;
-import com.gs.collections.api.partition.PartitionIterable;
-import com.gs.collections.impl.block.factory.Functions;
-import com.gs.collections.impl.block.function.checked.CheckedFunction;
-import com.gs.collections.impl.factory.Lists;
-import com.gs.collections.impl.factory.Multimaps;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.utility.Iterate;
-import kafka.common.ErrorMapping;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -64,6 +47,25 @@ import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.Result;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import com.gs.collections.api.RichIterable;
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.api.block.predicate.Predicate;
+import com.gs.collections.api.block.procedure.Procedure;
+import com.gs.collections.api.block.procedure.Procedure2;
+import com.gs.collections.api.collection.MutableCollection;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.api.list.MutableList;
+import com.gs.collections.api.multimap.MutableMultimap;
+import com.gs.collections.api.partition.PartitionIterable;
+import com.gs.collections.impl.block.factory.Functions;
+import com.gs.collections.impl.block.function.checked.CheckedFunction;
+import com.gs.collections.impl.factory.Lists;
+import com.gs.collections.impl.factory.Multimaps;
+import com.gs.collections.impl.list.mutable.FastList;
+import com.gs.collections.impl.utility.Iterate;
+
+import kafka.common.ErrorMapping;
 
 /**
  * @author Marius Bogoevici
@@ -243,9 +245,11 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	/**
 	 * The maximum number of messages that are buffered by each concurrent {@link MessageListener} runner.
 	 * Increasing the value may increase throughput, but also increases the memory consumption.
+	 * Must be a power of 2.
 	 * @param queueSize the queue size
 	 */
 	public void setQueueSize(int queueSize) {
+		Assert.isTrue(Integer.bitCount(queueSize) == 1, "'queueSize' must be a power of 2");
 		this.queueSize = queueSize;
 	}
 
