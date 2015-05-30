@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -164,24 +166,63 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 * 'Spring Integration HTTP Inbound Endpoint' {@link RequestMapping}.
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
-	private RequestMappingInfo getMappingForEndpoint(HttpRequestHandlingEndpointSupport endpoint) {
+	private RequestMappingInfo getMappingForEndpoint(final HttpRequestHandlingEndpointSupport endpoint) {
 		final RequestMapping requestMapping = endpoint.getRequestMapping();
 
 		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
 			return null;
 		}
 
-		Map<String, Object> requestMappingAttributes = new HashMap<String, Object>();
-		requestMappingAttributes.put("name", endpoint.getComponentName());
-		requestMappingAttributes.put("path", requestMapping.getPathPatterns());
-		requestMappingAttributes.put("method", requestMapping.getRequestMethods());
-		requestMappingAttributes.put("params", requestMapping.getParams());
-		requestMappingAttributes.put("headers", requestMapping.getHeaders());
-		requestMappingAttributes.put("consumes", requestMapping.getConsumes());
-		requestMappingAttributes.put("produces", requestMapping.getProduces());
+		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
+				new org.springframework.web.bind.annotation.RequestMapping() {
 
-        return createRequestMappingInfo(AnnotationAttributes.fromMap(requestMappingAttributes),
-				getCustomTypeCondition(endpoint.getClass()));
+					public String name() {
+						return endpoint.getComponentName();
+					}
+
+					@Override
+					public String[] value() {
+						return requestMapping.getPathPatterns();
+					}
+
+					@Override
+					public String[] path() {
+						return requestMapping.getPathPatterns();
+					}
+
+					@Override
+					public RequestMethod[] method() {
+						return requestMapping.getRequestMethods();
+					}
+
+					@Override
+					public String[] params() {
+						return requestMapping.getParams();
+					}
+
+					@Override
+					public String[] headers() {
+						return requestMapping.getHeaders();
+					}
+
+					@Override
+					public String[] consumes() {
+						return requestMapping.getConsumes();
+					}
+
+					@Override
+					public String[] produces() {
+						return requestMapping.getProduces();
+					}
+
+					@Override
+					public Class<? extends Annotation> annotationType() {
+						return org.springframework.web.bind.annotation.RequestMapping.class;
+					}
+
+				};
+
+		return createRequestMappingInfo(requestMappingAnnotation, getCustomTypeCondition(endpoint.getClass()));
 	}
 
 	@Override
