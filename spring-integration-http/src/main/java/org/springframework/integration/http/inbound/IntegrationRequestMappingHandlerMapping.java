@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -173,6 +174,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 
 		Map<String, Object> requestMappingAttributes = new HashMap<String, Object>();
 		requestMappingAttributes.put("name", endpoint.getComponentName());
+		requestMappingAttributes.put("value", requestMapping.getPathPatterns());
 		requestMappingAttributes.put("path", requestMapping.getPathPatterns());
 		requestMappingAttributes.put("method", requestMapping.getRequestMethods());
 		requestMappingAttributes.put("params", requestMapping.getParams());
@@ -180,8 +182,10 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 		requestMappingAttributes.put("consumes", requestMapping.getConsumes());
 		requestMappingAttributes.put("produces", requestMapping.getProduces());
 
-        return createRequestMappingInfo(AnnotationAttributes.fromMap(requestMappingAttributes),
-				getCustomTypeCondition(endpoint.getClass()));
+		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
+				AnnotationUtils.synthesizeAnnotation(requestMappingAttributes,
+						org.springframework.web.bind.annotation.RequestMapping.class, null);
+		return createRequestMappingInfo(requestMappingAnnotation, getCustomTypeCondition(endpoint.getClass()));
 	}
 
 	@Override
