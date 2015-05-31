@@ -89,6 +89,15 @@ public class KafkaMessageDrivenChannelAdapterTests extends AbstractMessageListen
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("power of 2"));
 		}
+
+		try {
+			kafkaMessageListenerContainer.setQueueSize(Integer.MIN_VALUE);
+			fail("expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("positive number"));
+		}
+
 		kafkaMessageListenerContainer.setQueueSize(1024);
 
 		int expectedMessageCount = 100;
