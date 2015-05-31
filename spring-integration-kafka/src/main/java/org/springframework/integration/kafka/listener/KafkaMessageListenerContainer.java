@@ -245,11 +245,11 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	/**
 	 * The maximum number of messages that are buffered by each concurrent {@link MessageListener} runner.
 	 * Increasing the value may increase throughput, but also increases the memory consumption.
-	 * Must be a power of 2.
+	 * Must be a positive number and a power of 2.
 	 * @param queueSize the queue size
 	 */
 	public void setQueueSize(int queueSize) {
-		Assert.isTrue(Integer.bitCount(queueSize) == 1, "'queueSize' must be a power of 2");
+		Assert.isTrue(queueSize > 0 && Integer.bitCount(queueSize) == 1, "'queueSize' must be a positive number and a power of 2");
 		this.queueSize = queueSize;
 	}
 
