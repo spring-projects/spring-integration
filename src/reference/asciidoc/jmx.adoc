@@ -440,7 +440,6 @@ Previously, when JMX was enabled, all sources, channels, handlers captured stati
 It is now possible to control whether the statisics are enabled on an individual component.
 Further, it is possible to capture simple counts on `MessageChannel` s and `MessageHandler` s instead of the complete time-based statistics.
 This can have significant performance implications because you can selectively configure where you need detailed statistics, as well as enable/disable at runtime.
-Also see the bullet below about setting initial collection state.
 
 Two new attributes have been added to the `<int-jmx:mbean-exporter/>`.
 `counts-enabled` is a list of bean name patterns where simple message counts will be enabled.
@@ -468,10 +467,12 @@ Such MBeans will be exported by any context `MBeanServer`*or* an `IntegrationMBe
 Certain classes within the framework (mapping routers for example) have additional attributes/operations over and above those provided by metrics and `Lifecycle`.
 We will use a `Router` as an example here.
 
-Previously, beans of these types were exported as two distinct MBeans: 1) the metrics MBean (with an objectName such as: `intDomain:type=MessageHandler,name=myRouter,bean=endpoint`).
+Previously, beans of these types were exported as two distinct MBeans:
+
+1) the metrics MBean (with an objectName such as: `intDomain:type=MessageHandler,name=myRouter,bean=endpoint`).
 This MBean had metrics attributes and metrics/Lifecycle operations.
 
-A second MBean (with an objectName such as: `ctxDomain:name=org.springframework.integration.config.RouterFactoryBean#0
+2) a second MBean (with an objectName such as: `ctxDomain:name=org.springframework.integration.config.RouterFactoryBean#0
 						,type=MethodInvokingRouter`) was exported with the channel mappings attribute and operations.
 
 Now, the attributes and operations are consolidated into a single MBean.
