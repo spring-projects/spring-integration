@@ -25,9 +25,12 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
 
 /**
  * @author Oleg Zhurakousky
@@ -52,6 +55,12 @@ public class RedisAvailableTests {
 	}
 
 	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
+		awaitContainerSubscribedNoWait(container);
+		// wait another second because of race condition
+		Thread.sleep(1000);
+	}
+
+	private void awaitContainerSubscribedNoWait(RedisMessageListenerContainer container) throws InterruptedException {
 		RedisConnection connection = null;
 
 		int n = 0;
@@ -67,8 +76,6 @@ public class RedisAvailableTests {
 			Thread.sleep(100);
 		}
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
-		// wait another second because of race condition
-		Thread.sleep(1000);
 	}
 
 	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
@@ -83,6 +90,26 @@ public class RedisAvailableTests {
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
 		// wait another second because of race condition
 		Thread.sleep(1000);
+	}
+
+	protected void awaitFullySubscribed(RedisMessageListenerContainer container, RedisTemplate<?, ?> redisTemplate,
+			String redisChannelName, QueueChannel channel, Object message) throws Exception {
+		awaitContainerSubscribedNoWait(container);
+		drain(channel);
+		long now = System.currentTimeMillis();
+		Message<?> received = null;
+		while (received == null && System.currentTimeMillis() - now < 10000) {
+			redisTemplate.convertAndSend(redisChannelName, message);
+			received = channel.receive(1000);
+		}
+		drain(channel);
+		assertNotNull("Container failed to fully start", received);
+	}
+
+	private void drain(QueueChannel channel) {
+		while (channel.receive(0) != null) {
+			;
+		}
 	}
 
 	protected void prepareList(RedisConnectionFactory connectionFactory){

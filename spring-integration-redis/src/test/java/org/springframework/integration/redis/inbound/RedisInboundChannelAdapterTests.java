@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2014 the original author or authors
+ * Copyright 2007-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -36,6 +39,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  */
 public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
@@ -62,11 +66,12 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container",
-				RedisMessageListenerContainer.class));
-
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
+
+		awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+				redisTemplate, redisChannelName, channel, "foo");
+
 		for (int i = 0; i < numToTest; i++) {
 			String message = "test-" + i + " iteration " + iteration;
 			redisTemplate.convertAndSend(redisChannelName, message);
@@ -91,13 +96,13 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container",
-				RedisMessageListenerContainer.class));
-
 		RedisTemplate<?, ?> template = new RedisTemplate<Object, Object>();
 		template.setConnectionFactory(connectionFactory);
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();
+
+		awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+				template, redisChannelName, channel, "foo".getBytes());
 
 		for (int i = 0; i < numToTest; i++) {
 			String message = "test-" + i + " iteration " + iteration;
