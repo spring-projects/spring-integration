@@ -85,9 +85,7 @@ class QueueingMessageListenerInvoker {
 	}
 
 	/**
-	 * Add a message to the queue, blocking if the queue has reached its maximum capacity.
-	 * Interrupts will be ignored for as long as the component's {@code running} flag is set to true, but will
-	 * be deferred for when the method returns.
+	 * Add a message to the queue, waiting if the queue has reached its maximum capacity.
 	 *
 	 * @param message the KafkaMessage to add
 	 */
@@ -97,24 +95,31 @@ class QueueingMessageListenerInvoker {
 		}
 	}
 
-	public void start() {
-		this.running = true;
-		ExecutorService service = executorService != null ? executorService : Executors.newSingleThreadExecutor();
-		this.ringBufferProcessor = RingBufferProcessor.share(service, capacity);
-		this.ringBufferProcessor.subscribe(new KafkaMessageDispatchingSubscriber());
+	public synchronized void start() {
+		if (!this.running) {
+			this.running = true;
+			ExecutorService service = executorService != null ? executorService : Executors.newSingleThreadExecutor();
+			this.ringBufferProcessor = RingBufferProcessor.share(service, capacity);
+			this.ringBufferProcessor.subscribe(new KafkaMessageDispatchingSubscriber());
+		}
 	}
 
-	public void stop(long stopTimeout) {
-		this.running = false;
-		if (ringBufferProcessor != null) {
-			ringBufferProcessor.onComplete();
-			ringBufferProcessor = null;
-			shutdownLatch = new CountDownLatch(1);
-			try {
-				shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
+	public synchronized void stop(long stopTimeout) {
+		if (this.running) {
+			this.running = false;
+			if (ringBufferProcessor != null) {
+				shutdownLatch = new CountDownLatch(1);
+				ringBufferProcessor.onComplete();
+				ringBufferProcessor = null;
+				try {
+					shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
+					shutdownLatch = null;
+				}
 			}
 		}
 	}
@@ -159,7 +164,6 @@ class QueueingMessageListenerInvoker {
 		public void onComplete() {
 			CountDownLatch latch = shutdownLatch;
 			if (latch != null) {
-				shutdownLatch = null;
 				latch.countDown();
 			}
 		}
