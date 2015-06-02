@@ -135,7 +135,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				method.setAccessible(true);
 				toMessage.set(method);
-;			}
+			}
 		},
 		new MethodFilter() {
 
@@ -167,9 +167,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 
 		m = getAMessageFrom(this.withOverrideIdTS, toMessage.get());
 		assertNotNull(m.getHeaders().getId());
-//TODO org.springframework.messaging.support.MessageBuilder doesn't support simple way
-// to provide TIMESTAMP generation option.
-//		assertNotNull(m.getHeaders().getTimestamp());
+		assertNotNull(m.getHeaders().getTimestamp());
 		assertNull(m.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT));
 		assertRest(m);
 	}
