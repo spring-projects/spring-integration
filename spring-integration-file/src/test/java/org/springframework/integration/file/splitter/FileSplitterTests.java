@@ -35,6 +35,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Date;
 
+import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,6 +49,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -169,6 +171,29 @@ public class FileSplitterTests {
 		receive = this.output.receive(10000);
 		assertNotNull(receive); //äöüß
 		assertNull(this.output.receive(1));
+	}
+
+	@Test
+	public void testMarkers() {
+		QueueChannel outputChannel = new QueueChannel();
+		FileSplitter splitter = new FileSplitter(true, true);
+		splitter.setOutputChannel(outputChannel);
+		splitter.handleMessage(new GenericMessage<File>(file));
+		Message<?> received = outputChannel.receive(0);
+		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertNotNull(received);
+		assertThat(received.getPayload(), Matchers.instanceOf(FileSplitter.FileMarker.class));
+		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertNotNull(outputChannel.receive(0));
+		assertNotNull(outputChannel.receive(0));
+		received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertThat(received.getPayload(), Matchers.instanceOf(FileSplitter.FileMarker.class));
+		fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
 	}
 
 	@Configuration

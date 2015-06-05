@@ -25,11 +25,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -55,6 +57,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 	private final boolean iterator;
 
+	private final boolean markers;
+
 	private Charset charset;
 
 	/**
@@ -62,7 +66,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * an iterator and the file is read line-by-line during iteration.
 	 */
 	public FileSplitter() {
-		this(true);
+		this(true, false);
 	}
 
 	/**
@@ -72,7 +76,25 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * @param iterator true to return an iterator, false to return a list of lines.
 	 */
 	public FileSplitter(boolean iterator) {
+		this(iterator, false);
+	}
+
+	/**
+	 * Construct a splitter where the {@link #splitMessage(Message)} method returns
+	 * an iterator, and the file is read line-by-line during iteration, or a list
+	 * of lines from the file. When file markers are enabled (START/END)
+	 * {@link #setApplySequence(boolean) applySequence} is false by default. If enabled,
+	 * the markers are included in the sequence size.
+	 * @param iterator true to return an iterator, false to return a list of lines.
+	 * @param markers true to emit start of file/end of file marker messages before/after the data.
+	 * @since 1.4.5
+	 */
+	public FileSplitter(boolean iterator, boolean markers) {
 		this.iterator = iterator;
+		this.markers = markers;
+		if (markers) {
+			setApplySequence(false);
+		}
 	}
 
 	/**
@@ -90,9 +112,12 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		Reader reader = null;
 
+		String filePath;
+
 		if (payload instanceof String) {
 			try {
 				reader = new FileReader((String) payload);
+				filePath = (String) payload;
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageHandlingException(message, "failed to read file [" + payload + "]", e);
@@ -106,6 +131,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 				else {
 					reader = new InputStreamReader(new FileInputStream((File) payload), this.charset);
 				}
+				filePath = ((File) payload).getAbsolutePath();
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageHandlingException(message, "failed to read file [" + payload + "]", e);
@@ -118,25 +144,43 @@ public class FileSplitter extends AbstractMessageSplitter {
 			else {
 				reader = new InputStreamReader((InputStream) payload, this.charset);
 			}
+			filePath = ":stream:";
 		}
 		else if (payload instanceof Reader) {
 			reader = (Reader) payload;
+			filePath = ":reader:";
 		}
 		else {
 			return message;
 		}
 
 		final BufferedReader bufferedReader = new BufferedReader(reader);
-		Iterator<String> iterator = new Iterator<String>() {
+		Iterator<Object> iterator = new Iterator<Object>() {
+
+			boolean markers = FileSplitter.this.markers;
+
+			boolean sof = markers;
+
+			boolean eof;
+
+			boolean done;
 
 			@Override
 			public boolean hasNext() {
+				if (this.markers) {
+					if (this.sof || this.eof) {
+						return true;
+					}
+				}
 				try {
-					boolean ready = bufferedReader.ready();
+					boolean ready = this.done ? false : bufferedReader.ready();
 					if (!ready) {
+						if (this.markers) {
+							this.eof = true;
+						}
 						bufferedReader.close();
 					}
-					return ready;
+					return ready || this.eof;
 				}
 				catch (IOException e) {
 					try {
@@ -148,7 +192,17 @@ public class FileSplitter extends AbstractMessageSplitter {
 			}
 
 			@Override
-			public String next() {
+			public Object next() {
+				if (this.sof) {
+					this.sof = false;
+					return new FileMarker(filePath, Mark.START);
+				}
+				if (this.eof) {
+					this.eof = false;
+					this.markers = false;
+					this.done = true;
+					return new FileMarker(filePath, Mark.END);
+				}
 				try {
 					return bufferedReader.readLine();
 				}
@@ -167,12 +221,40 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return iterator;
 		}
 		else {
-			List<String> lines = new ArrayList<String>();
+			List<Object> lines = new ArrayList<Object>();
 			while (iterator.hasNext()) {
 				lines.add(iterator.next());
 			}
 			return lines;
 		}
+	}
+
+	public static class FileMarker implements Serializable {
+
+		private static final long serialVersionUID = 8514605438145748406L;
+
+		public enum Mark implements Serializable {
+			START,
+			END
+		}
+
+		private final String filePath;
+
+		private final Mark mark;
+
+		public FileMarker(String filePath, Mark mark) {
+			this.filePath = filePath;
+			this.mark = mark;
+		}
+
+		public String getFilePath() {
+			return filePath;
+		}
+
+		public Mark getMark() {
+			return mark;
+		}
+
 	}
 
 }
