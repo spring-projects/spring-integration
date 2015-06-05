@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 
 	private volatile TcpConnectionSupport theConnection;
 
+	private volatile boolean manualListenerRegistration;
+
 	/**
 	 * Constructs a factory that will established connections to the host and port.
 	 * @param host The host.
@@ -41,6 +43,17 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 */
 	public AbstractClientConnectionFactory(String host, int port) {
 		super(host, port);
+	}
+
+	/**
+	 * Set whether to automatically (default) or manually add a {@link TcpListener} to the
+	 * connections created by this factory. By default, the factory automatically configures
+	 * the listener. When manual registration is in place, incoming messages will be delayed
+	 * until the listener is registered.
+	 * @since 1.4.5
+	 */
+	public void enableManualListenerRegistration() {
+		this.manualListenerRegistration = true;
 	}
 
 	/**
@@ -126,9 +139,14 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * @param socket The new socket.
 	 */
 	protected void initializeConnection(TcpConnectionSupport connection, Socket socket) {
-		TcpListener listener = this.getListener();
-		if (listener != null) {
-			connection.registerListener(listener);
+		if (this.manualListenerRegistration) {
+			connection.enableManualListenerRegistration();
+		}
+		else {
+			TcpListener listener = this.getListener();
+			if (listener != null) {
+				connection.registerListener(listener);
+			}
 		}
 		TcpSender sender = this.getSender();
 		if (sender != null) {
