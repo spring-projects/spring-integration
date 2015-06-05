@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 the original author or authors.
+ * Copyright 2001-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.net.SocketException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,6 +36,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
@@ -49,6 +52,8 @@ import org.springframework.util.Assert;
 public abstract class TcpConnectionSupport implements TcpConnection {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	private final CountDownLatch listenerRegisteredLatch = new CountDownLatch(1);
 
 	@SuppressWarnings("rawtypes")
 	private volatile Deserializer deserializer;
@@ -87,6 +92,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private final AtomicBoolean exceptionSent = new AtomicBoolean();
 
 	private volatile boolean noReadErrorOnClose;
+
+	private volatile boolean manualListenerRegistration;
 
 	public TcpConnectionSupport() {
 		this(null);
@@ -171,22 +178,24 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * If we have been intercepted, propagate the close from the outermost interceptor;
 	 * otherwise, just call close().
-	 * 
+	 *
 	 * @param isException true when this call is the result of an Exception.
 	 */
 	protected void closeConnection(boolean isException) {
-		if (!(this.listener instanceof TcpConnectionInterceptor)) {
+		TcpListener listener = getListener();
+		if (!(listener instanceof TcpConnectionInterceptor)) {
 			close();
-			return;
 		}
-		TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) this.listener;
-		while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
-			outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
-		}
-		outerInterceptor.close();
-		if (isException) {
-			// ensure physical close in case the interceptor did not close
-			this.close();
+		else {
+			TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) listener;
+			while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
+				outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
+			}
+			outerInterceptor.close();
+			if (isException) {
+				// ensure physical close in case the interceptor did not close
+				this.close();
+			}
 		}
 	}
 
@@ -245,7 +254,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Sets the listener that will receive incoming Messages.
+	 * Set the listener that will receive incoming Messages.
 	 * @param listener The listener.
 	 */
 	public void registerListener(TcpListener listener) {
@@ -253,13 +262,33 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		// Determine the actual listener for this connection
 		if (!(this.listener instanceof TcpConnectionInterceptor)) {
 			this.actualListener = this.listener;
-		} else {
+		}
+		else {
 			TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) this.listener;
 			while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
 				outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
 			}
 			this.actualListener = outerInterceptor.getListener();
 		}
+		this.listenerRegisteredLatch.countDown();
+	}
+
+	/**
+	 * Set whether or not automatic or manual registration of the {@link TcpListener} is to be
+	 * used. (Default automatic). When manual registration is in place, incoming messages will
+	 * be delayed until the listener is registered.
+	 * @since 1.4.5
+	 */
+	public void enableManualListenerRegistration() {
+		this.manualListenerRegistration = true;
+		this.listener = new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				return getListener().onMessage(message);
+			}
+
+		};
 	}
 
 	/**
@@ -280,7 +309,21 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	@Override
 	public TcpListener getListener() {
+		if (this.manualListenerRegistration) {
+			waitForListenerRegistration();
+		}
 		return this.listener;
+	}
+
+	private void waitForListenerRegistration() {
+		try {
+			Assert.state(listenerRegisteredLatch.await(1, TimeUnit.MINUTES), "TcpListener not registered");
+			manualListenerRegistration = false;
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException("Interrupted while waiting for listener registration", e);
+		}
 	}
 
 	/**
