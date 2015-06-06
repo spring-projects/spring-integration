@@ -35,6 +35,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -49,6 +50,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
@@ -681,7 +683,48 @@ public class CachingClientConnectionFactoryTests {
 		verify(logger, never()).error(anyString());
 	}
 
-	public TcpConnectionSupport makeMockConnection() {
+	@Test // INT-3728
+	public void testEarlyReceive() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AbstractClientConnectionFactory factory = new TcpNetClientConnectionFactory("", 0) {
+
+			@Override
+			protected Socket createSocket(String host, int port) throws IOException {
+				Socket mock = mock(Socket.class);
+				when(mock.getInputStream()).thenReturn(new ByteArrayInputStream("foo\r\n".getBytes()));
+				return mock;
+			}
+
+			@Override
+			public boolean isActive() {
+				return true;
+			}
+
+		};
+		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+		final CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 1);
+		final AtomicReference<Message<?>> received = new AtomicReference<Message<?>>();
+		cachingFactory.registerListener(new TcpListener() {
+
+			@Override
+			public boolean onMessage(Message<?> message) {
+				if (!(message instanceof ErrorMessage)) {
+					received.set(message);
+					latch.countDown();
+				}
+				return false;
+			}
+		});
+		cachingFactory.start();
+
+		cachingFactory.getConnection();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertNotNull(received.get());
+		assertNotNull(received.get().getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID));
+		cachingFactory.stop();
+	}
+
+	private TcpConnectionSupport makeMockConnection() {
 		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
 		when(connection.isOpen()).thenReturn(true);
 		return connection;

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -141,9 +142,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public TcpConnectionSupport obtainConnection() throws Exception {
-		CachedConnection cachedConnection = new CachedConnection(this.pool.getItem());
-		cachedConnection.registerListener(getListener());
-		return cachedConnection;
+		return new CachedConnection(this.pool.getItem(), getListener());
 	}
 
 	@Override
@@ -168,9 +167,9 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		private volatile boolean released;
 
-		public CachedConnection(TcpConnectionSupport connection) {
+		public CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
 			super.setTheConnection(connection);
-			connection.registerListener(this);
+			registerListener(tcpListener);
 		}
 
 		@Override
@@ -225,17 +224,30 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		 */
 		@Override
 		public boolean onMessage(Message<?> message) {
-			AbstractIntegrationMessageBuilder<?> messageBuilder =
-					CachingClientConnectionFactory.this.getMessageBuilderFactory()
-							.fromMessage(message)
-							.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
-			if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
-				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
-						message.getHeaders().get(IpHeaders.CONNECTION_ID));
+			Message<?> modifiedMessage;
+			if (message instanceof ErrorMessage) {
+				Map<String, Object> headers = new HashMap<String, Object>(message.getHeaders());
+				headers.put(IpHeaders.CONNECTION_ID, getConnectionId());
+				if (headers.get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+					headers.put(IpHeaders.ACTUAL_CONNECTION_ID,
+							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				}
+				modifiedMessage = new ErrorMessage((Throwable) message.getPayload(), headers);
+			}
+			else {
+				AbstractIntegrationMessageBuilder<?> messageBuilder =
+						CachingClientConnectionFactory.this.getMessageBuilderFactory()
+								.fromMessage(message)
+								.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
+				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
+							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				}
+				modifiedMessage = messageBuilder.build();
 			}
 			TcpListener listener = getListener();
 			if (listener != null) {
-				listener.onMessage(messageBuilder.build());
+				listener.onMessage(modifiedMessage);
 			}
 			else {
 				if (logger.isDebugEnabled()) {
@@ -413,17 +425,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	@Override
 	public void registerListener(TcpListener listener) {
 		super.registerListener(listener);
-		this.targetConnectionFactory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					throw new UnsupportedOperationException("This should never be called");
-				}
-				return false;
-			}
-
-		});
+		this.targetConnectionFactory.enableManualListenerRegistration();
 	}
 
 	@Override
