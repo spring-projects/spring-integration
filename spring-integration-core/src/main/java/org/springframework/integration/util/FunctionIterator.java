@@ -53,10 +53,7 @@ public final class FunctionIterator<T, V> implements Iterator<V> {
 
 	@Override
 	public V next() {
-		if (this.hasNext()) {
-			return this.function.apply(this.iterator.next());
-		}
-		throw new NoSuchElementException();
+		return this.function.apply(this.iterator.next());
 	}
 
 }

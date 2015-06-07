@@ -112,7 +112,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		Reader reader = null;
 
-		String filePath;
+		final String filePath;
 
 		if (payload instanceof String) {
 			try {
@@ -167,20 +167,15 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			@Override
 			public boolean hasNext() {
-				if (this.markers) {
-					if (this.sof || this.eof) {
-						return true;
-					}
-				}
 				try {
-					boolean ready = this.done ? false : bufferedReader.ready();
+					boolean ready = !this.done && bufferedReader.ready();
 					if (!ready) {
 						if (this.markers) {
 							this.eof = true;
 						}
 						bufferedReader.close();
 					}
-					return ready || this.eof;
+					return this.sof || ready || this.eof;
 				}
 				catch (IOException e) {
 					try {

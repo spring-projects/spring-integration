@@ -180,8 +180,8 @@ public class FileSplitterTests {
 		splitter.setOutputChannel(outputChannel);
 		splitter.handleMessage(new GenericMessage<File>(file));
 		Message<?> received = outputChannel.receive(0);
-		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		assertNotNull(received);
+		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		assertThat(received.getPayload(), Matchers.instanceOf(FileSplitter.FileMarker.class));
 		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
 		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
