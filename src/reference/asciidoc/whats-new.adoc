@@ -77,6 +77,15 @@ Also, the `remote-timeout` no longer defaults to the same value as `reply-timeou
 
 See <<tcp-ob-gateway-attributes>> for more information.
 
+[[x4.2-tcp-ssl]]
+==== TCP SSLSession Available for Header Mapping
+
+`TcpConnection` s now support `getSslSession()` to enable users to extract information from the session to add to
+message headers.
+
+See <<ip-msg-headers>> for more information.
+
+
 [[x4.2-inbound-channel-adapter-annotation]]
 ==== @InboundChannelAdapter
 

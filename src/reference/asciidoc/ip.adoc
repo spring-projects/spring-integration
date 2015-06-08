@@ -1359,6 +1359,12 @@ The framework includes acknowledgment information in the data packet.
 | For information only - when using a cached or failover client connection factory, contains the actual underlying connection id.
 |===
 
+For inbound messages, `ip_hostname`, `ip_address`, `ip_tcp_remotePort` and `ip_connectionId` are mapped by the default
+`TcpHeaderMapper`.
+Users can add additional headers by subclassing `TcpHeaderMapper`, overriding the method `supplyCustomHeaders`, and
+providing an instance to the connection factory using the `mapper` property.
+For example, when using SSL, properties of the `SSLSession` can be added by obtaining the session object from the
+`TcpConnection` object which is provided as an argument to the `supplyCustomHeaders` method.
 
 [[ip-annotation]]
 === Annotation-Based Configuration

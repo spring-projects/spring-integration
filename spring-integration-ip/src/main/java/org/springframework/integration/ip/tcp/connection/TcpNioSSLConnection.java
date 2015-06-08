@@ -26,6 +26,7 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.MessagingException;
@@ -72,6 +73,11 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			SSLEngine sslEngine) throws Exception {
 		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.sslEngine = sslEngine;
+	}
+
+	@Override
+	public SSLSession getSslSession() {
+		return this.sslEngine.getSession();
 	}
 
 	/**

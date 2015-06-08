@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.net.ssl.SSLSession;
+
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
@@ -350,6 +352,11 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		@Override
 		public void setSerializer(Serializer<?> serializer) {
 			this.delegate.setSerializer(serializer);
+		}
+
+		@Override
+		public SSLSession getSslSession() {
+			return this.delegate.getSslSession();
 		}
 
 		/**
