@@ -45,6 +45,7 @@ import org.springframework.integration.kafka.core.KafkaMessageBatch;
 import org.springframework.integration.kafka.core.KafkaTemplate;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.Result;
+import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -335,12 +336,17 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	/**
 	 * Fetches data from Kafka for a group of partitions, located on the same broker.
 	 */
-	public class FetchTask implements Runnable {
+	public class FetchTask implements SchedulingAwareRunnable {
 
 		private final BrokerAddress brokerAddress;
 
 		public FetchTask(BrokerAddress brokerAddress) {
 			this.brokerAddress = brokerAddress;
+		}
+
+		@Override
+		public boolean isLongLived() {
+			return true;
 		}
 
 		@Override
@@ -453,13 +459,18 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 			}
 		}
 
-		private class UpdateLeadersTask implements Runnable {
+		private class UpdateLeadersTask implements SchedulingAwareRunnable {
 			private final Iterable<Partition> partitionsToReset;
 
 			public UpdateLeadersTask(Iterable<Partition> partitionsToReset) {
 				this.partitionsToReset = partitionsToReset;
 			}
 
+			@Override
+			public boolean isLongLived() {
+				return true;
+			}
+			
 			@Override
 			public void run() {
 				// fetch can complete successfully or unsuccessfully
