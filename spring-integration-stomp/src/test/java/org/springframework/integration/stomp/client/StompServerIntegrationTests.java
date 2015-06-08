@@ -16,15 +16,22 @@
 
 package org.springframework.integration.stomp.client;
 
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import java.util.concurrent.Executors;
 
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -33,8 +40,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
+import org.springframework.integration.stomp.event.StompIntegrationEvent;
+import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
@@ -43,7 +53,11 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.SocketUtils;
 
 /**
@@ -69,6 +83,9 @@ public class StompServerIntegrationTests {
 		activeMQBroker.start();
 		stompClient = new Reactor2TcpStompClient("127.0.0.1", port);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		stompClient.setTaskScheduler(taskScheduler);
 	}
 
 	@AfterClass
@@ -81,11 +98,28 @@ public class StompServerIntegrationTests {
 		ConfigurableApplicationContext context1 = new AnnotationConfigApplicationContext(ContextConfiguration.class);
 		ConfigurableApplicationContext context2 = new AnnotationConfigApplicationContext(ContextConfiguration.class);
 
+		PollableChannel stompEvents1 = context1.getBean("stompEvents", PollableChannel.class);
+		PollableChannel stompEvents2 = context2.getBean("stompEvents", PollableChannel.class);
+
 		PollableChannel stompInputChannel1 = context1.getBean("stompInputChannel", PollableChannel.class);
 		PollableChannel stompInputChannel2 = context2.getBean("stompInputChannel", PollableChannel.class);
 
 		MessageChannel stompOutputChannel1 = context1.getBean("stompOutputChannel", MessageChannel.class);
 		MessageChannel stompOutputChannel2 = context2.getBean("stompOutputChannel", MessageChannel.class);
+
+		Message<?> eventMessage = stompEvents1.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		StompReceiptEvent stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
+		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
+		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+
+		eventMessage = stompEvents2.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
+		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
+		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("Hello, Client#2!".getBytes()));
 
@@ -138,7 +172,9 @@ public class StompServerIntegrationTests {
 
 		@Bean
 		public StompSessionManager stompSessionManager() {
-			return new Reactor2TcpStompSessionManager(stompClient);
+			Reactor2TcpStompSessionManager stompSessionManager = new Reactor2TcpStompSessionManager(stompClient);
+			stompSessionManager.setAutoReceipt(true);
+			return stompSessionManager;
 		}
 
 		@Bean
@@ -160,6 +196,20 @@ public class StompServerIntegrationTests {
 			StompMessageHandler handler = new StompMessageHandler(stompSessionManager());
 			handler.setDestination("/topic/myTopic");
 			return handler;
+		}
+
+		@Bean
+		public PollableChannel stompEvents() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@SuppressWarnings("unchecked")
+		public ApplicationListener<ApplicationEvent> stompEventListener() {
+			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
+			producer.setEventTypes(StompIntegrationEvent.class);
+			producer.setOutputChannel(stompEvents());
+			return producer;
 		}
 
 	}

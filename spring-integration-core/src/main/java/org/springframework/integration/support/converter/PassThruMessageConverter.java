@@ -23,12 +23,13 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * The simple {@link MessageConverter} implementation which contact is to return
+ * The simple {@link MessageConverter} implementation which contract is to return
  * {@link Message} as is for both {@code from/to} operations.
  * <p>
  * It is useful in cases of some protocol implementations (e.g. STOMP),
  * which is based on the "Spring Messaging Foundation" and the further logic
  * operates only with {@link Message}s, e.g. Spring Integration Adapters.
+ *
  * @author Artem Bilan
  * @since 4.2
  */

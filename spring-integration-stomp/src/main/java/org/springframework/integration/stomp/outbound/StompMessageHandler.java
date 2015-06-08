@@ -41,7 +41,7 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.util.Assert;
 
 /**
- * The {@link AbstractMessageHandler} implemntation to send messages to STOMP destinations.
+ * The {@link AbstractMessageHandler} implementation to send messages to STOMP destinations.
  *
  * @author Artem Bilan
  * @since 4.2

@@ -146,24 +146,8 @@ import reactor.spring.context.config.EnableReactor;
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class,
 		classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class EnableIntegrationTests {
-
-	private final Log logger = LogFactory.getLog(EnableIntegrationTests.class);
-
-	@Rule
-	public TestRule watcher = new TestWatcher() {
-
-		protected void starting(Description description) {
-			logger.debug("STARTING TEST: " + description.getMethodName());
-		}
-
-		@Override
-		protected void finished(Description description) {
-			logger.debug("FINISHED TEST: " + description.getMethodName());
-		}
-
-	};
 
 	@Autowired
 	private ApplicationContext context;
@@ -283,20 +267,6 @@ public class EnableIntegrationTests {
 	@Autowired
 	private MessageChannel controlBusChannel;
 
-	private static Level existingLogLevel;
-
-	// The temporal hooks to investigate CI failures
-	@BeforeClass
-	public static void setup() {
-		existingLogLevel = LogManager.getLogger("org.springframework.integration").getLevel();
-		LogManager.getLogger("org.springframework.integration").setLevel(Level.DEBUG);
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		LogManager.getLogger("org.springframework.integration").setLevel(existingLogLevel);
-	}
-
 	@Test
 	public void testAnnotatedServiceActivator() {
 		assertEquals(10L, TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll"));
@@ -337,9 +307,6 @@ public class EnableIntegrationTests {
 		assertEquals(10L, TestUtils.getPropertyValue(trigger, "period"));
 		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
 
-		// Markers to investigate the failures on CI
-		logger.debug("----SEND Message to 'input' channel----");
-
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
 		Message<?> interceptedMessage = this.wireTapChannel.receive(10000);
@@ -359,8 +326,6 @@ public class EnableIntegrationTests {
 		assertThat(messageHistoryString, Matchers.not(Matchers.containsString("output")));
 
 		receive = this.publishedChannel.receive(10000);
-
-		logger.debug("----RECEIVE Message from 'publishedChannel' channel----" + receive);
 
 		assertNotNull(receive);
 		assertEquals("foo", receive.getPayload());
@@ -417,7 +382,6 @@ public class EnableIntegrationTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void testChangePatterns() {
 		try {
 			this.configurer.setComponentNamePatterns(new String[] {"*"});
@@ -729,10 +693,7 @@ public class EnableIntegrationTests {
 						@Override
 						public Message<?> preSend(Message<?> message, MessageChannel channel) {
 							fbInterceptorCounter().incrementAndGet();
-							Message<?> message1 = super.preSend(message, channel);
-							logger.debug("!!!!'ciFactoryBean': the result of 'preSend' on '" + channel + "' '" +
-									message1 + "'");
-							return message1;
+							return super.preSend(message, channel);
 						}
 					};
 				}
@@ -846,8 +807,6 @@ public class EnableIntegrationTests {
 		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			this.invoked.incrementAndGet();
-			logger.debug("!!!!'TestChannelInterceptor': the result of 'preSend' on '" + channel + "' '" +
-					message + "'");
 			return message;
 		}
 
@@ -947,52 +906,9 @@ public class EnableIntegrationTests {
 			};
 		}
 
-		@Bean(name = IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)
-		public TaskScheduler taskScheduler(BeanFactory beanFactory) {
-			@SuppressWarnings("serial")
-			ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler() {
-
-				@Override
-				public void afterPropertiesSet() {
-					logger.debug("INITIALIZING taskScheduler...");
-					super.afterPropertiesSet();
-				}
-
-				@Override
-				public void destroy() {
-					logger.debug("DESTROYING taskScheduler...");
-					super.destroy();
-				}
-
-			};
-
-			taskScheduler.setPoolSize(20);
-			taskScheduler.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-			taskScheduler.setThreadNamePrefix("my-task-scheduler-");
-			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
-			errorHandler.setBeanFactory(beanFactory);
-			taskScheduler.setErrorHandler(errorHandler);
-			return taskScheduler;
-		}
-
 		@Bean
 		public PollableChannel publishedChannel() {
-			return new QueueChannel() {
-
-				@Override
-				protected boolean doSend(Message<?> message, long timeout) {
-					logger.debug("---- 'publishedChannel' Thread State: " + Thread.currentThread().isInterrupted());
-					logger.debug("---- 'publishedChannel' before 'doSend': " + message);
-					logger.debug("---- 'publishedChannel' state before: " + getQueueSize() +
-							", " + getRemainingCapacity());
-					boolean b = super.doSend(message, timeout);
-					logger.debug("---- 'publishedChannel' after 'doSend': " + b);
-					logger.debug("---- 'publishedChannel' state after: " + getQueueSize() +
-							", " + getRemainingCapacity());
-					return b;
-				}
-
-			};
+			return new QueueChannel();
 		}
 
 		@Bean

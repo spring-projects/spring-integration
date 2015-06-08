@@ -209,6 +209,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		public WebSocketStompClient stompClient(TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
+			webSocketStompClient.setDefaultHeartbeat(new long[]{100, 100});
 			webSocketStompClient.setTaskScheduler(taskScheduler);
 			return webSocketStompClient;
 		}
