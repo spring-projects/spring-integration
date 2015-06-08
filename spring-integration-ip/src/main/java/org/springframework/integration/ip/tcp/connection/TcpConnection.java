@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 the original author or authors.
+ * Copyright 2001-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
+
+import javax.net.ssl.SSLSession;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -121,5 +123,12 @@ public interface TcpConnection extends Runnable {
 	 * and ONLY used as a key.
 	 */
 	Object getDeserializerStateKey();
+
+	/**
+	 * @return the {@link SSLSession} associated with this connection, if SSL is in use,
+	 * null otherwise.
+	 * @since 4.2
+	 */
+	SSLSession getSslSession();
 
 }

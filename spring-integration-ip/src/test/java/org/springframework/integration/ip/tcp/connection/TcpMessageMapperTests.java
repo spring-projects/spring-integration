@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSession;
 
 import org.junit.Test;
 
@@ -73,34 +74,55 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
+
+			@Override
 			public void run() {
 			}
+
+			@Override
 			public void send(Message<?> message) throws Exception {
 			}
+
+			@Override
 			public boolean isOpen() {
 				return false;
 			}
+
+			@Override
 			public int getPort() {
 				return 1234;
 			}
+
+			@Override
 			public Object getPayload() throws Exception {
 				return TEST_PAYLOAD.getBytes();
 			}
+
 			@Override
 			public String getHostName() {
 				return "MyHost";
 			}
+
 			@Override
 			public String getHostAddress() {
 				return "1.1.1.1";
 			}
+
 			@Override
 			public String getConnectionId() {
 				return "anId";
 			}
+
+			@Override
 			public Object getDeserializerStateKey() {
 				return null;
 			}
+
+			@Override
+			public SSLSession getSslSession() {
+				return null;
+			}
+
 		};
 		Message<?> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
@@ -135,34 +157,55 @@ public class TcpMessageMapperTests {
 		mapper.setApplySequence(true);
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
+
+			@Override
 			public void run() {
 			}
+
+			@Override
 			public void send(Message<?> message) throws Exception {
 			}
+
+			@Override
 			public boolean isOpen() {
 				return false;
 			}
+
+			@Override
 			public int getPort() {
 				return 1234;
 			}
+
+			@Override
 			public Object getPayload() throws Exception {
 				return TEST_PAYLOAD.getBytes();
 			}
+
 			@Override
 			public String getHostName() {
 				return "MyHost";
 			}
+
 			@Override
 			public String getHostAddress() {
 				return "1.1.1.1";
 			}
+
 			@Override
 			public String getConnectionId() {
 				return "anId";
 			}
+
+			@Override
 			public Object getDeserializerStateKey() {
 				return null;
 			}
+
+			@Override
+			public SSLSession getSslSession() {
+				return null;
+			}
+
 		};
 		Message<?> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));

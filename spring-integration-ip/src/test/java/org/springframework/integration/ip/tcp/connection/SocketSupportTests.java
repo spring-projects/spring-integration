@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -26,7 +27,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,12 +42,13 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -94,6 +98,7 @@ public class SocketSupportTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		when(serverSocket.accept()).thenReturn(socket).then(new Answer<Socket> (){
+			@Override
 			public Socket answer(InvocationOnMock invocation) throws Throwable {
 				latch1.countDown();
 				latch2.await(10, TimeUnit.SECONDS);
@@ -121,9 +126,11 @@ public class SocketSupportTests {
 		final AtomicInteger ppSocketCountClient = new AtomicInteger();
 		final AtomicInteger ppServerSocketCountClient = new AtomicInteger();
 		TcpSocketSupport clientSocketSupport = new TcpSocketSupport() {
+			@Override
 			public void postProcessSocket(Socket socket) {
 				ppSocketCountClient.incrementAndGet();
 			}
+			@Override
 			public void postProcessServerSocket(ServerSocket serverSocket) {
 				ppServerSocketCountClient.incrementAndGet();
 			}
@@ -132,6 +139,7 @@ public class SocketSupportTests {
 		clientConnectionFactory.start();
 		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(port);
 		serverConnectionFactory.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				return false;
 			}
@@ -140,10 +148,12 @@ public class SocketSupportTests {
 		final AtomicInteger ppServerSocketCountServer = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(1);
 		TcpSocketSupport serverSocketSupport = new TcpSocketSupport() {
+			@Override
 			public void postProcessSocket(Socket socket) {
 				ppSocketCountServer.incrementAndGet();
 				latch.countDown();
 			}
+			@Override
 			public void postProcessServerSocket(ServerSocket serverSocket) {
 				ppServerSocketCountServer.incrementAndGet();
 			}
@@ -268,12 +278,14 @@ Certificate fingerprints:
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				messages.add(message);
 				latch.countDown();
 				return false;
 			}
 		});
+		server.setMapper(new SSLMapper());
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
@@ -285,6 +297,7 @@ Certificate fingerprints:
 		connection.send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+		assertNotNull(messages.get(0).getHeaders().get("cipher"));
 	}
 
 	@Test
@@ -300,6 +313,7 @@ Certificate fingerprints:
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				messages.add(message);
 				latch.countDown();
@@ -337,6 +351,7 @@ Certificate fingerprints:
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				System.out.println("Server" + message);
 				messages.add(message);
@@ -344,12 +359,14 @@ Certificate fingerprints:
 				return false;
 			}
 		});
+		server.setMapper(new SSLMapper());
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", port);
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		client.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				System.out.println("Client" + message);
 				return false;
@@ -361,6 +378,7 @@ Certificate fingerprints:
 		connection.send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+		assertNotNull(messages.get(0).getHeaders().get("cipher"));
 	}
 
 	@Test
@@ -378,6 +396,7 @@ Certificate fingerprints:
 		final Replier replier = new Replier();
 		server.registerSender(replier);
 		server.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				System.out.println("Server:" + message);
 				messages.add(message);
@@ -403,6 +422,7 @@ Certificate fingerprints:
 		clientTcpNioConnectionSupport.afterPropertiesSet();
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				System.out.println("Client:" + message);
 				messages.add(message);
@@ -425,14 +445,16 @@ Certificate fingerprints:
 		assertEquals("Hello, world!", new String(payload).substring(0, 13));
 	}
 
-	private class Replier implements TcpSender {
+	private static class Replier implements TcpSender {
 
 		private TcpConnection connection;
 
+		@Override
 		public void addNewConnection(TcpConnection connection) {
 			this.connection = connection;
 		}
 
+		@Override
 		public void removeDeadConnection(TcpConnection connection) {
 		}
 
@@ -444,4 +466,14 @@ Certificate fingerprints:
 			this.connection.send(message);
 		}
 	}
+
+	private static class SSLMapper extends TcpMessageMapper {
+
+		@Override
+		protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
+			return Collections.singletonMap("cipher", connection.getSslSession().getCipherSuite());
+		}
+
+	}
+
 }

@@ -36,6 +36,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.SSLSession;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
@@ -169,6 +171,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	@Override
 	public Object getDeserializerStateKey() {
 		return this.channelInputStream;
+	}
+
+	@Override
+	public SSLSession getSslSession() {
+		return null;
 	}
 
 	/**

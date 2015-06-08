@@ -22,6 +22,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -125,6 +128,16 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			return this.socket.getInputStream();
 		}
 		catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Override
+	public SSLSession getSslSession() {
+		if (this.socket instanceof SSLSocket) {
+			return ((SSLSocket) this.socket).getSession();
+		}
+		else {
 			return null;
 		}
 	}
