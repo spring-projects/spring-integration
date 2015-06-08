@@ -250,6 +250,11 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return mark;
 		}
 
+		@Override
+		public String toString() {
+			return "FileMarker [filePath=" + filePath + ", mark=" + mark + "]";
+		}
+
 	}
 
 }
