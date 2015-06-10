@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanReference;
@@ -562,6 +563,68 @@ public abstract class IntegrationNamespaceUtils {
 				.getArgumentValue(1, ManagedList.class).getValue();
 		roles.add(role);
 		lifecycles.add(new RuntimeBeanReference(beanName));
+	}
+
+	public static void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
+			String expressionAttribute, String beanProperty, String adapterClass, Element element,
+			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
+		BeanMetadataElement adapter = constructAdapter(beanRefAttribute, methodRefAttribute, expressionAttribute,
+				adapterClass, element, processor, parserContext);
+		builder.addPropertyValue(beanProperty, adapter);
+	}
+
+	public static void injectConstructorWithAdapter(String beanRefAttribute, String methodRefAttribute,
+			String expressionAttribute, String adapterClass, Element element,
+			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
+		BeanMetadataElement adapter = constructAdapter(beanRefAttribute, methodRefAttribute, expressionAttribute,
+				adapterClass, element, processor, parserContext);
+		builder.addConstructorArgValue(adapter);
+	}
+
+	private static BeanMetadataElement constructAdapter(String beanRefAttribute, String methodRefAttribute,
+			String expressionAttribute, String adapterClass, Element element, BeanMetadataElement processor,
+			ParserContext parserContext) {
+		final String beanRef = element.getAttribute(beanRefAttribute);
+		final String beanMethod = element.getAttribute(methodRefAttribute);
+		final String expression = element.getAttribute(expressionAttribute);
+
+		final boolean hasBeanRef = StringUtils.hasText(beanRef);
+		final boolean hasExpression = StringUtils.hasText(expression);
+
+		if (hasBeanRef && hasExpression) {
+			parserContext.getReaderContext().error("Exactly one of the '" + beanRefAttribute + "' or '"
+					+ expressionAttribute + "' attribute is allowed.", element);
+		}
+
+		BeanMetadataElement adapter = null;
+		if (hasBeanRef) {
+			adapter = createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass);
+		}
+		else if (hasExpression) {
+			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
+							+ adapterClass);
+			adapterBuilder.addConstructorArgValue(expression);
+			adapter = adapterBuilder.getBeanDefinition();
+		}
+		else if (processor != null) {
+			adapter = createAdapter(processor, beanMethod, adapterClass);
+		}
+		else {
+			adapter = createAdapter(null, beanMethod, adapterClass);
+		}
+		return adapter;
+	}
+
+	private static BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
+						+ "FactoryBean");
+		builder.addConstructorArgValue(ref);
+		if (StringUtils.hasText(method)) {
+			builder.addConstructorArgValue(method);
+		}
+		return builder.getBeanDefinition();
 	}
 
 }

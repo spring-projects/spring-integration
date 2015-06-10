@@ -16,12 +16,9 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
-import org.springframework.integration.config.IntegrationConfigUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -63,10 +60,10 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor,
 			ParserContext parserContext) {
-		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
+		IntegrationNamespaceUtils.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
 				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
 				element, builder, processor, parserContext);
-		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
+		IntegrationNamespaceUtils.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
 				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy",
 				element, builder, processor, parserContext);
 
@@ -91,53 +88,6 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 				builder.getRawBeanDefinition(), parserContext, "forceReleaseAdviceChain");
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_TIMEOUT);
-	}
-
-	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
-			String expressionAttribute, String beanProperty, String adapterClass, Element element,
-			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
-
-		final String beanRef = element.getAttribute(beanRefAttribute);
-		final String beanMethod = element.getAttribute(methodRefAttribute);
-		final String expression = element.getAttribute(expressionAttribute);
-
-		final boolean hasBeanRef = StringUtils.hasText(beanRef);
-		final boolean hasExpression = StringUtils.hasText(expression);
-
-		if (hasBeanRef && hasExpression) {
-			parserContext.getReaderContext().error("Exactly one of the '" + beanRefAttribute + "' or '"
-					+ expressionAttribute + "' attribute is allowed.", element);
-		}
-
-		BeanMetadataElement adapter = null;
-		if (hasBeanRef) {
-			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass);
-		}
-		else if (hasExpression) {
-			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
-							+ adapterClass);
-			adapterBuilder.addConstructorArgValue(expression);
-			adapter = adapterBuilder.getBeanDefinition();
-		}
-		else if (processor != null) {
-			adapter = this.createAdapter(processor, beanMethod, adapterClass);
-		}
-		else {
-			adapter = this.createAdapter(null, beanMethod, adapterClass);
-		}
-		builder.addPropertyValue(beanProperty, adapter);
-	}
-
-	private BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
-						+ "FactoryBean");
-		builder.addConstructorArgValue(ref);
-		if (StringUtils.hasText(method)) {
-			builder.addConstructorArgValue(method);
-		}
-		return builder.getBeanDefinition();
 	}
 
 }

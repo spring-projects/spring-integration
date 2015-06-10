@@ -1659,6 +1659,93 @@
 		<xsd:attribute name="id" type="xsd:string" use="required" />
 	</xsd:complexType>
 
+	<xsd:element name="barrier">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an endpoint that suspends a thread until a corresponding release message is received.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="request-handler-advice-chain" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:complexContent>
+							<xsd:extension base="handlerAdviceChainType">
+								<xsd:attribute name="discard-within-advice" type="xsd:string" default="true">
+									<xsd:annotation>
+										<xsd:documentation><![CDATA[
+					When true (default) any discard action (and exception thrown) will occur
+					within the scope of the advice class(es) in the chain. Otherwise, these actions
+					will occur after the advice chain returns. The advice chain is applied to both
+					the suspender and releaser message handlers.
+										]]></xsd:documentation>
+									</xsd:annotation>
+								</xsd:attribute>
+							</xsd:extension>
+						</xsd:complexContent>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element ref="poller" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="inputOutputChannelGroup" />
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="timeout" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The time in milliseconds to suspend the thread. See `requires-reply`.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="correlation-strategy" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.lang.Object" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A reference to a bean that implements the decision algorithm as to whether a given
+						message group is complete. The bean can be an implementation of the
+						CorrelationStrategy interface or a POJO.
+						</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="correlation-strategy-method" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation>
+							<tool:expected-method type-ref="@correlation-strategy" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+					A method defined on the bean referenced by correlation-strategy, that implements the
+					correlation decision algorithm
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="correlation-strategy-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>A SpEL expression which implements correlation decision
+					algorithm to apply to the Message (e.g., payload.getPerson().getId() - correlate
+					 based on the 'id' of the 'person' attribute of the message payload object)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="release-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Sending a message to this channel releases a thread suspended based on the same
+						correlation.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="bridge">
 		<xsd:annotation>
 			<xsd:documentation>

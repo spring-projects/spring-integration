@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd">
+
+	<int:channel id="in">
+		<int:queue />
+	</int:channel>
+
+	<int:barrier id="barrier1" input-channel="in" output-channel="out" correlation-strategy-expression="'foo'" 
+				release-channel="release" timeout="10000">
+		<int:poller fixed-delay="100" />
+	</int:barrier>
+
+	<int:channel id="out">
+		<int:queue />
+	</int:channel>
+
+</beans>
