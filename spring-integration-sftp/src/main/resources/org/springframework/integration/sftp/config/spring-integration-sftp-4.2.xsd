@@ -539,12 +539,13 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-							type="org.springframework.integration.sftp.session.DefaultSftpSessionFactory" />
+							type="org.springframework.integration.file.remote.session.SessionFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation><![CDATA[
-                Reference to a [org.springframework.integration.sftp.session.DefaultSftpSessionFactory] bean.
-            ]]></xsd:documentation>
+					Reference to an [org.springframework.integration.file.remote.session.SessionFactory] bean with
+					a [com.jcraft.jsch.ChannelSftp$LsEntry] generic type parameter.
+				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="temporary-file-suffix" type="xsd:string">

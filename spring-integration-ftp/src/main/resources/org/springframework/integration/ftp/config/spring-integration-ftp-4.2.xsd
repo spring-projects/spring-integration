@@ -524,7 +524,7 @@
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:extension>
-        </xsd:complexContent>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:complexType name="base-adapter-type">
@@ -535,12 +535,13 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-							type="org.springframework.integration.ftp.session.DefaultFtpSessionFactory" />
+							type="org.springframework.integration.file.remote.session.SessionFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation><![CDATA[
-                Reference to a [org.springframework.integration.ftp.session.DefaultFtpSessionFactory] bean.
-            ]]></xsd:documentation>
+					Reference to an [org.springframework.integration.file.remote.session.SessionFactory] bean with
+					an [org.apache.commons.net.ftp.FTPFile] generic type parameter.
+				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="temporary-file-suffix" type="xsd:string">
