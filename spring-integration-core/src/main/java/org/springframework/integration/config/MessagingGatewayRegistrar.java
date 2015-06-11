@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.beans.BeanMetadataAttribute;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -38,10 +39,12 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.gateway.GatewayCompletableFutureProxyFactoryBean;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -55,7 +58,14 @@ import org.springframework.util.StringUtils;
  * @author Andy Wilksinson
  * @since 4.0
  */
-public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar {
+public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
+
+	private ClassLoader beanClassLoader;
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
+	}
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
@@ -72,6 +82,13 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 	}
 
 	public BeanDefinitionHolder parse(Map<String, Object> gatewayAttributes) {
+		boolean completableFutureCapable = true;
+		try {
+			ClassUtils.forName("java.util.concurrent.CompletableFuture", this.beanClassLoader);
+		}
+		catch (Exception e1) {
+			completableFutureCapable = false;
+		}
 
 		String defaultPayloadExpression = (String) gatewayAttributes.get("defaultPayloadExpression");
 
@@ -93,7 +110,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		boolean hasDefaultHeaders = !ObjectUtils.isEmpty(defaultHeaders);
 		Assert.state(!hasMapper || !hasDefaultHeaders, "'defaultHeaders' are not allowed when a 'mapper' is provided");
 
-		BeanDefinitionBuilder gatewayProxyBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyFactoryBean.class);
+		BeanDefinitionBuilder gatewayProxyBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				completableFutureCapable ? GatewayCompletableFutureProxyFactoryBean.class
+						: GatewayProxyFactoryBean.class);
 
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);

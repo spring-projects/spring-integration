@@ -16,32 +16,45 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.gateway.TestService;
+import org.springframework.integration.gateway.TestService.MyCompletableFuture;
+import org.springframework.integration.gateway.TestService.MyCompletableMessageFuture;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
@@ -53,6 +66,7 @@ import reactor.rx.Promise;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -105,8 +119,15 @@ public class GatewayParserTests {
 
 	@Test
 	public void testAsyncDisabledGateway() throws Exception {
-		Object service = context.getBean("&asyncOff");
-		assertNull(TestUtils.getPropertyValue(service, "asyncExecutor"));
+		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("asyncOff", TestService.class);
+		Future<Message<?>> result = service.async("futureSync");
+		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("futureSync", reply.getPayload());
+		Object serviceBean = context.getBean("&asyncOff");
+		assertNull(TestUtils.getPropertyValue(serviceBean, "asyncExecutor"));
 	}
 
 	@Test
@@ -137,13 +158,207 @@ public class GatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&promise"), "asyncExecutor"));
 	}
 
+	@Test
+	public void testAsyncCompletable() throws Exception {
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("asyncCompletable", TestService.class);
+		CompletableFuture<String> result = service.completable("foo").thenApply(String::toUpperCase);
+		String reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("FOO", reply);
+		assertThat(thread.get().getName(), startsWith("testExec-"));
+		assertNotNull(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor"));
+	}
+
+	@Test
+	public void testAsyncCompletableNoAsync() throws Exception {
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("completableNoAsync", TestService.class);
+		CompletableFuture<String> result = service.completable("flowCompletable");
+		String reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("SYNC_COMPLETABLE", reply);
+		assertEquals(Thread.currentThread(), thread.get());
+		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
+	}
+
+	@Test
+	public void testCustomCompletableNoAsync() throws Exception {
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("completableNoAsync", TestService.class);
+		MyCompletableFuture result = service.customCompletable("flowCustomCompletable");
+		String reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("SYNC_CUSTOM_COMPLETABLE", reply);
+		assertEquals(Thread.currentThread(), thread.get());
+		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
+	}
+
+	@Test
+	public void testCustomCompletableNoAsyncAttemptAsync() throws Exception {
+		Object gateway = context.getBean("&customCompletableAttemptAsync");
+		Log logger = spy(TestUtils.getPropertyValue(gateway, "logger", Log.class));
+		when(logger.isDebugEnabled()).thenReturn(true);
+		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("customCompletableAttemptAsync", TestService.class);
+		MyCompletableFuture result = service.customCompletable("flowCustomCompletable");
+		String reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("SYNC_CUSTOM_COMPLETABLE", reply);
+		assertEquals(Thread.currentThread(), thread.get());
+		assertNotNull(TestUtils.getPropertyValue(gateway, "asyncExecutor"));
+		verify(logger).debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
+							+ "running on calling thread; the downstream flow must return the required Future: "
+							+ "MyCompletableFuture");
+	}
+
+	@Test
+	public void testAsyncCompletableMessge() throws Exception {
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("asyncCompletable", TestService.class);
+		CompletableFuture<Message<?>> result = service.completableReturnsMessage("foo");
+		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("foo", reply.getPayload());
+		assertThat(thread.get().getName(), startsWith("testExec-"));
+		assertNotNull(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor"));
+	}
+
+	@Test
+	public void testAsyncCompletableNoAsyncMessage() throws Exception {
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("completableNoAsync", TestService.class);
+		CompletableFuture<Message<?>> result = service.completableReturnsMessage("flowCompletableM");
+		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("flowCompletableM", reply.getPayload());
+		assertEquals(Thread.currentThread(), thread.get());
+		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
+	}
+
+	@Test
+	public void testCustomCompletableNoAsyncMessage() throws Exception {
+		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
+		final AtomicReference<Thread> thread = new AtomicReference<>();
+		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+			@Override
+			public Message<?> preSend(Message<?> message, MessageChannel channel) {
+				thread.set(Thread.currentThread());
+				return super.preSend(message, channel);
+			}
+
+		});
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("completableNoAsync", TestService.class);
+		MyCompletableMessageFuture result = service.customCompletableReturnsMessage("flowCustomCompletableM");
+		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		assertEquals("flowCustomCompletableM", reply.getPayload());
+		assertEquals(Thread.currentThread(), thread.get());
+		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
+	}
+
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
-				Message<?> request = requestChannel.receive();
+				Message<?> request = requestChannel.receive(60000);
+				assertNotNull("Request not received", request);
 				Message<?> reply = MessageBuilder.fromMessage(request)
 						.setCorrelationId(request.getHeaders().getId()).build();
+				Object payload = null;
+				if (request.getPayload().equals("futureSync")) {
+					payload = new AsyncResult<Message<?>>(reply);
+				}
+				else if (request.getPayload().equals("flowCompletable")) {
+					payload = CompletableFuture.<String>completedFuture("SYNC_COMPLETABLE");
+				}
+				else if (request.getPayload().equals("flowCustomCompletable")) {
+					MyCompletableFuture myCompletableFuture = new MyCompletableFuture();
+					myCompletableFuture.complete("SYNC_CUSTOM_COMPLETABLE");
+					payload = myCompletableFuture;
+				}
+				else if (request.getPayload().equals("flowCompletableM")) {
+					payload = CompletableFuture.<Message<?>>completedFuture(reply);
+				}
+				else if (request.getPayload().equals("flowCustomCompletableM")) {
+					MyCompletableMessageFuture myCompletableFuture = new MyCompletableMessageFuture();
+					myCompletableFuture.complete(reply);
+					payload = myCompletableFuture;
+				}
+				if (payload != null) {
+					reply = MessageBuilder.withPayload(payload)
+							.copyHeaders(reply.getHeaders())
+							.build();
+				}
 				replyChannel.send(reply);
 			}
 		});
@@ -156,6 +371,10 @@ public class GatewayParserTests {
 		private static final long serialVersionUID = 1L;
 
 		private volatile String beanName;
+
+		public TestExecutor() {
+			setThreadNamePrefix("testExec-");
+		}
 
 		@Override
 		public void setBeanName(String beanName) {
