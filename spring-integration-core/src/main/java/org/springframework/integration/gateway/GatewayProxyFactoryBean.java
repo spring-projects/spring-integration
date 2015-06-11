@@ -64,9 +64,9 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import reactor.Environment;
+import reactor.fn.Functions;
 import reactor.rx.Promise;
 import reactor.rx.Promises;
-import reactor.fn.Functions;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -279,6 +279,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		this.argsMapper = mapper;
 	}
 
+	protected AsyncTaskExecutor getAsyncExecutor() {
+		return asyncExecutor;
+	}
+
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -366,16 +370,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			return Promises.<Object>task((Environment) this.reactorEnvironment,
 					Functions.supplier(new AsyncInvocationTask(invocation)));
 		}
-		return this.doInvoke(invocation);
+		return this.doInvoke(invocation, true);
 	}
 
-	private Object doInvoke(MethodInvocation invocation) throws Throwable {
+	protected Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable {
 		Method method = invocation.getMethod();
 		if (AopUtils.isToStringMethod(method)) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
 		}
 		try {
-			return this.invokeGatewayMethod(invocation);
+			return this.invokeGatewayMethod(invocation, runningOnCallerThread);
 		}
 		catch (Throwable e) {//NOSONAR - ok to catch, rethrown below
 			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
@@ -383,7 +387,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
-	private Object invokeGatewayMethod(MethodInvocation invocation) throws Exception {
+	private Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) throws Exception {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
@@ -391,7 +395,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
 		boolean shouldReturnMessage = Message.class.isAssignableFrom(returnType)
-				|| hasReturnParameterizedWithMessage(method);
+				|| hasReturnParameterizedWithMessage(method, runningOnCallerThread);
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
@@ -593,9 +597,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
-	private static boolean hasReturnParameterizedWithMessage(Method method) {
-		if (Future.class.isAssignableFrom(method.getReturnType())
-				|| (reactorPresent && Promise.class.isAssignableFrom(method.getReturnType()))) {
+	private static boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
+		if (!runningOnCallerThread &&
+				(Future.class.isAssignableFrom(method.getReturnType())
+				|| (reactorPresent && Promise.class.isAssignableFrom(method.getReturnType())))) {
 			Type returnType = method.getGenericReturnType();
 			if (returnType instanceof ParameterizedType) {
 				Type[] typeArgs = ((ParameterizedType) returnType).getActualTypeArguments();
@@ -634,7 +639,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		@Override
 		public Object call() throws Exception {
 			try {
-				return doInvoke(this.invocation);
+				return doInvoke(this.invocation, false);
 			}
 			catch (Error e) {//NOSONAR
 				throw e;

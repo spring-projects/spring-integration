@@ -48,6 +48,30 @@
 			 default-reply-channel="replyChannel"
 			 reactor-environment="reactorEnvironment"/>
 
+	<gateway id="asyncCompletable"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor="testExecutor"/>
+
+	<gateway id="completableNoAsync"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor=""/>
+
+	<gateway id="customCompletable"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor=""/>
+
+	<gateway id="customCompletableAttemptAsync"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor="testExecutor"/>
+
 	<!-- no assertions for this. The fact that this config does not result in error is sufficient -->
 	<gateway id="defaultConfig" default-request-channel="nullChannel"/>
 
