@@ -173,9 +173,9 @@ public class GatewayParserTests {
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("asyncCompletable", TestService.class);
-		CompletableFuture<String> result = service.completable("foo");
+		CompletableFuture<String> result = service.completable("foo").thenApply(t -> t.toUpperCase());
 		String reply = result.get(1, TimeUnit.SECONDS);
-		assertEquals("foo", reply);
+		assertEquals("FOO", reply);
 		assertThat(thread.get().getName(), startsWith("testExec-"));
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor"));
 	}
