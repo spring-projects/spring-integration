@@ -30,6 +30,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
@@ -165,10 +166,15 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			boolean done;
 
+			String line;
+
 			@Override
 			public boolean hasNext() {
 				try {
-					boolean ready = !this.done && bufferedReader.ready();
+					if (this.line == null && !this.done) {
+						this.line = bufferedReader.readLine();
+					}
+					boolean ready = !this.done && this.line != null;
 					if (!ready) {
 						if (this.markers) {
 							this.eof = true;
@@ -180,6 +186,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 				catch (IOException e) {
 					try {
 						bufferedReader.close();
+						this.done = true;
 					}
 					catch (IOException e1) {}
 					throw new MessageHandlingException(message, "IOException while iterating", e);
@@ -199,11 +206,23 @@ public class FileSplitter extends AbstractMessageSplitter {
 					return new FileMarker(filePath, Mark.END);
 				}
 				try {
-					return bufferedReader.readLine();
+					if (this.line == null && !this.done) {
+						this.line = bufferedReader.readLine();
+					}
+					if (this.line != null) {
+						String line = this.line;
+						this.line = null;
+						return line;
+					}
+					else {
+						this.done = true;
+						throw new NoSuchElementException(filePath + " has been consumed");
+					}
 				}
 				catch (IOException e) {
 					try {
 						bufferedReader.close();
+						this.done = true;
 					}
 					catch (IOException e1) {}
 					throw new MessageHandlingException(message, "IOException while iterating", e);

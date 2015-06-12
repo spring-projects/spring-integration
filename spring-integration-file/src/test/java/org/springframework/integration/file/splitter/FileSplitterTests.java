@@ -104,9 +104,11 @@ public class FileSplitterTests {
 		this.input1.send(new GenericMessage<File>(file));
 		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive); //HelloWorld
+		assertEquals("HelloWorld", receive.getPayload());
 		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
 		assertNotNull(receive); //äöüß
+		assertEquals("äöüß", receive.getPayload());
 		assertNull(this.output.receive(1));
 
 		this.input1.send(new GenericMessage<String>(file.getAbsolutePath()));
