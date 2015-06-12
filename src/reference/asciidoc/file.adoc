@@ -470,3 +470,83 @@ To configure File specific transformers you can use the appropriate elements fro
 The _delete-files_ option signals to the transformer that it should delete the inbound File after the transformation is complete.
 This is in no way a replacement for using the`AcceptOnceFileListFilter` when the FileReadingMessageSource is being used in a multi-threaded environment (e.g.
 Spring Integration in general).
+
+
+[[file-splitter]]
+=== File Splitter
+
+The `FileSplitter` was added in _version 4.1.2_ and namespace support was added in _version 4.2_.
+The `FileSplitter` splits text files into individual lines, based on `BufferedReader.readLine()`.
+By default, the splitter uses an `Iterator` to emit lines one-at-a-time as they are read from the file.
+Setting the `iterator` property to `false` causes it to read all the lines into memory before emitting them as messages.
+One use case for this might be if you want to detect I/O errors on the file before sending any messages containing
+lines.
+However, it is only practical for relatively short files.
+
+Inbound payloads can be `File`, `String` (a `File` path), `InputStream`, or `Reader`.
+Other payload types will be emitted unchanged.
+
+[source, java]
+----
+<int-file:splitter id="splitter" <1>
+    iterator="" <2>
+    markers="" <3>
+    apply-sequence="" <4>
+    requires-reply="" <5>
+    charset="" <6>
+    input-channel="" <7>
+    output-channel="" <8>
+    send-timeout="" <9>
+    auto-startup="" <10>
+    order="" <11>
+    phase="" /> <12>
+----
+
+<1> The bean name of the splitter.
+
+<2> Set to `true` to use an iterator (default); `false` to load the file into memory before sending lines.
+
+<3> Set to `true` to emit start of file/end of file marker messages before and after the file data.
+Markers are messages with `FileSplitter.FileMarker` payloads (with `START` and `END` values in the `mark` property).
+Markers might be used when sequentially processing files in a downstream flow where some lines are filtered.
+They enable the downstream processing to know when a file has been completely processed.
+Default: `false`.
+When `true`, `apply-sequence` is `false` by default.
+
+<4> Set to `false` to disable the inclusion of `sequenceSize` and `sequenceNumber` headers in messages.
+Default: `true`, unless `markers` is `true`.
+When `true` and `markers` is `true`, the markers are included in the sequencing.
+When `true` and `iterator` is `true`, the `sequenceSize` header is set to `0` because the size is unknown.
+
+<5> Set to `true` to cause a `RequiresReplyException` to be thrown if there are no lines in the file.
+Default: `false`.
+
+<6> Set the charset name to be used when reading the text data into `String` payloads.
+Default: platform charset.
+
+<7> Set the input channel used to send messages to the splitter.
+
+<8> Set the output channel to which messages will be sent.
+
+<9> Set the send timeout - only applies if the `output-channel` can block - such as a full `QueueChannel`.
+
+<10> Set to `false` to disable automatically starting the splitter when the context is refreshed.
+Default: `true`.
+
+<11> Set the order of this endpoint if the `input-channel` is a `<publish-subscribe-channel/>`.
+
+<12> Set the startup phase for the splitter (used when `auto-startup` is `true`).
+
+*Java Configuration*
+
+[source, java]
+----
+@Splitter(inputChannel="toSplitter")
+@Bean
+public MessageHandler fileSplitter() {
+    FileSplitter splitter = new FileSplitter(true, true);
+    splitter.setApplySequence(true);
+    splitter.setOutputChannel(outputChannel);
+    return splitter;
+}
+----

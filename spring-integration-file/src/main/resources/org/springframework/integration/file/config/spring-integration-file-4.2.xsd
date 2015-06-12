@@ -547,6 +547,87 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:attribute>
     </xsd:complexType>
 
+	<xsd:element name="splitter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Splitter that splits text-based files into lines.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element name="poller" type="integration:basePollerType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (EventDrivenConsumer)]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="charset" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[Set the charset name to use when reading bytes from the text-based file into String
+						payloads, e.g. charset="UTF-8". If not set, the default charset of this
+						Java virtual machine is used.
+						]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="requires-reply" use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether the splitter must return at least one message. This value will be
+						'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
+						the file has no data.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="apply-sequence" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set this flag to determine whether sequence related headers are added to messages
+						from this splitter. When true, existing correlation and sequence related headers
+						are pushed onto a stack; downstream components, such as aggregators may pop
+						the stack to revert the existing headers after aggregation. Default is 'true'
+						unless 'markers' is 'true'. Also see 'iterator'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="iterator" use="optional" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set this flag to determine whether the lines are emitted via an iterator (line at a time)
+						or the whole file is read into memory and then the lines emitted. When true, if
+						'apply-sequence' is 'true', the `sequenceSize` header is set to '0'. Default: 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="markers" use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set this flag to determine whether start of file and end of file markers are emitted
+						before and after the file content messages respectively. The marker message payloads are
+						of type 'FileSplitter.FileMarker'. When `apply-sequence` is true, the sequence information
+						includes the markers as well as the file lines. Default: 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
     <xsd:element name="locker">
         <xsd:annotation>
 			<xsd:documentation>

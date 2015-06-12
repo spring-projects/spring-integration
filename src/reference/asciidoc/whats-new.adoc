@@ -29,6 +29,12 @@ The `@SecuredChannel` annotation has been introduced, replacing the deprecated `
 For more information, see <<security>>.
 
 
+[[x4.2-file-splitter]]
+==== FileSplitter
+
+The `FileSplitter`, which splits text files into lines, was added in 4.1.2.
+It now has full support in the `int-file:` namespace; see <<file-splitter>> for more information.
+
 [[x4.2-general]]
 === General Changes
 

@@ -263,7 +263,7 @@ Unless your application removes files after processing, the adapter will re-proc
 Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter`, and the remote file timestamp changes (causing it to be re-fetched), the default local filter will not allow this new file to be processed.
 
 Use the `local-filter` attribute to configure the behavior of the local file system filter.
-To solve these particular use cases, you can use a`FileSystemPersistentAcceptOnceFileListFilter` as a local filter instead.
+To solve these particular use cases, you can use a `FileSystemPersistentAcceptOnceFileListFilter` as a local filter instead.
 This filter also stores the accepted file names and modified timestamp in an instance of the`MetadataStore` strategy (<<metadata-store>>), and will detect the change in the local file modified time.
 
 Since __version 4.1.5__, these filters have a new property `flushOnUpdate` which will cause them to flush the
