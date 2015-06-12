@@ -196,6 +196,7 @@ public class FileSplitterTests {
 		fileMarker = (FileSplitter.FileMarker) received.getPayload();
 		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
 		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertEquals(2, fileMarker.getLineCount());
 	}
 
 	@Configuration

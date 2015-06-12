@@ -168,6 +168,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			String line;
 
+			long lineCount;
+
 			boolean hasNextCalled;
 
 			@Override
@@ -204,17 +206,18 @@ public class FileSplitter extends AbstractMessageSplitter {
 				this.hasNextCalled = false;
 				if (this.sof) {
 					this.sof = false;
-					return new FileMarker(filePath, Mark.START);
+					return new FileMarker(filePath, Mark.START, 0);
 				}
 				if (this.eof) {
 					this.eof = false;
 					this.markers = false;
 					this.done = true;
-					return new FileMarker(filePath, Mark.END);
+					return new FileMarker(filePath, Mark.END, this.lineCount);
 				}
 				if (this.line != null) {
 					String line = this.line;
 					this.line = null;
+					this.lineCount++;
 					return line;
 				}
 				else {
@@ -250,9 +253,12 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		private final Mark mark;
 
-		public FileMarker(String filePath, Mark mark) {
+		private final long lineCount;
+
+		public FileMarker(String filePath, Mark mark, long lineCount) {
 			this.filePath = filePath;
 			this.mark = mark;
+			this.lineCount = lineCount;
 		}
 
 		public String getFilePath() {
@@ -263,10 +269,20 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return mark;
 		}
 
+		public long getLineCount() {
+			return lineCount;
+		}
+
 		@Override
 		public String toString() {
-			return "FileMarker [filePath=" + filePath + ", mark=" + mark + "]";
+			if (this.mark.equals(Mark.START)) {
+				return "FileMarker [filePath=" + filePath + ", mark=" + mark + "]";
+			}
+			else {
+				return "FileMarker [filePath=" + filePath + ", mark=" + mark + ", lineCount=" + lineCount + "]";
+			}
 		}
+
 
 	}
 
