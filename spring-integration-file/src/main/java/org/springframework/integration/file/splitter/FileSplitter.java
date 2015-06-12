@@ -30,6 +30,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
@@ -87,7 +88,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * the markers are included in the sequence size.
 	 * @param iterator true to return an iterator, false to return a list of lines.
 	 * @param markers true to emit start of file/end of file marker messages before/after the data.
-	 * @since 1.4.5
+	 * @since 4.1.5
 	 */
 	public FileSplitter(boolean iterator, boolean markers) {
 		this.iterator = iterator;
@@ -165,10 +166,18 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			boolean done;
 
+			String line;
+
+			boolean hasNextCalled;
+
 			@Override
 			public boolean hasNext() {
+				this.hasNextCalled = true;
 				try {
-					boolean ready = !this.done && bufferedReader.ready();
+					if (this.line == null && !this.done) {
+						this.line = bufferedReader.readLine();
+					}
+					boolean ready = !this.done && this.line != null;
 					if (!ready) {
 						if (this.markers) {
 							this.eof = true;
@@ -180,6 +189,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 				catch (IOException e) {
 					try {
 						bufferedReader.close();
+						this.done = true;
 					}
 					catch (IOException e1) {}
 					throw new MessageHandlingException(message, "IOException while iterating", e);
@@ -188,6 +198,10 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			@Override
 			public Object next() {
+				if (!this.hasNextCalled) {
+					hasNext();
+				}
+				this.hasNextCalled = false;
 				if (this.sof) {
 					this.sof = false;
 					return new FileMarker(filePath, Mark.START);
@@ -198,15 +212,14 @@ public class FileSplitter extends AbstractMessageSplitter {
 					this.done = true;
 					return new FileMarker(filePath, Mark.END);
 				}
-				try {
-					return bufferedReader.readLine();
+				if (this.line != null) {
+					String line = this.line;
+					this.line = null;
+					return line;
 				}
-				catch (IOException e) {
-					try {
-						bufferedReader.close();
-					}
-					catch (IOException e1) {}
-					throw new MessageHandlingException(message, "IOException while iterating", e);
+				else {
+					this.done = true;
+					throw new NoSuchElementException(filePath + " has been consumed");
 				}
 			}
 
