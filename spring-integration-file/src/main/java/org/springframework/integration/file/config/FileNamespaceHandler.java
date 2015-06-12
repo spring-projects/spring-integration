@@ -26,6 +26,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  */
 public class FileNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
+	@Override
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new FileInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new FileOutboundChannelAdapterParser());
@@ -33,6 +34,7 @@ public class FileNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		registerBeanDefinitionParser("file-to-string-transformer", new FileToStringTransformerParser());
 		registerBeanDefinitionParser("file-to-bytes-transformer", new FileToByteArrayTransformerParser());
 		registerBeanDefinitionParser("tail-inbound-channel-adapter", new FileTailInboundChannelAdapterParser());
+		registerBeanDefinitionParser("splitter", new FileSplitterParser());
 	}
 
 }
