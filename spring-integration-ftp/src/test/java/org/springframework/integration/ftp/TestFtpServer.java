@@ -24,6 +24,7 @@ import java.util.Arrays;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.Authentication;
@@ -40,6 +41,8 @@ import org.junit.rules.TemporaryFolder;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.test.util.SocketUtils;
 
@@ -149,13 +152,14 @@ public class TestFtpServer {
 	}
 
 	@Bean
-	public DefaultFtpSessionFactory ftpSessionFactory() {
+	public SessionFactory<FTPFile> ftpSessionFactory() {
 		DefaultFtpSessionFactory factory = new DefaultFtpSessionFactory();
 		factory.setHost("localhost");
 		factory.setPort(this.ftpPort);
 		factory.setUsername("foo");
 		factory.setPassword("foo");
-		return factory;
+
+		return new CachingSessionFactory<FTPFile>(factory);
 	}
 
 	@PostConstruct

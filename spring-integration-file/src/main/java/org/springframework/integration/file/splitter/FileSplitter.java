@@ -38,6 +38,7 @@ import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mar
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.util.StringUtils;
 
 /**
  * The {@link AbstractMessageSplitter} implementation to split the {@link File}
@@ -147,11 +148,11 @@ public class FileSplitter extends AbstractMessageSplitter {
 			else {
 				reader = new InputStreamReader((InputStream) payload, this.charset);
 			}
-			filePath = ":stream:";
+			filePath = buildPathFromMessage(message, ":stream:");
 		}
 		else if (payload instanceof Reader) {
 			reader = (Reader) payload;
-			filePath = ":reader:";
+			filePath = buildPathFromMessage(message, ":reader:");
 		}
 		else {
 			return message;
@@ -242,7 +243,6 @@ public class FileSplitter extends AbstractMessageSplitter {
 		}
 	}
 
-
 	@Override
 	protected boolean willAddHeaders(Message<?> message) {
 		Object payload = message.getPayload();
@@ -265,6 +265,17 @@ public class FileSplitter extends AbstractMessageSplitter {
 			if (!headers.containsKey(FileHeaders.FILENAME)) {
 				headers.put(FileHeaders.FILENAME, file.getName());
 			}
+		}
+	}
+
+	private String buildPathFromMessage(Message<?> message, String defaultPath) {
+		String remoteDir = (String) message.getHeaders().get(FileHeaders.REMOTE_DIRECTORY);
+		String remoteFile = (String) message.getHeaders().get(FileHeaders.REMOTE_FILE);
+		if (StringUtils.hasText(remoteDir) && StringUtils.hasText(remoteFile)) {
+			return remoteDir + remoteFile;
+		}
+		else {
+			return defaultPath;
 		}
 	}
 

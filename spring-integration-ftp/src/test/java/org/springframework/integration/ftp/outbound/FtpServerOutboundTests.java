@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
@@ -48,10 +51,11 @@ import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.TestFtpServer;
-import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -74,7 +78,7 @@ public class FtpServerOutboundTests {
 	private TestFtpServer ftpServer;
 
 	@Autowired
-	private DefaultFtpSessionFactory ftpSessionFactory;
+	private SessionFactory<FTPFile> ftpSessionFactory;
 
 	@Autowired
 	private PollableChannel output;
@@ -111,6 +115,9 @@ public class FtpServerOutboundTests {
 
 	@Autowired
 	private DirectChannel failing;
+
+	@Autowired
+	private DirectChannel inboundGetStream;
 
 	@Before
 	public void setup() {
@@ -340,6 +347,33 @@ public class FtpServerOutboundTests {
 			assertThat(e.getCause().getCause().getMessage(), containsString("The destination file already exists"));
 		}
 
+	}
+
+	@Test
+	public void testStream() {
+		String dir = "ftpSource/";
+		this.inboundGetStream.send(new GenericMessage<Object>(dir + "ftpSource1.txt"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		assertEquals("source1", result.getPayload());
+		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+		assertEquals("ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
+
+		Session<?> session = (Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION);
+		// Returned to cache
+		assertTrue(session.isOpen());
+		// Raw reading is finished
+		assertFalse(TestUtils.getPropertyValue(session, "targetSession.readingRaw", AtomicBoolean.class).get());
+
+		// Check that we can use the same session from cache to read another remote InputStream
+		this.inboundGetStream.send(new GenericMessage<Object>(dir + "ftpSource2.txt"));
+		result = this.output.receive(1000);
+		assertNotNull(result);
+		assertEquals("source2", result.getPayload());
+		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+		assertEquals("ftpSource2.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertSame(TestUtils.getPropertyValue(session, "targetSession"),
+				TestUtils.getPropertyValue(result.getHeaders().get(FileHeaders.REMOTE_SESSION), "targetSession"));
 	}
 
 	private void assertLength6(FtpRemoteFileTemplate template) {

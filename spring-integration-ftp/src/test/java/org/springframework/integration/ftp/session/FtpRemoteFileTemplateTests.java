@@ -61,7 +61,7 @@ public class FtpRemoteFileTemplateTests {
 	private TestFtpServer ftpServer;
 
 	@Autowired
-	private DefaultFtpSessionFactory sessionFactory;
+	private SessionFactory<FTPFile> sessionFactory;
 
 	@Before
 	@After

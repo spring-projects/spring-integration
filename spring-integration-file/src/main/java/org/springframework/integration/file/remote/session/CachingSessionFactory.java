@@ -190,7 +190,15 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 				else if (this.dirty) {
 					this.targetSession.close();
 				}
-				pool.releaseItem(targetSession);
+				if (this.targetSession.isOpen()) {
+					try {
+						this.targetSession.finalizeRaw();
+					}
+					catch (IOException e) {
+						//No-op in this context
+					}
+				}
+				pool.releaseItem(this.targetSession);
 				released = true;
 			}
 		}

@@ -40,12 +40,14 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -170,7 +172,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		/**
 		 * Recursive (ls, mget)
 		 */
-		RECURSIVE("-R");
+		RECURSIVE("-R"),
+
+		/**
+		 * Streaming 'get' (returns InputStream); user must call {@link RemoteFileUtils#closeSession(Session)}.
+		 */
+		STREAM("-stream");
 
 		private String option;
 
@@ -364,7 +371,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				Command.GET.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm and get commands");
 		}
-		if (Command.GET.equals(this.command)
+		if ((Command.GET.equals(this.command) && !options.contains(Option.STREAM))
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
 			if (this.localDirectoryExpression instanceof LiteralExpression) {
@@ -449,19 +456,37 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		final String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
 		final String remoteFilename = this.getRemoteFilename(remoteFilePath);
 		final String remoteDir = this.getRemoteDirectory(remoteFilePath, remoteFilename);
-		File payload = this.remoteFileTemplate.execute(new SessionCallback<F, File>() {
-
-			@Override
-			public File doInSession(Session<F> session) throws IOException {
-				return AbstractRemoteFileOutboundGateway.this.get(requestMessage, session, remoteDir, remoteFilePath,
-						remoteFilename, true);
-
+		Session<F> session = null;
+		Object payload;
+		if (this.options.contains(Option.STREAM)) {
+			session = this.remoteFileTemplate.getSessionFactory().getSession();
+			try {
+				payload = session.readRaw(remoteFilePath);
 			}
-		});
-		return this.getMessageBuilderFactory().withPayload(payload)
+			catch (IOException e) {
+				throw new MessageHandlingException(requestMessage, "Failed to get the remote file ["
+						+ remoteFilePath
+						+ "] as a stream", e);
+			}
+		}
+		else {
+			payload = this.remoteFileTemplate.execute(new SessionCallback<F, File>() {
+
+				@Override
+				public File doInSession(Session<F> session) throws IOException {
+					return AbstractRemoteFileOutboundGateway.this.get(requestMessage, session, remoteDir, remoteFilePath,
+							remoteFilename, true);
+
+				}
+			});
+		}
+		AbstractIntegrationMessageBuilder<Object> builder = this.getMessageBuilderFactory().withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-			.build();
+			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
+		if (session != null) {
+			builder.setHeader(FileHeaders.REMOTE_SESSION, session);
+		}
+		return builder.build();
 	}
 
 	private Object doMget(final Message<?> requestMessage) {

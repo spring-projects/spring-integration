@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ public abstract class FileHeaders {
 	public static final String REMOTE_DIRECTORY = PREFIX + "remoteDirectory";
 
 	public static final String REMOTE_FILE = PREFIX + "remoteFile";
+
+	public static final String REMOTE_SESSION = PREFIX + "remoteSession";
 
 	public static final String RENAME_TO = PREFIX + "renameTo";
 

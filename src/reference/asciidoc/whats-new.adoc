@@ -160,3 +160,9 @@ metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetada
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.
 See <<gw-completable-future>> for more information.
+
+[[x4.2-ftp-changes]]
+==== (S)FTP Changes
+
+The SFTP/FTP outbound gateway `get` operations now support the `-stream` option, allowing files to be retrieved as
+a stream. See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
