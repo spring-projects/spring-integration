@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -124,6 +125,9 @@ public class SftpServerOutboundTests {
 
 	@Autowired
 	private TestSftpServer sftpServer;
+
+	@Autowired
+	private DirectChannel inboundGetStream;
 
 	@Before
 	@After
@@ -402,6 +406,16 @@ public class SftpServerOutboundTests {
 			assertThat(e.getCause().getCause().getMessage(), containsString("The destination file already exists"));
 		}
 
+	}
+
+	@Test
+	public void testStream() {
+		String dir = "sftpSource/";
+		this.inboundGetStream.send(new GenericMessage<Object>(dir + "sftpSource1.txt"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		assertEquals("source1", result.getPayload());
+		assertFalse(((Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION)).isOpen());
 	}
 
 	private void assertLength6(SftpRemoteFileTemplate template) {

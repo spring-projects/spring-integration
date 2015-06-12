@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,16 @@ public class RemoteFileUtils {
 				session.mkdir(path);
 			}
 		}
+	}
+
+	/**
+	 * Invoke this method to clean up and close the session after using {@link Session#readRaw(String)}.
+	 * @param session The session.
+	 * @throws IOException if an IO error occurs.
+	 */
+	public static <F> void closeSession(Session<F> session) throws IOException {
+		session.finalizeRaw();
+		session.close();
 	}
 
 }

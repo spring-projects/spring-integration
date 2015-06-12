@@ -104,6 +104,30 @@
 							  remote-directory="ftpTarget"
 							  reply-channel="output"/>
 
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundGetStream"
+							  command="get"
+							  command-options="-stream"
+							  expression="payload"
+							  remote-directory="ftpTarget"
+							  reply-channel="stream" />
+
+	<int:chain input-channel="stream">
+		<int:splitter>
+			<bean class="org.springframework.integration.file.splitter.FileSplitter">
+				<constructor-arg value="true" />
+				<constructor-arg value="true" /> <!-- TODO: convert to namespace when INT-3600 merged -->
+			</bean>
+		</int:splitter>
+		<int:payload-type-router resolution-required="false" default-output-channel="output">
+			<int:mapping type="org.springframework.integration.file.splitter.FileSplitter$FileMarker"
+						 channel="markers" />
+		</int:payload-type-router>
+	</int:chain>
+
+	<int:service-activator input-channel="markers"
+	  expression="payload.mark.toString().equals('END') ? T(org.springframework.integration.file.remote.RemoteFileUtils).closeSession(headers['file_remoteSession']) : null"/>
+
 	<int:channel id="appending" />
 
 	<int-ftp:outbound-channel-adapter id="appender"
