@@ -30,8 +30,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.messaging.Message;
@@ -237,6 +239,32 @@ public class FileSplitter extends AbstractMessageSplitter {
 				lines.add(iterator.next());
 			}
 			return lines;
+		}
+	}
+
+
+	@Override
+	protected boolean willAddHeaders(Message<?> message) {
+		Object payload = message.getPayload();
+		return payload instanceof File || payload instanceof String;
+	}
+
+	@Override
+	protected void addHeaders(Message<?> message, Map<String, Object> headers) {
+		File file = null;
+		if (message.getPayload() instanceof File) {
+			file = (File) message.getPayload();
+		}
+		else if (message.getPayload() instanceof String) {
+			file = new File((String) message.getPayload());
+		}
+		if (file != null) {
+			if (!headers.containsKey(FileHeaders.ORIGINAL_FILE)) {
+				headers.put(FileHeaders.ORIGINAL_FILE, file);
+			}
+			if (!headers.containsKey(FileHeaders.FILENAME)) {
+				headers.put(FileHeaders.FILENAME, file.getName());
+			}
 		}
 	}
 

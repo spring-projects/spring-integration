@@ -49,6 +49,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -109,6 +110,8 @@ public class FileSplitterTests {
 		receive = this.output.receive(10000);
 		assertNotNull(receive); //äöüß
 		assertEquals("äöüß", receive.getPayload());
+		assertEquals(file, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
+		assertEquals(file.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
 		assertNull(this.output.receive(1));
 
 		this.input1.send(new GenericMessage<String>(file.getAbsolutePath()));
@@ -117,6 +120,8 @@ public class FileSplitterTests {
 		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
 		assertNotNull(receive); //äöüß
+		assertEquals(file, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
+		assertEquals(file.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
 		assertNull(this.output.receive(1));
 
 		this.input1.send(new GenericMessage<Reader>(new FileReader(file)));
