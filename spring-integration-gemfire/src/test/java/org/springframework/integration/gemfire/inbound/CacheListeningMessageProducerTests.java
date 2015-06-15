@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,15 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.Message;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class CacheListeningMessageProducerTests {
@@ -45,7 +46,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
@@ -72,7 +73,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
 		regionFactoryBean.setName("test.receiveNewValuePayloadForUpdateEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
@@ -103,7 +104,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
@@ -133,7 +134,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
