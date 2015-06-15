@@ -67,7 +67,10 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
      * 'messageStoreRegion'
      *
      * @param cache The cache.
+     *
+     * @deprecated - use the other constructor and provide a region directly.
      */
+	@Deprecated
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
 		this.cache = cache;
@@ -92,7 +95,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
 			attributesFactoryBean.afterPropertiesSet();
-			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
+			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>() {};
 			messageRegionFactoryBean.setBeanName(MESSAGE_STORE_REGION_NAME);
 			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 			messageRegionFactoryBean.setCache(cache);

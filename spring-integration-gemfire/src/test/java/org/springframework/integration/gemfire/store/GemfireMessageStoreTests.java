@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,30 +25,36 @@ import java.util.Properties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.Scope;
 
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  * @since 2.1
  */
 public class GemfireMessageStoreTests {
 
 	private Cache cache;
 
+	private Region<Object, Object> region;
+
 	@Test
 	public void addAndGetMessage() throws Exception {
-		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		GemfireMessageStore store = new GemfireMessageStore(this.region);
 		store.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("test").build();
@@ -59,7 +65,7 @@ public class GemfireMessageStoreTests {
 
 	@Test
 	public void testRegionConstructor() throws Exception {
-		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>();
+		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>() {};
 		region.setName("someRegion");
 		region.setCache(this.cache);
 		region.afterPropertiesSet();
@@ -71,7 +77,7 @@ public class GemfireMessageStoreTests {
 
 	@Test
 	public void testWithMessageHistory() throws Exception {
-		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		GemfireMessageStore store = new GemfireMessageStore(this.region);
 		store.afterPropertiesSet();
 
 		Message<?> message = new GenericMessage<String>("Hello");
@@ -96,6 +102,7 @@ public class GemfireMessageStoreTests {
 	public void init() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		this.cache = cacheFactoryBean.getObject();
+		this.region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
 	}
 
 	@After
@@ -103,4 +110,5 @@ public class GemfireMessageStoreTests {
 		this.cache.close();
 		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
 	}
+
 }

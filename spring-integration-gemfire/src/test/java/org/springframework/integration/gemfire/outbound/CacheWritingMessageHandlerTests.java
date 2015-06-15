@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.junit.Test;
 
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
@@ -36,6 +36,7 @@ import com.gemstone.gemfire.cache.Region;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  */
 public class CacheWritingMessageHandlerTests {
@@ -44,7 +45,7 @@ public class CacheWritingMessageHandlerTests {
 	public void mapPayloadWritesToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
 		regionFactoryBean.setName("test.mapPayloadWritesToCache");
 		regionFactoryBean.setCache(cache);
 		regionFactoryBean.afterPropertiesSet();
@@ -63,7 +64,7 @@ public class CacheWritingMessageHandlerTests {
 	public void ExpressionsWriteToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
 		regionFactoryBean.setName("test.expressionsWriteToCache");
 		regionFactoryBean.setCache(cache);
 		regionFactoryBean.afterPropertiesSet();
