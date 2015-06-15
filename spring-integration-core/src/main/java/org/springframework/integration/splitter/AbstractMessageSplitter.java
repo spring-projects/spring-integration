@@ -19,7 +19,9 @@ package org.springframework.integration.splitter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -27,7 +29,6 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.util.Function;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 
 /**
  * Base class for Message-splitting handlers.
@@ -86,21 +87,28 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return null;
 		}
 
-		final MessageHeaders headers = message.getHeaders();
-		final Object correlationId = headers.getId();
+		Map<String, Object> messageHeaders = message.getHeaders();
+		if (willAddHeaders(message)) {
+			messageHeaders = new HashMap<String, Object>(messageHeaders);
+			addHeaders(message, messageHeaders);
+		}
+		final Map<String, Object> headers = messageHeaders;
+		final Object correlationId = message.getHeaders().getId();
 		final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
 		return new FunctionIterator<Object, AbstractIntegrationMessageBuilder<?>>(iterator,
 				new Function<Object, AbstractIntegrationMessageBuilder<?>>() {
+
 					@Override
 					public AbstractIntegrationMessageBuilder<?> apply(Object object) {
 						return createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(),
 								sequenceSize);
 					}
+
 				});
 	}
 
-	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, MessageHeaders headers,
+	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, Map<String, Object> headers,
 			Object correlationId, int sequenceNumber, int sequenceSize) {
 		AbstractIntegrationMessageBuilder<?> builder;
 		if (item instanceof Message) {
@@ -114,6 +122,26 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
 		}
 		return builder;
+	}
+
+	/**
+	 * Return true if the subclass needs to add headers in the resulting splits.
+	 * If true, {@link #addHeaders} will be called.
+	 * @param message the message.
+	 * @return true
+	 */
+	protected boolean willAddHeaders(Message<?> message) {
+		return false;
+	}
+
+	/**
+	 * Allows subclasses to add extra headers to the output messages. Headers may not be
+	 * removed by this method.
+	 *
+	 * @param message the inbound message.
+	 * @param headers the headers to add messages to.
+	 */
+	protected void addHeaders(Message<?> message, Map<String, Object> headers) {
 	}
 
 	@Override
