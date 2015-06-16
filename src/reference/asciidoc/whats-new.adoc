@@ -168,3 +168,12 @@ metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetada
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.
 See <<gw-completable-future>> for more information.
+
+[[x4.2-aggregator-perf]]
+==== Aggregator Performance
+
+This release includes some performance improvements for aggregating components (aggregator, resequencer, etc),
+by more efficiently removing messages from groups when they are released.
+New methods (`removeMessagesFromGroup`) have been added to the message store.
+Set the `removeBatchSize` property (default `100`) to adjust the number of messages deleted in each operation.
+Currently, JDBC, Redis and MongoDB message stores support this property.

@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.After;
@@ -30,6 +32,7 @@ import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -96,6 +99,25 @@ public class GemfireMessageStoreTests {
 		Properties fooChannelHistory = messageHistory.get(0);
 		assertEquals("fooChannel", fooChannelHistory.get("name"));
 		assertEquals("channel", fooChannelHistory.get("type"));
+	}
+
+	@Test
+	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+		GemfireMessageStore messageStore = new GemfireMessageStore(this.region);
+		messageStore.afterPropertiesSet();
+
+		String groupId = "X";
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessageToGroup(groupId, message);
+			messages.add(message);
+		}
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(25, group.size());
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
 	}
 
 	@Before

@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ParameterizedPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
@@ -484,6 +486,40 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messages' must not be null");
+
+		final String groupKey = getKey(groupId);
+
+		if (logger.isDebugEnabled()){
+			logger.debug("Removing messages from group with group key=" + groupKey);
+		}
+		jdbcTemplate.batchUpdate(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP),
+				messages,
+				getRemoveBatchSize(),
+				new ParameterizedPreparedStatementSetter<Message<?>>() {
+			@Override
+			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
+				ps.setString(1, groupKey);
+				ps.setString(2, getKey(messageToRemove.getHeaders().getId()));
+				ps.setString(3, region);
+			}
+		});
+		jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
+				messages,
+				getRemoveBatchSize(),
+				new ParameterizedPreparedStatementSetter<Message<?>>() {
+			@Override
+			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
+				ps.setString(1, getKey(messageToRemove.getHeaders().getId()));
+				ps.setString(2, region);
+			}
+		});
+		this.updateMessageGroup(groupKey);
+	}
+
+	@Override
 	public void removeMessageGroup(Object groupId) {
 
 		final String groupKey = getKey(groupId);
@@ -560,7 +596,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		Message<?> polledMessage = this.doPollForMessage(key);
 		if (polledMessage != null){
-			this.removeMessageFromGroup(groupId, polledMessage);
+			this.removeMessagesFromGroup(groupId, polledMessage);
 		}
 		return polledMessage;
 	}

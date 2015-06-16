@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,6 @@ public class MessageGroupMetadata implements Serializable {
 
 	private final boolean hasMessages;
 
-	private final int size;
-
 	private final UUID first;
 
 	public MessageGroupMetadata(MessageGroup messageGroup) {
@@ -66,10 +64,6 @@ public class MessageGroupMetadata implements Serializable {
 			for (Message<?> message : messageGroup.getMessages()) {
 				this.messageIds.add(message.getHeaders().getId());
 			}
-			this.size = this.messageIds.size();
-		}
-		else {
-			this.size = messageGroup.size();
 		}
 		this.complete = messageGroup.isComplete();
 		this.timestamp = messageGroup.getTimestamp();
@@ -102,7 +96,7 @@ public class MessageGroupMetadata implements Serializable {
 	}
 
 	public int size(){
-		return this.size;
+		return this.messageIds.size();
 	}
 
 	public UUID firstId(){

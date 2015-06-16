@@ -352,7 +352,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private void doReleaseMessage(Message<?> message) {
 		if (removeDelayedMessageFromMessageStore(message)) {
-			this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
+			this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
 			this.handleMessageInternal(message);
 		}
 		else {

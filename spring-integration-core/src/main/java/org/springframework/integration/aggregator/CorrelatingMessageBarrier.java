@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -43,6 +43,7 @@ import org.springframework.messaging.Message;
  *
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  * @see AbstractCorrelatingMessageHandler
  */
@@ -118,7 +119,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 						Iterator<Message<?>> messages = group.getMessages().iterator();
 						if (messages.hasNext()) {
 							nextMessage = messages.next();
-							store.removeMessageFromGroup(key, nextMessage);
+							this.store.removeMessagesFromGroup(key, nextMessage);
 							if (log.isDebugEnabled()) {
 								log.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));
 							}

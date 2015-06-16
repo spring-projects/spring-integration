@@ -15,12 +15,12 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -38,6 +38,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+
 /**
  * @author Amol Nayak
  * @author Artem Bilan
@@ -45,9 +48,6 @@ import org.springframework.messaging.Message;
  */
 public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.mongodb.store.AbstractMongoDbMessageGroupStoreTests#getMessageGroupStore()
-	 */
 	@Override
 	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
@@ -59,9 +59,6 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		return mongoDbMessageStore;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.mongodb.store.AbstractMongoDbMessageGroupStoreTests#getMessageStore()
-	 */
 	@Override
 	protected MessageStore getMessageStore() throws Exception {
 		return this.getMessageGroupStore();

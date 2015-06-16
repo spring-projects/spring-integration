@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -243,6 +245,25 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.removeMessageFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+	}
+
+	@Test
+	@Transactional
+	@DirtiesContext
+	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+		String groupId = "X";
+		messageStore.setRemoveBatchSize(10);
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessageToGroup(groupId, message);
+			messages.add(message);
+		}
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(25, group.size());
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 

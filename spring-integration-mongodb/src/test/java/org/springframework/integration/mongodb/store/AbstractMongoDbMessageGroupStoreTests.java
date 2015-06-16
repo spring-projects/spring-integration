@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.mongodb.MongoClient;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -32,6 +37,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
+import org.springframework.integration.store.AbstractBatchingMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -40,6 +46,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import com.mongodb.MongoClient;
 
 /**
  * @author Oleg Zhurakousky
@@ -394,6 +402,26 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertEquals(2, counter);
 	}
 
+	@Test
+	@MongoDbAvailable
+	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+		MessageGroupStore messageStore = (MessageGroupStore) this.getMessageStore();
+		String groupId = "X";
+		messageStore.removeMessageGroup("X");
+		((AbstractBatchingMessageGroupStore) messageStore).setRemoveBatchSize(10);
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessageToGroup(groupId, message);
+			messages.add(message);
+		}
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(25, group.size());
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+	}
+
 //	@Test
 //	@MongoDbAvailable
 //	public void testConcurrentModifications() throws Exception{
@@ -461,6 +489,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
 		input.send(m3);
 		assertNotNull(output.receive(2000));
+		context.close();
 	}
 
 	@Test

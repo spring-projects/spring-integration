@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,6 +77,7 @@ import org.springframework.util.StringUtils;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
 import com.mongodb.DBObject;
 
 
@@ -314,6 +316,35 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messageToRemove' must not be null");
+
+		Collection<UUID> ids = new ArrayList<UUID>();
+		for (Message<?> messageToRemove : messages) {
+			ids.add(messageToRemove.getHeaders().getId());
+			if (ids.size() >= getRemoveBatchSize()) {
+				bulkRemove(groupId, ids);
+				ids.clear();
+			}
+		}
+		if (ids.size() > 0) {
+			bulkRemove(groupId, ids);
+		}
+		updateGroup(groupId, lastModifiedUpdate());
+	}
+
+	private void bulkRemove(Object groupId, Collection<UUID> ids) {
+		BulkWriteOperation bulkOp = this.template.getCollection(this.collectionName)
+				.initializeOrderedBulkOperation();
+		for (UUID id : ids) {
+			bulkOp.find(whereMessageIdIsAndGroupIdIs(id, groupId).getQueryObject())
+				  .remove();
+		}
+		bulkOp.execute();
+	}
+
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		this.template.remove(whereGroupIdIs(groupId), this.collectionName);
 	}
@@ -399,7 +430,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private static Query whereMessageIdIsAndGroupIdIs(UUID id, Object groupId) {
 		return new Query(Criteria.where("headers.id._value").is(id.toString()).and(GROUP_ID_KEY).is(groupId));
 	}
-
 
 	private static Query whereGroupIdOrder(Object groupId) {
 		return whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));

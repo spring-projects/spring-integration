@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2013 the original author or authors
+ * Copyright 2007-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -34,11 +36,14 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class RedisMessageStoreTests extends RedisAvailableTests {
@@ -151,6 +156,23 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		Properties fooChannelHistory = messageHistory.get(0);
 		assertEquals("fooChannel", fooChannelHistory.get("name"));
 		assertEquals("channel", fooChannelHistory.get("type"));
+	}
+
+	@Test
+	@RedisAvailable
+	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore messageStore = new RedisMessageStore(jcf);
+		String groupId = "X";
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessageToGroup(groupId, message);
+			messages.add(message);
+		}
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
 	}
 
 	@SuppressWarnings("serial")
