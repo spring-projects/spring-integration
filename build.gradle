@@ -86,6 +86,7 @@ subprojects { subproject ->
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
+		curatorVersion = '2.8.0'
 		derbyVersion = '10.11.1.1'
 		eclipseLinkVersion = '2.4.2'
 		ftpServerVersion = '1.0.6'
@@ -135,6 +136,7 @@ subprojects { subproject ->
 		springWsVersion = '2.2.1.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
+		zookeeperVersion = '3.4.6'
 	}
 
 	eclipse {
@@ -678,6 +680,22 @@ project('spring-integration-xmpp') {
 		compile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
 		testCompile project(":spring-integration-stream")
+	}
+}
+
+project('spring-integration-zookeeper') {
+	description = 'Spring Integration Zookeeper Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion")
+
+		compile("org.apache.curator:curator-recipes:$curatorVersion") {
+			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+			exclude group: 'org.jboss.netty', module: 'netty'
+		}
+
+		testCompile "org.springframework.integration:spring-integration-test"
+		testCompile "org.apache.curator:curator-test:$curatorVersion"
 	}
 }
 
