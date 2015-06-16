@@ -17,10 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import org.springframework.core.serializer.Deserializer;
@@ -42,18 +39,11 @@ import org.springframework.messaging.support.ErrorMessage;
  * @since 2.2
  *
  */
-public class CachingClientConnectionFactory extends AbstractClientConnectionFactory implements CloseDeferrable {
+public class CachingClientConnectionFactory extends AbstractClientConnectionFactory {
 
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
 	private final SimplePool<TcpConnectionSupport> pool;
-
-	private final Map<String, CachedConnection> deferredClosures =
-			new ConcurrentHashMap<String, CachedConnection>();
-
-	private final Set<String> okToRelease = new HashSet<String>();
-
-	private volatile boolean deferClose;
 
 	/**
 	 * Construct a caching connection factory that delegates to the provided factory, with
@@ -63,7 +53,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	 */
 	public CachingClientConnectionFactory(AbstractClientConnectionFactory target, int poolSize) {
 		super("", 0);
-		// override single-use to true to force "close" after use
+		// override single-use to true so the target creates multiple connections
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
 		this.pool = new SimplePool<TcpConnectionSupport>(poolSize,
@@ -145,24 +135,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return new CachedConnection(this.pool.getItem(), getListener());
 	}
 
-	@Override
-	public void enableCloseDeferral(boolean defer) {
-		this.deferClose = defer;
-	}
-
-	@Override
-	public void closeDeferred(String connectionId) {
-		synchronized(this.okToRelease) {
-			CachedConnection deferred = this.deferredClosures.remove(connectionId);
-			if (deferred != null) {
-				deferred.doClose();
-			}
-			else {
-				this.okToRelease.add(connectionId);
-			}
-		}
-	}
-
 	private class CachedConnection extends TcpConnectionInterceptorSupport {
 
 		private volatile boolean released;
@@ -174,17 +146,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		@Override
 		public void close() {
-			synchronized(okToRelease) {
-				if (deferClose && !this.released && !okToRelease.remove(getConnectionId())) {
-					deferredClosures.put(getConnectionId(), this);
-				}
-				else {
-					doClose();
-				}
-			}
-		}
-
-		private synchronized void doClose() {
 			if (this.released) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Connection " + getConnectionId() + " has already been released");
@@ -254,8 +215,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 					logger.debug("Message discarded; no listener: " + message);
 				}
 			}
-			close(); // return to pool after response is received
-			return true; // true so the single-use connection doesn't close itself
+			return true;
 		}
 
 		private void physicallyClose() {
@@ -455,7 +415,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public boolean isSingleUse() {
-		return this.targetConnectionFactory.isSingleUse();
+		return true;
 	}
 
 	/**

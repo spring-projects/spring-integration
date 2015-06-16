@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,12 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -112,7 +112,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean lookupHost = true;
 
-	private final List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
+	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<String, TcpConnectionSupport>();
 
 	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
 
@@ -485,9 +485,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public void stop() {
 		this.active = false;
 		synchronized (this.connections) {
-			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
+			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
-				TcpConnection connection = iterator.next();
+				TcpConnection connection = iterator.next().getValue();
 				connection.close();
 				iterator.remove();
 			}
@@ -541,7 +541,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				connection = wrapper;
 			}
 			return connection;
-		} finally {
+		}
+		finally {
 			this.addConnection(connection);
 		}
 	}
@@ -775,7 +776,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				connection.close();
 				return;
 			}
-			this.connections.add(connection);
+			this.connections.put(connection.getConnectionId(), connection);
+			if (logger.isDebugEnabled()) {
+				logger.debug(getComponentName() +  ": Added new connection: " + connection.getConnectionId());
+			}
 		}
 	}
 
@@ -786,14 +790,21 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
 		synchronized (this.connections) {
 			List<String> openConnectionIds = new ArrayList<String>();
-			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
+			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
-				TcpConnection connection = iterator.next();
+				Entry<String, TcpConnectionSupport> entry = iterator.next();
+				TcpConnectionSupport connection = entry.getValue();
 				if (!connection.isOpen()) {
 					iterator.remove();
+					if (logger.isDebugEnabled()) {
+						logger.debug(getComponentName() +  ": Removed closed connection: " + connection.getConnectionId());
+					}
 				}
 				else {
-					openConnectionIds.add(connection.getConnectionId());
+					openConnectionIds.add(entry.getKey());
+					if (logger.isTraceEnabled()) {
+						logger.trace(getComponentName() +  ": Connection is open: " + connection.getConnectionId());
+					}
 				}
 			}
 			return openConnectionIds;
@@ -857,21 +868,20 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	public boolean closeConnection(String connectionId) {
 		Assert.notNull(connectionId, "'connectionId' to close must not be null");
+		// closed connections are removed from #connections in #harvestClosedConnections()
 		synchronized(this.connections) {
 			boolean closed = false;
-			for (TcpConnectionSupport connection : connections) {
-				if (connectionId.equals(connection.getConnectionId())) {
-					try {
-						connection.close();
-						closed = true;
-						break;
+			TcpConnectionSupport connection = this.connections.get(connectionId);
+			if (connection != null) {
+				try {
+					connection.close();
+					closed = true;
+				}
+				catch (Exception e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Failed to close connection " + connectionId, e);
 					}
-					catch (Exception e) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Failed to close connection " + connectionId, e);
-						}
-						connection.publishConnectionExceptionEvent(e);
-					}
+					connection.publishConnectionExceptionEvent(e);
 				}
 			}
 			return closed;

@@ -110,7 +110,9 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			this.closeConnection(true);
 			throw e;
 		}
-		this.afterSend(message);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Message sent " + message);
+		}
 	}
 
 	@Override
@@ -144,28 +146,19 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	/**
-	 * If there is no listener, and this connection is not for single use,
+	 * If there is no listener,
 	 * this method exits. When there is a listener, the method runs in a
 	 * loop reading input from the connection's stream, data is converted
 	 * to an object using the {@link Deserializer} and the listener's
-	 * {@link TcpListener#onMessage(Message)} method is called. For single use
-	 * connections with no listener, the socket is closed after its timeout
-	 * expires. If data is received on a single use socket with no listener,
-	 * a warning is logged.
+	 * {@link TcpListener#onMessage(Message)} method is called.
 	 */
 	@Override
 	public void run() {
-		boolean singleUse = this.isSingleUse();
-		TcpListener listener = this.getListener();
-		if (listener == null && !singleUse) {
-			logger.debug("TcpListener exiting - no listener and not single use");
-			return;
-		}
+		TcpListener listener = getListener();
 		boolean okToRun = true;
 		if (logger.isDebugEnabled()) {
 			logger.debug(this.getConnectionId() + " Reading...");
 		}
-		boolean intercepted = false;
 		while (okToRun) {
 			Message<?> message = null;
 			try {
@@ -184,32 +177,20 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 				}
 				try {
 					if (listener == null) {
-						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
-						continue;
+						throw new NoListenerException("No listener");
 					}
-					intercepted = this.getListener().onMessage(message);
+					listener.onMessage(message);
 				}
-				catch (NoListenerException nle) {
-					if (singleUse) {
-						logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
-						this.closeConnection(true);
-						okToRun = false;
-					} else {
-						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
+				catch (NoListenerException nle) { // could also be thrown by an interceptor
+					if (logger.isWarnEnabled()) {
+						logger.warn("Unexpected message - no endpoint registered with connection interceptor: "
+										+ getConnectionId()
+										+ " - "
+										+ message);
 					}
 				}
 				catch (Exception e2) {
 					logger.error("Exception sending message: " + message, e2);
-				}
-				/*
-				 * For single use sockets, we close after receipt if we are on the client
-				 * side, and the data was not intercepted,
-				 * or the server side has no outbound adapter registered
-				 */
-				if (singleUse && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
-					logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
-					this.closeConnection(false);
-					okToRun = false;
 				}
 			}
 		}
@@ -238,11 +219,11 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		}
 		if (doClose) {
 			boolean noReadErrorOnClose = this.isNoReadErrorOnClose();
-			this.closeConnection(true);
+			closeConnection(true);
 			if (!(e instanceof SoftEndOfStreamException)) {
-				if (e instanceof SocketTimeoutException && this.isSingleUse()) {
+				if (e instanceof SocketTimeoutException) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Closed single use socket after timeout:" + this.getConnectionId());
+						logger.debug("Closed socket after timeout:" + this.getConnectionId());
 					}
 				}
 				else {

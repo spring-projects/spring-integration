@@ -98,16 +98,16 @@ import org.springframework.util.ReflectionUtils.FieldFilter;
 public class TcpNioConnectionTests {
 
 	private final ApplicationEventPublisher nullPublisher = new ApplicationEventPublisher() {
-		
+
 		@Override
 		public void publishEvent(ApplicationEvent event) {
 		}
 
 		@Override
 		public void publishEvent(Object event) {
-			
+
 		}
-		
+
 	};
 
 	@Test
@@ -306,7 +306,7 @@ public class TcpNioConnectionTests {
 		factory.processNioSelections(1, selector, null, connections);
 		assertEquals(0, connections.size()); // third is closed
 
-		assertEquals(0, TestUtils.getPropertyValue(factory, "connections", List.class).size());
+		assertEquals(0, TestUtils.getPropertyValue(factory, "connections", Map.class).size());
 	}
 
 	@Test
@@ -723,9 +723,9 @@ public class TcpNioConnectionTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		});
 		final CountDownLatch assemblerLatch = new CountDownLatch(1);
 		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();
@@ -752,7 +752,8 @@ public class TcpNioConnectionTests {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		assertTrue(connectionLatch.await(10,  TimeUnit.SECONDS));
 
-		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", List.class).get(0);
+		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", Map.class)
+				.values().iterator().next();
 		Log logger = spy(TestUtils.getPropertyValue(connection, "logger", Log.class));
 		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
 		dfa.setPropertyValue("logger", logger);

@@ -102,18 +102,8 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public boolean isSingleUse() {
-		return this.theConnection.isSingleUse();
-	}
-
-	@Override
 	public void run() {
 		this.theConnection.run();
-	}
-
-	@Override
-	public void setSingleUse(boolean singleUse) {
-		this.theConnection.setSingleUse(singleUse);
 	}
 
 	@Override

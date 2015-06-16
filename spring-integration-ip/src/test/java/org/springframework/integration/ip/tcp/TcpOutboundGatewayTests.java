@@ -61,7 +61,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
@@ -85,7 +84,7 @@ public class TcpOutboundGatewayTests {
 	@Test
 	public void testGoodNetSingle() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
@@ -175,7 +174,7 @@ public class TcpOutboundGatewayTests {
 				}
 			}
 		});
-		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
@@ -230,7 +229,7 @@ public class TcpOutboundGatewayTests {
 				}
 			}
 		});
-		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
@@ -316,7 +315,8 @@ public class TcpOutboundGatewayTests {
 	 * own response, not that for the first.
 	 * @throws Exception
 	 */
-	private void testGoodNetGWTimeoutGuts(final int port, AbstractConnectionFactory ccf) throws InterruptedException {
+	private void testGoodNetGWTimeoutGuts(final int port, AbstractClientConnectionFactory ccf)
+			throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		/*

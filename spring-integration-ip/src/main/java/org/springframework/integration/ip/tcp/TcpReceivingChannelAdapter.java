@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@ package org.springframework.integration.ip.tcp;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -29,6 +28,8 @@ import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
 import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -48,6 +49,8 @@ public class TcpReceivingChannelAdapter
 
 	private AbstractConnectionFactory serverConnectionFactory;
 
+	private volatile boolean isSingleUse;
+
 	private volatile boolean isClientMode;
 
 	private volatile long retryInterval = 60000;
@@ -62,29 +65,48 @@ public class TcpReceivingChannelAdapter
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
+	@Override
 	public boolean onMessage(Message<?> message) {
-		if (this.shuttingDown) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Inbound message ignored; shutting down; " + message.toString());
+		boolean isErrorMessage = message instanceof ErrorMessage;
+		try {
+			if (this.shuttingDown) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Inbound message ignored; shutting down; " + message.toString());
+				}
+			}
+			else {
+				if (isErrorMessage) {
+					/*
+					 * Socket errors are sent here so they can be conveyed to any waiting thread.
+					 * There's not one here; simply ignore.
+					 */
+					return false;
+				}
+				this.activeCount.incrementAndGet();
+				try {
+					sendMessage(message);
+				}
+				finally {
+					this.activeCount.decrementAndGet();
+				}
+			}
+			return false;
+		}
+		finally {
+			String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
+			if (connectionId != null && !isErrorMessage && this.isSingleUse) {
+				if (this.serverConnectionFactory != null) {
+					// if there's no collaborating outbound adapter, close immediately, otherwise
+					// it will close after sending the reply.
+					if (this.serverConnectionFactory.getSender() == null) {
+						this.serverConnectionFactory.closeConnection(connectionId);
+					}
+				}
+				else {
+					this.clientConnectionFactory.closeConnection(connectionId);
+				}
 			}
 		}
-		else {
-			if (message instanceof ErrorMessage) {
-				/*
-				 * Socket errors are sent here so they can be conveyed to any waiting thread.
-				 * There's not one here; simply ignore.
-				 */
-				return false;
-			}
-			this.activeCount.incrementAndGet();
-			try {
-				sendMessage(message);
-			}
-			finally {
-				this.activeCount.decrementAndGet();
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -148,10 +170,12 @@ public class TcpReceivingChannelAdapter
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
 		if (connectionFactory instanceof AbstractClientConnectionFactory) {
 			this.clientConnectionFactory = connectionFactory;
-		} else {
+		}
+		else {
 			this.serverConnectionFactory = connectionFactory;
 		}
 		connectionFactory.registerListener(this);
+		this.isSingleUse = connectionFactory.isSingleUse();
 	}
 
 	public boolean isListening() {
@@ -186,6 +210,7 @@ public class TcpReceivingChannelAdapter
 	/**
 	 * @return the isClientMode
 	 */
+	@Override
 	public boolean isClientMode() {
 		return this.isClientMode;
 	}
@@ -213,6 +238,7 @@ public class TcpReceivingChannelAdapter
 		this.retryInterval = retryInterval;
 	}
 
+	@Override
 	public boolean isClientModeConnected() {
 		if (this.isClientMode && this.clientModeConnectionManager != null) {
 			return this.clientModeConnectionManager.isConnected();
@@ -221,17 +247,20 @@ public class TcpReceivingChannelAdapter
 		}
 	}
 
+	@Override
 	public void retryConnection() {
 		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
 			this.clientModeConnectionManager.run();
 		}
 	}
 
+	@Override
 	public int beforeShutdown() {
 		this.shuttingDown = true;
 		return this.activeCount.get();
 	}
 
+	@Override
 	public int afterShutdown() {
 		this.stop();
 		return this.activeCount.get();

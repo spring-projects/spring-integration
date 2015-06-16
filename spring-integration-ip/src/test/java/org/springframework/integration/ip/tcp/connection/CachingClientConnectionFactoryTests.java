@@ -594,16 +594,20 @@ public class CachingClientConnectionFactoryTests {
 		TcpNetClientConnectionFactory out = new TcpNetClientConnectionFactory("localhost", port);
 		CachingClientConnectionFactory cache = new CachingClientConnectionFactory(out, 1);
 		cache.setSingleUse(false);
+		cache.setConnectionWaitTimeout(100);
 		cache.start();
 		TcpConnectionSupport connection1 = cache.getConnection();
 		connection1.send(new GenericMessage<String>("foo"));
+		connection1.close();
 		TcpConnectionSupport connection2 = cache.getConnection();
 		connection2.send(new GenericMessage<String>("foo"));
+		connection2.close();
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		assertSame(connectionIds.get(0), connectionIds.get(1));
 		for (int i = 0; i < 100; i++) {
 			TcpConnectionSupport connection = cache.getConnection();
 			connection.send(new GenericMessage<String>("foo"));
+			connection.close();
 		}
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertSame(connectionIds.get(0), connectionIds.get(101));
@@ -665,6 +669,7 @@ public class CachingClientConnectionFactoryTests {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
+				invocation.callRealMethod();
 				String log = (String) invocation.getArguments()[0];
 				if (log.startsWith("Response")) {
 					Executors.newSingleThreadScheduledExecutor().execute(new Runnable() {

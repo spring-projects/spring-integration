@@ -155,7 +155,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				this.closeConnection(true);
 				throw e;
 			}
-			this.afterSend(message);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Message sent " + message);
+			}
 		}
 	}
 
@@ -197,7 +199,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
-	 * If there is no listener, and this connection is not for single use,
+	 * If there is no listener,
 	 * this method exits. When there is a listener, this method assembles
 	 * data into messages by invoking convertAndSend whenever there is
 	 * data in the input Stream. Method exits when a message is complete
@@ -212,10 +214,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		boolean moreDataAvailable = true;
 		while(moreDataAvailable) {
 			try {
-				if (this.getListener() == null && !this.isSingleUse()) {
-					logger.debug("TcpListener exiting - no listener and not single use");
-					return;
-				}
 				try {
 					if (dataAvailable()) {
 						Message<?> message = convert();
@@ -345,11 +343,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		catch (Exception e) {
 			this.closeConnection(true);
-			if (e instanceof SocketTimeoutException && this.isSingleUse()) {
+			if (e instanceof SocketTimeoutException) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Closing single use socket after timeout " + this.getConnectionId());
+					logger.debug("Closing socket after timeout " + this.getConnectionId());
 				}
-			} else {
+			}
+			else {
 				if (!(e instanceof SoftEndOfStreamException)) {
 					throw e;
 				}
@@ -360,35 +359,27 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	private void sendToChannel(Message<?> message) {
-		boolean intercepted = false;
 		try {
 			if (message != null) {
-				intercepted = getListener().onMessage(message);
+				TcpListener listener = getListener();
+				if (listener == null) {
+					throw new NoListenerException("No listener");
+				}
+				listener.onMessage(message);
 			}
 		}
 		catch (Exception e) {
-			if (e instanceof NoListenerException) {
-				if (this.isSingleUse()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Closing single use channel after inbound message " + this.getConnectionId());
-					}
-					this.closeConnection(true);
+			if (e instanceof NoListenerException) { // could also be thrown by an interceptor
+				if (logger.isWarnEnabled()) {
+					logger.warn("Unexpected message - no endpoint registered with connection: "
+									+ getConnectionId()
+									+ " - "
+									+ message);
 				}
 			}
 			else {
 				logger.error("Exception sending message: " + message, e);
 			}
-		}
-		/*
-		 * For single use sockets, we close after receipt if we are on the client
-		 * side, and the data was not intercepted,
-		 * or the server side has no outbound adapter registered
-		 */
-		if (this.isSingleUse() && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Closing single use channel after inbound message " + this.getConnectionId());
-			}
-			this.closeConnection(false);
 		}
 	}
 

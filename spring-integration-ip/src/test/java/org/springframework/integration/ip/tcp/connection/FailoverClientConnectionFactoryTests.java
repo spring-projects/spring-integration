@@ -298,13 +298,17 @@ public class FailoverClientConnectionFactoryTests {
 
 	private void testRealGuts(AbstractClientConnectionFactory client1, AbstractClientConnectionFactory client2,
 			AbstractServerConnectionFactory server1, AbstractServerConnectionFactory server2) throws Exception {
-		int port1;
-		int port2;
+		int port1 = 0;
+		int port2 = 0;
 		Executor exec = Executors.newCachedThreadPool();
 		client1.setTaskExecutor(exec);
 		client2.setTaskExecutor(exec);
 		server1.setTaskExecutor(exec);
 		server2.setTaskExecutor(exec);
+		client1.setBeanName("client1");
+		client2.setBeanName("client2");
+		server1.setBeanName("server1");
+		server2.setBeanName("server2");
 		ApplicationEventPublisher pub = new ApplicationEventPublisher() {
 
 			@Override
@@ -313,9 +317,9 @@ public class FailoverClientConnectionFactoryTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		};
 		client1.setApplicationEventPublisher(pub);
 		client2.setApplicationEventPublisher(pub);
@@ -360,16 +364,21 @@ public class FailoverClientConnectionFactoryTests {
 		Message<String> message = new GenericMessage<String>("foo");
 		outGateway.setRemoteTimeout(120000);
 		outGateway.handleMessage(message);
-		Socket socket = getSocket(client1);
-		port1 = socket.getLocalPort();
+		Socket socket = null;
+		if (!singleUse) {
+			socket = getSocket(client1);
+			port1 = socket.getLocalPort();
+		}
 		assertTrue(singleUse | connectionId.get().contains(Integer.toString(port1)));
 		Message<?> replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		server1.stop();
 		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
 		outGateway.handleMessage(message);
-		socket = getSocket(client2);
-		port2 = socket.getLocalPort();
+		if (!singleUse) {
+			socket = getSocket(client2);
+			port2 = socket.getLocalPort();
+		}
 		assertTrue(singleUse | connectionId.get().contains(Integer.toString(port2)));
 		replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
