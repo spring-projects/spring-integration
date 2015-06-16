@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.support.utils;
 
+import java.io.UnsupportedEncodingException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -23,11 +25,13 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * General utility methods.
  *
  * @author Gary Russell
+ * @author Marius Bogoevici
  * @since 4.0
  *
  */
@@ -98,4 +102,37 @@ public class IntegrationUtils {
 		return beanFactory.getBean(beanName, type);
 	}
 
+	/**
+	 * Utility method for null-safe conversion from String to byte[]
+	 *
+	 * @param value the String to be converted
+	 * @param encoding the encoding
+	 * @return the byte[] corresponding to the given String and encoding, null if provided String argument was null
+	 * @throws IllegalArgumentException if the encoding is not supported
+	 */
+	public static byte[] stringToBytes(String value, String encoding) {
+		try {
+			return value != null ? value.getBytes(encoding) : null;
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * Utility method for null-safe conversion from byte[] to String
+	 *
+	 * @param bytes the byte[] to be converted
+	 * @param encoding the encoding
+	 * @return the String corresponding to the given byte[] and encoding, null if provided byte[] argument was null
+	 * @throws IllegalArgumentException if the encoding is not supported
+	 */
+	public static String bytesToString(byte[] bytes, String encoding) {
+		try {
+			return bytes == null ? null : new String(bytes, encoding);
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 }
