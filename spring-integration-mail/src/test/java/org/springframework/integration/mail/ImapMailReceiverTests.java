@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,7 +157,12 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		assertNotNull(channel.receive(6000));
+		@SuppressWarnings("unchecked")
+		org.springframework.messaging.Message<MimeMessage> received =
+				(org.springframework.messaging.Message<MimeMessage>) channel.receive(6000);
+		assertNotNull(received);
+		assertNotNull(received.getPayload().getReceivedDate());
+		assertTrue(received.getPayload().getLineCount() > -1);
 		assertNotNull(channel.receive(6000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
