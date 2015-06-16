@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -434,8 +435,11 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	private class IntegrationMimeMessage extends MimeMessage {
 
+		private final MimeMessage source;
+
 		public IntegrationMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
+			this.source = source;
 		}
 
 		@Override
@@ -448,5 +452,22 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 		}
 
+		@Override
+		public Date getReceivedDate() throws MessagingException {
+			/*
+			 * Basic MimeMessage always returns null; delegate to the original.
+			 */
+			return this.source.getReceivedDate();
+		}
+
+		@Override
+		public int getLineCount() throws MessagingException {
+			/*
+			 * Basic MimeMessage always returns '-1'; delegate to the original.
+			 */
+			return this.source.getLineCount();
+		}
+
 	}
+
 }
