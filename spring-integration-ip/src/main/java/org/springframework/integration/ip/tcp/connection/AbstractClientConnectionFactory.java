@@ -155,7 +155,6 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		connection.setMapper(this.getMapper());
 		connection.setDeserializer(this.getDeserializer());
 		connection.setSerializer(this.getSerializer());
-		connection.setSingleUse(this.isSingleUse());
 	}
 
 	/**

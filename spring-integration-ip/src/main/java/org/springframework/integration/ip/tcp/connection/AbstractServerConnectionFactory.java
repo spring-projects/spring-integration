@@ -102,8 +102,9 @@ public abstract class AbstractServerConnectionFactory
 	}
 
 	/**
-	 * Transfers attributes such as (de)serializer, singleUse etc to a new connection.
-	 * For single use sockets, enforces a socket timeout (default 10 seconds).
+	 * Transfers attributes such as (de)serializer, mapper etc to a new connection.
+	 * For single use sockets, enforces a socket timeout (default 10 seconds) to prevent
+	 * DoS attacks.
 	 * @param connection The new connection.
 	 * @param socket The new socket.
 	 */
@@ -116,7 +117,6 @@ public abstract class AbstractServerConnectionFactory
 		connection.setMapper(getMapper());
 		connection.setDeserializer(getDeserializer());
 		connection.setSerializer(getSerializer());
-		connection.setSingleUse(isSingleUse());
 		/*
 		 * If we are configured
 		 * for single use; need to enforce a timeout on the socket so we will close
@@ -126,7 +126,8 @@ public abstract class AbstractServerConnectionFactory
 		if (isSingleUse() && getSoTimeout() < 0) {
 			try {
 				socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
-			} catch (SocketException e) {
+			}
+			catch (SocketException e) {
 				logger.error("Error setting default reply timeout", e);
 			}
 		}

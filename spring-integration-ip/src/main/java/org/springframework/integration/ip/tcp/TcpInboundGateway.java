@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile boolean isClientMode;
 
+	private volatile boolean isSingleUse;
+
 	private volatile long retryInterval = 60000;
 
 	private volatile ScheduledFuture<?> scheduledFuture;
@@ -75,28 +77,42 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	public boolean onMessage(Message<?> message) {
-		if (this.shuttingDown) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Inbound message ignored; shutting down; " + message.toString());
+		boolean isErrorMessage = message instanceof ErrorMessage;
+		try {
+			if (this.shuttingDown) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Inbound message ignored; shutting down; " + message.toString());
+				}
+			}
+			else {
+				if (isErrorMessage) {
+					/*
+					 * Socket errors are sent here so they can be conveyed to any waiting thread.
+					 * There's not one here; simply ignore.
+					 */
+					return false;
+				}
+				this.activeCount.incrementAndGet();
+				try {
+					return doOnMessage(message);
+				}
+				finally {
+					this.activeCount.decrementAndGet();
+				}
+			}
+			return false;
+		}
+		finally {
+			String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
+			if (connectionId != null && !isErrorMessage && this.isSingleUse) {
+				if (this.serverConnectionFactory != null) {
+					this.serverConnectionFactory.closeConnection(connectionId);
+				}
+				else {
+					this.clientConnectionFactory.closeConnection(connectionId);
+				}
 			}
 		}
-		else {
-			if (message instanceof ErrorMessage) {
-				/*
-				 * Socket errors are sent here so they can be conveyed to any waiting thread.
-				 * There's not one here; simply ignore.
-				 */
-				return false;
-			}
-			this.activeCount.incrementAndGet();
-			try {
-				return doOnMessage(message);
-			}
-			finally {
-				this.activeCount.decrementAndGet();
-			}
-		}
-		return false;
 	}
 
 	private boolean doOnMessage(Message<?> message) {
@@ -153,14 +169,17 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		Assert.notNull(connectionFactory, "Connection factory must not be null");
 		if (connectionFactory instanceof AbstractServerConnectionFactory) {
 			this.serverConnectionFactory = (AbstractServerConnectionFactory) connectionFactory;
-		} else if (connectionFactory instanceof AbstractClientConnectionFactory) {
+		}
+		else if (connectionFactory instanceof AbstractClientConnectionFactory) {
 			this.clientConnectionFactory = (AbstractClientConnectionFactory) connectionFactory;
-		} else {
+		}
+		else {
 			throw new IllegalArgumentException("Connection factory must be either an " +
 					"AbstractServerConnectionFactory or an AbstractClientConnectionFactory");
 		}
 		connectionFactory.registerListener(this);
 		connectionFactory.registerSender(this);
+		this.isSingleUse = connectionFactory.isSingleUse();
 	}
 
 	@Override

@@ -18,7 +18,6 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -65,19 +64,13 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private volatile TcpListener listener;
 
-	private volatile TcpListener actualListener;
-
 	private volatile TcpSender sender;
-
-	private volatile boolean singleUse;
 
 	private final boolean server;
 
 	private volatile String connectionId;
 
 	private final AtomicLong sequence = new AtomicLong();
-
-	private volatile int soLinger = -1;
 
 	private volatile String hostName = "unknown";
 
@@ -133,31 +126,12 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		int port = socket.getPort();
 		int localPort = socket.getLocalPort();
 		this.connectionId = this.hostName + ":" + port + ":" + localPort + ":" + UUID.randomUUID().toString();
-		try {
-			this.soLinger = socket.getSoLinger();
-		}
-		catch (SocketException e) { }
 		this.applicationEventPublisher = applicationEventPublisher;
 		if (connectionFactoryName != null) {
 			this.connectionFactoryName = connectionFactoryName;
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("New connection " + this.getConnectionId());
-		}
-	}
-
-	public void afterSend(Message<?> message) throws Exception {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Message sent " + message);
-		}
-		if (this.singleUse) {
-			// if (we're a server socket, or a send-only socket), and soLinger <> 0, close
-			if ((this.isServer() || this.actualListener == null) && this.soLinger != 0) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Closing single-use connection" + this.getConnectionId());
-				}
-				this.closeConnection(false);
-			}
 		}
 	}
 
@@ -259,17 +233,6 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	public void registerListener(TcpListener listener) {
 		this.listener = listener;
-		// Determine the actual listener for this connection
-		if (!(this.listener instanceof TcpConnectionInterceptor)) {
-			this.actualListener = this.listener;
-		}
-		else {
-			TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) this.listener;
-			while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
-				outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
-			}
-			this.actualListener = outerInterceptor.getListener();
-		}
 		this.listenerRegisteredLatch.countDown();
 	}
 
@@ -310,6 +273,9 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	@Override
 	public TcpListener getListener() {
 		if (this.manualListenerRegistration) {
+			if (logger.isDebugEnabled()) {
+				logger.debug(getConnectionId() + " Waiting for listener registration");
+			}
 			waitForListenerRegistration();
 		}
 		return this.listener;
@@ -331,23 +297,6 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	public TcpSender getSender() {
 		return sender;
-	}
-
-	/**
-	 * @param singleUse true if this socket is to used once and
-	 * discarded.
-	 */
-	public void setSingleUse(boolean singleUse) {
-		this.singleUse = singleUse;
-	}
-
-	/**
-	 *
-	 * @return True if connection is used once.
-	 */
-	@Override
-	public boolean isSingleUse() {
-		return this.singleUse;
 	}
 
 	@Override

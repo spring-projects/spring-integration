@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile boolean isClientMode;
 
+	private volatile boolean isSingleUse;
+
 	private volatile long retryInterval = 60000;
 
 	private volatile ScheduledFuture<?> scheduledFuture;
@@ -109,6 +111,11 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 						throw new MessageHandlingException(message, "Error sending message", e);
 					}
 				}
+				finally {
+					if (this.isSingleUse) { // close after replying
+						connection.close();
+					}
+				}
 			}
 			else {
 				logger.error("Unable to find outbound socket for " + message);
@@ -121,8 +128,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 		else {
 			// we own the connection
+			TcpConnection connection = null;
 			try {
-				doWrite(message);
+				connection = doWrite(message);
 			}
 			catch (MessageHandlingException e) {
 				// retry - socket may have closed
@@ -130,10 +138,18 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					if (logger.isDebugEnabled()) {
 						logger.debug("Fail on first write attempt", e);
 					}
-					doWrite(message);
+					connection = doWrite(message);
 				}
 				else {
 					throw e;
+				}
+			}
+			finally {
+				if (connection != null && this.isSingleUse
+						&& this.clientConnectionFactory.getListener() == null) {
+					// if there's no collaborating inbound adapter, close immediately, otherwise
+					// it will close after receiving the reply.
+					connection.close();
 				}
 			}
 		}
@@ -142,8 +158,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	/**
 	 * Method that actually does the write.
 	 * @param message The message to write.
+	 * @return the connection.
 	 */
-	protected void doWrite(Message<?> message) {
+	protected TcpConnection doWrite(Message<?> message) {
 		TcpConnection connection = null;
 		try {
 			connection = obtainConnection(message);
@@ -162,6 +179,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 			throw new MessageHandlingException(message, "Failed to handle message using " + connectionId, e);
 		}
+		return connection;
 	}
 
 	private void publishNoConnectionEvent(MessageHandlingException messageHandlingException, String connectionId) {
@@ -184,10 +202,12 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
 		if (connectionFactory instanceof AbstractClientConnectionFactory) {
 			this.clientConnectionFactory = connectionFactory;
-		} else {
+		}
+		else {
 			this.serverConnectionFactory = connectionFactory;
 			connectionFactory.registerSender(this);
 		}
+		this.isSingleUse = connectionFactory.isSingleUse();
 	}
 
 	@Override

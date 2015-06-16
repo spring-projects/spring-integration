@@ -35,7 +35,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.CloseDeferrable;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
@@ -63,6 +62,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		implements TcpSender, TcpListener, IntegrationEvaluationContextAware, Lifecycle {
 
 	private volatile AbstractClientConnectionFactory connectionFactory;
+
+	private volatile boolean isSingleUse;
 
 	private final Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<String, AsyncReply>();
 
@@ -105,10 +106,10 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		Assert.notNull(connectionFactory, this.getClass().getName() +
 				" requires a client connection factory");
 		boolean haveSemaphore = false;
+		TcpConnection connection = null;
 		String connectionId = null;
 		try {
-			boolean singleUseConnection = this.connectionFactory.isSingleUse();
-			if (!singleUseConnection) {
+			if (!this.isSingleUse) {
 				logger.debug("trying semaphore");
 				if (!this.semaphore.tryAcquire(this.requestTimeout, TimeUnit.MILLISECONDS)) {
 					throw new MessageTimeoutException(requestMessage, "Timed out waiting for connection");
@@ -118,19 +119,19 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					logger.debug("got semaphore");
 				}
 			}
-			TcpConnection connection = this.connectionFactory.getConnection();
+			connection = this.connectionFactory.getConnection();
 			AsyncReply reply = new AsyncReply(this.remoteTimeoutExpression.getValue(this.evaluationContext,
 					requestMessage, Long.class));
 			connectionId = connection.getConnectionId();
 			pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Added " + connection.getConnectionId());
+				logger.debug("Added pending reply " + connectionId);
 			}
 			connection.send(requestMessage);
 			Message<?> replyMessage = reply.getReply();
 			if (replyMessage == null) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Remote Timeout on " + connection.getConnectionId());
+					logger.debug("Remote Timeout on " + connectionId);
 				}
 				// The connection is dirty - force it closed.
 				this.connectionFactory.forceClose(connection);
@@ -151,15 +152,18 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		finally {
 			if (connectionId != null) {
 				pendingReplies.remove(connectionId);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Removed pending reply " + connectionId);
+				}
+				if (this.isSingleUse) {
+					connection.close();
+				}
 			}
 			if (haveSemaphore) {
 				this.semaphore.release();
 				if (logger.isDebugEnabled()) {
 					logger.debug("released semaphore");
 				}
-			}
-			if (this.connectionFactory instanceof CloseDeferrable) {
-				((CloseDeferrable) this.connectionFactory).closeDeferred(connectionId);
 			}
 		}
 	}
@@ -203,13 +207,11 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
-		// TODO: In 3.0 Change parameter type to AbstractClientConnectionFactory
-		Assert.isTrue(connectionFactory instanceof AbstractClientConnectionFactory,
-				this.getClass().getName() + " requires a client connection factory");
-		this.connectionFactory = (AbstractClientConnectionFactory) connectionFactory;
+	public void setConnectionFactory(AbstractClientConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
 		connectionFactory.registerListener(this);
 		connectionFactory.registerSender(this);
+		this.isSingleUse = connectionFactory.isSingleUse();
 	}
 
 	@Override
@@ -238,9 +240,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	public void start() {
-		if (this.connectionFactory instanceof CloseDeferrable) {
-			((CloseDeferrable) this.connectionFactory).enableCloseDeferral(true);
-		}
 		this.connectionFactory.start();
 	}
 

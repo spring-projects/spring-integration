@@ -28,7 +28,6 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -55,6 +54,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		for (AbstractClientConnectionFactory factory : factories) {
 			Assert.state(!(this.isSingleUse() ^ factory.isSingleUse()),
 				"Inconsistent singleUse - delegate factories must match this one");
+			factory.enableManualListenerRegistration();
 		}
 	}
 
@@ -82,24 +82,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	@Override
 	public void registerListener(TcpListener listener) {
 		super.registerListener(listener);
-		for (AbstractClientConnectionFactory factory : this.factories) {
-			factory.registerListener(new TcpListener() {
-				@Override
-				public boolean onMessage(Message<?> message) {
-					if (!(message instanceof ErrorMessage)) {
-						throw new UnsupportedOperationException("This should never be called");
-					}
-					return false;
-				}
-			});
-		}
-	}
-
-	@Override
-	public void enableManualListenerRegistration() {
-		for (AbstractClientConnectionFactory factory : this.factories) {
-			factory.enableManualListenerRegistration();
-		}
 	}
 
 	@Override
@@ -117,7 +99,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			return connection;
 		}
 		FailoverTcpConnection failoverTcpConnection = new FailoverTcpConnection(this.factories);
-		failoverTcpConnection.registerListener(this.getListener());
+		if (getListener() != null) {
+			failoverTcpConnection.registerListener(getListener());
+		}
 		failoverTcpConnection.incrementEpoch();
 		return failoverTcpConnection;
 	}
@@ -126,6 +110,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	@Override
 	public void start() {
 		for (AbstractClientConnectionFactory factory : this.factories) {
+			factory.enableManualListenerRegistration();
 			factory.start();
 		}
 		this.setActive(true);
@@ -312,16 +297,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		@Override
 		public String getConnectionId() {
 			return this.connectionId + ":" + epoch;
-		}
-
-		@Override
-		public void setSingleUse(boolean singleUse) {
-			this.delegate.setSingleUse(singleUse);
-		}
-
-		@Override
-		public boolean isSingleUse() {
-			return this.delegate.isSingleUse();
 		}
 
 		@Override

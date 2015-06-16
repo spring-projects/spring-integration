@@ -86,12 +86,6 @@ public interface TcpConnection extends Runnable {
 	 *
 	 * @return True if connection is used once.
 	 */
-	boolean isSingleUse();
-
-	/**
-	 *
-	 * @return True if connection is used once.
-	 */
 	boolean isServer();
 
 	/**
