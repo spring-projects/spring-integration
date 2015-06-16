@@ -21,7 +21,7 @@ package org.springframework.integration.metadata;
  *
  * @author Marius Bogoevici
  */
-public class MessageStoreListenerAdapter implements MetadataStoreListener {
+public abstract class MessageStoreListenerAdapter implements MetadataStoreListener {
 
 	@Override
 	public void onAdd(String key, String value) {

@@ -64,7 +64,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private volatile boolean running = false;
 
-	private volatile boolean autoStartup = false;
+	private volatile boolean autoStartup = true;
 
 	private volatile int phase = Integer.MAX_VALUE;
 
@@ -79,20 +79,20 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	 * @param encoding encoding as text
 	 */
 	public void setEncoding(String encoding) {
-		Assert.notNull(encoding, "'encoding' must not be null.");
+		Assert.hasText(encoding, "'encoding' cannot be null or empty.");
 		this.encoding = encoding;
 	}
 
 	/**
-	 * Root node - store entries are children of this node
+	 * Root node - store entries are children of this node.
 	 *
 	 * @param root encoding as text
 	 */
 	public void setRoot(String root) {
 		Assert.notNull(root, "'root' must not be null.");
 		Assert.isTrue(root.startsWith("/"), "'root' must start with '/'");
-		Assert.isTrue(!root.endsWith("/"), "'root' must not end with '/'");
-		this.root = root;
+		// remove trailing slash, if not root
+		this.root = "/".equals(root) || !root.endsWith("/") ? root : root.substring(0, root.length() - 1);
 	}
 
 	public String getRoot() {
@@ -123,7 +123,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 					return Conversions.bytesToString(bytes, encoding);
 				}
 				catch (Exception exceptionDuringGet) {
-					throw new ZookeeperMetadataStoreException("Exception while creating node with key '" + key + "':", e);
+					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':", e);
 				}
 			}
 			catch (Exception e) {
@@ -266,21 +266,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public void stop(Runnable callback) {
-		if (this.running) {
-			synchronized (this.lifecycleMonitor) {
-				if (this.running) {
-					if (this.cache != null) {
-						CloseableUtils.closeQuietly(this.cache);
-					}
-					this.cache = null;
-					this.running = false;
-				}
-			}
-		}
-	}
-
-	@Override
 	public void start() {
 		if (!this.running) {
 			synchronized (this.lifecycleMonitor) {
@@ -303,7 +288,23 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public void stop() {
-		stop(null);
+		if (this.running) {
+			synchronized (this.lifecycleMonitor) {
+				if (this.running) {
+					if (this.cache != null) {
+						CloseableUtils.closeQuietly(this.cache);
+					}
+					this.cache = null;
+					this.running = false;
+				}
+			}
+		}
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		stop();
+		callback.run();
 	}
 
 	@Override
@@ -342,41 +343,36 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event)
 				throws Exception {
 			synchronized (ZookeeperMetadataStore.this.updateMap) {
+				String eventPath = event.getData().getPath();
+				String eventKey = getKey(eventPath);
+				byte[] eventData = event.getData().getData();
 				switch (event.getType()) {
 				case CHILD_ADDED:
-					if (ZookeeperMetadataStore.this.updateMap.containsKey(getKey(event
-							.getData().getPath()))) {
-						if (event.getData().getStat().getVersion() >= ZookeeperMetadataStore.this.updateMap
-								.get(getKey(event.getData().getPath())).getVersion()) {
-							ZookeeperMetadataStore.this.updateMap.remove(event.getData()
-									.getPath());
+					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
+						if (event.getData().getStat().getVersion() >=
+								ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+							ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 						}
 					}
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onAdd(getKey(event.getData().getPath()), Conversions
-								.bytesToString(event.getData().getData(), encoding));
+						listener.onAdd(eventKey, Conversions.bytesToString(eventData, encoding));
 					}
 					break;
 				case CHILD_UPDATED:
-					if (ZookeeperMetadataStore.this.updateMap.containsKey(getKey(event
-							.getData().getPath()))) {
-						if (event.getData().getStat().getVersion() >= ZookeeperMetadataStore.this.updateMap
-								.get(getKey(event.getData().getPath())).getVersion()) {
-							ZookeeperMetadataStore.this.updateMap.remove(event.getData()
-									.getPath());
+					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
+						if (event.getData().getStat().getVersion() >=
+								ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+							ZookeeperMetadataStore.this.updateMap.remove(eventPath);
 						}
 					}
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onUpdate(getKey(event.getData().getPath()), Conversions
-								.bytesToString(event.getData().getData(), encoding));
+						listener.onUpdate(eventKey, Conversions.bytesToString(eventData, encoding));
 					}
 					break;
 				case CHILD_REMOVED:
-					ZookeeperMetadataStore.this.updateMap.remove(getKey(event.getData()
-							.getPath()));
+					ZookeeperMetadataStore.this.updateMap.remove(eventKey);
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onRemove(getKey(event.getData().getPath()), Conversions
-								.bytesToString(event.getData().getData(), encoding));
+						listener.onRemove(eventKey, Conversions.bytesToString(eventData, encoding));
 					}
 					break;
 				default:

@@ -40,6 +40,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
+import org.apache.curator.utils.CloseableUtils;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
 import org.junit.Before;
@@ -410,7 +411,7 @@ public class ZookeeperMetadataStoreTests {
 
 	private void closeClient(CuratorFramework client) {
 		try {
-			client.close();
+			CloseableUtils.closeQuietly(client);
 		}
 		catch (Exception e) {
 			log.warn("Exception thrown while closing client: ", e);
