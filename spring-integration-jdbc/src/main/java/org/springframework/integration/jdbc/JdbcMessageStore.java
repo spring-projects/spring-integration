@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ParameterizedPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
@@ -180,6 +182,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
+	private static final int DEFAULT_MAX_REMOVALS_PER_QUERY = 100;
+
 	private volatile String region = "DEFAULT";
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -195,6 +199,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile MessageMapper mapper = new MessageMapper();
 
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
+
+	private volatile int maxRemovalsPerQuery = DEFAULT_MAX_REMOVALS_PER_QUERY;
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -283,6 +289,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
+	}
+
+	/**
+	 * Set the batch size when bulk removing messages from groups. Default 100.
+	 * @param maxRemovalsPerQuery the batch size.
+	 * @since 4.2
+	 */
+	public void setMaxRemovalsPerQuery(int maxRemovalsPerQuery) {
+		this.maxRemovalsPerQuery = maxRemovalsPerQuery;
 	}
 
 	@Override
@@ -484,6 +499,40 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messages' must not be null");
+
+		final String groupKey = getKey(groupId);
+
+		if (logger.isDebugEnabled()){
+			logger.debug("Removing messages from group with group key=" + groupKey);
+		}
+		jdbcTemplate.batchUpdate(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP),
+				messages,
+				this.maxRemovalsPerQuery,
+				new ParameterizedPreparedStatementSetter<Message<?>>() {
+			@Override
+			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
+				ps.setString(1, groupKey);
+				ps.setString(2, getKey(messageToRemove.getHeaders().getId()));
+				ps.setString(3, region);
+			}
+		});
+		jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
+				messages,
+				this.maxRemovalsPerQuery,
+				new ParameterizedPreparedStatementSetter<Message<?>>() {
+			@Override
+			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
+				ps.setString(1, getKey(messageToRemove.getHeaders().getId()));
+				ps.setString(2, region);
+			}
+		});
+		this.updateMessageGroup(groupKey);
+	}
+
+	@Override
 	public void removeMessageGroup(Object groupId) {
 
 		final String groupKey = getKey(groupId);
@@ -560,7 +609,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		Message<?> polledMessage = this.doPollForMessage(key);
 		if (polledMessage != null){
-			this.removeMessageFromGroup(groupId, polledMessage);
+			this.removeMessagesFromGroup(groupId, polledMessage);
 		}
 		return polledMessage;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  */
 package org.springframework.integration.store;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -50,7 +51,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	int getMessageGroupCount();
 
 	/**
-	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is
+	 * Persist the deletion of a single message from the group. The group is modified to reflect that 'messageToRemove' is
 	 * no longer present in the group.
 	 *
 	 * @param key The groupId for the group containing the message.
@@ -58,6 +59,26 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @return The message Group.
 	 */
 	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
+
+	/**
+	 * Persist the deletion of messages from the group.
+	 *
+	 * @param key The groupId for the group containing the message(s).
+	 * @param messages The messages to be removed.
+	 *
+	 * @since 4.2
+	 */
+	void removeMessagesFromGroup(Object key, Collection<Message<?>> messages);
+
+	/**
+	 * Persist the deletion of messages from the group.
+	 *
+	 * @param key The groupId for the group containing the message(s).
+	 * @param messages The messages to be removed.
+	 *
+	 * @since 4.2
+	 */
+	void removeMessagesFromGroup(Object key, Message<?>... messages);
 
 	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors
+ * Copyright 2002-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
 public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore{
@@ -154,6 +155,24 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return messageGroup;
 	}
 
+
+	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messages' must not be null");
+
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+			messageGroupMetadata.setLastModified(System.currentTimeMillis());
+			for (Message<?> messageToRemove : messages) {
+				this.removeMessage(messageToRemove.getHeaders().getId());
+			}
+			MessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+			this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
+		}
+	}
 
 	@Override
 	public void completeGroup(Object groupId) {

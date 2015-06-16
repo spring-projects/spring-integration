@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  *
  * @author Amol Nayak
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDbMessageStore
@@ -203,12 +204,26 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 
+		doRemove(groupId, messageToRemove);
+		updateGroup(groupId, lastModifiedUpdate());
+		return getMessageGroup(groupId);
+	}
+
+	protected void doRemove(final Object groupId, final Message<?> messageToRemove) {
 		Query query = groupIdQuery(groupId)
 				.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
 		mongoTemplate.remove(query, collectionName);
-		updateGroup(groupId, lastModifiedUpdate());
-		return getMessageGroup(groupId);
+	}
 
+	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messageToRemove' must not be null");
+
+		for (Message<?> messageToRemove : messages) {
+			doRemove(groupId, messageToRemove);
+		}
+		updateGroup(groupId, lastModifiedUpdate());
 	}
 
 	@Override

@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -311,6 +312,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				MessageWrapper.class, collectionName);
 		updateGroup(groupId, lastModifiedUpdate());
 		return getMessageGroup(groupId);
+	}
+
+	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messageToRemove' must not be null");
+
+		for (Message<?> messageToRemove : messages) {
+			template.findAndRemove(whereMessageIdIsAndGroupIdIs(messageToRemove.getHeaders().getId(), groupId),
+					MessageWrapper.class, collectionName);
+		}
+		updateGroup(groupId, lastModifiedUpdate());
 	}
 
 	@Override

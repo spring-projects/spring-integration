@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,11 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
+
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -120,6 +121,7 @@ public class SimpleMessageStoreTests {
 	public void shouldRegisterCallbacks() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
 		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupStore.MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));
@@ -132,6 +134,7 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store = new SimpleMessageStore();
 		final List<String> list = new ArrayList<String>();
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				list.add(group.getOne().getPayload().toString());
 				messageGroupStore.removeMessageGroup(group.getGroupId());
@@ -146,6 +149,21 @@ public class SimpleMessageStoreTests {
 		assertEquals("[foo]", list.toString());
 		assertEquals(0, store.getMessageGroup("bar").size());
 
+	}
+
+	@Test
+	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+		SimpleMessageStore messageStore = new SimpleMessageStore();
+		String groupId = "X";
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessageToGroup(groupId, message);
+			messages.add(message);
+		}
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
 	}
 
 }

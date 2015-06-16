@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
+
+import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -40,6 +41,7 @@ public class MessageStoreTests {
 	public void shouldRegisterCallbacks() throws Exception {
 		TestMessageStore store = new TestMessageStore();
 		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupStore.MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));
@@ -52,6 +54,7 @@ public class MessageStoreTests {
 		TestMessageStore store = new TestMessageStore();
 		final List<String> list = new ArrayList<String>();
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				list.add(group.getOne().getPayload().toString());
 				messageGroupStore.removeMessageGroup(group.getGroupId());
@@ -84,41 +87,55 @@ public class MessageStoreTests {
 		private boolean removed = false;
 
 
+		@Override
 		public Iterator<MessageGroup> iterator() {
 			return Arrays.asList(testMessages).iterator();
 		}
 
+		@Override
 		public MessageGroup addMessageToGroup(Object correlationKey, Message<?> message) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public MessageGroup getMessageGroup(Object correlationKey) {
 			return removed ? new SimpleMessageGroup(correlationKey) : testMessages;
 		}
 
+		@Override
 		public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
+		public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
 		public void removeMessageGroup(Object correlationKey) {
 			if (correlationKey.equals(testMessages.getGroupId())) {
 				removed = true;
 			}
 		}
 
+		@Override
 		public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public void completeGroup(Object groupId) {
 
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public Message<?> pollMessageFromGroup(Object groupId) {
 			return null;
 		}
 
+		@Override
 		public int messageGroupSize(Object groupId) {
 			return 0;
 		}

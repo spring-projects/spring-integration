@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  */
 public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler {
@@ -64,9 +65,7 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 			remove(messageGroup);
 		}
 		else {
-			for (Message<?> message : messageGroup.getMessages()) {
-				this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), message);
-			}
+			this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(), messageGroup.getMessages());
 		}
 	}
 

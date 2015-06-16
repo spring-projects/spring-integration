@@ -13,6 +13,7 @@
 
 package org.springframework.integration.store;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
@@ -163,6 +164,11 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	@Override
 	public MessageGroupMetadata getGroupMetadata(Object groupId) {
 		throw new UnsupportedOperationException("Not yet implemented for this store");
+	}
+
+	@Override
+	public void removeMessagesFromGroup(Object key, Message<?>... messages) {
+		removeMessagesFromGroup(key, Arrays.asList(messages));
 	}
 
 	@Override

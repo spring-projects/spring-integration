@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -270,6 +270,30 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+		Lock lock = this.lockRegistry.obtain(groupId);
+		try {
+			lock.lockInterruptibly();
+			try {
+				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+						"can not be located while attempting to remove Message(s) from the MessageGroup");
+				for (Message<?> messageToRemove : messages) {
+					group.remove(messageToRemove);
+				}
+				group.setLastModified(System.currentTimeMillis());
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException("Interrupted while obtaining lock", e);
+		}
+	}
+
+	@Override
 	public Iterator<MessageGroup> iterator() {
 		return new HashSet<MessageGroup>(groupIdToMessageGroup.values()).iterator();
 	}
@@ -325,7 +349,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		if (!CollectionUtils.isEmpty(messageList)){
 			message = messageList.iterator().next();
 			if (message != null){
-				this.removeMessageFromGroup(groupId, message);
+				this.removeMessagesFromGroup(groupId, message);
 			}
 		}
 		return message;
