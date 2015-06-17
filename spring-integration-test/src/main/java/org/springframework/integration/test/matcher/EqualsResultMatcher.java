@@ -29,10 +29,11 @@ import org.springframework.util.ObjectUtils;
  * Mainly useful in conjunction with retrying matcherss such as {@link EventuallyMatcher}
  *
  * @author Marius Bogoevici
+ * @since 4.2
  */
 public class EqualsResultMatcher<U> extends DiagnosingMatcher<U> {
 
-	private Evaluator<U> evaluator;
+	private final Evaluator<U> evaluator;
 
 	public EqualsResultMatcher(Evaluator<U> evaluator) {
 		this.evaluator = evaluator;

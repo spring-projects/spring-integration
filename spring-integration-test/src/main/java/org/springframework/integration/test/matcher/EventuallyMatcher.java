@@ -29,6 +29,7 @@ import org.hamcrest.Matcher;
  * (Copied from {@code org.springframework.xd.test.fixtures.EventuallyMatcher})
  *
  * @author Eric Bottard
+ * @since 4.2
  */
 public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 

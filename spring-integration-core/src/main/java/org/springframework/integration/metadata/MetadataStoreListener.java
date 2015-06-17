@@ -20,6 +20,7 @@ package org.springframework.integration.metadata;
  * A callback to be invoked whenever a value changes in the data store.
  *
  * @author Marius Bogoevici
+ * @since 4.2
  */
 public interface MetadataStoreListener {
 
