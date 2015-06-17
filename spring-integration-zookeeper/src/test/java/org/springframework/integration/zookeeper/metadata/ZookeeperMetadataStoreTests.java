@@ -25,7 +25,6 @@ import static org.junit.Assert.fail;
 import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
 import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,70 +33,43 @@ import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.BoundedExponentialBackoffRetry;
-import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.CloseableUtils;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.metadata.MetadataStoreListener;
+import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.matcher.EqualsResultMatcher.Evaluator;
+import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 
 /**
  * @author Marius Bogoevici
+ * @since 4.2
  */
-public class ZookeeperMetadataStoreTests {
-
-	private static final Log log = LogFactory.getLog(ZookeeperMetadataStore.class);
-
-	private static TestingServer testingServer;
-
-	private CuratorFramework client;
+public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 	private ZookeeperMetadataStore metadataStore;
 
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-		testingServer = new TestingServer(true);
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-		try {
-			testingServer.stop();
-		}
-		catch (IOException e) {
-			log.warn("Exception thrown while shutting down ZooKeeper: ", e);
-		}
-		testingServer.getTempDirectory().delete();
-	}
-
+	@Override
 	@Before
-	public void setUp() throws Exception{
-		client = createNewClient();
-		metadataStore = new ZookeeperMetadataStore(client);
-		metadataStore.start();
+	public void setUp() throws Exception {
+		super.setUp();
+		this.metadataStore = new ZookeeperMetadataStore(client);
+		this.metadataStore.start();
 	}
 
+	@Override
 	@After
 	public void tearDown() throws Exception {
 		this.metadataStore.stop();
 		this.client.delete().deletingChildrenIfNeeded().forPath(this.metadataStore.getRoot());
-		CloseableUtils.closeQuietly(this.client);
 	}
-
 
 	@Test
 	public void testGetNonExistingKeyValue() {
@@ -411,14 +383,6 @@ public class ZookeeperMetadataStoreTests {
 		catch (Exception e) {
 			throw new AssertionError("Test didn't complete: ", e);
 		}
-	}
-
-	private CuratorFramework createNewClient() throws InterruptedException {
-		CuratorFramework client = CuratorFrameworkFactory.newClient(testingServer.getConnectString(),
-				new BoundedExponentialBackoffRetry(100, 1000, 3));
-		client.start();
-		client.blockUntilConnected(10000, TimeUnit.SECONDS);
-		return client;
 	}
 
 }

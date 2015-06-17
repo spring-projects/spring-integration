@@ -18,6 +18,7 @@ package org.springframework.integration.zookeeper.metadata;
 
 /**
  * @author Marius Bogoevici
+ * @since 4.2
  */
 @SuppressWarnings("serial")
 public class ZookeeperMetadataStoreException extends RuntimeException {

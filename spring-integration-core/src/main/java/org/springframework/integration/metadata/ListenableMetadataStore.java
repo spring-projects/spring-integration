@@ -22,6 +22,7 @@ package org.springframework.integration.metadata;
  * invoked when changes occur in the metadata store.
  *
  * @author Marius Bogoevici
+ * @since 4.2
  */
 public interface ListenableMetadataStore extends ConcurrentMetadataStore {
 
