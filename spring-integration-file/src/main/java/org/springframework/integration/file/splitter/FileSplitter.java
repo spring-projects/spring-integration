@@ -168,8 +168,11 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			String line;
 
+			boolean hasNextCalled;
+
 			@Override
 			public boolean hasNext() {
+				this.hasNextCalled = true;
 				try {
 					if (this.line == null && !this.done) {
 						this.line = bufferedReader.readLine();
@@ -195,6 +198,10 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			@Override
 			public Object next() {
+				if (!this.hasNextCalled) {
+					hasNext();
+				}
+				this.hasNextCalled = false;
 				if (this.sof) {
 					this.sof = false;
 					return new FileMarker(filePath, Mark.START);
@@ -205,27 +212,14 @@ public class FileSplitter extends AbstractMessageSplitter {
 					this.done = true;
 					return new FileMarker(filePath, Mark.END);
 				}
-				try {
-					if (this.line == null && !this.done) {
-						this.line = bufferedReader.readLine();
-					}
-					if (this.line != null) {
-						String line = this.line;
-						this.line = null;
-						return line;
-					}
-					else {
-						this.done = true;
-						throw new NoSuchElementException(filePath + " has been consumed");
-					}
+				if (this.line != null) {
+					String line = this.line;
+					this.line = null;
+					return line;
 				}
-				catch (IOException e) {
-					try {
-						bufferedReader.close();
-						this.done = true;
-					}
-					catch (IOException e1) {}
-					throw new MessageHandlingException(message, "IOException while iterating", e);
+				else {
+					this.done = true;
+					throw new NoSuchElementException(filePath + " has been consumed");
 				}
 			}
 
