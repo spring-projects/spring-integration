@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.zookeeper.metadata;
+package org.springframework.integration.test.matcher;
 
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
@@ -26,7 +26,7 @@ import org.hamcrest.Matcher;
  *
  * @param <U> the type the wrapped matcher operates on
  *
- * (Copied from rom org.springframework.xd.test.fixtures.EventuallyMatcher)
+ * (Copied from {@code org.springframework.xd.test.fixtures.EventuallyMatcher})
  *
  * @author Eric Bottard
  */

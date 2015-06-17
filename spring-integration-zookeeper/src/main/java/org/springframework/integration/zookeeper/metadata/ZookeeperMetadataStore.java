@@ -34,6 +34,7 @@ import org.apache.zookeeper.data.Stat;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.metadata.ListenableMetadataStore;
 import org.springframework.integration.metadata.MetadataStoreListener;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -120,7 +121,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				// so the data actually exists, we can read it
 				try {
 					byte[] bytes = this.client.getData().forPath(getPath(key));
-					return Conversions.bytesToString(bytes, encoding);
+					return IntegrationUtils.bytesToString(bytes, encoding);
 				}
 				catch (Exception exceptionDuringGet) {
 					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':", e);
@@ -141,7 +142,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			Stat currentStat = new Stat();
 			try {
 				byte[] bytes = this.client.getData().storingStatIn(currentStat).forPath(getPath(key));
-				if (oldValue.equals(Conversions.bytesToString(bytes, encoding))) {
+				if (oldValue.equals(IntegrationUtils.bytesToString(bytes, encoding))) {
 					updateNode(key, newValue, currentStat.getVersion());
 				}
 				return true;
@@ -218,7 +219,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						return this.updateMap.get(key).getValue();
 					}
 				}
-				return Conversions.bytesToString(currentData.getData(), encoding);
+				return IntegrationUtils.bytesToString(currentData.getData(), encoding);
 			}
 		}
 	}
@@ -232,7 +233,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				this.client.delete().forPath(getPath(key));
 				// we guarantee that the deletion will supersede the existing data
 				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
-				return Conversions.bytesToString(bytes, encoding);
+				return IntegrationUtils.bytesToString(bytes, encoding);
 			}
 			catch (KeeperException.NoNodeException e) {
 				// ignore - the node doesn't exist
@@ -246,12 +247,12 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private void updateNode(String key, String value, int version) throws Exception {
 		Stat stat = this.client.setData().withVersion(version).forPath(getPath(key),
-				Conversions.stringToBytes(value, this.encoding));
+				IntegrationUtils.stringToBytes(value, this.encoding));
 		this.updateMap.put(key, new LocalChildData(value, stat.getVersion()));
 	}
 
 	private void createNode(String key, String value) throws Exception {
-		this.client.create().forPath(getPath(key), Conversions.stringToBytes(value, this.encoding));
+		this.client.create().forPath(getPath(key), IntegrationUtils.stringToBytes(value, this.encoding));
 		this.updateMap.put(key, new LocalChildData(value, 0));
 	}
 
@@ -355,7 +356,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						}
 					}
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onAdd(eventKey, Conversions.bytesToString(eventData, encoding));
+						listener.onAdd(eventKey, IntegrationUtils.bytesToString(eventData, encoding));
 					}
 					break;
 				case CHILD_UPDATED:
@@ -366,13 +367,13 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						}
 					}
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onUpdate(eventKey, Conversions.bytesToString(eventData, encoding));
+						listener.onUpdate(eventKey, IntegrationUtils.bytesToString(eventData, encoding));
 					}
 					break;
 				case CHILD_REMOVED:
 					ZookeeperMetadataStore.this.updateMap.remove(eventKey);
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onRemove(eventKey, Conversions.bytesToString(eventData, encoding));
+						listener.onRemove(eventKey, IntegrationUtils.bytesToString(eventData, encoding));
 					}
 					break;
 				default:

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.zookeeper.metadata;
+package org.springframework.integration.test.matcher;
 
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
@@ -22,6 +22,12 @@ import org.hamcrest.DiagnosingMatcher;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * A matcher that evaluates against the result of invoking a function,
+ * wrapped by the {@link EqualsResultMatcher.Evaluator}
+ *
+ * The goal is to defer the computation until the matcher needs to be actually evaluated.
+ * Mainly useful in conjunction with retrying matcherss such as {@link EventuallyMatcher}
+ *
  * @author Marius Bogoevici
  */
 public class EqualsResultMatcher<U> extends DiagnosingMatcher<U> {

@@ -22,8 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.springframework.integration.zookeeper.metadata.EqualsResultMatcher.equalsResult;
-import static org.springframework.integration.zookeeper.metadata.EventuallyMatcher.eventually;
+import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
+import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,9 +48,10 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.metadata.MessageStoreListenerAdapter;
+import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.metadata.MetadataStoreListener;
-import org.springframework.integration.zookeeper.metadata.EqualsResultMatcher.Evaluator;
+import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.test.matcher.EqualsResultMatcher.Evaluator;
 
 /**
  * @author Marius Bogoevici
@@ -99,7 +100,7 @@ public class ZookeeperMetadataStoreTests {
 		metadataStore.put(testKey, "Integration");
 		assertNotNull(client.checkExists().forPath(metadataStore.getPath(testKey)));
 		assertEquals("Integration",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 	}
 
 
@@ -119,13 +120,13 @@ public class ZookeeperMetadataStoreTests {
 		metadataStore.put(testKey, "Integration");
 		assertNotNull(client.checkExists().forPath(metadataStore.getPath(testKey)));
 		assertEquals("Integration",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		CuratorFramework otherClient = createNewClient();
 		final ZookeeperMetadataStore otherMetadataStore = new ZookeeperMetadataStore(otherClient);
 		otherMetadataStore.start();
 		otherMetadataStore.putIfAbsent(testKey, "OtherValue");
 		assertEquals("Integration",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		assertEquals("Integration", metadataStore.get(testKey));
 		assertThat("Integration", eventually(equalsResult(new Evaluator<String>() {
 			@Override
@@ -135,7 +136,7 @@ public class ZookeeperMetadataStoreTests {
 		})));
 		otherMetadataStore.putIfAbsent(testKey2, "Integration-2");
 		assertEquals("Integration-2",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey2)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey2)), "UTF-8"));
 		assertEquals("Integration-2", otherMetadataStore.get(testKey2));
 		assertThat("Integration-2", eventually(equalsResult(new Evaluator<String>() {
 			@Override
@@ -152,13 +153,13 @@ public class ZookeeperMetadataStoreTests {
 		metadataStore.put(testKey, "Integration");
 		assertNotNull(client.checkExists().forPath(metadataStore.getPath(testKey)));
 		assertEquals("Integration",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		CuratorFramework otherClient = createNewClient();
 		final ZookeeperMetadataStore otherMetadataStore = new ZookeeperMetadataStore(otherClient);
 		otherMetadataStore.start();
 		otherMetadataStore.replace(testKey, "OtherValue", "Integration-2");
 		assertEquals("Integration",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		assertEquals("Integration", metadataStore.get(testKey));
 		assertThat("Integration", eventually(equalsResult(new Evaluator<String>() {
 			@Override
@@ -168,7 +169,7 @@ public class ZookeeperMetadataStoreTests {
 		})));
 		otherMetadataStore.replace(testKey, "Integration", "Integration-2");
 		assertEquals("Integration-2",
-				Conversions.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		assertThat("Integration-2", eventually(equalsResult(new Evaluator<String>() {
 			@Override
 			public String evaluate() {
@@ -249,7 +250,7 @@ public class ZookeeperMetadataStoreTests {
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
-		metadataStore.addListener(new MessageStoreListenerAdapter() {
+		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 			@Override
 			public void onAdd(String key, String value) {
 				notifiedChanges.add(Arrays.asList("add", key, value));
@@ -319,7 +320,7 @@ public class ZookeeperMetadataStoreTests {
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
-		metadataStore.addListener(new MessageStoreListenerAdapter() {
+		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 			@Override
 			public void onAdd(String key, String value) {
 				notifiedChanges.add(Arrays.asList("add", key, value));

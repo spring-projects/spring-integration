@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.zookeeper.metadata;
-
-import java.io.UnsupportedEncodingException;
+package org.springframework.integration.metadata;
 
 /**
- *
- * Utilities for null-safe conversions.
+ * Base implementation for a {@link MetadataStoreListener}. Subclasses may override any of the methods.
  *
  * @author Marius Bogoevici
  */
-public class Conversions {
+public abstract class MetadataStoreListenerAdapter implements MetadataStoreListener {
 
-	public static byte[] stringToBytes(String value, String encoding) {
-		try {
-			return value != null ? value.getBytes(encoding) : null;
-		}
-		catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException(e);
-		}
+	@Override
+	public void onAdd(String key, String value) {
+
 	}
 
-	public static String bytesToString(byte[] bytes, String encoding) {
-		try {
-			return bytes == null ? null : new String(bytes, encoding);
-		}
-		catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException(e);
-		}
+	@Override
+	public void onRemove(String key, String oldValue) {
+
+	}
+
+	@Override
+	public void onUpdate(String key, String newValue) {
+
 	}
 }
