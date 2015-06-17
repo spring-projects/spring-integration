@@ -115,7 +115,7 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		if (this.beanFactory != null) {
 			factory.setBeanFactory(this.beanFactory);
 		}
-		Object result = factory.getScriptedObject(scriptSource, null);
+		Object result = factory.getScriptedObject(scriptSource);
 		return (result instanceof GString) ? result.toString() : result;
 	}
 

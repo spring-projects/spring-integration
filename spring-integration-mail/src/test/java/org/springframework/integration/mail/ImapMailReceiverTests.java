@@ -158,8 +158,8 @@ public class ImapMailReceiverTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		@SuppressWarnings("unchecked")
-		org.springframework.messaging.Message<MimeMessage> received =
-				(org.springframework.messaging.Message<MimeMessage>) channel.receive(6000);
+		org.springframework.integration.Message<MimeMessage> received =
+				(org.springframework.integration.Message<MimeMessage>) channel.receive(6000);
 		assertNotNull(received);
 		assertNotNull(received.getPayload().getReceivedDate());
 		assertTrue(received.getPayload().getLineCount() > -1);
