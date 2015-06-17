@@ -23,12 +23,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -308,6 +308,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				if (payload instanceof File) {
 					resultFile = this.handleFileMessage((File) payload, tempFile, resultFile);
 				}
+				else if (payload instanceof InputStream) {
+					resultFile = this.handleInputstreamMessage((InputStream) payload, originalFileFromHeader, tempFile, resultFile);
+				}
 				else if (payload instanceof byte[]) {
 					resultFile = this.handleByteArrayMessage(
 							(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
@@ -355,19 +358,32 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		return null;
 	}
-
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
+		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
+			if (sourceFile.renameTo(resultFile)) {
+				return resultFile;
+			}
+			if (logger.isInfoEnabled()) {
+				logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
+						sourceFile.getAbsolutePath()));
+			}
+		}
+		final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+		return handleInputstreamMessage(bis, sourceFile, tempFile, resultFile);
+	}
+
+	private File handleInputstreamMessage(final InputStream sourceFileInputstream, File originalFile, File tempFile, final File resultFile) throws IOException {
 		if (FileExistsMode.APPEND.equals(this.fileExistsMode)) {
 			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 			final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
-			final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 				@Override
 				protected void whileLocked() throws IOException {
 					try {
 						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 						int bytesRead = -1;
-						while ((bytesRead = bis.read(buffer)) != -1) {
+						while ((bytesRead = sourceFileInputstream.read(buffer)) != -1) {
 							bos.write(buffer, 0, bytesRead);
 						}
 						if (FileWritingMessageHandler.this.appendNewLine) {
@@ -377,7 +393,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					}
 					finally {
 						try {
-							bis.close();
+							sourceFileInputstream.close();
 						}
 						catch (IOException ex) {
 						}
@@ -390,27 +406,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 			};
 			whileLockedProcessor.doWhileLocked();
-			this.cleanUpAfterCopy(fileToWriteTo, resultFile, sourceFile);
+			this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 			return resultFile;
 		}
 		else {
-			if (this.deleteSourceFiles) {
-				if (sourceFile.renameTo(resultFile)) {
-					return resultFile;
-				}
-				if (logger.isInfoEnabled()) {
-					logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
-							sourceFile.getAbsolutePath()));
-				}
-			}
 
 			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile));
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
 
 			try {
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 				int bytesRead = -1;
-				while ((bytesRead = bis.read(buffer)) != -1) {
+				while ((bytesRead = sourceFileInputstream.read(buffer)) != -1) {
 					bos.write(buffer, 0, bytesRead);
 				}
 				if (this.appendNewLine) {
@@ -420,7 +426,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			finally {
 				try {
-					bis.close();
+					sourceFileInputstream.close();
 				}
 				catch (IOException ex) {
 				}
@@ -430,7 +436,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException ex) {
 				}
 			}
-			this.cleanUpAfterCopy(tempFile, resultFile, sourceFile);
+			this.cleanUpAfterCopy(tempFile, resultFile, originalFile);
 			return resultFile;
 		}
 	}
