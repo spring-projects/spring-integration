@@ -30,6 +30,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 
 /**
@@ -105,7 +106,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			this.socketOutputStream.flush();
 		}
 		catch (Exception e) {
-			this.publishConnectionExceptionEvent(e);
+			this.publishConnectionExceptionEvent(new MessagingException(message, e));
 			this.closeConnection(true);
 			throw e;
 		}

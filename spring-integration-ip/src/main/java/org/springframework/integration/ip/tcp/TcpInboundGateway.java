@@ -20,8 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.ip.IpHeaders;
@@ -31,8 +30,12 @@ import org.springframework.integration.ip.tcp.connection.AbstractServerConnectio
 import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
 import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -70,6 +73,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
+	@Override
 	public boolean onMessage(Message<?> message) {
 		if (this.shuttingDown) {
 			if (logger.isInfoEnabled()) {
@@ -109,15 +113,27 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 			connection = connections.get(connectionId);
 		}
 		if (connection == null) {
+			publishNoConnectionEvent(message, connectionId);
 			logger.error("Connection not found when processing reply " + reply + " for " + message);
 			return false;
 		}
 		try {
 			connection.send(reply);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.error("Failed to send reply", e);
 		}
 		return false;
+	}
+
+	private void publishNoConnectionEvent(Message<?> message, String connectionId) {
+		AbstractConnectionFactory cf = this.serverConnectionFactory != null ? this.serverConnectionFactory
+				: this.clientConnectionFactory;
+		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
+		if (applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(
+				new TcpConnectionFailedCorrelationEvent(this, connectionId, new MessagingException(message)));
+		}
 	}
 
 	/**
@@ -147,10 +163,12 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		connectionFactory.registerSender(this);
 	}
 
+	@Override
 	public void addNewConnection(TcpConnection connection) {
 		connections.put(connection.getConnectionId(), connection);
 	}
 
+	@Override
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
@@ -213,6 +231,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	/**
 	 * @return the isClientMode
 	 */
+	@Override
 	public boolean isClientMode() {
 		return isClientMode;
 	}
@@ -240,6 +259,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		this.retryInterval = retryInterval;
 	}
 
+	@Override
 	public boolean isClientModeConnected() {
 		if (this.isClientMode && this.clientModeConnectionManager != null) {
 			return this.clientModeConnectionManager.isConnected();
@@ -248,17 +268,20 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		}
 	}
 
+	@Override
 	public void retryConnection() {
 		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
 			this.clientModeConnectionManager.run();
 		}
 	}
 
+	@Override
 	public int beforeShutdown() {
 		this.shuttingDown = true;
 		return this.activeCount.get();
 	}
 
+	@Override
 	public int afterShutdown() {
 		this.stop();
 		return this.activeCount.get();

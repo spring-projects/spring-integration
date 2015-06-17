@@ -147,7 +147,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	protected ApplicationEventPublisher getApplicationEventPublisher() {
+	public ApplicationEventPublisher getApplicationEventPublisher() {
 		return applicationEventPublisher;
 	}
 

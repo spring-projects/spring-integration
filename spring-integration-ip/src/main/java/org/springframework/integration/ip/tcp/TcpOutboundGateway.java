@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.EvaluationContext;
@@ -36,6 +37,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CloseDeferrable;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
@@ -167,6 +169,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
 		if (connectionId == null) {
 			logger.error("Cannot correlate response - no connection id");
+			publishNoConnectionEvent(message, null, "Cannot correlate response - no connection id");
 			return false;
 		}
 		if (logger.isTraceEnabled()) {
@@ -182,12 +185,22 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				return false;
 			}
 			else {
-				logger.error("Cannot correlate response - no pending reply");
+				String errorMessage = "Cannot correlate response - no pending reply for " + connectionId;
+				logger.error(errorMessage);
+				publishNoConnectionEvent(message, connectionId, errorMessage);
 				return false;
 			}
 		}
 		reply.setReply(message);
 		return false;
+	}
+
+	private void publishNoConnectionEvent(Message<?> message, String connectionId, String errorMessage) {
+		ApplicationEventPublisher applicationEventPublisher = this.connectionFactory.getApplicationEventPublisher();
+		if (applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(new TcpConnectionFailedCorrelationEvent(this, connectionId,
+					new MessagingException(message, errorMessage)));
+		}
 	}
 
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {

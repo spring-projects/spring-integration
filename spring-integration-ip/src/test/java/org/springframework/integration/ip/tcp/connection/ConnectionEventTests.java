@@ -20,7 +20,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -46,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -55,9 +58,19 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.tcp.TcpInboundGateway;
+import org.springframework.integration.ip.tcp.TcpOutboundGateway;
+import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.SocketUtils;
 
 /**
@@ -103,10 +116,10 @@ public class ConnectionEventTests {
 		assertNotNull(theEvent.get(0));
 		assertTrue(theEvent.get(0) instanceof TcpConnectionExceptionEvent);
 		assertTrue(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
-		assertTrue(theEvent.get(0).toString().contains("cause=java.lang.RuntimeException: foo]"));
+		assertThat(theEvent.get(0).toString(), containsString("RuntimeException: foo]"));
 		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(0);
 		assertNotNull(event.getCause());
-		assertSame(toBeThrown, event.getCause());
+		assertSame(toBeThrown, event.getCause().getCause());
 		assertTrue(theEvent.size() > 1);
 		assertNotNull(theEvent.get(1));
 		assertTrue(theEvent.get(1).toString()
@@ -125,6 +138,138 @@ public class ConnectionEventTests {
 		int port = SocketUtils.findAvailableTcpPort();
 		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
 		testServerExceptionGuts(port, factory);
+	}
+
+	@Test
+	public void testOCANoConnectionEvents() {
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		AbstractServerConnectionFactory scf = new AbstractServerConnectionFactory(0) {
+
+			@Override
+			public void run() {
+			}
+		};
+		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		scf.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(Object event) {
+			}
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				theEvent.set(event);
+			}
+
+		});
+		handler.setConnectionFactory(scf);
+		handler.start();
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader(IpHeaders.CONNECTION_ID, "bar")
+				.build();
+		try {
+			handler.handleMessage(message);
+			fail("expected exception");
+		}
+		catch (MessageHandlingException e) {
+			assertThat(e.getMessage(), Matchers.containsString("Unable to find outbound socket"));
+		}
+		assertNotNull(theEvent.get());
+		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
+		assertEquals("bar", event.getConnectionId());
+		assertSame(message, ((MessagingException) event.getCause()).getFailedMessage());
+	}
+
+	@Test
+	public void testIGNoConnectionEvents() {
+		TcpInboundGateway gw = new TcpInboundGateway();
+		AbstractServerConnectionFactory scf = new AbstractServerConnectionFactory(0) {
+
+			@Override
+			public void run() {
+			}
+		};
+		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		scf.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(Object event) {
+			}
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				theEvent.set(event);
+			}
+
+		});
+		gw.setConnectionFactory(scf);
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
+			}
+		});
+		gw.setRequestChannel(requestChannel);
+		gw.start();
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader(IpHeaders.CONNECTION_ID, "bar")
+				.build();
+		gw.onMessage(message);
+		assertNotNull(theEvent.get());
+		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
+		assertEquals("bar", event.getConnectionId());
+		assertSame(message, ((MessagingException) event.getCause()).getFailedMessage());
+	}
+
+	@Test
+	public void testOGNoConnectionEvents() {
+		TcpOutboundGateway gw = new TcpOutboundGateway();
+		AbstractClientConnectionFactory ccf = new AbstractClientConnectionFactory("localhost", 0) {
+		};
+		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		ccf.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(Object event) {
+			}
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				theEvent.set(event);
+			}
+
+		});
+		gw.setConnectionFactory(ccf);
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
+			}
+		});
+		gw.start();
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader(IpHeaders.CONNECTION_ID, "bar")
+				.build();
+		gw.onMessage(message);
+		assertNotNull(theEvent.get());
+		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
+		assertEquals("bar", event.getConnectionId());
+		MessagingException messagingException = (MessagingException) event.getCause();
+		assertSame(message, messagingException.getFailedMessage());
+		assertEquals("Cannot correlate response - no pending reply for bar", messagingException.getMessage());
+
+		message = new GenericMessage<String>("foo");
+		gw.onMessage(message);
+		assertNotNull(theEvent.get());
+		event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
+		assertNull(event.getConnectionId());
+		messagingException = (MessagingException) event.getCause();
+		assertSame(message, messagingException.getFailedMessage());
+		assertEquals("Cannot correlate response - no connection id", messagingException.getMessage());
 	}
 
 	private void testServerExceptionGuts(int port, AbstractServerConnectionFactory factory) throws Exception {
