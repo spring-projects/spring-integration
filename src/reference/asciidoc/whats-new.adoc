@@ -48,6 +48,8 @@ The `ignore-hidden` attribute has been introduced for the `<int-file:inbound-cha
 the _hidden_ files from the source directory.
 It is `true` by default.
 
+The `FileWritingMessageHandler` now also accepts `InputStream` as a valid message payload type.
+
 See <<files>> for more information.
 
 [[x4.2-class-package-change]]

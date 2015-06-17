@@ -29,8 +29,10 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import org.junit.Before;
@@ -38,7 +40,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -55,6 +56,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Alex Peters
  * @author Gary Russell
  * @author Tony Falabella
+ * @author Gunnar Hillert
  */
 public class FileWritingMessageHandlerTests {
 
@@ -171,6 +173,29 @@ public class FileWritingMessageHandlerTests {
 		assertFileContentIs(result, SAMPLE_CONTENT + System.getProperty("line.separator"));
 	}
 
+	@Test
+	public void inputStreamPayloadCopiedToNewFile() throws Exception {
+		InputStream is = new FileInputStream(sourceFile);
+		Message<?> message = MessageBuilder.withPayload(is).build();
+		QueueChannel output = new QueueChannel();
+		handler.setOutputChannel(output);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIsMatching(result);
+	}
+
+	@Test
+	public void inputStreamPayloadCopiedToNewFileWithNewLines() throws Exception {
+		InputStream is = new FileInputStream(sourceFile);
+		Message<?> message = MessageBuilder.withPayload(is).build();
+		QueueChannel output = new QueueChannel();
+		handler.setOutputChannel(output);
+		handler.setAppendNewLine(true);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, SAMPLE_CONTENT + System.getProperty("line.separator"));
+	}
+
 	@Test @Ignore // INT-3289 ignored because it won't fail on all OS
 	public void testCreateDirFail() {
 		File dir = new File("/foo");
@@ -265,6 +290,44 @@ public class FileWritingMessageHandlerTests {
 		handler.setOutputChannel(output);
 		Message<?> message = MessageBuilder.withPayload(
 				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING))
+				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
+				.build();
+		assertTrue(sourceFile.exists());
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIsMatching(result);
+		assertFalse(sourceFile.exists());
+	}
+
+	@Test
+	public void deleteSourceFileWithInputstreamPayloadAndFileInstanceHeader() throws Exception {
+		QueueChannel output = new QueueChannel();
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setDeleteSourceFiles(true);
+		handler.setOutputChannel(output);
+
+		InputStream is = new FileInputStream(sourceFile);
+
+		Message<?> message = MessageBuilder.withPayload(is)
+				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile)
+				.build();
+		assertTrue(sourceFile.exists());
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIsMatching(result);
+		assertFalse(sourceFile.exists());
+	}
+
+	@Test
+	public void deleteSourceFileWithInputstreamPayloadAndFilePathHeader() throws Exception {
+		QueueChannel output = new QueueChannel();
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setDeleteSourceFiles(true);
+		handler.setOutputChannel(output);
+
+		InputStream is = new FileInputStream(sourceFile);
+
+		Message<?> message = MessageBuilder.withPayload(is)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
 				.build();
 		assertTrue(sourceFile.exists());
