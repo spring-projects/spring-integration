@@ -175,7 +175,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		RECURSIVE("-R"),
 
 		/**
-		 * Streaming 'get' (returns InputStream); user must call {@link RemoteFileUtils#closeSession(Session)}.
+		 * Streaming 'get' (returns InputStream); user must call {@link Session#close()}.
 		 */
 		STREAM("-stream");
 

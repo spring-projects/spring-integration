@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.Lifecycle;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -30,8 +30,10 @@ import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
 import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -110,7 +112,10 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 			else {
 				logger.error("Unable to find outbound socket for " + message);
-				throw new MessageHandlingException(message, "Unable to find outbound socket");
+				MessageHandlingException messageHandlingException = new MessageHandlingException(message,
+						"Unable to find outbound socket");
+				publishNoConnectionEvent(messageHandlingException, (String) connectionId);
+				throw messageHandlingException;
 			}
 			return;
 		}
@@ -159,6 +164,16 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	private void publishNoConnectionEvent(MessageHandlingException messageHandlingException, String connectionId) {
+		AbstractConnectionFactory cf = this.serverConnectionFactory != null ? this.serverConnectionFactory
+				: this.clientConnectionFactory;
+		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
+		if (applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(
+				new TcpConnectionFailedCorrelationEvent(this, connectionId, messageHandlingException));
+		}
+	}
+
 	/**
 	 * Sets the client or server connection factory; for this (an outbound adapter), if
 	 * the factory is a server connection factory, the sockets are owned by a receiving
@@ -175,10 +190,12 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	@Override
 	public void addNewConnection(TcpConnection connection) {
 		connections.put(connection.getConnectionId(), connection);
 	}
 
+	@Override
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
@@ -199,6 +216,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	@Override
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.active) {
@@ -220,6 +238,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	@Override
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.active) {
@@ -237,6 +256,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.active;
 	}
@@ -283,6 +303,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	/**
 	 * @return the isClientMode
 	 */
+	@Override
 	public boolean isClientMode() {
 		return this.isClientMode;
 	}
@@ -315,6 +336,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		this.retryInterval = retryInterval;
 	}
 
+	@Override
 	public boolean isClientModeConnected() {
 		if (this.isClientMode && this.clientModeConnectionManager != null) {
 			return this.clientModeConnectionManager.isConnected();
@@ -323,6 +345,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	@Override
 	public void retryConnection() {
 		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
 			this.clientModeConnectionManager.run();

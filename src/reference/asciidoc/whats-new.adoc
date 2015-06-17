@@ -63,20 +63,22 @@ See <<files>> for more information.
 
 The `ScatterGatherHandler` class has been moved from the `org.springframework.integration.handler` to the `org.springframework.integration.scattergather`.
 
+==== TCP Changes
+
 [[x4.2-tcp-serializers]]
-==== TCP Serializers
+===== TCP Serializers
 
 The TCP `Serializers` no longer `flush()` the `OutputStream`; this is now done by the `TcpNxxConnection` classes.
 If you are using the serializers directly within user code, you may have to `flush()` the `OutputStream`.
 
 [[x4.2-tcp-server-exceptions]]
-==== Server Socket Exceptions
+===== Server Socket Exceptions
 
 `TcpConnectionServerExceptionEvent` s are now published whenever an unexpected exception occurs on a TCP server socket (also added to 4.1.3, 4.0.7).
 See <<tcp-events>> for more information.
 
 [[x4.2-tcp-gw-rto]]
-==== TCP Gateway Remote Timeout
+===== TCP Gateway Remote Timeout
 
 The `TcpOutboundGateway` now supports `remote-timeout-expression` as an alternative to the existing `remote-timeout` attribute.
 This allows setting the timeout based on each message.
@@ -86,13 +88,19 @@ Also, the `remote-timeout` no longer defaults to the same value as `reply-timeou
 See <<tcp-ob-gateway-attributes>> for more information.
 
 [[x4.2-tcp-ssl]]
-==== TCP SSLSession Available for Header Mapping
+===== TCP SSLSession Available for Header Mapping
 
 `TcpConnection` s now support `getSslSession()` to enable users to extract information from the session to add to
 message headers.
 
 See <<ip-msg-headers>> for more information.
 
+
+[[x4.2-tcp-events]]
+===== TCP Events
+
+New events are now published whenever a correlation exception occurs - for example sending a message to a
+non-existent socket. See <<tcp-events>> for more information.
 
 [[x4.2-inbound-channel-adapter-annotation]]
 ==== @InboundChannelAdapter
@@ -160,9 +168,3 @@ metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetada
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.
 See <<gw-completable-future>> for more information.
-
-[[x4.2-ftp-changes]]
-==== (S)FTP Changes
-
-The SFTP/FTP outbound gateway `get` operations now support the `-stream` option, allowing files to be retrieved as
-a stream. See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.

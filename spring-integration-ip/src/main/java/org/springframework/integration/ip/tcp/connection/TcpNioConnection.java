@@ -43,6 +43,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -150,7 +151,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				this.bufferedOutputStream.flush();
 			}
 			catch (Exception e) {
-				this.publishConnectionExceptionEvent(e);
+				this.publishConnectionExceptionEvent(new MessagingException(message, e));
 				this.closeConnection(true);
 				throw e;
 			}

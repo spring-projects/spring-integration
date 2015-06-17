@@ -373,8 +373,14 @@ In addition, since _version 4.0_ the standard deserializers discussed in <<conne
 These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point the exception occurred.
 Applications can use a normal `ApplicationListener`, or see <<applicationevent-inbound>>, to capture these events, allowing analysis of the problem.
 
-Starting with _versions 4.0.7, 4.1.3_`TcpConnectionServerExceptionEvent` s are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
+Starting with _versions 4.0.7, 4.1.3_, `TcpConnectionServerExceptionEvent` s are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
 These events have a reference to the connection factory and the cause.
+
+Starting with _version 4.2_, `TcpConnectionFailedCorrelationEvent` s are published whenever an endpoint (inbound gateway or
+collaborating outbound channel adapter) receives a message that cannot be routed to a connection because the
+`ip_connectionId` header is invalid.
+Outbound gateways also publish this event when a late reply is received (the sender thread has timed out).
+The event contains the connection id as well as an exception in the `cause` property that contains the failed message.
 
 [[tcp-adapters]]
 === TCP Adapters
