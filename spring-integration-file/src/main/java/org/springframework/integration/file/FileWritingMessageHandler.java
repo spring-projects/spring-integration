@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
@@ -81,11 +82,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-	private volatile String temporaryFileSuffix =".writing";
+	private volatile String temporaryFileSuffix = ".writing";
 
 	private volatile boolean temporaryFileSuffixSet = false;
 
-	private volatile FileExistsMode fileExistsMode  = FileExistsMode.REPLACE;
+	private volatile FileExistsMode fileExistsMode = FileExistsMode.REPLACE;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -164,11 +165,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * case the destination exists. For example {@link FileExistsMode#APPEND}
 	 * instructs this handler to append data to the existing file rather then
 	 * creating a new file for each {@link Message}.
-	 *
+	 * <p>
 	 * If set to {@link FileExistsMode#APPEND}, the adapter will also
 	 * create a real instance of the {@link LockRegistry} to ensure that there
 	 * is no collisions when multiple threads are writing to the same file.
-	 *
+	 * <p>
 	 * Otherwise the LockRegistry is set to {@link PassThruLockRegistry} which
 	 * has no effect.
 	 *
@@ -179,7 +180,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Assert.notNull(fileExistsMode, "'fileExistsMode' must not be null.");
 		this.fileExistsMode = fileExistsMode;
 
-		if (FileExistsMode.APPEND.equals(fileExistsMode)){
+		if (FileExistsMode.APPEND.equals(fileExistsMode)) {
 			this.lockRegistry = this.lockRegistry instanceof PassThruLockRegistry
 					? new DefaultLockRegistry()
 					: this.lockRegistry;
@@ -198,6 +199,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * If 'true' will append a new-line after each write. It is 'false' by default.
+	 *
 	 * @param appendNewLine true if a new-line should be written to the file after payload is written
 	 * @since 4.0.7
 	 */
@@ -266,7 +268,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (!destinationDirectory.exists() && autoCreateDirectory) {
 			Assert.isTrue(destinationDirectory.mkdirs(),
-				"Destination directory [" + destinationDirectory + "] could not be created.");
+					"Destination directory [" + destinationDirectory + "] could not be created.");
 		}
 
 		Assert.isTrue(destinationDirectory.exists(),
@@ -286,11 +288,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Object payload = requestMessage.getPayload();
 		Assert.notNull(payload, "message payload must not be null");
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
-		File originalFileFromHeader = this.retrieveOriginalFileFromHeader(requestMessage);
+		File originalFileFromHeader = retrieveOriginalFileFromHeader(requestMessage);
 
 		final File destinationDirectoryToUse = evaluateDestinationDirectoryExpression(requestMessage);
 
-		File tempFile = new File(destinationDirectoryToUse, generatedFileName + temporaryFileSuffix);
+		File tempFile = new File(destinationDirectoryToUse, generatedFileName + this.temporaryFileSuffix);
 		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
 
 		if (FileExistsMode.FAIL.equals(this.fileExistsMode) && resultFile.exists()) {
@@ -306,7 +308,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			try {
 				if (payload instanceof File) {
-					resultFile = this.handleFileMessage((File) payload, tempFile, resultFile);
+					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
+				}
+				else if (payload instanceof InputStream) {
+					resultFile = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
+							resultFile);
 				}
 				else if (payload instanceof byte[]) {
 					resultFile = this.handleByteArrayMessage(
@@ -357,17 +363,34 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
+		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
+			if (sourceFile.renameTo(resultFile)) {
+				return resultFile;
+			}
+			if (logger.isInfoEnabled()) {
+				logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
+						sourceFile.getAbsolutePath()));
+			}
+		}
+		final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+		return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
+	}
+
+	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
+										  final File resultFile) throws IOException {
 		if (FileExistsMode.APPEND.equals(this.fileExistsMode)) {
 			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 			final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
-			final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
-			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
+
+			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
+					fileToWriteTo.getAbsolutePath()) {
+
 				@Override
 				protected void whileLocked() throws IOException {
 					try {
 						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 						int bytesRead = -1;
-						while ((bytesRead = bis.read(buffer)) != -1) {
+						while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
 							bos.write(buffer, 0, bytesRead);
 						}
 						if (FileWritingMessageHandler.this.appendNewLine) {
@@ -377,7 +400,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					}
 					finally {
 						try {
-							bis.close();
+							sourceFileInputStream.close();
 						}
 						catch (IOException ex) {
 						}
@@ -388,29 +411,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						}
 					}
 				}
+
 			};
 			whileLockedProcessor.doWhileLocked();
-			this.cleanUpAfterCopy(fileToWriteTo, resultFile, sourceFile);
+			cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 			return resultFile;
 		}
 		else {
-			if (this.deleteSourceFiles) {
-				if (sourceFile.renameTo(resultFile)) {
-					return resultFile;
-				}
-				if (logger.isInfoEnabled()) {
-					logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
-							sourceFile.getAbsolutePath()));
-				}
-			}
 
 			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile));
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
 
 			try {
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 				int bytesRead = -1;
-				while ((bytesRead = bis.read(buffer)) != -1) {
+				while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
 					bos.write(buffer, 0, bytesRead);
 				}
 				if (this.appendNewLine) {
@@ -420,7 +434,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			finally {
 				try {
-					bis.close();
+					sourceFileInputStream.close();
 				}
 				catch (IOException ex) {
 				}
@@ -430,18 +444,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException ex) {
 				}
 			}
-			this.cleanUpAfterCopy(tempFile, resultFile, sourceFile);
+			cleanUpAfterCopy(tempFile, resultFile, originalFile);
 			return resultFile;
 		}
 	}
 
-	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile) throws IOException {
+	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile)
+			throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
 		final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append));
-		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
+		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
+				fileToWriteTo.getAbsolutePath()) {
+
 			@Override
 			protected void whileLocked() throws IOException {
 				try {
@@ -465,13 +482,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
-	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile) throws IOException {
+	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile)
+			throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
-		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
+		final BufferedWriter writer =
+				new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
+		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
+				fileToWriteTo.getAbsolutePath()) {
+
 			@Override
 			protected void whileLocked() throws IOException {
 				try {
@@ -497,7 +518,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
-	private File determineFileToWrite(File resultFile, File tempFile){
+	private File determineFileToWrite(File resultFile, File tempFile) {
 
 		final File fileToWriteTo;
 
@@ -512,12 +533,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				break;
 			default:
 				throw new IllegalStateException("Unsupported FileExistsMode "
-					+ this.fileExistsMode);
+						+ this.fileExistsMode);
 		}
 		return fileToWriteTo;
 	}
 
-	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException{
+	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && StringUtils.hasText(this.temporaryFileSuffix)) {
 			this.renameTo(fileToWriteTo, resultFile);
 		}
@@ -527,24 +548,27 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private void renameTo(File tempFile, File resultFile) throws IOException{
+	private void renameTo(File tempFile, File resultFile) throws IOException {
 		Assert.notNull(resultFile, "'resultFile' must not be null");
 		Assert.notNull(tempFile, "'tempFile' must not be null");
 
 		if (resultFile.exists()) {
-			if (resultFile.setWritable(true, false) && resultFile.delete()){
+			if (resultFile.setWritable(true, false) && resultFile.delete()) {
 				if (!tempFile.renameTo(resultFile)) {
-					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + "'");
+					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
+							"' to '" + resultFile.getAbsolutePath() + "'");
 				}
 			}
 			else {
-				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() +
+				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
+						"' to '" + resultFile.getAbsolutePath() +
 						"' since '" + resultFile.getName() + "' is not writable or can not be deleted");
 			}
 		}
 		else {
 			if (!tempFile.renameTo(resultFile)) {
-				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + "'");
+				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
+						"' to '" + resultFile.getAbsolutePath() + "'");
 			}
 		}
 	}
@@ -558,7 +582,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (destinationDirectoryToUse == null) {
 			throw new IllegalStateException(String.format("The provided " +
-					"destinationDirectoryExpression (%s) must not resolve to null.",
+							"destinationDirectoryExpression (%s) must not resolve to null.",
 					this.destinationDirectoryExpression.getExpressionString()));
 		}
 		else if (destinationDirectoryToUse instanceof String) {
@@ -572,7 +596,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		else if (destinationDirectoryToUse instanceof File) {
 			destinationDirectory = (File) destinationDirectoryToUse;
-		} else {
+		}
+		else {
 			throw new IllegalStateException(String.format("The provided " +
 					"destinationDirectoryExpression (%s) must be of type " +
 					"java.io.File or be a String.", this.destinationDirectoryExpression.getExpressionString()));

@@ -261,7 +261,12 @@ IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes, forces the use 
 === Writing files
 
 To write messages to the file system you can use a http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[FileWritingMessageHandler].
-This class can deal with _File_, _String_, or _byte array_ payloads.
+This class can deal with the following payload types:
+
+* _File_,
+* _String_
+* _byte array_
+* _InputStream_ (since _version 4.2_)
 
 You can configure the encoding and the charset that will be used in case of a String payload.
 
