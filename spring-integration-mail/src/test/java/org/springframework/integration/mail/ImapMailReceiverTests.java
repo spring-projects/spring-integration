@@ -157,7 +157,11 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		assertNotNull(channel.receive(6000));
+		@SuppressWarnings("unchecked")
+		org.springframework.messaging.Message<MimeMessage> received =
+				(org.springframework.messaging.Message<MimeMessage>) channel.receive(6000);
+		assertNotNull(received);
+		assertNotNull(received.getPayload().getReceivedDate());
 		assertNotNull(channel.receive(6000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
@@ -755,9 +759,9 @@ public class ImapMailReceiverTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		});
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
