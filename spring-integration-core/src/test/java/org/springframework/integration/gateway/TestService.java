@@ -16,10 +16,11 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.Payload;
 
 import reactor.rx.Promise;
 
@@ -50,5 +51,21 @@ public interface TestService {
 	Future<Message<?>> async(String s);
 
 	Promise<Message<?>> promise(String s);
+
+	CompletableFuture<String> completable(String s);
+
+	MyCompletableFuture customCompletable(String s);
+
+	CompletableFuture<Message<?>> completableReturnsMessage(String s);
+
+	MyCompletableMessageFuture customCompletableReturnsMessage(String s);
+
+	public class MyCompletableFuture extends CompletableFuture<String> {
+
+	}
+
+	public class MyCompletableMessageFuture extends CompletableFuture<Message<?>> {
+
+	}
 
 }

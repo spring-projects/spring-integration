@@ -153,3 +153,10 @@ See <<cors>> for more information.
 
 The `AbstractPersistentFileListFilter` has a new property `flushOnUpdate` which, when set to true, will `flush()` the
 metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetadataStore`).
+
+
+[[x4.2-gw-completable-future]]
+==== Gateway Methods can Return CompletableFuture<?>
+
+When using Java 8, gateway methods can now return `CompletableFuture<?>`.
+See <<gw-completable-future>> for more information.

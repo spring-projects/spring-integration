@@ -359,6 +359,8 @@ Finally, you might want to consider setting downstream flags such as 'requires-r
 [[async-gateway]]
 ==== Asynchronous Gateway
 
+===== Introduction
+
 As a pattern, the Messaging Gateway is a very nice way to hide messaging-specific code while still exposing the full capabilities of the messaging system.
 As you've seen, the `GatewayProxyFactoryBean` provides a convenient way to expose a Proxy over a service-interface thus giving you POJO-based access to a messaging system (based on objects in your own domain, or primitives/Strings, etc).
  But when a gateway is exposed via simple POJO methods which return values it does imply that for each Request message (generated when the method is invoked) there must be a Reply message (generated when the method has returned).
@@ -402,7 +404,7 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);
 
 For a more detailed example, please refer to the https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/async-gateway[_async-gateway_] sample distributed within the Spring Integration samples.
 
-*ListenableFuture*
+===== ListenableFuture
 
 Starting with _version 4.1_, async gateway methods can also return `ListenableFuture` (introduced in Spring Framework 4.0).
 These return types allow you to provide a callback which is invoked when the result is available (or an exception occurs).
@@ -425,12 +427,12 @@ result.addCallback(new ListenableFutureCallback<String>() {
 });
 ----
 
-*Asynchronous Gateway and AsyncTaskExecutor*
+===== AsyncTaskExecutor
 
 By default, the `GatewayProxyFactoryBean` uses `org.springframework.core.task.SimpleAsyncTaskExecutor` when submitting internal `AsyncInvocationTask` instances for any gateway method whose return type is `Future`.
 However the `async-executor` attribute in the `<gateway/>` element's configuration allows you to provide a reference to any implementation of `java.util.concurrent.Executor` available within the Spring application context.
 
-The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively.
+The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively. Also see <<gw-completable-future>> below.
 Even though there is a default executor, it is often useful to provide an external one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's bean name):
 
 [source,java]
@@ -468,9 +470,92 @@ public interface NoExecGateway {
 
 IMPORTANT: If the return type is a specific concrete `Future` implementation or some other subinterface that is not supported by the configured executor, the flow will run on the caller's thread and the flow must return the required type in the reply message payload.
 
-*Asynchronous Gateway and Reactor Promise*
+[[gw-completable-future]]
+===== CompletableFuture
 
-Also starting with _version 4.1_, the `GatewayProxyFactoryBean` allows the use of a `Reactor` with gateway interface methods, utilizing a https://github.com/reactor/reactor/wiki/Promises[`Promise<?>`] return type.
+Starting with _version 4.2_, gateway methods can now return `CompletableFuture<?>`.
+There are several modes of operation when returning this type:
+
+When an async executor is provided *and* the return type is exactly `CompletableFuture` (not a subclass), the framework
+will run the task on the executor and immediately return a `CompletableFuture` to the caller.
+`CompletableFuture.supplyAsync(Supplier<U> supplier, Executor executor)` is used to create the future.
+
+When the async executor is explicitly set to `null` and the return type is `CompletableFuture` *or* the return type
+is a subclass of `CompletableFuture`, the flow is invoked on the caller's thread.
+In this scenario, it is expected that the downstream flow will return a `CompletableFuture` of the appropriate type.
+
+*Usage Scenarios*
+
+[source, java]
+----
+
+CompletableFuture<Invoice> order(Order order);
+----
+
+[source, xml]
+----
+
+<int:gateway service-interface="foo.Service" default-request-channel="orders" />
+----
+
+In this scenario, the caller thread returns immediately with a `CompletableFuture<Invoice>` which will be completed
+when the downstream flow replies to the gateway (with an `Invoice` object).
+
+[source, java]
+----
+
+CompletableFuture<Invoice> order(Order order);
+----
+
+[source, xml]
+----
+
+<int:gateway service-interface="foo.Service" default-request-channel="orders"
+    async-executor="" />
+----
+
+In this scenario, the caller thread will return with a CompletableFuture<Invoice> when the downstream flow provides
+it as the payload of the reply to the gateway.
+Some other process must complete the future when the invoice is ready.
+
+[source, java]
+----
+
+MyCompletableFuture<Invoice> order(Order order);
+----
+
+[source, xml]
+----
+
+<int:gateway service-interface="foo.Service" default-request-channel="orders" />
+----
+
+In this scenario, the caller thread will return with a CompletableFuture<Invoice> when the downstream flow provides
+it as the payload of the reply to the gateway.
+Some other process must complete the future when the invoice is ready.
+If `DEBUG` logging is enabled, a log is emitted indicating that the async executor cannot be used for this scenario.
+
+
+`CompletionFuture` s can be used to perform additional manipulation on the reply, such as:
+
+[source, java]
+----
+
+CompletableFuture<String> process(String data);
+
+...
+
+CompletableFuture result = process("foo")
+    .thenApply(t -> t.toUpperCase());
+
+...
+
+String out = result.get(10, TimeUnit.SECONDS);
+----
+
+===== Reactor Promise
+
+Starting with _version 4.1_, the `GatewayProxyFactoryBean` allows the use of a `Reactor` with gateway interface methods, utilizing a https://github.com/reactor/reactor/wiki/Promises[`Promise<?>`] return type.
 The internal `AsyncInvocationTask` is wrapped in a `reactor.function.Supplier` with the provided `reactorEnvironment`, using a default `RingBufferDispatcher` for the `Promise` consumption.
 Note, a `reactorEnvironment` reference is required whenever a service interface has at least one method with a `Promise<?>` return type.
 (Only those methods run on the reactor's dispatcher).
