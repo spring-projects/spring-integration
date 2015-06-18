@@ -604,8 +604,8 @@ Only files matching this regular expression will be picked up by this adapter.
 				<xsd:annotation>
 					<xsd:documentation>
 						Set this flag to determine whether the lines are emitted via an iterator (line at a time)
-						or the whole file is read into memory and then the lines emitted. When true, if
-						'apply-sequence' is 'true', the `sequenceSize` header is set to '0'. Default: 'true'.
+						or the whole file is read into memory and then the lines emitted. When this is 'true', if
+						'apply-sequence' is also 'true', the 'sequenceSize' header is set to '0'. Default: 'true'.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -615,10 +615,15 @@ Only files matching this regular expression will be picked up by this adapter.
 			<xsd:attribute name="markers" use="optional" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
-						Set this flag to determine whether start of file and end of file markers are emitted
-						before and after the file content messages respectively. The marker message payloads are
-						of type 'FileSplitter.FileMarker'. When `apply-sequence` is true, the sequence information
-						includes the markers as well as the file lines. Default: 'false'.
+						Set to 'true' to emit start/end of file marker messages before and after the file data.
+						Markers are messages with 'FileSplitter.FileMarker' payloads (with 'START' and 'END' values
+						in the 'mark' property).
+						Markers might be used when sequentially processing files in a downstream flow where some lines
+						are filtered.
+						The 'END' marker includes a line count.
+						They enable the downstream processing to know when a file has been completely processed.
+						Default: 'false'.
+						When 'true', 'apply-sequence' is 'false' by default.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
