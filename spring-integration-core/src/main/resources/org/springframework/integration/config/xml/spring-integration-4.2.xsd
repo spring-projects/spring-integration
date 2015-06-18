@@ -4728,6 +4728,14 @@ default is 0. Values can be negative. See SmartLifeCycle.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="role" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Assigns this endpoint to a role. Endpoints in a role can be started/stopped as a group.
+See 'SmartLifecycleRoleController'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:simpleType name="loggingLevel">

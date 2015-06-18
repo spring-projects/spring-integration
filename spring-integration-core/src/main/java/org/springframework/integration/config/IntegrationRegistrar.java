@@ -23,6 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -48,9 +51,6 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.ClassUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * {@link ImportBeanDefinitionRegistrar} implementation that configures integration infrastructure.
@@ -102,6 +102,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
 		this.registerMessageBuilderFactory(registry);
+		IntegrationConfigUtils.registerRoleControllerDefinitionIfNecessary(registry);
 	}
 
 	/**

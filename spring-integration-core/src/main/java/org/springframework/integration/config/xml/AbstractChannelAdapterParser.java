@@ -73,6 +73,13 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		if (StringUtils.hasText(phase)) {
 			propertyValues.add("phase", new TypedStringValue(phase));
 		}
+		String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
+		if (StringUtils.hasText(role)) {
+			if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+				parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
+			}
+			IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
+		}
 		return beanDefinition;
 	}
 

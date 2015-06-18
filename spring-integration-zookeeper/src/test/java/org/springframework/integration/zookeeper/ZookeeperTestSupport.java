@@ -72,7 +72,7 @@ public class ZookeeperTestSupport {
 		CloseableUtils.closeQuietly(this.client);
 	}
 
-	protected CuratorFramework createNewClient() throws InterruptedException {
+	protected static CuratorFramework createNewClient() throws InterruptedException {
 		CuratorFramework client = CuratorFrameworkFactory.newClient(testingServer.getConnectString(),
 				new BoundedExponentialBackoffRetry(100, 1000, 3));
 		client.start();

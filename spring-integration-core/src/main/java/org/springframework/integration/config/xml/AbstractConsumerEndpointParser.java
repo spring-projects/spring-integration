@@ -155,6 +155,13 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+		String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
+		if (StringUtils.hasText(role)) {
+			if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+				parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
+			}
+			IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
+		}
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
