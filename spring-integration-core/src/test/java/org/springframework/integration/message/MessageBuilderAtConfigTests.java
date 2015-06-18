@@ -30,7 +30,7 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilderAtConfigTests.MBConfig;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
@@ -92,7 +92,7 @@ public class MessageBuilderAtConfigTests {
 		}
 
 		@Bean
-		public ConsumerEndpointFactoryBean bridge1() throws Exception {
+		public ConsumerEndpointFactoryBean echo1() throws Exception {
 			ConsumerEndpointFactoryBean factory = new ConsumerEndpointFactoryBean();
 			factory.setHandler(handler1());
 			factory.setInputChannel(in());
@@ -100,14 +100,14 @@ public class MessageBuilderAtConfigTests {
 		}
 
 		@Bean
-		public BridgeHandler handler1() {
-			BridgeHandler handler = new BridgeHandler();
+		public AbstractReplyProducingMessageHandler handler1() {
+			AbstractReplyProducingMessageHandler handler = new TestHandlers.RequestHeaderCopyingEchoHandler();
 			handler.setOutputChannel(pubSub());
 			return handler;
 		}
 
 		@Bean
-		public ConsumerEndpointFactoryBean bridge2() throws Exception {
+		public ConsumerEndpointFactoryBean echo2() throws Exception {
 			ConsumerEndpointFactoryBean factory = new ConsumerEndpointFactoryBean();
 			factory.setHandler(handler2());
 			factory.setInputChannel(pubSub());
@@ -115,14 +115,14 @@ public class MessageBuilderAtConfigTests {
 		}
 
 		@Bean
-		public BridgeHandler handler2() {
-			BridgeHandler handler = new BridgeHandler();
+		public AbstractReplyProducingMessageHandler handler2() {
+			AbstractReplyProducingMessageHandler handler = new TestHandlers.RequestHeaderCopyingEchoHandler();
 			handler.setOutputChannel(out());
 			return handler;
 		}
 
 		@Bean
-		public ConsumerEndpointFactoryBean bridge3() throws Exception {
+		public ConsumerEndpointFactoryBean echo3() throws Exception {
 			ConsumerEndpointFactoryBean factory = new ConsumerEndpointFactoryBean();
 			factory.setHandler(handler3());
 			factory.setInputChannel(pubSub());
@@ -130,8 +130,8 @@ public class MessageBuilderAtConfigTests {
 		}
 
 		@Bean
-		public BridgeHandler handler3() {
-			BridgeHandler handler = new BridgeHandler();
+		public AbstractReplyProducingMessageHandler handler3() {
+			AbstractReplyProducingMessageHandler handler = new TestHandlers.RequestHeaderCopyingEchoHandler();
 			handler.setOutputChannel(out());
 			return handler;
 		}

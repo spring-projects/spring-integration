@@ -19,6 +19,7 @@ package org.springframework.integration.message;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
@@ -89,4 +90,10 @@ public abstract class TestHandlers {
 		};
 	}
 
+	public static class RequestHeaderCopyingEchoHandler extends AbstractReplyProducingMessageHandler {
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			return requestMessage;
+		}
+	}
 }

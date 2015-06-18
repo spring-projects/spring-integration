@@ -44,4 +44,8 @@ public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 		return requestMessage;
 	}
 
+	@Override
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
+	}
 }
