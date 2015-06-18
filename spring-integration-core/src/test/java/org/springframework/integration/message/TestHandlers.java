@@ -19,6 +19,7 @@ package org.springframework.integration.message;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
