@@ -144,6 +144,9 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public void close() {
 		try {
+			if (this.readingRaw.get()) {
+				finalizeRaw();
+			}
 			this.client.disconnect();
 		}
 		catch (Exception e) {

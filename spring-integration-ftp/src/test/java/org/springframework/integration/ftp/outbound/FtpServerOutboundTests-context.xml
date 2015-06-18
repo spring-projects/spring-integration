@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
-	   xmlns:int="http://www.springframework.org/schema/integration"
-	   xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
-	 http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<bean id="ftpServer" class="org.springframework.integration.ftp.TestFtpServer">
 		<constructor-arg value="FtpServerOutboundTests"/>
@@ -113,12 +114,7 @@
 							  reply-channel="stream" />
 
 	<int:chain input-channel="stream">
-		<int:splitter>
-			<bean class="org.springframework.integration.file.splitter.FileSplitter">
-				<constructor-arg value="true" />
-				<constructor-arg value="true" /> <!-- TODO: convert to namespace when INT-3600 merged -->
-			</bean>
-		</int:splitter>
+		<int-file:splitter markers="true" />
 		<int:payload-type-router resolution-required="false" default-output-channel="output">
 			<int:mapping type="org.springframework.integration.file.splitter.FileSplitter$FileMarker"
 						 channel="markers" />
@@ -126,7 +122,7 @@
 	</int:chain>
 
 	<int:service-activator input-channel="markers"
-	  expression="payload.mark.toString().equals('END') ? T(org.springframework.integration.file.remote.RemoteFileUtils).closeSession(headers['file_remoteSession']) : null"/>
+	  expression="payload.mark.toString().equals('END') ? headers['file_remoteSession'].close() : null"/>
 
 	<int:channel id="appending" />
 
