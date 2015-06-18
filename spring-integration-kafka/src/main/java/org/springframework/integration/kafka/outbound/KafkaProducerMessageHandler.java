@@ -71,25 +71,28 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		Assert.notNull(this.evaluationContext);
-	}
-
-	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		String topic = this.topicExpression != null ?
-				this.topicExpression.getValue(this.evaluationContext, message, String.class)
+				this.topicExpression.getValue(getEvaluationContext(), message, String.class)
 				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
 
 		Integer partitionId = this.partitionExpression != null ?
-				this.partitionExpression.getValue(this.evaluationContext, message, Integer.class)
+				this.partitionExpression.getValue(getEvaluationContext(), message, Integer.class)
 				: message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class);
 
 		Object messageKey = this.messageKeyExpression != null
-				? this.messageKeyExpression.getValue(this.evaluationContext, message)
+				? this.messageKeyExpression.getValue(getEvaluationContext(), message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
 		this.kafkaProducerContext.send(topic, partitionId, messageKey, message.getPayload());
+	}
+
+	private EvaluationContext getEvaluationContext() {
+		// Consider moving this back into onInit() once https://jira.spring.io/browse/INT-3749 is fixed
+		if (this.evaluationContext == null) {
+			throw new IllegalStateException("Evaluation context not initialized");
+		}
+		return this.evaluationContext;
 	}
 
 	@Override
