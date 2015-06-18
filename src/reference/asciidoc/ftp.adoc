@@ -328,9 +328,43 @@ _get_ retrieves a remote file and supports the following option:
 
 * -P - preserve the timestamp of the remote file
 
-The message payload resulting from a _get_ operation is a `File` object representing the retrieved file.
+* -stream - retrieve the remote file as a stream.
 
 The remote directory is provided in the `file_remoteDirectory` header, and the filename is provided in the `file_remoteFile` header.
+
+The message payload resulting from a _get_ operation is a `File` object representing the retrieved file, or
+an `InputStream` when the `-stream` option is provided.
+This option allows retrieving the file as a stream.
+For text files, a common use case is to combine this operation with a <<file-splitter>>.
+When consuming remote files as streams, the user is responsible for closing the `Session` after the stream is
+consumed.
+For convenience, the `Session` is provided in the `file_remoteSession` header.
+
+The following shows an example of consuming a file as a stream:
+
+[source, xml]
+----
+<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							request-channel="inboundGetStream"
+							command="get"
+							command-options="-stream"
+							expression="payload"
+							remote-directory="ftpTarget"
+							reply-channel="stream" />
+
+<int:chain input-channel="stream">
+	<int-file:splitter markers="true" />
+	<int:payload-type-router resolution-required="false" default-output-channel="output">
+		<int:mapping type="org.springframework.integration.file.splitter.FileSplitter$FileMarker"
+					channel="markers" />
+	</int:payload-type-router>
+</int:chain>
+
+<int:service-activator input-channel="markers"
+	expression="payload.mark.toString().equals('END') ? headers['file_remoteSession'].close() : null"/>
+----
+
+The file lines are sent to the channel `output`.
 
 *mget*
 
