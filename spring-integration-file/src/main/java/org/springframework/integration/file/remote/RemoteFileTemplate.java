@@ -100,6 +100,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	/**
 	 * @return this template's {@link SessionFactory}.
+	 * @since 4.2
 	 */
 	public SessionFactory<F> getSessionFactory() {
 		return sessionFactory;

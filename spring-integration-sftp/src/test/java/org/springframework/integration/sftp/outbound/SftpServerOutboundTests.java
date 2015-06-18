@@ -415,6 +415,8 @@ public class SftpServerOutboundTests {
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		assertEquals("source1", result.getPayload());
+		assertEquals("sftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+		assertEquals("sftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertFalse(((Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION)).isOpen());
 	}
 

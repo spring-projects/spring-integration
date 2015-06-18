@@ -153,3 +153,9 @@ See <<cors>> for more information.
 
 The `AbstractPersistentFileListFilter` has a new property `flushOnUpdate` which, when set to true, will `flush()` the
 metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetadataStore`).
+
+[[x4.2-ftp-changes]]
+==== (S)FTP Changes
+
+The SFTP/FTP outbound gateway `get` operations now support the `-stream` option, allowing files to be retrieved as
+a stream. See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.

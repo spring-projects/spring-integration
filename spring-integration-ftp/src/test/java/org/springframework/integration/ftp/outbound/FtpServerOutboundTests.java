@@ -353,6 +353,8 @@ public class FtpServerOutboundTests {
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		assertEquals("source1", result.getPayload());
+		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+		assertEquals("ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertFalse(((Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION)).isOpen());
 	}
 
