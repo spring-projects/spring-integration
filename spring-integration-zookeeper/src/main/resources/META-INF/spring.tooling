@@ -1,0 +1,4 @@
+# Tooling related information for the integration Zookeeper namespace
+http\://www.springframework.org/schema/integration/zookeeper@name=integration Zookeeper Namespace
+http\://www.springframework.org/schema/integration/zookeeper@prefix=int-zk
+http\://www.springframework.org/schema/integration/zookeeper@icon=org/springframework/integration/config/xml/spring-integration-zookeeper.gif

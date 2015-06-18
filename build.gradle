@@ -126,13 +126,14 @@ subprojects { subproject ->
 		smack3Version = '3.2.1'
 		smackVersion = '4.0.6'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.5.0.M1'
+//		springCloudClusterVersion = '1.0.0.BUILD-SNAPSHOT'
 		springDataMongoVersion = '1.7.0.RELEASE'
 		springDataRedisVersion = '1.5.0.RELEASE'
 		springGemfireVersion = '1.6.0.RELEASE'
 		springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '4.0.1.RELEASE'
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.2.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.2.0.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.2.0.RC2'
 		springWsVersion = '2.2.1.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
@@ -268,6 +269,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
+//		compile ("org.springframework.cloud:spring-cloud-cluster-core:$springCloudClusterVersion", optional)
 		compile ("io.projectreactor:reactor-stream:$reactorVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
@@ -687,14 +689,13 @@ project('spring-integration-zookeeper') {
 	description = 'Spring Integration Zookeeper Support'
 	dependencies {
 		compile project(":spring-integration-core")
-
 		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
 			exclude group: 'io.netty', module: 'netty'
 			exclude group: 'junit', module: 'junit'
 			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 			exclude group: 'log4j', module: 'log4j'
 		}
-
+//		compile "org.springframework.cloud:spring-cloud-cluster-zookeeper:$springCloudClusterVersion"
 		compile("org.apache.curator:curator-recipes:$curatorVersion") {
 			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
 		}
