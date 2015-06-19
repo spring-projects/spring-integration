@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import org.springframework.integration.ip.event.IpIntegrationEvent;
+import org.springframework.messaging.MessagingException;
 
 
 
@@ -33,7 +34,7 @@ public class TcpConnectionFailedCorrelationEvent extends IpIntegrationEvent {
 
 	private final String connectionId;
 
-	public TcpConnectionFailedCorrelationEvent(Object source, String connectionId, Throwable cause) {
+	public TcpConnectionFailedCorrelationEvent(Object source, String connectionId, MessagingException cause) {
 		super(source, cause);
 		this.connectionId = connectionId;
 	}

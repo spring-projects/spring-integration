@@ -34,7 +34,6 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorr
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -115,7 +114,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				logger.error("Unable to find outbound socket for " + message);
 				MessageHandlingException messageHandlingException = new MessageHandlingException(message,
 						"Unable to find outbound socket");
-				publishNoConnectionEvent(message, (String) connectionId);
+				publishNoConnectionEvent(messageHandlingException, (String) connectionId);
 				throw messageHandlingException;
 			}
 			return;
@@ -165,13 +164,13 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-	private void publishNoConnectionEvent(Message<?> message, String connectionId) {
+	private void publishNoConnectionEvent(MessageHandlingException messageHandlingException, String connectionId) {
 		AbstractConnectionFactory cf = this.serverConnectionFactory != null ? this.serverConnectionFactory
 				: this.clientConnectionFactory;
 		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(
-				new TcpConnectionFailedCorrelationEvent(this, connectionId, new MessagingException(message)));
+				new TcpConnectionFailedCorrelationEvent(this, connectionId, messageHandlingException));
 		}
 	}
 

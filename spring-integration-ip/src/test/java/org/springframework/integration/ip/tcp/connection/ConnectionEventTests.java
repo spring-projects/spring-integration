@@ -141,7 +141,7 @@ public class ConnectionEventTests {
 	}
 
 	@Test
-	public void testOCANoConnectionEvents() {
+	public void testOutboundChannelAdapterNoConnectionEvents() {
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		AbstractServerConnectionFactory scf = new AbstractServerConnectionFactory(0) {
 
@@ -181,7 +181,7 @@ public class ConnectionEventTests {
 	}
 
 	@Test
-	public void testIGNoConnectionEvents() {
+	public void testInboundGatewayNoConnectionEvents() {
 		TcpInboundGateway gw = new TcpInboundGateway();
 		AbstractServerConnectionFactory scf = new AbstractServerConnectionFactory(0) {
 
@@ -224,7 +224,7 @@ public class ConnectionEventTests {
 	}
 
 	@Test
-	public void testOGNoConnectionEvents() {
+	public void testOutboundGatewayNoConnectionEvents() {
 		TcpOutboundGateway gw = new TcpOutboundGateway();
 		AbstractClientConnectionFactory ccf = new AbstractClientConnectionFactory("localhost", 0) {
 		};
