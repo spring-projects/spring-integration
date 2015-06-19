@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Marius Bogoevici
  */
 @ContextConfiguration(classes=MBConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -101,7 +102,7 @@ public class MessageBuilderAtConfigTests {
 
 		@Bean
 		public AbstractReplyProducingMessageHandler handler1() {
-			AbstractReplyProducingMessageHandler handler = new TestHandlers.RequestHeaderCopyingEchoHandler();
+			AbstractReplyProducingMessageHandler handler = new RequestHeaderCopyingEchoHandler();
 			handler.setOutputChannel(pubSub());
 			return handler;
 		}
@@ -116,7 +117,7 @@ public class MessageBuilderAtConfigTests {
 
 		@Bean
 		public AbstractReplyProducingMessageHandler handler2() {
-			AbstractReplyProducingMessageHandler handler = new TestHandlers.RequestHeaderCopyingEchoHandler();
+			AbstractReplyProducingMessageHandler handler = new RequestHeaderCopyingEchoHandler();
 			handler.setOutputChannel(out());
 			return handler;
 		}
@@ -131,11 +132,17 @@ public class MessageBuilderAtConfigTests {
 
 		@Bean
 		public AbstractReplyProducingMessageHandler handler3() {
-			AbstractReplyProducingMessageHandler handler = new TestHandlers.RequestHeaderCopyingEchoHandler();
+			AbstractReplyProducingMessageHandler handler = new RequestHeaderCopyingEchoHandler();
 			handler.setOutputChannel(out());
 			return handler;
 		}
 
 	}
 
+	private static class RequestHeaderCopyingEchoHandler extends AbstractReplyProducingMessageHandler {
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			return requestMessage;
+		}
+	}
 }

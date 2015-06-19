@@ -90,10 +90,4 @@ public abstract class TestHandlers {
 		};
 	}
 
-	public static class RequestHeaderCopyingEchoHandler extends AbstractReplyProducingMessageHandler {
-		@Override
-		protected Object handleRequestMessage(Message<?> requestMessage) {
-			return requestMessage;
-		}
-	}
 }

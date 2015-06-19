@@ -8,7 +8,7 @@
 	<int:channel id="in" />
 
 	<int:service-activator input-channel="in" output-channel="pub">
-		<bean class="org.springframework.integration.message.TestHandlers.RequestHeaderCopyingEchoHandler"/>
+		<bean class="org.springframework.integration.message.MessageBuilderAtConfigTests.RequestHeaderCopyingEchoHandler"/>
 	</int:service-activator>
 
 	<int:publish-subscribe-channel id="pub" />
