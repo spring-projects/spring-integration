@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
@@ -51,6 +52,7 @@ import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -548,6 +550,7 @@ public class TcpOutboundGatewayTests {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
+		when(factory1.isSingleUse()).thenReturn(true);
 		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 1);
 
@@ -555,7 +558,7 @@ public class TcpOutboundGatewayTests {
 		factory2.setSerializer(new DefaultSerializer());
 		factory2.setDeserializer(new DefaultDeserializer());
 		factory2.setSoTimeout(10000);
-		factory2.setSingleUse(false);
+		factory2.setSingleUse(true);
 		CachingClientConnectionFactory cachingFactory2 = new CachingClientConnectionFactory(factory2, 1);
 
 		// Failover
@@ -563,6 +566,8 @@ public class TcpOutboundGatewayTests {
 		factories.add(cachingFactory1);
 		factories.add(cachingFactory2);
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
+		failoverFactory.setSingleUse(true);
+		failoverFactory.afterPropertiesSet();
 		failoverFactory.start();
 
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -693,7 +698,7 @@ public class TcpOutboundGatewayTests {
 			fail("expected failure");
 		}
 		catch (Exception e) {
-			assertTrue(e.getCause() instanceof EOFException);
+			assertThat(e.getCause(), Matchers.instanceOf(EOFException.class));
 		}
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
 		Message<?> reply = replyChannel.receive(0);

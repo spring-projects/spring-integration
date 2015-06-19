@@ -54,6 +54,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		for (AbstractClientConnectionFactory factory : factories) {
 			Assert.state(!(this.isSingleUse() ^ factory.isSingleUse()),
 				"Inconsistent singleUse - delegate factories must match this one");
+			factory.enableManualListenerRegistration();
 		}
 	}
 
@@ -84,13 +85,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	}
 
 	@Override
-	public void enableManualListenerRegistration() {
-		for (AbstractClientConnectionFactory factory : this.factories) {
-			factory.enableManualListenerRegistration();
-		}
-	}
-
-	@Override
 	public void registerSender(TcpSender sender) {
 		for (AbstractClientConnectionFactory factory : this.factories) {
 			factory.registerSender(sender);
@@ -105,7 +99,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			return connection;
 		}
 		FailoverTcpConnection failoverTcpConnection = new FailoverTcpConnection(this.factories);
-		failoverTcpConnection.registerListener(getListener());
+		if (getListener() != null) {
+			failoverTcpConnection.registerListener(getListener());
+		}
 		failoverTcpConnection.incrementEpoch();
 		return failoverTcpConnection;
 	}

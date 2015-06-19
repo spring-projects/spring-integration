@@ -458,6 +458,12 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
+	public void enableManualListenerRegistration() {
+		super.enableManualListenerRegistration();
+		this.targetConnectionFactory.enableManualListenerRegistration();
+	}
+
+	@Override
 	public void start() {
 		setActive(true);
 		this.targetConnectionFactory.start();
