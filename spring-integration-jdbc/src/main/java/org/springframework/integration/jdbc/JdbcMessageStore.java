@@ -182,8 +182,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
-	private static final int DEFAULT_MAX_REMOVALS_PER_QUERY = 100;
-
 	private volatile String region = "DEFAULT";
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -199,8 +197,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile MessageMapper mapper = new MessageMapper();
 
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
-
-	private volatile int maxRemovalsPerQuery = DEFAULT_MAX_REMOVALS_PER_QUERY;
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -289,15 +285,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
-	}
-
-	/**
-	 * Set the batch size when bulk removing messages from groups. Default 100.
-	 * @param maxRemovalsPerQuery the batch size.
-	 * @since 4.2
-	 */
-	public void setMaxRemovalsPerQuery(int maxRemovalsPerQuery) {
-		this.maxRemovalsPerQuery = maxRemovalsPerQuery;
 	}
 
 	@Override
@@ -510,7 +497,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 		jdbcTemplate.batchUpdate(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP),
 				messages,
-				this.maxRemovalsPerQuery,
+				getRemoveBatchSize(),
 				new ParameterizedPreparedStatementSetter<Message<?>>() {
 			@Override
 			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
@@ -521,7 +508,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		});
 		jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
 				messages,
-				this.maxRemovalsPerQuery,
+				getRemoveBatchSize(),
 				new ParameterizedPreparedStatementSetter<Message<?>>() {
 			@Override
 			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {

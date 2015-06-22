@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -204,15 +205,11 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 
-		doRemove(groupId, messageToRemove);
-		updateGroup(groupId, lastModifiedUpdate());
-		return getMessageGroup(groupId);
-	}
-
-	protected void doRemove(final Object groupId, final Message<?> messageToRemove) {
 		Query query = groupIdQuery(groupId)
 				.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
-		mongoTemplate.remove(query, collectionName);
+		this.mongoTemplate.remove(query, this.collectionName);
+		updateGroup(groupId, lastModifiedUpdate());
+		return getMessageGroup(groupId);
 	}
 
 	@Override
@@ -220,10 +217,29 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
+		Collection<UUID> ids = new ArrayList<UUID>();
 		for (Message<?> messageToRemove : messages) {
-			doRemove(groupId, messageToRemove);
+			ids.add(messageToRemove.getHeaders().getId());
+			if (ids.size() >= getRemoveBatchSize()) {
+				removeMessages(groupId, ids);
+				ids.clear();
+			}
+		}
+		if (ids.size() > 0) {
+			removeMessages(groupId, ids);
 		}
 		updateGroup(groupId, lastModifiedUpdate());
+	}
+
+	private void removeMessages(Object groupId, Collection<UUID> ids) {
+		Query query = groupIdQuery(groupId)
+				.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).in(ids.toArray()));
+		this.mongoTemplate.remove(query, this.collectionName);
+	}
+
+	@Override
+	public void removeMessagesFromGroup(Object groupId, Message<?>... messages) {
+		removeMessagesFromGroup(groupId, Arrays.asList(messages));
 	}
 
 	@Override

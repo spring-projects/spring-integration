@@ -23,8 +23,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -37,8 +35,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
-import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
@@ -263,22 +259,6 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 				containsString("intentional MessagingException"));
 		assertEquals(failedMessage, ((MessagingException) retrievedMessage.getPayload()).getFailedMessage());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
-	}
-
-	@Test
-	@MongoDbAvailable
-	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
-		MessageGroupStore messageStore = (MessageGroupStore) this.getMessageStore();
-		String groupId = "X";
-		List<Message<?>> messages = new ArrayList<Message<?>>();
-		for (int i = 0; i < 25; i++) {
-			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessageToGroup(groupId, message);
-			messages.add(message);
-		}
-		messageStore.removeMessagesFromGroup(groupId, messages);
-		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
 	}
 
 

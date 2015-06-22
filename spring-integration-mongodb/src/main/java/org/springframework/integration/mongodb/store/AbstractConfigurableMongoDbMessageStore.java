@@ -49,6 +49,7 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.integration.store.AbstractBatchingMessageGroupStore;
 import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -65,8 +66,8 @@ import org.springframework.util.Assert;
  * @since 4.0
  */
 
-public abstract class AbstractConfigurableMongoDbMessageStore implements BasicMessageGroupStore, InitializingBean,
-		ApplicationContextAware {
+public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractBatchingMessageGroupStore
+		implements BasicMessageGroupStore, InitializingBean, ApplicationContextAware {
 
 	public final static String SEQUENCE_NAME = "messagesSequence";
 

@@ -161,8 +161,10 @@ public class SimpleMessageStoreTests {
 			messageStore.addMessageToGroup(groupId, message);
 			messages.add(message);
 		}
-		messageStore.removeMessagesFromGroup(groupId, messages);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(25, group.size());
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 

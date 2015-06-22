@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2014 the original author or authors
+ * Copyright 2007-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.AssertionFailedError;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -51,6 +49,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
+import junit.framework.AssertionFailedError;
+
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
@@ -62,7 +62,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Before
 	@After
 	public void setUpTearDown() {
-		StringRedisTemplate template = this.createStringRedisTemplate(this.getConnectionFactoryForTest());
+		StringRedisTemplate template = createStringRedisTemplate(getConnectionFactoryForTest());
 		template.delete("MESSAGE_GROUP_1");
 		template.delete("MESSAGE_GROUP_2");
 		template.delete("MESSAGE_GROUP_3");
@@ -71,7 +71,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testNonExistingEmptyMessageGroup() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -83,7 +83,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -110,7 +110,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testMessageGroupWithAddedMessage() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -128,7 +128,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRemoveMessageGroup() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -155,7 +155,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testCompleteMessageGroup() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -169,7 +169,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testLastReleasedSequenceNumber() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -183,7 +183,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRemoveMessageFromTheGroup() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -206,7 +206,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testWithMessageHistory() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		store.getMessageGroup(1);
@@ -233,7 +233,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRemoveNonExistingMessageFromTheGroup() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -244,7 +244,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
 	}
@@ -254,7 +254,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testMultipleInstancesOfGroupStore() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store1 = new RedisMessageStore(jcf);
 
 		RedisMessageStore store2 = new RedisMessageStore(jcf);
@@ -275,7 +275,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testIteratorOfMessageGroups() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store1 = new RedisMessageStore(jcf);
 		RedisMessageStore store2 = new RedisMessageStore(jcf);
 
@@ -317,7 +317,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable @Ignore
 	public void testConcurrentModifications() throws Exception{
-		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		final RedisMessageStore store1 = new RedisMessageStore(jcf);
 		final RedisMessageStore store2 = new RedisMessageStore(jcf);
 
@@ -361,7 +361,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testWithAggregatorWithShutdown(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", getClass());
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
 
@@ -373,7 +373,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertNull(output.receive(1000));
 		context.close();
 
-		context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
+		context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", getClass());
 		input = context.getBean("inputChannel", MessageChannel.class);
 		output = context.getBean("outputChannel", QueueChannel.class);
 
@@ -381,6 +381,27 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		input.send(m3);
 		assertNotNull(output.receive(1000));
 		context.close();
+	}
+
+	@Test
+	@RedisAvailable
+	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
+		RedisMessageStore messageStore = new RedisMessageStore(jcf);
+		String groupId = "X";
+		messageStore.removeMessageGroup("X");
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessageToGroup(groupId, message);
+			messages.add(message);
+		}
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(25, group.size());
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+		messageStore.removeMessageGroup("X");
 	}
 
 }

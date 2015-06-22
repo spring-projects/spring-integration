@@ -77,6 +77,7 @@ import org.springframework.util.StringUtils;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
 import com.mongodb.DBObject;
 
 
@@ -319,11 +320,34 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
+		Collection<UUID> ids = new ArrayList<UUID>();
 		for (Message<?> messageToRemove : messages) {
-			template.findAndRemove(whereMessageIdIsAndGroupIdIs(messageToRemove.getHeaders().getId(), groupId),
-					MessageWrapper.class, collectionName);
+			ids.add(messageToRemove.getHeaders().getId());
+			if (ids.size() >= getRemoveBatchSize()) {
+				bulkRemove(groupId, ids);
+				ids.clear();
+			}
+		}
+		if (ids.size() > 0) {
+			bulkRemove(groupId, ids);
 		}
 		updateGroup(groupId, lastModifiedUpdate());
+	}
+
+	private void bulkRemove(Object groupId, Collection<UUID> ids) {
+		if (ids.size() > 0) {
+			BulkWriteOperation bulkOp = this.template.getCollection(this.collectionName)
+					.initializeOrderedBulkOperation();
+			for (UUID id : ids) {
+				bulkOp.find(whereMessageIdIsAndGroupIdIs(id, groupId).getQueryObject()).remove();
+			}
+			bulkOp.execute();
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("no messages found to delete");
+			}
+		}
 	}
 
 	@Override
@@ -412,7 +436,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private static Query whereMessageIdIsAndGroupIdIs(UUID id, Object groupId) {
 		return new Query(Criteria.where("headers.id._value").is(id.toString()).and(GROUP_ID_KEY).is(groupId));
 	}
-
 
 	private static Query whereGroupIdOrder(Object groupId) {
 		return whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));

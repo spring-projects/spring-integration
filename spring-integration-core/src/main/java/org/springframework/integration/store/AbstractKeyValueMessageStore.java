@@ -49,9 +49,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public Message<?> getMessage(UUID id) {
-		Message<?> message = this.getRawMessage(id);
+		Message<?> message = getRawMessage(id);
 		if (message != null){
-			return this.normalizeMessage(message);
+			return normalizeMessage(message);
 		}
 		return null;
 	}
@@ -61,19 +61,19 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
 		UUID messageId = message.getHeaders().getId();
-		this.doStore(MESSAGE_KEY_PREFIX + messageId, message);
-		return (Message<T>) this.getRawMessage(messageId);
+		doStore(MESSAGE_KEY_PREFIX + messageId, message);
+		return (Message<T>) getRawMessage(messageId);
 	}
 
 	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Object message = this.doRemove(MESSAGE_KEY_PREFIX + id);
+		Object message = doRemove(MESSAGE_KEY_PREFIX + id);
 		if (message != null) {
 			Assert.isInstanceOf(Message.class, message);
 		}
 		if (message != null){
-			return this.normalizeMessage((Message<?>) message);
+			return normalizeMessage((Message<?>) message);
 		}
 		return null;
 	}
@@ -81,7 +81,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		Collection<?> messageIds = this.doListKeys(MESSAGE_KEY_PREFIX + "*");
+		Collection<?> messageIds = doListKeys(MESSAGE_KEY_PREFIX + "*");
 		return (messageIds != null) ? messageIds.size() : 0;
 	}
 
@@ -93,7 +93,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 */
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		return this.buildMessageGroup(groupId, false);
+		return buildMessageGroup(groupId, false);
 	}
 
 
@@ -106,25 +106,25 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(message, "'message' must not be null");
 
 		// add message as is to the MG accessible by the caller
-		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		SimpleMessageGroup messageGroup = getSimpleMessageGroup(getMessageGroup(groupId));
 
 		messageGroup.add(message);
 
 		// enrich Message with additional headers and add it to MS
-		Message<?> enrichedMessage = this.enrichMessage(message);
+		Message<?> enrichedMessage = enrichMessage(message);
 
-		this.addMessage(enrichedMessage);
+		addMessage(enrichedMessage);
 
 		// build raw MessageGroup and add enriched Message to it
-		SimpleMessageGroup rawGroup = this.buildMessageGroup(groupId, true);
+		SimpleMessageGroup rawGroup = buildMessageGroup(groupId, true);
 		rawGroup.setLastModified(System.currentTimeMillis());
 		rawGroup.add(enrichedMessage);
 
 		// store MessageGroupMetadata built from enriched MG
-		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
+		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
 
 		// return clean MG
-		return this.getMessageGroup(groupId);
+		return getMessageGroup(groupId);
 	}
 
 	/**
@@ -136,21 +136,21 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 
 		// build raw MG
-		SimpleMessageGroup rawGroup = this.buildMessageGroup(groupId, true);
+		SimpleMessageGroup rawGroup = buildMessageGroup(groupId, true);
 
 		// create a clean instance of
-		SimpleMessageGroup messageGroup = this.normalizeSimpleMessageGroup(rawGroup);
+		SimpleMessageGroup messageGroup = normalizeSimpleMessageGroup(rawGroup);
 
 		for (Message<?> message : rawGroup.getMessages()) {
 			if (message.getHeaders().getId().equals(messageToRemove.getHeaders().getId())){
 				rawGroup.remove(message);
 			}
 		}
-		this.removeMessage(messageToRemove.getHeaders().getId());
+		removeMessage(messageToRemove.getHeaders().getId());
 		rawGroup.setLastModified(System.currentTimeMillis());
 
-		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
-		messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
+		messageGroup = getSimpleMessageGroup(getMessageGroup(groupId));
 
 		return messageGroup;
 	}
@@ -161,26 +161,27 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messages' must not be null");
 
-		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		Object mgm = doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
-			messageGroupMetadata.setLastModified(System.currentTimeMillis());
 			for (Message<?> messageToRemove : messages) {
-				this.removeMessage(messageToRemove.getHeaders().getId());
+				UUID messageId = messageToRemove.getHeaders().getId();
+				messageGroupMetadata.remove(messageId);
+				doRemove(MESSAGE_KEY_PREFIX + messageId);
 			}
-			MessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
-			this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
+			messageGroupMetadata.setLastModified(System.currentTimeMillis());
+			doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
 		}
 	}
 
 	@Override
 	public void completeGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
+		SimpleMessageGroup messageGroup = buildMessageGroup(groupId, true);
 		messageGroup.complete();
 		messageGroup.setLastModified(System.currentTimeMillis());
-		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
+		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 
 	/**
@@ -189,14 +190,14 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Object mgm = this.doRemove(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		Object mgm = doRemove(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
 			Iterator<UUID> messageIds = messageGroupMetadata.messageIdIterator();
 			while (messageIds.hasNext()){
-				this.removeMessage(messageIds.next());
+				removeMessage(messageIds.next());
 			}
 		}
 	}
@@ -204,16 +205,16 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
+		SimpleMessageGroup messageGroup = buildMessageGroup(groupId, true);
 		messageGroup.setLastReleasedMessageSequenceNumber(sequenceNumber);
 		messageGroup.setLastModified(System.currentTimeMillis());
-		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
+		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		Object mgm = doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
@@ -222,8 +223,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			if (firstId != null){
 				messageGroupMetadata.remove(firstId);
 				messageGroupMetadata.setLastModified(System.currentTimeMillis());
-				this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
-				return this.removeMessage(firstId);
+				doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
+				return removeMessage(firstId);
 			}
 		}
 		return null;
@@ -232,8 +233,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	@SuppressWarnings("unchecked")
 	public Iterator<MessageGroup> iterator() {
-		final Iterator<?> idIterator = this.normalizeKeys(
-				(Collection<String>) this.doListKeys(MESSAGE_GROUP_KEY_PREFIX + "*"))
+		final Iterator<?> idIterator = normalizeKeys(
+				(Collection<String>) doListKeys(MESSAGE_GROUP_KEY_PREFIX + "*"))
 					.iterator();
 		return new MessageGroupIterator(idIterator);
 	}
@@ -255,7 +256,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public int messageGroupSize(Object groupId) {
-		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		Object mgm = doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
@@ -274,7 +275,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> normalizeMessage(Message<?> message){
-		Message<?> normalizedMessage = this.getMessageBuilderFactory().fromMessage(message)
+		Message<?> normalizedMessage = getMessageBuilderFactory().fromMessage(message)
 				.removeHeader("CREATED_DATE")
 				.build();
 		Map innerMap = (Map) new DirectFieldAccessor(normalizedMessage.getHeaders()).getPropertyValue("headers");
@@ -288,7 +289,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> enrichMessage(Message<?> message){
-		Message<?> enrichedMessage = this.getMessageBuilderFactory().fromMessage(message)
+		Message<?> enrichedMessage = getMessageBuilderFactory().fromMessage(message)
 				.setHeader(CREATED_DATE, System.currentTimeMillis())
 				.build();
 		Map innerMap = (Map) new DirectFieldAccessor(enrichedMessage.getHeaders()).getPropertyValue("headers");
@@ -299,7 +300,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	private SimpleMessageGroup buildMessageGroup(Object groupId, boolean raw){
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		Object mgm = doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
@@ -308,10 +309,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			Iterator<UUID> messageIds = messageGroupMetadata.messageIdIterator();
 			while (messageIds.hasNext()){
 				if (raw){
-					messages.add(this.getRawMessage(messageIds.next()));
+					messages.add(getRawMessage(messageIds.next()));
 				}
 				else {
-					messages.add(this.getMessage(messageIds.next()));
+					messages.add(getMessage(messageIds.next()));
 				}
 			}
 
@@ -338,7 +339,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	private SimpleMessageGroup normalizeSimpleMessageGroup(SimpleMessageGroup messageGroup){
 		SimpleMessageGroup normalizedGroup = new SimpleMessageGroup(messageGroup.getGroupId());
 		for (Message<?> message : messageGroup.getMessages()) {
-			Message<?> normailizedMessage = this.normalizeMessage(message);
+			Message<?> normailizedMessage = normalizeMessage(message);
 			normalizedGroup.add(normailizedMessage);
 		}
 		return normalizedGroup;
@@ -346,7 +347,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	private Message<?> getRawMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Object message = this.doRetrieve(MESSAGE_KEY_PREFIX + id);
+		Object message = doRetrieve(MESSAGE_KEY_PREFIX + id);
 		return (Message<?>) message;
 	}
 
@@ -360,7 +361,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		@Override
 		public boolean hasNext() {
-			return idIterator.hasNext();
+			return this.idIterator.hasNext();
 		}
 
 		@Override

@@ -40,8 +40,8 @@ import org.springframework.messaging.Message;
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMessageGroupStore implements MessageGroupStore, Iterable<MessageGroup>,
-		BeanFactoryAware {
+public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageGroupStore
+		implements MessageGroupStore, Iterable<MessageGroup>, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 

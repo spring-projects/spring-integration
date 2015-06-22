@@ -253,15 +253,17 @@ public class JdbcMessageStoreTests {
 	@DirtiesContext
 	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
 		String groupId = "X";
-		messageStore.setMaxRemovalsPerQuery(10);
+		messageStore.setRemoveBatchSize(10);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 			messageStore.addMessageToGroup(groupId, message);
 			messages.add(message);
 		}
-		messageStore.removeMessagesFromGroup(groupId, messages);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(25, group.size());
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 
