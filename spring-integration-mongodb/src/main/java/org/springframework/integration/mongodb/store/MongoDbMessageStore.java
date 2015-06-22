@@ -335,19 +335,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private void bulkRemove(Object groupId, Collection<UUID> ids) {
-		if (ids.size() > 0) {
-			BulkWriteOperation bulkOp = this.template.getCollection(this.collectionName)
-					.initializeOrderedBulkOperation();
-			for (UUID id : ids) {
-				bulkOp.find(whereMessageIdIsAndGroupIdIs(id, groupId).getQueryObject()).remove();
-			}
-			bulkOp.execute();
+		BulkWriteOperation bulkOp = this.template.getCollection(this.collectionName)
+				.initializeOrderedBulkOperation();
+		for (UUID id : ids) {
+			bulkOp.find(whereMessageIdIsAndGroupIdIs(id, groupId).getQueryObject())
+				  .remove();
 		}
-		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("no messages found to delete");
-			}
-		}
+		bulkOp.execute();
 	}
 
 	@Override
