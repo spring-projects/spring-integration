@@ -687,11 +687,16 @@ project('spring-integration-zookeeper') {
 	description = 'Spring Integration Zookeeper Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion")
+
+		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
+			exclude group: 'io.netty', module: 'netty'
+			exclude group: 'junit', module: 'junit'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			exclude group: 'log4j', module: 'log4j'
+		}
 
 		compile("org.apache.curator:curator-recipes:$curatorVersion") {
 			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
-			exclude group: 'org.jboss.netty', module: 'netty'
 		}
 
 		testCompile "org.springframework.integration:spring-integration-test"
