@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package org.springframework.integration.scripting.jsr223;
 import java.util.Date;
 import java.util.Map;
 
+import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
  * @author David Turanski
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  */
 abstract class AbstractScriptExecutor implements ScriptExecutor {
@@ -60,10 +62,12 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 		}
 	}
 
+	@Override
 	public Object executeScript(ScriptSource scriptSource) {
 		return this.executeScript(scriptSource, null);
 	}
 
+	@Override
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Object result = null;
 
@@ -74,14 +78,16 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 				logger.debug("executing script: " + script);
 			}
 
-			if (variables != null) {
-				result = scriptEngine.eval(script, new SimpleBindings(variables));
+			Bindings bindings = null;
+			if (variables != null && variables.size() > 0) {
+				bindings = new SimpleBindings(variables);
+				result = scriptEngine.eval(script, bindings);
 			}
 			else {
 				result = scriptEngine.eval(script);
 			}
 
-			result = postProcess(result, scriptEngine, script);
+			result = postProcess(result, scriptEngine, script, bindings);
 
 			if (logger.isDebugEnabled()) {
 				logger.debug("script executed in " + (new Date().getTime() - start.getTime()) + " ms");
@@ -97,12 +103,13 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	/**
 	 * Subclasses may implement this to provide any special handling required
-	 * @param result
-	 * @param scriptEngine
-	 * @param script
+	 * @param result the result.
+	 * @param scriptEngine the engine.
+	 * @param script the script.
+	 * @param bindings the bindings.
 	 * @return modified result
 	 */
-	protected abstract Object postProcess(Object result, ScriptEngine scriptEngine, String script);
+	protected abstract Object postProcess(Object result, ScriptEngine scriptEngine, String script, Bindings bindings);
 
 	private static String invlalidLanguageMessage(String language) {
 		return new StringBuilder().append(ScriptEngineManager.class.getName())
