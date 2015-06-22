@@ -43,7 +43,9 @@ import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.CloseableUtils;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -60,24 +62,19 @@ public class ZookeeperMetadataStoreTests {
 
 	private static final Log log = LogFactory.getLog(ZookeeperMetadataStore.class);
 
-	private TestingServer testingServer;
+	private static TestingServer testingServer;
 
 	private CuratorFramework client;
 
 	private ZookeeperMetadataStore metadataStore;
 
-	@Before
-	public void setUp() throws Exception{
+	@BeforeClass
+	public static void setUpClass() throws Exception {
 		testingServer = new TestingServer(true);
-		client = createNewClient();
-		metadataStore = new ZookeeperMetadataStore(client);
-		metadataStore.start();
 	}
 
-	@After
-	public void tearDown() {
-		this.metadataStore.stop();
-		closeClient(this.client);
+	@AfterClass
+	public static void tearDownClass() throws Exception {
 		try {
 			testingServer.stop();
 		}
@@ -85,6 +82,20 @@ public class ZookeeperMetadataStoreTests {
 			log.warn("Exception thrown while shutting down ZooKeeper: ", e);
 		}
 		testingServer.getTempDirectory().delete();
+	}
+
+	@Before
+	public void setUp() throws Exception{
+		client = createNewClient();
+		metadataStore = new ZookeeperMetadataStore(client);
+		metadataStore.start();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		this.metadataStore.stop();
+		this.client.delete().deletingChildrenIfNeeded().forPath(this.metadataStore.getRoot());
+		CloseableUtils.closeQuietly(this.client);
 	}
 
 
@@ -144,7 +155,7 @@ public class ZookeeperMetadataStoreTests {
 				return metadataStore.get(testKey2);
 			}
 		})));
-		closeClient(otherClient);
+		CloseableUtils.closeQuietly(otherClient);
 	}
 
 	@Test
@@ -177,7 +188,7 @@ public class ZookeeperMetadataStoreTests {
 			}
 		})));
 		assertEquals("Integration-2", otherMetadataStore.get(testKey));
-		closeClient(otherClient);
+		CloseableUtils.closeQuietly(otherClient);
 	}
 
 	@Test
@@ -408,15 +419,6 @@ public class ZookeeperMetadataStoreTests {
 		client.start();
 		client.blockUntilConnected(10000, TimeUnit.SECONDS);
 		return client;
-	}
-
-	private void closeClient(CuratorFramework client) {
-		try {
-			CloseableUtils.closeQuietly(client);
-		}
-		catch (Exception e) {
-			log.warn("Exception thrown while closing client: ", e);
-		}
 	}
 
 }
