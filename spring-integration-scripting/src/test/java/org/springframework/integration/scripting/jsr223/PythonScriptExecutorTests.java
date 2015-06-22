@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 package org.springframework.integration.scripting.jsr223;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.python.core.PyTuple;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.scripting.ScriptSource;
@@ -28,6 +30,7 @@ import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  * @author David Turanski
+ * @author Gary Russell
  *
  */
 public class PythonScriptExecutorTests {
@@ -62,9 +65,23 @@ public class PythonScriptExecutorTests {
 	@Test
 	public void test3() {
 		ScriptSource source =
-			new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
+			new ResourceScriptSource(
+					new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
 		Object obj =  executor.executeScript(source);
 		PyTuple tuple = (PyTuple) obj;
+		assertEquals(1, tuple.get(0));
+	}
+
+	@Test
+	public void test3WithVariables() {
+		ScriptSource source =
+			new ResourceScriptSource(
+					new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
+		HashMap<String, Object> variables = new HashMap<String, Object>();
+		variables.put("foo", "bar");
+		Object obj =  executor.executeScript(source, variables);
+		PyTuple tuple = (PyTuple) obj;
+		assertNotNull(tuple);
 		assertEquals(1, tuple.get(0));
 	}
 
