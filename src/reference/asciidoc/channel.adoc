@@ -741,7 +741,7 @@ It is consistent with other components within the framework (e.g., Message Publi
 The actual wiring of two pieces of code (component A and component B) via _Message Channel_ is what makes their collaboration _sync_ or _async_.
 You may even want to change from _sync_ to _async_ in the future and _Message Channel_ is what's going to allow you to do it swiftly without ever touching the code.
 
-One final point regarding the Wire Tap is that, despite the rationale provided above for not being async be default, one should keep in mind it is usually desirable to hand off the Message as soon as possible.
+One final point regarding the Wire Tap is that, despite the rationale provided above for not being async by default, one should keep in mind it is usually desirable to hand off the Message as soon as possible.
 Therefore, it would be quite common to use an asynchronous channel option as the wire-tap's outbound channel.
 Nonetheless, another reason that we do not enforce asynchronous behavior by default is that you might not want to break a transactional boundary.
 Perhaps you are using the Wire Tap for auditing purposes, and you DO want the audit Messages to be sent within the original transaction.
