@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.outbound;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.kafka.support.KafkaHeaders;
@@ -31,8 +32,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 0.5
  */
-public class KafkaProducerMessageHandler extends AbstractMessageHandler
-		implements IntegrationEvaluationContextAware {
+public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 
 	private final KafkaProducerContext kafkaProducerContext;
 
@@ -47,11 +47,6 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler
 	@SuppressWarnings("unchecked")
 	public KafkaProducerMessageHandler(final KafkaProducerContext kafkaProducerContext) {
 		this.kafkaProducerContext = kafkaProducerContext;
-	}
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
 	}
 
 	public void setTopicExpression(Expression topicExpression) {
@@ -71,28 +66,26 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler
 	}
 
 	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+	}
+
+	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		String topic = this.topicExpression != null ?
-				this.topicExpression.getValue(getEvaluationContext(), message, String.class)
+				this.topicExpression.getValue(this.evaluationContext, message, String.class)
 				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
 
 		Integer partitionId = this.partitionExpression != null ?
-				this.partitionExpression.getValue(getEvaluationContext(), message, Integer.class)
+				this.partitionExpression.getValue(this.evaluationContext, message, Integer.class)
 				: message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class);
 
 		Object messageKey = this.messageKeyExpression != null
-				? this.messageKeyExpression.getValue(getEvaluationContext(), message)
+				? this.messageKeyExpression.getValue(this.evaluationContext, message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
 		this.kafkaProducerContext.send(topic, partitionId, messageKey, message.getPayload());
-	}
-
-	private EvaluationContext getEvaluationContext() {
-		// Consider moving this back into onInit() once https://jira.spring.io/browse/INT-3749 is fixed
-		if (this.evaluationContext == null) {
-			throw new IllegalStateException("Evaluation context not initialized");
-		}
-		return this.evaluationContext;
 	}
 
 	@Override
