@@ -46,10 +46,6 @@ public class ZookeeperTestSupport {
 
 	protected CuratorFramework client;
 
-	public ZookeeperTestSupport() {
-		super();
-	}
-
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		testingServer = new TestingServer(true);

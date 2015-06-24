@@ -16,7 +16,7 @@
 package org.springframework.integration.support.locks;
 
 /**
- * {@link LockRegistry}s implementing this interface support removal of aged locks
+ * A {@link LockRegistry} implementing this interface supports the removal of aged locks
  * that are not currently locked.
  *
  * @author Gary Russell

@@ -87,18 +87,19 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = this.keyToPath.pathFor((String) lockKey);
 		ZkLock lock = this.locks.get(path);
-		synchronized (this.locks) {
-			lock = this.locks.get(path);
-			if (lock == null) {
-				lock = new ZkLock(this.client, path);
-				this.locks.put(path, lock);
-			}
-			if (this.trackingTime) {
-				lock.setLastUsed(System.currentTimeMillis());
+		if (lock == null) {
+			synchronized (this.locks) {
+				lock = this.locks.get(path);
+				if (lock == null) {
+					lock = new ZkLock(this.client, path);
+					this.locks.put(path, lock);
+				}
+				if (this.trackingTime) {
+					lock.setLastUsed(System.currentTimeMillis());
+				}
 			}
 		}
 		return lock;
-
 	}
 
 	/**
@@ -202,7 +203,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 				this.mutex.acquire();
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failed to aquire mutex at " + this.path, e);
+				throw new RuntimeException("Failed to aquire mutex at " + this.path, e);
 			}
 		}
 
