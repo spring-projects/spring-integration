@@ -63,7 +63,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 	 * Construct a lock registry using the default {@link KeyToPathStrategy} which
 	 * simple appends the key to {@code '<root>/'}.
 	 * @param client the {@link CuratorFramework}.
-	 * @param path the path root (no trailing /).
+	 * @param root the path root (no trailing /).
 	 */
 	public ZookeeperLockRegistry(CuratorFramework client, String root) {
 		this(client, new DefaultKeyToPathStrategy(root));
