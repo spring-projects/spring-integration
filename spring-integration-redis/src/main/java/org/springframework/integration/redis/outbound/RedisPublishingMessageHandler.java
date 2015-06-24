@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2014 the original author or authors
+ * Copyright 2007-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 2.1
  */
-public class RedisPublishingMessageHandler extends AbstractMessageHandler implements IntegrationEvaluationContextAware {
+public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;
 
@@ -54,11 +54,6 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 		this.template.setConnectionFactory(connectionFactory);
 		this.template.setEnableDefaultSerializer(false);
 		this.template.afterPropertiesSet();
-	}
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -101,8 +96,9 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 	protected void onInit() throws Exception {
 		Assert.notNull(topicExpression, "'topicExpression' must not be null.");
 		if (this.messageConverter instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
+			((BeanFactoryAware) this.messageConverter).setBeanFactory(getBeanFactory());
 		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override

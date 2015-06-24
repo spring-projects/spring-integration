@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014	 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.expression;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -27,6 +24,9 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.utils.IntegrationUtils;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Utility class with static methods for helping with establishing environments for
@@ -76,7 +76,7 @@ public abstract class ExpressionUtils {
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
 		if (beanFactory == null) {
-			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanfactory"));
+			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
 		}
 		return doCreateContext(beanFactory);
 	}

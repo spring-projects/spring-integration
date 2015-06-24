@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jpa.core;
 
 import java.util.List;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
@@ -28,7 +28,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.support.parametersource.BeanPropertyParameterSourceFactory;
@@ -65,7 +65,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class JpaExecutor implements InitializingBean, BeanFactoryAware, IntegrationEvaluationContextAware {
+public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	private final JpaOperations jpaOperations;
 
@@ -205,6 +205,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		else if (this.flush) {
 			this.flushSize = 1;
 		}
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	/**
@@ -616,15 +618,5 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 public void setMaxNumberOfResults(int maxNumberOfResults) {
 		 this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
 	 }
-
-	/**
-	 * Sets the evaluation context for evaluating the expression to get the from record of the
-	 * result set retrieved by the retrieving gateway.
-	 * @param evaluationContext The evaluation context.
-	 */
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
 
 }

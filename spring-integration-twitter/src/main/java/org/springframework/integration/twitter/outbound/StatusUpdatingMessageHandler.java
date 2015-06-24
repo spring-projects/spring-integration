@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors
+ * Copyright 2002-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardTypeLocator;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -37,8 +37,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 2.0
  */
-public class StatusUpdatingMessageHandler extends AbstractMessageHandler
-		implements IntegrationEvaluationContextAware {
+public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 
 	private final Twitter twitter;
 
@@ -49,18 +48,6 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler
 	public StatusUpdatingMessageHandler(Twitter twitter) {
 		Assert.notNull(twitter, "twitter must not be null");
 		this.twitter = twitter;
-	}
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		TypeLocator typeLocator = evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
-			/*
-			 * Register the twitter api package so they don't need a FQCN for TweetData.
-			 */
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
-		}
-		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
@@ -79,6 +66,20 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler
 	 */
 	public void setTweetDataExpression(Expression tweetDataExpression) {
 		this.tweetDataExpression = tweetDataExpression;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			/*
+			 * Register the twitter api package so they don't need a FQCN for TweetData.
+			 */
+			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+		}
 	}
 
 	@Override

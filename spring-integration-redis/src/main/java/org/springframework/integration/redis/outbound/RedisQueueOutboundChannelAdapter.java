@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors
+ * Copyright 2013-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 3.0
  */
-public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler implements IntegrationEvaluationContextAware {
+public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 
 	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
@@ -67,11 +67,6 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler imp
 		this.template.afterPropertiesSet();
 	}
 
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
-
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
 	}
@@ -85,6 +80,12 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler imp
 	@Override
 	public String getComponentType() {
 		return "redis:queue-outbound-channel-adapter";
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override

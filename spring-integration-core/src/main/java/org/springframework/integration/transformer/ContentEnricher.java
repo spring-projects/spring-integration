@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
@@ -53,7 +52,7 @@ import org.springframework.util.ReflectionUtils;
  * @since 2.1
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler
-		implements Lifecycle, IntegrationEvaluationContextAware {
+		implements Lifecycle {
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -246,11 +245,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.sourceEvaluationContext = evaluationContext;
-	}
-
-	@Override
 	public String getComponentType() {
 		return "enricher";
 	}
@@ -309,9 +303,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 			this.gateway.afterPropertiesSet();
 		}
 
-		if (this.sourceEvaluationContext == null) {
-			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		}
+		this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 
 		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		// bean resolution is NOT allowed for the target of the enrichment

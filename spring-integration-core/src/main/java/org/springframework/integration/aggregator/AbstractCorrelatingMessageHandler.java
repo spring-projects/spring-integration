@@ -24,10 +24,6 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 
-import org.aopalliance.aop.Advice;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -38,7 +34,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -55,6 +51,10 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import org.aopalliance.aop.Advice;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -82,7 +82,7 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DisposableBean, IntegrationEvaluationContextAware, ApplicationEventPublisherAware {
+		implements DisposableBean, ApplicationEventPublisherAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
@@ -186,11 +186,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
-
-	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
 	}
@@ -228,6 +223,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 							"] cannot release partial sequences. Use the default SequenceSizeReleaseStrategy instead.");
 			((SequenceSizeReleaseStrategy) this.releaseStrategy).setReleasePartialSequences(releasePartialSequences);
 		}
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 
 		/*
 		 * Disallow any further changes to the lock registry

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hamcrest.Matchers;
-import org.junit.Test;
-
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.EvaluationContext;
@@ -51,6 +52,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import org.hamcrest.Matchers;
+import org.junit.Test;
 
 /**
  * @author Gary Russell
@@ -207,11 +211,18 @@ public class ParentContextTests {
 		parent.close();
 	}
 
-	public static class Foo implements IntegrationEvaluationContextAware {
+	public static class Foo implements BeanFactoryAware, InitializingBean {
+
+		private BeanFactory beanFactory;
 
 		@Override
-		public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-			evalContexts.add(evaluationContext);
+		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+			this.beanFactory = beanFactory;
+		}
+
+		@Override
+		public void afterPropertiesSet() throws Exception {
+			evalContexts.add(ExpressionUtils.createStandardEvaluationContext(this.beanFactory));
 		}
 
 	}

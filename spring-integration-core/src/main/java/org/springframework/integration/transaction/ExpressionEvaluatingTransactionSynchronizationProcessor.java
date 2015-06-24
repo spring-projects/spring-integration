@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
@@ -24,7 +24,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -56,7 +55,7 @@ import org.springframework.util.Assert;
  *
  */
 public class ExpressionEvaluatingTransactionSynchronizationProcessor extends IntegrationObjectSupport
-		implements TransactionSynchronizationProcessor, IntegrationEvaluationContextAware {
+		implements TransactionSynchronizationProcessor {
 
 	private volatile EvaluationContext evaluationContext;
 
@@ -71,11 +70,6 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	private volatile MessageChannel afterCommitChannel = new NullChannel();
 
 	private volatile MessageChannel afterRollbackChannel = new NullChannel();
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
 
 	public void setBeforeCommitChannel(MessageChannel beforeCommitChannel) {
 		Assert.notNull(beforeCommitChannel, "'beforeCommitChannel' must not be null");
@@ -105,6 +99,12 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	public void setAfterRollbackExpression(Expression afterRollbackExpression) {
 		Assert.notNull(afterRollbackExpression, "'afterRollbackExpression' must not be null");
 		this.afterRollbackExpression = afterRollbackExpression;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.evaluationContext = createEvaluationContext();
 	}
 
 	public void processBeforeCommit(IntegrationResourceHolder holder) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.messaging.Message;
@@ -39,8 +39,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @since 4.0
  */
-public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
-		implements IntegrationEvaluationContextAware {
+public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -64,12 +63,6 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.redisTemplate = new RedisTemplate<Object, Object>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.afterPropertiesSet();
-	}
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		Assert.notNull(evaluationContext, "'evaluationContext' must not be null");
-		this.evaluationContext = evaluationContext;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -104,6 +97,12 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	public String getComponentType() {
 		return "redis:outbound-gateway";
+	}
+
+	@Override
+	protected void doInit() {
+		super.doInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
