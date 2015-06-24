@@ -32,7 +32,12 @@ import org.springframework.integration.context.IntegrationContextUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @since 3.0
+ * @deprecated since 4.2 in favor of {@link IntegrationContextUtils#getEvaluationContext}
+ * direct usage from the {@code afterPropertiesSet} implementation.
+ * Will be removed in the next release.
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class IntegrationEvaluationContextAwareBeanPostProcessor
 		implements BeanPostProcessor, Ordered, BeanFactoryAware, SmartInitializingSingleton {
 
@@ -71,5 +76,5 @@ public class IntegrationEvaluationContextAwareBeanPostProcessor
 	public int getOrder() {
 		return LOWEST_PRECEDENCE;
 	}
-	
+
 }

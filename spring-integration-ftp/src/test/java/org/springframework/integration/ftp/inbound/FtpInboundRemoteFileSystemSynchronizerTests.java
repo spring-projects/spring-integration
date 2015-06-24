@@ -35,20 +35,11 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -59,6 +50,14 @@ import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Oleg Zhurakousky
@@ -108,11 +107,12 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		filters.add(patternFilter);
 		CompositeFileListFilter<FTPFile> filter = new CompositeFileListFilter<FTPFile>(filters);
 		synchronizer.setFilter(filter);
-		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = expressionParser.parseExpression("#this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
+		synchronizer.setBeanFactory(mock(BeanFactory.class));
+		synchronizer.afterPropertiesSet();
 
 		FtpInboundFileSynchronizingMessageSource ms = new FtpInboundFileSynchronizingMessageSource(synchronizer);
 

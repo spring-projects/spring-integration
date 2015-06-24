@@ -30,7 +30,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessageTimeoutException;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -59,7 +59,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
-		implements TcpSender, TcpListener, IntegrationEvaluationContextAware, Lifecycle {
+		implements TcpSender, TcpListener, Lifecycle {
 
 	private volatile AbstractClientConnectionFactory connectionFactory;
 
@@ -97,8 +97,10 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+	protected void doInit() {
+		super.doInit();
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
@@ -227,12 +229,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	/**
 	 * Specify the Spring Integration reply channel. If this property is not
 	 * set the gateway will check for a 'replyChannel' header on the request.
-	 *
 	 * @param replyChannel The reply channel.
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
 	}
+
 	@Override
 	public String getComponentType(){
 		return "ip:tcp-outbound-gateway";
@@ -332,6 +334,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				this.secondChanceLatch.countDown();
 			}
 		}
+
 	}
 
 }

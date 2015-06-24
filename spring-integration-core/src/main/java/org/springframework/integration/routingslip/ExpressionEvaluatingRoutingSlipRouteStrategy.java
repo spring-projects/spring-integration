@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.routingslip;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.messaging.Message;
 
 /**
@@ -57,13 +61,15 @@ import org.springframework.messaging.Message;
  * @since 4.1
  */
 public class ExpressionEvaluatingRoutingSlipRouteStrategy
-		implements RoutingSlipRouteStrategy, IntegrationEvaluationContextAware {
+		implements RoutingSlipRouteStrategy, BeanFactoryAware, InitializingBean {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Expression expression;
 
 	private EvaluationContext evaluationContext;
+
+	private BeanFactory beanFactory;
 
 	public ExpressionEvaluatingRoutingSlipRouteStrategy(String expression) {
 		this(PARSER.parseExpression(expression));
@@ -74,8 +80,13 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	@Override

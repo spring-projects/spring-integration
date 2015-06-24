@@ -109,7 +109,9 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		filters.add(patternFilter);
 		CompositeFileListFilter<LsEntry> filter = new CompositeFileListFilter<LsEntry>(filters);
 		synchronizer.setFilter(filter);
-		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
+		synchronizer.setBeanFactory(mock(BeanFactory.class));
+		synchronizer.afterPropertiesSet();
+
 		SftpInboundFileSynchronizingMessageSource ms = new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectoy);

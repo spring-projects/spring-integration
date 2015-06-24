@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,12 @@ import java.util.List;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 4.0
  */
-public class ExpressionArgumentsStrategy implements ArgumentsStrategy, IntegrationEvaluationContextAware, BeanFactoryAware {
+public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFactoryAware, InitializingBean {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -63,14 +64,13 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, Integrati
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		Assert.notNull(evaluationContext, "'evaluationContext' must not be null");
-		this.evaluationContext = evaluationContext;
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+	public void afterPropertiesSet() throws Exception {
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	@Override

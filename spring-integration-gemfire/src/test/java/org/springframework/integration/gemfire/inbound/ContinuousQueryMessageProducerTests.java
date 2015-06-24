@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,20 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.gemfire.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+
 import org.junit.Before;
 import org.junit.Test;
-
-import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.messaging.MessageHandler;
 
 import com.gemstone.gemfire.cache.Operation;
 import com.gemstone.gemfire.cache.query.CqEvent;
@@ -36,6 +37,7 @@ import com.gemstone.gemfire.cache.query.internal.CqQueryImpl;
  * @since 2.1
  */
 public class ContinuousQueryMessageProducerTests {
+
 	ContinuousQueryListenerContainer queryListenerContainer;
 
 	ContinuousQueryMessageProducer cqMessageProducer;
@@ -45,10 +47,10 @@ public class ContinuousQueryMessageProducerTests {
 	@Before
 	public void setUp() {
 		queryListenerContainer = mock(ContinuousQueryListenerContainer.class);
-		cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "");
+		cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "foo");
 		DirectChannel outputChannel = new DirectChannel();
 		cqMessageProducer.setOutputChannel(outputChannel);
-		cqMessageProducer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
+		cqMessageProducer.setBeanFactory(mock(BeanFactory.class));
 		handler = new CqMessageHandler();
 		outputChannel.subscribe(handler);
 	}
@@ -89,6 +91,8 @@ public class ContinuousQueryMessageProducerTests {
 	public void testPayloadExpression() {
 		CqEvent cqEvent = event(Operation.CREATE, "hello");
 		cqMessageProducer.setPayloadExpression("newValue.toUpperCase() + ', WORLD'");
+		cqMessageProducer.afterPropertiesSet();
+
 		cqMessageProducer.onEvent(cqEvent);
 		assertEquals(1, handler.count);
 		assertEquals("HELLO, WORLD", handler.payload);
@@ -133,26 +137,23 @@ public class ContinuousQueryMessageProducerTests {
 			public Throwable getThrowable() {
 				return ex;
 			}
+
 		};
 
 		return event;
 	}
 
 	private static class CqMessageHandler implements MessageHandler {
+
 		public int count;
 
 		public Object payload;
 
-		/*
-		 * (non-Javadoc)
-		 *
-		 * @see
-		 * org.springframework.messaging.MessageHandler#handleMessage
-		 * (org.springframework.messaging.Message)
-		 */
 		public void handleMessage(Message<?> message) throws MessagingException {
 			count++;
 			payload = message.getPayload();
 		}
+
 	}
+
 }

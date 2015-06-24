@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardTypeLocator;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.messaging.Message;
@@ -40,10 +40,8 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @since 4.0
- *
  */
-public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageHandler
-		implements IntegrationEvaluationContextAware {
+public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final int DEFAULT_PAGE_SIZE = 20;
 
@@ -56,18 +54,6 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 	public TwitterSearchOutboundGateway(Twitter twitter) {
 		Assert.notNull(twitter, "'twitter' must not be null");
 		this.twitter = twitter;
-	}
-
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		TypeLocator typeLocator = evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
-			/*
-			 * Register the twitter api package so they don't need a FQCN for SearchParameters.
-			 */
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
-		}
-		this.evaluationContext = evaluationContext;
 	}
 
 	/**
@@ -97,6 +83,19 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 
 	protected Twitter getTwitter() {
 		return twitter;
+	}
+
+	@Override
+	protected void doInit() {
+		super.doInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			/*
+			 * Register the twitter api package so they don't need a FQCN for SearchParameters.
+			 */
+			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+		}
 	}
 
 	@Override

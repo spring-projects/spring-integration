@@ -25,13 +25,13 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -41,6 +41,9 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -57,8 +60,8 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @since 2.0
  */
-public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer,
-		InitializingBean, IntegrationEvaluationContextAware, Closeable {
+public abstract class AbstractInboundFileSynchronizer<F>
+		implements InboundFileSynchronizer, BeanFactoryAware, InitializingBean, Closeable {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -96,6 +99,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * to the local file? By default this is false.
 	 */
 	private volatile boolean  preserveTimestamp;
+
+	private BeanFactory beanFactory;
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
@@ -169,13 +174,14 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
 	@Override
 	public final void afterPropertiesSet() {
 		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	protected final List<F> filterFiles(F[] files) {

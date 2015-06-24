@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
@@ -41,6 +37,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Marius Bogoevici
@@ -328,7 +327,6 @@ public class ResequencerTests {
 	@Test
 	public void testTimeoutDefaultExpiry() throws InterruptedException {
 		this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("100"));
-		this.resequencer.setIntegrationEvaluationContext(new StandardEvaluationContext());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		this.resequencer.setTaskScheduler(taskScheduler);
@@ -336,6 +334,7 @@ public class ResequencerTests {
 		this.resequencer.setDiscardChannel(discardChannel);
 		QueueChannel replyChannel = new QueueChannel();
 		this.resequencer.setOutputChannel(replyChannel);
+
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, null);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, null);
 		this.resequencer.handleMessage(message3);
@@ -355,7 +354,6 @@ public class ResequencerTests {
 	@Test
 	public void testTimeoutDontExpire() throws InterruptedException {
 		this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("100"));
-		this.resequencer.setIntegrationEvaluationContext(new StandardEvaluationContext());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		this.resequencer.setTaskScheduler(taskScheduler);
@@ -364,6 +362,7 @@ public class ResequencerTests {
 		QueueChannel replyChannel = new QueueChannel();
 		this.resequencer.setOutputChannel(replyChannel);
 		this.resequencer.setExpireGroupsUponTimeout(true);
+
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, null);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, null);
 		this.resequencer.handleMessage(message3);

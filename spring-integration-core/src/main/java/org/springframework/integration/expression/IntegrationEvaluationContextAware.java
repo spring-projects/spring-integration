@@ -17,6 +17,7 @@
 package org.springframework.integration.expression;
 
 import org.springframework.expression.EvaluationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * Interface to be implemented by beans that wish to be aware of their
@@ -24,7 +25,7 @@ import org.springframework.expression.EvaluationContext;
  * {@link org.springframework.integration.config.IntegrationEvaluationContextFactoryBean}
  * <p>
  * The {@link #setIntegrationEvaluationContext} is invoked from
- * the {@link IntegrationEvaluationContextAwareBeanPostProcessor#afterSingletonsInstantiated()},
+ * the {@code IntegrationEvaluationContextAwareBeanPostProcessor#afterSingletonsInstantiated()},
  * not during standard {@code postProcessBefore(After)Initialization} to avoid any
  * {@code BeanFactory} early access during integration {@link EvaluationContext} retrieval.
  * Therefore, if it is necessary to use {@link EvaluationContext} in the {@code afterPropertiesSet()},
@@ -33,8 +34,11 @@ import org.springframework.expression.EvaluationContext;
  *
  * @author Artem Bilan
  * @since 3.0
- * @see IntegrationEvaluationContextAwareBeanPostProcessor
+ * @deprecated since 4.2 in favor of {@link IntegrationContextUtils#getEvaluationContext}
+ * direct usage from the {@code afterPropertiesSet} implementation.
+ * Will be removed in the next release.
  */
+@Deprecated
 public interface IntegrationEvaluationContextAware {
 
 	void setIntegrationEvaluationContext(EvaluationContext evaluationContext);

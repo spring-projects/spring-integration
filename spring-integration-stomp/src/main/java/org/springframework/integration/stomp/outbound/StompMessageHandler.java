@@ -21,7 +21,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -46,8 +46,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 4.2
  */
-public class StompMessageHandler extends AbstractMessageHandler implements IntegrationEvaluationContextAware,
-		ApplicationEventPublisherAware, Lifecycle {
+public class StompMessageHandler extends AbstractMessageHandler implements ApplicationEventPublisherAware, Lifecycle {
 
 	private final StompSessionHandler sessionHandler = new IntegrationOutboundStompSessionHandler();
 
@@ -86,13 +85,15 @@ public class StompMessageHandler extends AbstractMessageHandler implements Integ
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
+	protected void onInit() throws Exception {
+		super.onInit();
+
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override

@@ -25,8 +25,6 @@ import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.messaging.Message;
@@ -51,8 +49,6 @@ public class RoutingSlipHeaderValueMessageProcessor
 
 	private final List<Object> routingSlipPath;
 
-	private EvaluationContext evaluationContext;
-
 	private volatile Map<List<Object>, Integer> routingSlip;
 
 	private BeanFactory beanFactory;
@@ -74,9 +70,8 @@ public class RoutingSlipHeaderValueMessageProcessor
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.notNull(beanFactory, "BeanFactory must not be null");
+		Assert.notNull(beanFactory, "beanFactory must not be null");
 		this.beanFactory = beanFactory;//NOSONAR (inconsistent sync)
-		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);//NOSONAR (inconsistent sync)
 	}
 
 	@Override
@@ -104,7 +99,13 @@ public class RoutingSlipHeaderValueMessageProcessor
 							else {
 								ExpressionEvaluatingRoutingSlipRouteStrategy strategy = new
 										ExpressionEvaluatingRoutingSlipRouteStrategy(entry);
-								strategy.setIntegrationEvaluationContext(this.evaluationContext);
+								strategy.setBeanFactory(this.beanFactory);
+								try {
+									strategy.afterPropertiesSet();
+								}
+								catch (Exception e) {
+									throw new IllegalStateException(e);
+								}
 								routingSlipValues.add(strategy);
 							}
 						}
@@ -120,4 +121,5 @@ public class RoutingSlipHeaderValueMessageProcessor
 		}
 		return routingSlip;
 	}
+
 }

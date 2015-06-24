@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,13 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.endpoint;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.util.Assert;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * @since 2.1
  *
  */
-public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport implements IntegrationEvaluationContextAware {
+public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -57,16 +57,9 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 	}
 
 	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
-
-	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	protected Object evaluatePayloadExpression(Object payload){
