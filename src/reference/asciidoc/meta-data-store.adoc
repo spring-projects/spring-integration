@@ -17,6 +17,7 @@ the framework:
 * <<redis-metadata-store>>
 * <<gemfire-metadata-store>>
 * <<mongodb-metadata-store>>
+* <<zk-metadata-store>>
 
 
 

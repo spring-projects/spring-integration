@@ -235,6 +235,14 @@ This implementation returns the value of one of the message headers (whose name 
 By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` returning the value of the CORRELATION_ID header attribute.
 If you have a custom header name you would like to use for correlation, then simply configure that on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the Aggregator's correlation-strategy.
 
+===== LockRegistry
+
+Changes to groups are thread safe; a `LockRegistry` is used to obtain a lock for the resolved correlation id.
+A `DefaultLockRegistry` is used by default (in-memory).
+For synchronizing updates across servers, where a shared `MessageGroupStore` is being used, a shared lock registry
+must be configured.
+See <<aggregator-config>> below for more information.
+
 [[aggregator-config]]
 ==== Configuring an Aggregator
 
@@ -426,8 +434,8 @@ Note that the actual time to expire an empty group will also be affected by the 
 
 <20> A reference to a `org.springframework.integration.util.LockRegistry` bean; used to obtain a `Lock` based on the `groupId` for concurrent operations on the `MessageGroup`.
 By default, an internal `DefaultLockRegistry` is used.
-Use of a distributed `LockRegistry`, such as the `RedisLockRegistry`, ensures only one instance of the aggregator will operate on a group concurrently.
-See <<redis-lock-registry>> for more information.
+Use of a distributed `LockRegistry`, such as the `ZookeeperLockRegistry`, ensures only one instance of the aggregator will operate on a group concurrently.
+See <<redis-lock-registry>>, <<gemfire-lock-registry>>, <<zk-lock-registry>> for more information.
 
 
 
