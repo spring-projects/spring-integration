@@ -564,3 +564,62 @@ If you use an inner bean definition such as this:
 the bean is treated like any inner bean declared that way and is not registered with the application context.
 If you wish to access this bean in some other manner, declare it at the top level with an `id` and use the `ref` attribute instead.
 See the http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans[Spring Documentation] for more information.
+
+[[endpoint-roles]]
+=== Endpoint Roles
+
+Starting with _version 4.2_, endpoints can be assigned to roles.
+Roles allow endpoints to be started and stopped as a group; this is particularly useful when using leadership election
+where a set of endpoints can be started or stopped when leadership is granted or revoked respectively.
+
+You can assign endpoints to roles using XML, Java configuration, or programmatically:
+
+[source, xml]
+----
+<int:inbound-channel-adapter id="ica" channel="someChannel" expression="'foo'" role="cluster">
+    <int:poller fixed-rate="60000" />
+</int:inbound-channel-adapter>
+----
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "sendAsyncChannel")
+@Role("cluster")
+public MessageHandler sendAsyncHandler() {
+    return // some MessageHandler
+}
+----
+
+[source, java]
+----
+@Payload("#args[0].toLowerCase()")
+@Role("cluster")
+public String handle(String payload) {
+    return payload.toUpperCase();
+}
+----
+
+[source, java]
+----
+@Autowired
+private SmartLifecycleRoleController roleController;
+
+...
+
+    this.roleController.addSmartLifeCycleToRole("cluster", someEndpoint);
+...
+----
+
+Each of these adds the endpoint to the role `cluster`.
+
+Invoking `roleController.startLifecyclesInRole("cluster")` (and the corresponding `stop...` method) will start/stop
+the endpoints.
+
+NOTE: Any object implementing `SmartLifecycle` can be programmatically added, not just endpoints.
+
+The `SmartLifecycleRoleController` implements `ApplicationListener<AbstractLeaderEvent>` and it will automatically
+start/stop its configured `SmartLifecycle` objects when leadership is granted/revoked (when some bean publishes
+`OnGrantedEvent` or `OnRevokedEvent` respectively).
+
+See <<zk-leadership>> for more information about leadership election and events.

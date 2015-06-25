@@ -1,0 +1,90 @@
+[[zookeeper]]
+== Zookeeper Support
+
+=== Introduction
+
+https://zookeeper.apache.org/[Zookeeper] support was added to the framework in _version 4.2_, comprised of:
+
+* MetadataStore
+* LockRegistry
+* Leadership Event Handling
+
+[[zk-metadata-store]]
+=== Zookeeper Metadata Store
+
+The `ZookeeperMetadataStore` can be used where any `MetadataStore` is needed, such as peristent file list filters,
+etc.
+See <<metadata-store>> for more information.
+
+[source, xml]
+----
+<bean id="client" class="org.springframework.integration.zookeeper.config.CuratorFrameworkFactoryBean">
+    <constructor-arg value="${connect.string}" />
+</bean>
+
+<bean id="meta" class="org.springframework.integration.zookeeper.metadata.ZookeeperMetadataStore">
+    <constructor-arg ref="client" />
+</bean>
+----
+
+[source, java]
+----
+@Bean
+public MetadataStore zkStore(CuratorFramework client) {
+    return new ZookeeperMetadataStore(client);
+}
+----
+
+[[zk-lock-registry]]
+=== Zookeeper Lock Registry
+
+The `ZookeeperLockRegistry` can be used where any `LockRegistry` is needed, such as when using an `Aggregator` in a
+clustered environment, with a shared `MessageStore`.
+
+A `LocRegistry` is used to "look up" a lock based on a key (the aggregator uses the `correlationId`).
+By default, locks in the `ZookeeperLockRegistry` are maintained in zookeeper under the path
+`/SpringIntegration-LockRegistry/`.
+You can customize the path by providing an implementation of `ZookeeperLockRegistry.KeyToPathStrategy`.
+
+[source, java]
+----
+public interface KeyToPathStrategy {
+
+    String pathFor(String key);
+
+    boolean bounded();
+
+}
+----
+
+If the strategy returns `true` from `isBounded`, unused locks do not need to be harvested.
+For unbounded strategies (such as the default) you will need to invoke `expireUnusedOlderThan(long age)` from time
+to time, to remove old unused locks from memory.
+
+[[zk-leadership]]
+=== Zookeeper Leadership Event Handling
+
+Groups of endpoints can be started/stopped based on leadership being granted or revoked respectively.
+This is useful in clustered scenarios where shared resources must only be consumed by a single instance.
+An example of this is a file inbound channel adapter that is polling a shared directory.
+(See <<file-reading>>).
+
+[source, xml]
+----
+<int-zk:leader-listener client="client" path="/siNamespace" role="cluster" />
+----
+
+`client` is a reference to a `CuratorFramework` bean; a `CuratorFrameworkFactoryBean` is available.
+When a leader is elected, an `OnGrantedEvent` will be published for the role `cluster`; any endpoints in that role
+will be started.
+When leadership is revoked, an `OnRevokedEvent` will be published for the role `cluster`; any endpoints in that role
+will be stopped.
+See <<endpoint-roles>> for more information.
+
+[source, java]
+----
+@Bean
+public LeaderInitiatorFactoryBean leaderInitiator(CuratorFramework client) {
+    return new LeaderInitiatorFactoryBean(client, "/siTest/", "cluster");
+}
+----

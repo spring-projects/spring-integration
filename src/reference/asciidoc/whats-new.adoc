@@ -35,6 +35,17 @@ For more information, see <<security>>.
 The `FileSplitter`, which splits text files into lines, was added in 4.1.2.
 It now has full support in the `int-file:` namespace; see <<file-splitter>> for more information.
 
+[[x4.2-zk]]
+==== Zookeeper Support
+
+Zookeeper support has been added to the framework to assist when running on a clustered/multi-host environment.
+
+* ZookeeperMetadataStore
+* ZookeeperLockRegistry
+* Zookeeper Leadership
+
+See <<zookeeper>> for more information.
+
 [[x4.2-general]]
 === General Changes
 
