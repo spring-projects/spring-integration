@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,19 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
+/**
+ * @author Iwein Fuld
+ * @author Dave Syer
+ * @author Gary Russell
+ *
+ */
 public class CorrelatingMessageHandlerIntegrationTests {
 
 	private final MessageGroupStore store = new SimpleMessageStore(100);
 
 	private final MessageChannel outputChannel = mock(MessageChannel.class);
 
-	private final MessageGroupProcessor processor = new PassThroughMessageGroupProcessor();
+	private final MessageGroupProcessor processor = new SimpleMessageGroupProcessor();
 
 	private final AggregatingMessageHandler defaultHandler = new AggregatingMessageHandler(processor, store);
 

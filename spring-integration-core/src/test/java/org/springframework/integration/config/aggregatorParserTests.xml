@@ -18,6 +18,14 @@
 	<aggregator id="aggregatorWithReference" ref="aggregatorBean"
 				input-channel="aggregatorWithReferenceInput" output-channel="outputChannel"/>
 
+	<channel id="aggregatorWithMGPReferenceInput"/>
+	<aggregator id="aggregatorWithMGPReference" ref="aggregatorMGPBean"
+				input-channel="aggregatorWithMGPReferenceInput" output-channel="outputChannel"/>
+
+	<channel id="aggregatorWithCustomMGPReferenceInput"/>
+	<aggregator id="aggregatorWithCustomMGPReference" ref="aggregatorCustomMGPBean"
+				input-channel="aggregatorWithCustomMGPReferenceInput" output-channel="outputChannel"/>
+
 	<channel id="completelyDefinedAggregatorInput"/>
 	<aggregator id="completelyDefinedAggregator"
 		input-channel="completelyDefinedAggregatorInput"
@@ -74,6 +82,12 @@
 
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
+
+	<beans:bean id="aggregatorMGPBean"
+		class="org.springframework.integration.aggregator.SimpleMessageGroupProcessor" />
+
+	<beans:bean id="aggregatorCustomMGPBean"
+		class="org.springframework.integration.config.AggregatorParserTests$MyMGP" />
 
 	 <beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />

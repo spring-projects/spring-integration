@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -46,6 +48,8 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStr
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.aggregator.SimpleMessageGroupProcessor;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -94,6 +98,38 @@ public class AggregatorParserTests {
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReference.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
+	}
+
+	@Test
+	public void testAggregationWithMessageGroupProcessor() {
+		QueueChannel output = this.context.getBean("outputChannel", QueueChannel.class);
+		output.purge(null);
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithMGPReferenceInput");
+		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
+		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
+		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
+		for (Message<?> message : outboundMessages) {
+			input.send(message);
+		}
+		assertEquals(3, output.getQueueSize());
+		output.purge(null);
+	}
+
+	@Test
+	public void testAggregationWithMessageGroupProcessorAndStrategies() {
+		QueueChannel output = this.context.getBean("outputChannel", QueueChannel.class);
+		output.purge(null);
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithCustomMGPReferenceInput");
+		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
+		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
+		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
+		for (Message<?> message : outboundMessages) {
+			input.send(message);
+		}
+		assertEquals(3, output.getQueueSize());
+		output.purge(null);
 	}
 
 	@Test
@@ -266,5 +302,19 @@ public class AggregatorParserTests {
 		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
 	}
-	
+
+	public static class MyMGP extends SimpleMessageGroupProcessor {
+
+		@org.springframework.integration.annotation.ReleaseStrategy
+		public boolean release(Collection<Message<?>> messages) {
+			return messages.size() >= 3;
+		}
+
+		@org.springframework.integration.annotation.CorrelationStrategy
+		public Object correlate(Message<?> m) {
+			return new IntegrationMessageHeaderAccessor(m).getCorrelationId();
+		}
+
+	}
+
 }

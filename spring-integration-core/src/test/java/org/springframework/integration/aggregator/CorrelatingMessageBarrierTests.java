@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,26 +12,34 @@
  */
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
+
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
-
-import java.util.concurrent.*;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CorrelatingMessageBarrierTests {
@@ -97,6 +105,7 @@ public class CorrelatingMessageBarrierTests {
 
 	private void sendAsynchronously(final MessageHandler handler, final Message<Object> message, final CountDownLatch start, final CountDownLatch sent) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					start.await();
@@ -121,6 +130,7 @@ public class CorrelatingMessageBarrierTests {
 	private static class OneMessagePerKeyReleaseStrategy implements ReleaseStrategy {
 		private final ConcurrentMap<Object, Semaphore> keyLocks = new ConcurrentHashMap<Object, Semaphore>();
 
+		@Override
 		public boolean canRelease(MessageGroup messageGroup) {
 			Object correlationKey = messageGroup.getGroupId();
 			Semaphore lock = lockForKey(correlationKey);

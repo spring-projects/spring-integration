@@ -45,7 +45,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
-import org.springframework.integration.aggregator.PassThroughMessageGroupProcessor;
+import org.springframework.integration.aggregator.SimpleMessageGroupProcessor;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
@@ -76,6 +76,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 @ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
@@ -188,7 +189,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "aggregatorChannel")
 		public MessageHandler aggregator() {
-			AggregatingMessageHandler handler = new AggregatingMessageHandler(new PassThroughMessageGroupProcessor());
+			AggregatingMessageHandler handler = new AggregatingMessageHandler(new SimpleMessageGroupProcessor());
 			handler.setCorrelationStrategy(new ExpressionEvaluatingCorrelationStrategy("1"));
 			handler.setReleaseStrategy(new ExpressionEvaluatingReleaseStrategy("size() == 10"));
 			handler.setOutputChannelName("splitterChannel");

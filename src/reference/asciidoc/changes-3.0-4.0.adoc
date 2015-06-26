@@ -17,13 +17,13 @@ See <<mqtt>>
 ===== @EnableIntegration
 
 The `@EnableIntegration` annotation has been added, to permit declaration of standard Spring Integration beans when using `@Configuration` classes.
-See <<enable-integration>> for more information.
+See <<annotations>> for more information.
 
 [[x4.0-component-scan]]
 ===== @IntegrationComponentScan
 
 The `@IntegrationComponentScan` annotation has been added, to permit classpath scanning for Spring Integration specific components.
-See <<enable-integration>> for more information.
+See <<annotations>> for more information.
 
 [[x4.0-message-history]]
 ===== @EnableMessageHistory
@@ -50,19 +50,19 @@ For more information seehttp://docs.spring.io/spring-boot/docs/current/reference
 ===== @GlobalChannelInterceptor
 
 As well as the `@EnableIntegration` annotation mentioned above, the `@GlobalChannelInterceptor` annotation has bean introduced.
-For more information, see <<enable-integration>>.
+For more information, see <<annotations>>.
 
 [[x4.0-integration-converter]]
 ===== @IntegrationConverter
 
 The `@IntegrationConverter` annotation has bean introduced, as an analogue of `<int:converter/>` component.
-For more information, see <<enable-integration>>.
+For more information, see <<annotations>>.
 
 [[x4.0-enable-publisher]]
 ===== @EnablePublisher
 
 The `@EnablePublisher` annotation has been added, to allow the specification of a `default-publisher-channel` for `@Publisher` annotations.
-See <<enable-integration>> for more information.
+See <<annotations>> for more information.
 
 [[x4.0-redis-cms]]
 ===== Redis Channel Message Stores

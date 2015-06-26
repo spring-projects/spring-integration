@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,9 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy> 
 				}
 				else {
 					if (logger.isWarnEnabled()) {
-						logger.warn("No annotated method found; falling back to SequenceSizeReleaseStrategy, target:"
+						logger.warn("No ReleaseStrategy annotated method found on "
+								+ target.getClass().getSimpleName()
+								+ "; falling back to SequenceSizeReleaseStrategy, target:"
 								+ target + ", methodName:" + methodName);
 					}
 				}
