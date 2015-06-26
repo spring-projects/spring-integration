@@ -13,8 +13,9 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 
 
@@ -52,7 +53,7 @@ public class ExponentialMovingAverageRate {
 
 	private final double period;
 
-	private final List<Long> times = new LinkedList<Long>();
+	private final Deque<Long> times = new ArrayDeque<Long>();
 
 	private final int retention;
 
@@ -109,7 +110,7 @@ public class ExponentialMovingAverageRate {
 	 */
 	public synchronized void increment(long t) {
 		if (this.times.size() == this.retention) {
-			this.times.remove(0);
+			this.times.poll();
 		}
 		this.times.add(t);
 		this.count++;//NOSONAR - false positive, we're synchronized
@@ -202,11 +203,9 @@ public class ExponentialMovingAverageRate {
 		return count / (count / calc().getMean() + value);
 	}
 
-	private double lastTime() {
+	private synchronized double lastTime() {
 		if (this.times.size() > 0) {
-			synchronized (this) {
-				return this.times.get(this.times.size() - 1) / this.factor;
-			}
+			return this.times.peekFirst() / this.factor;
 		}
 		else {
 			 return this.t0;

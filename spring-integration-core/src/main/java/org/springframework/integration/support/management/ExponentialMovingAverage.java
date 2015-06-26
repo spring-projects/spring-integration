@@ -13,8 +13,9 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 
 
@@ -41,7 +42,7 @@ public class ExponentialMovingAverage {
 
 	private volatile double max;
 
-	private final List<Double> samples = new LinkedList<Double>();
+	private final Deque<Double> samples = new ArrayDeque<Double>();
 
 	private final int retention;
 
@@ -86,7 +87,7 @@ public class ExponentialMovingAverage {
 	 */
 	public synchronized void append(double value) {
 		if (this.samples.size() == this.retention) {
-			samples.remove(0);
+			this.samples.poll();
 		}
 		samples.add(value);
 		count++;//NOSONAR - false positive, we're synchronized

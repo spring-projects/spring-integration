@@ -35,13 +35,13 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
 
-	private final AtomicLong activeCount = new AtomicLong();
+	protected final AtomicLong activeCount = new AtomicLong();
 
-	private final AtomicLong handleCount = new AtomicLong();
+	protected final AtomicLong handleCount = new AtomicLong();
 
-	private final AtomicLong errorCount = new AtomicLong();
+	protected final AtomicLong errorCount = new AtomicLong();
 
-	private final ExponentialMovingAverage duration;
+	protected final ExponentialMovingAverage duration;
 
 	public DefaultMessageHandlerMetrics() {
 		this(null);
@@ -70,9 +70,6 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 
 	@Override
 	public MetricsContext beforeHandle(Message<?> message) {
-		if (logger.isTraceEnabled()) {
-			logger.trace("messageHandler(" + this.name + ") message(" + message + ") :");
-		}
 		long start = 0;
 		if (isFullStatsEnabled()) {
 			start = System.nanoTime();
@@ -158,9 +155,9 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 		return this.duration.getStatistics();
 	}
 
-	private static class DefaultHandlerMetricsContext implements MetricsContext {
+	public static class DefaultHandlerMetricsContext implements MetricsContext {
 
-		private final long start;
+		public final long start;
 
 		public DefaultHandlerMetricsContext(long start) {
 			this.start = start;
