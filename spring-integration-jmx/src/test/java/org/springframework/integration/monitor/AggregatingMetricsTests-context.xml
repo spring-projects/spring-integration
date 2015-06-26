@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
+
+	<context:mbean-server />
+
+	<int-jmx:mbean-export metrics-factory="aggregatingMetricsFactory" />
+
+	<int:channel id="input" />
+
+	<int:bridge input-channel="input" output-channel="queue" />
+
+	<int:channel id="queue">
+		<int:queue />
+	</int:channel>
+
+	<bean id="aggregatingMetricsFactory" class="org.springframework.integration.monitor.AggregatingMetricsFactory">
+		<constructor-arg value="1000" />
+	</bean>
+
+	<int:channel id="delay" />
+
+	<int:service-activator input-channel="delay" expression="T(Thread).sleep(50)" />
+
+</beans>

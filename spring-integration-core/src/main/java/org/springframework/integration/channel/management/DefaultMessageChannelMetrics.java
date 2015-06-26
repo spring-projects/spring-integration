@@ -15,9 +15,6 @@ package org.springframework.integration.channel.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
@@ -34,25 +31,23 @@ import org.springframework.integration.support.management.Statistics;
  */
 public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics {
 
-	protected final Log logger = LogFactory.getLog(getClass());
-
 	public static final long ONE_SECOND_SECONDS = 1;
 
 	public static final long ONE_MINUTE_SECONDS = 60;
 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
-	private final ExponentialMovingAverage sendDuration;
+	protected final ExponentialMovingAverage sendDuration;
 
-	private final ExponentialMovingAverageRate sendErrorRate;
+	protected final ExponentialMovingAverageRate sendErrorRate;
 
-	private final ExponentialMovingAverageRatio sendSuccessRatio;
+	protected final ExponentialMovingAverageRatio sendSuccessRatio;
 
-	private final ExponentialMovingAverageRate sendRate;
+	protected final ExponentialMovingAverageRate sendRate;
 
-	private final AtomicLong sendCount = new AtomicLong();
+	protected final AtomicLong sendCount = new AtomicLong();
 
-	private final AtomicLong sendErrorCount = new AtomicLong();
+	protected final AtomicLong sendErrorCount = new AtomicLong();
 
 	protected final AtomicLong receiveCount = new AtomicLong();
 
@@ -106,10 +101,6 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	@Override
 	public MetricsContext beforeSend() {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Recording send on channel(" + this.name + ")");
-		}
-
 		long start = 0;
 		if (isFullStatsEnabled()) {
 			start = System.nanoTime();
@@ -133,10 +124,6 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 				this.sendErrorRate.increment(now);
 			}
 			this.sendErrorCount.incrementAndGet();
-		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("Elapsed: " + this.name
-					+ ": " + ((System.nanoTime() / 1000000. - ((DefaultChannelMetricsContext) context).start)) + "ms");
 		}
 	}
 
@@ -229,9 +216,6 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	@Override
 	public void afterReceive() {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Recording receive on channel(" + this.name + ") ");
-		}
 		this.receiveCount.incrementAndGet();
 	}
 
@@ -267,11 +251,11 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 				+ "]", name, sendCount.get());
 	}
 
-	private static class DefaultChannelMetricsContext implements MetricsContext {
+	protected static class DefaultChannelMetricsContext implements MetricsContext {
 
-		private final long start;
+		protected final long start;
 
-		public DefaultChannelMetricsContext(long start) {
+		protected DefaultChannelMetricsContext(long start) {
 			this.start = start;
 		}
 

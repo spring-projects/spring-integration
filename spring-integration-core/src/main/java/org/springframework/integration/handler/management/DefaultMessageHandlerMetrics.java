@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.messaging.Message;
 
 /**
  * Default implementation; use the full constructor to customize the moving averages.
@@ -35,13 +34,13 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
 
-	private final AtomicLong activeCount = new AtomicLong();
+	protected final AtomicLong activeCount = new AtomicLong();
 
-	private final AtomicLong handleCount = new AtomicLong();
+	protected final AtomicLong handleCount = new AtomicLong();
 
-	private final AtomicLong errorCount = new AtomicLong();
+	protected final AtomicLong errorCount = new AtomicLong();
 
-	private final ExponentialMovingAverage duration;
+	protected final ExponentialMovingAverage duration;
 
 	public DefaultMessageHandlerMetrics() {
 		this(null);
@@ -69,10 +68,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	}
 
 	@Override
-	public MetricsContext beforeHandle(Message<?> message) {
-		if (logger.isTraceEnabled()) {
-			logger.trace("messageHandler(" + this.name + ") message(" + message + ") :");
-		}
+	public MetricsContext beforeHandle() {
 		long start = 0;
 		if (isFullStatsEnabled()) {
 			start = System.nanoTime();
@@ -158,11 +154,11 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 		return this.duration.getStatistics();
 	}
 
-	private static class DefaultHandlerMetricsContext implements MetricsContext {
+	protected static class DefaultHandlerMetricsContext implements MetricsContext {
 
-		private final long start;
+		protected final long start;
 
-		public DefaultHandlerMetricsContext(long start) {
+		protected DefaultHandlerMetricsContext(long start) {
 			this.start = start;
 		}
 

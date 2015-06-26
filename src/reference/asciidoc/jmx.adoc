@@ -509,6 +509,29 @@ By default, a `DefaultMetricsFactory` provides default implementation of `Messag
 To override the default `MetricsFactory` use the MBean exporter's `metrics-factory` attribute to provide a reference to your `MetricsFactory` bean instance.
 You can either customize the default implementations as described in the next bullet, or provide completely different implementations by overriding `AbstractMessageChannelMetrics` and/or `AbstractMessageHandlerMetrics`.
 
+In addition to the default metrics factory described above, the framework provides the `AggregatingMetricsFactory`.
+This factory creates `AggregatingMessageChannelMetrics` and `AggregatingMessageHandlerMetrics`.
+In very high volume scenarios, the cost of capturing statistics can be prohibitive (2 calls to the system time and
+storing the data).
+The aggregating metrics aggregate the response time over a sample of messages.
+This can save significant CPU time.
+
+CAUTION: The statistics will be skewed if messages arrive in bursts.
+These metrics are intended for use with high, constant-volume, message rates.
+
+[source, xml]
+----
+<context:mbean-server />
+
+<int-jmx:mbean-export metrics-factory="aggregatingMetricsFactory" />
+
+<bean id="aggregatingMetricsFactory" class="org.springframework.integration.monitor.AggregatingMetricsFactory">
+    <constructor-arg value="1000" /> <!-- sample size -->
+</bean>
+----
+
+The above configuration aggregates the response time over 1000 messages.
+Counts (send, error) are maintained per-message but the statistics are per 1000 messages.
 
 * *Customizing the Default Channel/Handler Statistics*
 

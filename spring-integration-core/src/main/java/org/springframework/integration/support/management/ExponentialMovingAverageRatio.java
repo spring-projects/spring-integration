@@ -13,9 +13,10 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -50,9 +51,9 @@ public class ExponentialMovingAverageRatio {
 
 	private final double lapse;
 
-	private final List<Long> times = new LinkedList<Long>();
+	private final Deque<Long> times = new ArrayDeque<Long>();
 
-	private final List<Integer> values = new LinkedList<Integer>();
+	private final Deque<Integer> values = new ArrayDeque<Integer>();
 
 	private final int retention;
 
@@ -124,8 +125,8 @@ public class ExponentialMovingAverageRatio {
 
 	private synchronized void append(int value, long t) {
 		if (this.times.size() == this.retention) {
-			this.times.remove(0);
-			this.values.remove(0);
+			this.times.poll();
+			this.values.poll();
 		}
 		this.times.add(t);
 		this.values.add(value);
@@ -221,11 +222,9 @@ public class ExponentialMovingAverageRatio {
 		return alpha * mean + 1 - alpha;
 	}
 
-	private double lastTime() {
+	private synchronized double lastTime() {
 		if (this.times.size() > 0) {
-			synchronized (this) {
-				return this.times.get(this.times.size() - 1);
-			}
+			return this.times.peekFirst();
 		}
 		else {
 			return this.t0 * this.factor;

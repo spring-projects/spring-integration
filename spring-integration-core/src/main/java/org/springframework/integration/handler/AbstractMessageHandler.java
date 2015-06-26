@@ -110,7 +110,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
 			if (countsEnabled) {
-				start = handlerMetrics.beforeHandle(message);
+				start = handlerMetrics.beforeHandle();
 			}
 			this.handleMessageInternal(message);
 			if (countsEnabled) {

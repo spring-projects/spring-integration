@@ -25,11 +25,20 @@ import org.junit.Test;
 /**
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 public class ExponentialMovingAverageTests {
 
 	private final ExponentialMovingAverage history = new ExponentialMovingAverage(10);
+
+
+	@Test @Ignore // used to compare LinkedList to ArrayDeque which was 35% faster
+	public void perf() {
+		for (int i = 0; i < 100000000; i++) {
+			history.append(0.0);
+		}
+	}
 
 	@Test
 	public void testGetCount() {
