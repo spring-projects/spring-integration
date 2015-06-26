@@ -36,7 +36,7 @@
 			<xsd:attribute name="zk-connection-timeout" use="optional">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-                        Indicates the Kafka consumer zkConnectionTimeout value
+                        Specifies the max time in ms that the client waits to establish a connection to zookeeper.
                     ]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -47,21 +47,21 @@
 			<xsd:attribute name="zk-session-timeout" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-                        Indicates the Kafka consumer group id
+                        The zookeeper session timeout.
                     ]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="zk-sync-time" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-                        Indicates the Kafka consumer group id
+                        Max time for how far a zookeeper follower can be behind a zookeeper leader in ms.
                     ]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="auto-commit-interval" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-                        Indicates the Kafka consumer group id
+                        The frequency that the consumed offsets are committed to zookeeper in ms.
                     ]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
