@@ -178,11 +178,21 @@ See <<gw-completable-future>> for more information.
 The request and reply timeout properties are now `String` instead of `Long` to allow configuration with property
 placeholders or SpEL. See [[messaging-gateway-annotation]].
 
-[[x4.2-aggregator-perf]]
-==== Aggregator Performance
+[[x4.2-aggregator-changes]]
+==== Aggregator Changes
+
+===== Aggregator Performance
 
 This release includes some performance improvements for aggregating components (aggregator, resequencer, etc),
 by more efficiently removing messages from groups when they are released.
 New methods (`removeMessagesFromGroup`) have been added to the message store.
 Set the `removeBatchSize` property (default `100`) to adjust the number of messages deleted in each operation.
 Currently, JDBC, Redis and MongoDB message stores support this property.
+
+===== Output MessageGroupProcessor
+
+When using a `ref` or innner bean for the aggregator, it is now possible to bind a `MessageGroupProcessor` directly.
+In addition, a `SimpleMessageGroupProcessor` is provided that simply returns the collection of messages in the group.
+When an output processor produces a collection of `Message<?>`, the aggregator releases those messages individually.
+Configuring the `SimpleMessageGroupProcessor` makes the aggregator a message barrier, were messages are held up
+until they all arrive, and are then released individually. See <<aggregator>> for more information.

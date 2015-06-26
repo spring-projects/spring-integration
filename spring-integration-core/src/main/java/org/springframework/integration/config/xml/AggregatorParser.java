@@ -23,10 +23,9 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGroupProcessor;
-import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
+import org.springframework.integration.config.AggregatorFactoryBean;
 import org.springframework.util.StringUtils;
 
 /**
@@ -51,20 +50,17 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		BeanDefinitionBuilder builder;
 
-		builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatingMessageHandler.class);
-		BeanDefinitionBuilder processorBuilder = null;
+		builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatorFactoryBean.class);
 		BeanMetadataElement processor = null;
 
 		if (innerHandlerDefinition != null || StringUtils.hasText(ref)) {
-			processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageGroupProcessor.class);
-			builder.addConstructorArgValue(processorBuilder.getBeanDefinition());
 			if (innerHandlerDefinition != null) {
 				processor = innerHandlerDefinition;
 			}
 			else {
 				processor = new RuntimeBeanReference(ref);
 			}
-			processorBuilder.addConstructorArgValue(processor);
+			builder.addConstructorArgValue(processor);
 		}
 		else {
 			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
@@ -81,8 +77,7 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			processorBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method,
-					"java.lang.String");
+			builder.addConstructorArgValue(method);
 		}
 
 		this.doParse(builder, element, processor, parserContext);
