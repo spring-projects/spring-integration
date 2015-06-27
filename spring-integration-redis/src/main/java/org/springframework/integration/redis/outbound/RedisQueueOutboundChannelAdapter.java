@@ -77,6 +77,10 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 		this.serializerExplicitlySet = true;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "redis:queue-outbound-channel-adapter";
@@ -85,7 +89,9 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 	}
 
 	@Override

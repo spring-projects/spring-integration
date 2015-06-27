@@ -173,6 +173,10 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.preserveTimestamp = preserveTimestamp;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -181,7 +185,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	@Override
 	public final void afterPropertiesSet() {
 		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		}
 	}
 
 	protected final List<F> filterFiles(F[] files) {

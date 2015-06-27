@@ -244,6 +244,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		this.shouldClonePayload = shouldClonePayload;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.sourceEvaluationContext = evaluationContext;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "enricher";
@@ -303,7 +307,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 			this.gateway.afterPropertiesSet();
 		}
 
-		this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.sourceEvaluationContext == null) {
+			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 
 		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		// bean resolution is NOT allowed for the target of the enrichment

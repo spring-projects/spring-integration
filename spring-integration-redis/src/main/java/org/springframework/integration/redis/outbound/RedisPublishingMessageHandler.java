@@ -87,6 +87,10 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		this.topicExpression = topicExpression;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "redis:outbound-channel-adapter";
@@ -98,7 +102,9 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		if (this.messageConverter instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(getBeanFactory());
 		}
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 	}
 
 	@Override

@@ -185,6 +185,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.forceReleaseAdviceChain = forceReleaseAdviceChain;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
@@ -224,7 +228,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			((SequenceSizeReleaseStrategy) this.releaseStrategy).setReleasePartialSequences(releasePartialSequences);
 		}
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 
 		/*
 		 * Disallow any further changes to the lock registry

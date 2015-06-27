@@ -84,6 +84,10 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		this.headerMapper = headerMapper;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -93,7 +97,9 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	protected void onInit() throws Exception {
 		super.onInit();
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 	}
 
 	@Override

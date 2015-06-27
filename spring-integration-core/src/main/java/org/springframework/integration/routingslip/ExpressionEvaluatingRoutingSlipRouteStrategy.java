@@ -79,6 +79,10 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 		this.expression = expression;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -86,7 +90,9 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		}
 	}
 
 	@Override

@@ -56,10 +56,16 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 		this.payloadExpression = payloadExpression;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		}
 	}
 
 	protected Object evaluatePayloadExpression(Object payload){

@@ -96,11 +96,17 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.remoteTimeoutExpression = remoteTimeoutExpression;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	protected void doInit() {
 		super.doInit();
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 	}
 
 	@Override

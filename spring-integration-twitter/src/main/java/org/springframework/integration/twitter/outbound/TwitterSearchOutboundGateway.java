@@ -76,6 +76,10 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 		this.searchArgsExpression = searchArgsExpression;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "twitter:search-outbound-gateway";
@@ -88,13 +92,15 @@ public class TwitterSearchOutboundGateway extends AbstractReplyProducingMessageH
 	@Override
 	protected void doInit() {
 		super.doInit();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
-			/*
-			 * Register the twitter api package so they don't need a FQCN for SearchParameters.
-			 */
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+			TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+			if (typeLocator instanceof StandardTypeLocator) {
+				/*
+				 * Register the twitter api package so they don't need a FQCN for SearchParameters.
+				 */
+				((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+			}
 		}
 	}
 

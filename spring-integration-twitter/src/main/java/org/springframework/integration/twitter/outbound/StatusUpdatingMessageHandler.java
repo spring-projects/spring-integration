@@ -68,17 +68,24 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 		this.tweetDataExpression = tweetDataExpression;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+
+			TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+			if (typeLocator instanceof StandardTypeLocator) {
 			/*
 			 * Register the twitter api package so they don't need a FQCN for TweetData.
 			 */
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+				((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
+			}
 		}
 	}
 

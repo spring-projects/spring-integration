@@ -71,6 +71,10 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 
 	private volatile MessageChannel afterRollbackChannel = new NullChannel();
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	public void setBeforeCommitChannel(MessageChannel beforeCommitChannel) {
 		Assert.notNull(beforeCommitChannel, "'beforeCommitChannel' must not be null");
 		this.beforeCommitChannel = beforeCommitChannel;
@@ -104,7 +108,9 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.evaluationContext = createEvaluationContext();
+		if (this.evaluationContext == null) {
+			this.evaluationContext = createEvaluationContext();
+		}
 	}
 
 	public void processBeforeCommit(IntegrationResourceHolder holder) {

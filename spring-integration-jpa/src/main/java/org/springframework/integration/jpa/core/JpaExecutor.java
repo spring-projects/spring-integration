@@ -151,6 +151,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		this.jpaOperations = jpaOperations;
 	}
 
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -206,7 +210,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			this.flushSize = 1;
 		}
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		}
 	}
 
 	/**
