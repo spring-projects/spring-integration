@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2002-2010 the original author or authors.
+  ~ Copyright 2002-2015 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,34 +16,46 @@
   -->
 
 <beans:beans xmlns="http://www.springframework.org/schema/integration/file"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:beans="http://www.springframework.org/schema/beans"
-             xmlns:integration="http://www.springframework.org/schema/integration"
-             xsi:schemaLocation="http://www.springframework.org/schema/beans
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-    <inbound-channel-adapter id="inputDirPoller"
-                             directory="${java.io.tmpdir}"
-                             filter="filter"
-                             queue-size="30"
-                             auto-startup="false">
-        <integration:poller fixed-rate="1000"/>
-    </inbound-channel-adapter>
-    <beans:bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" />
+	<inbound-channel-adapter id="inputDirPoller"
+		directory="${java.io.tmpdir}/FileInboundChannelAdapterWithQueueSizeTests"
+		filter="filter"
+		queue-size="2"
+		auto-startup="false">
+		<integration:poller fixed-rate="1000" />
+	</inbound-channel-adapter>
 
-    <beans:bean id="filter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
-        <beans:constructor-arg>
-            <beans:list></beans:list>
-        </beans:constructor-arg>
-    </beans:bean>
+	<beans:bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" />
 
-    <beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+	<beans:bean id="filter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
+		<beans:constructor-arg>
+			<beans:list />
+		</beans:constructor-arg>
+	</beans:bean>
 
-    <beans:bean id="testComparator"
-                class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
+	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
+	<beans:bean id="testComparator"
+		class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator" />
+
+ 	<!-- test second leg of if test in HeadDS.setFilter - no CompositeFLF -->
+	<inbound-channel-adapter id="inputDirPollerSimpleFilter"
+		directory="${java.io.tmpdir}/FileInboundChannelAdapterWithQueueSizeTests"
+		filter="acceptAll"
+		ignore-hidden="false"
+		queue-size="2"
+		auto-startup="false">
+		<integration:poller fixed-rate="1000" />
+	</inbound-channel-adapter>
+
+	<beans:bean id="acceptAll" class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
 
 </beans:beans>
