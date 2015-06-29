@@ -56,6 +56,8 @@ It is `true` by default.
 
 The `FileWritingMessageHandler` now also accepts `InputStream` as a valid message payload type.
 
+The `HeadDirectoryScanner` can now be used with other `FileListFilter` s.
+
 See <<files>> for more information.
 
 [[x4.2-class-package-change]]
