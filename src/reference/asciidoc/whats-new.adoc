@@ -176,7 +176,7 @@ See <<gw-completable-future>> for more information.
 ===== MessagingGateway Annotation
 
 The request and reply timeout properties are now `String` instead of `Long` to allow configuration with property
-placeholders or SpEL. See [[messaging-gateway-annotation]].
+placeholders or SpEL. See <<messaging-gateway-annotation>>.
 
 [[x4.2-aggregator-changes]]
 ==== Aggregator Changes
