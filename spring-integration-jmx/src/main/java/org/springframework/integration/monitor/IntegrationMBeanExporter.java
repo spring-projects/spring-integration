@@ -610,11 +610,27 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		return channelsByName.keySet().toArray(new String[channelsByName.size()]);
 	}
 
+	public MessageHandlerMetrics getHandlerMetrics(String name) {
+		if (handlersByName.containsKey(name)) {
+			return handlersByName.get(name);
+		}
+		logger.debug("No handler found for (" + name + ")");
+		return null;
+	}
+
 	public Statistics getHandlerDuration(String name) {
 		if (handlersByName.containsKey(name)) {
 			return handlersByName.get(name).getDuration();
 		}
 		logger.debug("No handler found for (" + name + ")");
+		return null;
+	}
+
+	public MessageSourceMetrics getSourceMetrics(String name) {
+		if (sourcesByName.containsKey(name)) {
+			return sourcesByName.get(name);
+		}
+		logger.debug("No source found for (" + name + ")");
 		return null;
 	}
 
@@ -627,6 +643,38 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			return sourcesByName.get(name).getMessageCountLong();
 		}
 		logger.debug("No source found for (" + name + ")");
+		return -1;
+	}
+
+	public MessageChannelMetrics getChannelMetrics(String name) {
+		if (channelsByName.containsKey(name)) {
+			return channelsByName.get(name);
+		}
+		logger.debug("No channel found for (" + name + ")");
+		return null;
+	}
+
+	public int getChannelSendCount(String name) {
+		return (int) getChannelSendCountLong(name);
+	}
+
+	public long getChannelSendCountLong(String name) {
+		if (channelsByName.containsKey(name)) {
+			return channelsByName.get(name).getSendCountLong();
+		}
+		logger.debug("No channel found for (" + name + ")");
+		return -1;
+	}
+
+	public int getChannelSendErrorCount(String name) {
+		return (int) getChannelSendErrorCountLong(name);
+	}
+
+	public long getChannelSendErrorCountLong(String name) {
+		if (channelsByName.containsKey(name)) {
+			return channelsByName.get(name).getSendErrorCountLong();
+		}
+		logger.debug("No channel found for (" + name + ")");
 		return -1;
 	}
 

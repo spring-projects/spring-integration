@@ -12,14 +12,18 @@
  */
 package org.springframework.integration.monitor;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -50,15 +54,41 @@ public class ChannelIntegrationTests {
 
 		requests.send(new GenericMessage<String>("foo"));
 
+		String intermediateChannelName = "" + intermediate;
+
+		assertEquals(1, messageChannelsMonitor.getChannelSendCount(intermediateChannelName));
+
 		double rate = messageChannelsMonitor.getChannelSendRate("" + requests).getMean();
 		assertTrue("No statistics for requests channel", rate >= 0);
 
-		rate = messageChannelsMonitor.getChannelSendRate("" + intermediate).getMean();
+		rate = messageChannelsMonitor.getChannelSendRate(intermediateChannelName).getMean();
 		assertTrue("No statistics for intermediate channel", rate >= 0);
 
 		assertNotNull(intermediate.receive(100L));
-		double count = messageChannelsMonitor.getChannelReceiveCount("" + intermediate);
-		assertTrue("No statistics for intermediate channel", count >= 0);
+		assertEquals(1, messageChannelsMonitor.getChannelReceiveCount(intermediateChannelName));
+
+		requests.send(new GenericMessage<String>("foo"));
+		try {
+			requests.send(new GenericMessage<String>("foo"));
+		}
+		catch (MessageDeliveryException e) {
+		}
+
+		assertEquals(3, messageChannelsMonitor.getChannelSendCount(intermediateChannelName));
+
+		assertEquals(1, messageChannelsMonitor.getChannelSendErrorCount(intermediateChannelName));
+
+		assertSame(intermediate, messageChannelsMonitor.getChannelMetrics(intermediateChannelName));
+
+		MessageHandlerMetrics handlerMetrics = messageChannelsMonitor.getHandlerMetrics("bridge");
+
+		assertEquals(3, handlerMetrics.getHandleCount());
+		assertEquals(1, handlerMetrics.getErrorCount());
+
+		Thread.sleep(50);
+
+		assertTrue(messageChannelsMonitor.getSourceMessageCount("source") > 0);
+		assertTrue(messageChannelsMonitor.getSourceMetrics("source").getMessageCount() > 0);
 
 	}
 
