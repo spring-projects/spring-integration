@@ -35,7 +35,6 @@ import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,19 +43,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.hamcrest.Matchers;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,7 +63,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -89,7 +78,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -99,7 +87,6 @@ import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -120,12 +107,10 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
@@ -1248,6 +1233,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", reactorEnvironment = "reactorEnv",
+			defaultRequestTimeout="${default.request.timeout:23}", defaultReplyTimeout="#{34}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 

@@ -163,11 +163,18 @@ The `AbstractPersistentFileListFilter` has a new property `flushOnUpdate` which,
 metadata store if it implements `Flushable` (e.g. the `PropertiesPersistenMetadataStore`).
 
 
-[[x4.2-gw-completable-future]]
-==== Gateway Methods can Return CompletableFuture<?>
+[[x4.2-gw]]
+==== Gateway Changes
+
+===== Gateway Methods can Return CompletableFuture<?>
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.
 See <<gw-completable-future>> for more information.
+
+===== MessagingGateway Annotation
+
+The request and reply timeout properties are now `String` instead of `Long` to allow configuration with property
+placeholders or SpEL. See [[messaging-gateway-annotation]].
 
 [[x4.2-aggregator-perf]]
 ==== Aggregator Performance
