@@ -68,7 +68,7 @@ public @interface MessagingGateway {
 	 * For example if this gateway is hooked up to a {@code QueueChannel}. 
 	 * @return the suggested timeout in milliseconds, if any
 	 */
-	long defaultRequestTimeout() default Long.MIN_VALUE;
+	String defaultRequestTimeout() default "9223372036854775807";
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
@@ -76,7 +76,7 @@ public @interface MessagingGateway {
 	 if the gateway times out.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
-	long defaultReplyTimeout() default Long.MIN_VALUE;
+	String defaultReplyTimeout() default "-9223372036854775808";
 
 	/**
 	 * Provide a reference to an implementation of {@link java.util.concurrent.Executor}
