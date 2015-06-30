@@ -41,12 +41,15 @@ import org.springframework.messaging.Message;
  * The messages will be stored in a {@link org.springframework.integration.store.MessageGroupStore MessageStore}
  * for each correlation key.
  *
+ * @deprecated - use an {@code AggregatingMessageHandler} with a {@code SimpleMessageGroupProcessor}.
+ *
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
  *
  * @see AbstractCorrelatingMessageHandler
  */
+@Deprecated
 public class CorrelatingMessageBarrier extends AbstractMessageHandler implements MessageSource<Object> {
 
 	private static final Log log = LogFactory.getLog(CorrelatingMessageBarrier.class);

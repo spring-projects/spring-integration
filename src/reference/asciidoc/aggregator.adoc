@@ -114,14 +114,18 @@ This method will be invoked for aggregating messages as follows:
 
 NOTE: In the interest of code simplicity, and promoting best practices such as low coupling, testability, etc., the preferred way of implementing the aggregation logic is through a POJO, and using the XML or annotation support for configuring it in the application.
 
-If the `MessageGroupProcessor` 's `process` method returns a collection, it must be a collection of `Messge<?>` s.
+If the `MessageGroupProcessor` 's `processMessageGroup` method returns a collection, it must be a collection of
+`Messge<?>` s.
 In this case, the messages are released individually.
-Prior to _version 1.5_, it was not possible to provide a `MessageGroupProcessor` using XML configuration, only POJO
+Prior to _version 4.2_, it was not possible to provide a `MessageGroupProcessor` using XML configuration, only POJO
 methods could be used for aggregation.
 Now, if the framework detects that the referenced (or inner) bean implements `MessageProcessor`, it is used as the
 aggregator's output processor.
 
-Also, since _version 1.5_, a `SimpleMessageGroupProcessor` is provided; which simply returns the collection of
+If you wish to release a collection of objects from a custom `MessageGroupProcessor` as the payload of a message, your
+class should extend `AbstractAggregatingMessageGroupProcessor` and implement `aggregatePayloads()`.
+
+Also, since _version 4.2_, a `SimpleMessageGroupProcessor` is provided; which simply returns the collection of
 messages from the group, which, as indicated above, causes the released messages to be sent individually.
 
 This allows the aggregator to work as a message barrier where arriving messages are held until the release strategy

@@ -21,6 +21,7 @@ import org.springframework.integration.store.MessageGroup;
  * A {@link MessageGroupProcessor} that simply returns the messages in the group.
  * It can be used to configure an aggregator as a barrier, such that when the group
  * is complete, the grouped messages are released as individual messages.
+ *
  * @author Gary Russell
  * @since 4.2
  *

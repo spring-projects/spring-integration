@@ -20,11 +20,8 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,9 +47,8 @@ import org.springframework.scheduling.TaskScheduler;
  * @since 4.2
  *
  */
-public class AggregatorFactoryBean
-		implements FactoryBean<AggregatingMessageHandler>, InitializingBean,
-				BeanFactoryAware, ApplicationContextAware, BeanNameAware, ApplicationEventPublisherAware {
+public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<AggregatingMessageHandler>
+				implements ApplicationContextAware, BeanNameAware, ApplicationEventPublisherAware {
 
 	private final AggregatingMessageHandler aggregator;
 
@@ -84,16 +80,8 @@ public class AggregatorFactoryBean
 		this.aggregator.setSendTimeout(sendTimeout);
 	}
 
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.aggregator.setOutputChannel(outputChannel);
-	}
-
 	public void setOutputChannelName(String outputChannelName) {
 		this.aggregator.setOutputChannelName(outputChannelName);
-	}
-
-	public void setOrder(int order) {
-		this.aggregator.setOrder(order);
 	}
 
 	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
@@ -105,15 +93,6 @@ public class AggregatorFactoryBean
 		this.aggregator.setBeanName(beanName);
 	}
 
-	public void setComponentName(String componentName) {
-		this.aggregator.setComponentName(componentName);
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.aggregator.setBeanFactory(beanFactory);
-	}
-
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.aggregator.setApplicationContext(applicationContext);
@@ -121,11 +100,6 @@ public class AggregatorFactoryBean
 
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		this.aggregator.setChannelResolver(channelResolver);
-	}
-
-	@Override
-	public final void afterPropertiesSet() {
-		this.aggregator.afterPropertiesSet();
 	}
 
 	public void enableStats(boolean statsEnabled) {
@@ -194,18 +168,8 @@ public class AggregatorFactoryBean
 	}
 
 	@Override
-	public AggregatingMessageHandler getObject() throws Exception {
+	protected AggregatingMessageHandler createHandler() {
 		return this.aggregator;
-	}
-
-	@Override
-	public Class<?> getObjectType() {
-		return AggregatingMessageHandler.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return false;
 	}
 
 }
