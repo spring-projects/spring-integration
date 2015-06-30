@@ -42,6 +42,7 @@ import org.springframework.messaging.MessageHandler;
  * @author Gary Russell
  */
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("deprecation")
 public class CorrelatingMessageBarrierTests {
 
 	private CorrelatingMessageBarrier barrier;
