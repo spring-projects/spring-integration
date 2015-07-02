@@ -103,21 +103,29 @@ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ----
 
 By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
-That default TaskScheduler will startup automatically with a pool of 10 threads.
+That default TaskScheduler will startup automatically with a pool of 10 threads, but see <<global-properties>>.
 If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property to _false_, and/or you can provide your own pool size value.
 
 When Polling Consumers provide an explicit task-executor reference in their configuration, the invocation of the handler methods will happen within that executor's thread pool and not the main scheduler pool.
 However, when no task-executor is provided for an endpoint's poller, it will be invoked by one of the main scheduler's threads.
 
+CAUTION: Do not run long-running tasks on poller threads; use a task executor instead.
+If you have a lot of polling endpoints, you can cause thread starvation, unless you increase the pool size.
+Also, polling consumers have a default `receiveTimeout` of 1 second; since the poller thread blocks for this time,
+it is recommended that a task executor be used when many such endpoints exist, again to avoid starvation.
+Alternatively, reduce the `receiveTimeout`.
+
 NOTE: An endpoint is a _Polling Consumer_ if its input channel is one of the queue-based (i.e.
 pollable) channels.
-On the other hand, _Event Driven Consumers_ are those whose input channels have dispatchers instead of queues (i.e.
+_Event Driven Consumers_ are those having input channels that have dispatchers instead of queues (i.e.
 they are subscribable).
 Such endpoints have no poller configuration since their handlers will be invoked directly.
 
 [IMPORTANT]
 =====
-When running in a JEE container, you may need to use Spring's `TimerManagerTaskScheduler` as described http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations[here], instead of the default _taskScheduler_.
+When running in a JEE container, you may need to use Spring's `TimerManagerTaskScheduler` as described
+http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations[here],
+instead of the default _taskScheduler_.
 To do that, simply define a bean with the appropriate JNDI name for your environment, for example:
 [source,xml]
 ----
@@ -176,6 +184,44 @@ NOTE: When Exceptions occur in a scheduled poller task's execution, those except
 To enable global error handling, simply register a handler on that channel.
 For example, you can configure Spring Integration's `ErrorMessageExceptionTypeRouter` as the handler of an endpoint that is subscribed to the 'errorChannel'.
 That router can then spread the error messages across multiple channels based on `Exception` type.
+
+[[global-properties]]
+=== Global Properties
+
+Certain global framework properties can be overridden by providing a properties file on the classpath.
+
+The default properties can be found in `/META-INF/spring.integration.default.properties` in the `spring-integration-core`
+jar.
+You can see them on GitHub https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/resources/META-INF/spring.integration.default.properties[here], but here are the current default values:
+
+[source]
+----
+spring.integraton.channels.autoCreate=true <1>
+spring.integraton.channels.maxUnicastSubscribers=0x7fffffff <2>
+spring.integraton.channels.maxBroadcastSubscribers=0x7fffffff <3>
+spring.integraton.taskScheduler.poolSize=10 <4>
+spring.integraton.messagingTemplate.throwExceptionOnLateReply=false <5>
+----
+
+<1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
+application context.
+
+<2> This property provides the default number of subscribers allowed on, say, a `DirectChannel`.
+It can be used to avoid inadvertently subscribing multiple endpoints to the same channel.
+This can be overridden on individual channels with the `max-subscribers` attribute.
+
+<3> This property provides the default number of subscribers allowed on, say, a `PublishSubscribeChannel`.
+It can be used to avoid inadvertently subscribing more than the expected number of endpoints to the same channel.
+This can be overridden on individual channels with the `max-subscribers` attribute.
+
+<4> The number of threads available in the default `taskScheduler` bean; see <<namespace-taskscheduler>>.
+
+<5> When true, messages that arrive at a gateway reply channel will throw an exception, when the gateway is not
+expecting a reply - because the sending thread has timed out, or already received a reply.
+
+These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
+It is not necessary to provide all the properties, just those that you want to override.
+
 
 [[annotations]]
 === Annotation Support
