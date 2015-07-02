@@ -88,24 +88,30 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 		return this.delegate.getMessageCountLong();
 	}
 
-
 	@Override
 	public void enableCounts(boolean countsEnabled) {
 		delegate.enableCounts(countsEnabled);
 	}
-
 
 	@Override
 	public boolean isCountsEnabled() {
 		return delegate.isCountsEnabled();
 	}
 
+	@Override
+	public void setLoggingEnabled(boolean enabled) {
+		delegate.setLoggingEnabled(enabled);
+	}
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return delegate.isLoggingEnabled();
+	}
 
 	@Override
 	public void setManagedName(String name) {
 		delegate.setManagedName(name);
 	}
-
 
 	@Override
 	public void setManagedType(String source) {

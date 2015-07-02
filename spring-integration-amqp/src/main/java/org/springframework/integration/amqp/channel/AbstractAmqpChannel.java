@@ -29,12 +29,22 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 
 	private final AmqpTemplate amqpTemplate;
 
+	private volatile boolean loggingEnabled = true;
 
 	AbstractAmqpChannel(AmqpTemplate amqpTemplate) {
 		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
 		this.amqpTemplate = amqpTemplate;
 	}
 
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.loggingEnabled;
+	}
+
+	@Override
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
+	}
 
 	/**
 	 * Subclasses may override this method to return an Exchange name.

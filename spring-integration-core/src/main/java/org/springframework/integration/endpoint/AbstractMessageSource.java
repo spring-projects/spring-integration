@@ -55,6 +55,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private volatile boolean countsEnabled;
 
+	private volatile boolean loggingEnabled = true;
+
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = (headerExpressions != null)
 				? headerExpressions : Collections.<String, Expression>emptyMap();
@@ -98,6 +100,16 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@Override
 	public void enableCounts(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
+	}
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.loggingEnabled;
+	}
+
+	@Override
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
 	}
 
 	@Override

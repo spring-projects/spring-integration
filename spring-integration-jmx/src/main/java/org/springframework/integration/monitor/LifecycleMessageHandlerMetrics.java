@@ -164,6 +164,16 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 	}
 
 	@Override
+	public void setLoggingEnabled(boolean enabled) {
+		this.delegate.setLoggingEnabled(enabled);
+	}
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.delegate.isLoggingEnabled();
+	}
+
+	@Override
 	public void setManagedName(String name) {
 		this.delegate.setManagedName(name);
 	}

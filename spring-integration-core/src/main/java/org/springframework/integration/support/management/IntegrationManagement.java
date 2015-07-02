@@ -19,13 +19,19 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**
- * Base interface containing methods to control basic statistics gathering.
+ * Base interface for Integration managed components.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public interface CountsEnablement {
+public interface IntegrationManagement {
+
+	@ManagedAttribute(description = "Use to disable debug logging during normal message flow")
+	void setLoggingEnabled(boolean enabled);
+
+	@ManagedAttribute
+	boolean isLoggingEnabled();
 
 	@ManagedOperation
 	void reset();

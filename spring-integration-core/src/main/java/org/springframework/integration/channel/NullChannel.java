@@ -53,12 +53,24 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	private volatile boolean statsEnabled;
 
+	private volatile boolean loggingEnabled = true;
+
 	private String beanName;
 
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
 		this.channelMetrics = new DefaultMessageChannelMetrics(getComponentName());
+	}
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.loggingEnabled;
+	}
+
+	@Override
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
 	}
 
 	@Override
@@ -186,7 +198,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public boolean send(Message<?> message) {
-		if (logger.isDebugEnabled()) {
+		if (this.loggingEnabled && logger.isDebugEnabled()) {
 			logger.debug("message sent to null channel: " + message);
 		}
 		if (this.countsEnabled) {
@@ -202,7 +214,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public Message<?> receive() {
-		if (logger.isDebugEnabled()) {
+		if (this.loggingEnabled && logger.isDebugEnabled()) {
 			logger.debug("receive called on null channel");
 		}
 		return null;
