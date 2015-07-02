@@ -58,9 +58,6 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-name-static-properties");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "managed-components", "componentNamePatterns");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "counts-enabled", "enabledCountsPatterns");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "stats-enabled", "enabledStatsPatterns");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "metrics-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-naming-strategy", "namingStrategy");
 
 		builder.addPropertyValue("server", mbeanServer);

@@ -15,32 +15,143 @@
  */
 package org.springframework.integration.support.management;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
+import org.springframework.integration.channel.management.MessageChannelMetrics;
+import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
+
 
 /**
  * Configures beans that implement {@link IntegrationManagement}.
- *
- * TODO: This class will be expanded by INT-3755/3756.
+ * Configures counts, stats, logging for all (or selected) components.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public class IntegrationManagementConfigurer implements SmartInitializingSingleton, ApplicationContextAware {
+public class IntegrationManagementConfigurer implements SmartInitializingSingleton, ApplicationContextAware,
+		BeanNameAware {
+
+	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
 
 	private ApplicationContext applicationContext;
 
+	private String beanName;
+
 	private boolean defaultLoggingEnabled = true;
+
+	private Boolean defaultCountsEnabled = false;
+
+	private Boolean defaultStatsEnabled = false;
+
+	private MetricsFactory metricsFactory = new DefaultMetricsFactory();
+
+	private String metricsFactoryBeanName;
+
+	private String[] enabledCountsPatterns = {  };
+
+	private String[] enabledStatsPatterns = {  };
+
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
+	/**
+	 * Set a metrics factory.
+	 * @param metricsFactory the factory.
+	 * @since 4.2
+	 */
+	public void setMetricsFactory(MetricsFactory metricsFactory) {
+		this.metricsFactory = metricsFactory;
+	}
+
+	public void setMetricsFactoryBeanName(String metricsFactory) {
+		this.metricsFactoryBeanName = metricsFactory;
+	}
+
+	/**
+	 * Set the array of simple patterns for component names for which message counts will
+	 * be enabled (defaults to '*'). Only patterns that also match
+	 * {@link #setComponentNamePatterns(String[]) componentNamePatterns} will be
+	 * considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
+	 * for those components that support counters (channels, message handlers, etc).
+	 * This is the initial setting only, individual components can have counts
+	 * enabled/disabled at runtime. May be overridden by an entry in
+	 * {@link #setEnabledStatsPatterns(String[]) enabledStatsPatterns} which is additional
+	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
+	 * for matches. For components that match multiple patterns, the first pattern wins.
+	 * Disabling counts at runtime also disables stats.
+	 * @param enabledCountsPatterns the patterns.
+	 * @since 4.2
+	 */
+	public void setEnabledCountsPatterns(String[] enabledCountsPatterns) {
+		Assert.notEmpty(enabledCountsPatterns, "enabledCountsPatterns must not be empty");
+		this.enabledCountsPatterns = Arrays.copyOf(enabledCountsPatterns, enabledCountsPatterns.length);
+	}
+
+	/**
+	 * Set the array of simple patterns for component names for which message statistics
+	 * will be enabled (response times, rates etc), as well as counts (a positive match
+	 * here overrides {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns},
+	 * you can't have statistics without counts). (defaults to '*'). Only patterns that
+	 * also match {@link #setComponentNamePatterns(String[]) componentNamePatterns} will
+	 * be considered. Enables statistics for those components that support statistics
+	 * (channels - when sending, message handlers, etc). This is the initial setting only,
+	 * individual components can have stats enabled/disabled at runtime. If a pattern
+	 * starts with `!`, stats (and counts) are disabled for matches. Note: this means that
+	 * '!foo' here will disable stats and counts for 'foo' even if counts are enabled for
+	 * 'foo' in {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}. For
+	 * components that match multiple patterns, the first pattern wins. Enabling stats at
+	 * runtime also enables counts.
+	 * @param enabledStatsPatterns the patterns.
+	 * @since 4.2
+	 */
+	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
+		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
+		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
+	}
+
+	/**
+	 * Set whether managed components maintain message counts by default.
+	 * Defaults to false, unless an Integration MBean Exporter is configured.
+	 * @param defaultCountsEnabled true to enable.
+	 */
+	public void setDefaultCountsEnabled(Boolean defaultCountsEnabled) {
+		this.defaultCountsEnabled = defaultCountsEnabled;
+	}
+
+	public Boolean getDefaultCountsEnabled() {
+		return defaultCountsEnabled;
+	}
+
+	/**
+	 * Set whether managed components maintain message statistics by default.
+	 * Defaults to false, unless an Integration MBean Exporter is configured.
+	 * @param defaultCountsEnabled true to enable.
+	 */
+	public void setDefaultStatsEnabled(Boolean defaultStatsEnabled) {
+		this.defaultStatsEnabled = defaultStatsEnabled;
+	}
+
+	public Boolean getDefaultStatsEnabled() {
+		return defaultStatsEnabled;
 	}
 
 	/**
@@ -69,10 +180,133 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	@Override
 	public void afterSingletonsInstantiated() {
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
-		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
-		for (IntegrationManagement bean : managed.values()) {
-			bean.setLoggingEnabled(this.defaultLoggingEnabled);
+		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
+				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
+		if (this.metricsFactoryBeanName != null) {
+			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
 		}
+		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
+		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
+			IntegrationManagement bean = entry.getValue();
+			bean.setLoggingEnabled(this.defaultLoggingEnabled);
+			if (bean instanceof MessageChannelMetrics) {
+				configureChannelMetrics(entry.getKey(), (MessageChannelMetrics) bean);
+			}
+			else if (bean instanceof MessageHandlerMetrics) {
+				configureHandlerMetrics(entry.getKey(), (MessageHandlerMetrics) bean);
+			}
+			else if (bean instanceof MessageSourceMetrics) {
+				configureSourceMetrics(entry.getKey(), (MessageSourceMetrics) bean);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void configureChannelMetrics(String name, MessageChannelMetrics bean) {
+		AbstractMessageChannelMetrics metrics = this.metricsFactory.createChannelMetrics(name);
+		Assert.state(metrics != null, "'metrics' must not be null");
+		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+		if (enabled != null) {
+			bean.setCountsEnabled(enabled);
+		}
+		else {
+			bean.setCountsEnabled(this.defaultCountsEnabled);
+		}
+		enabled = smartMatch(this.enabledStatsPatterns, name);
+		if (enabled != null) {
+			bean.setStatsEnabled(enabled);
+			metrics.setFullStatsEnabled(enabled);
+		}
+		else {
+			bean.setStatsEnabled(this.defaultStatsEnabled);
+			metrics.setFullStatsEnabled(this.defaultStatsEnabled);
+		}
+		if (bean instanceof ConfigurableMetricsAware) {
+			((ConfigurableMetricsAware<AbstractMessageChannelMetrics>) bean).configureMetrics(metrics);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void configureHandlerMetrics(String name, MessageHandlerMetrics bean) {
+		AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
+		Assert.state(metrics != null, "'metrics' must not be null");
+		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+		if (enabled != null) {
+			bean.setCountsEnabled(enabled);
+		}
+		else {
+			bean.setCountsEnabled(this.defaultCountsEnabled);
+		}
+		enabled = smartMatch(this.enabledStatsPatterns, name);
+		if (enabled != null) {
+			bean.setStatsEnabled(enabled);
+			metrics.setFullStatsEnabled(enabled);
+		}
+		else {
+			bean.setStatsEnabled(this.defaultStatsEnabled);
+			metrics.setFullStatsEnabled(this.defaultStatsEnabled);
+		}
+		if (bean instanceof ConfigurableMetricsAware) {
+			((ConfigurableMetricsAware<AbstractMessageHandlerMetrics>) bean).configureMetrics(metrics);
+		}
+	}
+
+	private void configureSourceMetrics(String name, MessageSourceMetrics bean) {
+		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+		if (enabled != null) {
+			bean.setCountsEnabled(enabled);
+		}
+		else {
+			bean.setCountsEnabled(this.defaultCountsEnabled);
+		}
+	}
+
+	/**
+	 * Simple pattern match against the supplied patterns; also supports negated ('!')
+	 * patterns. First match wins (positive or negative).
+	 * @param patterns the patterns.
+	 * @param name the name to match.
+	 * @return null if no match; true for positive match; false for negative match.
+	 */
+	private Boolean smartMatch(String[] patterns, String name) {
+		if (patterns != null) {
+			for (String pattern : patterns) {
+				boolean reverse = false;
+				String patternToUse = pattern;
+				if (pattern.startsWith("!")) {
+					reverse = true;
+					patternToUse = pattern.substring(1);
+				}
+				else if (pattern.startsWith("\\")) {
+					patternToUse = pattern.substring(1);
+				}
+				if (PatternMatchUtils.simpleMatch(patternToUse, name)) {
+					return !reverse;
+				}
+			}
+		}
+		return null;
+	}
+
+	public MessageChannelMetrics getChannelMetrics(String name) {
+		if (this.applicationContext.containsBean(name)) {
+			return this.applicationContext.getBean(name, MessageChannelMetrics.class);
+		}
+		return null;
+	}
+
+	public MessageHandlerMetrics getHandlerMetrics(String name) {
+		if (this.applicationContext.containsBean(name)) {
+			return this.applicationContext.getBean(name, MessageHandlerMetrics.class);
+		}
+		return null;
+	}
+
+	public MessageSourceMetrics getSourceMetrics(String name) {
+		if (this.applicationContext.containsBean(name)) {
+			return this.applicationContext.getBean(name, MessageSourceMetrics.class);
+		}
+		return null;
 	}
 
 }

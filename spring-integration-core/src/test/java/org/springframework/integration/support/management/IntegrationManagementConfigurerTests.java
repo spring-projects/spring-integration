@@ -64,6 +64,7 @@ public class IntegrationManagementConfigurerTests {
 		beans.put("baz", source);
 		when(ctx.getBeansOfType(IntegrationManagement.class)).thenReturn(beans);
 		IntegrationManagementConfigurer configurer = new IntegrationManagementConfigurer();
+		configurer.setBeanName(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME);
 		configurer.setApplicationContext(ctx);
 		configurer.setDefaultLoggingEnabled(false);
 		configurer.afterSingletonsInstantiated();

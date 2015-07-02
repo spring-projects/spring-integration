@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
 
 import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.handler.management.MessageHandlerMetrics;
-import org.springframework.integration.router.MappingMessageRouterManagement;
 
 /**
  * Allows Router operations to appear in the same MBean as statistics.

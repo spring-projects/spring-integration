@@ -80,9 +80,9 @@ public class AggregatingMetricsTests {
 	public void testElapsed() {
 		int sampleSize = 2;
 		this.delay.configureMetrics(new AggregatingMessageChannelMetrics("foo", sampleSize));
-		this.delay.enableStats(true);
+		this.delay.setStatsEnabled(true);
 		this.delayer.configureMetrics(new AggregatingMessageHandlerMetrics("bar", sampleSize));
-		this.delayer.enableStats(true);
+		this.delayer.setStatsEnabled(true);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		int count = 4;
 		for (int i = 0; i < count; i++) {

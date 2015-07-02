@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
 
 import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.util.Assert;
 
 /**

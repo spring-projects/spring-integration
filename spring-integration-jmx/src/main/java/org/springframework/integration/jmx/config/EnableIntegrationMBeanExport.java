@@ -84,39 +84,4 @@ public @interface EnableIntegrationMBeanExport {
 	 */
 	String[] managedComponents() default "*";
 
-	/**
-	 * A list of simple patterns for component names for which message counts will be
-	 * enabled (defaults to '*'). Only patterns that also match
-	 * {@link #managedComponents() managedComponents} will be considered. Enables message
-	 * counting (`sendCount`, `errorCount`, `receiveCount`) for those components that
-	 * support counters (channels, message handlers, etc). This is the initial setting
-	 * only, individual components can have counts enabled/disabled at runtime. May be
-	 * overridden by an entry in {@link #statsEnabled() statsEnabled} which is additional
-	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
-	 * for matches. For components that match multiple patterns, the first pattern wins.
-	 * Disabling counts at runtime also disables stats.
-	 * @return the patterns.
-	 * @since 4.2
-	 */
-	String[] countsEnabled() default "*";
-
-	/**
-	 * A list of simple patterns for component names for which message statistics will be
-	 * enabled (response times, rates etc), as well as counts (a positive match here
-	 * overrides {@link #countsEnabled() countsEnabled}, you can't have statistics without
-	 * counts). (defaults to '*'). Only patterns that also match
-	 * {@link #managedComponents() managedComponents} will be considered. Enables
-	 * statistics for those components that support statistics (channels - when sending,
-	 * message handlers, etc). This is the initial setting only, individual components can
-	 * have stats enabled/disabled at runtime. If a pattern starts with `!`, stats (and
-	 * counts) are disabled for matches. Note: this means that '!foo' here will disable
-	 * stats and counts for 'foo' even if counts are enabled for 'foo' in
-	 * {@link #countsEnabled() countsEnabled}. For components
-	 * that match multiple patterns, the first pattern wins. Enabling stats at runtime
-	 * also enables counts.
-	 * @return the patterns.
-	 * @since 4.2
-	 */
-	String[] statsEnabled() default "*";
-
 }

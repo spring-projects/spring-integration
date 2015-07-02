@@ -20,11 +20,16 @@
 					  default-domain="tests.MBeanExpoerterParser"
 					  object-name-static-properties="appProperties"
 					  object-naming-strategy="keyNamer"
-					  counts-enabled="foo, !baz, ba*"
-					  stats-enabled="fiz, buz" 
-					  managed-components="\!excluded, f*, b*, q*, t*"
-					  metrics-factory="mf" />
-					  
+					  managed-components="\!excluded, f*, b*, q*, t*" />
+
+	<si:management
+		default-logging-enabled="false"
+		default-counts-enabled="false"
+		default-stats-enabled="false"
+		counts-enabled-patterns="foo, !baz, ba*"
+		stats-enabled-patterns="fiz, buz"
+		metrics-factory="mf" />
+						  
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>
 		<prop key="bar">bar</prop>

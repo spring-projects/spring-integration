@@ -54,11 +54,11 @@ public class Int2307Tests {
 		int count = 0;
 		for (ObjectInstance mbean : mbeans) {
 			Thread.sleep(500); //Added in order to pass test with Java 8
-			if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleTrackableMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
+			if (mbean.toString().startsWith("org.springframework.integration.support.management.LifecycleTrackableMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
 				bits |= 2;
 				count++;
 			}
-			else if (mbean.toString().startsWith("org.springframework.integration.monitor.TrackableRouterMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
+			else if (mbean.toString().startsWith("org.springframework.integration.support.management.TrackableRouterMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
 				bits |= 8;
 				count++;
 			}

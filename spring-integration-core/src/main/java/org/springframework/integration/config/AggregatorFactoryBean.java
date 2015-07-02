@@ -103,11 +103,11 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	}
 
 	public void enableStats(boolean statsEnabled) {
-		this.aggregator.enableStats(statsEnabled);
+		this.aggregator.setStatsEnabled(statsEnabled);
 	}
 
 	public void enableCounts(boolean countsEnabled) {
-		this.aggregator.enableCounts(countsEnabled);
+		this.aggregator.setCountsEnabled(countsEnabled);
 	}
 
 	public void setLockRegistry(LockRegistry lockRegistry) {
