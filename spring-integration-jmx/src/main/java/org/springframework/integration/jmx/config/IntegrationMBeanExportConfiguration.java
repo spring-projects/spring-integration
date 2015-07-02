@@ -27,6 +27,8 @@ import javax.management.MBeanServerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
@@ -41,6 +43,7 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.jmx.support.RegistrationPolicy;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -68,6 +71,10 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	private BeanExpressionContext expressionContext;
 
 	private Environment environment;
+
+	@Autowired(required=false)
+	@Qualifier(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
+	private IntegrationManagementConfigurer configurer;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -99,8 +106,14 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 		setupDomain(exporter);
 		setupServer(exporter);
 		setupComponentNamePatterns(exporter);
-		setupCountsEnabledNamePatterns(exporter);
-		setupStatsEnabledNamePatterns(exporter);
+		if (this.configurer != null) {
+			if (this.configurer.getDefaultCountsEnabled() == null) {
+				this.configurer.setDefaultCountsEnabled(true);
+			}
+			if (this.configurer.getDefaultStatsEnabled() == null) {
+				this.configurer.setDefaultStatsEnabled(true);
+			}
+		}
 		return exporter;
 	}
 
@@ -142,26 +155,6 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
 		}
 		exporter.setComponentNamePatterns(patterns.toArray(new String[patterns.size()]));
-	}
-
-	private void setupCountsEnabledNamePatterns(IntegrationMBeanExporter exporter) {
-		List<String> patterns = new ArrayList<String>();
-		String[] countsEnabled = this.attributes.getStringArray("countsEnabled");
-		for (String managedComponent : countsEnabled) {
-			String pattern = this.environment.resolvePlaceholders(managedComponent);
-			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
-		}
-		exporter.setEnabledCountsPatterns(patterns.toArray(new String[patterns.size()]));
-	}
-
-	private void setupStatsEnabledNamePatterns(IntegrationMBeanExporter exporter) {
-		List<String> patterns = new ArrayList<String>();
-		String[] statsEnabled = this.attributes.getStringArray("statsEnabled");
-		for (String managedComponent : statsEnabled) {
-			String pattern = this.environment.resolvePlaceholders(managedComponent);
-			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
-		}
-		exporter.setEnabledStatsPatterns(patterns.toArray(new String[patterns.size()]));
 	}
 
 }

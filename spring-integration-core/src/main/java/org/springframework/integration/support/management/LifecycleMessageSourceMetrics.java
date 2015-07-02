@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.endpoint.management.MessageSourceMetrics;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
@@ -89,8 +87,8 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 	}
 
 	@Override
-	public void enableCounts(boolean countsEnabled) {
-		delegate.enableCounts(countsEnabled);
+	public void setCountsEnabled(boolean countsEnabled) {
+		delegate.setCountsEnabled(countsEnabled);
 	}
 
 	@Override

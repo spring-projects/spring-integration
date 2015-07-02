@@ -95,7 +95,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
-	public void enableCounts(boolean countsEnabled) {
+	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
 		if (!countsEnabled) {
 			this.statsEnabled = false;
@@ -108,7 +108,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
-	public void enableStats(boolean statsEnabled) {
+	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
 			this.countsEnabled = true;
 		}

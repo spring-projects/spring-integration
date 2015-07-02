@@ -43,24 +43,28 @@ import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
-import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.IntegrationManagementConfigurer;
+import org.springframework.integration.support.management.LifecycleMessageHandlerMetrics;
+import org.springframework.integration.support.management.LifecycleMessageSourceMetrics;
+import org.springframework.integration.support.management.LifecycleTrackableMessageHandlerMetrics;
+import org.springframework.integration.support.management.LifecycleTrackableMessageSourceMetrics;
+import org.springframework.integration.support.management.MappingMessageRouterManagement;
+import org.springframework.integration.support.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.MessageSourceMetrics;
+import org.springframework.integration.support.management.RouterMetrics;
 import org.springframework.integration.support.management.Statistics;
+import org.springframework.integration.support.management.TrackableRouterMetrics;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
@@ -158,17 +162,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private String[] componentNamePatterns = { "*" };
 
-	private String[] enabledCountsPatterns = { "*" };
-
-	private String[] enabledStatsPatterns = { "*" };
-
 	private volatile long shutdownDeadline;
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
 
 	private StringValueResolver embeddedValueResolver;
-
-	private MetricsFactory metricsFactory = new DefaultMetricsFactory();
 
 
 	public IntegrationMBeanExporter() {
@@ -215,48 +213,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		this.componentNamePatterns = Arrays.copyOf(componentNamePatterns, componentNamePatterns.length);
 	}
 
-	/**
-	 * Set the array of simple patterns for component names for which message counts will
-	 * be enabled (defaults to '*'). Only patterns that also match
-	 * {@link #setComponentNamePatterns(String[]) componentNamePatterns} will be
-	 * considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
-	 * for those components that support counters (channels, message handlers, etc).
-	 * This is the initial setting only, individual components can have counts
-	 * enabled/disabled at runtime. May be overridden by an entry in
-	 * {@link #setEnabledStatsPatterns(String[]) enabledStatsPatterns} which is additional
-	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
-	 * for matches. For components that match multiple patterns, the first pattern wins.
-	 * Disabling counts at runtime also disables stats.
-	 * @param enabledCountsPatterns the patterns.
-	 * @since 4.2
-	 */
-	public void setEnabledCountsPatterns(String[] enabledCountsPatterns) {
-		Assert.notEmpty(enabledCountsPatterns, "enabledCountsPatterns must not be empty");
-		this.enabledCountsPatterns = Arrays.copyOf(enabledCountsPatterns, enabledCountsPatterns.length);
-	}
-
-	/**
-	 * Set the array of simple patterns for component names for which message statistics
-	 * will be enabled (response times, rates etc), as well as counts (a positive match
-	 * here overrides {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns},
-	 * you can't have statistics without counts). (defaults to '*'). Only patterns that
-	 * also match {@link #setComponentNamePatterns(String[]) componentNamePatterns} will
-	 * be considered. Enables statistics for those components that support statistics
-	 * (channels - when sending, message handlers, etc). This is the initial setting only,
-	 * individual components can have stats enabled/disabled at runtime. If a pattern
-	 * starts with `!`, stats (and counts) are disabled for matches. Note: this means that
-	 * '!foo' here will disable stats and counts for 'foo' even if counts are enabled for
-	 * 'foo' in {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}. For
-	 * components that match multiple patterns, the first pattern wins. Enabling stats at
-	 * runtime also enables counts.
-	 * @param enabledStatsPatterns the patterns.
-	 * @since 4.2
-	 */
-	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
-		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
-		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
-	}
-
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
@@ -267,15 +223,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	@Override
 	public void setEmbeddedValueResolver(StringValueResolver resolver) {
 		this.embeddedValueResolver = resolver;
-	}
-
-	/**
-	 * Set a metrics factory.
-	 * @param metricsFactory the factory.
-	 * @since 4.2
-	 */
-	public void setMetricsFactory(MetricsFactory metricsFactory) {
-		this.metricsFactory = metricsFactory;
 	}
 
 	@Override
@@ -340,6 +287,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 					registerBeanInstance(messageHistoryConfigurer,
 							IntegrationContextUtils.INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME);
 				}
+			}
+			if (!this.applicationContext.containsBean(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)) {
+				IntegrationManagementConfigurer config = new IntegrationManagementConfigurer();
+				config.setDefaultCountsEnabled(true);
+				config.setDefaultStatsEnabled(true);
+				config.setApplicationContext(this.applicationContext);
+				config.setBeanName(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME);
+				config.afterSingletonsInstantiated();
 			}
 		}
 		catch (RuntimeException e) {
@@ -709,7 +664,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void registerChannels() {
 		for (MessageChannelMetrics monitor : channels) {
 			String name = ((NamedComponent) monitor).getComponentName();
@@ -724,26 +678,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				if (name != null) {
 					channelsByName.put(name, monitor);
 				}
-				AbstractMessageChannelMetrics metrics = this.metricsFactory.createChannelMetrics(name);
-				Assert.state(metrics != null, "'metrics' must not be null");
-				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
-				if (enabled != null) {
-					monitor.enableCounts(enabled);
-				}
-				enabled = smartMatch(this.enabledStatsPatterns, name);
-				if (enabled != null) {
-					monitor.enableStats(enabled);
-					metrics.setFullStatsEnabled(enabled);
-				}
-				if (monitor instanceof ConfigurableMetricsAware) {
-					((ConfigurableMetricsAware<AbstractMessageChannelMetrics>) monitor).configureMetrics(metrics);
-				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void registerHandlers() {
 		for (MessageHandlerMetrics handler : handlers) {
 			MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
@@ -757,20 +696,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				String beanKey = getHandlerBeanKey(monitor);
 				if (name != null) {
 					handlersByName.put(name, monitor);
-				}
-				AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
-				Assert.state(metrics != null, "'metrics' must not be null");
-				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
-				if (enabled != null) {
-					monitor.enableCounts(enabled);
-				}
-				enabled = smartMatch(this.enabledStatsPatterns, name);
-				if (enabled != null) {
-					monitor.enableStats(enabled);
-					metrics.setFullStatsEnabled(enabled);
-				}
-				if (monitor instanceof ConfigurableMetricsAware) {
-					((ConfigurableMetricsAware<AbstractMessageHandlerMetrics>) monitor).configureMetrics(metrics);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -790,10 +715,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				String beanKey = getSourceBeanKey(monitor);
 				if (name != null) {
 					sourcesByName.put(name, monitor);
-				}
-				Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
-				if (enabled != null) {
-					monitor.enableCounts(enabled);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}

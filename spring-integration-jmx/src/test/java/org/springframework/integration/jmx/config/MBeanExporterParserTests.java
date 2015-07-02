@@ -36,12 +36,13 @@ import org.springframework.integration.channel.management.DefaultMessageChannelM
 import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
-import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.integration.monitor.MetricsFactory;
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
+import org.springframework.integration.support.management.IntegrationManagementConfigurer;
+import org.springframework.integration.support.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.MetricsFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -99,11 +100,13 @@ public class MBeanExporterParserTests {
 		assertFalse(metrics.isStatsEnabled());
 		checkCustomized(metrics);
 		MetricsFactory factory = context.getBean(MetricsFactory.class);
-		assertSame(factory, TestUtils.getPropertyValue(exporter, "metricsFactory"));
+		IntegrationManagementConfigurer configurer = context.getBean(IntegrationManagementConfigurer.class);
+		assertSame(factory, TestUtils.getPropertyValue(configurer, "metricsFactory"));
 		exporter.destroy();
 	}
 
 	private void checkCustomized(MessageChannelMetrics metrics) {
+		assertFalse(metrics.isLoggingEnabled());
 		assertEquals(20, TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.window"));
 		assertEquals(1000000., TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.factor", Double.class),
 				.01);

@@ -21,11 +21,11 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
-import org.springframework.integration.handler.management.MessageHandlerMetrics;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.MessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
@@ -203,7 +203,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	}
 
 	@Override
-	public void enableStats(boolean statsEnabled) {
+	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
 			this.countsEnabled = true;
 		}
@@ -219,7 +219,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	}
 
 	@Override
-	public void enableCounts(boolean countsEnabled) {
+	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
 		if (!countsEnabled) {
 			this.statsEnabled = false;

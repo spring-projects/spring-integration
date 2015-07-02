@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.management;
+package org.springframework.integration.support.management;
 
-import org.springframework.integration.support.management.IntegrationStatsManagement;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 

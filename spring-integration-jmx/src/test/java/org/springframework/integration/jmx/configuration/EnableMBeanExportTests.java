@@ -16,7 +16,9 @@
 
 package org.springframework.integration.jmx.configuration;
 
+import static org.hamcrest.Matchers.arrayContaining;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -29,7 +31,6 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,8 +42,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.integration.support.management.DefaultMetricsFactory;
+import org.springframework.integration.support.management.IntegrationManagementConfigurer;
+import org.springframework.integration.support.management.MetricsFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.mock.env.MockEnvironment;
@@ -69,17 +74,27 @@ public class EnableMBeanExportTests {
 	@Autowired
 	private MBeanServer mBeanServer;
 
+	@Autowired
+	private IntegrationManagementConfigurer configurer;
+
+	@Autowired
+	private MetricsFactory myMetricsFactory;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
 
 		assertSame(this.mBeanServer, this.exporter.getServer());
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
-		assertThat(componentNamePatterns, Matchers.arrayContaining("input", "inputX", "in*"));
-		String[] enabledCounts = TestUtils.getPropertyValue(this.exporter, "enabledCountsPatterns", String[].class);
-		assertThat(enabledCounts, Matchers.arrayContaining("foo", "bar", "baz"));
-		String[] enabledStatts = TestUtils.getPropertyValue(this.exporter, "enabledStatsPatterns", String[].class);
-		assertThat(enabledStatts, Matchers.arrayContaining("qux", "!*"));
+		assertThat(componentNamePatterns, arrayContaining("input", "inputX", "in*"));
+		String[] enabledCounts = TestUtils.getPropertyValue(this.configurer, "enabledCountsPatterns", String[].class);
+		assertThat(enabledCounts, arrayContaining("foo", "bar", "baz"));
+		String[] enabledStatts = TestUtils.getPropertyValue(this.configurer, "enabledStatsPatterns", String[].class);
+		assertThat(enabledStatts, arrayContaining("qux", "!*"));
+		assertFalse(TestUtils.getPropertyValue(this.configurer, "defaultLoggingEnabled", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.configurer, "defaultCountsEnabled", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.configurer, "defaultStatsEnabled", Boolean.class));
+		assertSame(this.myMetricsFactory, TestUtils.getPropertyValue(this.configurer, "metricsFactory"));
 
 		Set<ObjectName> names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
@@ -106,9 +121,14 @@ public class EnableMBeanExportTests {
 	@EnableIntegration
 	@EnableIntegrationMBeanExport(server = "#{mbeanServer}",
 			defaultDomain = "${managed.domain}",
-			managedComponents = {"input", "${managed.component}"},
-			countsEnabled = { "foo", "${count.patterns}" },
-			statsEnabled = { "qux", "!*" })
+			managedComponents = {"input", "${managed.component}"})
+	@EnableIntegrationManagement(
+		defaultLoggingEnabled = "false",
+		defaultCountsEnabled = "true",
+		defaultStatsEnabled = "true",
+		countsEnabled = { "foo", "${count.patterns}" },
+		statsEnabled = { "qux", "!*" },
+		metricsFactory = "myMetricsFactory")
 	public static class ContextConfiguration {
 
 		@Bean
@@ -124,6 +144,11 @@ public class EnableMBeanExportTests {
 		@Bean
 		public QueueChannel output() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		public MetricsFactory myMetricsFactory() {
+			return new DefaultMetricsFactory();
 		}
 
 	}

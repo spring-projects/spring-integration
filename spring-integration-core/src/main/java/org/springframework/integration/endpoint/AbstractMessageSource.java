@@ -24,10 +24,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.endpoint.management.MessageSourceMetrics;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -98,7 +98,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public void enableCounts(boolean countsEnabled) {
+	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
 	}
 

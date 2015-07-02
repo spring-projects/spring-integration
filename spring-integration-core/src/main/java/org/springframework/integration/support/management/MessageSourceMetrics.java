@@ -11,9 +11,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.endpoint.management;
+package org.springframework.integration.support.management;
 
-import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 

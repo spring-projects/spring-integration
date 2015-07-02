@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.handler.management.MessageHandlerMetrics;
-import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
@@ -144,13 +140,13 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 	}
 
 	@Override
-	public void enableStats(boolean statsEnabled) {
-		this.delegate.enableStats(statsEnabled);
+	public void setStatsEnabled(boolean statsEnabled) {
+		this.delegate.setStatsEnabled(statsEnabled);
 	}
 
 	@Override
-	public void enableCounts(boolean countsEnabled) {
-		this.delegate.enableCounts(countsEnabled);
+	public void setCountsEnabled(boolean countsEnabled) {
+		this.delegate.setCountsEnabled(countsEnabled);
 	}
 
 	@Override
