@@ -18,22 +18,20 @@ package org.springframework.integration.support.management;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
+
 /**
- * Base interface containing methods to control basic statistics gathering.
+ * Base interface containing methods to control complete statistics gathering.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public interface CountsEnablement {
+public interface IntegrationStatsManagement extends IntegrationManagement {
 
-	@ManagedOperation
-	void reset();
-
-	@ManagedOperation(description = "Enable message counting statistics")
-	void enableCounts(boolean countsEnabled);
+	@ManagedOperation(description = "Enable all statistics")
+	void enableStats(boolean statsEnabled);
 
 	@ManagedAttribute
-	boolean isCountsEnabled();
+	boolean isStatsEnabled();
 
 }

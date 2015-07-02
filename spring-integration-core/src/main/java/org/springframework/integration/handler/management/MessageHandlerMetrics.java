@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler.management;
 
-import org.springframework.integration.support.management.MetricsEnablement;
+import org.springframework.integration.support.management.IntegrationStatsManagement;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
@@ -26,7 +26,7 @@ import org.springframework.jmx.support.MetricType;
  * @author Gary Russell
  * @since 2.0
  */
-public interface MessageHandlerMetrics extends MetricsEnablement {
+public interface MessageHandlerMetrics extends IntegrationStatsManagement {
 
 	/**
 	 * @return the number of successful handler calls

@@ -13,7 +13,7 @@
 
 package org.springframework.integration.endpoint.management;
 
-import org.springframework.integration.support.management.CountsEnablement;
+import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
@@ -22,7 +22,7 @@ import org.springframework.jmx.support.MetricType;
  * @author Gary Russell
  * @since 2.0
  */
-public interface MessageSourceMetrics extends CountsEnablement {
+public interface MessageSourceMetrics extends IntegrationManagement {
 
 	/**
 	 * @return the number of successful handler calls

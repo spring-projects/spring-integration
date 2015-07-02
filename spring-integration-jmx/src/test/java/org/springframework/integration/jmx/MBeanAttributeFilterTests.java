@@ -105,7 +105,7 @@ public class MBeanAttributeFilterTests {
 		Map<String, Object> bean = (Map<String, Object>) payload
 				.get(domain + ":name=in,type=MessageChannel");
 
-		assertEquals(8, bean.size());
+		assertEquals(9, bean.size());
 		assertFalse(bean.containsKey("SendCount"));
 		assertFalse(bean.containsKey("SendErrorCount"));
 		assertFalse(bean.containsKey("SendCountLong"));

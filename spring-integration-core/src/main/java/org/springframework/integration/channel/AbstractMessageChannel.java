@@ -81,6 +81,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile boolean statsEnabled;
 
+	private volatile boolean loggingEnabled = true;
+
 	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
 
 	public AbstractMessageChannel() {
@@ -107,7 +109,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	@Override
 	public boolean isCountsEnabled() {
-		return countsEnabled;
+		return this.countsEnabled;
 	}
 
 	@Override
@@ -122,6 +124,16 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public boolean isStatsEnabled() {
 		return this.statsEnabled;
+	}
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.loggingEnabled;
+	}
+
+	@Override
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
 	}
 
 	protected AbstractMessageChannelMetrics getMetrics() {
@@ -413,7 +425,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
 			}
-			boolean debugEnabled = logger.isDebugEnabled();
+			boolean debugEnabled = this.loggingEnabled && logger.isDebugEnabled();
 			if (debugEnabled) {
 				logger.debug("preSend on channel '" + this + "', message: " + message);
 			}

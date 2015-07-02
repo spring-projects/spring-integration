@@ -62,6 +62,18 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	private volatile String managedType;
 
+	private volatile boolean loggingEnabled = true;
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.loggingEnabled;
+	}
+
+	@Override
+	public void setLoggingEnabled(boolean loggingEnabled) {
+		this.loggingEnabled = loggingEnabled;
+	}
+
 	@Override
 	public void setOrder(int order) {
 		this.order = order;
@@ -99,7 +111,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	public final void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(message.getPayload(), "Message payload must not be null");//NOSONAR - false positive
-		if (this.logger.isDebugEnabled()) {
+		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
 		MetricsContext start = null;

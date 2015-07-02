@@ -127,7 +127,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();
 		try {
-			if (logger.isTraceEnabled()) {
+			if (isLoggingEnabled() && logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
@@ -139,7 +139,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			}
 			Object object = getAmqpTemplate().receiveAndConvert(this.queueName);
 			if (object == null) {
-				if (logger.isTraceEnabled()) {
+				if (isLoggingEnabled() && logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
 				return null;
@@ -155,7 +155,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 			else {
 				message = getMessageBuilderFactory().withPayload(object).build();
 			}
-			if (logger.isDebugEnabled()) {
+			if (isLoggingEnabled() && logger.isDebugEnabled()) {
 				logger.debug("postReceive on channel '" + this + "', message: " + message);
 			}
 			if (interceptorStack != null) {
@@ -177,7 +177,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	@Override
 	public Message<?> receive(long timeout) {
-		if (logger.isInfoEnabled()) {
+		if (isLoggingEnabled() && logger.isInfoEnabled()) {
 			logger.info("Calling receive with a timeout value on PollableAmqpChannel. " +
 					"The timeout will be ignored since no receive timeout is supported.");
 		}
