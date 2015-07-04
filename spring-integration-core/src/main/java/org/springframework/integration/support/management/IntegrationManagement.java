@@ -27,7 +27,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  */
 public interface IntegrationManagement {
 
-	@ManagedAttribute(description = "Use to disable all debug logging on the happy path")
+	@ManagedAttribute(description = "Use to disable debug logging during normal message flow")
 	void setLoggingEnabled(boolean enabled);
 
 	@ManagedAttribute

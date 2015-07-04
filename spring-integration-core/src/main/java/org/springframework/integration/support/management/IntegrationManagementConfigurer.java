@@ -45,9 +45,11 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	}
 
 	/**
-	 * Disable all logging in the main message flow in framework components. When 'false', such logging will be
+	 * Disable all logging in the normal message flow in framework components. When 'false', such logging will be
 	 * skipped, regardless of logging level. When 'true', the logging is controlled as normal by the logging
 	 * subsystem log level configuration.
+	 * <p>
+	 * Exception logging (debug or otherwise) is not affected by this setting.
 	 * <p>
 	 * It has been found that in high-volume messaging environments, calls to methods such as
 	 * {@code logger.isDebuggingEnabled()} can be quite expensive and account for an inordinate amount of CPU
