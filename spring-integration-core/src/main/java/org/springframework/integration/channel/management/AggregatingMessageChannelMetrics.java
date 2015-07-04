@@ -19,8 +19,8 @@ import org.springframework.integration.support.management.ExponentialMovingAvera
 import org.springframework.integration.support.management.MetricsContext;
 
 /**
- * Implementation that provides the total response times over a sample, to avoid fetching the system time
- * on every message.
+ * An implementation of {@link MessageChannelMetrics} that provides the total response
+ * times over a sample, to avoid fetching the system time twice for every message.
  *
  * @author Gary Russell
  * @since 4.2
@@ -56,7 +56,6 @@ public class AggregatingMessageChannelMetrics extends DefaultMessageChannelMetri
 	 * @param sendSuccessRatio an {@link ExponentialMovingAverageRatio} for calculating the success ratio.
 	 * @param sendRate an {@link ExponentialMovingAverageRate} for calculating the send rate.
 	 * @param sampleSize the sample size
-	 * @since 4.2
 	 */
 	public AggregatingMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
@@ -68,7 +67,8 @@ public class AggregatingMessageChannelMetrics extends DefaultMessageChannelMetri
 	@Override
 	public synchronized MetricsContext beforeSend() {
 		long start = 0;
-		if (this.sendCount.getAndIncrement() % this.sampleSize == 0 && isFullStatsEnabled()) {
+		long count = this.sendCount.getAndIncrement();
+		if (isFullStatsEnabled() && count % this.sampleSize == 0) {
 			start = System.nanoTime();
 			this.sendRate.increment(start);
 		}

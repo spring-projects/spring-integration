@@ -21,8 +21,8 @@ import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.messaging.Message;
 
 /**
- * Implementation that averages response times over a sample, to avoid fetching the system time
- * on every message.
+ * An implementation of {@link MessageHandlerMetrics} that averages response times over a
+ * sample, to avoid fetching the system time twice for every message.
  *
  * @author Gary Russell
  * @since 2.0
@@ -52,7 +52,6 @@ public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetri
 	 * endpoints).
 	 * @param name the name.
 	 * @param duration an {@link ExponentialMovingAverage} for calculating the duration.
-	 * @since 4.2
 	 */
 	public AggregatingMessageHandlerMetrics(String name, ExponentialMovingAverage duration, int sampleSize) {
 		super(name, duration);
@@ -62,7 +61,8 @@ public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetri
 	@Override
 	public synchronized MetricsContext beforeHandle(Message<?> message) {
 		long start = 0;
-		if (this.handleCount.getAndIncrement() % this.sampleSize == 0 && isFullStatsEnabled()) {
+		long count = this.handleCount.getAndIncrement();
+		if (isFullStatsEnabled() && count % this.sampleSize == 0) {
 			start = System.nanoTime();
 		}
 		this.activeCount.incrementAndGet();
