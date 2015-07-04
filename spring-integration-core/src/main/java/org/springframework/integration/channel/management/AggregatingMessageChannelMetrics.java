@@ -31,6 +31,8 @@ public class AggregatingMessageChannelMetrics extends DefaultMessageChannelMetri
 
 	private final int sampleSize;
 
+	private long start;
+
 	public AggregatingMessageChannelMetrics() {
 		this(null, DEFAULT_SAMPLE_SIZE);
 	}
@@ -66,33 +68,44 @@ public class AggregatingMessageChannelMetrics extends DefaultMessageChannelMetri
 
 	@Override
 	public synchronized MetricsContext beforeSend() {
-		long start = 0;
 		long count = this.sendCount.getAndIncrement();
 		if (isFullStatsEnabled() && count % this.sampleSize == 0) {
-			start = System.nanoTime();
+			this.start = System.nanoTime();
 			this.sendRate.increment(start);
 		}
-		return new DefaultChannelMetricsContext(start);
+		return new AggregatingChannelMetricsContext(this.start, count + 1);
 	}
 
 	@Override
 	public void afterSend(MetricsContext context, boolean result) {
-		long start = ((DefaultChannelMetricsContext) context).start;
+		AggregatingChannelMetricsContext aggregatingContext = (AggregatingChannelMetricsContext) context;
+		long newCount = aggregatingContext.newCount;
 		if (result) {
-			if (start > 0 && isFullStatsEnabled()) {
+			if (isFullStatsEnabled() && newCount % this.sampleSize == 0) {
 				long now = System.nanoTime();
 				this.sendSuccessRatio.success(now);
-				this.sendDuration.append(now - start);
+				this.sendDuration.append(now - aggregatingContext.start);
 			}
 		}
 		else {
-			if (start > 0 && isFullStatsEnabled()) {
+			if (isFullStatsEnabled() && newCount % this.sampleSize == 0) {
 				long now = System.nanoTime();
 				this.sendSuccessRatio.failure(now);
 				this.sendErrorRate.increment(now);
 			}
 			this.sendErrorCount.incrementAndGet();
 		}
+	}
+
+	protected static class AggregatingChannelMetricsContext extends DefaultChannelMetricsContext {
+
+		protected long newCount;
+
+		public AggregatingChannelMetricsContext(long start, long newCount) {
+			super(start);
+			this.newCount = newCount;
+		}
+
 	}
 
 }

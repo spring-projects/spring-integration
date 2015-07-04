@@ -57,10 +57,9 @@ public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetri
 
 	/**
 	 * Begin a handle event.
-	 * @param message the message to handle.
 	 * @return the context to be used in the {@link #afterHandle(MetricsContext, boolean)}.
 	 */
-	public abstract MetricsContext beforeHandle(Message<?> message);
+	public abstract MetricsContext beforeHandle();
 
 	/**
 	 * End a handle event

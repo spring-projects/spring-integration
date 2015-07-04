@@ -25,4 +25,8 @@
 		<constructor-arg value="1000" />
 	</bean>
 
+	<int:channel id="delay" />
+
+	<int:service-activator input-channel="delay" expression="T(Thread).sleep(50)" />
+
 </beans>

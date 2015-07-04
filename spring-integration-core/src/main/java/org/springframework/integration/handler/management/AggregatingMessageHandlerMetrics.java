@@ -18,7 +18,6 @@ package org.springframework.integration.handler.management;
 
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.MetricsContext;
-import org.springframework.messaging.Message;
 
 /**
  * An implementation of {@link MessageHandlerMetrics} that averages response times over a
@@ -32,6 +31,8 @@ public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetri
 	private static final int DEFAULT_SAMPLE_SIZE = 1000;
 
 	private final int sampleSize;
+
+	private long start;
 
 	public AggregatingMessageHandlerMetrics() {
 		this(null, DEFAULT_SAMPLE_SIZE);
@@ -59,28 +60,38 @@ public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetri
 	}
 
 	@Override
-	public synchronized MetricsContext beforeHandle(Message<?> message) {
-		long start = 0;
+	public synchronized MetricsContext beforeHandle() {
 		long count = this.handleCount.getAndIncrement();
 		if (isFullStatsEnabled() && count % this.sampleSize == 0) {
-			start = System.nanoTime();
+			this.start = System.nanoTime();
 		}
 		this.activeCount.incrementAndGet();
-		return new DefaultHandlerMetricsContext(start);
+		return new AggregatingHandlerMetricsContext(this.start, count + 1);
 	}
 
 	@Override
 	public void afterHandle(MetricsContext context, boolean success) {
 		this.activeCount.decrementAndGet();
-		long start = ((DefaultHandlerMetricsContext) context).start;
+		AggregatingHandlerMetricsContext aggregatingContext = (AggregatingHandlerMetricsContext) context;
 		if (success) {
-			if (start > 0 && isFullStatsEnabled() && success) {
-				this.duration.append(System.nanoTime() - start);
+			if (isFullStatsEnabled() && aggregatingContext.newCount % this.sampleSize == 0) {
+				this.duration.append(System.nanoTime() - aggregatingContext.start);
 			}
 		}
 		else {
 			this.errorCount.incrementAndGet();
 		}
+	}
+
+	protected static class AggregatingHandlerMetricsContext extends DefaultHandlerMetricsContext {
+
+		protected long newCount;
+
+		public AggregatingHandlerMetricsContext(long start, long newCount) {
+			super(start);
+			this.newCount = newCount;
+		}
+
 	}
 
 }

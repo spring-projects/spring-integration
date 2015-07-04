@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.messaging.Message;
 
 /**
  * Default implementation; use the full constructor to customize the moving averages.
@@ -69,7 +68,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	}
 
 	@Override
-	public MetricsContext beforeHandle(Message<?> message) {
+	public MetricsContext beforeHandle() {
 		long start = 0;
 		if (isFullStatsEnabled()) {
 			start = System.nanoTime();
