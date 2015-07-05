@@ -11,6 +11,8 @@
 
 	<annotation-config/>	<!-- Second declaration should not be a problem - see INT-3445 -->
 
+	<beans:bean class="org.springframework.integration.config.annotation.AnnotatedEndpointActivationTests.AnnotatedEndpoint"/>
+
 	<channel id="input"/>
 
 	<channel id="output">

@@ -111,7 +111,6 @@ public class MBeanAttributeFilterTests {
 
 		List<String> keys = new ArrayList<String>(bean.keySet());
 		Collections.sort(keys);
-		System.out.println(keys);
 		assertThat(keys, contains("LoggingEnabled",
 				"MaxSendDuration",
 				"MeanErrorRate",

@@ -23,7 +23,7 @@ import org.springframework.security.access.ConfigAttribute;
 /**
  * Interface to encapsulate {@link ConfigAttribute}s for secured channel
  * send and receive operations.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */

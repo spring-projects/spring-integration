@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,11 +39,16 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StringUtils;
 
@@ -253,6 +261,45 @@ public class ChannelInterceptorTests {
 		ac.close();
 	}
 
+	@Test
+	public void testPollingConsumerWithExecutorInterceptor() throws InterruptedException {
+		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+
+		QueueChannel channel = new QueueChannel();
+
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(2);
+		final List<Message<?>> messages = new ArrayList<>();
+
+		PollingConsumer consumer = new PollingConsumer(channel, new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages.add(message);
+				latch1.countDown();
+				latch2.countDown();
+			}
+
+		});
+
+		testApplicationContext.registerBean("consumer", consumer);
+		testApplicationContext.refresh();
+
+		channel.send(new GenericMessage<>("foo"));
+
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+
+		channel.addInterceptor(new TestExecutorInterceptor());
+		channel.send(new GenericMessage<>("foo"));
+
+		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertEquals(2, messages.size());
+
+		assertEquals("foo", messages.get(0).getPayload());
+		assertEquals("FOO", messages.get(1).getPayload());
+
+		testApplicationContext.close();
+	}
 
 	public static class PreSendReturnsMessageInterceptor extends ChannelInterceptorAdapter {
 		private String foo;
@@ -374,6 +421,7 @@ public class ChannelInterceptorTests {
 		public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex) {
 			this.afterCompletionInvoked = true;
 		}
+
 	}
 
 
@@ -386,6 +434,26 @@ public class ChannelInterceptorTests {
 			counter.incrementAndGet();
 			return false;
 		}
+
 	}
+
+	private static class TestExecutorInterceptor extends ChannelInterceptorAdapter
+			implements ExecutorChannelInterceptor {
+
+		@Override
+		public Message<?> beforeHandle(Message<?> message, MessageChannel channel, MessageHandler handler) {
+			return MessageBuilder.withPayload(((String) message.getPayload()).toUpperCase())
+					.copyHeaders(message.getHeaders())
+					.build();
+		}
+
+		@Override
+		public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
+										Exception ex) {
+
+		}
+
+	}
+
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
+import org.springframework.integration.dispatcher.MessageHandlingTaskDecorator;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -45,25 +47,17 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  * @since 1.0.3
  */
-public class ExecutorChannel extends AbstractSubscribableChannel {
-
-	private volatile UnicastingDispatcher dispatcher;
-
-	private volatile Executor executor;
+public class ExecutorChannel extends AbstractExecutorChannel {
 
 	private volatile boolean failover = true;
 
-	private volatile Integer maxSubscribers;
-
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
-
 
 	/**
 	 * Create an ExecutorChannel that delegates to the provided
 	 * {@link Executor} when dispatching Messages.
 	 * <p>
 	 * The Executor must not be null.
-	 *
 	 * @param executor The executor.
 	 */
 	public ExecutorChannel(Executor executor) {
@@ -75,46 +69,34 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	 * delegates to the provided {@link Executor} when dispatching Messages.
 	 * <p>
 	 * The Executor must not be null.
-	 *
 	 * @param executor The executor.
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
 	public ExecutorChannel(Executor executor, LoadBalancingStrategy loadBalancingStrategy) {
+		super(executor);
 		Assert.notNull(executor, "executor must not be null");
-		this.executor = executor;
-		this.dispatcher = new UnicastingDispatcher(executor);
+		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(executor);
 		if (loadBalancingStrategy != null) {
 			this.loadBalancingStrategy = loadBalancingStrategy;
-			this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
+			unicastingDispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
 		}
+		this.dispatcher = unicastingDispatcher;
 	}
 
 
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.
-	 *
 	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
 		this.failover = failover;
-		this.dispatcher.setFailover(failover);
-	}
-
-	/**
-	 * Specify the maximum number of subscribers supported by the
-	 * channel's dispatcher.
-	 *
-	 * @param maxSubscribers The maximum number of subscribers allowed.
-	 */
-	public void setMaxSubscribers(int maxSubscribers) {
-		this.maxSubscribers = maxSubscribers;
-		this.dispatcher.setMaxSubscribers(maxSubscribers);
+		getDispatcher().setFailover(failover);
 	}
 
 	@Override
 	protected UnicastingDispatcher getDispatcher() {
-		return this.dispatcher;
+		return (UnicastingDispatcher) this.dispatcher;
 	}
 
 	@Override
@@ -124,15 +106,33 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 					new BeanFactoryChannelResolver(this.getBeanFactory()));
 			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);
 		}
-		this.dispatcher = new UnicastingDispatcher(this.executor);
-		this.dispatcher.setFailover(this.failover);
+		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(this.executor);
+		unicastingDispatcher.setFailover(this.failover);
 		if (this.maxSubscribers == null) {
-			this.maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
+			this.maxSubscribers =
+					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
 		}
-		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
+		unicastingDispatcher.setMaxSubscribers(this.maxSubscribers);
 		if (this.loadBalancingStrategy != null) {
-			this.dispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
+			unicastingDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		}
+
+		unicastingDispatcher.setMessageHandlingTaskDecorator(new MessageHandlingTaskDecorator() {
+
+			@Override
+			public Runnable decorate(MessageHandlingRunnable task) {
+				if (ExecutorChannel.this.executorInterceptorsSize > 0) {
+					return new MessageHandlingTask(task);
+				}
+				else {
+					return task;
+				}
+			}
+
+		});
+
+		this.dispatcher = unicastingDispatcher;
 	}
+
 
 }
