@@ -20,8 +20,37 @@
 
 	<outbound-channel-adapter id="securedChannelAdapter" ref="testHandler"/>
 
-	<service-activator input-channel="securedChannelAdapter2" ref="testHandler"/>
+	<outbound-channel-adapter id="securedChannelAdapter2" ref="testHandler">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.security.context.SecurityContextCleanupAdvice"/>
+		</request-handler-advice-chain>
+	</outbound-channel-adapter>
 
 	<outbound-channel-adapter id="unsecuredChannelAdapter" ref="testHandler"/>
+
+	<channel id="securedChannelQueue">
+		<queue/>
+		<interceptors>
+			<beans:bean
+					class="org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor"/>
+		</interceptors>
+	</channel>
+
+	<recipient-list-router input-channel="securedChannelQueue">
+		<poller fixed-delay="100"/>
+		<recipient channel="securedChannelAdapter2"/>
+		<recipient channel="internalChannel"/>
+	</recipient-list-router>
+
+	<chain input-channel="internalChannel" output-channel="resultChannel">
+		<service-activator expression="T(org.springframework.security.core.context.SecurityContextHolder).context"/>
+		<header-enricher>
+			<header name="threadId" expression="T(Thread).currentThread().id"/>
+		</header-enricher>
+	</chain>
+
+	<channel id="resultChannel">
+		<queue/>
+	</channel>
 
 </beans:beans>

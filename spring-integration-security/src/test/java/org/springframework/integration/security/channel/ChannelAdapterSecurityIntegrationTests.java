@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,32 @@
 
 package org.springframework.integration.security.channel;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.security.TestHandler;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.security.SecurityTestUtils;
+import org.springframework.integration.security.TestHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
@@ -41,7 +49,9 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
  * @author Artem Bilan
  */
 @ContextConfiguration
-public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4SpringContextTests {
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+public class ChannelAdapterSecurityIntegrationTests {
 
 	@Autowired
 	@Qualifier("securedChannelAdapter")
@@ -56,6 +66,14 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	MessageChannel unsecuredChannelAdapter;
 
 	@Autowired
+	@Qualifier("securedChannelQueue")
+	MessageChannel securedChannelQueue;
+
+	@Autowired
+	@Qualifier("resultChannel")
+	PollableChannel resultChannel;
+
+	@Autowired
 	TestHandler testConsumer;
 
 
@@ -66,14 +84,12 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 
 
 	@Test(expected = AccessDeniedException.class)
-	@DirtiesContext
 	public void testSecuredWithNotEnoughPermission() {
 		login("bob", "bobspassword", "ROLE_ADMINA");
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
 	}
 
 	@Test
-	@DirtiesContext
 	public void testSecuredWithPermission() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
@@ -81,28 +97,42 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 		assertEquals("Wrong size of message list in target", 2, testConsumer.sentMessages.size());
 	}
 
+	@Test
+	public void testSecurityContextPropagation() {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		this.securedChannelQueue.send(new GenericMessage<String>("test"));
+		Message<?> receive = this.resultChannel.receive(10000);
+		assertNotNull(receive);
+
+		assertNotEquals(Thread.currentThread().getId(), receive.getHeaders().get("threadId"));
+
+		// Without SecurityContext propagation we end up here with: AuthenticationCredentialsNotFoundException
+		assertEquals(1, testConsumer.sentMessages.size());
+
+		assertThat(receive.getPayload(), instanceOf(SecurityContext.class));
+		SecurityContext securityContext = (SecurityContext) receive.getPayload();
+		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the taskScheduler Thread
+		assertNull(securityContext.getAuthentication());
+	}
+
 	@Test(expected = AccessDeniedException.class)
-	@DirtiesContext
-	public void testSecuredWithoutPermision() {
+	public void testSecuredWithoutPermission() {
 		login("bob", "bobspassword", "ROLE_USER");
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	@DirtiesContext
-	public void testSecured2WithoutPermision() {
+	public void testSecured2WithoutPermission() {
 		login("bob", "bobspassword", "ROLE_USER");
 		securedChannelAdapter2.send(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = AuthenticationException.class)
-	@DirtiesContext
 	public void testSecuredWithoutAuthenticating() {
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
 	}
 
 	@Test
-	@DirtiesContext
 	public void testUnsecuredAsAdmin() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
 		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
@@ -110,7 +140,6 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	}
 
 	@Test
-	@DirtiesContext
 	public void testUnsecuredAsUser() {
 		login("bob", "bobspassword", "ROLE_USER");
 		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
@@ -118,7 +147,6 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	}
 
 	@Test
-	@DirtiesContext
 	public void testUnsecuredWithoutAuthenticating() {
 		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());

@@ -16,24 +16,50 @@
 
 package org.springframework.integration.security.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
+import org.springframework.integration.security.context.SecurityContextCleanupChannelInterceptor;
+import org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
@@ -62,6 +88,18 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 	@Autowired
 	MessageChannel unsecuredChannel;
+
+	@Autowired
+	@Qualifier("securedChannelQueue")
+	MessageChannel securedChannelQueue;
+
+	@Autowired
+	@Qualifier("resultChannel")
+	PollableChannel resultChannel;
+
+	@Autowired
+	@Qualifier("securedChannelExecutor")
+	MessageChannel securedChannelExecutor;
 
 	@Autowired
 	TestHandler testConsumer;
@@ -124,6 +162,48 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
+	@Test
+	public void testSecurityContextPropagationQueueChannel() {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		List<ChannelInterceptor> channelInterceptors =
+				((ChannelInterceptorAware) this.securedChannelQueue).getChannelInterceptors();
+
+
+		assertTrue(channelInterceptors.size() == 1);
+		assertThat(channelInterceptors.get(0), instanceOf(SecurityContextPropagationChannelInterceptor.class));
+		this.securedChannelQueue.send(new GenericMessage<String>("test"));
+		Message<?> receive = this.resultChannel.receive(10000);
+		assertNotNull(receive);
+
+		assertNotEquals(Thread.currentThread().getId(), receive.getHeaders().get("threadId"));
+
+		// Without SecurityContext propagation we end up here with: AuthenticationCredentialsNotFoundException
+		assertEquals(1, testConsumer.sentMessages.size());
+
+		assertThat(receive.getPayload(), instanceOf(SecurityContext.class));
+		SecurityContext securityContext = (SecurityContext) receive.getPayload();
+		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the taskScheduler Thread
+		assertNull(securityContext.getAuthentication());
+	}
+
+	@Test
+	public void testSecurityContextPropagationExecutorChannel() {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		this.securedChannelExecutor.send(new GenericMessage<String>("test"));
+		Message<?> receive = this.resultChannel.receive(10000);
+		assertNotNull(receive);
+
+		assertNotEquals(Thread.currentThread().getId(), receive.getHeaders().get("threadId"));
+
+		// Without SecurityContext propagation we end up here with: AuthenticationCredentialsNotFoundException
+		assertEquals(1, testConsumer.sentMessages.size());
+
+		assertThat(receive.getPayload(), instanceOf(SecurityContext.class));
+		SecurityContext securityContext = (SecurityContext) receive.getPayload();
+		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the taskScheduler Thread
+		assertNull(securityContext.getAuthentication());
+	}
+
 
 	private void login(String username, String password, String... roles) {
 		SecurityContext context = SecurityTestUtils.createContext(username, password, roles);
@@ -152,6 +232,62 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		public SubscribableChannel unsecuredChannel() {
 			return new DirectChannel();
 		}
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = {"securedChannelQueue", "securedChannelExecutor"})
+		public ChannelInterceptor securityContextPropagationInterceptor() {
+			return new SecurityContextPropagationChannelInterceptor();
+		}
+
+		@Bean
+		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
+		public PollableChannel securedChannelQueue() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "securedChannelQueue", poller = @Poller(fixedDelay = "1000"))
+		public MessageHandler recipientListRouter() {
+			RecipientListRouter router = new RecipientListRouter();
+			router.setChannels(
+					Arrays.<MessageChannel>asList(securedChannel(),
+							cleanupSecurityContextChannel(),
+							checkSecurityContextChannel()));
+			return router;
+		}
+
+		@Bean
+		@BridgeTo("nullChannel")
+		public SubscribableChannel cleanupSecurityContextChannel() {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.addInterceptor(new SecurityContextCleanupChannelInterceptor());
+			return directChannel;
+		}
+
+		@Bean
+		public SubscribableChannel checkSecurityContextChannel() {
+			return new DirectChannel();
+		}
+
+		@ServiceActivator(inputChannel = "checkSecurityContextChannel", outputChannel = "resultChannel")
+		public Message<SecurityContext> checkSecurityContext(Object payload) {
+			return MessageBuilder.withPayload(SecurityContextHolder.getContext())
+					.setHeader("threadId", Thread.currentThread().getId())
+					.build();
+		}
+
+		@Bean
+		public PollableChannel resultChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
+		@BridgeTo("securedChannelQueue")
+		public SubscribableChannel securedChannelExecutor() {
+			return new ExecutorChannel(Executors.newSingleThreadExecutor());
+		}
+
 
 		@Bean
 		public TestHandler testHandler() {

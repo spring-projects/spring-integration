@@ -37,7 +37,6 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -46,6 +45,7 @@ import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -213,7 +213,6 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			final Destination replyDestination = context.getBean("siInQueueE", Destination.class);
 
 			for (int i = 0; i < 3; i++) {
-				System.out.println("#### " + i);
 				try {
 					gateway.exchange(gateway.exchange(new GenericMessage<String>("foo")));
 				} catch (Exception e) {/*ignore*/}

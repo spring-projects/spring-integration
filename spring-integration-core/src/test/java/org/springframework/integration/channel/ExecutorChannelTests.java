@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,43 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ExecutorChannelTests {
 
@@ -156,6 +174,50 @@ public class ExecutorChannelTests {
 		assertEquals(numberOfMessages, handler2.count.get());
 	}
 
+	@Test
+	public void interceptorWithModifiedMessage() {
+		ExecutorChannel channel = new ExecutorChannel(new SyncTaskExecutor());
+		channel.setBeanFactory(mock(BeanFactory.class));
+		channel.afterPropertiesSet();
+
+		MessageHandler handler = mock(MessageHandler.class);
+		Message<?> expected = mock(Message.class);
+		BeforeHandleInterceptor interceptor = new BeforeHandleInterceptor();
+		interceptor.setMessageToReturn(expected);
+		channel.addInterceptor(interceptor);
+		channel.subscribe(handler);
+		channel.send(new GenericMessage<Object>("foo"));
+		verify(handler).handleMessage(expected);
+		assertEquals(1, interceptor.getCounter().get());
+		assertTrue(interceptor.wasAfterHandledInvoked());
+	}
+
+	@Test
+	public void interceptorWithException() {
+		ExecutorChannel channel = new ExecutorChannel(new SyncTaskExecutor());
+		channel.setBeanFactory(mock(BeanFactory.class));
+		channel.afterPropertiesSet();
+
+		Message<Object> message = new GenericMessage<Object>("foo");
+
+		MessageHandler handler = mock(MessageHandler.class);
+		IllegalStateException expected = new IllegalStateException("Fake exception");
+		willThrow(expected).given(handler).handleMessage(message);
+		BeforeHandleInterceptor interceptor = new BeforeHandleInterceptor();
+		channel.addInterceptor(interceptor);
+		channel.subscribe(handler);
+		try {
+			channel.send(message);
+		}
+		catch (MessageDeliveryException actual) {
+			assertSame(expected, actual.getCause());
+		}
+		verify(handler).handleMessage(message);
+		assertEquals(1, interceptor.getCounter().get());
+		assertTrue(interceptor.wasAfterHandledInvoked());
+	}
+
+
 
 	private static class TestHandler implements MessageHandler {
 
@@ -179,6 +241,42 @@ public class ExecutorChannelTests {
 			this.count.incrementAndGet();
 			this.latch.countDown();
 		}
+	}
+
+	private static class BeforeHandleInterceptor extends ChannelInterceptorAdapter
+			implements ExecutorChannelInterceptor {
+
+		private AtomicInteger counter = new AtomicInteger();
+
+		private volatile boolean afterHandledInvoked;
+
+		private Message<?> messageToReturn;
+
+		public void setMessageToReturn(Message<?> messageToReturn) {
+			this.messageToReturn = messageToReturn;
+		}
+
+		public AtomicInteger getCounter() {
+			return this.counter;
+		}
+
+		public boolean wasAfterHandledInvoked() {
+			return this.afterHandledInvoked;
+		}
+
+		@Override
+		public Message<?> beforeHandle(Message<?> message, MessageChannel channel, MessageHandler handler) {
+			assertNotNull(message);
+			this.counter.incrementAndGet();
+			return (this.messageToReturn != null ? this.messageToReturn : message);
+		}
+
+		@Override
+		public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
+										Exception ex) {
+			this.afterHandledInvoked = true;
+		}
+
 	}
 
 }

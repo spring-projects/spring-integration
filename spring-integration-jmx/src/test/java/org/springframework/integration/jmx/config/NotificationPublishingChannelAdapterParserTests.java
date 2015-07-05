@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Set;
-
 import javax.management.Attribute;
 import javax.management.MBeanException;
 import javax.management.MBeanServer;
@@ -179,7 +178,6 @@ public class NotificationPublishingChannelAdapterParserTests {
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
-			System.out.println("foo");
 			new RuntimeException("foo").printStackTrace();
 			return callback.execute();
 		}

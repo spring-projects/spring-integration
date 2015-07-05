@@ -32,7 +32,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
@@ -52,20 +52,20 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @since 2.0
  */
-final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, SmartLifecycle {
+final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, SmartInitializingSingleton {
 
 	private static final Log logger = LogFactory.getLog(GlobalChannelInterceptorProcessor.class);
 
 
 	private final OrderComparator comparator = new OrderComparator();
 
-	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
+	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors =
+			new LinkedHashSet<GlobalChannelInterceptorWrapper>();
 
-	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
+	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors =
+			new LinkedHashSet<GlobalChannelInterceptorWrapper>();
 
 	private ListableBeanFactory beanFactory;
-
-	private volatile boolean processed;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -74,51 +74,27 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 	}
 
 	@Override
-	public synchronized void start() {
-		if (!this.processed) {
-			Collection<GlobalChannelInterceptorWrapper> interceptors = this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class).values();
-			if (CollectionUtils.isEmpty(interceptors)) {
-				logger.debug("No global channel interceptors.");
-			}
-			else {
-				for (GlobalChannelInterceptorWrapper channelInterceptor : interceptors) {
-					if (channelInterceptor.getOrder() >= 0) {
-						this.positiveOrderInterceptors.add(channelInterceptor);
-					}
-					else {
-						this.negativeOrderInterceptors.add(channelInterceptor);
-					}
-				}
-				Map<String, ChannelInterceptorAware> channels = this.beanFactory.getBeansOfType(ChannelInterceptorAware.class);
-				for (Entry<String, ChannelInterceptorAware> entry : channels.entrySet()) {
-					this.addMatchingInterceptors(entry.getValue(), entry.getKey());
-				}
-			}
-			this.processed = true;
+	public void afterSingletonsInstantiated() {
+		Collection<GlobalChannelInterceptorWrapper> interceptors =
+				this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class).values();
+		if (CollectionUtils.isEmpty(interceptors)) {
+			logger.debug("No global channel interceptors.");
 		}
-	}
-
-	@Override
-	public void stop() {
-	}
-
-	@Override
-	public boolean isRunning() {
-		return false;
-	}
-
-	@Override
-	public int getPhase() {
-		return Integer.MIN_VALUE;
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return true;
-	}
-
-	@Override
-	public void stop(Runnable callback) {
+		else {
+			for (GlobalChannelInterceptorWrapper channelInterceptor : interceptors) {
+				if (channelInterceptor.getOrder() >= 0) {
+					this.positiveOrderInterceptors.add(channelInterceptor);
+				}
+				else {
+					this.negativeOrderInterceptors.add(channelInterceptor);
+				}
+			}
+			Map<String, ChannelInterceptorAware> channels =
+					this.beanFactory.getBeansOfType(ChannelInterceptorAware.class);
+			for (Entry<String, ChannelInterceptorAware> entry : channels.entrySet()) {
+				addMatchingInterceptors(entry.getValue(), entry.getKey());
+			}
+		}
 	}
 
 	/**

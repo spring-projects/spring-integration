@@ -1,4 +1,4 @@
-/* Copyright 2002-2014 the original author or authors.
+/* Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.MessageHandlingRunnable;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link MessageDispatcher} that will attempt to send a
@@ -43,16 +46,35 @@ import org.springframework.messaging.MessageHandler;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 1.0.2
  */
 public class UnicastingDispatcher extends AbstractDispatcher {
+
+	private final MessageHandler dispatchHandler = new MessageHandler() {
+
+		@Override
+		public void handleMessage(Message<?> message) throws MessagingException {
+			doDispatch(message);
+		}
+
+	};
+
+	private final Executor executor;
 
 	private volatile boolean failover = true;
 
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
-	private final Executor executor;
+	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator =
+			new MessageHandlingTaskDecorator() {
 
+				@Override
+				public Runnable decorate(MessageHandlingRunnable task) {
+					return task;
+				}
+
+			};
 
 	public UnicastingDispatcher() {
 		this.executor = null;
@@ -83,18 +105,42 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		this.loadBalancingStrategy = loadBalancingStrategy;
 	}
 
+	public void setMessageHandlingTaskDecorator(MessageHandlingTaskDecorator messageHandlingTaskDecorator) {
+		Assert.notNull(messageHandlingTaskDecorator, "'messageHandlingTaskDecorator' must not be null.");
+		this.messageHandlingTaskDecorator = messageHandlingTaskDecorator;
+	}
+
 	@Override
 	public final boolean dispatch(final Message<?> message) {
 		if (this.executor != null) {
-			this.executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					doDispatch(message);
-				}
-			});
+			Runnable task = createMessageHandlingTask(message);
+			this.executor.execute(task);
 			return true;
 		}
 		return this.doDispatch(message);
+	}
+
+	private Runnable createMessageHandlingTask(final Message<?> message) {
+		MessageHandlingRunnable task = new MessageHandlingRunnable() {
+
+			@Override
+			public void run() {
+				doDispatch(message);
+			}
+
+			@Override
+			public Message<?> getMessage() {
+				return message;
+			}
+
+			@Override
+			public MessageHandler getMessageHandler() {
+				return UnicastingDispatcher.this.dispatchHandler;
+			}
+
+		};
+
+		return this.messageHandlingTaskDecorator.decorate(task);
 	}
 
 	private boolean doDispatch(Message<?> message) {
@@ -107,7 +153,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
 		List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
-		while (success == false && handlerIterator.hasNext()) {
+		while (!success && handlerIterator.hasNext()) {
 			MessageHandler handler = handlerIterator.next();
 			try {
 				handler.handleMessage(message);

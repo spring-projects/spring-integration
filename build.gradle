@@ -551,9 +551,8 @@ project('spring-integration-security') {
 		compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
 			exclude group: 'org.springframework', module: 'spring-support'
 		}
-		compile("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: 'spring-support'
-		}
+
+		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
 	}
 }
 

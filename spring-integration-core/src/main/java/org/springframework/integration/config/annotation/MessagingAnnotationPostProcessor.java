@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,12 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
@@ -79,8 +75,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
-		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware,
-		SmartInitializingSingleton {
+		InitializingBean, EnvironmentAware, SmartInitializingSingleton {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -90,12 +85,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
-
-	private final Set<ApplicationListener<ApplicationEvent>> listeners = new HashSet<ApplicationListener<ApplicationEvent>>();
-
-	private final Set<Lifecycle> lifecycles = new HashSet<Lifecycle>();
-
-	private volatile boolean running = true;
 
 	private final MultiValueMap<String, String> lazyLifecyleRoles = new LinkedMultiValueMap<String, String>();
 
@@ -141,7 +130,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			}
 		}
 		catch (NoSuchBeanDefinitionException e) {
-			logger.error("No lifecyle role controller in context");
+			logger.error("No LifecycleRoleController in the context");
 		}
 	}
 
@@ -154,8 +143,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			return bean;
 		}
 		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
+
 			@Override
-			@SuppressWarnings({ "unchecked", "rawtypes" })
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Map<Class<? extends Annotation>, List<Annotation>> annotationChains =
 						new HashMap<Class<? extends Annotation>, List<Annotation>>();
@@ -181,7 +171,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							catch (NoSuchMethodException e) {
 								throw new IllegalArgumentException("Service methods must be extracted to the service "
 										+ "interface for JdkDynamicProxy. The affected bean is: '" + beanName + "' "
-										+ "and its method: '"  + method + "'", e);
+										+ "and its method: '" + method + "'", e);
 							}
 						}
 						Object result = postProcessor.postProcess(bean, beanName, targetMethod, annotations);
@@ -211,20 +201,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							String endpointBeanName = generateBeanName(beanName, method, annotationType);
 							endpoint.setBeanName(endpointBeanName);
 							beanFactory.registerSingleton(endpointBeanName, endpoint);
-							endpoint.setBeanFactory(beanFactory);
-							try {
-								endpoint.afterPropertiesSet();
-							}
-							catch (Exception e) {
-								throw new BeanInitializationException("failed to initialize annotated component", e);
-							}
-							lifecycles.add(endpoint);
-							if (endpoint.isAutoStartup()) {
-								endpoint.start();
-							}
-							if (result instanceof ApplicationListener) {
-								listeners.add((ApplicationListener) result);
-							}
+							beanFactory.initializeBean(endpoint, endpointBeanName);
+
 							Role role = AnnotationUtils.findAnnotation(method, Role.class);
 							if (role != null) {
 								lazyLifecyleRoles.add(role.value(), endpointBeanName);
@@ -239,7 +217,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	/**
-	 * @param method the method.
+	 * @param method         the method.
 	 * @param annotationType the annotation type.
 	 * @return the hierarchical list of annotations in top-bottom order.
 	 */
@@ -258,7 +236,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
-			List<Annotation> annotationChain, Set<Annotation> visited) {
+											List<Annotation> annotationChain, Set<Annotation> visited) {
 		if (ann.annotationType().equals(annotationType)) {
 			annotationChain.add(ann);
 			return true;
@@ -281,57 +259,16 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		return (targetClass != null) ? targetClass : bean.getClass();
 	}
 
-	private String generateBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
-		String baseName = originalBeanName + "." + method.getName() + "." + ClassUtils.getShortNameAsProperty(annotationType);
+	private String generateBeanName(String originalBeanName, Method method,
+									Class<? extends Annotation> annotationType) {
+		String baseName = originalBeanName + "." + method.getName() + "."
+				+ ClassUtils.getShortNameAsProperty(annotationType);
 		String name = baseName;
 		int count = 1;
 		while (this.beanFactory.containsBean(name)) {
 			name = baseName + "#" + (++count);
 		}
 		return name;
-	}
-
-
-	@Override
-	public void onApplicationEvent(ApplicationEvent event) {
-		for (ApplicationListener<ApplicationEvent> listener : listeners) {
-			try  {
-				listener.onApplicationEvent(event);
-			}
-			catch (ClassCastException e) {
-				if (logger.isWarnEnabled() && event != null) {
-					logger.warn("ApplicationEvent of type [" + event.getClass() +
-							"] not accepted by ApplicationListener [" + listener + "]");
-				}
-			}
-		}
-	}
-
-	// Lifecycle implementation
-
-	@Override
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	@Override
-	public void start() {
-		for (Lifecycle lifecycle : this.lifecycles) {
-			if (!lifecycle.isRunning()) {
-				lifecycle.start();
-			}
-		}
-		this.running = true;
-	}
-
-	@Override
-	public void stop() {
-		for (Lifecycle lifecycle : this.lifecycles) {
-			if (lifecycle.isRunning()) {
-				lifecycle.stop();
-			}
-		}
-		this.running = false;
 	}
 
 }
