@@ -62,3 +62,23 @@ The following configuration is an example of how to do this:
 The `value` of the idempotent entry may be some expiration date, after which that entry should be removed from _Metadata Store_ by some scheduled reaper.
 
 Also see <<idempotent-receiver>>.
+
+[[metadatastore-listener]]
+==== MetadataStoreListener
+
+Some metadata stores (currently only zookeeper) support registering a listener to receive events when items change.
+
+[source, java]
+----
+public interface MetadataStoreListener {
+
+	void onAdd(String key, String value);
+
+	void onRemove(String key, String oldValue);
+
+	void onUpdate(String key, String newValue);
+}
+----
+
+See the javadocs for more information.
+The `MetadataStoreListenerAdapter` can be subclassed if you are only interested in a subset of events.

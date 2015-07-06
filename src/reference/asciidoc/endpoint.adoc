@@ -611,7 +611,7 @@ private SmartLifecycleRoleController roleController;
 ...
 ----
 
-Each of these adds the endpoing to the role `cluster`.
+Each of these adds the endpoint to the role `cluster`.
 
 Invoking `roleController.startLifecyclesInRole("cluster")` (and the corresponding `stop...` method) will start/stop
 the endpoints.
@@ -620,6 +620,6 @@ NOTE: Any object implementing `SmartLifecycle` can be programmatically added, no
 
 The `SmartLifecycleRoleController` implements `ApplicationListener<AbstractLeaderEvent>` and it will automatically
 start/stop its configured `SmartLifecycle` objects when leadership is granted/revoked (when some bean publishes
-`OnGrantedEvent` or `OnRevokedEvent` respectively.
+`OnGrantedEvent` or `OnRevokedEvent` respectively).
 
 See <<zk-leadership>> for more information about leadership election and events.

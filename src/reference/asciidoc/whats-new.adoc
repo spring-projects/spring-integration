@@ -42,7 +42,7 @@ Zookeeper support has been added to the framework to assist when running on a cl
 
 * ZookeeperMetadataStore
 * ZookeeperLockRegistry
-* Zookeeper Leadership (start/stop adapters based on leadership).
+* Zookeeper Leadership
 
 See <<zookeeper>> for more information.
 
