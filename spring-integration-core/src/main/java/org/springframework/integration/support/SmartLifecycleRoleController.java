@@ -129,8 +129,9 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		if (this.lazyLifecycles.size() > 0) {
 			addLazyLifecycles();
 		}
-		List<SmartLifecycle> lifecycles = new ArrayList<SmartLifecycle>(this.lifecycles.get(role));
+		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
 		if (lifecycles != null) {
+			lifecycles = new ArrayList<SmartLifecycle>(lifecycles);
 			Collections.sort(lifecycles, new Comparator<SmartLifecycle>() {
 
 				@Override
@@ -159,8 +160,9 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		if (this.lazyLifecycles.size() > 0) {
 			addLazyLifecycles();
 		}
-		List<SmartLifecycle> lifecycles = new ArrayList<SmartLifecycle>(this.lifecycles.get(role));
+		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
 		if (lifecycles != null) {
+			lifecycles = new ArrayList<SmartLifecycle>(lifecycles);
 			Collections.sort(lifecycles, new Comparator<SmartLifecycle>() {
 
 				@Override

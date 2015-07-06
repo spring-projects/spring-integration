@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
@@ -44,6 +45,8 @@ public class LeaderListenerParser extends AbstractBeanDefinitionParser {
 		builder.addConstructorArgReference(element.getAttribute("client"));
 		builder.addConstructorArgValue(candidateBuilder.getBeanDefinition());
 		builder.addConstructorArgValue(element.getAttribute("path"));
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 
 		BeanDefinitionBuilder publisherBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(DefaultLeaderEventPublisher.class);

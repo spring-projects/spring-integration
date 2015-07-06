@@ -75,7 +75,7 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 
 	@Override
 	public String toString() {
-		return "AbstractLeaderEvent [role=" + role + ", context=" + context + ", source=" + source
+		return getClass().getSimpleName() + " [role=" + role + ", context=" + context + ", source=" + source
 				+ "]";
 	}
 

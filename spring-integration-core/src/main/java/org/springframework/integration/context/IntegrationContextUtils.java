@@ -77,7 +77,7 @@ public abstract class IntegrationContextUtils {
 	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
 			"toStringFriendlyJsonNodeToStringConverter";
 
-	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "lifecycleRoleController";
+	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

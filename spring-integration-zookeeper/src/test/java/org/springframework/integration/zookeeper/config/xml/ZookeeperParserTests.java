@@ -15,7 +15,9 @@
  */
 package org.springframework.integration.zookeeper.config.xml;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,14 +50,24 @@ public class ZookeeperParserTests extends ZookeeperTestSupport {
 	@Autowired
 	private SourcePollingChannelAdapter adapter;
 
+	@Autowired
+	private CuratorFramework client;
+
 	@Test
 	public void test() throws Exception {
+		assertFalse(this.initiator.isAutoStartup());
+		assertEquals(1234, this.initiator.getPhase());
+		assertEquals("/siNamespaceTest", TestUtils.getPropertyValue(this.initiator, "namespace"));
+		assertEquals("cluster", TestUtils.getPropertyValue(this.initiator, "candidate.role"));
+		assertSame(this.client, TestUtils.getPropertyValue(this.initiator, "client"));
+
+		this.initiator.start();
 		int n = 0;
 		while (n++ < 100 && !this.adapter.isRunning()) {
 			Thread.sleep(100);
 		}
 		assertTrue(this.adapter.isRunning());
-		initiator.stop();
+		this.initiator.stop();
 		n = 0;
 		while (n++ < 100 && this.adapter.isRunning()) {
 			Thread.sleep(100);
