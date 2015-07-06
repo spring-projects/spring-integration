@@ -20,8 +20,8 @@ import org.springframework.integration.support.management.ExponentialMovingAvera
 import org.springframework.integration.support.management.MetricsContext;
 
 /**
- * An implementation of {@link MessageHandlerMetrics} that averages response times over a
- * sample, to avoid fetching the system time twice for every message.
+ * An implementation of {@link MessageHandlerMetrics} that aggregates the total response
+ * time over a sample, to avoid fetching the system time twice for every message.
  *
  * @author Gary Russell
  * @since 2.0
@@ -41,6 +41,7 @@ public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetri
 	/**
 	 * Construct an instance with the default moving average window (10).
 	 * @param name the name.
+	 * @param sampleSize the sample size over which to aggregate the duration.
 	 */
 	public AggregatingMessageHandlerMetrics(String name, int sampleSize) {
 		super(name);
@@ -53,6 +54,7 @@ public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetri
 	 * endpoints).
 	 * @param name the name.
 	 * @param duration an {@link ExponentialMovingAverage} for calculating the duration.
+	 * @param sampleSize the sample size over which to aggregate the duration.
 	 */
 	public AggregatingMessageHandlerMetrics(String name, ExponentialMovingAverage duration, int sampleSize) {
 		super(name, duration);

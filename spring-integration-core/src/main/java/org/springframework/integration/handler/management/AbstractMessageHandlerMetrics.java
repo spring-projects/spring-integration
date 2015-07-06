@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.support.management.ConfigurableMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.messaging.Message;
 
 /**
  * Abstract base class for handler metrics implementations.
@@ -63,7 +62,7 @@ public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetri
 
 	/**
 	 * End a handle event
-	 * @param context the context from the previous {@link #beforeHandle(Message)}.
+	 * @param context the context from the previous {@link #beforeHandle()}.
 	 * @param success true for success, false otherwise.
 	 */
 	public abstract void afterHandle(MetricsContext context, boolean success);

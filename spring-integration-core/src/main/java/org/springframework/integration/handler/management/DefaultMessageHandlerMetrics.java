@@ -154,11 +154,11 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 		return this.duration.getStatistics();
 	}
 
-	public static class DefaultHandlerMetricsContext implements MetricsContext {
+	protected static class DefaultHandlerMetricsContext implements MetricsContext {
 
-		public final long start;
+		protected final long start;
 
-		public DefaultHandlerMetricsContext(long start) {
+		protected DefaultHandlerMetricsContext(long start) {
 			this.start = start;
 		}
 

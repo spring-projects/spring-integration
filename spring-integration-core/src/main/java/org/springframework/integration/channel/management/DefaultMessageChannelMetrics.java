@@ -255,7 +255,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 		protected final long start;
 
-		public DefaultChannelMetricsContext(long start) {
+		protected DefaultChannelMetricsContext(long start) {
 			this.start = start;
 		}
 

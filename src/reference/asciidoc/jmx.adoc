@@ -513,7 +513,7 @@ In addition to the default metrics factory described above, the framework provid
 This factory creates `AggregatingMessageChannelMetrics` and `AggregatingMessageHandlerMetrics`.
 In very high volume scenarios, the cost of capturing statistics can be prohibitive (2 calls to the system time and
 storing the data).
-The aggregating metrics aggregates the response time over a sample of messages.
+The aggregating metrics aggregate the response time over a sample of messages.
 This can save significant CPU time.
 
 CAUTION: The statistics will be skewed if messages arrive in bursts.
