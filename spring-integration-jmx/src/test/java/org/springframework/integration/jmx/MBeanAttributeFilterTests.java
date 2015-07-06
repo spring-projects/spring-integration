@@ -15,12 +15,16 @@
  */
 package org.springframework.integration.jmx;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -105,11 +109,18 @@ public class MBeanAttributeFilterTests {
 		Map<String, Object> bean = (Map<String, Object>) payload
 				.get(domain + ":name=in,type=MessageChannel");
 
-		assertEquals(9, bean.size());
-		assertFalse(bean.containsKey("SendCount"));
-		assertFalse(bean.containsKey("SendErrorCount"));
-		assertFalse(bean.containsKey("SendCountLong"));
-		assertFalse(bean.containsKey("SendErrorCountLong"));
+		List<String> keys = new ArrayList<String>(bean.keySet());
+		Collections.sort(keys);
+		System.out.println(keys);
+		assertThat(keys, contains("LoggingEnabled",
+				"MaxSendDuration",
+				"MeanErrorRate",
+				"MeanErrorRatio",
+				"MeanSendDuration",
+				"MeanSendRate",
+				"MinSendDuration",
+				"StandardDeviationSendDuration",
+				"TimeSinceLastSend"));
 
 		adapterNot.stop();
 	}

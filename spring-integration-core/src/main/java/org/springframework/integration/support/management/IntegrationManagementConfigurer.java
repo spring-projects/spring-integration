@@ -21,8 +21,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
-import reactor.core.support.Assert;
+import org.springframework.util.Assert;
 
 /**
  * Configures beans that implement {@link IntegrationManagement}.
