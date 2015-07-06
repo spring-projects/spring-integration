@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mqtt.config.xml;
+package org.springframework.integration.zookeeper.config.xml;
 
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
- * The namespace handler for the MqttAdapter namespace
- *
  * @author Gary Russell
- * @since 4.0
+ * @since 4.2
  *
  */
-public class MqttNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public class ZookeeperNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	@Override
 	public void init() {
-		this.registerBeanDefinitionParser("message-driven-channel-adapter",  new MqttMessageDrivenChannelAdapterParser());
-		this.registerBeanDefinitionParser("outbound-channel-adapter", new MqttOutboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("leader-listener",  new LeaderListenerParser());
 	}
 
 }

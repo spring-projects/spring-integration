@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -72,6 +73,7 @@ public abstract class IntegrationNamespaceUtils {
 	public static final String REQUEST_HANDLER_ADVICE_CHAIN = "request-handler-advice-chain";
 	public static final String AUTO_STARTUP = "auto-startup";
 	public static final String PHASE = "phase";
+	public static final String ROLE = "role";
 
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
@@ -545,6 +547,21 @@ public abstract class IntegrationNamespaceUtils {
 			}
 			candidates.put(handlerBeanName, channelName);
 		}
+	}
+
+	public static void putLifecycleInRole(String role, String beanName, ParserContext parserContext) {
+		BeanDefinitionRegistry registry = parserContext.getRegistry();
+		IntegrationConfigUtils.registerRoleControllerDefinitionIfNecessary(registry);
+		BeanDefinition controllerDef = registry.getBeanDefinition(
+				IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER);
+		@SuppressWarnings("unchecked")
+		ManagedList<String> roles = (ManagedList<String>) controllerDef.getConstructorArgumentValues()
+				.getArgumentValue(0, ManagedList.class).getValue();
+		@SuppressWarnings("unchecked")
+		ManagedList<BeanReference> lifecycles = (ManagedList<BeanReference>) controllerDef.getConstructorArgumentValues()
+				.getArgumentValue(1, ManagedList.class).getValue();
+		roles.add(role);
+		lifecycles.add(new RuntimeBeanReference(beanName));
 	}
 
 }

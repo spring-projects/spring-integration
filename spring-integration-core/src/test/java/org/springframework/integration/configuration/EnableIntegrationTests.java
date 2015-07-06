@@ -74,6 +74,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.annotation.Role;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.AbstractMessageChannel;
@@ -88,6 +89,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
@@ -96,6 +98,7 @@ import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -118,6 +121,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.util.MultiValueMap;
 
 import reactor.Environment;
 import reactor.rx.Promise;
@@ -139,6 +143,9 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private PollableChannel input;
+
+	@Autowired
+	private SmartLifecycleRoleController roleController;
 
 	@Autowired
 	@Qualifier("annotationTestService.handle.serviceActivator")
@@ -251,6 +258,10 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private MessageChannel controlBusChannel;
+
+	@Autowired
+	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
+	private AbstractEndpoint sendAsyncHandler;
 
 	@Test
 	public void testAnnotatedServiceActivator() {
@@ -588,6 +599,21 @@ public class EnableIntegrationTests {
 		assertThat(integers, Matchers.<Integer>contains(2, 4, 6, 8, 10));
 	}
 
+	@Test
+	public void testRoles() {
+		this.roleController.stopLifecyclesInRole("foo");
+		@SuppressWarnings("unchecked")
+		MultiValueMap<String, SmartLifecycle> lifecycles = TestUtils.getPropertyValue(this.roleController,
+				"lifecycles", MultiValueMap.class);
+		assertEquals(2, lifecycles.size());
+		assertEquals(2, lifecycles.get("foo").size());
+		assertEquals(1, lifecycles.get("bar").size());
+		assertFalse(this.serviceActivatorEndpoint.isRunning());
+		assertFalse(this.sendAsyncHandler.isRunning());
+		assertEquals(2, lifecycles.size());
+		assertEquals(2, lifecycles.get("foo").size());
+	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -849,6 +875,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "sendAsyncChannel")
+		@Role("foo")
 		public MessageHandler sendAsyncHandler() {
 			return new MessageHandler() {
 
@@ -863,6 +890,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "controlBusChannel")
+		@Role("bar")
 		public ExpressionControlBusFactoryBean controlBus() throws Exception {
 			return new ExpressionControlBusFactoryBean();
 		}
@@ -1031,6 +1059,7 @@ public class EnableIntegrationTests {
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.interval}"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
+		@Role("foo")
 		public String handle(String payload) {
 			return payload.toUpperCase();
 		}

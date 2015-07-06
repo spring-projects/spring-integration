@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -35,6 +36,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
@@ -49,15 +52,20 @@ import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
+import org.springframework.integration.annotation.Role;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -71,7 +79,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
-		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware {
+		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware,
+		SmartInitializingSingleton {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -88,6 +97,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private volatile boolean running = true;
 
+	private final MultiValueMap<String, String> lazyLifecyleRoles = new LinkedMultiValueMap<String, String>();
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -118,6 +128,21 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
+	}
+
+	@Override
+	public void afterSingletonsInstantiated() {
+		SmartLifecycleRoleController roleController;
+		try {
+			roleController = beanFactory.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
+					SmartLifecycleRoleController.class);
+			for (Entry<String, List<String>> entry : this.lazyLifecyleRoles.entrySet()) {
+				roleController.addLifecyclesToRole(entry.getKey(), entry.getValue());
+			}
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			logger.error("No lifecyle role controller in context");
+		}
 	}
 
 	@Override
@@ -199,6 +224,10 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							}
 							if (result instanceof ApplicationListener) {
 								listeners.add((ApplicationListener) result);
+							}
+							Role role = AnnotationUtils.findAnnotation(method, Role.class);
+							if (role != null) {
+								lazyLifecyleRoles.add(role.value(), endpointBeanName);
 							}
 						}
 					}
