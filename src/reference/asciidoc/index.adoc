@@ -103,6 +103,8 @@ include::./ws.adoc[]
 include::./xml.adoc[]
 
 include::./xmpp.adoc[]
+
+include::./zookeeper.adoc[]
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 
 [[spring-integration-appendices]]
