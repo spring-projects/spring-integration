@@ -11,7 +11,9 @@
 
 	<context:mbean-server />
 
-	<int-jmx:mbean-export metrics-factory="aggregatingMetricsFactory" />
+	<int-jmx:mbean-export />
+
+	<int:management metrics-factory="aggregatingMetricsFactory" default-counts-enabled="true" default-stats-enabled="true" />
 
 	<int:channel id="input" />
 
@@ -21,7 +23,8 @@
 		<int:queue />
 	</int:channel>
 
-	<bean id="aggregatingMetricsFactory" class="org.springframework.integration.monitor.AggregatingMetricsFactory">
+	<bean id="aggregatingMetricsFactory"
+			class="org.springframework.integration.support.management.AggregatingMetricsFactory">
 		<constructor-arg value="1000" />
 	</bean>
 

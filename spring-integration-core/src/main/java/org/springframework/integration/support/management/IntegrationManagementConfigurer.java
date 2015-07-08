@@ -88,9 +88,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	/**
 	 * Set the array of simple patterns for component names for which message counts will
-	 * be enabled (defaults to '*'). Only patterns that also match
-	 * {@link #setComponentNamePatterns(String[]) componentNamePatterns} will be
-	 * considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
+	 * be enabled (defaults to '*').
+	 * Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
 	 * for those components that support counters (channels, message handlers, etc).
 	 * This is the initial setting only, individual components can have counts
 	 * enabled/disabled at runtime. May be overridden by an entry in
@@ -110,9 +109,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	 * Set the array of simple patterns for component names for which message statistics
 	 * will be enabled (response times, rates etc), as well as counts (a positive match
 	 * here overrides {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns},
-	 * you can't have statistics without counts). (defaults to '*'). Only patterns that
-	 * also match {@link #setComponentNamePatterns(String[]) componentNamePatterns} will
-	 * be considered. Enables statistics for those components that support statistics
+	 * you can't have statistics without counts). (defaults to '*').
+	 * Enables statistics for those components that support statistics
 	 * (channels - when sending, message handlers, etc). This is the initial setting only,
 	 * individual components can have stats enabled/disabled at runtime. If a pattern
 	 * starts with `!`, stats (and counts) are disabled for matches. Note: this means that
@@ -144,7 +142,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	/**
 	 * Set whether managed components maintain message statistics by default.
 	 * Defaults to false, unless an Integration MBean Exporter is configured.
-	 * @param defaultCountsEnabled true to enable.
+	 * @param defaultStatsEnabled true to enable.
 	 */
 	public void setDefaultStatsEnabled(Boolean defaultStatsEnabled) {
 		this.defaultStatsEnabled = defaultStatsEnabled;

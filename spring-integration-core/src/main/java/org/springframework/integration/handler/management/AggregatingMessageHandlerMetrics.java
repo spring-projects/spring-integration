@@ -20,7 +20,8 @@ import org.springframework.integration.support.management.ExponentialMovingAvera
 import org.springframework.integration.support.management.MetricsContext;
 
 /**
- * An implementation of {@link MessageHandlerMetrics} that aggregates the total response
+ * An implementation of {@link org.springframework.integration.support.management.MessageHandlerMetrics}
+ * that aggregates the total response
  * time over a sample, to avoid fetching the system time twice for every message.
  *
  * @author Gary Russell

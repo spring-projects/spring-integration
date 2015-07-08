@@ -33,7 +33,7 @@ import org.springframework.integration.support.management.IntegrationManagementC
  * bean is defined under the name {@code integrationManagementConfigurer}.
  *
  * @author Gary Russell
- * @since 4.0
+ * @since 4.2
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -50,7 +50,9 @@ public @interface EnableIntegrationManagement {
 	 * overridden by an entry in {@link #statsEnabled() statsEnabled} which is additional
 	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
 	 * for matches. For components that match multiple patterns, the first pattern wins.
-	 * Disabling counts at runtime also disables stats. Overrides
+	 * Disabling counts at runtime also disables stats.
+	 * Defaults to no components, unless JMX is enabled in which case, defaults to all
+	 * components. Overrides {@link #defaultCountsEnabled()} for matching bean names.
 	 * @return the patterns.
 	 * @since 4.2
 	 */
